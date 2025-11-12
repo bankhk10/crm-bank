@@ -74,7 +74,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         <path
           d="M250,0 C300,100 600,100 700,200 C800,300 450,500 800,600 L800,0 Z"
           fill="#b92626"
-          opacity="0.3"
+          // opacity="0.3"
         />
       </svg>
 
@@ -83,9 +83,9 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 300 300"
-        className="pointer-events-none absolute bottom-0 left-0 w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] z-0 opacity-80"
+        className="pointer-events-none absolute bottom-0 left-0 w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] z-0 "
       >
-        <circle cx="30" cy="250" r="110" fill="#b92626" />
+        <circle cx="30" cy="250" r="115" fill="#b92626" />
         <circle cx="30" cy="250" r="90" fill="#f7f9fb" />
         <circle cx="30" cy="250" r="70" fill="#98a0ad" />
       </svg>
