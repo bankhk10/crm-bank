@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
+  "@fortawesome/fontawesome-svg-core": "^6.5.0",
+  "@fortawesome/free-solid-svg-icons": "^6.5.0",
+  "@fortawesome/react-fontawesome": "^0.2.0",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
