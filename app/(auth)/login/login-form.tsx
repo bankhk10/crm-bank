@@ -62,7 +62,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   );
 
   return (
-    <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#f7f9fb] py-8">
+    <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#e0e0e0] py-8">
       {/* 🔴 Background Top-Right (project-wide style: full inset background, subtle) */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
