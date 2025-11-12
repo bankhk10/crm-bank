@@ -85,9 +85,9 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         viewBox="0 0 300 300"
         className="pointer-events-none absolute bottom-0 left-0 w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] z-0 opacity-80"
       >
-        <circle cx="50" cy="250" r="150" fill="#b92626" />
-        <circle cx="50" cy="250" r="120" fill="#f7f9fb" />
-        <circle cx="50" cy="250" r="100" fill="#98a0ad" />
+        <circle cx="30" cy="250" r="110" fill="#b92626" />
+        <circle cx="30" cy="250" r="90" fill="#f7f9fb" />
+        <circle cx="30" cy="250" r="70" fill="#98a0ad" />
       </svg>
 
       {/* 🧭 Login Card */}
