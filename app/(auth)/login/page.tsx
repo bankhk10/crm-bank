@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import LoginForm from "./login-form";
 import { auth } from "@/lib/auth";
 import { getDefaultRouteForRole } from "@/lib/rbac";
+import { safeRedirect } from "@/lib/safe-redirect";
 
 interface LoginPageProps {
   searchParams?: Record<string, string | string[] | undefined>;
@@ -18,21 +19,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       : searchParams;
 
   const rawCallback = resolvedSearchParams?.callbackUrl;
-  const callbackUrl = typeof rawCallback === "string" ? rawCallback : undefined;
+  const callbackUrl = safeRedirect(typeof rawCallback === "string" ? rawCallback : undefined, undefined);
 
   if (session?.user) {
     redirect(callbackUrl ?? getDefaultRouteForRole(session.user.role));
   }
 
-  return (
-    <section className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-sm space-y-4 rounded-lg border p-6 shadow-sm">
-        <header className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold">Sign in</h1>
-          <p className="text-sm text-muted-foreground">Access your CRM workspace.</p>
-        </header>
-        <LoginForm callbackUrl={callbackUrl} />
-      </div>
-    </section>
-  );
+  // Render the LoginForm directly so it can control full-viewport layout
+  return <LoginForm callbackUrl={callbackUrl} />;
 }
