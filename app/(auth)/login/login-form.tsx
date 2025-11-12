@@ -13,7 +13,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
-export default function LoginPage() {
+interface LoginFormProps {
+  callbackUrl?: string | null;
+}
+
+export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,7 +46,7 @@ export default function LoginPage() {
         email,
         password,
         remember: remember ? "on" : "off",
-        callbackUrl: "/dashboard",
+        callbackUrl: callbackUrl ?? "/dashboard",
       });
 
       setIsSubmitting(false);
