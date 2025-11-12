@@ -58,25 +58,28 @@ export default function LoginPage() {
   );
 
   return (
-    <main className="relative flex items-center justify-center w-screen h-screen overflow-hidden bg-[#f7f9fb]">
-      {/* 🔴 Background Top-Right */}
+    <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#f7f9fb] py-8">
+      {/* 🔴 Background Top-Right (project-wide style: full inset background, subtle) */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 800 600"
         preserveAspectRatio="none"
-        className="absolute top-0 right-0 w-full h-full md:w-[80vw] md:h-[80vh] z-0"
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       >
         <path
           d="M250,0 C300,100 600,100 700,200 C800,300 450,500 800,600 L800,0 Z"
           fill="#b92626"
+          opacity="0.3"
         />
       </svg>
 
       {/* 🔴 Background Bottom-Left */}
+      {/* Bottom-left decorative SVG (smaller on mobile, subtle) */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 300 300"
-        className="absolute bottom-0 left-0 w-[70vw] h-[70vw] md:w-[40vw] md:h-[40vw] z-0"
+        className="pointer-events-none absolute bottom-0 left-0 w-[60vw] h-[60vw] md:w-[40vw] md:h-[40vw] z-0 opacity-80"
       >
         <circle cx="50" cy="250" r="150" fill="#b92626" />
         <circle cx="50" cy="250" r="120" fill="#f7f9fb" />
@@ -84,12 +87,12 @@ export default function LoginPage() {
       </svg>
 
       {/* 🧭 Login Card */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-md px-6 sm:px-8">
-        <Card className="p-8 sm:p-10 w-full rounded-2xl shadow-xl bg-white/90 backdrop-blur-md border border-gray-100">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full px-4 sm:px-6">
+        <Card className="p-6 sm:p-8 md:p-10 w-full max-w-md sm:max-w-lg md:max-w-xl rounded-2xl shadow-xl bg-white/95 backdrop-blur-md border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* 🧩 Logo + Title */}
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 relative rounded-lg overflow-hidden bg-gray-100 shadow-md">
+              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 relative rounded-lg overflow-hidden bg-gray-100 shadow-md">
                 <Image
                   src="/images/logo.png"
                   alt="CS ONE"
@@ -119,34 +122,40 @@ export default function LoginPage() {
 
             {/* 👤 Email */}
             <div>
-              <label className="text-xs font-medium text-gray-700">
+              <label htmlFor="email" className="text-xs font-medium text-gray-700">
                 USERNAME
               </label>
               <Input
+                id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
+                aria-label="email"
                 required
-                className="mt-1 rounded-full h-11 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828]"
+                className="mt-1 rounded-full h-11 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828] w-full"
               />
             </div>
 
             {/* 🔒 Password */}
             <div>
-              <label className="text-xs font-medium text-gray-700">
+              <label htmlFor="password" className="text-xs font-medium text-gray-700">
                 PASSWORD
               </label>
               <div className="relative mt-1">
                 <Input
+                  id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
+                  aria-label="password"
                   required
-                  className="rounded-full h-11 pr-12 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828]"
+                  className="rounded-full h-11 pr-12 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828] w-full"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                   className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-600 transition-all duration-200 hover:text-gray-800"
                 >
                   <FontAwesomeIcon
