@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Prompt } from "next/font/google";
 import { useCallback, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -12,13 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
-
-const prompt = Prompt({
-  weight: ["400", "500", "700"],
-  subsets: ["thai", "latin"],
-});
-
 interface LoginFormProps {
   callbackUrl?: string | null;
 }
@@ -68,12 +60,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   );
 
   return (
-    <main
-      className={cn(
-        prompt.className,
-        "relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#e0e0e0] py-8"
-      )}
-    >
+    <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#e0e0e0] py-8">
       {/* 🔴 Background Top-Right (project-wide style: full inset background, subtle) */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
