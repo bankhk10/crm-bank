@@ -69,7 +69,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
   return (
     <aside
       className={
-        "relative hidden w-64 shrink-0 bg-[#b92626] text-white md:block " + (className ? className : "")
+       "w-64 shrink-0 bg-[#b92626] text-white " + (className ? className : "")
       }
     >
       {/* Mobile close button */}
