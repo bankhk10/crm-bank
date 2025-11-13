@@ -36,23 +36,32 @@ export default function DashboardShell({
           />
         </div>
 
-        {/* Mobile sidebar overlay */}
-        {isSidebarOpen && (
+        {/* Mobile sidebar overlay with slide-in transition */}
+        <div
+          className={`fixed inset-0 z-50 md:hidden ${
+            isSidebarOpen ? "" : "pointer-events-none"
+          }`}
+          role="dialog"
+          aria-modal
+        >
+          {/* Backdrop: fades in/out */}
           <div
-            className="fixed inset-0 z-50 md:hidden"
-            role="dialog"
-            aria-modal
+            className={`absolute inset-0 bg-black transition-opacity duration-300 ease-in-out ${
+              isSidebarOpen ? "opacity-40 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden
+          />
+
+          {/* Sidebar panel: slides from left */}
+          <div
+            className={`absolute inset-y-0 left-0 w-64 transform bg-[#b92626] transition-transform duration-300 ease-in-out ${
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           >
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setIsSidebarOpen(false)}
-              aria-hidden
-            />
-            <div className="absolute inset-y-0 left-0 flex w-64 bg-[#b92626]">
-              <Sidebar role={role as any} className="block md:hidden" />
-            </div>
+            <Sidebar role={role as any} className="block md:hidden" onClose={() => setIsSidebarOpen(false)} />
           </div>
-        )}
+        </div>
 
         <main className="flex-1 min-h-0 overflow-hidden">
           <div className="bg-gray-100 min-h-full rounded-tl-3xl p-4 md:p-6">

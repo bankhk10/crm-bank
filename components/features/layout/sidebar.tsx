@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, Fragment } from "react";
+import { X } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { Role } from "@prisma/client";
 import { ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2 } from "lucide-react";
@@ -51,9 +52,10 @@ export const navigationItems: SidebarNavItem[] = [
 interface SidebarProps {
   role: Role;
   className?: string;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ role, className }: SidebarProps) {
+export default function Sidebar({ role, className, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const items = navigationItems.filter((item) => item.roles.includes(role));
@@ -67,9 +69,20 @@ export default function Sidebar({ role, className }: SidebarProps) {
   return (
     <aside
       className={
-        "hidden w-64 shrink-0 bg-[#b92626] text-white md:block " + (className ? className : "")
+        "relative hidden w-64 shrink-0 bg-[#b92626] text-white md:block " + (className ? className : "")
       }
     >
+      {/* Mobile close button */}
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="md:hidden absolute top-3 right-3 p-2 rounded-md text-white hover:bg-white/10"
+          aria-label="Close menu"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
       <div className="px-12 py-5">
         <Link href="/" className="block w-full">
           <Image
