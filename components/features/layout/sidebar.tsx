@@ -109,12 +109,14 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                   type="button"
                   onClick={() => setOpenKey((k) => (k === item.href ? null : item.href))}
                   className={
-                    "group flex w-full items-center gap-2 rounded-md px-3 py-2 text-left transition " +
-                    (activeParent ? "bg-[#991b1b]" : "hover:bg-[#991b1b]")
+                    "group flex w-full items-center gap-2 rounded-md px-4 py-3 text-left transition " +
+                    (activeParent
+                      ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                      : "hover:bg-[#991b1b]")
                   }
                 >
                   <span className="text-white/90">{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
+                  <span className="flex-1 pl-1">{item.label}</span>
                   {open ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
@@ -130,14 +132,14 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                           key={child.href}
                           href={child.href}
                           className={
-                            "flex items-center justify-between rounded px-3 py-2 transition " +
+                            "flex items-center justify-between rounded px-4 py-3 transition " +
                             (childActive
-                              ? "bg-[#7f1515] text-white"
+                              ? "bg-[#7f1515] rounded-xl font-semibold text-white"
                               : "text-white/80 hover:bg-[#7f1515]")
                           }
                           onClick={() => onClose?.()}
                         >
-                          <span>{child.label}</span>
+                          <span className="pl-1">{child.label}</span>
                           {childActive && (
                             <span className="ml-2 h-2 w-2 rounded-full bg-white" />
                           )}
@@ -155,13 +157,15 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={
-                "flex items-center gap-2 rounded-md px-3 py-2 transition " +
-                (activeParent ? "bg-[#991b1b]" : "hover:bg-[#991b1b]")
+                "flex items-center gap-2 rounded-md px-4 py-3 transition " +
+                (activeParent
+                  ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                  : "hover:bg-[#991b1b]")
               }
               onClick={() => onClose?.()}
             >
               <span className="text-white/90">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="pl-1">{item.label}</span>
             </Link>
           );
         })}
