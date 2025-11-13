@@ -67,7 +67,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
   // Classes ตามสถานะ (Error)
   const stateClasses = error
     ? "border-red-500 focus:ring-red-500" // สีแดงเมื่อ error
-    : "border-gray-300 focus:ring-blue-500"; // สีปกติ (focus-color จาก #c62828)
+    : "border-gray-300 focus:ring-blue-500"; 
 
   // Classes ตาม Layout (Prefix/Suffix)
   const layoutClasses = [
