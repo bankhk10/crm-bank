@@ -31,10 +31,6 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
         >
           <Menu className="h-5 w-5 text-white" />
         </Button>
-
-        <Link href="/" className="text-lg font-semibold text-white hidden sm:inline-block">
-          MoveCRM
-        </Link>
       </div>
 
       {/* Right: controls */}
