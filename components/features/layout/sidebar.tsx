@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, Fragment } from "react";
+import Divider from "@/components/ui/divider";
 import type { Role } from "@prisma/client";
 import { ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2 } from "lucide-react";
 
@@ -68,8 +70,19 @@ export default function Sidebar({ role, className }: SidebarProps) {
         "hidden w-64 shrink-0 bg-[#b92626] text-white md:block " + (className ? className : "")
       }
     >
-      <div className="px-6 py-5 text-xl font-semibold">Control Center</div>
-      <nav className="space-y-1 px-2 pb-6 text-sm">
+      <div className="px-12 py-5">
+        <Link href="/" className="block w-full">
+          <Image
+            src="/images/logo.png"
+            alt="MoveCRM"
+            width={160}
+            height={36}
+            className="object-contain"
+          />
+        </Link>
+      </div>
+      <Divider className="border-white/20 mb-2" />
+      <nav className="space-y-1 px-2 pb-6 text-sm mt-8">
         {items.map((item) => {
           const activeParent = item.children
             ? item.children.some((c) => isActive(c.href)) || isActive(item.href)
