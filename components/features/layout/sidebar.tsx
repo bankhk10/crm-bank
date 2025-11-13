@@ -135,6 +135,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                               ? "bg-[#7f1515] text-white"
                               : "text-white/80 hover:bg-[#7f1515]")
                           }
+                          onClick={() => onClose?.()}
                         >
                           <span>{child.label}</span>
                           {childActive && (
@@ -157,6 +158,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                 "flex items-center gap-2 rounded-md px-3 py-2 transition " +
                 (activeParent ? "bg-[#991b1b]" : "hover:bg-[#991b1b]")
               }
+              onClick={() => onClose?.()}
             >
               <span className="text-white/90">{item.icon}</span>
               <span>{item.label}</span>
