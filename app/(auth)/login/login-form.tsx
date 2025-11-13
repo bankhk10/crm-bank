@@ -151,7 +151,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                 >
                   <FontAwesomeIcon
                     icon={showPassword ? faEyeSlash : faEye}
-                    className="h-5 w-5"
+                    className="text-xl px-3"
                   />
                 </button>
               }
