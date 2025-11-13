@@ -95,7 +95,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
         </Link>
       </div>
       <Divider className="border-white/20 mb-2" />
-      <nav className="space-y-1 px-2 pb-6 text-sm mt-8">
+      <nav className="space-y-1 px-2 pb-6 text-sm md:text-base mt-8">
         {items.map((item) => {
           const activeParent = item.children
             ? item.children.some((c) => isActive(c.href)) || isActive(item.href)
@@ -130,7 +130,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                           key={child.href}
                           href={child.href}
                           className={
-                            "flex items-center justify-between rounded px-3 py-2 text-[13px] transition " +
+                            "flex items-center justify-between rounded px-3 py-2 transition " +
                             (childActive
                               ? "bg-[#7f1515] text-white"
                               : "text-white/80 hover:bg-[#7f1515]")
