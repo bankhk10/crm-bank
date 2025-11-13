@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInput";
+
 interface LoginFormProps {
   callbackUrl?: string | null;
 }
@@ -56,12 +57,12 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
 
       router.push(result?.url ?? "/dashboard");
     },
-    [router, remember]
+    [router, remember, callbackUrl] // ⭐️ เพิ่ม callbackUrl ใน dependency array
   );
 
   return (
     <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#e0e0e0] py-8">
-      {/* 🔴 Background Top-Right (project-wide style: full inset background, subtle) */}
+      {/* ... (Background SVGs) ... */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 800 600"
@@ -72,12 +73,8 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         <path
           d="M250,0 C300,100 600,100 700,200 C800,300 450,500 800,600 L800,0 Z"
           fill="#b92626"
-          // opacity="0.3"
         />
       </svg>
-
-      {/* 🔴 Background Bottom-Left */}
-      {/* Bottom-left decorative SVG (smaller on mobile, subtle) */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 300 300"
@@ -94,7 +91,8 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* 🧩 Logo + Title */}
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 relative rounded-lg overflow-hidden bg-gray-100 shadow-md">
+              {/* ... (Image and Titles) ... */}
+              <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 relative rounded-lg overflow-hidden bg-gray-100 shadow-md">
                 <Image
                   src="/images/logo.png"
                   alt="CS ONE"
@@ -104,17 +102,18 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                   style={{ objectFit: "contain" }}
                 />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide">
+              <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-wide">
                 ระบบ <span className="text-[#c62828]">CS ONE</span>
               </h2>
-              <p className="text-sm sm:text-base text-gray-600 font-medium">
+
+              <h2 className="text-2xl font-semibold text-gray-700 ">
                 Smart Crop Smart Solutions
-              </p>
+              </h2>
             </div>
 
-            <h3 className="text-center text-base sm:text-lg font-semibold mt-4">
+            <h2 className="text-center font-extrabold tracking-wide text-gray-800 sm:text-2xl mt-4">
               เข้าสู่ระบบ
-            </h3>
+            </h2>
 
             {error && (
               <Alert variant="destructive">
@@ -122,55 +121,45 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               </Alert>
             )}
 
-            {/* 👤 Email */}
-            <div>
-              <label htmlFor="email" className="text-xs font-medium text-gray-700">
-                USERNAME
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                aria-label="email"
-                required
-                className="mt-1 rounded-full h-11 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828] w-full"
-              />
-            </div>
+            {/* ⭐️ 👤 Email (ใช้ FloatingLabelInput) */}
+            <FloatingLabelInput
+              id="email"
+              name="email"
+              type="email"
+              label="USERNAME"
+              autoComplete="email"
+              aria-label="email"
+              required
+            />
 
-            {/* 🔒 Password */}
-            <div>
-              <label htmlFor="password" className="text-xs font-medium text-gray-700">
-                PASSWORD
-              </label>
-              <div className="relative mt-1">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  aria-label="password"
-                  required
-                  className="rounded-full h-11 pr-12 text-[15px] bg-white border-gray-300 focus-visible:ring-[#c62828] w-full"
-                />
+            {/* ⭐️ 🔒 Password (ใช้ FloatingLabelInput) */}
+            <FloatingLabelInput
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              label="PASSWORD"
+              autoComplete="current-password"
+              aria-label="password"
+              required
+              suffix={
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-pressed={showPassword}
                   aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-600 transition-all duration-200 hover:text-gray-800"
+                  className="text-gray-600 transition-all duration-200 hover:text-gray-800"
                 >
                   <FontAwesomeIcon
                     icon={showPassword ? faEyeSlash : faEye}
                     className="h-5 w-5"
                   />
                 </button>
-              </div>
-            </div>
+              }
+            />
 
             {/* Remember */}
-            <div className="flex items-center justify-between pt-2">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+            <div className="flex items-center justify-between px-4">
+              <label className="flex items-center gap-2 text-gray-700">
                 <Checkbox
                   checked={remember}
                   onCheckedChange={(val) => setRemember(Boolean(val))}
@@ -185,7 +174,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-full bg-gray-600 hover:bg-gray-800 text-white font-semibold w-full sm:w-3/5 h-11 shadow-md transition-all"
+                className="rounded-full bg-gray-600 hover:bg-gray-800 text-white font-semibold w-4/5 sm:w-1/2 h-11 shadow-md transition-all flex items-center justify-center mt-2"
               >
                 {isSubmitting ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
               </Button>
