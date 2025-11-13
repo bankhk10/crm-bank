@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { signOut } from "next-auth/react";
 import type { Role } from "@prisma/client";
 import { Bell, Globe, LogOut, Menu, User } from "lucide-react";
