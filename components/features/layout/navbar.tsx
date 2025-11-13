@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { signOut } from "next-auth/react";
 import type { Role } from "@prisma/client";
 import { Bell, Globe, LogOut, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Sidebar from "@/components/features/layout/sidebar";
 
 interface NavbarProps {
   user: {
@@ -15,31 +13,31 @@ interface NavbarProps {
     email: string | null;
     role: Role;
   } | null;
+  onMenuClick?: () => void;
 }
 
-export default function Navbar({ user }: NavbarProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function Navbar({ user, onMenuClick }: NavbarProps) {
   const displayName = user?.name ?? user?.email ?? "Guest";
   const roleLabel: Role = user?.role ?? "USER";
 
   return (
-    <nav className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 md:px-6">
+    <nav className="flex items-center justify-between bg-[#b92626] px-4 py-3 md:px-6">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           className="md:hidden p-2 rounded"
-          onClick={() => setMobileOpen(true)}
+          onClick={onMenuClick}
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
         <Link className="text-lg font-semibold text-blue-600" href="/dashboard/aggregateReport">
-          MoveCRM
+          {/* MoveCRM */}
         </Link>
         <div className="hidden gap-3 text-sm text-slate-600 md:flex">
-          <Link href="/dashboard/aggregateReport">Overview</Link>
-          <Link href="/dashboard/salesReport">Sales</Link>
-          <Link href="/dashboard/activityReport">Activity</Link>
+          {/* <Link href="/dashboard/aggregateReport">Overview</Link> */}
+          {/* <Link href="/dashboard/salesReport">Sales</Link> */}
+          {/* <Link href="/dashboard/activityReport">Activity</Link> */}
         </div>
       </div>
 
@@ -64,19 +62,6 @@ export default function Navbar({ user }: NavbarProps) {
           <span className="text-xs uppercase tracking-wide text-slate-400">{roleLabel}</span>
         </div>
       </div>
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal>
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden
-          />
-          <div className="absolute inset-y-0 left-0 flex w-64 bg-[#b92626]">
-            <Sidebar role={roleLabel} className="block md:hidden" />
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
