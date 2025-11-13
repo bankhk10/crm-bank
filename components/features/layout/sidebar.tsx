@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState, Fragment } from "react";
+import { useState, useEffect, useMemo, Fragment } from "react";
 import { X } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { Role } from "@prisma/client";
@@ -58,13 +58,23 @@ interface SidebarProps {
 export default function Sidebar({ role, className, onClose }: SidebarProps) {
   const pathname = usePathname();
 
-  const items = navigationItems.filter((item) => item.roles.includes(role));
+  const items = useMemo(
+    () => navigationItems.filter((item) => item.roles.includes(role)),
+    [role]
+  );
   const [openKey, setOpenKey] = useState<string | null>(() => {
     const parent = items.find((item) => item.children?.some((c) => pathname.startsWith(c.href)));
     return parent?.href ?? null;
   });
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  // Keep openKey in sync with the current pathname so parent menus
+  // close when navigating away from their children.
+  useEffect(() => {
+    const parent = items.find((item) => item.children?.some((c) => pathname.startsWith(c.href)));
+    setOpenKey(parent?.href ?? null);
+  }, [pathname, items]);
 
   return (
     <aside
