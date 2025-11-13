@@ -47,7 +47,9 @@ export default function DashboardShell({
           {/* Backdrop: fades in/out */}
           <div
             className={`absolute inset-0 bg-black transition-opacity duration-300 ease-in-out ${
-              isSidebarOpen ? "opacity-40 pointer-events-auto" : "opacity-0 pointer-events-none"
+              isSidebarOpen
+                ? "opacity-40 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
             }`}
             onClick={() => setIsSidebarOpen(false)}
             aria-hidden
@@ -59,12 +61,16 @@ export default function DashboardShell({
               isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
-            <Sidebar role={role as any} className="block md:hidden" onClose={() => setIsSidebarOpen(false)} />
+            <Sidebar
+              role={role as any}
+              className="block md:hidden"
+              onClose={() => setIsSidebarOpen(false)}
+            />
           </div>
         </div>
 
-        <main className="flex-1 min-h-0 overflow-hidden">
-          <div className="bg-gray-100 min-h-full rounded-tl-3xl p-4 md:p-6">
+        <main className="flex-1 min-h-0 bg-gray-100 rounded-tl-3xl flex flex-col">
+          <div className="flex-1 min-h-0 p-4 md:p-6 overflow-auto">
             <div className="space-y-6">{children}</div>
           </div>
         </main>
