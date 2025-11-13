@@ -139,7 +139,7 @@ export default function Sidebar({ role, className, onClose }: SidebarProps) {
                           }
                           onClick={() => onClose?.()}
                         >
-                          <span className="pl-1">{child.label}</span>
+                          <span className="pl-4">{child.label}</span>
                           {childActive && (
                             <span className="ml-2 h-2 w-2 rounded-full bg-white" />
                           )}
