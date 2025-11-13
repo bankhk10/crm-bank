@@ -20,18 +20,35 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
   const displayName = user?.name ?? user?.email ?? "Guest";
 
   return (
-    <nav className="flex items-center justify-end bg-[#b92626] px-4 py-3 md:px-6">
+    <nav className="flex items-center justify-between bg-[#b92626] px-4 py-3 md:px-6">
+      {/* Left: mobile menu + brand */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          className="md:hidden p-2 rounded"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5 text-white" />
+        </Button>
+
+        <Link href="/" className="text-lg font-semibold text-white hidden sm:inline-block">
+          MoveCRM
+        </Link>
+      </div>
+
+      {/* Right: controls */}
       <div className="flex items-center gap-1 text-sm">
         <Button
           variant="ghost"
-          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10" // <-- ปรับ hover ตรงนี้
+          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5 text-white" />
         </Button>
         <Button
           variant="ghost"
-          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10" // <-- ปรับ hover ตรงนี้
+          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10"
           aria-label="Language"
         >
           <Globe className="h-5 w-5 text-white" />
@@ -39,7 +56,7 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
         <Button
           variant="ghost"
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="text-white hover:bg-white/10" // <-- ปรับ hover ตรงนี้
+          className="text-white hover:bg-white/10"
         >
           <LogOut className="mr-2 h-4 w-4" />
         </Button>

@@ -23,7 +23,8 @@ const mockEmployees: Employee[] = [
 export default function EmployeeTable() {
   return (
     <Card className="overflow-hidden p-0">
-      <table className="min-w-full divide-y divide-slate-200 text-sm">
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
         <thead className="bg-slate-50">
           <tr>
             <th className="px-4 py-3 text-left font-medium text-slate-600">Name</th>
@@ -42,7 +43,8 @@ export default function EmployeeTable() {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </Card>
   );
 }
