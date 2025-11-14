@@ -4,10 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, Fragment } from "react";
-import { X } from "lucide-react";
+import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch } from "lucide-react";
 import Divider from "@/components/ui/divider";
-import type { Role } from "@prisma/client";
-import { ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2 } from "lucide-react";
+import type { SessionPermission } from "@/types/next-auth";
 
 interface SidebarChildItem {
   href: string;
@@ -17,7 +16,7 @@ interface SidebarChildItem {
 interface SidebarNavItem {
   href: string;
   label: string;
-  roles: Role[];
+  permissionKey: string;
   icon?: React.ReactNode;
   children?: SidebarChildItem[];
 }
@@ -27,7 +26,7 @@ export const navigationItems: SidebarNavItem[] = [
   {
     href: "/dashboard",
     label: "รายงาน",
-    roles: ["ADMIN", "MANAGER", "USER"],
+    permissionKey: "menu.dashboard",
     icon: <LayoutDashboard className="h-4 w-4" />,
     children: [
       { href: "/dashboard/aggregateReport", label: "ภาพรวม" },
@@ -36,31 +35,43 @@ export const navigationItems: SidebarNavItem[] = [
     ]
   },
   {
+    href: "/dashboard/products",
+    label: "สินค้า",
+    permissionKey: "menu.products",
+    icon: <PackageSearch className="h-4 w-4" />
+  },
+  {
     href: "/employee",
     label: "พนักงาน",
-    roles: ["ADMIN", "MANAGER"],
+    permissionKey: "menu.employees",
     icon: <Users2 className="h-4 w-4" />
   },
   {
     href: "/companies",
     label: "บริษัท",
-    roles: ["ADMIN", "MANAGER"],
+    permissionKey: "menu.companies",
     icon: <Building2 className="h-4 w-4" />
+  },
+  {
+    href: "/dashboard/rbac",
+    label: "RBAC",
+    permissionKey: "rbac.manage",
+    icon: <ShieldCheck className="h-4 w-4" />
   }
 ];
 
 interface SidebarProps {
-  role: Role;
+  permissions: Record<string, SessionPermission>;
   className?: string;
   onClose?: () => void;
 }
 
-export default function Sidebar({ role, className, onClose }: SidebarProps) {
+export default function Sidebar({ permissions, className, onClose }: SidebarProps) {
   const pathname = usePathname();
 
   const items = useMemo(
-    () => navigationItems.filter((item) => item.roles.includes(role)),
-    [role]
+    () => navigationItems.filter((item) => permissions[item.permissionKey]?.allow),
+    [permissions]
   );
   const [openKey, setOpenKey] = useState<string | null>(() => {
     const parent = items.find((item) => item.children?.some((c) => pathname.startsWith(c.href)));

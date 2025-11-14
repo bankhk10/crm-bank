@@ -1,4 +1,8 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies";
 
 const mockEmployees: Employee[] = [
@@ -21,8 +25,27 @@ const mockEmployees: Employee[] = [
 ];
 
 export default function EmployeeTable() {
+  const { allowed, isLoading, dataAccess } = usePermission("menu.employees");
+  const scope = dataAccess("employee");
+  if (isLoading) {
+    return <Card className="p-4 text-sm text-slate-500">กำลังโหลดรายการพนักงาน...</Card>;
+  }
+
+  if (!allowed) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>คุณไม่มีสิทธิ์เปิดดูเมนูพนักงาน</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <Card className="overflow-hidden p-0">
+      {scope ? (
+        <div className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-xs text-slate-500">
+          Data scope: {scope === "VIEW_ALL" ? "ทุกคน" : scope === "VIEW_DEPARTMENT" ? "เฉพาะแผนก" : "เฉพาะฉัน"}
+        </div>
+      ) : null}
       <div className="w-full overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
         <thead className="bg-slate-50">

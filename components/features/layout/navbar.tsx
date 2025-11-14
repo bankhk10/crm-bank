@@ -1,7 +1,6 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import type { Role } from "@prisma/client";
 import { Bell, Globe, LogOut, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +9,7 @@ interface NavbarProps {
     id: string;
     name: string | null;
     email: string | null;
-    role: Role;
+    roles: string[];
   } | null;
   onMenuClick?: () => void;
 }

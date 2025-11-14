@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import {
   DEFAULT_AUTH_REDIRECT,
-  getDefaultRouteForRole,
+  getDefaultRouteForRoles,
   isAuthorized,
   isRoutePublic
 } from "@/lib/rbac";
@@ -20,13 +19,14 @@ export default auth((req) => {
   }
 
   if (session?.user) {
-    const role = session.user.role as Role;
+    const roles = session.user.roles ?? [];
+    const permissions = session.user.permissions ?? {};
 
     if (isPublic && pathname.startsWith("/login")) {
-      return NextResponse.redirect(new URL(getDefaultRouteForRole(role), nextUrl.origin));
+      return NextResponse.redirect(new URL(getDefaultRouteForRoles(roles), nextUrl.origin));
     }
 
-    if (!isPublic && !isAuthorized(role, pathname)) {
+    if (!isPublic && !isAuthorized(pathname, permissions)) {
       return NextResponse.redirect(new URL(DEFAULT_AUTH_REDIRECT, nextUrl.origin));
     }
   }

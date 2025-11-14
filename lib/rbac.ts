@@ -1,29 +1,87 @@
-import type { Role } from "@prisma/client";
+import type {
+  DataAccessLevel,
+  Permission,
+  PermissionType,
+  RolePermission,
+  UserPermissionOverride
+} from "@prisma/client";
+import type { SessionPermission } from "@/types/next-auth";
 
-interface AccessRule {
+interface RoutePermissionRule {
   pattern: RegExp;
-  roles: Role[];
+  required: string[];
 }
-
-const DEFAULT_ROLES: Role[] = ["ADMIN", "MANAGER", "USER"];
-
-const accessRules: AccessRule[] = [
-  { pattern: /^\/companies\/new$/, roles: ["ADMIN"] },
-  { pattern: /^\/companies(\/.*)?$/, roles: ["ADMIN", "MANAGER"] },
-  { pattern: /^\/employee\/new$/, roles: ["ADMIN", "MANAGER"] },
-  { pattern: /^\/employee(\/.*)?$/, roles: ["ADMIN", "MANAGER"] },
-  { pattern: /^\/api\/companies(\/.*)?$/, roles: ["ADMIN", "MANAGER"] },
-  { pattern: /^\/api\/employee(\/.*)?$/, roles: ["ADMIN", "MANAGER"] },
-  { pattern: /^\/dashboard(\/.*)?$/, roles: DEFAULT_ROLES }
-];
 
 export const PUBLIC_PATHS = ["/", "/login", "/register", "/api/auth"];
 
-export const DEFAULT_AUTH_REDIRECT = "/dashboard/aggregateReport";
+export const DEFAULT_AUTH_REDIRECT = "/dashboard";
 
-export function getAllowedRoles(pathname: string): Role[] {
-  const matchedRule = accessRules.find((rule) => rule.pattern.test(pathname));
-  return matchedRule ? matchedRule.roles : DEFAULT_ROLES;
+const routeRules: RoutePermissionRule[] = [
+  { pattern: /^\/dashboard(\/aggregateReport|\/activityReport)?$/, required: ["menu.dashboard"] },
+  { pattern: /^\/dashboard\/salesReport(\/.*)?$/, required: ["menu.sales"] },
+  { pattern: /^\/dashboard\/products\/new$/, required: ["product.create"] },
+  { pattern: /^\/dashboard\/products\/[^/]+\/edit$/, required: ["product.edit"] },
+  { pattern: /^\/dashboard\/products(\/.*)?$/, required: ["menu.products"] },
+  { pattern: /^\/companies(\/.*)?$/, required: ["menu.companies"] },
+  { pattern: /^\/employee\/new$/, required: ["employee.manage"] },
+  { pattern: /^\/employee(\/.*)?$/, required: ["menu.employees"] },
+  { pattern: /^\/api\/products(\/.*)?$/, required: ["product.create"] },
+  { pattern: /^\/api\/employee(\/.*)?$/, required: ["employee.manage"] },
+  { pattern: /^\/api\/companies(\/.*)?$/, required: ["menu.companies"] }
+];
+
+export type PermissionInput = RolePermission & {
+  permission: Permission;
+};
+
+export type OverrideInput = UserPermissionOverride & {
+  permission: Permission;
+};
+
+export function buildPermissionMap(
+  rolePermissions: PermissionInput[],
+  overrides: OverrideInput[]
+): Record<string, SessionPermission> {
+  const permissionMap: Record<string, SessionPermission> = {};
+
+  for (const rolePermission of rolePermissions) {
+    const current = permissionMap[rolePermission.permission.key];
+    permissionMap[rolePermission.permission.key] = {
+      key: rolePermission.permission.key,
+      category: rolePermission.permission.category,
+      menuPath: rolePermission.permission.menuPath,
+      action: rolePermission.permission.action,
+      resource: rolePermission.permission.resource,
+      allow: rolePermission.allow || current?.allow || false,
+      dataAccess: rolePermission.dataAccess ?? current?.dataAccess ?? rolePermission.permission.defaultDataAccess ?? null
+    } satisfies SessionPermission;
+  }
+
+  for (const override of overrides) {
+    permissionMap[override.permission.key] = {
+      key: override.permission.key,
+      category: override.permission.category,
+      menuPath: override.permission.menuPath,
+      action: override.permission.action,
+      resource: override.permission.resource,
+      allow: override.allow,
+      dataAccess: override.dataAccess ?? permissionMap[override.permission.key]?.dataAccess ?? override.permission.defaultDataAccess ?? null
+    } satisfies SessionPermission;
+  }
+
+  return permissionMap;
+}
+
+export function buildDataAccessByResource(
+  permissions: Record<string, SessionPermission>
+): Record<string, DataAccessLevel> {
+  const map: Record<string, DataAccessLevel> = {};
+  for (const permission of Object.values(permissions)) {
+    if (permission.resource && permission.category === "DATA" && permission.dataAccess) {
+      map[permission.resource] = permission.dataAccess;
+    }
+  }
+  return map;
 }
 
 export function isRoutePublic(pathname: string): boolean {
@@ -36,16 +94,41 @@ export function isRoutePublic(pathname: string): boolean {
   );
 }
 
-export function isAuthorized(role: Role, pathname: string): boolean {
-  return getAllowedRoles(pathname).includes(role);
+export function isAuthorized(
+  pathname: string,
+  permissionMap: Record<string, SessionPermission>
+): boolean {
+  const rule = routeRules.find((candidate) => candidate.pattern.test(pathname));
+  if (!rule) {
+    return true;
+  }
+
+  return rule.required.every((key) => permissionMap[key]?.allow);
 }
 
-export function getDefaultRouteForRole(role: Role): string {
-  switch (role) {
-    case "ADMIN":
-    case "MANAGER":
-      return DEFAULT_AUTH_REDIRECT;
-    default:
-      return "/dashboard/activityReport";
+export function getDefaultRouteForRoles(roles: string[]): string {
+  if (roles.includes("administrator")) {
+    return "/dashboard/aggregateReport";
   }
+  if (roles.includes("manager")) {
+    return "/dashboard/salesReport";
+  }
+  return DEFAULT_AUTH_REDIRECT;
+}
+
+export function userHasPermission(
+  permissionMap: Record<string, SessionPermission>,
+  key: string
+): boolean {
+  return Boolean(permissionMap[key]?.allow);
+}
+
+export function getDataAccessForResource(
+  permissionMap: Record<string, SessionPermission>,
+  resource: string
+): DataAccessLevel | null {
+  const match = Object.values(permissionMap).find(
+    (permission) => permission.resource === resource && permission.category === "DATA"
+  );
+  return match?.dataAccess ?? null;
 }

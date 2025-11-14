@@ -1,4 +1,8 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePermission } from "@/hooks/use-permission";
 import type { Company } from "@/types/companies";
 
 const mockCompanies: Company[] = [
@@ -21,6 +25,20 @@ interface CompaniesKanbanBoardProps {
 }
 
 export default function CompaniesKanbanBoard({ selectedCompanyId }: CompaniesKanbanBoardProps) {
+  const { allowed, isLoading } = usePermission("menu.companies");
+
+  if (isLoading) {
+    return <Card className="p-4 text-sm text-slate-500">กำลังโหลดบริษัท...</Card>;
+  }
+
+  if (!allowed) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>คุณไม่มีสิทธิ์ดูรายการบริษัท</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <section className="grid gap-4 md:grid-cols-3">
       {mockCompanies.map((company) => (
