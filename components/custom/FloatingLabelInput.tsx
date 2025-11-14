@@ -1,6 +1,6 @@
 // components/custom/FloatingLabelInput.tsx
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export interface SelectOption {
   value: string | number;
@@ -160,14 +160,117 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
         {/* Wrapper เดิม: สำหรับ Input + Label + Suffix เพื่อให้ absolute positioning ทำงานถูกต้อง */}
         <div className="relative w-full">
           {type === "select" ? (
-            <select className={inputClassName} id={inputId} {...(props as SelectProps)}>
-              <option value=""></option>
-              {options.map((opt) => (
-                <option key={String(opt.value)} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            // Custom listbox to allow full styling of the opened dropdown
+            (() => {
+              const value = (props as any).value ?? "";
+              const placeholder = (props as any).placeholder ?? "";
+              const onChange = (props as any).onChange as ((e: any) => void) | undefined;
+
+              const [open, setOpen] = useState(false);
+              const [activeIndex, setActiveIndex] = useState<number>(-1);
+              const containerRef = useRef<HTMLDivElement | null>(null);
+
+              useEffect(() => {
+                function handleDoc(e: MouseEvent) {
+                  if (!containerRef.current) return;
+                  if (!containerRef.current.contains(e.target as Node)) {
+                    setOpen(false);
+                  }
+                }
+
+                document.addEventListener("mousedown", handleDoc);
+                return () => document.removeEventListener("mousedown", handleDoc);
+              }, []);
+
+              const selectOption = (optValue: string | number) => {
+                if (onChange) {
+                  // create a minimal synthetic event with target.value
+                  onChange({ target: { value: String(optValue) } });
+                }
+                setOpen(false);
+              };
+
+              const handleKeyDown = (e: React.KeyboardEvent) => {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault();
+                  if (!open) {
+                    setOpen(true);
+                    setActiveIndex(0);
+                  } else {
+                    setActiveIndex((i) => Math.min(i + 1, options.length - 1));
+                  }
+                } else if (e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (!open) {
+                    setOpen(true);
+                    setActiveIndex(options.length - 1);
+                  } else {
+                    setActiveIndex((i) => Math.max(i - 1, 0));
+                  }
+                } else if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (open && activeIndex >= 0 && options[activeIndex]) {
+                    selectOption(options[activeIndex].value);
+                  } else {
+                    setOpen((o) => !o);
+                  }
+                } else if (e.key === "Escape") {
+                  setOpen(false);
+                }
+              };
+
+              const selected = options.find((o) => String(o.value) === String(value));
+
+              return (
+                <div className="relative" ref={containerRef}>
+                  <div
+                    id={inputId}
+                    tabIndex={0}
+                    role="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={open}
+                    className={`${inputClassName} flex items-center justify-between cursor-pointer`}
+                    onClick={() => setOpen((o) => !o)}
+                    onKeyDown={handleKeyDown}
+                  >
+                    <span className={`${selected ? "text-gray-900" : "text-muted-foreground"}`}>
+                      {selected ? selected.label : placeholder}
+                    </span>
+                    <span className={`ml-3 ${hasError ? "text-red-500" : "text-gray-500"}`}>
+                      <svg className={`h-5 w-5 transform transition-transform duration-150 ${open ? "rotate-180" : "rotate-0"}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </div>
+
+                  {open && (
+                    <ul
+                      role="listbox"
+                      aria-labelledby={inputId}
+                      className="absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-auto rounded-lg bg-white border border-gray-200 shadow-lg py-1 text-sm"
+                    >
+                      {options.map((opt, idx) => {
+                        const isSelected = String(opt.value) === String(value);
+                        const isActive = idx === activeIndex;
+                        return (
+                          <li
+                            key={String(opt.value)}
+                            role="option"
+                            aria-selected={isSelected}
+                            onMouseDown={(e) => e.preventDefault()} // prevent blur before click
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            onClick={() => selectOption(opt.value)}
+                            className={`cursor-pointer px-4 py-2 ${isSelected ? "bg-blue-50 text-blue-700" : isActive ? "bg-gray-100" : "text-gray-700"}`}
+                          >
+                            {opt.label}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              );
+            })()
           ) : (
             <input
               className={inputClassName}
