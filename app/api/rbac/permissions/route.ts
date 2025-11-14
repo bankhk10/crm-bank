@@ -37,6 +37,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  const permission = await db.permission.create({ data: parsed.data });
-  return NextResponse.json(permission, { status: 201 });
+  try {
+    const permission = await db.permission.create({ data: parsed.data });
+    return NextResponse.json(permission, { status: 201 });
+  } catch (error: any) {
+    // Prisma unique constraint on `key`
+    if (error?.code === "P2002") {
+      return NextResponse.json({ error: "Permission key already exists" }, { status: 409 });
+    }
+    throw error;
+  }
 }

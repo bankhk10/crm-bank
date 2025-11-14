@@ -28,6 +28,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -94,7 +95,9 @@ export default function RBACConsole() {
   const [isLoading, setIsLoading] = useState(true);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+  const [editingPermissionId, setEditingPermissionId] = useState<string | null>(null);
   const [orgDialogOpen, setOrgDialogOpen] = useState(false);
+  const [apiMessage, setApiMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
@@ -137,6 +140,12 @@ export default function RBACConsole() {
     setIsLoading(false);
   }, []);
 
+  const showApiMessage = (type: "success" | "error", text: string) => {
+    setApiMessage({ type, text });
+    // auto-clear after 4s
+    setTimeout(() => setApiMessage(null), 4000);
+  };
+
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
@@ -154,22 +163,38 @@ export default function RBACConsole() {
   // derive sorted lists so UI stays ordered immediately after creates
   const sortedRoles = useMemo(() => {
     if (!summary) return [] as SummaryResponse["roles"];
-    return [...summary.roles].sort((a, b) => a.name.localeCompare(b.name));
+    return [...summary.roles].sort((a, b) => {
+      const ta = new Date((a as any).createdAt).getTime();
+      const tb = new Date((b as any).createdAt).getTime();
+      return tb - ta; // newest first
+    });
   }, [summary]);
 
   const sortedPermissions = useMemo(() => {
     if (!summary) return [] as SummaryResponse["permissions"];
-    return [...summary.permissions].sort((a, b) => a.name.localeCompare(b.name));
+    return [...summary.permissions].sort((a, b) => {
+      const ta = new Date((a as any).createdAt).getTime();
+      const tb = new Date((b as any).createdAt).getTime();
+      return tb - ta; // newest first
+    });
   }, [summary]);
 
   const sortedDepartments = useMemo(() => {
     if (!summary) return [] as SummaryResponse["departments"];
-    return [...summary.departments].sort((a, b) => a.name.localeCompare(b.name));
+    return [...summary.departments].sort((a, b) => {
+      const ta = new Date((a as any).createdAt).getTime();
+      const tb = new Date((b as any).createdAt).getTime();
+      return tb - ta; // newest first
+    });
   }, [summary]);
 
   const sortedPositions = useMemo(() => {
     if (!summary) return [] as SummaryResponse["positions"];
-    return [...summary.positions].sort((a, b) => a.name.localeCompare(b.name));
+    return [...summary.positions].sort((a, b) => {
+      const ta = new Date((a as any).createdAt).getTime();
+      const tb = new Date((b as any).createdAt).getTime();
+      return tb - ta; // newest first
+    });
   }, [summary]);
 
   const handleCreateRole = roleForm.handleSubmit(async (values) => {
@@ -180,33 +205,110 @@ export default function RBACConsole() {
     });
 
     if (!response.ok) {
-      notify("error", "สร้าง Role ไม่สำเร็จ");
+      let msg = "สร้าง Role ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+        else if (body?.issues) msg = JSON.stringify(body.issues);
+      } catch (_) {}
+      showApiMessage("error", msg);
       return;
     }
 
-    notify("success", "สร้าง Role แล้ว");
+    showApiMessage("success", "สร้าง Role แล้ว");
     roleForm.reset();
     setRoleDialogOpen(false);
     fetchSummary();
   });
 
-  const handleCreatePermission = permissionForm.handleSubmit(async (values) => {
-    const response = await fetch("/api/rbac/permissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values)
-    });
+  const handleSavePermission = permissionForm.handleSubmit(async (values) => {
+    if (editingPermissionId) {
+      // Edit existing permission
+      const response = await fetch(`/api/rbac/permissions/${editingPermissionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
 
-    if (!response.ok) {
-      notify("error", "สร้าง Permission ไม่สำเร็จ");
-      return;
+      if (!response.ok) {
+        let msg = "แก้ไข Permission ไม่สำเร็จ";
+        try {
+          const body = await response.json();
+          if (body?.error) msg = body.error;
+          else if (body?.issues) msg = JSON.stringify(body.issues);
+        } catch (_) {}
+        showApiMessage("error", msg);
+        return;
+      }
+
+      showApiMessage("success", "แก้ไข Permission แล้ว");
+    } else {
+      // Create new permission
+      const response = await fetch("/api/rbac/permissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
+
+      if (!response.ok) {
+        let msg = "สร้าง Permission ไม่สำเร็จ";
+        try {
+          const body = await response.json();
+          if (body?.error) msg = body.error;
+          else if (body?.issues) msg = JSON.stringify(body.issues);
+        } catch (_) {}
+        showApiMessage("error", msg);
+        return;
+      }
+
+      showApiMessage("success", "สร้าง Permission แล้ว");
     }
 
-    notify("success", "สร้าง Permission แล้ว");
     permissionForm.reset();
+    setEditingPermissionId(null);
     setPermissionDialogOpen(false);
     fetchSummary();
   });
+
+  const handleEditPermission = (permission: {
+    id: string;
+    name: string;
+    key: string;
+    category: string;
+    resource?: string | null;
+    menuPath?: string | null;
+    action?: string | null;
+    defaultDataAccess?: string | null;
+  }) => {
+    setEditingPermissionId(permission.id);
+    permissionForm.reset({
+      name: permission.name,
+      key: permission.key,
+      category: permission.category as any,
+      resource: permission.resource ?? "",
+      menuPath: permission.menuPath ?? "",
+      defaultDataAccess: (permission.defaultDataAccess as any) ?? undefined
+    });
+    setPermissionDialogOpen(true);
+  };
+
+  const handleDeletePermission = async (permissionId: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Permission นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+
+    const response = await fetch(`/api/rbac/permissions/${permissionId}`, { method: "DELETE" });
+    if (!response.ok) {
+      let msg = "ลบ Permission ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+      } catch (_) {}
+      showApiMessage("error", msg);
+      return;
+    }
+
+    showApiMessage("success", "ลบ Permission เรียบร้อย");
+    fetchSummary();
+  };
 
   const handleCreateDepartment = departmentForm.handleSubmit(async (values) => {
     const response = await fetch("/api/rbac/departments", {
@@ -216,11 +318,17 @@ export default function RBACConsole() {
     });
 
     if (!response.ok) {
-      notify("error", "สร้าง Department ไม่สำเร็จ");
+      let msg = "สร้าง Department ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+        else if (body?.issues) msg = JSON.stringify(body.issues);
+      } catch (_) {}
+      showApiMessage("error", msg);
       return;
     }
 
-    notify("success", "เพิ่ม Department แล้ว");
+    showApiMessage("success", "เพิ่ม Department แล้ว");
     departmentForm.reset();
     fetchSummary();
   });
@@ -233,11 +341,17 @@ export default function RBACConsole() {
     });
 
     if (!response.ok) {
-      notify("error", "สร้าง Position ไม่สำเร็จ");
+      let msg = "สร้าง Position ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+        else if (body?.issues) msg = JSON.stringify(body.issues);
+      } catch (_) {}
+      showApiMessage("error", msg);
       return;
     }
 
-    notify("success", "เพิ่ม Position แล้ว");
+    showApiMessage("success", "เพิ่ม Position แล้ว");
     positionForm.reset();
     fetchSummary();
   });
@@ -298,11 +412,11 @@ export default function RBACConsole() {
         const body = await response.json();
         if (body?.error) msg = body.error;
       } catch (_) {}
-      notify("error", msg);
+      showApiMessage("error", msg);
       return;
     }
 
-    notify("success", "ลบ Role เรียบร้อย");
+    showApiMessage("success", "ลบ Role เรียบร้อย");
     // refresh data
     fetchSummary();
   };
@@ -341,6 +455,14 @@ export default function RBACConsole() {
 
   return (
     <div className="space-y-6">
+      {apiMessage ? (
+        <Alert variant={apiMessage.type === "error" ? "destructive" : "default"}>
+          <AlertTitle>{apiMessage.type === "error" ? "ข้อผิดพลาด" : "สำเร็จ"}</AlertTitle>
+          <AlertDescription>
+            <p>{apiMessage.text}</p>
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -532,14 +654,23 @@ export default function RBACConsole() {
           </div>
           <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="secondary">เพิ่ม Permission</Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  // prepare for create
+                  setEditingPermissionId(null);
+                  permissionForm.reset();
+                }}
+              >
+                เพิ่ม Permission
+              </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>สร้าง Permission</DialogTitle>
+                <DialogHeader>
+                <DialogTitle>{editingPermissionId ? "แก้ไข Permission" : "สร้าง Permission"}</DialogTitle>
               </DialogHeader>
               <Form {...permissionForm}>
-                <form className="space-y-4" onSubmit={handleCreatePermission}>
+                <form className="space-y-4" onSubmit={handleSavePermission}>
                   <FormField
                     control={permissionForm.control}
                     name="name"
@@ -656,7 +787,23 @@ export default function RBACConsole() {
                   <p className="font-semibold">{permission.name}</p>
                   <p className="text-xs text-slate-500">{permission.key}</p>
                 </div>
-                <Badge variant="outline">{permission.category}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{permission.category}</Badge>
+                  <Button
+                    variant="ghost"
+                    className="text-xs"
+                    onClick={() => handleEditPermission(permission as any)}
+                  >
+                    แก้ไข
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-xs text-red-600"
+                    onClick={() => handleDeletePermission(permission.id)}
+                  >
+                    ลบ
+                  </Button>
+                </div>
               </div>
               <div className="mt-3 text-sm text-slate-600">
                 {permission.resource ? <p>Resource: {permission.resource}</p> : null}

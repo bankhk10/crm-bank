@@ -39,12 +39,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Missing permission id" }, { status: 400 });
   }
 
-  const permission = await db.permission.update({
-    where: { id: permissionId },
-    data: parsed.data
-  });
+  try {
+    const permission = await db.permission.update({
+      where: { id: permissionId },
+      data: parsed.data
+    });
 
-  return NextResponse.json(permission);
+    return NextResponse.json(permission);
+  } catch (error: any) {
+    if (error?.code === "P2002") {
+      return NextResponse.json({ error: "Permission key already exists" }, { status: 409 });
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(_: Request, { params }: RouteParams) {
