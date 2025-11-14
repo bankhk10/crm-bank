@@ -97,17 +97,11 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     ? "border-red-500 focus:ring-red-500" // สีแดงเมื่อ error
     : "border-gray-300 focus:ring-blue-500";
 
-  const layoutClasses = [prefix ? "rounded-l-none" : "", suffix ? "pr-12" : ""].filter(Boolean);
+  // add right padding when there's a suffix or when this is a select (for the arrow)
+  const layoutClasses = [prefix ? "rounded-l-none" : "", suffix || type === "select" ? "pr-12" : ""].filter(Boolean);
 
-  const selectSpecificClasses =
-    type === "select"
-      ? [
-          "appearance-none",
-          "bg-no-repeat",
-          "bg-[right_15px_top_50%]",
-          `bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'%3E%3Cpath d='M371,294l4,6,4-6Z' transform='translate(-371 -294)' fill='%23003d71'/%3E%3C/svg%3E%0A")]`,
-        ]
-      : [];
+  // for selects we use native appearance-none and render our own SVG arrow
+  const selectSpecificClasses = type === "select" ? ["appearance-none"] : [];
 
   const inputClassName = [
     ...baseInputClasses,
@@ -193,6 +187,19 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
           {suffix && (
             <div className="absolute right-4 top-1/2 z-20 -translate-y-1/2">
               {suffix}
+            </div>
+          )}
+
+          {/* Arrow for select inputs (non-interactive) */}
+          {type === "select" && (
+            <div
+              className={`absolute right-4 top-1/2 z-20 -translate-y-1/2 pointer-events-none ${
+                hasError ? "text-red-500" : "text-gray-500 peer-focus:text-blue-500"
+              }`}
+            >
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           )}
         </div>
