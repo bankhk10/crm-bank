@@ -61,12 +61,9 @@ export async function DELETE(_: Request, { params }: RouteParams) {
   }
 
   // Fetch role with user count and slug to protect critical roles and roles with users
-  const role = await db.role.findUnique({
-    where: { id: roleId },
-    select: { slug: true, _count: { select: { userRoles: true } } }
-  });
+  const role = await db.role.findUnique({ where: { id: roleId }, select: { slug: true, deletedAt: true } });
 
-  if (!role) {
+  if (!role || role.deletedAt) {
     return NextResponse.json({ error: "Role not found" }, { status: 404 });
   }
 
@@ -76,10 +73,12 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "ไม่สามารถลบ role พื้นฐานได้" }, { status: 400 });
   }
 
-  if ((role._count?.userRoles ?? 0) > 0) {
+  // Count only non-deleted userRoles
+  const assignedCount = await db.userRole.count({ where: { roleId, deletedAt: null } });
+  if (assignedCount > 0) {
     return NextResponse.json({ error: "ไม่สามารถลบ role ที่ยังมีผู้ใช้ผูกอยู่ได้" }, { status: 400 });
   }
 
-  await db.role.delete({ where: { id: roleId } });
+  await db.role.update({ where: { id: roleId }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }

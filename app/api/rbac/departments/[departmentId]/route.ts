@@ -58,7 +58,6 @@ export async function DELETE(_: Request, { params }: RouteParams) {
   if (!departmentId) {
     return NextResponse.json({ error: "Missing department id" }, { status: 400 });
   }
-
-  await db.department.delete({ where: { id: departmentId } });
+  await db.department.update({ where: { id: departmentId }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }

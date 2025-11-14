@@ -58,6 +58,6 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Missing position id" }, { status: 400 });
   }
 
-  await db.position.delete({ where: { id: positionId } });
+  await db.position.update({ where: { id: positionId }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }

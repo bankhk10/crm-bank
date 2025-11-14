@@ -37,6 +37,7 @@ model User {
   email     String   @unique
   password  String
   isActive  Boolean  @default(true)
+  deletedAt DateTime?
   departmentId String?
   positionId   String?
   createdAt DateTime @default(now())
@@ -56,6 +57,7 @@ model Company {
   status    CompanyStatus  @default(PROSPECT)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
 
   employees Employee[]
 }
@@ -68,6 +70,7 @@ model Employee {
   phone       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   userId      String?  @unique
   companyId   String?
@@ -90,6 +93,7 @@ model Department {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   positions Position[]
   employees Employee[] @relation("EmployeeDepartment")
@@ -104,6 +108,7 @@ model Position {
   isManagerial  Boolean  @default(false)
   departmentId  String?
   defaultRoleId String?
+  deletedAt     DateTime?
 
   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   defaultRole Role?      @relation("RoleDefaultPositions", fields: [defaultRoleId], references: [id], onDelete: SetNull)
@@ -120,6 +125,7 @@ model Role {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
 
   permissions RolePermission[]
   userRoles   UserRole[]
@@ -138,6 +144,7 @@ model Permission {
   defaultDataAccess DataAccessLevel?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
 
   rolePermissions RolePermission[]
   overrides       UserPermissionOverride[]
@@ -150,6 +157,7 @@ model RolePermission {
   allow        Boolean  @default(true)
   dataAccess   DataAccessLevel?
   createdAt    DateTime @default(now())
+  deletedAt    DateTime?
 
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
@@ -163,6 +171,7 @@ model UserRole {
   roleId     String
   assignedBy String?
   assignedAt DateTime @default(now())
+  deletedAt  DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -178,6 +187,7 @@ model UserPermissionOverride {
   dataAccess   DataAccessLevel?
   reason       String?
   createdAt    DateTime @default(now())
+  deletedAt    DateTime?
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)

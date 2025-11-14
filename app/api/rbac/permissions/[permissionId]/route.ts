@@ -68,6 +68,6 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Missing permission id" }, { status: 400 });
   }
 
-  await db.permission.delete({ where: { id: permissionId } });
+  await db.permission.update({ where: { id: permissionId }, data: { deletedAt: new Date() } });
   return NextResponse.json({ ok: true });
 }

@@ -19,6 +19,7 @@ export async function GET() {
   }
 
   const positions = await db.position.findMany({
+    where: { deletedAt: null },
     include: { department: true, defaultRole: true },
     orderBy: { name: "asc" }
   });

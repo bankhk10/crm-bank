@@ -40,7 +40,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   await db.$transaction(async (tx) => {
-    await tx.userPermissionOverride.deleteMany({ where: { userId } });
+    await tx.userPermissionOverride.updateMany({ where: { userId }, data: { deletedAt: new Date() } });
     if (parsed.data.overrides.length) {
       await tx.userPermissionOverride.createMany({
         data: parsed.data.overrides.map((item) => ({
@@ -55,7 +55,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
   });
 
   const overrides = await db.userPermissionOverride.findMany({
-    where: { userId },
+    where: { userId, deletedAt: null },
     include: { permission: true }
   });
 

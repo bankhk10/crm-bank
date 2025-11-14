@@ -32,15 +32,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   await db.$transaction(async (tx) => {
-    await tx.userRole.deleteMany({ where: { userId } });
-    await tx.userRole.createMany({
-      data: parsed.data.roleIds.map((roleId) => ({ userId, roleId }))
-    });
+    // soft-delete existing userRoles and create new ones
+    await tx.userRole.updateMany({ where: { userId }, data: { deletedAt: new Date() } });
+    if (parsed.data.roleIds.length) {
+      await tx.userRole.createMany({
+        data: parsed.data.roleIds.map((roleId) => ({ userId, roleId }))
+      });
+    }
   });
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    include: { userRoles: { include: { role: true } } }
+    include: { userRoles: { where: { deletedAt: null }, include: { role: true } } }
   });
 
   return NextResponse.json(user);

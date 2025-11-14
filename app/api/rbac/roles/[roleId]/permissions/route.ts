@@ -42,7 +42,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   await db.$transaction(async (tx) => {
-    await tx.rolePermission.deleteMany({ where: { roleId } });
+    // soft-delete existing rolePermissions for this role
+    await tx.rolePermission.updateMany({ where: { roleId }, data: { deletedAt: new Date() } });
+    // create new rolePermissions
     await tx.rolePermission.createMany({
       data: parsed.data.permissions.map((item) => ({
         roleId,
@@ -55,7 +57,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
   const role = await db.role.findUnique({
     where: { id: roleId },
-    include: { permissions: { include: { permission: true } } }
+    include: { permissions: { where: { deletedAt: null }, include: { permission: { where: { deletedAt: null } } } } }
   });
 
   return NextResponse.json(role);

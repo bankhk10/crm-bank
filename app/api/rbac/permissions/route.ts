@@ -21,7 +21,7 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const permissions = await db.permission.findMany({ orderBy: { name: "asc" } });
+  const permissions = await db.permission.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } });
   return NextResponse.json(permissions);
 }
 

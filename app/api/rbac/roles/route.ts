@@ -17,6 +17,7 @@ export async function GET() {
   }
 
   const roles = await db.role.findMany({
+    where: { deletedAt: null },
     include: {
       permissions: {
         include: { permission: true }

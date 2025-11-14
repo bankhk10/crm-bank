@@ -16,7 +16,8 @@ export async function GET() {
   }
 
   const departments = await db.department.findMany({
-    include: { positions: true },
+    where: { deletedAt: null },
+    include: { positions: { where: { deletedAt: null } } },
     orderBy: { name: "asc" }
   });
 
