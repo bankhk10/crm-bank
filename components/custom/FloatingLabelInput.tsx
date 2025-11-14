@@ -98,7 +98,8 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     : "border-gray-300 focus:ring-blue-500";
 
   // add right padding when there's a suffix or when this is a select (for the arrow)
-  const layoutClasses = [prefix ? "rounded-l-none" : "", suffix || type === "select" ? "pr-12" : ""].filter(Boolean);
+  // increase padding so the arrow sits a bit further from the edge
+  const layoutClasses = [prefix ? "rounded-l-none" : "", suffix || type === "select" ? "pr-16" : ""].filter(Boolean);
 
   // for selects we use native appearance-none and render our own SVG arrow
   const selectSpecificClasses = type === "select" ? ["appearance-none"] : [];
@@ -229,14 +230,14 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
                     role="button"
                     aria-haspopup="listbox"
                     aria-expanded={open}
-                    className={`${inputClassName} flex items-center justify-between cursor-pointer`}
+                    className={`${inputClassName} relative flex items-center justify-between cursor-pointer`}
                     onClick={() => setOpen((o) => !o)}
                     onKeyDown={handleKeyDown}
                   >
                     <span className={`${selected ? "text-gray-900" : "text-muted-foreground"}`}>
                       {selected ? selected.label : placeholder}
                     </span>
-                    <span className={`ml-3 ${hasError ? "text-red-500" : "text-gray-500"}`}>
+                    <span className={`absolute right-4 top-1/2 z-10 -translate-y-1/2 ${hasError ? "text-red-500" : "text-gray-500"}`}>
                       <svg className={`h-5 w-5 transform transition-transform duration-150 ${open ? "rotate-180" : "rotate-0"}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -293,18 +294,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             </div>
           )}
 
-          {/* Arrow for select inputs (non-interactive) */}
-          {type === "select" && (
-            <div
-              className={`absolute right-4 top-1/2 z-20 -translate-y-1/2 pointer-events-none ${
-                hasError ? "text-red-500" : "text-gray-500 peer-focus:text-blue-500"
-              }`}
-            >
-              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          )}
+          {/* Removed duplicate non-interactive arrow — custom listbox renders its own arrow */}
         </div>
 
         {/* [⭐️ เพิ่ม] ส่วนแสดงผล Error Message
