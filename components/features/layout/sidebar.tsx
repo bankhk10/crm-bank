@@ -98,7 +98,7 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
         <button
           type="button"
           onClick={onClose}
-          className="md:hidden absolute top-3 right-3 p-2 rounded-md text-white hover:bg-white/10"
+          className="md:hidden absolute top-3 right-3 p-2 rounded-lg text-white hover:bg-white/10"
           aria-label="Close menu"
         >
           <X className="h-4 w-4" />
@@ -130,7 +130,7 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
                   type="button"
                   onClick={() => setOpenKey((k) => (k === item.href ? null : item.href))}
                   className={
-                    "group flex w-full items-center gap-2 rounded-md px-4 py-3 text-left transition " +
+                    "group flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left transition " +
                     (activeParent
                       ? "bg-[#7f1515] rounded-xl font-semibold text-white"
                       : "hover:bg-[#991b1b]")
@@ -145,7 +145,7 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
                   )}
                 </button>
                 {open && (
-                  <div className="mx-2 mb-1 rounded-md bg-[#991b1b] p-1">
+                  <div className="mx-2 mb-1 rounded-lg bg-[#991b1b] p-1">
                     {item.children.map((child) => {
                       const childActive = isActive(child.href);
                       return (
@@ -178,11 +178,11 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
               key={item.href}
               href={item.href}
               className={
-                "flex items-center gap-2 rounded-md px-4 py-3 transition " +
-                (activeParent
-                  ? "bg-[#7f1515] rounded-xl font-semibold text-white"
-                  : "hover:bg-[#991b1b]")
-              }
+                  "flex items-center gap-2 rounded-lg px-4 py-3 transition " +
+                  (activeParent
+                    ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                    : "hover:bg-[#991b1b]")
+                }
               onClick={() => onClose?.()}
             >
               <span className="text-white/90">{item.icon}</span>

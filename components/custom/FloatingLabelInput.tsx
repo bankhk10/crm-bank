@@ -25,13 +25,15 @@ export type FloatingLabelInputProps = (InputProps | SelectProps) & {
   suffix?: React.ReactNode;
   // [⭐️ แก้ไข] เปลี่ยนจาก boolean เป็น string เพื่อรับ "ข้อความ" error
   error?: string;
+  // Tailwind rounded class to control corner radius (e.g. 'rounded-md', 'rounded-lg', 'rounded-full')
+  roundedClass?: string;
 };
 
 // [⭐️ เพิ่ม] คอมโพเนนต์ไอคอนสำหรับแสดงในกล่อง error
 // (สไตล์คล้ายในรูปภาพ แต่ใช้ SVG มาตรฐานจาก Heroicons)
 const ErrorIcon = () => (
   <svg
-    className="h-5 w-5 flex-shrink-0 text-red-600" // ไอคอนสีแดง
+    className="h-5 w-5 shrink-0 text-red-600" // ไอคอนสีแดง
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 20 20"
     fill="currentColor"
@@ -58,6 +60,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
   prefix,
   suffix,
   error,
+  roundedClass,
   ...props
 }) => {
   const inputId =
@@ -70,6 +73,9 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
 
   // --- 1. สร้าง Class List สำหรับ Input/Select ---
 
+  // allow overriding rounding via prop, default to 'rounded-lg' for a slightly larger corner radius
+  const effectiveRounded = roundedClass || "rounded-lg";
+
   const baseInputClasses = [
     "peer",
     "block",
@@ -80,7 +86,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     "text-gray-900",
     "bg-white",
     "border",
-    "rounded-full",
+    effectiveRounded,
     "focus:outline-none",
     "focus:ring-1",
     "placeholder-transparent",
@@ -91,10 +97,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     ? "border-red-500 focus:ring-red-500" // สีแดงเมื่อ error
     : "border-gray-300 focus:ring-blue-500";
 
-  const layoutClasses = [
-    prefix ? "rounded-l-none" : "",
-    suffix ? "pr-12" : "",
-  ].filter(Boolean);
+  const layoutClasses = [prefix ? "rounded-l-none" : "", suffix ? "pr-12" : ""].filter(Boolean);
 
   const selectSpecificClasses =
     type === "select"
@@ -146,7 +149,12 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     <div className={`${prefix ? "flex" : ""} mb-6`}>
       {/* ส่วนของ Prefix (ถ้ามี) */}
       {prefix && (
-        <span className="flex h-[50px] items-center rounded-l-full border border-r-0 border-gray-300 bg-gray-50 px-4 text-gray-600">
+        <span
+          className={`flex h-[50px] items-center border border-r-0 border-gray-300 bg-gray-50 px-4 text-gray-600 ${
+            // convert rounded-* -> rounded-l-* for the prefix left rounding
+            roundedClass ? (roundedClass as string).replace(/^rounded-/, "rounded-l-") : "rounded-l-lg"
+          }`}
+        >
           {prefix}
         </span>
       )}
@@ -158,12 +166,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
         {/* Wrapper เดิม: สำหรับ Input + Label + Suffix เพื่อให้ absolute positioning ทำงานถูกต้อง */}
         <div className="relative w-full">
           {type === "select" ? (
-            <select
-              className={inputClassName}
-              id={inputId}
-              placeholder=" "
-              {...(props as SelectProps)}
-            >
+            <select className={inputClassName} id={inputId} {...(props as SelectProps)}>
               <option value=""></option>
               {options.map((opt) => (
                 <option key={String(opt.value)} value={opt.value}>

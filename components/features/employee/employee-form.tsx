@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInput";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies";
@@ -66,8 +66,8 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           name: String(formState.name ?? "").trim(),
           email: String(formState.email ?? "").trim() || undefined,
           roleTitle: (formState.role && roleObj?.name) || undefined,
-          phone: String(formState.phone ?? "").trim() || undefined
-        }
+          phone: String(formState.phone ?? "").trim() || undefined,
+        },
       };
 
       if (address && (address.province || address.district || address.subdistrict || address.postalCode)) {
@@ -78,14 +78,14 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
         payload.user = {
           email: String(formState.email ?? "").trim(),
           password: String(password),
-          roleId: roleId
+          roleId: roleId,
         };
       }
 
       const res = await fetch("/api/rbac/employees/create-with-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -105,115 +105,135 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-      {!canEdit ? (
-        <div className="md:col-span-2">
-          <Alert variant="destructive">
-            <AlertDescription>{permissionHint}</AlertDescription>
-          </Alert>
+    <div className="bg-white shadow-sm sm:rounded-lg">
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">ข้อมูลพนักงาน</h2>
+            <p className="text-sm text-muted-foreground">กรอกข้อมูลพื้นฐานของพนักงาน</p>
+          </div>
         </div>
-      ) : null}
-      {error ? (
-        <div className="md:col-span-2">
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </div>
-      ) : null}
-      {success ? (
-        <div className="md:col-span-2">
-          <Alert>
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        </div>
-      ) : null}
-      <label className="grid gap-2 text-sm">
-        <span className="font-medium">Full name</span>
-        <Input
-          placeholder="Jane Doe"
-          value={formState.name ?? ""}
-          disabled={!canEdit}
-          onChange={(event) =>
-            setFormState((prev) => ({ ...prev, name: event.target.value }))
-          }
-        />
-      </label>
-      <label className="grid gap-2 text-sm">
-        <span className="font-medium">Email</span>
-        <Input
-          placeholder="jane@example.com"
-          type="email"
-          value={formState.email ?? ""}
-          disabled={!canEdit}
-          onChange={(event) =>
-            setFormState((prev) => ({ ...prev, email: event.target.value }))
-          }
-        />
-      </label>
-      <label className="grid gap-2 text-sm">
-        <span className="font-medium">Password</span>
-        <Input
-          placeholder="Password for login"
-          type="password"
-          value={password}
-          disabled={!canEdit}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-      </label>
-      <label className="grid gap-2 text-sm">
-        <span className="font-medium">Role</span>
-        {roles.length ? (
-          <select
-            className="w-full rounded-md border bg-transparent px-3 py-2 text-sm leading-6 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:opacity-50"
-            value={formState.role ?? ""}
-            disabled={!canEdit}
-            onChange={(e) => setFormState((prev) => ({ ...prev, role: e.target.value }))}
-          >
-            <option value="">Select role</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <Input
-            placeholder="Account Executive"
-            value={formState.role ?? ""}
-            disabled={!canEdit}
-            onChange={(event) =>
-              setFormState((prev) => ({ ...prev, role: event.target.value }))
-            }
-          />
+
+        {/* Alerts */}
+        {(!canEdit || error || success) && (
+          <div>
+            {!canEdit ? (
+              <Alert variant="destructive">
+                <AlertDescription>{permissionHint}</AlertDescription>
+              </Alert>
+            ) : null}
+            {error ? (
+              <div className="mt-3">
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </div>
+            ) : null}
+            {success ? (
+              <div className="mt-3">
+                <Alert>
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              </div>
+            ) : null}
+          </div>
         )}
-      </label>
-      <label className="grid gap-2 text-sm">
-        <span className="font-medium">Phone</span>
-        <Input
-          placeholder="(+66) 02-123-4567"
-          value={formState.phone ?? ""}
-          disabled={!canEdit}
-          onChange={(event) =>
-            setFormState((prev) => ({ ...prev, phone: event.target.value }))
-          }
-        />
-      </label>
-      <div className="md:col-span-2">
-        <span className="block text-sm font-medium mb-2">ที่อยู่ (จังหวัด/อำเภอ/ตำบล)</span>
-        <ThaiAddressPicker value={address} onChange={(next) => setAddress(next)} />
-      </div>
-      <div className="md:col-span-2 flex justify-end gap-2">
-        <Button type="button" variant="ghost" disabled={!canEdit} title={!canEdit ? permissionHint : undefined}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          disabled={!canEdit || loading}
-          title={!canEdit ? permissionHint : undefined}
-        >
-          {loading ? "Saving..." : employeeId ? "Save changes" : "Create employee"}
-        </Button>
-      </div>
-    </form>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <FloatingLabelInput
+              label="Full name"
+              placeholder="Jane Doe"
+              value={formState.name ?? ""}
+              disabled={!canEdit}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setFormState((prev) => ({ ...prev, name: event.target.value }))
+              }
+            />
+          </div>
+
+          <div>
+            <FloatingLabelInput
+              label="Email"
+              type="email"
+              placeholder="jane@example.com"
+              value={formState.email ?? ""}
+              disabled={!canEdit}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setFormState((prev) => ({ ...prev, email: event.target.value }))
+              }
+            />
+          </div>
+
+          <div>
+            <FloatingLabelInput
+              label="Password"
+              type="password"
+              placeholder="Password for login"
+              value={password}
+              disabled={!canEdit}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน</p>
+          </div>
+
+          <div>
+            <label className="sr-only">Role</label>
+            {roles.length ? (
+              <FloatingLabelInput
+                label="Role"
+                type="select"
+                options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
+                value={formState.role ?? ""}
+                disabled={!canEdit}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
+                  setFormState((prev) => ({ ...prev, role: (e.target as HTMLSelectElement).value }))
+                }
+              />
+            ) : (
+              <FloatingLabelInput
+                label="Role"
+                placeholder="Account Executive"
+                value={formState.role ?? ""}
+                disabled={!canEdit}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormState((prev) => ({ ...prev, role: event.target.value }))
+                }
+              />
+            )}
+          </div>
+
+          <div>
+            <FloatingLabelInput
+              label="Phone"
+              placeholder="(+66) 02-123-4567"
+              value={formState.phone ?? ""}
+              disabled={!canEdit}
+              prefix="+66"
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setFormState((prev) => ({ ...prev, phone: event.target.value }))
+              }
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">ที่อยู่ (จังหวัด / อำเภอ / ตำบล)</label>
+            <div className="rounded-lg border p-3 bg-gray-50">
+              <ThaiAddressPicker value={address} onChange={(next) => setAddress(next)} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={!canEdit} title={!canEdit ? permissionHint : undefined}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!canEdit || loading} title={!canEdit ? permissionHint : undefined}>
+            {loading ? "Saving..." : employeeId ? "Save changes" : "Create employee"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
