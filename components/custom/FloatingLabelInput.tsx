@@ -23,6 +23,8 @@ export type FloatingLabelInputProps = (InputProps | SelectProps) & {
   options?: SelectOption[];
   prefix?: string;
   suffix?: React.ReactNode;
+  // ถ้าต้องการให้ select มีช่องค้นหา
+  searchable?: boolean;
   // [⭐️ แก้ไข] เปลี่ยนจาก boolean เป็น string เพื่อรับ "ข้อความ" error
   error?: string;
   // Tailwind rounded class to control corner radius (e.g. 'rounded-md', 'rounded-lg', 'rounded-full')
@@ -165,11 +167,13 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
             (() => {
               const value = (props as any).value ?? "";
               const placeholder = (props as any).placeholder ?? "";
+              const searchable = (props as any).searchable;
               const onChange = (props as any).onChange as ((e: any) => void) | undefined;
 
               const [open, setOpen] = useState(false);
               const [activeIndex, setActiveIndex] = useState<number>(-1);
               const containerRef = useRef<HTMLDivElement | null>(null);
+              const disabled = (props as any).disabled;
 
               useEffect(() => {
                 function handleDoc(e: MouseEvent) {
@@ -190,6 +194,11 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
                 }
                 setOpen(false);
               };
+
+              const [query, setQuery] = useState("");
+              const filteredOptions = query
+                ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
+                : options;
 
               const handleKeyDown = (e: React.KeyboardEvent) => {
                 if (e.key === "ArrowDown") {
@@ -226,13 +235,20 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
                 <div className="relative" ref={containerRef}>
                   <div
                     id={inputId}
-                    tabIndex={0}
+                    tabIndex={disabled ? -1 : 0}
                     role="button"
                     aria-haspopup="listbox"
                     aria-expanded={open}
-                    className={`${inputClassName} relative flex items-center justify-between cursor-pointer`}
-                    onClick={() => setOpen((o) => !o)}
-                    onKeyDown={handleKeyDown}
+                    aria-disabled={disabled}
+                    className={`${inputClassName} relative flex items-center justify-between ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    onClick={() => {
+                      if (disabled) return;
+                      setOpen((o) => !o);
+                    }}
+                    onKeyDown={(e) => {
+                      if (disabled) return;
+                      handleKeyDown(e);
+                    }}
                   >
                     <span className={`${selected ? "text-gray-900" : "text-muted-foreground"}`}>
                       {selected ? selected.label : placeholder}
@@ -245,29 +261,52 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
                   </div>
 
                   {open && (
-                    <ul
-                      role="listbox"
-                      aria-labelledby={inputId}
-                      className="absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-auto rounded-lg bg-white border border-gray-200 shadow-lg py-1 text-sm"
-                    >
-                      {options.map((opt, idx) => {
-                        const isSelected = String(opt.value) === String(value);
-                        const isActive = idx === activeIndex;
-                        return (
-                          <li
-                            key={String(opt.value)}
-                            role="option"
-                            aria-selected={isSelected}
-                            onMouseDown={(e) => e.preventDefault()} // prevent blur before click
-                            onMouseEnter={() => setActiveIndex(idx)}
-                            onClick={() => selectOption(opt.value)}
-                            className={`cursor-pointer px-4 py-2 ${isSelected ? "bg-blue-50 text-blue-700" : isActive ? "bg-gray-100" : "text-gray-700"}`}
-                          >
-                            {opt.label}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <div className="absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-hidden rounded-lg bg-white border border-gray-200 shadow-lg text-sm">
+                      {searchable ? (
+                        <div className="p-2">
+                          <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => {
+                              setQuery(e.target.value);
+                              setActiveIndex(0);
+                            }}
+                            placeholder="ค้นหา..."
+                            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none"
+                            onKeyDown={(e) => {
+                              // forward arrow/enter/escape to outer handler
+                              if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === "Escape") {
+                                e.stopPropagation();
+                                // let parent handle keys via the trigger's keydown when appropriate
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : null}
+                      <ul role="listbox" aria-labelledby={inputId} className="max-h-52 overflow-auto py-1">
+                        {filteredOptions.length ? (
+                          filteredOptions.map((opt, idx) => {
+                            const isSelected = String(opt.value) === String(value);
+                            const isActive = idx === activeIndex;
+                            return (
+                              <li
+                                key={String(opt.value)}
+                                role="option"
+                                aria-selected={isSelected}
+                                onMouseDown={(e) => e.preventDefault()} // prevent blur before click
+                                onMouseEnter={() => setActiveIndex(idx)}
+                                onClick={() => selectOption(opt.value)}
+                                className={`cursor-pointer px-4 py-2 ${isSelected ? "bg-blue-50 text-blue-700" : isActive ? "bg-gray-100" : "text-gray-700"}`}
+                              >
+                                {opt.label}
+                              </li>
+                            );
+                          })
+                        ) : (
+                          <li className="px-4 py-2 text-gray-500">ไม่พบรายการ</li>
+                        )}
+                      </ul>
+                    </div>
                   )}
                 </div>
               );
