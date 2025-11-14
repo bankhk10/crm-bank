@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import LoginForm from "./login-form";
 import { auth } from "@/lib/auth";
-import { getDefaultRouteForRole } from "@/lib/rbac";
+import { getDefaultRouteForRoles } from "@/lib/rbac";
 import { safeRedirect } from "@/lib/safe-redirect";
 
 interface LoginPageProps {
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const callbackUrl = safeRedirect(typeof rawCallback === "string" ? rawCallback : undefined, undefined);
 
   if (session?.user) {
-    redirect(callbackUrl ?? getDefaultRouteForRole(session.user.role));
+    redirect(callbackUrl ?? getDefaultRouteForRoles(session.user.roles ?? []));
   }
 
   // Render the LoginForm directly so it can control full-viewport layout
