@@ -54,7 +54,7 @@ export const navigationItems: SidebarNavItem[] = [
   },
   {
     href: "/rbac",
-    label: "RBAC",
+    label: "สิทธิ์",
     permissionKey: "rbac.manage",
     icon: <ShieldCheck className="h-4 w-4" />
   }
