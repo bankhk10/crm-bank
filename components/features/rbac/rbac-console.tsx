@@ -38,7 +38,7 @@ import type { DataAccessLevel } from "@prisma/client";
 interface SummaryResponse {
   departments: Department[];
   positions: (Position & { department: Department | null; defaultRole: Role | null })[];
-  roles: (Role & { permissions: (RolePermission & { permission: Permission })[] })[];
+  roles: (Role & { permissions: (RolePermission & { permission: Permission })[]; _count?: { userRoles: number } })[];
   permissions: Permission[];
   users: (User & {
     department: Department | null;
@@ -264,6 +264,28 @@ export default function RBACConsole() {
     fetchSummary();
   };
 
+  const handleDeleteRole = async (roleId: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ว่าจะลบ Role นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+
+    const response = await fetch(`/api/rbac/roles/${roleId}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      let msg = "ลบ Role ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+      } catch (_) {}
+      notify("error", msg);
+      return;
+    }
+
+    notify("success", "ลบ Role เรียบร้อย");
+    // refresh data
+    fetchSummary();
+  };
+
   const handleUserRoleChange = async (roleId: string, checked: boolean) => {
     if (!selectedUser) return;
     const roleIds = new Set(selectedUser.userRoles.map((entry) => entry.roleId));
@@ -397,13 +419,34 @@ export default function RBACConsole() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setActiveRoleId(role.id)}
-                      className="text-xs"
-                    >
-                      กำหนดสิทธิ์
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setActiveRoleId(role.id)}
+                        className="text-xs"
+                      >
+                        กำหนดสิทธิ์
+                      </Button>
+                      {/** Disable delete for protected roles or roles with assigned users */}
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleDeleteRole(role.id)}
+                        className="text-xs text-red-600"
+                        title={
+                          role.slug === "administrator"
+                            ? "ไม่สามารถลบ role พื้นฐานได้"
+                            : (role._count?.userRoles ?? 0) > 0
+                            ? "มีผู้ใช้ผูกอยู่ ไม่สามารถลบได้"
+                            : "ลบ Role"
+                        }
+                        disabled={role.slug === "administrator" || (role._count?.userRoles ?? 0) > 0}
+                      >
+                        ลบ
+                      </Button>
+                      {(role._count?.userRoles ?? 0) > 0 ? (
+                        <Badge variant="warning">ผู้ใช้ {role._count?.userRoles}</Badge>
+                      ) : null}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

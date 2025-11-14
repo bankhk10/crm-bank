@@ -22,6 +22,9 @@ export async function GET() {
         permissions: {
           include: { permission: true }
         }
+      ,
+      // include user role counts so client can make decisions about deletions
+      _count: { select: { userRoles: true } }
       },
       orderBy: { name: "asc" }
     }),
