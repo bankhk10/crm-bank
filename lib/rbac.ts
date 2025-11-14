@@ -12,7 +12,7 @@ interface RoutePermissionRule {
   required: string[];
 }
 
-export const PUBLIC_PATHS = ["/", "/login", "/register", "/api/auth"];
+export const PUBLIC_PATHS = ["/", "/login", "/api/auth"];
 
 export const DEFAULT_AUTH_REDIRECT = "/dashboard";
 
