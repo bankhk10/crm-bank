@@ -594,15 +594,15 @@ export default function RBACConsole() {
         </Alert>
       ) : null}
       <Card className="p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-xl font-semibold">Role Management</h2>
             <p className="text-sm text-slate-500">จัดการ Role และกำหนด Permission</p>
           </div>
           <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
             <DialogTrigger asChild>
-              <Button>เพิ่ม Role</Button>
-            </DialogTrigger>
+                <Button className="w-full sm:w-auto">เพิ่ม Role</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>สร้าง Role</DialogTitle>
@@ -662,8 +662,9 @@ export default function RBACConsole() {
             </DialogContent>
           </Dialog>
         </div>
-        <div className="mt-6 overflow-x-auto">
-          <Table>
+        <div className="mt-6">
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ชื่อ</TableHead>
@@ -724,7 +725,50 @@ export default function RBACConsole() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
+
+          {/* Mobile: stacked cards */}
+          <div className="md:hidden space-y-3">
+            {sortedRoles.map((role) => (
+              <Card key={role.id} className="p-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium">{role.name}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge variant="outline">{role.slug}</Badge>
+                      {(role._count?.userRoles ?? 0) > 0 ? (
+                        <Badge variant="warning">ผู้ใช้ {role._count?.userRoles}</Badge>
+                      ) : null}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {role.permissions.slice(0, 3).map((entry) => (
+                        <Badge key={entry.permissionId} variant="secondary">
+                          {entry.permission.key}
+                        </Badge>
+                      ))}
+                      {role.permissions.length > 3 && (
+                        <Badge variant="outline">+{role.permissions.length - 3}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ml-4 flex-shrink-0 w-36">
+                    <Button className="w-full mb-2" variant="secondary" onClick={() => setActiveRoleId(role.id)}>
+                      กำหนดสิทธิ์
+                    </Button>
+                    <Button
+                      className="w-full text-red-600"
+                      variant="ghost"
+                      onClick={() => handleDeleteRole(role.id)}
+                      disabled={role.slug === "administrator" || (role._count?.userRoles ?? 0) > 0}
+                    >
+                      ลบ
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
         {selectedRole ? (
           <Dialog open={Boolean(selectedRole)} onOpenChange={(open) => !open && setActiveRoleId(null)}>
@@ -777,24 +821,25 @@ export default function RBACConsole() {
       </Card>
 
       <Card className="p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-xl font-semibold">Permission Management</h2>
             <p className="text-sm text-slate-500">เพิ่ม/ลบ Permission ที่ใช้ในระบบ</p>
           </div>
           <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
             <DialogTrigger asChild>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  // prepare for create
-                  setEditingPermissionId(null);
-                  permissionForm.reset();
-                }}
-              >
-                เพิ่ม Permission
-              </Button>
-            </DialogTrigger>
+                <Button
+                  className="w-full sm:w-auto"
+                  variant="secondary"
+                  onClick={() => {
+                    // prepare for create
+                    setEditingPermissionId(null);
+                    permissionForm.reset();
+                  }}
+                >
+                  เพิ่ม Permission
+                </Button>
+              </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                 <DialogTitle>{editingPermissionId ? "แก้ไข Permission" : "สร้าง Permission"}</DialogTitle>
@@ -958,8 +1003,9 @@ export default function RBACConsole() {
             <p className="text-sm text-slate-500">Mapping User ↔ Role และ Override เฉพาะบุคคล</p>
           </div>
         </div>
-        <div className="mt-6 overflow-x-auto">
-          <Table>
+        <div className="mt-6">
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ชื่อ</TableHead>
@@ -1028,7 +1074,70 @@ export default function RBACConsole() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
+
+          {/* Mobile: stacked user cards */}
+          <div className="md:hidden space-y-3">
+            {summary.users.map((user) => (
+              <Card key={user.id} className="p-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-xs text-slate-500">{user.email}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {user.userRoles.map((entry) => (
+                        <Badge key={entry.roleId} variant="success">
+                          {entry.role.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="ml-4 flex-shrink-0 w-40">
+                    <Sheet open={activeUserId === user.id} onOpenChange={(open) => setActiveUserId(open ? user.id : null)}>
+                      <SheetTrigger asChild>
+                        <Button className="w-full" variant="secondary">Manage Access</Button>
+                      </SheetTrigger>
+                      {selectedUser?.id === user.id ? (
+                        <SheetContent className="w-full max-w-xl overflow-y-auto">
+                          <SheetHeader>
+                            <SheetTitle>{user.name}</SheetTitle>
+                            <SheetDescription>{user.email}</SheetDescription>
+                          </SheetHeader>
+                          <div className="mt-6 space-y-6">
+                            <section>
+                              <h3 className="text-sm font-semibold">Roles</h3>
+                              <div className="mt-3 space-y-2">
+                                {sortedRoles.map((role) => (
+                                  <label key={role.id} className="flex items-center justify-between rounded border p-3">
+                                    <div>
+                                      <p className="font-medium">{role.name}</p>
+                                      <p className="text-xs text-slate-500">{role.slug}</p>
+                                    </div>
+                                    <Checkbox
+                                      checked={selectedUser.userRoles.some((entry) => entry.roleId === role.id)}
+                                      onCheckedChange={(checked) => handleUserRoleChange(role.id, Boolean(checked))}
+                                    />
+                                  </label>
+                                ))}
+                              </div>
+                            </section>
+                            <section>
+                              <h3 className="text-sm font-semibold">Permission Override</h3>
+                              <p className="text-xs text-slate-500">(ตัวอย่างการเปิดใช้งานเท่านั้น)</p>
+                              <div className="mt-2 rounded border p-3 text-sm text-slate-500">
+                                ใช้ API /users/[id]/overrides เพื่อกำหนด Allow/Deny เฉพาะบุคคล
+                              </div>
+                            </section>
+                          </div>
+                        </SheetContent>
+                      ) : null}
+                    </Sheet>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </Card>
 
@@ -1038,19 +1147,20 @@ export default function RBACConsole() {
             <h2 className="text-xl font-semibold">Organization</h2>
             <p className="text-sm text-slate-500">Department / Position Management</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
               <DialogTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setEditingDepartmentId(null);
-                      departmentForm.reset();
-                    }}
-                  >
-                    เพิ่มแผนก
-                  </Button>
-                </DialogTrigger>
+                    <Button
+                      className="w-full sm:w-auto"
+                      variant="secondary"
+                      onClick={() => {
+                        setEditingDepartmentId(null);
+                        departmentForm.reset();
+                      }}
+                    >
+                      เพิ่มแผนก
+                    </Button>
+                  </DialogTrigger>
               <DialogContent className="space-y-3">
                 <DialogHeader>
                   <DialogTitle>เพิ่ม Department</DialogTitle>
@@ -1098,16 +1208,17 @@ export default function RBACConsole() {
 
             <Dialog open={posDialogOpen} onOpenChange={setPosDialogOpen}>
               <DialogTrigger asChild>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setEditingPositionId(null);
-                      positionForm.reset();
-                    }}
-                  >
-                    เพิ่ม Position
-                  </Button>
-                </DialogTrigger>
+                    <Button
+                      className="w-full sm:w-auto"
+                      variant="secondary"
+                      onClick={() => {
+                        setEditingPositionId(null);
+                        positionForm.reset();
+                      }}
+                    >
+                      เพิ่ม Position
+                    </Button>
+                  </DialogTrigger>
               <DialogContent className="space-y-3">
                 <DialogHeader>
                   <DialogTitle>เพิ่ม Position</DialogTitle>
