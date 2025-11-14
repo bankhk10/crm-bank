@@ -151,6 +151,27 @@ export default function RBACConsole() {
     [summary, activeUserId]
   );
 
+  // derive sorted lists so UI stays ordered immediately after creates
+  const sortedRoles = useMemo(() => {
+    if (!summary) return [] as SummaryResponse["roles"];
+    return [...summary.roles].sort((a, b) => a.name.localeCompare(b.name));
+  }, [summary]);
+
+  const sortedPermissions = useMemo(() => {
+    if (!summary) return [] as SummaryResponse["permissions"];
+    return [...summary.permissions].sort((a, b) => a.name.localeCompare(b.name));
+  }, [summary]);
+
+  const sortedDepartments = useMemo(() => {
+    if (!summary) return [] as SummaryResponse["departments"];
+    return [...summary.departments].sort((a, b) => a.name.localeCompare(b.name));
+  }, [summary]);
+
+  const sortedPositions = useMemo(() => {
+    if (!summary) return [] as SummaryResponse["positions"];
+    return [...summary.positions].sort((a, b) => a.name.localeCompare(b.name));
+  }, [summary]);
+
   const handleCreateRole = roleForm.handleSubmit(async (values) => {
     const response = await fetch("/api/rbac/roles", {
       method: "POST",
@@ -400,7 +421,7 @@ export default function RBACConsole() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summary.roles.map((role) => (
+              {sortedRoles.map((role) => (
                 <TableRow key={role.id}>
                   <TableCell>{role.name}</TableCell>
                   <TableCell>
@@ -460,7 +481,7 @@ export default function RBACConsole() {
                 <DialogTitle>Permission ของ {selectedRole.name}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                {summary.permissions.map((permission) => {
+                {sortedPermissions.map((permission) => {
                   const current = selectedRole.permissions.find((entry) => entry.permissionId === permission.id);
                   const isChecked = current?.allow ?? false;
                   return (
@@ -628,7 +649,7 @@ export default function RBACConsole() {
           </Dialog>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {summary.permissions.map((permission) => (
+          {sortedPermissions.map((permission) => (
             <Card key={permission.id} className="p-4 border-slate-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -701,7 +722,7 @@ export default function RBACConsole() {
                             <section>
                               <h3 className="text-sm font-semibold">Roles</h3>
                               <div className="mt-3 space-y-2">
-                                {summary.roles.map((role) => (
+                                {sortedRoles.map((role) => (
                                   <label key={role.id} className="flex items-center justify-between rounded border p-3">
                                     <div>
                                       <p className="font-medium">{role.name}</p>
@@ -825,7 +846,7 @@ export default function RBACConsole() {
                                 <SelectValue placeholder="เลือกแผนก" />
                               </SelectTrigger>
                               <SelectContent>
-                                {summary.departments.map((dept) => (
+                                {sortedDepartments.map((dept) => (
                                   <SelectItem key={dept.id} value={dept.id}>
                                     {dept.name}
                                   </SelectItem>
@@ -848,7 +869,7 @@ export default function RBACConsole() {
           <Card className="p-4">
             <h3 className="font-semibold">Departments</h3>
             <div className="mt-3 space-y-2">
-              {summary.departments.map((dept) => (
+              {sortedDepartments.map((dept) => (
                 <div key={dept.id} className="rounded border p-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{dept.name}</span>
@@ -861,7 +882,7 @@ export default function RBACConsole() {
           <Card className="p-4">
             <h3 className="font-semibold">Positions</h3>
             <div className="mt-3 space-y-2 max-h-72 overflow-y-auto pr-2">
-              {summary.positions.map((pos) => (
+              {sortedPositions.map((pos) => (
                 <div key={pos.id} className="rounded border p-3 text-sm">
                   <p className="font-medium">
                     {pos.name} <span className="text-xs text-slate-500">(L{pos.level})</span>
