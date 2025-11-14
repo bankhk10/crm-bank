@@ -96,7 +96,10 @@ export default function RBACConsole() {
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
   const [editingPermissionId, setEditingPermissionId] = useState<string | null>(null);
-  const [orgDialogOpen, setOrgDialogOpen] = useState(false);
+  const [deptDialogOpen, setDeptDialogOpen] = useState(false);
+  const [posDialogOpen, setPosDialogOpen] = useState(false);
+  const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(null);
+  const [editingPositionId, setEditingPositionId] = useState<string | null>(null);
   const [apiMessage, setApiMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
@@ -162,6 +165,20 @@ export default function RBACConsole() {
       });
     }
   }, [permissionDialogOpen, editingPermissionId, permissionForm]);
+
+  // Ensure department form is reset when opening dialog for CREATE
+  useEffect(() => {
+    if (deptDialogOpen && editingDepartmentId === null) {
+      departmentForm.reset({ name: "", code: "" });
+    }
+  }, [deptDialogOpen, editingDepartmentId, departmentForm]);
+
+  // Ensure position form is reset when opening dialog for CREATE
+  useEffect(() => {
+    if (posDialogOpen && editingPositionId === null) {
+      positionForm.reset({ name: "", level: 1, departmentId: undefined });
+    }
+  }, [posDialogOpen, editingPositionId, positionForm]);
 
   const selectedRole = useMemo(
     () => summary?.roles.find((role) => role.id === activeRoleId) ?? null,
@@ -324,6 +341,32 @@ export default function RBACConsole() {
   };
 
   const handleCreateDepartment = departmentForm.handleSubmit(async (values) => {
+    // If editingDepartmentId exists -> PATCH, otherwise POST
+    if (editingDepartmentId) {
+      const response = await fetch(`/api/rbac/departments/${editingDepartmentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
+
+      if (!response.ok) {
+        let msg = "แก้ไข Department ไม่สำเร็จ";
+        try {
+          const body = await response.json();
+          if (body?.error) msg = body.error;
+        } catch (_) {}
+        showApiMessage("error", msg);
+        return;
+      }
+
+      showApiMessage("success", "แก้ไข Department แล้ว");
+      setEditingDepartmentId(null);
+      setDeptDialogOpen(false);
+      departmentForm.reset();
+      fetchSummary();
+      return;
+    }
+
     const response = await fetch("/api/rbac/departments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -343,10 +386,37 @@ export default function RBACConsole() {
 
     showApiMessage("success", "เพิ่ม Department แล้ว");
     departmentForm.reset();
+    setDeptDialogOpen(false);
     fetchSummary();
   });
 
   const handleCreatePosition = positionForm.handleSubmit(async (values) => {
+    // If editingPositionId exists -> PATCH, otherwise POST
+    if (editingPositionId) {
+      const response = await fetch(`/api/rbac/positions/${editingPositionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
+
+      if (!response.ok) {
+        let msg = "แก้ไข Position ไม่สำเร็จ";
+        try {
+          const body = await response.json();
+          if (body?.error) msg = body.error;
+        } catch (_) {}
+        showApiMessage("error", msg);
+        return;
+      }
+
+      showApiMessage("success", "แก้ไข Position แล้ว");
+      setEditingPositionId(null);
+      setPosDialogOpen(false);
+      positionForm.reset();
+      fetchSummary();
+      return;
+    }
+
     const response = await fetch("/api/rbac/positions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -366,8 +436,55 @@ export default function RBACConsole() {
 
     showApiMessage("success", "เพิ่ม Position แล้ว");
     positionForm.reset();
+    setPosDialogOpen(false);
     fetchSummary();
   });
+
+  const handleEditDepartment = (dept: { id: string; name: string; code: string }) => {
+    setEditingDepartmentId(dept.id);
+    departmentForm.reset({ name: dept.name, code: dept.code });
+    setDeptDialogOpen(true);
+  };
+
+  const handleDeleteDepartment = async (departmentId: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Department นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    const response = await fetch(`/api/rbac/departments/${departmentId}`, { method: "DELETE" });
+    if (!response.ok) {
+      let msg = "ลบ Department ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+      } catch (_) {}
+      showApiMessage("error", msg);
+      return;
+    }
+
+    showApiMessage("success", "ลบ Department เรียบร้อย");
+    fetchSummary();
+  };
+
+  const handleEditPosition = (pos: { id: string; name: string; level: number; departmentId?: string | null }) => {
+    setEditingPositionId(pos.id);
+    positionForm.reset({ name: pos.name, level: pos.level, departmentId: pos.departmentId ?? undefined });
+    setPosDialogOpen(true);
+  };
+
+  const handleDeletePosition = async (positionId: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Position นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    const response = await fetch(`/api/rbac/positions/${positionId}`, { method: "DELETE" });
+    if (!response.ok) {
+      let msg = "ลบ Position ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+      } catch (_) {}
+      showApiMessage("error", msg);
+      return;
+    }
+
+    showApiMessage("success", "ลบ Position เรียบร้อย");
+    fetchSummary();
+  };
 
   const togglePermission = async (permissionId: string, allow: boolean, dataAccess?: DataAccessLevel | null) => {
     if (!selectedRole) return;
@@ -921,12 +1038,20 @@ export default function RBACConsole() {
             <h2 className="text-xl font-semibold">Organization</h2>
             <p className="text-sm text-slate-500">Department / Position Management</p>
           </div>
-          <Dialog open={orgDialogOpen} onOpenChange={setOrgDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="secondary">เพิ่มแผนก / ตำแหน่ง</Button>
-            </DialogTrigger>
-            <DialogContent className="space-y-6">
-              <div>
+          <div className="flex items-center gap-2">
+            <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
+              <DialogTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingDepartmentId(null);
+                      departmentForm.reset();
+                    }}
+                  >
+                    เพิ่มแผนก
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="space-y-3">
                 <DialogHeader>
                   <DialogTitle>เพิ่ม Department</DialogTitle>
                 </DialogHeader>
@@ -958,11 +1083,32 @@ export default function RBACConsole() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit">บันทึก Department</Button>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="ghost" type="button">
+                          ยกเลิก
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit">บันทึก Department</Button>
+                    </DialogFooter>
                   </form>
                 </Form>
-              </div>
-              <div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={posDialogOpen} onOpenChange={setPosDialogOpen}>
+              <DialogTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEditingPositionId(null);
+                      positionForm.reset();
+                    }}
+                  >
+                    เพิ่ม Position
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="space-y-3">
                 <DialogHeader>
                   <DialogTitle>เพิ่ม Position</DialogTitle>
                 </DialogHeader>
@@ -1018,22 +1164,39 @@ export default function RBACConsole() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit">บันทึก Position</Button>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="ghost" type="button">
+                          ยกเลิก
+                        </Button>
+                      </DialogClose>
+                      <Button type="submit">บันทึก Position</Button>
+                    </DialogFooter>
                   </form>
                 </Form>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Card className="p-4">
             <h3 className="font-semibold">Departments</h3>
-            <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2">
               {sortedDepartments.map((dept) => (
                 <div key={dept.id} className="rounded border p-3 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{dept.name}</span>
-                    <Badge variant="outline">{dept.code}</Badge>
+                    <div>
+                      <p className="font-medium">{dept.name}</p>
+                      <p className="text-xs text-slate-500">{dept.code}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" className="text-xs" onClick={() => handleEditDepartment(dept as any)}>
+                        แก้ไข
+                      </Button>
+                      <Button variant="ghost" className="text-xs text-red-600" onClick={() => handleDeleteDepartment(dept.id)}>
+                        ลบ
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1044,10 +1207,22 @@ export default function RBACConsole() {
             <div className="mt-3 space-y-2 max-h-72 overflow-y-auto pr-2">
               {sortedPositions.map((pos) => (
                 <div key={pos.id} className="rounded border p-3 text-sm">
-                  <p className="font-medium">
-                    {pos.name} <span className="text-xs text-slate-500">(L{pos.level})</span>
-                  </p>
-                  <p className="text-xs text-slate-500">{pos.department?.name ?? "-"}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">
+                        {pos.name} <span className="text-xs text-slate-500">(L{pos.level})</span>
+                      </p>
+                      <p className="text-xs text-slate-500">{pos.department?.name ?? "-"}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" className="text-xs" onClick={() => handleEditPosition(pos as any)}>
+                        แก้ไข
+                      </Button>
+                      <Button variant="ghost" className="text-xs text-red-600" onClick={() => handleDeletePosition(pos.id)}>
+                        ลบ
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
