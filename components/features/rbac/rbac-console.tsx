@@ -150,6 +150,19 @@ export default function RBACConsole() {
     fetchSummary();
   }, [fetchSummary]);
 
+  // Ensure permission form is reset when opening dialog for CREATE (editingPermissionId === null)
+  useEffect(() => {
+    if (permissionDialogOpen && editingPermissionId === null) {
+      permissionForm.reset({
+        name: "",
+        key: "",
+        category: "MENU",
+        resource: "",
+        menuPath: ""
+      });
+    }
+  }, [permissionDialogOpen, editingPermissionId, permissionForm]);
+
   const selectedRole = useMemo(
     () => summary?.roles.find((role) => role.id === activeRoleId) ?? null,
     [summary, activeRoleId]
