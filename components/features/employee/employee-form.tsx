@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 
 interface EmployeeFormProps {
   employeeId?: string;
@@ -15,6 +16,12 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   const [formState, setFormState] = useState<Partial<Employee>>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]);
+  const [address, setAddress] = useState<{
+    province?: string;
+    district?: string;
+    subdistrict?: string;
+    postalCode?: string;
+  }>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -62,6 +69,10 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           phone: String(formState.phone ?? "").trim() || undefined
         }
       };
+
+      if (address && (address.province || address.district || address.subdistrict || address.postalCode)) {
+        payload.employee.address = address;
+      }
 
       if (password) {
         payload.user = {
@@ -187,6 +198,10 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           }
         />
       </label>
+      <div className="md:col-span-2">
+        <span className="block text-sm font-medium mb-2">ที่อยู่ (จังหวัด/อำเภอ/ตำบล)</span>
+        <ThaiAddressPicker value={address} onChange={(next) => setAddress(next)} />
+      </div>
       <div className="md:col-span-2 flex justify-end gap-2">
         <Button type="button" variant="ghost" disabled={!canEdit} title={!canEdit ? permissionHint : undefined}>
           Cancel
