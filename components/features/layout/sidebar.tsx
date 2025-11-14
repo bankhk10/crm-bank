@@ -53,7 +53,7 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Building2 className="h-4 w-4" />
   },
   {
-    href: "/dashboard/rbac",
+    href: "/rbac",
     label: "RBAC",
     permissionKey: "rbac.manage",
     icon: <ShieldCheck className="h-4 w-4" />
