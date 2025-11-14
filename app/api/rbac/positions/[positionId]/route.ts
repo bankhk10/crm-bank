@@ -28,8 +28,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const positionId = resolvedParams?.positionId as string | undefined;
+
+  if (!positionId) {
+    return NextResponse.json({ error: "Missing position id" }, { status: 400 });
+  }
+
   const position = await db.position.update({
-    where: { id: params.positionId },
+    where: { id: positionId },
     data: parsed.data
   });
 
@@ -42,6 +50,14 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return guardResult.response;
   }
 
-  await db.position.delete({ where: { id: params.positionId } });
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const positionId = resolvedParams?.positionId as string | undefined;
+
+  if (!positionId) {
+    return NextResponse.json({ error: "Missing position id" }, { status: 400 });
+  }
+
+  await db.position.delete({ where: { id: positionId } });
   return NextResponse.json({ ok: true });
 }

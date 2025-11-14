@@ -26,8 +26,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const data = parsed.data;
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const departmentId = resolvedParams?.departmentId as string | undefined;
+
+  if (!departmentId) {
+    return NextResponse.json({ error: "Missing department id" }, { status: 400 });
+  }
+
   const updated = await db.department.update({
-    where: { id: params.departmentId },
+    where: { id: departmentId },
     data: {
       ...data,
       code: data.code?.toUpperCase()
@@ -43,6 +51,14 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return guardResult.response;
   }
 
-  await db.department.delete({ where: { id: params.departmentId } });
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const departmentId = resolvedParams?.departmentId as string | undefined;
+
+  if (!departmentId) {
+    return NextResponse.json({ error: "Missing department id" }, { status: 400 });
+  }
+
+  await db.department.delete({ where: { id: departmentId } });
   return NextResponse.json({ ok: true });
 }

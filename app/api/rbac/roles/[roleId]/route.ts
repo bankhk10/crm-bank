@@ -27,8 +27,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const payload = parsed.data;
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const roleId = resolvedParams?.roleId as string | undefined;
+
+  if (!roleId) {
+    return NextResponse.json({ error: "Missing role id" }, { status: 400 });
+  }
+
   const role = await db.role.update({
-    where: { id: params.roleId },
+    where: { id: roleId },
     data: {
       ...payload,
       slug: payload.slug?.toLowerCase()
@@ -72,6 +80,6 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "ไม่สามารถลบ role ที่ยังมีผู้ใช้ผูกอยู่ได้" }, { status: 400 });
   }
 
-  await db.role.delete({ where: { id: params.roleId } });
+  await db.role.delete({ where: { id: roleId } });
   return NextResponse.json({ ok: true });
 }

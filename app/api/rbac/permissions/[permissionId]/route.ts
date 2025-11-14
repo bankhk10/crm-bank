@@ -31,8 +31,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const permissionId = resolvedParams?.permissionId as string | undefined;
+
+  if (!permissionId) {
+    return NextResponse.json({ error: "Missing permission id" }, { status: 400 });
+  }
+
   const permission = await db.permission.update({
-    where: { id: params.permissionId },
+    where: { id: permissionId },
     data: parsed.data
   });
 
@@ -45,6 +53,14 @@ export async function DELETE(_: Request, { params }: RouteParams) {
     return guardResult.response;
   }
 
-  await db.permission.delete({ where: { id: params.permissionId } });
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const permissionId = resolvedParams?.permissionId as string | undefined;
+
+  if (!permissionId) {
+    return NextResponse.json({ error: "Missing permission id" }, { status: 400 });
+  }
+
+  await db.permission.delete({ where: { id: permissionId } });
   return NextResponse.json({ ok: true });
 }

@@ -23,15 +23,23 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
+  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
+  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
+  const userId = resolvedParams?.userId as string | undefined;
+
+  if (!userId) {
+    return NextResponse.json({ error: "Missing user id" }, { status: 400 });
+  }
+
   await db.$transaction(async (tx) => {
-    await tx.userRole.deleteMany({ where: { userId: params.userId } });
+    await tx.userRole.deleteMany({ where: { userId } });
     await tx.userRole.createMany({
-      data: parsed.data.roleIds.map((roleId) => ({ userId: params.userId, roleId }))
+      data: parsed.data.roleIds.map((roleId) => ({ userId, roleId }))
     });
   });
 
   const user = await db.user.findUnique({
-    where: { id: params.userId },
+    where: { id: userId },
     include: { userRoles: { include: { role: true } } }
   });
 
