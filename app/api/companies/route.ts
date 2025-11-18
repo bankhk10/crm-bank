@@ -21,7 +21,7 @@ const companySchema = z.object({
   status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional(),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
 
   if (!session?.user) {
@@ -32,20 +32,31 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const companies = await db.company.findMany({
-    include: {
-      employees: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const url = new URL(request.url);
+  const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+  const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
+  const q = (url.searchParams.get("q") || "").trim();
 
-  return NextResponse.json({ companies });
+  const where = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' as const } },
+          { shortName: { contains: q, mode: 'insensitive' as const } },
+        ],
+      }
+    : undefined;
+
+  const [total, companies] = await Promise.all([
+    db.company.count({ where }),
+    db.company.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
+  ]);
+
+  return NextResponse.json({ companies, total, page, perPage });
 }
 
 export async function POST(request: Request) {
