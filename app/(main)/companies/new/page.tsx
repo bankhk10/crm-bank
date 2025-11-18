@@ -66,7 +66,7 @@ export default function NewCompanyPage() {
             </h5>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
             <div>
               <FloatingLabelInput
                 label="ชื่อบริษัท"
@@ -74,7 +74,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, name: e.target.value }))
                 }
-                placeholder="Acme Inc."
                 required
               />
             </div>
@@ -86,7 +85,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, shortName: e.target.value }))
                 }
-                placeholder="ACME"
               />
             </div>
 
@@ -98,7 +96,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, email: e.target.value }))
                 }
-                placeholder="info@company.com"
               />
             </div>
 
@@ -109,7 +106,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, phone: e.target.value }))
                 }
-                placeholder="081-234-5678"
               />
             </div>
 
@@ -120,7 +116,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, taxId: e.target.value }))
                 }
-                placeholder="1234567890123"
               />
             </div>
 
@@ -131,7 +126,6 @@ export default function NewCompanyPage() {
                 onChange={(e: any) =>
                   setPayload((p) => ({ ...p, addressLine: e.target.value }))
                 }
-                placeholder="123/4 Moo 5, Sukhumvit"
               />
               <ThaiAddressPicker
                 value={{
