@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInput";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 
 type AddressValue = {
   province?: string;

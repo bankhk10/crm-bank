@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInput";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies";

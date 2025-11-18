@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInput";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 
 interface LoginFormProps {
   callbackUrl?: string | null;
