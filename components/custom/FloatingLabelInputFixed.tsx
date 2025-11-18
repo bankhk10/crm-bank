@@ -219,18 +219,33 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
 
   const inputClassName = baseInputClasses.join(" ");
 
-  const baseLabelClasses = [
+  const baseLabelShared = [
     "absolute px-1 bg-white transition-all duration-200 ease-in-out pointer-events-none z-10",
-    "left-[15px] top-[-10px] text-[13px]",
-    "peer-placeholder-shown:top-[15px] peer-placeholder-shown:text-[15px]",
-    "peer-focus:top-[-10px] peer-focus:text-[13px]",
+    "left-[15px]",
   ];
 
+  // For selects we don't have a real input `peer` state, so compute float based on value presence.
+  const valuePresent = Boolean((props as any).value || (props as any).defaultValue);
+
+  const selectLabelClasses = valuePresent
+    ? ["top-[-10px]", "text-[13px]"]
+    : ["top-[15px]", "text-[15px]"];
+
+  const inputLabelClasses = [
+    "top-[-10px]",
+    "text-[13px]",
+    "peer-placeholder-shown:top-[15px]",
+    "peer-placeholder-shown:text-[15px]",
+    "peer-focus:top-[-10px]",
+    "peer-focus:text-[13px]",
+  ];
+
+  const colorLabelClasses = hasError ? "text-red-500" : "text-gray-600 peer-focus:text-blue-500";
+
   const labelClassName = [
-    ...baseLabelClasses,
-    hasError
-      ? "text-red-500"
-      : "text-gray-600 peer-focus:text-blue-500",
+    ...baseLabelShared,
+    ...(type === "select" ? selectLabelClasses : inputLabelClasses),
+    colorLabelClasses,
   ].join(" ");
 
   return (
