@@ -28,7 +28,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(session.user.role, resourcePath)) {
+  if (!isAuthorized(resourcePath, session.user.permissions)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(session.user.role, resourcePath)) {
+  if (!isAuthorized(resourcePath, session.user.permissions)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
