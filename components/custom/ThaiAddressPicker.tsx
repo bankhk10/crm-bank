@@ -19,8 +19,12 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   const [provinces, setProvinces] = useState<any[]>([]);
   const [province, setProvince] = useState<string | undefined>(value?.province);
   const [district, setDistrict] = useState<string | undefined>(value?.district);
-  const [subdistrict, setSubdistrict] = useState<string | undefined>(value?.subdistrict);
-  const [postalCode, setPostalCode] = useState<string | undefined>(value?.postalCode);
+  const [subdistrict, setSubdistrict] = useState<string | undefined>(
+    value?.subdistrict
+  );
+  const [postalCode, setPostalCode] = useState<string | undefined>(
+    value?.postalCode
+  );
 
   // โหลดข้อมูลจังหวัด
   useEffect(() => {
@@ -86,11 +90,16 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         <FloatingLabelInput
           label="จังหวัด"
           type="select"
-          options={provinces.map((p: any) => ({ value: p.name, label: p.name }))}
+          options={provinces.map((p: any) => ({
+            value: p.name,
+            label: p.name,
+          }))}
           value={province ?? ""}
-          placeholder="-- เลือกจังหวัด --"
+          placeholder=""
           searchable
-          onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) => {
             const v = (e.target as HTMLInputElement).value;
             setProvince(v || undefined);
             setDistrict(undefined);
@@ -103,12 +112,17 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         <FloatingLabelInput
           label="อำเภอ/เขต"
           type="select"
-          options={districts.map((d: any) => ({ value: d.name, label: d.name }))}
+          options={districts.map((d: any) => ({
+            value: d.name,
+            label: d.name,
+          }))}
           value={district ?? ""}
-          placeholder={province ? "-- เลือกอำเภอ --" : "เลือกจังหวัดก่อน"}
+          placeholder={province ? "" : ""}
           disabled={!province}
           searchable
-          onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) => {
             const v = (e.target as HTMLInputElement).value;
             setDistrict(v || undefined);
             setSubdistrict(undefined);
@@ -120,12 +134,17 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         <FloatingLabelInput
           label="ตำบล"
           type="select"
-          options={subdistricts.map((s: any) => ({ value: s.name, label: s.name }))}
+          options={subdistricts.map((s: any) => ({
+            value: s.name,
+            label: s.name,
+          }))}
           value={subdistrict ?? ""}
-          placeholder={district ? "-- เลือกตำบล --" : "เลือกอำเภอก่อน"}
+          placeholder={district ? "" : ""}
           disabled={!district}
           searchable
-          onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) => {
             const v = (e.target as HTMLInputElement).value;
             setSubdistrict(v || undefined);
           }}

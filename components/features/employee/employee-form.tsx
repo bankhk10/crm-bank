@@ -427,15 +427,10 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
 
           {/* ที่อยู่ (Picker) */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ที่อยู่ (จังหวัด / อำเภอ / ตำบล)
-            </label>
-            <div className="rounded-lg border p-3 bg-gray-50">
-              <ThaiAddressPicker
-                value={address}
-                onChange={(next) => setAddress(next)}
-              />
-            </div>
+            <ThaiAddressPicker
+              value={address}
+              onChange={(next) => setAddress(next)}
+            />
           </div>
         </div>
 
