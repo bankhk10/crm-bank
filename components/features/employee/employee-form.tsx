@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import DatePicker from "@/components/custom/DatePicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies"; // สมมติว่า Type นี้รองรับฟิลด์ใหม่ๆ
@@ -345,13 +346,12 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
 
           {/* วันเกิด */}
           <div>
-            <FloatingLabelInput
+            <DatePicker
               label="วันเกิด"
-              type="date" // ใช้ input date มาตรฐาน
-              value={formState.birthDate ?? ""}
+              value={formState.birthDate}
+              onChange={(v) => setFormState((prev) => ({ ...prev, birthDate: v }))}
               disabled={!canEdit}
-              onChange={handleChange("birthDate")}
-              // หมายเหตุ: FloatingLabelInput อาจต้องปรับแต่ง CSS เล็กน้อยสำหรับ type="date"
+              placeholder="เลือกวันเกิด"
             />
           </div>
 
