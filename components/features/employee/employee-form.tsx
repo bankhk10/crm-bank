@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
-import DatePicker from "@/components/custom/DatePicker";
+import { DatePicker } from "@/components/custom/DatePicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/companies"; // สมมติว่า Type นี้รองรับฟิลด์ใหม่ๆ
@@ -345,7 +345,8 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           </div>
 
           {/* วันเกิด */}
-          <div>
+          
+          {/* <div>
             <DatePicker
               label="วันเกิด"
               value={formState.birthDate}
@@ -353,7 +354,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
               disabled={!canEdit}
               placeholder="เลือกวันเกิด"
             />
-          </div>
+          </div> */}
 
           {/* อายุ (คำนวณ) */}
           <div>
