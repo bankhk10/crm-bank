@@ -122,7 +122,7 @@ function DatePicker({
           <Button
             variant={"outline"}
             className={cn(
-              "w-full h-[50px] px-5 text-lg justify-start text-left font-normal rounded-lg",
+              "relative w-full h-[50px] px-5 pr-12 text-lg justify-start text-left font-normal rounded-lg",
               !date && "text-muted-foreground",
               className
             )}
@@ -130,8 +130,10 @@ function DatePicker({
             title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
             aria-labelledby={label ? `datepicker-label-${label.replace(/\s+/g, "-")}` : undefined}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" aria-hidden="true" />
-            {date ? thaiDisplay : <span>{placeholder}</span>}
+            <span className="truncate">{date ? thaiDisplay : <span>{placeholder}</span>}</span>
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <CalendarIcon className="h-4 w-4" aria-hidden="true" />
+            </span>
           </Button>
         </PopoverTrigger>
       </div>
