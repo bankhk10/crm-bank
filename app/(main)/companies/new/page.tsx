@@ -149,17 +149,27 @@ export default function NewCompanyPage() {
               </div>
             )}
 
-            <div className="md:col-span-2 flex justify-end gap-3">
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => router.push("/companies")}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save company"}
-              </Button>
+            <div className="md:col-span-2 pt-6 border-t my-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-36 shadow-sm hover:shadow-md transition-transform transform-gpu hover:-translate-y-0.5 bg-gray-300 hover:bg-gray-400"
+                  type="button"
+                  onClick={() => router.push("/companies")}
+                >
+                  ยกเลิก
+                </Button>
+
+                <Button
+                  size="lg"
+                  className="w-40 shadow-md bg-emerald-700 text-white hover:bg-emerald-800 transition-transform transform-gpu hover:-translate-y-0.5"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "กำลังบันทึก..." : "บันทึก"}
+                </Button>
+              </div>
             </div>
           </div>
         </form>
