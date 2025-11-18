@@ -18,7 +18,7 @@ const companySchema = z.object({
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
   industry: z.string().optional(),
-  status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional()
+  status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional(),
 });
 
 export async function GET() {
@@ -38,11 +38,11 @@ export async function GET() {
         select: {
           id: true,
           name: true,
-          email: true
-        }
-      }
+          email: true,
+        },
+      },
     },
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 
   return NextResponse.json({ companies });
@@ -61,7 +61,10 @@ export async function POST(request: Request) {
 
   // Ensure caller has explicit create permission for companies
   if (!session.user.permissions?.["company.create"]?.allow) {
-    return NextResponse.json({ error: "Forbidden - missing company.create" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden - missing company.create" },
+      { status: 403 }
+    );
   }
 
   const body = await request.json().catch(() => null);
@@ -87,8 +90,8 @@ export async function POST(request: Request) {
       subdistrict: parsed.data.subdistrict,
       postalCode: parsed.data.postalCode,
       industry: parsed.data.industry,
-      status: parsed.data.status ?? "PROSPECT"
-    }
+      status: parsed.data.status ?? "PROSPECT",
+    },
   });
 
   return NextResponse.json({ company }, { status: 201 });

@@ -24,6 +24,16 @@ export default function NewCompanyPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev || !(field in prev)) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const onAddressChange = (next: any) => {
     setPayload((p) => ({ ...p, ...next }));
@@ -33,6 +43,7 @@ export default function NewCompanyPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
 
     try {
       const res = await fetch("/api/companies", {
@@ -43,7 +54,21 @@ export default function NewCompanyPage() {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        setError(json?.error || "Failed to create company");
+        // If Zod validation issues exist, set field-level errors
+        if (json?.issues) {
+          try {
+            const fe = json.issues as Record<string, string[]>;
+            setFieldErrors(fe);
+            // set a short summary as `error` as well
+            const firstMsg = Object.values(fe).flat()[0];
+            setError(firstMsg || json?.error || "Invalid payload");
+          } catch (e) {
+            setError(json?.error || "Invalid payload");
+          }
+        } else {
+          setError(json?.error || "Failed to create company");
+        }
+
         setLoading(false);
         return;
       }
@@ -71,10 +96,12 @@ export default function NewCompanyPage() {
               <FloatingLabelInput
                 label="ชื่อบริษัท"
                 value={payload.name}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, name: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, name: e.target.value }));
+                  clearFieldError("name");
+                }}
                 required
+                error={fieldErrors.name?.[0]}
               />
             </div>
 
@@ -82,9 +109,11 @@ export default function NewCompanyPage() {
               <FloatingLabelInput
                 label="ชื่อย่อบริษัท"
                 value={payload.shortName}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, shortName: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, shortName: e.target.value }));
+                  clearFieldError("shortName");
+                }}
+                error={fieldErrors.shortName?.[0]}
               />
             </div>
 
@@ -93,9 +122,11 @@ export default function NewCompanyPage() {
                 label="อีเมล"
                 type="email"
                 value={payload.email}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, email: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, email: e.target.value }));
+                  clearFieldError("email");
+                }}
+                error={fieldErrors.email?.[0]}
               />
             </div>
 
@@ -103,9 +134,11 @@ export default function NewCompanyPage() {
               <FloatingLabelInput
                 label="โทรศัพท์"
                 value={payload.phone}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, phone: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, phone: e.target.value }));
+                  clearFieldError("phone");
+                }}
+                error={fieldErrors.phone?.[0]}
               />
             </div>
 
@@ -113,9 +146,11 @@ export default function NewCompanyPage() {
               <FloatingLabelInput
                 label="เลขประจำตัวผู้เสียภาษี"
                 value={payload.taxId}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, taxId: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, taxId: e.target.value }));
+                  clearFieldError("taxId");
+                }}
+                error={fieldErrors.taxId?.[0]}
               />
             </div>
 
@@ -123,9 +158,11 @@ export default function NewCompanyPage() {
               <FloatingLabelInput
                 label="ที่อยู่บริษัท"
                 value={payload.addressLine}
-                onChange={(e: any) =>
-                  setPayload((p) => ({ ...p, addressLine: e.target.value }))
-                }
+                onChange={(e: any) => {
+                  setPayload((p) => ({ ...p, addressLine: e.target.value }));
+                  clearFieldError("addressLine");
+                }}
+                error={fieldErrors.addressLine?.[0]}
               />
               <ThaiAddressPicker
                 value={{
@@ -134,8 +171,27 @@ export default function NewCompanyPage() {
                   subdistrict: payload.subdistrict,
                   postalCode: payload.postalCode,
                 }}
-                onChange={(next) => onAddressChange(next)}
+                onChange={(next) => {
+                  onAddressChange(next);
+                  // clear address related errors
+                  clearFieldError("province");
+                  clearFieldError("district");
+                  clearFieldError("subdistrict");
+                  clearFieldError("postalCode");
+                }}
               />
+
+              {/* Show any address field errors from server for the picker */}
+              {(
+                fieldErrors.province ||
+                fieldErrors.district ||
+                fieldErrors.subdistrict ||
+                fieldErrors.postalCode
+              ) && (
+                <div className="mt-2 text-sm text-red-700">
+                  {fieldErrors.province?.[0] || fieldErrors.district?.[0] || fieldErrors.subdistrict?.[0] || fieldErrors.postalCode?.[0]}
+                </div>
+              )}
             </div>
             {error && (
               <div className="md:col-span-2 text-sm text-destructive">
