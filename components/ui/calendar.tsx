@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
 } from "lucide-react"
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
+import th from "date-fns/locale/th"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -35,11 +36,21 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
-      formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
-        ...formatters,
-      }}
+      // Note: react-day-picker's Formatters type may not include a year formatter
+      // cast to any so we can provide a custom year formatter that shows BE (พ.ศ.)
+      formatters={( {
+        formatMonthDropdown: (date: Date) =>
+          date.toLocaleDateString("th-TH", { month: "short" }).replaceAll(".", ""),
+        formatWeekdayName: (date: Date) =>
+          date.toLocaleDateString("th-TH", { weekday: "short" }).replaceAll(".", ""),
+        formatCaption: (date: Date) =>
+          `${date.toLocaleDateString("th-TH", { month: "long" })} ${
+            date.getFullYear() + 543
+          }`,
+        formatYear: (date: Date) => String(date.getFullYear() + 543),
+        ...(formatters as any),
+      } as any)}
+      locale={th}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
