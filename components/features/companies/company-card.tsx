@@ -42,7 +42,7 @@ export default function CompanyCard({ id, name, shortName, email, phone, taxId, 
         <Link href={`/companies/${id}`} className="text-sm">
           <Button variant="outline" size="sm">View</Button>
         </Link>
-        <Link href={`/companies/${id}`} className="text-sm">
+        <Link href={`/companies/${id}/edit`} className="text-sm">
           <Button size="sm">Edit</Button>
         </Link>
         {onDelete ? (

@@ -20,7 +20,8 @@ interface RouteParams {
   params: { roleId: string };
 }
 
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
@@ -33,9 +34,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
 
-  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
-  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const roleId = resolvedParams?.roleId as string | undefined;
+  const roleId = params?.roleId as string | undefined;
 
   if (!roleId) {
     return NextResponse.json({ error: "Missing role id" }, { status: 400 });
@@ -57,8 +56,19 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
   const role = await db.role.findUnique({
     where: { id: roleId },
-    include: { permissions: { where: { deletedAt: null }, include: { permission: { where: { deletedAt: null } } } } }
+    include: { permissions: { include: { permission: true } } }
   });
 
-  return NextResponse.json(role);
+  // filter out soft-deleted entries on the application side because `include` does not accept `where` in this context
+  const cleaned = role
+    ? {
+        ...role,
+        permissions: role.permissions.filter((rp) => !rp.deletedAt).map((rp) => ({
+          ...rp,
+          permission: rp.permission && !(rp.permission as any).deletedAt ? rp.permission : null
+        }))
+      }
+    : role;
+
+  return NextResponse.json(cleaned);
 }

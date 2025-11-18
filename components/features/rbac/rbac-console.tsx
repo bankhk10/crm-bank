@@ -495,6 +495,7 @@ export default function RBACConsole() {
       ...(existing ?? {
         id: "",
         createdAt: new Date(),
+        deletedAt: null,
         roleId: selectedRole.id,
         permissionId,
         allow: false,

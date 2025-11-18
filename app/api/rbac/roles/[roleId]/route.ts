@@ -14,7 +14,8 @@ interface RouteParams {
   params: { roleId: string };
 }
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
@@ -27,9 +28,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const payload = parsed.data;
-  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
-  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const roleId = resolvedParams?.roleId as string | undefined;
+  const roleId = params?.roleId as string | undefined;
 
   if (!roleId) {
     return NextResponse.json({ error: "Missing role id" }, { status: 400 });
@@ -46,15 +45,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   return NextResponse.json(role);
 }
 
-export async function DELETE(_: Request, { params }: RouteParams) {
+export async function DELETE(_: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
 
-  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
-  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const roleId = resolvedParams?.roleId as string | undefined;
+  const roleId = params?.roleId as string | undefined;
 
   if (!roleId) {
     return NextResponse.json({ error: "Missing role id" }, { status: 400 });

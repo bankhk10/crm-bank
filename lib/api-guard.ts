@@ -11,8 +11,10 @@ interface GuardFailure {
 
 export async function guardPermission(
   required: string | string[]
-): Promise<GuardSuccess<Awaited<ReturnType<typeof auth>>> | GuardFailure> {
-  const session = await auth();
+): Promise<GuardSuccess<any> | GuardFailure> {
+  // `auth` exported from NextAuth is a handler; call it as-is at runtime but avoid depending on its compile-time type.
+  // Use `any` here to avoid tight coupling with NextAuth handler types.
+  const session: any = await (auth as unknown as any)();
   const requirements = Array.isArray(required) ? required : [required];
 
   if (!session?.user) {

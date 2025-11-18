@@ -88,7 +88,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const enriched = user as {
+        // cast via unknown first to satisfy strict TypeScript when `user` may be AdapterUser
+        const enriched = user as unknown as {
           roles: string[];
           permissions: Record<string, SessionPermission>;
           departmentId?: string | null;

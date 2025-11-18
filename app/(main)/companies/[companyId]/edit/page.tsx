@@ -1,0 +1,147 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePermission } from "@/hooks/use-permission";
+import CompanyForm from "@/components/features/companies/company-form";
+
+export default function EditCompanyPage() {
+  const { companyId } = useParams() as { companyId: string };
+  const router = useRouter();
+  const { hasPermission, allowed, isLoading } = usePermission("company.edit");
+  const canEdit = !isLoading && (hasPermission("company.edit") || hasPermission("company.manage") || hasPermission("menu.companies"));
+
+  const [payload, setPayload] = useState<any>({
+    name: "",
+    shortName: "",
+    email: "",
+    phone: "",
+    taxId: "",
+    addressLine: "",
+    province: "",
+    district: "",
+    subdistrict: "",
+    postalCode: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/companies/${companyId}`);
+        if (!res.ok) throw new Error("Failed to load company");
+        const json = await res.json();
+        if (mounted) {
+          setPayload((prev: any) => ({
+            ...prev,
+            name: json.name ?? "",
+            shortName: json.shortName ?? "",
+            email: json.email ?? "",
+            phone: json.phone ?? "",
+            taxId: json.taxId ?? "",
+            addressLine: json.addressLine ?? "",
+            province: json.province ?? "",
+            district: json.district ?? "",
+            subdistrict: json.subdistrict ?? "",
+            postalCode: json.postalCode ?? "",
+          }));
+        }
+      } catch (e: any) {
+        setError(String(e?.message ?? e));
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [companyId]);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev || !(field in prev)) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  async function handleUpdate(payloadData: any) {
+    if (!canEdit) return { success: false, error: "No permission" };
+    setSaving(true);
+    setError(null);
+    setFieldErrors({});
+    try {
+      const res = await fetch(`/api/companies/${companyId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payloadData),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        return { success: false, issues: json?.issues, error: json?.error };
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: String(e) };
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="bg-white shadow-sm sm:rounded-lg">
+        <div className="p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">แก้ไขข้อมูลบริษัท</h5>
+          </div>
+
+          {(!canEdit || error) && (
+            <div>
+              {!canEdit && (
+                <Alert variant="destructive">
+                  <AlertDescription>คุณไม่มีสิทธิ์แก้ไขบริษัทนี้</AlertDescription>
+                </Alert>
+              )}
+              {error && (
+                <div className="mt-3">
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                </div>
+              )}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="animate-pulse">
+              <div className="h-8 w-2/5 bg-slate-200 rounded" />
+              <div className="mt-4 h-4 w-3/5 bg-slate-200 rounded" />
+            </div>
+          ) : (
+            <CompanyForm
+              initial={payload}
+              onSubmit={async (body) => {
+                const result = await handleUpdate(body);
+                if (result.success) router.push(`/companies/${companyId}`);
+                return result;
+              }}
+              onCancel={() => router.push(`/companies/${companyId}`)}
+              submitLabel="บันทึก"
+            />
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}

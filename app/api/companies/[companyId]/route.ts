@@ -21,7 +21,8 @@ const companyUpdateSchema = z.object({
   status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional()
 });
 
-export async function GET(request: Request, { params }: { params: { companyId: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -38,7 +39,8 @@ export async function GET(request: Request, { params }: { params: { companyId: s
   return NextResponse.json({ company });
 }
 
-export async function PUT(request: Request, { params }: { params: { companyId: string } }) {
+export async function PUT(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -63,7 +65,8 @@ export async function PUT(request: Request, { params }: { params: { companyId: s
   return NextResponse.json({ company });
 }
 
-export async function DELETE(request: Request, { params }: { params: { companyId: string } }) {
+export async function DELETE(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const session = await auth();
 
   if (!session?.user) {

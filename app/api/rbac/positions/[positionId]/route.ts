@@ -16,7 +16,8 @@ interface RouteParams {
   params: { positionId: string };
 }
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
@@ -28,9 +29,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
-  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
-  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const positionId = resolvedParams?.positionId as string | undefined;
+  const positionId = params?.positionId as string | undefined;
 
   if (!positionId) {
     return NextResponse.json({ error: "Missing position id" }, { status: 400 });
@@ -44,15 +43,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   return NextResponse.json(position);
 }
 
-export async function DELETE(_: Request, { params }: RouteParams) {
+export async function DELETE(_: Request, context: any) {
+  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
 
-  // `params` may be a thenable in some Next.js runtimes — unwrap if needed
-  const resolvedParams = typeof (params as any)?.then === "function" ? await (params as any) : params;
-  const positionId = resolvedParams?.positionId as string | undefined;
+  const positionId = params?.positionId as string | undefined;
 
   if (!positionId) {
     return NextResponse.json({ error: "Missing position id" }, { status: 400 });
