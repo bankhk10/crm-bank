@@ -180,25 +180,7 @@ export default function NewCompanyPage() {
                   clearFieldError("postalCode");
                 }}
               />
-
-              {/* Show any address field errors from server for the picker */}
-              {(
-                fieldErrors.province ||
-                fieldErrors.district ||
-                fieldErrors.subdistrict ||
-                fieldErrors.postalCode
-              ) && (
-                <div className="mt-2 text-sm text-red-700">
-                  {fieldErrors.province?.[0] || fieldErrors.district?.[0] || fieldErrors.subdistrict?.[0] || fieldErrors.postalCode?.[0]}
-                </div>
-              )}
             </div>
-            {error && (
-              <div className="md:col-span-2 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
             <div className="md:col-span-2 pt-6 border-t my-2">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
