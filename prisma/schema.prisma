@@ -53,6 +53,15 @@ model User {
 model Company {
   id        String         @id @default(cuid())
   name      String
+  shortName String?        @map("short_name")
+  email     String?        @unique
+  phone     String?
+  taxId     String?        @map("tax_id")
+  addressLine String?      @map("address_line")
+  province  String?
+  district  String?
+  subdistrict String?
+  postalCode String?
   industry  String?
   status    CompanyStatus  @default(PROSPECT)
   createdAt DateTime       @default(now())

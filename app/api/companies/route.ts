@@ -8,6 +8,15 @@ const resourcePath = "/api/companies";
 
 const companySchema = z.object({
   name: z.string().min(2),
+  shortName: z.string().optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  taxId: z.string().optional(),
+  addressLine: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
+  subdistrict: z.string().optional(),
+  postalCode: z.string().optional(),
   industry: z.string().optional(),
   status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional()
 });
@@ -62,7 +71,17 @@ export async function POST(request: Request) {
 
   const company = await db.company.create({
     data: {
-      ...parsed.data,
+      name: parsed.data.name,
+      shortName: parsed.data.shortName,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      taxId: parsed.data.taxId,
+      addressLine: parsed.data.addressLine,
+      province: parsed.data.province,
+      district: parsed.data.district,
+      subdistrict: parsed.data.subdistrict,
+      postalCode: parsed.data.postalCode,
+      industry: parsed.data.industry,
       status: parsed.data.status ?? "PROSPECT"
     }
   });

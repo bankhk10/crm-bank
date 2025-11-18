@@ -1,32 +1,169 @@
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import { Button } from "@/components/ui/button";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
+
 export default function NewCompanyPage() {
+  const router = useRouter();
+
+  const [payload, setPayload] = useState({
+    name: "",
+    shortName: "",
+    email: "",
+    phone: "",
+    taxId: "",
+    addressLine: "",
+    province: "",
+    district: "",
+    subdistrict: "",
+    postalCode: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onAddressChange = (next: any) => {
+    setPayload((p) => ({ ...p, ...next }));
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setError(json?.error || "Failed to create company");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/companies");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">New company</h1>
-        <p className="text-sm text-muted-foreground">Add a new client organization to your CRM.</p>
-      </header>
-      <form className="grid gap-4 md:grid-cols-2">
-        <label className="grid gap-2 text-sm">
-          <span className="font-medium">Company name</span>
-          <input className="rounded border px-3 py-2" placeholder="Acme Inc." />
-        </label>
-        <label className="grid gap-2 text-sm">
-          <span className="font-medium">Industry</span>
-          <input className="rounded border px-3 py-2" placeholder="Financial services" />
-        </label>
-        <label className="md:col-span-2 grid gap-2 text-sm">
-          <span className="font-medium">Description</span>
-          <textarea className="min-h-[120px] rounded border px-3 py-2" placeholder="Notes, ideal customer profile, etc." />
-        </label>
-        <div className="md:col-span-2 flex justify-end gap-3">
-          <button className="rounded border px-3 py-2 text-sm" type="button">
-            Cancel
-          </button>
-          <button className="rounded bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700" type="submit">
-            Save company
-          </button>
-        </div>
-      </form>
+      <div className="bg-white shadow-sm sm:rounded-lg">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+              สร้างบริษัทใหม่
+            </h5>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <FloatingLabelInput
+                label="ชื่อบริษัท"
+                value={payload.name}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, name: e.target.value }))
+                }
+                placeholder="Acme Inc."
+                required
+              />
+            </div>
+
+            <div>
+              <FloatingLabelInput
+                label="ชื่อย่อบริษัท"
+                value={payload.shortName}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, shortName: e.target.value }))
+                }
+                placeholder="ACME"
+              />
+            </div>
+
+            <div>
+              <FloatingLabelInput
+                label="อีเมล"
+                type="email"
+                value={payload.email}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, email: e.target.value }))
+                }
+                placeholder="info@company.com"
+              />
+            </div>
+
+            <div>
+              <FloatingLabelInput
+                label="โทรศัพท์"
+                value={payload.phone}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, phone: e.target.value }))
+                }
+                placeholder="081-234-5678"
+              />
+            </div>
+
+            <div>
+              <FloatingLabelInput
+                label="เลขประจำตัวผู้เสียภาษี"
+                value={payload.taxId}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, taxId: e.target.value }))
+                }
+                placeholder="1234567890123"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <FloatingLabelInput
+                label="ที่อยู่บริษัท"
+                value={payload.addressLine}
+                onChange={(e: any) =>
+                  setPayload((p) => ({ ...p, addressLine: e.target.value }))
+                }
+                placeholder="123/4 Moo 5, Sukhumvit"
+              />
+              <ThaiAddressPicker
+                value={{
+                  province: payload.province,
+                  district: payload.district,
+                  subdistrict: payload.subdistrict,
+                  postalCode: payload.postalCode,
+                }}
+                onChange={(next) => onAddressChange(next)}
+              />
+            </div>
+            {error && (
+              <div className="md:col-span-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <div className="md:col-span-2 flex justify-end gap-3">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => router.push("/companies")}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save company"}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
