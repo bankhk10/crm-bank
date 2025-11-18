@@ -59,6 +59,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Ensure caller has explicit create permission for companies
+  if (!session.user.permissions?.["company.create"]?.allow) {
+    return NextResponse.json({ error: "Forbidden - missing company.create" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = companySchema.safeParse(body);
 

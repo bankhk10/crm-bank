@@ -181,6 +181,33 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "company.create",
+        name: "Create company",
+        category: "ACTION",
+        resource: "company",
+        action: "create"
+      }
+    }),
+    prisma.permission.create({
+      data: {
+        key: "company.edit",
+        name: "Edit company",
+        category: "ACTION",
+        resource: "company",
+        action: "edit"
+      }
+    }),
+    prisma.permission.create({
+      data: {
+        key: "company.delete",
+        name: "Delete company",
+        category: "ACTION",
+        resource: "company",
+        action: "delete"
+      }
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.reject",
         name: "Reject product",
         category: "ACTION",
@@ -249,6 +276,9 @@ async function main() {
       "product.edit",
       "product.approve",
       "product.reject",
+      "company.create",
+      "company.edit",
+      "company.delete",
       "data.products"
     ].map((key) => ({
       roleId: managerRole.id,
