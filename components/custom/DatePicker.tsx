@@ -48,6 +48,7 @@ function DatePicker({
   const toYMD = (d: Date) => format(d, "yyyy-MM-dd");
 
   const [date, setDate] = React.useState<Date | undefined>(() => toDate(value));
+  const [open, setOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     setDate(toDate(value));
@@ -90,15 +91,18 @@ function DatePicker({
     if (selectedData) {
       setDate(selectedData)
       if (onChange) onChange(toYMD(selectedData));
+      // close popover after selecting a date
+      setOpen(false);
     }
     if (!selectedData) {
       setDate(undefined);
       if (onChange) onChange(undefined);
     }
   }
+  const thaiDisplay = date ? `${format(date, "dd/MM")}/${getYear(date) + 543}` : placeholder;
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -108,18 +112,20 @@ function DatePicker({
             className
           )}
           disabled={disabled}
+          title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
+          aria-label={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? `${format(date, "dd/MM")}/${getYear(date) + 543}` : <span>{placeholder}</span>}
+          <CalendarIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+          {date ? thaiDisplay : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0" aria-label={label ? `ปฏิทินสำหรับ ${label}` : "ปฏิทินเลือกวันที่"}>
         <div className="flex justify-between p-2">
           <Select
             onValueChange={handleMonthChange}
             value={months[getMonth(date ?? new Date())]}
           >
-            <SelectTrigger className="w-[110px]">
+            <SelectTrigger className="w-[110px]" aria-label={label ? `เลือกเดือน ${label}` : "เลือกเดือน"} title={label ? `เลือกเดือน ${label}` : "เลือกเดือน"}>
               <SelectValue placeholder="เดือน" />
             </SelectTrigger>
             <SelectContent>
@@ -132,7 +138,7 @@ function DatePicker({
             onValueChange={handleYearChange}
             value={(getYear(date ?? new Date())).toString()}
           >
-            <SelectTrigger className="w-[110px]">
+            <SelectTrigger className="w-[110px]" aria-label={label ? `เลือกปี ${label}` : "เลือกปี"} title={label ? `เลือกปี ${label}` : "เลือกปี"}>
               <SelectValue placeholder="ปี" />
             </SelectTrigger>
             <SelectContent>
@@ -149,6 +155,7 @@ function DatePicker({
           onSelect={handleSelect}
           initialFocus
           month={date}
+          aria-label={label ? `ปฏิทินเลือกวันที่สำหรับ ${label}` : "ปฏิทินเลือกวันที่"}
           onMonthChange={setDate}
         />
       </PopoverContent>
