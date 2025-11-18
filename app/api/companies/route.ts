@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { startOfDay, endOfDay } from "date-fns";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
@@ -36,15 +38,33 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
   const q = (url.searchParams.get("q") || "").trim();
+  const fromParam = url.searchParams.get("from");
+  const toParam = url.searchParams.get("to");
 
-  const where = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' as const } },
-          { shortName: { contains: q, mode: 'insensitive' as const } },
-        ],
-      }
-    : undefined;
+  const parseDate = (value: string | null) => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  };
+
+  const fromDate = parseDate(fromParam);
+  const toDate = parseDate(toParam);
+
+  const where: Prisma.CompanyWhereInput = {};
+
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { shortName: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  if (fromDate || toDate) {
+    where.createdAt = {
+      ...(fromDate ? { gte: startOfDay(fromDate) } : {}),
+      ...(toDate ? { lte: endOfDay(toDate) } : {}),
+    };
+  }
 
   const [total, companies] = await Promise.all([
     db.company.count({ where }),

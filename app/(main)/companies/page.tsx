@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Grid, Table as TableIcon, Columns } from "lucide-react";
+import { Grid, Table as TableIcon, Columns, Search } from "lucide-react";
+import type { DateRange } from "react-day-picker";
 import CompanyCard from "@/components/features/companies/company-card";
 import CompaniesKanbanBoard from "@/components/features/companies/companies-kanban-board";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 type Company = {
   id: string;
@@ -34,21 +36,15 @@ export default function CompaniesPage() {
   const [total, setTotal] = useState<number>(0);
   const [view, setView] = useState<"grid" | "table" | "kanban">("grid");
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState<string>("");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [filterDraft, setFilterDraft] = useState<{ query: string; dateRange?: DateRange }>({ query: "", dateRange: undefined });
+  const [appliedFilters, setAppliedFilters] = useState<{ query: string; dateRange?: DateRange }>({ query: "", dateRange: undefined });
   const [deleteCandidate, setDeleteCandidate] = useState<Company | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // debounce search input
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 400);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  // reset to first page when search changes
-  useEffect(() => {
+  const handleApplyFilters = useCallback(() => {
+    setAppliedFilters({ ...filterDraft });
     setPage(1);
-  }, [debouncedSearch]);
+  }, [filterDraft]);
 
   useEffect(() => {
     let mounted = true;
@@ -60,7 +56,9 @@ export default function CompaniesPage() {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("perPage", String(perPage));
-        if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
+        if (appliedFilters.query.trim()) params.set("q", appliedFilters.query.trim());
+        if (appliedFilters.dateRange?.from) params.set("from", appliedFilters.dateRange.from.toISOString());
+        if (appliedFilters.dateRange?.to) params.set("to", appliedFilters.dateRange.to.toISOString());
 
         const res = await fetch(`/api/companies?${params.toString()}`, { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to load companies");
@@ -69,9 +67,10 @@ export default function CompaniesPage() {
           setCompanies(json.companies ?? []);
           setTotal(typeof json.total === "number" ? json.total : 0);
         }
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        setError(String(e?.message ?? e));
+      } catch (error) {
+        const err = error as Error;
+        if (err.name === "AbortError") return;
+        setError(err.message || String(err));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -80,7 +79,63 @@ export default function CompaniesPage() {
       mounted = false;
       controller.abort();
     };
-  }, [page, perPage, debouncedSearch]);
+  }, [page, perPage, appliedFilters]);
+
+  const columns = useMemo<DataTableColumn<Company>[]>(() => [
+    {
+      id: "company",
+      header: "บริษัท",
+      cell: (company) => (
+        <div>
+          <div className="font-medium text-slate-900">{company.name}</div>
+          {company.shortName && <div className="text-xs text-muted-foreground">{company.shortName}</div>}
+        </div>
+      ),
+    },
+    {
+      id: "industry",
+      header: "อุตสาหกรรม",
+      cell: (company) => company.industry ?? "-",
+    },
+    {
+      id: "email",
+      header: "อีเมล",
+      cell: (company) => company.email ?? "-",
+    },
+    {
+      id: "phone",
+      header: "โทรศัพท์",
+      cell: (company) => company.phone ?? "-",
+    },
+    {
+      id: "status",
+      header: "สถานะ",
+      cell: (company) => company.status ?? "-",
+    },
+    {
+      id: "createdAt",
+      header: "สร้างเมื่อ",
+      cell: (company) => (company.createdAt ? new Date(company.createdAt).toLocaleDateString("th-TH") : "-"),
+    },
+    {
+      id: "actions",
+      header: <span className="sr-only">Actions</span>,
+      align: "right",
+      cell: (company) => (
+        <div className="flex items-center justify-end gap-2">
+          <Link href={`/companies/${company.id}`}>
+            <Button variant="outline" size="sm">ดู</Button>
+          </Link>
+          <Link href={`/companies/${company.id}/edit`}>
+            <Button size="sm">แก้ไข</Button>
+          </Link>
+          {hasPermission("company.delete") && (
+            <Button variant="ghost" size="sm" onClick={() => setDeleteCandidate(company)}>ลบ</Button>
+          )}
+        </div>
+      ),
+    },
+  ], [hasPermission]);
 
   if (!canView) {
     return (
@@ -98,15 +153,30 @@ export default function CompaniesPage() {
           <p className="text-sm text-muted-foreground">ภาพรวมของลูกค้า องค์กร และบัญชี</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <input
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400"
-              placeholder="ค้นหาบริษัท..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          {view !== "table" && (
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <div className="relative">
+                <input
+                  className="h-10 rounded-full border border-slate-200 bg-white px-10 text-sm shadow-sm shadow-slate-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  placeholder="ค้นหาบริษัท..."
+                  value={filterDraft.query}
+                  onChange={(e) => setFilterDraft((prev) => ({ ...prev, query: e.target.value }))}
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              </div>
+              <DateRangePicker
+                value={filterDraft.dateRange}
+                onChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
+                buttonLabel="ช่วงวันที่"
+                placeholder="เลือกช่วงวันที่"
+                className="w-full md:w-auto"
+              />
+              <Button className="rounded-full px-6" onClick={handleApplyFilters} disabled={loading}>
+                {loading ? "กำลังค้นหา..." : "ค้นหา"}
+              </Button>
+            </div>
+          )}
           <div className="flex items-center gap-2 rounded bg-slate-50 p-1">
             <button className={`p-2 rounded ${view === "grid" ? "bg-white shadow" : "hover:bg-white/50"}`} onClick={() => setView("grid")} title="Grid view">
               <Grid size={16} />
@@ -154,8 +224,9 @@ export default function CompaniesPage() {
                     if (!res.ok) throw new Error("Delete failed");
                     setCompanies((prev) => prev.filter((c) => c.id !== deleteCandidate.id));
                     setDeleteCandidate(null);
-                  } catch (e: any) {
-                    setError(String(e?.message ?? e));
+                  } catch (error) {
+                    const err = error as Error;
+                    setError(err.message || String(err));
                   } finally {
                     setActionLoading(false);
                   }
@@ -173,7 +244,7 @@ export default function CompaniesPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           {/* Empty state */}
-          {!loading && companies.length === 0 && (
+          {!loading && companies.length === 0 && view !== "table" && (
             <div className="rounded-lg border border-slate-200 bg-white p-8 text-center">
               <h3 className="text-xl font-semibold">ยังไม่มีบริษัท</h3>
               <p className="mt-2 text-sm text-slate-600">ยังไม่มีรายการบริษัทในระบบ คุณสามารถสร้างบริษัทใหม่ได้</p>
@@ -212,53 +283,51 @@ export default function CompaniesPage() {
               ))}
             </div>
           ) : view === "table" ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Industry</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {companies.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>
-                        <div className="font-medium">{c.name}</div>
-                        <div className="text-xs text-muted-foreground">{c.shortName}</div>
-                      </TableCell>
-                      <TableCell>{c.industry}</TableCell>
-                      <TableCell>{c.email}</TableCell>
-                      <TableCell>{c.phone}</TableCell>
-                      <TableCell>{c.status}</TableCell>
-                      <TableCell>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "-"}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 justify-end">
-                          <Link href={`/companies/${c.id}`}>
-                            <Button variant="outline" size="sm">View</Button>
-                          </Link>
-                          <Link href={`/companies/${c.id}`}>
-                            <Button size="sm">Edit</Button>
-                          </Link>
-                          {hasPermission("company.delete") ? (
-                            <Button variant="ghost" size="sm" onClick={() => setDeleteCandidate(c)}>Delete</Button>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+            <DataTable<Company>
+              title="รายการบริษัท"
+              description="จัดการ ตรวจสอบ และอัปเดตข้อมูลบริษัททั้งหมดได้จากตารางเดียว"
+              data={companies}
+              columns={columns}
+              loading={loading}
+              filters={{
+                search: {
+                  value: filterDraft.query,
+                  onChange: (value) => setFilterDraft((prev) => ({ ...prev, query: value })),
+                  placeholder: "ค้นหาชื่อบริษัทหรือชื่อย่อ",
+                },
+                dateRange: {
+                  value: filterDraft.dateRange,
+                  onChange: (range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined })),
+                  buttonLabel: "ช่วงวันที่",
+                  placeholder: "เลือกช่วงวันที่",
+                },
+                onApply: handleApplyFilters,
+                isApplying: loading,
+              }}
+              pagination={{
+                page,
+                perPage,
+                total,
+                onPageChange: (nextPage) => setPage(nextPage),
+                onPerPageChange: (nextPerPage) => { setPerPage(nextPerPage); setPage(1); },
+                perPageOptions: [6, 12, 24, 48],
+              }}
+              emptyState={{
+                title: "ยังไม่มีบริษัท",
+                description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างบริษัทใหม่",
+                action: canCreate ? (
+                  <Link href="/companies/new">
+                    <Button size="sm">สร้างบริษัทใหม่</Button>
+                  </Link>
+                ) : undefined,
+              }}
+            />
           ) : (
             <CompaniesKanbanBoard />
           )}
 
           {/* Pagination controls */}
-          {!loading && total > 0 && (
+          {view !== "table" && !loading && total > 0 && (
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">{`แสดง ${Math.min((page - 1) * perPage + 1, total)} - ${Math.min(page * perPage, total)} จาก ${total} รายการ`}</div>
               <div className="flex items-center gap-2">
