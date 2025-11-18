@@ -351,7 +351,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
               value={formState.birthDate}
               onChange={(v) => setFormState((prev) => ({ ...prev, birthDate: v }))}
               disabled={!canEdit}
-              placeholder="เลือกวันเกิด"
+              placeholder=""
             />
           </div>
 

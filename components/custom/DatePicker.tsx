@@ -30,7 +30,7 @@ function DatePicker({
   value,
   onChange,
   label,
-  placeholder = "เลือกวัน",
+  placeholder = "",
   disabled = false,
   className,
 }: DatePickerProps) {
@@ -103,22 +103,38 @@ function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-full h-[50px] px-5 text-lg justify-start text-left font-normal rounded-lg",
-            !date && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled}
-          title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
-          aria-label={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" aria-hidden="true" />
-          {date ? thaiDisplay : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
+      <div className="relative w-full">
+        {/* Floating label */}
+        {label && (
+          <label
+            id={`datepicker-label-${label.replace(/\s+/g, "-")}`}
+            className={cn(
+              "absolute px-1 bg-white transition-all duration-200 ease-in-out pointer-events-none z-10 left-[15px]",
+              (date || open) ? "-top-2 text-[13px]" : "top-[15px] text-[15px]",
+              date ? "text-gray-700" : "text-gray-600"
+            )}
+          >
+            {label}
+          </label>
+        )}
+
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-full h-[50px] px-5 text-lg justify-start text-left font-normal rounded-lg",
+              !date && "text-muted-foreground",
+              className
+            )}
+            disabled={disabled}
+            title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
+            aria-labelledby={label ? `datepicker-label-${label.replace(/\s+/g, "-")}` : undefined}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+            {date ? thaiDisplay : <span>{placeholder}</span>}
+          </Button>
+        </PopoverTrigger>
+      </div>
       <PopoverContent className="w-auto p-0" aria-label={label ? `ปฏิทินสำหรับ ${label}` : "ปฏิทินเลือกวันที่"}>
         <div className="flex justify-between p-2">
           <Select
