@@ -54,18 +54,18 @@ function DatePicker({
   }, [value]);
 
   const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
+    'มกราคม',
+    'กุมภาพันธ์',
+    'มีนาคม',
+    'เมษายน',
+    'พฤษภาคม',
+    'มิถุนายน',
+    'กรกฎาคม',
+    'สิงหาคม',
+    'กันยายน',
+    'ตุลาคม',
+    'พฤศจิกายน',
+    'ธันวาคม',
   ];
   const years = Array.from(
     { length: endYear - startYear + 1 },
@@ -120,7 +120,7 @@ function DatePicker({
             value={months[getMonth(date ?? new Date())]}
           >
             <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Month" />
+              <SelectValue placeholder="เดือน" />
             </SelectTrigger>
             <SelectContent>
               {months.map(month => (
@@ -133,7 +133,7 @@ function DatePicker({
             value={(getYear(date ?? new Date())).toString()}
           >
             <SelectTrigger className="w-[110px]">
-              <SelectValue placeholder="Year" />
+              <SelectValue placeholder="ปี" />
             </SelectTrigger>
             <SelectContent>
               {years.map(year => (
