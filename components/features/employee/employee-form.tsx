@@ -315,7 +315,6 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
               </div>
             </div>
           </div>
-
           {/* รหัสพนักงาน */}
           <div>
             <FloatingLabelInput
