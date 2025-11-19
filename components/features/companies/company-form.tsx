@@ -33,7 +33,12 @@ interface Props {
   submitLabel?: string;
 }
 
-export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLabel = "บันทึก" }: Props) {
+export default function CompanyForm({
+  initial = {},
+  onSubmit,
+  onCancel,
+  submitLabel = "บันทึก",
+}: Props) {
   const [payload, setPayload] = useState<CompanyPayload>({
     name: initial.name ?? "",
     shortName: initial.shortName ?? "",
@@ -71,7 +76,9 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด");
+          setError(
+            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+          );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
@@ -86,6 +93,20 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <Button
+        variant="secondary"
+        size="lg"
+        className="w-40"
+        type="button"
+        onClick={() => {
+          setFieldErrors({});
+          setError(null);
+          const random = generateRandomCompany();
+          setPayload((p) => ({ ...p, ...random }));
+        }}
+      >
+        สุ่มข้อมูล
+      </Button>
       {error && (
         <div>
           <Alert variant="destructive">
@@ -169,7 +190,12 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           />
 
           <ThaiAddressPicker
-            value={{ province: payload.province, district: payload.district, subdistrict: payload.subdistrict, postalCode: payload.postalCode }}
+            value={{
+              province: payload.province,
+              district: payload.district,
+              subdistrict: payload.subdistrict,
+              postalCode: payload.postalCode,
+            }}
             onChange={(next) => {
               setPayload((p) => ({ ...p, ...next }));
               clearFieldError("province");
@@ -182,22 +208,18 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
 
         <div className="md:col-span-2 pt-6 border-t my-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button variant="outline" size="lg" className="w-36" type="button" onClick={onCancel}>ยกเลิก</Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="lg"
-              className="w-40"
+              className="w-36"
               type="button"
-              onClick={() => {
-                setFieldErrors({});
-                setError(null);
-                const random = generateRandomCompany();
-                setPayload((p) => ({ ...p, ...random }));
-              }}
+              onClick={onCancel}
             >
-              สุ่มข้อมูล
+              ยกเลิก
             </Button>
-            <Button size="lg" className="w-40" type="submit" disabled={loading}>{loading ? "กำลังบันทึก..." : submitLabel}</Button>
+            <Button size="lg" className="w-40" type="submit" disabled={loading}>
+              {loading ? "กำลังบันทึก..." : submitLabel}
+            </Button>
           </div>
         </div>
       </div>

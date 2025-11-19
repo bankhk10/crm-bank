@@ -99,9 +99,64 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = companySchema.safeParse(body);
+  // debug: log incoming payload to help track 400 validation errors
+  try {
+    // eslint-disable-next-line no-console
+    console.debug("[api/companies] incoming body:", JSON.stringify(body));
+  } catch (e) {
+    // ignore
+  }
+  // sanitize keys in body to handle accidental whitespace or odd chars in keys
+  const knownKeys = [
+    "name",
+    "shortName",
+    "email",
+    "phone",
+    "taxId",
+    "addressLine",
+    "province",
+    "district",
+    "subdistrict",
+    "postalCode",
+    "industry",
+    "status",
+  ];
+
+  const sanitizeKey = (k: string) => k.replace(/[^a-zA-Z]/g, "").toLowerCase();
+
+  const normalizedBody: Record<string, unknown> = {};
+  if (body && typeof body === "object") {
+    const entries = Object.entries(body as Record<string, unknown>);
+    for (const [k, v] of entries) {
+      const cleaned = sanitizeKey(k);
+      const match = knownKeys.find(
+        (kk) => sanitizeKey(kk) === cleaned || cleaned.includes(sanitizeKey(kk)) || sanitizeKey(kk).includes(cleaned)
+      );
+      if (match) {
+        normalizedBody[match] = v;
+      } else {
+        normalizedBody[k] = v;
+      }
+    }
+  }
+
+  // coerce postalCode to string if it's a number
+  if (normalizedBody.postalCode !== undefined && typeof normalizedBody.postalCode === "number") {
+    normalizedBody.postalCode = String(normalizedBody.postalCode);
+    try {
+      // eslint-disable-next-line no-console
+      console.debug("[api/companies] coerced postalCode to string", normalizedBody.postalCode);
+    } catch {}
+  }
+  const parsed = companySchema.safeParse(Object.keys(normalizedBody).length ? normalizedBody : body);
 
   if (!parsed.success) {
+    try {
+      // eslint-disable-next-line no-console
+      console.debug("[api/companies] validation error:", parsed.error.format());
+    } catch (e) {
+      // ignore
+    }
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
       { status: 400 }
