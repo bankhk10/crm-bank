@@ -79,3 +79,5 @@ crm/
 ├── .env.local                # เก็บ Environment Variables (เช่น DB connection string)
 ├── next.config.mjs           # ไฟล์ตั้งค่า Next.js
 └── tsconfig.json             # ไฟล์ตั้งค่า TypeScript
+
+คุยกับฉันเป็นภาษาไทย

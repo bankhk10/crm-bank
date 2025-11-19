@@ -34,6 +34,18 @@ export default function CompaniesPage() {
 
   // auto-apply filters (debounced) when user types or changes date range
   useEffect(() => {
+    // If the last applied search returned no results and the user is
+    // typing more characters (extending the query), wait a bit longer
+    // before applying filters to avoid frequent re-fetching and UI
+    // flicker. Otherwise use a normal short debounce.
+    const isExtendingEmpty =
+      total === 0 &&
+      appliedFilters.query &&
+      filterDraft.query.startsWith(appliedFilters.query) &&
+      filterDraft.query.length > appliedFilters.query.length;
+
+    const delay = isExtendingEmpty ? 900 : 400;
+
     const id = setTimeout(() => {
       const next = {
         query: filterDraft.query,
@@ -41,9 +53,21 @@ export default function CompaniesPage() {
       };
       setAppliedFilters(next);
       setPage(1);
-    }, 400);
+    }, delay);
     return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.dateRange]);
+  }, [filterDraft.query, filterDraft.dateRange, total, appliedFilters.query]);
+
+  const mkRangeKey = (r?: DateRange) =>
+    r?.from?.toISOString() + "|" + r?.to?.toISOString();
+
+  const isTyping =
+    filterDraft.query !== appliedFilters.query ||
+    mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange);
+
+  const handleSearchSubmit = () => {
+    setAppliedFilters({ query: filterDraft.query, dateRange: filterDraft.dateRange });
+    setPage(1);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -166,6 +190,8 @@ export default function CompaniesPage() {
             onSearchChange={(value) =>
               setFilterDraft((prev) => ({ ...prev, query: value }))
             }
+            isTyping={isTyping}
+            onSearchSubmit={handleSearchSubmit}
             dateRange={filterDraft.dateRange}
             onDateRangeChange={(range) =>
               setFilterDraft((prev) => ({

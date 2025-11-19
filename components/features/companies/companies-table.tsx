@@ -40,6 +40,8 @@ export interface CompaniesTableProps {
   onDeleteRequest: (company: CompanyRecord) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  isTyping?: boolean;
+  onSearchSubmit?: () => void;
   dateRange?: DateRange;
   onDateRangeChange: (range: DateRange | undefined) => void;
   pagination: CompaniesPagination;
@@ -148,6 +150,8 @@ function CompaniesToolbar(
     | "canCreate"
     | "searchValue"
     | "onSearchChange"
+    | "isTyping"
+    | "onSearchSubmit"
     | "dateRange"
     | "onDateRangeChange"
   >
@@ -156,6 +160,8 @@ function CompaniesToolbar(
     canCreate,
     searchValue,
     onSearchChange,
+    isTyping,
+    onSearchSubmit,
     dateRange,
     onDateRangeChange,
   } = props;
@@ -167,9 +173,15 @@ function CompaniesToolbar(
         <Input
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") onSearchSubmit?.();
+          }}
           placeholder="ค้นหาชื่อบริษัทหรือชื่อย่อ"
           className="h-11"
         />
+        <div className="text-xs text-muted-foreground mt-1">
+          {isTyping ? "กำลังพิมพ์... กด Enter เพื่อค้นหา" : ""}
+        </div>
       </div>
 
       <div className="space-y-2">
