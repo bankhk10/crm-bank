@@ -3,12 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-// นำเข้าคอมโพเนนต์ Shadcn/ui ที่อัปเดต/เพิ่มเติม
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge"; // เพิ่ม Badge สำหรับแสดงสถานะ
-import { Separator } from "@/components/ui/separator"; // เพิ่ม Separator เพื่อแบ่งส่วน
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Loader2,
   AlertTriangle,
@@ -38,7 +37,17 @@ type Company = {
 // ข้อมูลสถานะสำหรับการแสดงผล (ย้ายมาไว้ด้านนอกเพื่อความสะอาด)
 const statusMap: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning"; className?: string }
+  {
+    label: string;
+    variant:
+      | "default"
+      | "secondary"
+      | "destructive"
+      | "outline"
+      | "success"
+      | "warning";
+    className?: string;
+  }
 > = {
   ACTIVE: {
     label: "ใช้งาน",
@@ -52,7 +61,6 @@ const statusMap: Record<
   },
 };
 
-// ข้อมูลสำหรับรายละเอียดแต่ละรายการ
 interface DetailItemProps {
   label: string;
   value: React.ReactNode;
@@ -80,7 +88,6 @@ export default function CompanyDetailPage() {
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   // ส่วน fetch data (เหมือนเดิม)
   useEffect(() => {
@@ -104,19 +111,6 @@ export default function CompanyDetailPage() {
     };
   }, [companyId]);
 
-  // ฟังก์ชันจำลองการลบ (เพื่อแสดง UI ที่ทันสมัย)
-  const handleDelete = () => {
-    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบริษัทนี้?")) {
-      setDeleting(true);
-      // Logic การลบจริงควรอยู่ที่นี่
-      console.log(`Deleting company ${companyId}...`);
-      setTimeout(() => {
-        setDeleting(false);
-        // router.push("/companies"); // เมื่อลบเสร็จให้กลับไปหน้ารายการ
-      }, 1500);
-    }
-  };
-  
   // การแสดงผลเมื่อไม่มีสิทธิ์ (ปรับปรุงให้ใช้ AlertTitle)
   if (!canView) {
     return (
@@ -124,7 +118,9 @@ export default function CompanyDetailPage() {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
-          <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทนี้</AlertDescription>
+          <AlertDescription>
+            คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทนี้
+          </AlertDescription>
         </Alert>
       </div>
     );
@@ -133,60 +129,31 @@ export default function CompanyDetailPage() {
   // UI หลัก
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* --- ส่วนหัว (Header) --- */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">
-            ข้อมูลบริษัท
-          </h1>
-        </div>
-        
-        {/* ปุ่มดำเนินการ */}
-        <div className="flex space-x-2">
-          {/* ปุ่มแก้ไข (สมมติว่าคุณมีสิทธิ์) */}
-          <Link href={`/companies/${companyId}/edit`} passHref>
-            <Button variant="outline" size="sm">
-              <Pencil className="mr-2 h-4 w-4" /> แก้ไข
-            </Button>
-          </Link>
-
-          {/* ปุ่มลบ (สมมติว่าคุณมีสิทธิ์) */}
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            onClick={handleDelete} 
-            disabled={deleting}
-          >
-            {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Trash2 className="mr-2 h-4 w-4" /> ลบ
-          </Button>
-        </div>
-      </div>
-
-      <Separator /> {/* เส้นแบ่งส่วน */}
-
-      {/* --- ส่วนเนื้อหาหลัก --- */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {loading ? (
-              <div className="h-8 w-2/5 bg-gray-200 rounded animate-pulse" />
-            ) : company ? (
-              <div className="flex flex-col space-y-1">
-                <span className="text-2xl font-semibold">{company.name}</span>
-                {company.shortName && (
-                  <span className="text-sm font-normal text-muted-foreground">
-                    ({company.shortName})
-                  </span>
-                )}
-              </div>
-            ) : (
-              <span className="text-xl font-semibold">ไม่พบข้อมูลบริษัท</span>
-            )}
-          </CardTitle>
+          <CardHeader>
+            <CardTitle>
+              {loading ? (
+                // Skeleton loader for the title area
+                <div className="h-8 w-full bg-gray-200 rounded animate-pulse" />
+              ) : company ? (
+                <div className="relative flex items-center justify-center min-h-[40px]">
+                  <div className="flex flex-col space-y-1 text-center">
+                    <span className="text-2xl font-semibold leading-none">
+                      {company.name}
+                    </span>
+                    {company.shortName && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        ({company.shortName})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-xl font-semibold">ไม่พบข้อมูลบริษัท</span>
+              )}
+            </CardTitle>
+          </CardHeader>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
@@ -214,14 +181,8 @@ export default function CompanyDetailPage() {
             <>
               {/* --- รายละเอียดทั่วไป --- */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem
-                  label="อีเมล"
-                  value={company.email ?? "-"}
-                />
-                <DetailItem
-                  label="โทรศัพท์"
-                  value={company.phone ?? "-"}
-                />
+                <DetailItem label="อีเมล" value={company.email ?? "-"} />
+                <DetailItem label="โทรศัพท์" value={company.phone ?? "-"} />
                 <DetailItem
                   label="เลขประจำตัวผู้เสียภาษี"
                   value={company.taxId ?? "-"}
@@ -231,10 +192,15 @@ export default function CompanyDetailPage() {
                   value={(() => {
                     const s = (company.status ?? "").toUpperCase();
                     const info = statusMap[s];
-                    if (!info) return <Badge variant="secondary">{company.status ?? "-"}</Badge>;
+                    if (!info)
+                      return (
+                        <Badge variant="secondary">
+                          {company.status ?? "-"}
+                        </Badge>
+                      );
 
                     return (
-                      <Badge 
+                      <Badge
                         variant={info.variant as any} // ใช้ as any ถ้าไม่มี variant success ใน Badge ของคุณ
                         className={info.className}
                       >
@@ -244,9 +210,7 @@ export default function CompanyDetailPage() {
                   })()}
                 />
               </div>
-
               <Separator /> {/* เส้นแบ่งส่วน */}
-              
               {/* --- รายละเอียดที่อยู่และเวลา --- */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <DetailItem
@@ -259,7 +223,9 @@ export default function CompanyDetailPage() {
                     company.province ||
                     company.postalCode ? (
                       <div>
-                        {company.addressLine && <div>{company.addressLine}</div>}
+                        {company.addressLine && (
+                          <div>{company.addressLine}</div>
+                        )}
                         <div className="text-sm text-muted-foreground mt-1">
                           {[
                             company.subdistrict,
@@ -296,7 +262,6 @@ export default function CompanyDetailPage() {
           )}
         </CardContent>
       </Card>
-
     </div>
   );
 }
