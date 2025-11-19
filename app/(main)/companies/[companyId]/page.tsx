@@ -19,7 +19,6 @@ type Company = {
   district?: string | null;
   subdistrict?: string | null;
   postalCode?: string | null;
-  industry?: string | null;
   status?: string | null;
   createdAt?: string | null;
 };

@@ -19,7 +19,6 @@ const companySchema = z.object({
   district: z.string().optional(),
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
-  industry: z.string().optional(),
   status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional(),
 });
 
@@ -113,7 +112,6 @@ export async function POST(request: Request) {
     "district",
     "subdistrict",
     "postalCode",
-    "industry",
     "status",
   ];
 
@@ -161,8 +159,7 @@ export async function POST(request: Request) {
         district: parsed.data.district,
         subdistrict: parsed.data.subdistrict,
         postalCode: parsed.data.postalCode,
-        industry: parsed.data.industry,
-        status: parsed.data.status ?? "PROSPECT",
+        status: parsed.data.status ?? "ACTIVE",
       },
     });
 

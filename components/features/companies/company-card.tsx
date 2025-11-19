@@ -15,12 +15,11 @@ type Props = {
   email?: string | null;
   phone?: string | null;
   taxId?: string | null;
-  industry?: string | null;
   status?: string | null;
   onDelete?: (id: string) => void;
 };
 
-export default function CompanyCard({ id, name, shortName, email, phone, taxId, industry, status, onDelete }: Props) {
+export default function CompanyCard({ id, name, shortName, email, phone, taxId, status, onDelete }: Props) {
   return (
     <Card className="flex flex-col justify-between h-full">
       <div>
@@ -33,7 +32,6 @@ export default function CompanyCard({ id, name, shortName, email, phone, taxId, 
         </div>
 
         <div className="mt-3 text-sm text-slate-600 space-y-1">
-          {industry ? <div><span className="font-medium">Industry: </span>{industry}</div> : null}
           {email ? <div><span className="font-medium">Email: </span>{email}</div> : null}
           {phone ? <div><span className="font-medium">Phone: </span>{phone}</div> : null}
           {taxId ? <div><span className="font-medium">Tax ID: </span>{taxId}</div> : null}

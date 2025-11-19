@@ -62,7 +62,6 @@ model Company {
   district  String?
   subdistrict String?
   postalCode String?
-  industry  String?
   status    CompanyStatus  @default(PROSPECT)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt

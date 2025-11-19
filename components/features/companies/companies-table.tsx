@@ -20,7 +20,6 @@ export type CompanyRecord = {
   email?: string;
   phone?: string;
   taxId?: string;
-  industry?: string;
   status?: string;
   createdAt?: string;
 };

@@ -381,7 +381,6 @@ async function main() {
   const acme = await prisma.company.create({
     data: {
       name: "Acme Holdings",
-      industry: "Financial Services",
       status: "ACTIVE",
       employees: {
         create: [
@@ -405,7 +404,6 @@ async function main() {
   await prisma.company.create({
     data: {
       name: "Globex Asia",
-      industry: "Technology",
       status: "PROSPECT",
       employees: {
         create: [

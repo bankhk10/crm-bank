@@ -17,7 +17,6 @@ const companyUpdateSchema = z.object({
   district: z.string().optional(),
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
-  industry: z.string().optional(),
   status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional()
 });
 

@@ -233,7 +233,6 @@ export default function CompaniesPage() {
                   email={c.email}
                   phone={c.phone}
                   taxId={c.taxId}
-                  industry={c.industry}
                   status={c.status}
                   onDelete={(id) => setDeleteCandidate(companies.find((x) => x.id === id) ?? null)}
                 />
