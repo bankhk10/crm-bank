@@ -107,9 +107,9 @@ export function DateRangePicker({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[360px] space-y-4 p-4" align="end">
+      <PopoverContent className="w-[290px] space-y-4 p-4" align="end">
         {presets.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {presets.map((preset) => (
               <Button
                 key={preset.label}
