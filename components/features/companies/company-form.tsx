@@ -209,15 +209,20 @@ export default function CompanyForm({
         <div className="md:col-span-2 pt-6 border-t my-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button
-              variant="outline"
               size="lg"
-              className="w-36"
+              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
               type="button"
               onClick={onCancel}
             >
               ยกเลิก
             </Button>
-            <Button size="lg" className="w-40" type="submit" disabled={loading}>
+            <Button
+              size="lg"
+              // เพิ่มคลาสพื้นหลังสีเขียว เช่น bg-green-500 และ hover:bg-green-600
+              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+              type="submit"
+              disabled={loading}
+            >
               {loading ? "กำลังบันทึก..." : submitLabel}
             </Button>
           </div>
