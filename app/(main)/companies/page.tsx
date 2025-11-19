@@ -45,12 +45,22 @@ export default function CompaniesPage() {
       filterDraft.query.length > appliedFilters.query.length;
 
     const delay = isExtendingEmpty ? 900 : 400;
+    const next = {
+      query: filterDraft.query,
+      dateRange: filterDraft.dateRange,
+    };
+
+    // If nothing changed compared to currently applied filters, don't
+    // schedule a state update (prevents duplicate fetch cycles).
+    const rangeKey = (r?: DateRange) => r?.from?.toISOString() + "|" + r?.to?.toISOString();
+    if (
+      next.query === appliedFilters.query &&
+      rangeKey(next.dateRange) === rangeKey(appliedFilters.dateRange)
+    ) {
+      return;
+    }
 
     const id = setTimeout(() => {
-      const next = {
-        query: filterDraft.query,
-        dateRange: filterDraft.dateRange,
-      };
       setAppliedFilters(next);
       setPage(1);
     }, delay);
