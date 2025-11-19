@@ -6,9 +6,11 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronUpIcon, ChevronDownIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -42,11 +44,17 @@ export function DataTable<TData, TValue>({
   className,
 }: DataTableProps<TData, TValue>) {
   // TanStack's useReactTable manages internal refs and must be created per render.
+  // Add local sorting state and sorted row model so headers can toggle sort.
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
+    state: { sorting },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
 
@@ -63,8 +71,36 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="whitespace-nowrap text-muted-foreground">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <TableHead
+                    key={header.id}
+                    className="whitespace-nowrap bg-slate-50 font-medium text-slate-700"
+                  >
+                    {header.isPlaceholder ? null : (
+                      header.column.getCanSort() ? (
+                        <button
+                          type="button"
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="flex w-full items-center justify-between gap-2 text-left"
+                        >
+                          <span className="truncate">
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                          </span>
+                          <span className="ml-2 text-xs text-slate-500 inline-flex items-center">
+                            {header.column.getIsSorted() === "asc" ? (
+                              <ChevronUpIcon className="h-4 w-4" />
+                            ) : header.column.getIsSorted() === "desc" ? (
+                              <ChevronDownIcon className="h-4 w-4" />
+                            ) : (
+                              <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
+                            )}
+                          </span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </div>
+                      )
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
