@@ -117,17 +117,22 @@ export async function POST(request: Request) {
 
   const sanitizeKey = (k: string) => k.replace(/[^a-zA-Z]/g, "").toLowerCase();
 
+  // Build a direct map of sanitized-knownKey -> original knownKey to avoid
+  // accidental partial matches (e.g. "shortName" matching "name").
+  const keyMap = Object.fromEntries(
+    knownKeys.map((kk) => [sanitizeKey(kk), kk])
+  );
+
   const normalizedBody: Record<string, unknown> = {};
   if (body && typeof body === "object") {
     const entries = Object.entries(body as Record<string, unknown>);
     for (const [k, v] of entries) {
       const cleaned = sanitizeKey(k);
-      const match = knownKeys.find(
-        (kk) => sanitizeKey(kk) === cleaned || cleaned.includes(sanitizeKey(kk)) || sanitizeKey(kk).includes(cleaned)
-      );
-      if (match) {
-        normalizedBody[match] = v;
+      const mapped = keyMap[cleaned];
+      if (mapped) {
+        normalizedBody[mapped] = v;
       } else {
+        // keep original key if we couldn't map it
         normalizedBody[k] = v;
       }
     }
