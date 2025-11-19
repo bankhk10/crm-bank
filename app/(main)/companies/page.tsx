@@ -1,24 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
-
-type Company = {
-  id: string;
-  name: string;
-  shortName?: string;
-  email?: string;
-  phone?: string;
-  taxId?: string;
-  industry?: string;
-  status?: string;
-  createdAt?: string;
-};
+import { CompaniesTable, type CompanyRecord } from "@/components/features/companies/companies-table";
 
 export default function CompaniesPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
@@ -28,7 +15,7 @@ export default function CompaniesPage() {
     hasPermission("menu.companies");
   const canView = !isLoading && allowed;
 
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(12);
@@ -42,13 +29,8 @@ export default function CompaniesPage() {
     query: string;
     dateRange?: DateRange;
   }>({ query: "", dateRange: undefined });
-  const [deleteCandidate, setDeleteCandidate] = useState<Company | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<CompanyRecord | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-
-  const handleApplyFilters = useCallback(() => {
-    setAppliedFilters({ ...filterDraft });
-    setPage(1);
-  }, [filterDraft]);
 
   // auto-apply filters (debounced) when user types or changes date range
   useEffect(() => {
@@ -102,80 +84,6 @@ export default function CompaniesPage() {
       controller.abort();
     };
   }, [page, perPage, appliedFilters]);
-
-  const columns = useMemo<DataTableColumn<Company>[]>(
-    () => [
-      {
-        id: "company",
-        header: "บริษัท",
-        cell: (company) => (
-          <div>
-            <div className="font-medium text-slate-900">{company.name}</div>
-            {company.shortName && (
-              <div className="text-xs text-muted-foreground">
-                {company.shortName}
-              </div>
-            )}
-          </div>
-        ),
-      },
-      {
-        id: "industry",
-        header: "อุตสาหกรรม",
-        cell: (company) => company.industry ?? "-",
-      },
-      {
-        id: "email",
-        header: "อีเมล",
-        cell: (company) => company.email ?? "-",
-      },
-      {
-        id: "phone",
-        header: "โทรศัพท์",
-        cell: (company) => company.phone ?? "-",
-      },
-      {
-        id: "status",
-        header: "สถานะ",
-        cell: (company) => company.status ?? "-",
-      },
-      {
-        id: "createdAt",
-        header: "สร้างเมื่อ",
-        cell: (company) =>
-          company.createdAt
-            ? new Date(company.createdAt).toLocaleDateString("th-TH")
-            : "-",
-      },
-      {
-        id: "actions",
-        header: <span className="sr-only">Actions</span>,
-        align: "right",
-        cell: (company) => (
-          <div className="flex items-center justify-end gap-2">
-            <Link href={`/companies/${company.id}`}>
-              <Button variant="outline" size="sm">
-                ดู
-              </Button>
-            </Link>
-            <Link href={`/companies/${company.id}/edit`}>
-              <Button size="sm">แก้ไข</Button>
-            </Link>
-            {hasPermission("company.delete") && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setDeleteCandidate(company)}
-              >
-                ลบ
-              </Button>
-            )}
-          </div>
-        ),
-      },
-    ],
-    [hasPermission]
-  );
 
   if (!canView) {
     return (
@@ -248,50 +156,23 @@ export default function CompaniesPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           {/* Empty state handled by DataTable */}
-          <DataTable<Company>
-            title={
-              <div className="text-2xl md:text-3xl font-semibold text-center my-8">
-                รายการบริษัท
-              </div>
-            }
-            description=""
+          <CompaniesTable
             data={companies}
-            columns={columns}
             loading={loading}
-            toolbarActions={
-              <div className="flex items-center gap-2">
-                {canCreate ? (
-                  <Link href="/companies/new">
-                    <Button>สร้างบริษัท</Button>
-                  </Link>
-                ) : (
-                  <Button variant="outline" disabled>
-                    สร้างบริษัท
-                  </Button>
-                )}
-              </div>
+            canCreate={canCreate}
+            canDelete={hasPermission("company.delete")}
+            onDeleteRequest={setDeleteCandidate}
+            searchValue={filterDraft.query}
+            onSearchChange={(value) =>
+              setFilterDraft((prev) => ({ ...prev, query: value }))
             }
-            filters={{
-              search: {
-                value: filterDraft.query,
-                onChange: (value) =>
-                  setFilterDraft((prev) => ({ ...prev, query: value })),
-                placeholder: "ค้นหาชื่อบริษัทหรือชื่อย่อ",
-              },
-              dateRange: {
-                value: filterDraft.dateRange,
-                onChange: (range) =>
-                  setFilterDraft((prev) => ({
-                    ...prev,
-                    dateRange: range ?? undefined,
-                  })),
-                buttonLabel: "",
-                placeholder: "เลือกช่วงวันที่",
-              },
-              onApply: handleApplyFilters,
-              isApplying: loading,
-              showApplyButton: false,
-            }}
+            dateRange={filterDraft.dateRange}
+            onDateRangeChange={(range) =>
+              setFilterDraft((prev) => ({
+                ...prev,
+                dateRange: range ?? undefined,
+              }))
+            }
             pagination={{
               page,
               perPage,
@@ -302,15 +183,6 @@ export default function CompaniesPage() {
                 setPage(1);
               },
               perPageOptions: [6, 12, 24, 48],
-            }}
-            emptyState={{
-              title: "ยังไม่มีบริษัท",
-              description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างบริษัทใหม่",
-              action: canCreate ? (
-                <Link href="/companies/new">
-                  <Button size="sm">สร้างบริษัทใหม่</Button>
-                </Link>
-              ) : undefined,
             }}
           />
 
