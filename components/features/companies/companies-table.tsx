@@ -7,7 +7,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, Mail } from "lucide-react";
+import { Eye, Edit, Trash2 } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -64,25 +64,49 @@ function useCompanyColumns(
       {
         accessorKey: "name",
         header: "บริษัท",
-        meta: { minWidth: 180, width: 250, maxWidth: 400, align: "left" },
+        meta: {
+          headerAlign: "center",
+          minWidth: 180,
+          width: 250,
+          maxWidth: 400,
+          align: "left",
+        },
         cell: ({ row }) => row.original.name ?? "-",
       },
       {
         accessorKey: "email",
         header: "อีเมล",
-        meta: { minWidth: 160, width: 220, maxWidth: 320, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 160,
+          width: 220,
+          maxWidth: 320,
+          align: "left",
+        },
         cell: ({ row }) => row.original.email ?? "-",
       },
       {
         accessorKey: "phone",
         header: "โทรศัพท์",
-        meta: { minWidth: 120, width: 140, maxWidth: 180, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 120,
+          width: 140,
+          maxWidth: 180,
+          align: "left",
+        },
         cell: ({ row }) => row.original.phone ?? "-",
       },
       {
         accessorKey: "status",
         header: "สถานะ",
-        meta: { minWidth: 90, width: 110, maxWidth: 140, align: "center" },
+        meta: {
+          headerAlign: "center",
+          minWidth: 90,
+          width: 110,
+          maxWidth: 140,
+          align: "center",
+        },
         cell: ({ row }) =>
           row.original.status ? (
             <Badge variant="secondary" className="capitalize">
@@ -95,7 +119,13 @@ function useCompanyColumns(
       {
         accessorKey: "createdAt",
         header: "สร้างเมื่อ",
-        meta: { minWidth: 120, width: 160, maxWidth: 220, align: "center" },
+        meta: {
+          headerAlign: "center",
+          minWidth: 120,
+          width: 160,
+          maxWidth: 220,
+          align: "center",
+        },
         cell: ({ row }) =>
           row.original.createdAt
             ? thaiDateFormatter.format(new Date(row.original.createdAt))
@@ -104,7 +134,13 @@ function useCompanyColumns(
       {
         id: "actions",
         header: "",
-        meta: { minWidth: 120, width: 140, maxWidth: 180, align: "right" },
+        meta: {
+          headerAlign: "right",
+          minWidth: 120,
+          width: 140,
+          maxWidth: 180,
+          align: "right",
+        },
         cell: ({ row }) => {
           const company = row.original;
           return (
@@ -307,7 +343,6 @@ export function CompaniesTable(props: CompaniesTableProps) {
   } = props;
 
   const columns = useCompanyColumns(onDeleteRequest, canDelete);
-
   return (
     <DataTable
       columns={columns}

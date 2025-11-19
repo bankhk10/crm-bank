@@ -82,6 +82,7 @@ export function DataTable<TData, TValue>({
                       const w = colMeta?.width;
                       const minW = colMeta?.minWidth;
                       const maxW = colMeta?.maxWidth;
+                      const headerAlign: string | undefined = colMeta?.headerAlign ?? colMeta?.align;
                       const align: string | undefined = colMeta?.align;
 
                       const style: React.CSSProperties | undefined = (() => {
@@ -92,13 +93,13 @@ export function DataTable<TData, TValue>({
                         return Object.keys(s).length ? s : undefined;
                       })();
 
-                      const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+                      const headerAlignClass = headerAlign === "center" ? "text-center" : headerAlign === "right" ? "text-right" : "text-left";
 
                       return (
                         <TableHead
                           key={header.id}
                           style={style}
-                          className={cn("whitespace-nowrap bg-slate-50 font-medium text-slate-700", alignClass)}
+                          className={cn("whitespace-nowrap bg-slate-50 font-medium text-slate-700", headerAlignClass)}
                         >
                           {header.isPlaceholder ? null : (
                             header.column.getCanSort() ? (
