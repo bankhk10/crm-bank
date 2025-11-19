@@ -159,10 +159,11 @@ function useCompanyColumns(
                   asChild
                   size="icon-sm"
                   variant="ghost"
+                  className="text-slate-700 hover:bg-slate-100/70 rounded-md"
                   aria-label={`ดู ${company.name}`}
                 >
                   <Link href={`/companies/${company.id}`}>
-                    <Eye className="size-4" />
+                    <Eye className="size-4 text-slate-700" />
                   </Link>
                 </Button>
               </Tooltip>
@@ -172,10 +173,11 @@ function useCompanyColumns(
                   asChild
                   size="icon-sm"
                   variant="outline"
+                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                   aria-label={`แก้ไข ${company.name}`}
                 >
                   <Link href={`/companies/${company.id}/edit`}>
-                    <Edit className="size-4" />
+                    <Edit className="size-4 text-blue-600" />
                   </Link>
                 </Button>
               </Tooltip>
@@ -185,10 +187,11 @@ function useCompanyColumns(
                   <Button
                     variant="destructive"
                     size="icon-sm"
+                    className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
                     onClick={() => onDeleteRequest(company)}
                     aria-label={`ลบ ${company.name}`}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 className="size-4 text-red-600" />
                   </Button>
                 </Tooltip>
               )}
