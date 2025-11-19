@@ -119,7 +119,7 @@ export function DataTable<T>({
                         value={filters.search.value}
                         onChange={(event) => filters.search?.onChange(event.target.value)}
                         placeholder={filters.search.placeholder ?? "ค้นหา..."}
-                        className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-11 pr-4 text-sm focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
+                        className="h-11 w-full rounded-xl border-slate-200 pl-11 pr-4 text-sm focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
                       />
                     </div>
                   )}
