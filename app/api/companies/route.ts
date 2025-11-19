@@ -100,12 +100,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   // debug: log incoming payload to help track 400 validation errors
-  try {
-    // eslint-disable-next-line no-console
-    console.debug("[api/companies] incoming body:", JSON.stringify(body));
-  } catch (e) {
-    // ignore
-  }
+  // incoming body received (logging removed)
   // sanitize keys in body to handle accidental whitespace or odd chars in keys
   const knownKeys = [
     "name",
@@ -143,20 +138,10 @@ export async function POST(request: Request) {
   // coerce postalCode to string if it's a number
   if (normalizedBody.postalCode !== undefined && typeof normalizedBody.postalCode === "number") {
     normalizedBody.postalCode = String(normalizedBody.postalCode);
-    try {
-      // eslint-disable-next-line no-console
-      console.debug("[api/companies] coerced postalCode to string", normalizedBody.postalCode);
-    } catch {}
   }
   const parsed = companySchema.safeParse(Object.keys(normalizedBody).length ? normalizedBody : body);
 
   if (!parsed.success) {
-    try {
-      // eslint-disable-next-line no-console
-      console.debug("[api/companies] validation error:", parsed.error.format());
-    } catch (e) {
-      // ignore
-    }
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
       { status: 400 }
