@@ -51,7 +51,10 @@ const thaiDateFormatter = new Intl.DateTimeFormat("th-TH", {
   year: "numeric",
 });
 
-function useCompanyColumns(onDeleteRequest: (company: CompanyRecord) => void, canDelete: boolean) {
+function useCompanyColumns(
+  onDeleteRequest: (company: CompanyRecord) => void,
+  canDelete: boolean
+) {
   return React.useMemo<ColumnDef<CompanyRecord>[]>(
     () => [
       {
@@ -63,7 +66,9 @@ function useCompanyColumns(onDeleteRequest: (company: CompanyRecord) => void, ca
             <div>
               <div className="font-medium text-foreground">{company.name}</div>
               {company.shortName && (
-                <div className="text-xs text-muted-foreground">{company.shortName}</div>
+                <div className="text-xs text-muted-foreground">
+                  {company.shortName}
+                </div>
               )}
             </div>
           );
@@ -120,7 +125,11 @@ function useCompanyColumns(onDeleteRequest: (company: CompanyRecord) => void, ca
                 <Button size="sm">แก้ไข</Button>
               </Link>
               {canDelete && (
-                <Button variant="ghost" size="sm" onClick={() => onDeleteRequest(company)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDeleteRequest(company)}
+                >
                   ลบ
                 </Button>
               )}
@@ -129,14 +138,27 @@ function useCompanyColumns(onDeleteRequest: (company: CompanyRecord) => void, ca
         },
       },
     ],
-    [canDelete, onDeleteRequest],
+    [canDelete, onDeleteRequest]
   );
 }
 
 function CompaniesToolbar(
-  props: Pick<CompaniesTableProps, "canCreate" | "searchValue" | "onSearchChange" | "dateRange" | "onDateRangeChange">,
+  props: Pick<
+    CompaniesTableProps,
+    | "canCreate"
+    | "searchValue"
+    | "onSearchChange"
+    | "dateRange"
+    | "onDateRangeChange"
+  >
 ) {
-  const { canCreate, searchValue, onSearchChange, dateRange, onDateRangeChange } = props;
+  const {
+    canCreate,
+    searchValue,
+    onSearchChange,
+    dateRange,
+    onDateRangeChange,
+  } = props;
 
   return (
     <div className="flex flex-col gap-4 rounded-md border bg-background/60 p-4 lg:flex-row lg:items-end">
@@ -151,7 +173,6 @@ function CompaniesToolbar(
       </div>
 
       <div className="space-y-2">
-        <span className="text-sm font-medium">ช่วงวันที่</span>
         <DateRangePicker
           value={dateRange}
           onChange={onDateRangeChange}
@@ -175,8 +196,17 @@ function CompaniesToolbar(
   );
 }
 
-function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPagination; loading?: boolean }) {
-  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.perPage));
+function CompaniesPagination({
+  pagination,
+  loading,
+}: {
+  pagination: CompaniesPagination;
+  loading?: boolean;
+}) {
+  const totalPages = Math.max(
+    1,
+    Math.ceil(pagination.total / pagination.perPage)
+  );
   const disableNav = loading || pagination.total === 0;
 
   return (
@@ -185,7 +215,7 @@ function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPag
         {pagination.total > 0
           ? `แสดง ${(pagination.page - 1) * pagination.perPage + 1}-${Math.min(
               pagination.page * pagination.perPage,
-              pagination.total,
+              pagination.total
             )} จาก ${pagination.total} รายการ`
           : "ไม่มีข้อมูลให้แสดง"}
       </span>
@@ -196,7 +226,9 @@ function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPag
           <select
             className="rounded-md border bg-background px-3 py-1 text-sm"
             value={pagination.perPage}
-            onChange={(event) => pagination.onPerPageChange(Number(event.target.value))}
+            onChange={(event) =>
+              pagination.onPerPageChange(Number(event.target.value))
+            }
           >
             {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
               <option key={option} value={option}>
@@ -210,7 +242,9 @@ function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPag
           <Button
             variant="outline"
             size="sm"
-            onClick={() => pagination.onPageChange(Math.max(1, pagination.page - 1))}
+            onClick={() =>
+              pagination.onPageChange(Math.max(1, pagination.page - 1))
+            }
             disabled={disableNav || pagination.page <= 1}
           >
             ก่อนหน้า
@@ -221,7 +255,9 @@ function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPag
           <Button
             variant="outline"
             size="sm"
-            onClick={() => pagination.onPageChange(Math.min(totalPages, pagination.page + 1))}
+            onClick={() =>
+              pagination.onPageChange(Math.min(totalPages, pagination.page + 1))
+            }
             disabled={disableNav || pagination.page >= totalPages}
           >
             ถัดไป
@@ -233,7 +269,18 @@ function CompaniesPagination({ pagination, loading }: { pagination: CompaniesPag
 }
 
 export function CompaniesTable(props: CompaniesTableProps) {
-  const { data, loading, canCreate, canDelete, onDeleteRequest, searchValue, onSearchChange, dateRange, onDateRangeChange, pagination } = props;
+  const {
+    data,
+    loading,
+    canCreate,
+    canDelete,
+    onDeleteRequest,
+    searchValue,
+    onSearchChange,
+    dateRange,
+    onDateRangeChange,
+    pagination,
+  } = props;
 
   const columns = useCompanyColumns(onDeleteRequest, canDelete);
 
