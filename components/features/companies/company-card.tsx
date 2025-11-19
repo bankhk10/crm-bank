@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Eye, Edit, Trash2 } from "lucide-react";
+import Tooltip from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -39,16 +41,28 @@ export default function CompanyCard({ id, name, shortName, email, phone, taxId, 
       </div>
 
       <div className="mt-4 flex items-center justify-end gap-2">
-        <Link href={`/companies/${id}`} className="text-sm">
-          <Button variant="outline" size="sm">View</Button>
-        </Link>
-        <Link href={`/companies/${id}/edit`} className="text-sm">
-          <Button size="sm">Edit</Button>
-        </Link>
-        {onDelete ? (
-          <Button variant="ghost" size="sm" onClick={() => onDelete(id)}>
-            Delete
+        <Tooltip content={`ดู ${name}`} side="top">
+          <Button asChild size="icon-sm" variant="ghost" aria-label={`ดู ${name}`}>
+            <Link href={`/companies/${id}`}>
+              <Eye className="size-4" />
+            </Link>
           </Button>
+        </Tooltip>
+
+        <Tooltip content={`แก้ไข ${name}`} side="top">
+          <Button asChild size="icon-sm" variant="outline" aria-label={`แก้ไข ${name}`}>
+            <Link href={`/companies/${id}/edit`}>
+              <Edit className="size-4" />
+            </Link>
+          </Button>
+        </Tooltip>
+
+        {onDelete ? (
+          <Tooltip content={`ลบ ${name}`} side="top">
+            <Button variant="destructive" size="icon-sm" onClick={() => onDelete(id)} aria-label={`ลบ ${name}`}>
+              <Trash2 className="size-4" />
+            </Button>
+          </Tooltip>
         ) : null}
       </div>
     </Card>

@@ -7,6 +7,8 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Eye, Edit, Trash2 } from "lucide-react";
+import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
@@ -121,22 +123,33 @@ function useCompanyColumns(
           const company = row.original;
           return (
             <div className="flex items-center justify-end gap-2">
-              <Link href={`/companies/${company.id}`}>
-                <Button variant="outline" size="sm">
-                  ดู
+              <Tooltip content={`ดู ${company.name}`} side="top">
+                <Button asChild size="icon-sm" variant="ghost" aria-label={`ดู ${company.name}`}>
+                  <Link href={`/companies/${company.id}`}>
+                    <Eye className="size-4" />
+                  </Link>
                 </Button>
-              </Link>
-              <Link href={`/companies/${company.id}/edit`}>
-                <Button size="sm">แก้ไข</Button>
-              </Link>
+              </Tooltip>
+
+              <Tooltip content={`แก้ไข ${company.name}`} side="top">
+                <Button asChild size="icon-sm" variant="outline" aria-label={`แก้ไข ${company.name}`}>
+                  <Link href={`/companies/${company.id}/edit`}>
+                    <Edit className="size-4" />
+                  </Link>
+                </Button>
+              </Tooltip>
+
               {canDelete && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDeleteRequest(company)}
-                >
-                  ลบ
-                </Button>
+                <Tooltip content={`ลบ ${company.name}`} side="top">
+                  <Button
+                    variant="destructive"
+                    size="icon-sm"
+                    onClick={() => onDeleteRequest(company)}
+                    aria-label={`ลบ ${company.name}`}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </Tooltip>
               )}
             </div>
           );
