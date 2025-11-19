@@ -106,14 +106,24 @@ function useCompanyColumns(
           maxWidth: 140,
           align: "center",
         },
-        cell: ({ row }) =>
-          row.original.status ? (
-            <Badge variant="secondary" className="capitalize">
-              {row.original.status}
-            </Badge>
-          ) : (
-            "-"
-          ),
+        cell: ({ row }) => {
+          const s = (row.original.status || "").toString().toUpperCase();
+          const map: Record<string, { label: string; className: string }> = {
+            ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
+            INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
+          };
+          const info = map[s] ?? { label: s || "-", className: "bg-gray-100 text-gray-800" };
+
+          if (!s) return "-";
+
+          return (
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}
+            >
+              {info.label}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "createdAt",

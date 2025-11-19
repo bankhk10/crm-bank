@@ -132,7 +132,20 @@ export default function CompanyDetailPage() {
 
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground">สถานะ</h4>
-                  <div className="mt-1 text-sm">{company.status ?? "-"}</div>
+                    <div className="mt-1 text-sm">
+                      {
+                        (() => {
+                          const s = (company.status ?? "").toString().toUpperCase();
+                          const map: Record<string, { label: string; className: string }> = {
+                            ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
+                            INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
+                          };
+                          const info = map[s] ?? { label: company.status ?? "-", className: "bg-gray-100 text-gray-800" };
+                          if (!s) return "-";
+                          return <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}>{info.label}</span>;
+                        })()
+                      }
+                    </div>
                 </div>
 
                 <div className="md:col-span-2">

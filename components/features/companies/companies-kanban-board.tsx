@@ -14,7 +14,7 @@ const mockCompanies: Company[] = [
   {
     id: "globex",
     name: "Globex Corporation",
-    status: "prospect"
+    status: "active"
   }
 ];
 

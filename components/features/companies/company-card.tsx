@@ -20,6 +20,13 @@ type Props = {
 };
 
 export default function CompanyCard({ id, name, shortName, email, phone, taxId, status, onDelete }: Props) {
+  const s = (status ?? "").toString().toUpperCase();
+  const statusMap: Record<string, { label: string; className: string }> = {
+    ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
+    INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
+  };
+  const statusInfo = statusMap[s] ?? { label: status ?? "-", className: "bg-gray-100 text-gray-800" };
+
   return (
     <Card className="flex flex-col justify-between h-full">
       <div>
@@ -28,7 +35,7 @@ export default function CompanyCard({ id, name, shortName, email, phone, taxId, 
             <h3 className="text-lg font-semibold">{name}</h3>
             {shortName ? <div className="text-sm text-muted-foreground">{shortName}</div> : null}
           </div>
-          <div className={cn("text-xs font-medium px-2 py-1 rounded", status === "ACTIVE" ? "bg-emerald-100 text-emerald-800" : status === "INACTIVE" ? "bg-gray-100 text-gray-800" : "bg-yellow-100 text-yellow-800")}>{status ?? "PROSPECT"}</div>
+          <div className={cn("text-xs font-medium px-3 py-1 rounded-full", statusInfo.className)}>{statusInfo.label}</div>
         </div>
 
         <div className="mt-3 text-sm text-slate-600 space-y-1">

@@ -404,7 +404,7 @@ async function main() {
   await prisma.company.create({
     data: {
       name: "Globex Asia",
-      status: "PROSPECT",
+      status: "ACTIVE",
       employees: {
         create: [
           {

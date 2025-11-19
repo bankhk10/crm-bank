@@ -19,7 +19,7 @@ const companySchema = z.object({
   district: z.string().optional(),
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
-  status: z.enum(["PROSPECT", "ACTIVE", "INACTIVE"]).optional(),
+  status: z.enum([ "ACTIVE", "INACTIVE"]).optional(),
 });
 
 export async function GET(request: Request) {
