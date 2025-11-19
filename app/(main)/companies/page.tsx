@@ -196,27 +196,37 @@ export default function CompaniesPage() {
           {/* Empty state handled by DataTable */}
           {/* Mobile toolbar */}
           <div className="block md:hidden mb-4">
-            <div className="space-y-3">
-              <Input
-                value={filterDraft.query}
-                onChange={(e) => setFilterDraft((prev) => ({ ...prev, query: e.target.value }))}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
-                placeholder="ค้นหาชื่อบริษัทหรือชื่อย่อ"
-                className="h-10"
-              />
+            <div className="bg-white p-3 rounded-xl shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={filterDraft.query}
+                  onChange={(e) => setFilterDraft((prev) => ({ ...prev, query: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
+                  placeholder="ค้นหาบริษัท หรือ ชื่อย่อ"
+                  className="h-10 rounded-full shadow-sm px-4"
+                />
+
+                <Button variant="ghost" onClick={handleSearchSubmit} className="p-2">
+                  ค้นหา
+                </Button>
+              </div>
 
               <DateRangePicker
                 value={filterDraft.dateRange}
                 onChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
-                placeholder="เลือกช่วงวันที่"
-                className="w-full"
+                placeholder="ช่วงวันที่"
+                className="w-full rounded-lg"
               />
 
               <div className="flex gap-2">
                 <Link href="/companies/new" className="flex-1">
-                  <Button className="w-full">สร้างบริษัท</Button>
+                  <Button className="w-full">
+                    สร้างบริษัท
+                  </Button>
                 </Link>
-                <Button variant="outline" className="flex-1" onClick={handleSearchSubmit}>ค้นหา</Button>
+                <Button variant="outline" className="flex-1" onClick={() => { setFilterDraft({ query: '', dateRange: undefined }); handleSearchSubmit(); }}>
+                  รีเซ็ต
+                </Button>
               </div>
             </div>
           </div>
