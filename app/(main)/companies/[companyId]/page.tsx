@@ -192,6 +192,11 @@ export default function CompanyDetailPage() {
             </div>
           )}
         </div>
+        <div className="flex justify-center items-center px-6 mt-4 pb-6 border-slate-200">
+          <div className="mb-2">
+            <Button onClick={() => router.back()}>ย้อนกลับ</Button>
+          </div>
+        </div>
       </div>
     </section>
   );
