@@ -6,6 +6,10 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CompaniesTable, type CompanyRecord } from "@/components/features/companies/companies-table";
+import CompanyCard from "@/components/features/companies/company-card";
+import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import Link from "next/link";
 
 export default function CompaniesPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
@@ -190,37 +194,80 @@ export default function CompaniesPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           {/* Empty state handled by DataTable */}
-          <CompaniesTable
-            data={companies}
-            loading={loading}
-            canCreate={canCreate}
-            canDelete={hasPermission("company.delete")}
-            onDeleteRequest={setDeleteCandidate}
-            searchValue={filterDraft.query}
-            onSearchChange={(value) =>
-              setFilterDraft((prev) => ({ ...prev, query: value }))
-            }
-            isTyping={isTyping}
-            onSearchSubmit={handleSearchSubmit}
-            dateRange={filterDraft.dateRange}
-            onDateRangeChange={(range) =>
-              setFilterDraft((prev) => ({
-                ...prev,
-                dateRange: range ?? undefined,
-              }))
-            }
-            pagination={{
-              page,
-              perPage,
-              total,
-              onPageChange: (nextPage) => setPage(nextPage),
-              onPerPageChange: (nextPerPage) => {
-                setPerPage(nextPerPage);
-                setPage(1);
-              },
-              perPageOptions: [6, 12, 24, 48],
-            }}
-          />
+          {/* Mobile toolbar */}
+          <div className="block md:hidden mb-4">
+            <div className="space-y-3">
+              <Input
+                value={filterDraft.query}
+                onChange={(e) => setFilterDraft((prev) => ({ ...prev, query: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
+                placeholder="ค้นหาชื่อบริษัทหรือชื่อย่อ"
+                className="h-10"
+              />
+
+              <DateRangePicker
+                value={filterDraft.dateRange}
+                onChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
+                placeholder="เลือกช่วงวันที่"
+                className="w-full"
+              />
+
+              <div className="flex gap-2">
+                <Link href="/companies/new" className="flex-1">
+                  <Button className="w-full">สร้างบริษัท</Button>
+                </Link>
+                <Button variant="outline" className="flex-1" onClick={handleSearchSubmit}>ค้นหา</Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile: show cards */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-1 gap-4">
+              {companies.map((c) => (
+                <CompanyCard
+                  key={c.id}
+                  id={c.id}
+                  name={c.name}
+                  shortName={c.shortName}
+                  email={c.email}
+                  phone={c.phone}
+                  taxId={c.taxId}
+                  industry={c.industry}
+                  status={c.status}
+                  onDelete={(id) => setDeleteCandidate(companies.find((x) => x.id === id) ?? null)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop / tablet: show table */}
+          <div className="hidden md:block">
+            <CompaniesTable
+              data={companies}
+              loading={loading}
+              canCreate={canCreate}
+              canDelete={hasPermission("company.delete")}
+              onDeleteRequest={setDeleteCandidate}
+              searchValue={filterDraft.query}
+              onSearchChange={(value) => setFilterDraft((prev) => ({ ...prev, query: value }))}
+              isTyping={isTyping}
+              onSearchSubmit={handleSearchSubmit}
+              dateRange={filterDraft.dateRange}
+              onDateRangeChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
+              pagination={{
+                page,
+                perPage,
+                total,
+                onPageChange: (nextPage) => setPage(nextPage),
+                onPerPageChange: (nextPerPage) => {
+                  setPerPage(nextPerPage);
+                  setPage(1);
+                },
+                perPageOptions: [6, 12, 24, 48],
+              }}
+            />
+          </div>
 
           {/* Pagination is handled by DataTable */}
         </div>
