@@ -77,59 +77,62 @@ export function DataTable<TData, TValue>({
                       : undefined;
 
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="whitespace-nowrap bg-slate-50 font-medium text-slate-700"
-                    >
-                      {header.isPlaceholder ? null : (
-                        header.column.getCanSort() ? (
-                                // apply column width from columnDef.meta?.width if provided
-                                (() => {
-                                  const colMeta: any = (header.column.columnDef as any).meta;
-                                  const w = colMeta?.width;
-                                  const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
+                    (() => {
+                      const colMeta: any = (header.column.columnDef as any).meta || {};
+                      const w = colMeta?.width;
+                      const minW = colMeta?.minWidth;
+                      const maxW = colMeta?.maxWidth;
+                      const align: string | undefined = colMeta?.align;
 
-                                  return (
-                                    <button
-                                      type="button"
-                                      title={headerTitle}
-                                      aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
-                                      onClick={header.column.getToggleSortingHandler()}
-                                      className="flex w-full items-center justify-between gap-2 text-left min-w-0"
-                                      style={style}
-                                    >
-                                      <span className="truncate" title={headerTitle}>
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                      </span>
-                                      <span className="ml-2 text-xs text-slate-500 inline-flex items-center shrink-0">
-                                        {header.column.getIsSorted() === "asc" ? (
-                                          <ChevronUpIcon className="h-4 w-4" />
-                                        ) : header.column.getIsSorted() === "desc" ? (
-                                          <ChevronDownIcon className="h-4 w-4" />
-                                        ) : (
-                                          <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
-                                        )}
-                                      </span>
-                                    </button>
-                                  );
-                                })()
-                        ) : (
-                                (() => {
-                                  const colMeta: any = (header.column.columnDef as any).meta;
-                                  const w = colMeta?.width;
-                                  const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
+                      const style: React.CSSProperties | undefined = (() => {
+                        const s: React.CSSProperties = {};
+                        if (minW !== undefined) s.minWidth = typeof minW === "number" ? `${minW}px` : minW;
+                        if (w !== undefined) s.width = typeof w === "number" ? `${w}px` : w;
+                        if (maxW !== undefined) s.maxWidth = typeof maxW === "number" ? `${maxW}px` : maxW;
+                        return Object.keys(s).length ? s : undefined;
+                      })();
 
-                                  return (
-                                    <div className="flex items-center min-w-0" style={style}>
-                                      <span className="truncate" title={headerTitle}>
-                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                      </span>
-                                    </div>
-                                  );
-                                })()
-                        )
-                      )}
-                    </TableHead>
+                      const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={style}
+                          className={cn("whitespace-nowrap bg-slate-50 font-medium text-slate-700", alignClass)}
+                        >
+                          {header.isPlaceholder ? null : (
+                            header.column.getCanSort() ? (
+                              <button
+                                type="button"
+                                title={headerTitle}
+                                aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
+                                onClick={header.column.getToggleSortingHandler()}
+                                className="flex w-full items-center justify-between gap-2 min-w-0"
+                              >
+                                <span className="truncate" title={headerTitle}>
+                                  {flexRender(header.column.columnDef.header, header.getContext())}
+                                </span>
+                                <span className="ml-2 text-xs text-slate-500 inline-flex items-center shrink-0">
+                                  {header.column.getIsSorted() === "asc" ? (
+                                    <ChevronUpIcon className="h-4 w-4" />
+                                  ) : header.column.getIsSorted() === "desc" ? (
+                                    <ChevronDownIcon className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
+                                  )}
+                                </span>
+                              </button>
+                            ) : (
+                              <div className="flex items-center min-w-0">
+                                <span className="truncate" title={headerTitle}>
+                                  {flexRender(header.column.columnDef.header, header.getContext())}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </TableHead>
+                      );
+                    })()
                   );
                 })}
               </TableRow>
@@ -139,11 +142,29 @@ export function DataTable<TData, TValue>({
             {loading &&
               Array.from({ length: skeletonRowCount || 3 }).map((_, rowIndex) => (
                 <TableRow key={`loading-${rowIndex}`}>
-                  {columns.map((column, columnIndex) => (
-                    <TableCell key={`${columnIndex}`}>
-                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                    </TableCell>
-                  ))}
+                  {columns.map((column, columnIndex) => {
+                    const colMeta: any = (column as any).meta || {};
+                    const w = colMeta?.width;
+                    const minW = colMeta?.minWidth;
+                    const maxW = colMeta?.maxWidth;
+                    const align: string | undefined = colMeta?.align;
+
+                    const style: React.CSSProperties | undefined = (() => {
+                      const s: React.CSSProperties = {};
+                      if (minW !== undefined) s.minWidth = typeof minW === "number" ? `${minW}px` : minW;
+                      if (w !== undefined) s.width = typeof w === "number" ? `${w}px` : w;
+                      if (maxW !== undefined) s.maxWidth = typeof maxW === "number" ? `${maxW}px` : maxW;
+                      return Object.keys(s).length ? s : undefined;
+                    })();
+
+                    const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+
+                    return (
+                      <TableCell key={`${columnIndex}`} style={style} className={alignClass}>
+                        <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))}
 
@@ -158,12 +179,24 @@ export function DataTable<TData, TValue>({
                         ? String(cellValue)
                         : undefined;
 
-                    const colMeta: any = (cell.column.columnDef as any).meta;
+                    const colMeta: any = (cell.column.columnDef as any).meta || {};
                     const w = colMeta?.width;
-                    const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
+                    const minW = colMeta?.minWidth;
+                    const maxW = colMeta?.maxWidth;
+                    const align: string | undefined = colMeta?.align;
+
+                    const style: React.CSSProperties | undefined = (() => {
+                      const s: React.CSSProperties = {};
+                      if (minW !== undefined) s.minWidth = typeof minW === "number" ? `${minW}px` : minW;
+                      if (w !== undefined) s.width = typeof w === "number" ? `${w}px` : w;
+                      if (maxW !== undefined) s.maxWidth = typeof maxW === "number" ? `${maxW}px` : maxW;
+                      return Object.keys(s).length ? s : undefined;
+                    })();
+
+                    const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
 
                     return (
-                      <TableCell key={cell.id} title={cellTitle} style={style}>
+                      <TableCell key={cell.id} title={cellTitle} style={style} className={alignClass}>
                         {cellContent}
                       </TableCell>
                     );

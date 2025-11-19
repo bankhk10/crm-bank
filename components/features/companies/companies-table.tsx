@@ -64,25 +64,25 @@ function useCompanyColumns(
       {
         accessorKey: "name",
         header: "บริษัท",
-        meta: { width: 50   },
+        meta: { minWidth: 180, width: 250, maxWidth: 400, align: "left" },
         cell: ({ row }) => row.original.name ?? "-",
       },
       {
         accessorKey: "email",
         header: "อีเมล",
-        meta: { width: 50 },
+        meta: { minWidth: 160, width: 220, maxWidth: 320, align: "left" },
         cell: ({ row }) => row.original.email ?? "-",
       },
       {
         accessorKey: "phone",
         header: "โทรศัพท์",
-        meta: { width: 50 },
+        meta: { minWidth: 120, width: 140, maxWidth: 180, align: "left" },
         cell: ({ row }) => row.original.phone ?? "-",
       },
       {
         accessorKey: "status",
         header: "สถานะ",
-        meta: { width: 50 },
+        meta: { minWidth: 90, width: 110, maxWidth: 140, align: "center" },
         cell: ({ row }) =>
           row.original.status ? (
             <Badge variant="secondary" className="capitalize">
@@ -95,7 +95,7 @@ function useCompanyColumns(
       {
         accessorKey: "createdAt",
         header: "สร้างเมื่อ",
-        meta: { width: 50 },
+        meta: { minWidth: 120, width: 160, maxWidth: 220, align: "center" },
         cell: ({ row }) =>
           row.original.createdAt
             ? thaiDateFormatter.format(new Date(row.original.createdAt))
@@ -104,7 +104,7 @@ function useCompanyColumns(
       {
         id: "actions",
         header: "",
-        meta: { width: 50 },
+        meta: { minWidth: 120, width: 140, maxWidth: 180, align: "right" },
         cell: ({ row }) => {
           const company = row.original;
           return (
