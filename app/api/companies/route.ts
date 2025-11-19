@@ -148,22 +148,37 @@ export async function POST(request: Request) {
     );
   }
 
-  const company = await db.company.create({
-    data: {
-      name: parsed.data.name,
-      shortName: parsed.data.shortName,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-      taxId: parsed.data.taxId,
-      addressLine: parsed.data.addressLine,
-      province: parsed.data.province,
-      district: parsed.data.district,
-      subdistrict: parsed.data.subdistrict,
-      postalCode: parsed.data.postalCode,
-      industry: parsed.data.industry,
-      status: parsed.data.status ?? "PROSPECT",
-    },
-  });
+  try {
+    const company = await db.company.create({
+      data: {
+        name: parsed.data.name,
+        shortName: parsed.data.shortName,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        taxId: parsed.data.taxId,
+        addressLine: parsed.data.addressLine,
+        province: parsed.data.province,
+        district: parsed.data.district,
+        subdistrict: parsed.data.subdistrict,
+        postalCode: parsed.data.postalCode,
+        industry: parsed.data.industry,
+        status: parsed.data.status ?? "PROSPECT",
+      },
+    });
 
-  return NextResponse.json({ company }, { status: 201 });
+    return NextResponse.json({ company }, { status: 201 });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      // Unique constraint failed - provide a helpful message for client
+      const target = (err.meta && (err.meta as any).target) || [];
+      const fields = Array.isArray(target) ? target.join(", ") : String(target);
+      return NextResponse.json(
+        { error: `Unique constraint failed on the fields: (${fields})` },
+        { status: 409 }
+      );
+    }
+
+    // Re-throw unknown errors so they surface as 500 for proper logging during development
+    throw err;
+  }
 }
