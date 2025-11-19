@@ -103,32 +103,81 @@ export function DataTable<TData, TValue>({
                         >
                           {header.isPlaceholder ? null : (
                             header.column.getCanSort() ? (
-                              <button
-                                type="button"
-                                title={headerTitle}
-                                aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
-                                onClick={header.column.getToggleSortingHandler()}
-                                className="flex w-full items-center justify-between gap-2 min-w-0"
-                              >
-                                <span className="truncate" title={headerTitle}>
-                                  {flexRender(header.column.columnDef.header, header.getContext())}
-                                </span>
-                                <span className="ml-2 text-xs text-slate-500 inline-flex items-center shrink-0">
-                                  {header.column.getIsSorted() === "asc" ? (
-                                    <ChevronUpIcon className="h-4 w-4" />
-                                  ) : header.column.getIsSorted() === "desc" ? (
-                                    <ChevronDownIcon className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
-                                  )}
-                                </span>
-                              </button>
+                              (() => {
+                                // If header should be centered, center the title and position the sort icon to the right
+                                if (headerAlign === "center") {
+                                  return (
+                                    <button
+                                      type="button"
+                                      title={headerTitle}
+                                      aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
+                                      onClick={header.column.getToggleSortingHandler()}
+                                      className="relative w-full flex items-center justify-center min-w-0"
+                                    >
+                                      <span className="truncate" title={headerTitle}>
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                      </span>
+                                      <span className="absolute right-2 text-xs text-slate-500 inline-flex items-center shrink-0">
+                                        {header.column.getIsSorted() === "asc" ? (
+                                          <ChevronUpIcon className="h-4 w-4" />
+                                        ) : header.column.getIsSorted() === "desc" ? (
+                                          <ChevronDownIcon className="h-4 w-4" />
+                                        ) : (
+                                          <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
+                                        )}
+                                      </span>
+                                    </button>
+                                  );
+                                }
+
+                                // For right-aligned headers, align items to the end; otherwise keep default (left)
+                                const justifyClass = headerAlign === "right" ? "justify-end" : "justify-between";
+
+                                return (
+                                  <button
+                                    type="button"
+                                    title={headerTitle}
+                                    aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
+                                    onClick={header.column.getToggleSortingHandler()}
+                                    className={`flex w-full items-center ${justifyClass} gap-2 min-w-0`}
+                                  >
+                                    <span className="truncate" title={headerTitle}>
+                                      {flexRender(header.column.columnDef.header, header.getContext())}
+                                    </span>
+                                    <span className="ml-2 text-xs text-slate-500 inline-flex items-center shrink-0">
+                                      {header.column.getIsSorted() === "asc" ? (
+                                        <ChevronUpIcon className="h-4 w-4" />
+                                      ) : header.column.getIsSorted() === "desc" ? (
+                                        <ChevronDownIcon className="h-4 w-4" />
+                                      ) : (
+                                        <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
+                                      )}
+                                    </span>
+                                  </button>
+                                );
+                              })()
                             ) : (
-                              <div className="flex items-center min-w-0">
-                                <span className="truncate" title={headerTitle}>
-                                  {flexRender(header.column.columnDef.header, header.getContext())}
-                                </span>
-                              </div>
+                              (() => {
+                                if (headerAlign === "center") {
+                                  return (
+                                    <div className="flex items-center justify-center min-w-0">
+                                      <span className="truncate" title={headerTitle}>
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                const justifyClass = headerAlign === "right" ? "justify-end" : "justify-start";
+
+                                return (
+                                  <div className={`flex items-center ${justifyClass} min-w-0`}>
+                                    <span className="truncate" title={headerTitle}>
+                                      {flexRender(header.column.columnDef.header, header.getContext())}
+                                    </span>
+                                  </div>
+                                );
+                              })()
                             )
                           )}
                         </TableHead>

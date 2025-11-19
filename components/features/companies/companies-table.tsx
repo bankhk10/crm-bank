@@ -65,7 +65,7 @@ function useCompanyColumns(
         accessorKey: "name",
         header: "บริษัท",
         meta: {
-          headerAlign: "center",
+          headerAlign: "left",
           minWidth: 180,
           width: 250,
           maxWidth: 400,
@@ -102,8 +102,8 @@ function useCompanyColumns(
         header: "สถานะ",
         meta: {
           headerAlign: "center",
-          minWidth: 90,
-          width: 110,
+          minWidth: 140,
+          width: 140,
           maxWidth: 140,
           align: "center",
         },
