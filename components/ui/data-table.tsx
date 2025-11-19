@@ -40,6 +40,11 @@ export type DataTableFilters = {
   };
   onApply?: () => void;
   isApplying?: boolean;
+  /**
+   * When false the form-level apply/search button will be hidden.
+   * Useful when the page applies filters automatically (e.g. debounced search).
+   */
+  showApplyButton?: boolean;
 };
 
 export type DataTablePagination = {
@@ -54,8 +59,8 @@ export type DataTablePagination = {
 export interface DataTableProps<T> {
   data: T[];
   columns: DataTableColumn<T>[];
-  title?: string;
-  description?: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
   filters?: DataTableFilters;
   toolbarActions?: React.ReactNode;
   loading?: boolean;
@@ -130,12 +135,14 @@ export function DataTable<T>({
                     />
                   )}
 
-                  <div className="flex items-center gap-2">
-                    <Button type="submit" className="h-11 rounded-full px-6 text-sm font-semibold" disabled={filters.isApplying}>
-                      {filters.isApplying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      ค้นหา
-                    </Button>
-                  </div>
+                  {filters.showApplyButton !== false && (
+                    <div className="flex items-center gap-2">
+                      <Button type="submit" className="h-11 rounded-full px-6 text-sm font-semibold" disabled={filters.isApplying}>
+                        {filters.isApplying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        ค้นหา
+                      </Button>
+                    </div>
+                  )}
                 </form>
               )}
 
