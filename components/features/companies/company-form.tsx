@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 
 type CompanyPayload = {
@@ -231,7 +230,6 @@ export default function CompanyForm({
             </Button>
             <Button
               size="lg"
-              // เพิ่มคลาสพื้นหลังสีเขียว เช่น bg-green-500 และ hover:bg-green-600
               className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
               type="submit"
               disabled={loading}
