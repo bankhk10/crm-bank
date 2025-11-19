@@ -18,6 +18,7 @@ type CompanyPayload = {
   district?: string;
   subdistrict?: string;
   postalCode?: string;
+  status?: string;
 };
 
 type SubmitResult = {
@@ -50,6 +51,7 @@ export default function CompanyForm({
     district: initial.district ?? "",
     subdistrict: initial.subdistrict ?? "",
     postalCode: initial.postalCode ?? "",
+    status: initial.status ?? "ACTIVE",
   });
 
   const [loading, setLoading] = useState(false);
@@ -180,6 +182,23 @@ export default function CompanyForm({
             }}
             error={fieldErrors.addressLine?.[0]}
           />
+
+          <div className="mt-2">
+            <FloatingLabelInput
+              label="สถานะ"
+              type="select"
+              options={[
+                { value: "ACTIVE", label: "ใช้งาน" },
+                { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
+              ]}
+              value={payload.status}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+                setPayload((p) => ({ ...p, status: e.target.value }));
+                clearFieldError("status");
+              }}
+              error={fieldErrors.status?.[0]}
+            />
+          </div>
 
           <ThaiAddressPicker
             value={{

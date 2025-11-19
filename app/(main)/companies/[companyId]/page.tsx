@@ -43,7 +43,8 @@ export default function CompanyDetailPage() {
         const res = await fetch(`/api/companies/${companyId}`);
         if (!res.ok) throw new Error("Failed to load company");
         const json = await res.json();
-        if (mounted) setCompany(json || null);
+        const src = (json && (json.company ?? json)) || null;
+        if (mounted) setCompany(src || null);
       } catch (e: any) {
         setError(String(e?.message ?? e));
       } finally {

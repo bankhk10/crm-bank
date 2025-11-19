@@ -24,6 +24,7 @@ export default function EditCompanyPage() {
     district: "",
     subdistrict: "",
     postalCode: "",
+    status: "ACTIVE",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -38,19 +39,21 @@ export default function EditCompanyPage() {
         const res = await fetch(`/api/companies/${companyId}`);
         if (!res.ok) throw new Error("Failed to load company");
         const json = await res.json();
+        const src = (json && (json.company ?? json)) || {};
         if (mounted) {
           setPayload((prev: any) => ({
             ...prev,
-            name: json.name ?? "",
-            shortName: json.shortName ?? "",
-            email: json.email ?? "",
-            phone: json.phone ?? "",
-            taxId: json.taxId ?? "",
-            addressLine: json.addressLine ?? "",
-            province: json.province ?? "",
-            district: json.district ?? "",
-            subdistrict: json.subdistrict ?? "",
-            postalCode: json.postalCode ?? "",
+            name: src.name ?? "",
+            shortName: src.shortName ?? "",
+            email: src.email ?? "",
+            phone: src.phone ?? "",
+            taxId: src.taxId ?? "",
+            addressLine: src.addressLine ?? "",
+            province: src.province ?? "",
+            district: src.district ?? "",
+            subdistrict: src.subdistrict ?? "",
+            postalCode: src.postalCode ?? "",
+            status: src.status ?? "ACTIVE",
           }));
         }
       } catch (e: any) {
