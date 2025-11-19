@@ -136,7 +136,7 @@ export default function EditCompanyPage() {
               initial={payload}
               onSubmit={async (body) => {
                 const result = await handleUpdate(body);
-                if (result.success) router.push(`/companies/${companyId}`);
+                if (result.success) router.push(`/companies`);
                 return result;
               }}
               onCancel={() => router.push(`/companies/${companyId}`)}

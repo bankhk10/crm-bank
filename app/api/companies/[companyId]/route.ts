@@ -55,7 +55,13 @@ export async function PUT(request: Request, context: any) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = companyUpdateSchema.safeParse(body);
+  // Coerce postalCode to string if client sent a number (ThaiAddressPicker may send numbers)
+  const normalizedBody = body && typeof body === "object" ? { ...(body as Record<string, unknown>) } : body;
+  if (normalizedBody && typeof (normalizedBody as any).postalCode === "number") {
+    (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
+  }
+
+  const parsed = companyUpdateSchema.safeParse(normalizedBody);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
