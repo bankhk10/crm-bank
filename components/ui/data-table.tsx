@@ -95,13 +95,13 @@ export function DataTable<TData, TValue>({
                                       title={headerTitle}
                                       aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
                                       onClick={header.column.getToggleSortingHandler()}
-                                      className="flex w-full items-center justify-between gap-2 text-left"
+                                      className="flex w-full items-center justify-between gap-2 text-left min-w-0"
                                       style={style}
                                     >
                                       <span className="truncate" title={headerTitle}>
                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                       </span>
-                                      <span className="ml-2 text-xs text-slate-500 inline-flex items-center">
+                                      <span className="ml-2 text-xs text-slate-500 inline-flex items-center shrink-0">
                                         {header.column.getIsSorted() === "asc" ? (
                                           <ChevronUpIcon className="h-4 w-4" />
                                         ) : header.column.getIsSorted() === "desc" ? (
@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
                                   const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
 
                                   return (
-                                    <div className="flex items-center" style={style}>
+                                    <div className="flex items-center min-w-0" style={style}>
                                       <span className="truncate" title={headerTitle}>
                                         {flexRender(header.column.columnDef.header, header.getContext())}
                                       </span>

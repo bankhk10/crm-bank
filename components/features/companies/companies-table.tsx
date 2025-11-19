@@ -7,7 +7,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, Mail } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -85,7 +85,17 @@ function useCompanyColumns(
         accessorKey: "email",
         header: "อีเมล",
         meta: { width: 260 },
-        cell: ({ row }) => row.original.email ?? "-",
+        cell: ({ row }) => {
+          const email = row.original.email;
+          return (
+            <div className="flex items-center gap-2 min-w-0">
+              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="truncate text-sm" title={email ?? "-"}>
+                {email ?? "-"}
+              </div>
+            </div>
+          );
+        },
       },
       {
         accessorKey: "phone",
@@ -118,7 +128,7 @@ function useCompanyColumns(
       {
         id: "actions",
         header: "",
-        meta: { width: 220 },
+        meta: { width: 100 },
         cell: ({ row }) => {
           const company = row.original;
           return (
