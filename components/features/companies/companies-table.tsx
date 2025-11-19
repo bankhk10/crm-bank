@@ -179,9 +179,9 @@ function CompaniesToolbar(
   } = props;
 
   return (
-    <div className="flex flex-col gap-4 rounded-md border bg-background/60 p-4 lg:flex-row lg:items-end">
-      <div className="flex-1 space-y-2">
-        <label className="text-sm font-medium">ค้นหาบริษัท</label>
+    <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:grid-cols-3 lg:items-end">
+      <div className="space-y-2 lg:col-span-1">
+        <label className="text-sm font-medium mx-2">ค้นหาบริษัท</label>
         <Input
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
@@ -189,26 +189,26 @@ function CompaniesToolbar(
             if (event.key === "Enter") onSearchSubmit?.();
           }}
           placeholder="ค้นหาชื่อบริษัทหรือชื่อย่อ"
-          className="h-11"
+          className="h-11 w-full lg:w-[95%]"
         />
-        <div className="text-xs text-muted-foreground mt-1">
-          {isTyping ? "กำลังพิมพ์... กด Enter เพื่อค้นหา" : ""}
-        </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 lg:col-span-1">
+        <label className="text-sm font-medium mx-2">กรองตามวันที่</label>
         <DateRangePicker
           value={dateRange}
           onChange={onDateRangeChange}
           placeholder="เลือกช่วงวันที่"
-          className="w-full lg:w-[260px]"
+          className="w-full lg:w-[80%]"
         />
       </div>
 
-      <div className="flex items-end">
+      <div className="flex items-end lg:justify-end lg:col-span-1 ">
         {canCreate ? (
           <Link href="/companies/new">
-            <Button className="w-full lg:w-auto">สร้างบริษัท</Button>
+            <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
+              สร้างบริษัท
+            </Button>
           </Link>
         ) : (
           <Button className="w-full lg:w-auto" variant="outline" disabled>
