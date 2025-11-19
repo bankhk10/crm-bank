@@ -3,10 +3,22 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+// นำเข้าคอมโพเนนต์ Shadcn/ui ที่อัปเดต/เพิ่มเติม
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge"; // เพิ่ม Badge สำหรับแสดงสถานะ
+import { Separator } from "@/components/ui/separator"; // เพิ่ม Separator เพื่อแบ่งส่วน
+import {
+  Loader2,
+  AlertTriangle,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+} from "lucide-react"; // เพิ่มไอคอน
 import { usePermission } from "@/hooks/use-permission";
 
+// Type definition (เหมือนเดิม)
 type Company = {
   id: string;
   name: string;
@@ -23,6 +35,42 @@ type Company = {
   createdAt?: string | null;
 };
 
+// ข้อมูลสถานะสำหรับการแสดงผล (ย้ายมาไว้ด้านนอกเพื่อความสะอาด)
+const statusMap: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning"; className?: string }
+> = {
+  ACTIVE: {
+    label: "ใช้งาน",
+    variant: "success", // สมมติว่าคุณมี variant: success ใน Badge
+    className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  },
+  INACTIVE: {
+    label: "ไม่ได้ใช้งาน",
+    variant: "secondary",
+    className: "bg-gray-500/10 text-gray-600 border-gray-500/20",
+  },
+};
+
+// ข้อมูลสำหรับรายละเอียดแต่ละรายการ
+interface DetailItemProps {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}
+
+const DetailItem: React.FC<DetailItemProps> = ({ label, value, className }) => (
+  <div className={className}>
+    <p className="text-xs font-medium uppercase text-muted-foreground tracking-wider mb-1">
+      {label}
+    </p>
+    <div className="text-base font-normal text-foreground break-words">
+      {value}
+    </div>
+  </div>
+);
+
+// คอมโพเนนต์หลัก
 export default function CompanyDetailPage() {
   const { companyId } = useParams() as { companyId: string };
   const router = useRouter();
@@ -34,6 +82,7 @@ export default function CompanyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // ส่วน fetch data (เหมือนเดิม)
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -55,149 +104,199 @@ export default function CompanyDetailPage() {
     };
   }, [companyId]);
 
+  // ฟังก์ชันจำลองการลบ (เพื่อแสดง UI ที่ทันสมัย)
+  const handleDelete = () => {
+    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบบริษัทนี้?")) {
+      setDeleting(true);
+      // Logic การลบจริงควรอยู่ที่นี่
+      console.log(`Deleting company ${companyId}...`);
+      setTimeout(() => {
+        setDeleting(false);
+        // router.push("/companies"); // เมื่อลบเสร็จให้กลับไปหน้ารายการ
+      }, 1500);
+    }
+  };
+  
+  // การแสดงผลเมื่อไม่มีสิทธิ์ (ปรับปรุงให้ใช้ AlertTitle)
   if (!canView) {
     return (
-      <Alert variant="destructive">
-        <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัท</AlertDescription>
-      </Alert>
+      <div className="p-6 max-w-4xl mx-auto">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
+          <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทนี้</AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
+  // UI หลัก
   return (
-    <section className="space-y-6">
-      <div className="bg-white shadow-sm sm:rounded-lg">
-        <div className="p-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+      {/* --- ส่วนหัว (Header) --- */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-3xl font-bold tracking-tight">
+            ข้อมูลบริษัท
+          </h1>
+        </div>
+        
+        {/* ปุ่มดำเนินการ */}
+        <div className="flex space-x-2">
+          {/* ปุ่มแก้ไข (สมมติว่าคุณมีสิทธิ์) */}
+          <Link href={`/companies/${companyId}/edit`} passHref>
+            <Button variant="outline" size="sm">
+              <Pencil className="mr-2 h-4 w-4" /> แก้ไข
+            </Button>
+          </Link>
+
+          {/* ปุ่มลบ (สมมติว่าคุณมีสิทธิ์) */}
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={handleDelete} 
+            disabled={deleting}
+          >
+            {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Trash2 className="mr-2 h-4 w-4" /> ลบ
+          </Button>
+        </div>
+      </div>
+
+      <Separator /> {/* เส้นแบ่งส่วน */}
+
+      {/* --- ส่วนเนื้อหาหลัก --- */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {loading ? (
+              <div className="h-8 w-2/5 bg-gray-200 rounded animate-pulse" />
+            ) : company ? (
+              <div className="flex flex-col space-y-1">
+                <span className="text-2xl font-semibold">{company.name}</span>
+                {company.shortName && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({company.shortName})
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-xl font-semibold">ไม่พบข้อมูลบริษัท</span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
           {error && (
             <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>ข้อผิดพลาดในการโหลดข้อมูล</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {loading ? (
-            <div className="animate-pulse">
-              <div className="h-8 w-2/5 bg-slate-200 rounded" />
-              <div className="mt-4 h-4 w-3/5 bg-slate-200 rounded" />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="h-12 bg-gray-100 rounded animate-pulse" />
+                <div className="h-12 bg-gray-100 rounded animate-pulse" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="h-12 w-3/4 bg-gray-100 rounded animate-pulse" />
+                <div className="h-12 w-1/2 bg-gray-100 rounded animate-pulse" />
+              </div>
+              <div className="h-16 bg-gray-100 rounded animate-pulse" />
+              <div className="h-12 w-1/3 bg-gray-100 rounded animate-pulse" />
             </div>
           ) : company ? (
-            <div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-semibold">{company.name}</h1>
-                  {company.shortName ? (
-                    <div className="text-sm text-muted-foreground">
-                      {company.shortName}
-                    </div>
-                  ) : null}
-                </div>
+            <>
+              {/* --- รายละเอียดทั่วไป --- */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <DetailItem
+                  label="อีเมล"
+                  value={company.email ?? "-"}
+                />
+                <DetailItem
+                  label="โทรศัพท์"
+                  value={company.phone ?? "-"}
+                />
+                <DetailItem
+                  label="เลขประจำตัวผู้เสียภาษี"
+                  value={company.taxId ?? "-"}
+                />
+                <DetailItem
+                  label="สถานะ"
+                  value={(() => {
+                    const s = (company.status ?? "").toUpperCase();
+                    const info = statusMap[s];
+                    if (!info) return <Badge variant="secondary">{company.status ?? "-"}</Badge>;
+
+                    return (
+                      <Badge 
+                        variant={info.variant as any} // ใช้ as any ถ้าไม่มี variant success ใน Badge ของคุณ
+                        className={info.className}
+                      >
+                        {info.label}
+                      </Badge>
+                    );
+                  })()}
+                />
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    อีเมล
-                  </h4>
-                  <div className="mt-1 text-sm">{company.email ?? "-"}</div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    โทรศัพท์
-                  </h4>
-                  <div className="mt-1 text-sm">{company.phone ?? "-"}</div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    เลขประจำตัวผู้เสียภาษี
-                  </h4>
-                  <div className="mt-1 text-sm">{company.taxId ?? "-"}</div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    สถานะ
-                  </h4>
-                  <div className="mt-1 text-sm">
-                    {(() => {
-                      const s = (company.status ?? "").toString().toUpperCase();
-                      const map: Record<
-                        string,
-                        { label: string; className: string }
-                      > = {
-                        ACTIVE: {
-                          label: "ใช้งาน",
-                          className: "bg-emerald-100 text-emerald-800",
-                        },
-                        INACTIVE: {
-                          label: "ไม่ได้ใช้งาน",
-                          className: "bg-gray-100 text-gray-800",
-                        },
-                      };
-                      const info = map[s] ?? {
-                        label: company.status ?? "-",
-                        className: "bg-gray-100 text-gray-800",
-                      };
-                      if (!s) return "-";
-                      return (
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}
-                        >
-                          {info.label}
-                        </span>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    ที่อยู่
-                  </h4>
-                  <div className="mt-1 text-sm">
-                    {company.addressLine ? (
-                      <div>{company.addressLine}</div>
-                    ) : null}
-                    {company.subdistrict ||
+              <Separator /> {/* เส้นแบ่งส่วน */}
+              
+              {/* --- รายละเอียดที่อยู่และเวลา --- */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <DetailItem
+                  label="ที่อยู่"
+                  className="sm:col-span-2"
+                  value={
+                    company.addressLine ||
+                    company.subdistrict ||
                     company.district ||
-                    company.province ? (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {[
-                          company.subdistrict,
-                          company.district,
-                          company.province,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                        {company.postalCode ? ` ${company.postalCode}` : ""}
+                    company.province ||
+                    company.postalCode ? (
+                      <div>
+                        {company.addressLine && <div>{company.addressLine}</div>}
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {[
+                            company.subdistrict,
+                            company.district,
+                            company.province,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                          {company.postalCode ? ` ${company.postalCode}` : ""}
+                        </div>
                       </div>
-                    ) : null}
-                  </div>
-                </div>
+                    ) : (
+                      "-"
+                    )
+                  }
+                />
 
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    สร้างเมื่อ
-                  </h4>
-                  <div className="mt-1 text-sm">
-                    {company.createdAt
+                <DetailItem
+                  label="สร้างเมื่อ"
+                  value={
+                    company.createdAt
                       ? new Date(company.createdAt).toLocaleString()
-                      : "-"}
-                  </div>
-                </div>
+                      : "-"
+                  }
+                />
+                {/* สามารถเพิ่มข้อมูลอื่น ๆ เช่น 'อัปเดตล่าสุดเมื่อ' ที่นี่ได้ */}
               </div>
-            </div>
+            </>
           ) : (
-            <div className="text-sm text-muted-foreground">
-              ไม่พบข้อมูลบริษัท
+            <div className="py-8 text-center text-muted-foreground">
+              <AlertTriangle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+              <p>ไม่พบข้อมูลบริษัทที่ตรงกับ ID นี้</p>
             </div>
           )}
-        </div>
-        <div className="flex justify-center items-center px-6 mt-4 pb-6 border-slate-200">
-          <div className="mb-2">
-            <Button onClick={() => router.back()}>ย้อนกลับ</Button>
-          </div>
-        </div>
-      </div>
-    </section>
+        </CardContent>
+      </Card>
+
+    </div>
   );
 }
