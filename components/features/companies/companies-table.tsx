@@ -62,13 +62,16 @@ function useCompanyColumns(
       {
         accessorKey: "name",
         header: "บริษัท",
+        meta: { width: 360 },
         cell: ({ row }) => {
           const company = row.original;
           return (
-            <div>
-              <div className="font-medium text-foreground">{company.name}</div>
+            <div className="max-w-[360px]">
+              <div className="font-medium text-foreground truncate" title={company.name}>
+                {company.name}
+              </div>
               {company.shortName && (
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground truncate" title={company.shortName}>
                   {company.shortName}
                 </div>
               )}
@@ -79,16 +82,19 @@ function useCompanyColumns(
       {
         accessorKey: "email",
         header: "อีเมล",
+        meta: { width: 260 },
         cell: ({ row }) => row.original.email ?? "-",
       },
       {
         accessorKey: "phone",
         header: "โทรศัพท์",
+        meta: { width: 160 },
         cell: ({ row }) => row.original.phone ?? "-",
       },
       {
         accessorKey: "status",
         header: "สถานะ",
+        meta: { width: 120 },
         cell: ({ row }) =>
           row.original.status ? (
             <Badge variant="secondary" className="capitalize">
@@ -101,6 +107,7 @@ function useCompanyColumns(
       {
         accessorKey: "createdAt",
         header: "สร้างเมื่อ",
+        meta: { width: 160 },
         cell: ({ row }) =>
           row.original.createdAt
             ? thaiDateFormatter.format(new Date(row.original.createdAt))
@@ -109,6 +116,7 @@ function useCompanyColumns(
       {
         id: "actions",
         header: "",
+        meta: { width: 220 },
         cell: ({ row }) => {
           const company = row.original;
           return (

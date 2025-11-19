@@ -70,39 +70,68 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="whitespace-nowrap bg-slate-50 font-medium text-slate-700"
-                  >
-                    {header.isPlaceholder ? null : (
-                      header.column.getCanSort() ? (
-                        <button
-                          type="button"
-                          onClick={header.column.getToggleSortingHandler()}
-                          className="flex w-full items-center justify-between gap-2 text-left"
-                        >
-                          <span className="truncate">
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                          </span>
-                          <span className="ml-2 text-xs text-slate-500 inline-flex items-center">
-                            {header.column.getIsSorted() === "asc" ? (
-                              <ChevronUpIcon className="h-4 w-4" />
-                            ) : header.column.getIsSorted() === "desc" ? (
-                              <ChevronDownIcon className="h-4 w-4" />
-                            ) : (
-                              <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
-                            )}
-                          </span>
-                        </button>
-                      ) : (
-                        <div className="flex items-center">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </div>
-                      )
-                    )}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const headerTitle =
+                    typeof header.column.columnDef.header === "string"
+                      ? header.column.columnDef.header
+                      : undefined;
+
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className="whitespace-nowrap bg-slate-50 font-medium text-slate-700"
+                    >
+                      {header.isPlaceholder ? null : (
+                        header.column.getCanSort() ? (
+                                // apply column width from columnDef.meta?.width if provided
+                                (() => {
+                                  const colMeta: any = (header.column.columnDef as any).meta;
+                                  const w = colMeta?.width;
+                                  const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+
+                                  return (
+                                    <button
+                                      type="button"
+                                      title={headerTitle}
+                                      aria-label={headerTitle ? `Sort by ${headerTitle}` : undefined}
+                                      onClick={header.column.getToggleSortingHandler()}
+                                      className="flex w-full items-center justify-between gap-2 text-left"
+                                      style={style}
+                                    >
+                                      <span className="truncate" title={headerTitle}>
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                      </span>
+                                      <span className="ml-2 text-xs text-slate-500 inline-flex items-center">
+                                        {header.column.getIsSorted() === "asc" ? (
+                                          <ChevronUpIcon className="h-4 w-4" />
+                                        ) : header.column.getIsSorted() === "desc" ? (
+                                          <ChevronDownIcon className="h-4 w-4" />
+                                        ) : (
+                                          <ChevronsUpDownIcon className="h-4 w-4 opacity-60" />
+                                        )}
+                                      </span>
+                                    </button>
+                                  );
+                                })()
+                        ) : (
+                                (() => {
+                                  const colMeta: any = (header.column.columnDef as any).meta;
+                                  const w = colMeta?.width;
+                                  const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+
+                                  return (
+                                    <div className="flex items-center" style={style}>
+                                      <span className="truncate" title={headerTitle}>
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                      </span>
+                                    </div>
+                                  );
+                                })()
+                        )
+                      )}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -119,11 +148,26 @@ export function DataTable<TData, TValue>({
               ))}
 
             {!loading && !showEmptyState &&
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row: any) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell: any) => {
+                    const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
+                    const cellValue = cell.getValue();
+                    const cellTitle =
+                      typeof cellValue === "string" || typeof cellValue === "number"
+                        ? String(cellValue)
+                        : undefined;
+
+                    const colMeta: any = (cell.column.columnDef as any).meta;
+                    const w = colMeta?.width;
+                    const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+
+                    return (
+                      <TableCell key={cell.id} title={cellTitle} style={style}>
+                        {cellContent}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))}
 
