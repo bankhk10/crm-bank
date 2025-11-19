@@ -87,6 +87,7 @@ export function DataTable<T>({
   const colSpan = Math.max(1, columns.length);
   const formId = React.useId();
   const skeletonRowCount = 5;
+  const isFiltering = Boolean(filters?.isApplying || loading);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -98,9 +99,9 @@ export function DataTable<T>({
   const totalPages = pagination ? Math.max(1, Math.ceil(pagination.total / pagination.perPage)) : 1;
 
   return (
-    <div className={cn("rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-100/60", className)}>
+    <div className={cn("relative overflow-hidden rounded-3xl border border-slate-100/80 bg-white/95 shadow-xl shadow-slate-200/70 ring-1 ring-slate-100/70 backdrop-blur", className)}>
       {(title || description || filters || toolbarActions) && (
-        <div className="space-y-4 border-b border-slate-100 p-6">
+        <div className="space-y-4 border-b border-slate-100/80 bg-linear-to-br from-white via-white to-slate-50/70 p-6">
           {(title || description) && (
             <div>
               {title && <h2 className="text-lg font-semibold text-slate-900">{title}</h2>}
@@ -109,18 +110,26 @@ export function DataTable<T>({
           )}
 
           {(filters || toolbarActions) && (
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 rounded-2xl border border-slate-100/80 bg-white/70 p-4 shadow-sm backdrop-blur lg:flex-row lg:items-center lg:justify-between">
               {filters && (
-                <form id={formId} className="flex w-full flex-col gap-3 lg:flex-row" onSubmit={handleSubmit}>
+                <form id={formId} className="flex w-full flex-col gap-3 lg:flex-row lg:items-center" onSubmit={handleSubmit}>
                   {filters.search && (
-                    <div className="relative w-full lg:max-w-md">
-                      <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        value={filters.search.value}
-                        onChange={(event) => filters.search?.onChange(event.target.value)}
-                        placeholder={filters.search.placeholder ?? "ค้นหา..."}
-                        className="h-11 w-full rounded-xl border-slate-200 pl-11 pr-4 text-sm focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
-                      />
+                    <div className="flex w-full flex-col gap-1 lg:max-w-md">
+                      <div className="relative group">
+                        <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-600" />
+                        <Input
+                          value={filters.search.value}
+                          onChange={(event) => filters.search?.onChange(event.target.value)}
+                          placeholder={filters.search.placeholder ?? "ค้นหา..."}
+                          className="h-12 w-full rounded-2xl border-slate-200/80 bg-white/80 pl-11 pr-12 text-sm text-slate-700 shadow-inner transition-all focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
+                        />
+                        {isFiltering && <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400" aria-hidden />}
+                      </div>
+                      {(filters.search.label || isFiltering) && (
+                        <span className="px-1 text-xs text-muted-foreground" aria-live="polite">
+                          {isFiltering ? "กำลังค้นหา..." : filters.search.label}
+                        </span>
+                      )}
                     </div>
                   )}
 
@@ -152,55 +161,82 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="p-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column.id} className={cn(column.className, column.align === "right" && "text-right", column.align === "center" && "text-center")}>
-                  {column.header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading &&
-              Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
-                <TableRow key={`skeleton-${rowIndex}`}>
-                  {columns.map((column) => (
-                    <TableCell key={`${column.id}-skeleton-${rowIndex}`} className={cn("h-12", column.className)}>
-                      <div className="h-3.5 w-full animate-pulse rounded-xl bg-slate-200" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-
-            {!loading &&
-              data.map((row, rowIndex) => (
-                <TableRow key={rowIndex} className="hover:bg-slate-50/60">
-                  {columns.map((column) => (
-                    <TableCell key={column.id} className={cn(column.className, column.align === "right" && "text-right", column.align === "center" && "text-center")}>{column.cell(row, rowIndex)}</TableCell>
-                  ))}
-                </TableRow>
-              ))}
-
-            {!loading && data.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={colSpan} className="py-12 text-center text-sm text-muted-foreground">
-                  <div className="flex flex-col items-center gap-3">
-                    <p className="text-base font-medium text-slate-900">{emptyState.title}</p>
-                    {emptyState.description && <p>{emptyState.description}</p>}
-                    {emptyState.action}
-                  </div>
-                </TableCell>
+      <div className="relative p-6">
+        <div className="overflow-x-auto rounded-2xl border border-slate-100/80 bg-white/80 shadow-inner">
+          <Table className="min-w-full text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-slate-100/80 bg-linear-to-r from-white via-slate-50 to-white/80">
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.id}
+                    className={cn(
+                      "whitespace-nowrap px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500",
+                      column.align === "right" && "text-right",
+                      column.align === "center" && "text-center",
+                      column.className,
+                    )}
+                  >
+                    {column.header}
+                  </TableHead>
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {loading &&
+                Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
+                  <TableRow key={`skeleton-${rowIndex}`}>
+                    {columns.map((column) => (
+                      <TableCell key={`${column.id}-skeleton-${rowIndex}`} className={cn("h-14 px-6 py-4", column.className)}>
+                        <div className="h-4 w-full animate-pulse rounded-xl bg-slate-200/80" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+
+              {!loading &&
+                data.map((row, rowIndex) => (
+                  <TableRow
+                    key={rowIndex}
+                    className={cn(
+                      "group border-b border-slate-100/70 transition-colors duration-200",
+                      rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50/50",
+                      "hover:bg-slate-100/80",
+                    )}
+                  >
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        className={cn(
+                          "px-6 py-4 text-sm text-slate-600",
+                          column.align === "right" && "text-right",
+                          column.align === "center" && "text-center",
+                          column.className,
+                        )}
+                      >
+                        {column.cell(row, rowIndex)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+
+              {!loading && data.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={colSpan} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-base font-medium text-slate-900">{emptyState.title}</p>
+                      {emptyState.description && <p>{emptyState.description}</p>}
+                      {emptyState.action}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {pagination && pagination.total > 0 && (
-        <div className="flex flex-col gap-4 border-t border-slate-100 px-6 py-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 border-t border-slate-100/80 bg-white/70 px-6 py-5 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
           <span>
             แสดง {start}-{end} จาก {pagination.total} รายการ
           </span>
@@ -210,7 +246,7 @@ export function DataTable<T>({
               <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
                 ต่อหน้า
                 <select
-                  className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm"
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm shadow-inner"
                   value={pagination.perPage}
                   onChange={(event) => pagination.onPerPageChange?.(Number(event.target.value))}
                 >
@@ -228,7 +264,7 @@ export function DataTable<T>({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="rounded-full"
+                className="rounded-full border-slate-200/80 text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
                 onClick={() => pagination.onPageChange?.(Math.max(1, pagination.page - 1))}
                 disabled={pagination.page <= 1}
               >
@@ -241,7 +277,7 @@ export function DataTable<T>({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="rounded-full"
+                className="rounded-full border-slate-200/80 text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
                 onClick={() => pagination.onPageChange?.(Math.min(totalPages, pagination.page + 1))}
                 disabled={pagination.page >= totalPages}
               >
