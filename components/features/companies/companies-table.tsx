@@ -77,11 +77,6 @@ function useCompanyColumns(
         },
       },
       {
-        accessorKey: "industry",
-        header: "อุตสาหกรรม",
-        cell: ({ row }) => row.original.industry ?? "-",
-      },
-      {
         accessorKey: "email",
         header: "อีเมล",
         cell: ({ row }) => row.original.email ?? "-",
