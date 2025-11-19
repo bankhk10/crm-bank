@@ -119,7 +119,7 @@ export function DataTable<T>({
                         value={filters.search.value}
                         onChange={(event) => filters.search?.onChange(event.target.value)}
                         placeholder={filters.search.placeholder ?? "ค้นหา..."}
-                        className="h-11 w-full rounded-full border-slate-200 bg-slate-50 pl-11 pr-4 text-sm focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
+                        className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-11 pr-4 text-sm focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-slate-200"
                       />
                     </div>
                   )}
@@ -137,7 +137,7 @@ export function DataTable<T>({
 
                   {filters.showApplyButton !== false && (
                     <div className="flex items-center gap-2">
-                      <Button type="submit" className="h-11 rounded-full px-6 text-sm font-semibold" disabled={filters.isApplying}>
+                      <Button type="submit" className="h-11 rounded-xl px-6 text-sm font-semibold" disabled={filters.isApplying}>
                         {filters.isApplying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         ค้นหา
                       </Button>
@@ -169,7 +169,7 @@ export function DataTable<T>({
                 <TableRow key={`skeleton-${rowIndex}`}>
                   {columns.map((column) => (
                     <TableCell key={`${column.id}-skeleton-${rowIndex}`} className={cn("h-12", column.className)}>
-                      <div className="h-3.5 w-full animate-pulse rounded-full bg-slate-200" />
+                      <div className="h-3.5 w-full animate-pulse rounded-xl bg-slate-200" />
                     </TableCell>
                   ))}
                 </TableRow>

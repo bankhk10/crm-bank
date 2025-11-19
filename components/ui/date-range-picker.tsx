@@ -3,12 +3,22 @@
 import * as React from "react";
 import { CalendarRange, RotateCcw } from "lucide-react";
 import type { DateRange } from "react-day-picker";
-import { endOfMonth, endOfYear, startOfMonth, startOfYear, subDays } from "date-fns";
+import {
+  endOfMonth,
+  endOfYear,
+  startOfMonth,
+  startOfYear,
+  subDays,
+} from "date-fns";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export type DateRangePreset = {
   label: string;
@@ -36,7 +46,10 @@ const defaultPresets: DateRangePreset[] = [
   },
   {
     label: "เดือนนี้",
-    range: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }),
+    range: () => ({
+      from: startOfMonth(new Date()),
+      to: endOfMonth(new Date()),
+    }),
   },
   {
     label: "ปีนี้",
@@ -68,7 +81,9 @@ export function DateRangePicker({
       });
 
     if (resolvedValue?.from && resolvedValue?.to) {
-      return `${formatPart(resolvedValue.from)} - ${formatPart(resolvedValue.to)}`;
+      return `${formatPart(resolvedValue.from)} - ${formatPart(
+        resolvedValue.to
+      )}`;
     }
 
     if (resolvedValue?.from) {
@@ -110,16 +125,21 @@ export function DateRangePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "h-11 min-w-[220px] justify-between gap-2 rounded-full border-slate-200 px-4 text-sm font-medium",
+            "h-11 min-w-[220px] justify-start gap-2 rounded-xl border-slate-200 px-4 text-sm font-medium",
             !hasSelection && "text-muted-foreground",
             className
           )}
         >
           <span className="flex items-center gap-2 truncate">
             <CalendarRange className="h-4 w-4" />
-            <span className="truncate" title={displayText}>{hideLeftLabel ? null : (buttonLabel ?? "")}</span>
+            <span className="truncate" title={displayText}>
+              {hideLeftLabel ? null : buttonLabel ?? ""}
+            </span>
           </span>
-          <span className="truncate text-right text-xs text-muted-foreground" title={displayText}>
+          <span
+            className="truncate text-right text-xs text-muted-foreground"
+            title={displayText}
+          >
             {displayText}
           </span>
         </Button>
@@ -148,7 +168,7 @@ export function DateRangePicker({
           selected={resolvedValue}
           onSelect={handleSelect}
         />
-          <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <Button
             type="button"
             variant="ghost"
