@@ -83,93 +83,116 @@ export default function CompanyDetailPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h1 className="text-2xl font-semibold">{company.name}</h1>
-                  {company.shortName ? <div className="text-sm text-muted-foreground">{company.shortName}</div> : null}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link href={`/companies/${company.id}/edit`}>
-                    <Button>แก้ไข</Button>
-                  </Link>
-                  {hasPermission("company.delete") ? (
-                    <Button
-                      variant="destructive"
-                      disabled={deleting}
-                      onClick={async () => {
-                        if (!confirm("คุณต้องการลบบริษัทนี้หรือไม่?")) return;
-                        setDeleting(true);
-                        try {
-                          const res = await fetch(`/api/companies/${company.id}`, { method: "DELETE" });
-                          if (!res.ok) throw new Error("Delete failed");
-                          router.push("/companies");
-                        } catch (e: any) {
-                          setError(String(e?.message ?? e));
-                        } finally {
-                          setDeleting(false);
-                        }
-                      }}
-                    >
-                      {deleting ? "กำลังลบ..." : "ลบบริษัท"}
-                    </Button>
+                  {company.shortName ? (
+                    <div className="text-sm text-muted-foreground">
+                      {company.shortName}
+                    </div>
                   ) : null}
                 </div>
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">อีเมล</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    อีเมล
+                  </h4>
                   <div className="mt-1 text-sm">{company.email ?? "-"}</div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">โทรศัพท์</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    โทรศัพท์
+                  </h4>
                   <div className="mt-1 text-sm">{company.phone ?? "-"}</div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">เลขประจำตัวผู้เสียภาษี</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    เลขประจำตัวผู้เสียภาษี
+                  </h4>
                   <div className="mt-1 text-sm">{company.taxId ?? "-"}</div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">สถานะ</h4>
-                    <div className="mt-1 text-sm">
-                      {
-                        (() => {
-                          const s = (company.status ?? "").toString().toUpperCase();
-                          const map: Record<string, { label: string; className: string }> = {
-                            ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
-                            INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
-                          };
-                          const info = map[s] ?? { label: company.status ?? "-", className: "bg-gray-100 text-gray-800" };
-                          if (!s) return "-";
-                          return <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}>{info.label}</span>;
-                        })()
-                      }
-                    </div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    สถานะ
+                  </h4>
+                  <div className="mt-1 text-sm">
+                    {(() => {
+                      const s = (company.status ?? "").toString().toUpperCase();
+                      const map: Record<
+                        string,
+                        { label: string; className: string }
+                      > = {
+                        ACTIVE: {
+                          label: "ใช้งาน",
+                          className: "bg-emerald-100 text-emerald-800",
+                        },
+                        INACTIVE: {
+                          label: "ไม่ได้ใช้งาน",
+                          className: "bg-gray-100 text-gray-800",
+                        },
+                      };
+                      const info = map[s] ?? {
+                        label: company.status ?? "-",
+                        className: "bg-gray-100 text-gray-800",
+                      };
+                      if (!s) return "-";
+                      return (
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}
+                        >
+                          {info.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">ที่อยู่</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    ที่อยู่
+                  </h4>
                   <div className="mt-1 text-sm">
-                    {company.addressLine ? <div>{company.addressLine}</div> : null}
-                    {(company.subdistrict || company.district || company.province) ? (
-                      <div className="text-sm text-muted-foreground mt-1">{[company.subdistrict, company.district, company.province].filter(Boolean).join(", ")}{company.postalCode ? ` ${company.postalCode}` : ""}</div>
+                    {company.addressLine ? (
+                      <div>{company.addressLine}</div>
+                    ) : null}
+                    {company.subdistrict ||
+                    company.district ||
+                    company.province ? (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {[
+                          company.subdistrict,
+                          company.district,
+                          company.province,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                        {company.postalCode ? ` ${company.postalCode}` : ""}
+                      </div>
                     ) : null}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">สร้างเมื่อ</h4>
-                  <div className="mt-1 text-sm">{company.createdAt ? new Date(company.createdAt).toLocaleString() : "-"}</div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    สร้างเมื่อ
+                  </h4>
+                  <div className="mt-1 text-sm">
+                    {company.createdAt
+                      ? new Date(company.createdAt).toLocaleString()
+                      : "-"}
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">ไม่พบข้อมูลบริษัท</div>
+            <div className="text-sm text-muted-foreground">
+              ไม่พบข้อมูลบริษัท
+            </div>
           )}
         </div>
       </div>
     </section>
   );
 }
-
