@@ -107,14 +107,6 @@ export default function CompanyForm({
       >
         สุ่มข้อมูล
       </Button>
-      {error && (
-        <div>
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </div>
-      )}
-
       <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
         <div>
           <FloatingLabelInput

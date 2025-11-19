@@ -17,6 +17,33 @@ export default function NewCompanyPage() {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
+
+        // If unique constraint (409), map to field-level errors for the form
+        if (res.status === 409) {
+          const errMsg: string = json?.error || "";
+          const issues: Record<string, string[]> = {};
+
+          // Try to parse fields from message like: "Unique constraint failed on the fields: (`email`)"
+          const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
+          if (m && m[1]) {
+            const raw = m[1];
+            const fields = raw.split(",").map((s) => s.replace(/[`"'\s]/g, "").trim());
+            for (const f of fields) {
+              if (!f) continue;
+              if (f.toLowerCase() === "email") {
+                issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+              } else {
+                issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
+              }
+            }
+          } else if (/email/i.test(errMsg)) {
+            // Fallback: if message mentions email, set email error
+            issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+          }
+
+          return { success: false, issues: Object.keys(issues).length ? issues : json?.issues, error: json?.error };
+        }
+
         return { success: false, issues: json?.issues, error: json?.error };
       }
 
