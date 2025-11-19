@@ -172,6 +172,25 @@ export default function CompanyForm({
           />
         </div>
 
+        <div>
+          <FloatingLabelInput
+            label="สถานะ"
+            type="select"
+            options={[
+              { value: "ACTIVE", label: "ใช้งาน" },
+              { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
+            ]}
+            value={payload.status}
+            onChange={(
+              e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+            ) => {
+              setPayload((p) => ({ ...p, status: e.target.value }));
+              clearFieldError("status");
+            }}
+            error={fieldErrors.status?.[0]}
+          />
+        </div>
+
         <div className="md:col-span-2">
           <FloatingLabelInput
             label="ที่อยู่บริษัท"
@@ -182,23 +201,6 @@ export default function CompanyForm({
             }}
             error={fieldErrors.addressLine?.[0]}
           />
-
-          <div className="mt-2">
-            <FloatingLabelInput
-              label="สถานะ"
-              type="select"
-              options={[
-                { value: "ACTIVE", label: "ใช้งาน" },
-                { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
-              ]}
-              value={payload.status}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-                setPayload((p) => ({ ...p, status: e.target.value }));
-                clearFieldError("status");
-              }}
-              error={fieldErrors.status?.[0]}
-            />
-          </div>
 
           <ThaiAddressPicker
             value={{

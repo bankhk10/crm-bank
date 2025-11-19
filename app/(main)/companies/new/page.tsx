@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useRouter } from "next/navigation";
 import CompanyForm from "@/components/features/companies/company-form";
 
@@ -27,7 +26,9 @@ export default function NewCompanyPage() {
           const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
           if (m && m[1]) {
             const raw = m[1];
-            const fields = raw.split(",").map((s) => s.replace(/[`"'\s]/g, "").trim());
+            const fields = raw
+              .split(",")
+              .map((s) => s.replace(/[`"'\s]/g, "").trim());
             for (const f of fields) {
               if (!f) continue;
               if (f.toLowerCase() === "email") {
@@ -41,7 +42,11 @@ export default function NewCompanyPage() {
             issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
           }
 
-          return { success: false, issues: Object.keys(issues).length ? issues : json?.issues, error: json?.error };
+          return {
+            success: false,
+            issues: Object.keys(issues).length ? issues : json?.issues,
+            error: json?.error,
+          };
         }
 
         return { success: false, issues: json?.issues, error: json?.error };
@@ -58,7 +63,9 @@ export default function NewCompanyPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5 border-b pb-6">สร้างบริษัทใหม่</h5>
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+              สร้างบริษัทใหม่
+            </h5>
           </div>
 
           <CompanyForm
