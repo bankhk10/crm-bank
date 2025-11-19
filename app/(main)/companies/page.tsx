@@ -285,7 +285,7 @@ export default function CompaniesPage() {
                     ...prev,
                     dateRange: range ?? undefined,
                   })),
-                buttonLabel: "ช่วงวันที่",
+                buttonLabel: "",
                 placeholder: "เลือกช่วงวันที่",
               },
               onApply: handleApplyFilters,

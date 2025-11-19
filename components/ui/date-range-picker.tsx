@@ -54,6 +54,7 @@ export function DateRangePicker({
   presets = defaultPresets,
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const [hideLeftLabel, setHideLeftLabel] = React.useState(false);
 
   const resolvedValue = value ?? undefined;
   const hasSelection = Boolean(resolvedValue?.from && resolvedValue?.to);
@@ -83,6 +84,22 @@ export function DateRangePicker({
 
   const handleReset = () => {
     onChange?.(undefined);
+    setHideLeftLabel(false);
+  };
+
+  React.useEffect(() => {
+    // If external value is cleared, show the left label again
+    if (!resolvedValue?.from || !resolvedValue?.to) {
+      setHideLeftLabel(false);
+    }
+  }, [resolvedValue]);
+
+  const handleConfirm = () => {
+    // If a valid range is selected, hide the left placeholder text
+    if (resolvedValue?.from && resolvedValue?.to) {
+      setHideLeftLabel(true);
+    }
+    setOpen(false);
   };
 
   return (
@@ -100,7 +117,7 @@ export function DateRangePicker({
         >
           <span className="flex items-center gap-2 truncate">
             <CalendarRange className="h-4 w-4" />
-            <span className="truncate" title={displayText}>{buttonLabel ?? "ช่วงวันที่"}</span>
+            <span className="truncate" title={displayText}>{hideLeftLabel ? null : (buttonLabel ?? "")}</span>
           </span>
           <span className="truncate text-right text-xs text-muted-foreground" title={displayText}>
             {displayText}
@@ -131,7 +148,7 @@ export function DateRangePicker({
           selected={resolvedValue}
           onSelect={handleSelect}
         />
-        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -141,7 +158,7 @@ export function DateRangePicker({
           >
             <RotateCcw className="mr-2 h-4 w-4" /> ล้างช่วงวันที่
           </Button>
-          <Button type="button" size="sm" onClick={() => setOpen(false)}>
+          <Button type="button" size="sm" onClick={handleConfirm}>
             ยืนยัน
           </Button>
         </div>
