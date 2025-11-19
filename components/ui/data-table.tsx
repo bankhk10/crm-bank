@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
                                 (() => {
                                   const colMeta: any = (header.column.columnDef as any).meta;
                                   const w = colMeta?.width;
-                                  const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+                                  const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
 
                                   return (
                                     <button
@@ -117,7 +117,7 @@ export function DataTable<TData, TValue>({
                                 (() => {
                                   const colMeta: any = (header.column.columnDef as any).meta;
                                   const w = colMeta?.width;
-                                  const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+                                  const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
 
                                   return (
                                     <div className="flex items-center" style={style}>
@@ -160,7 +160,7 @@ export function DataTable<TData, TValue>({
 
                     const colMeta: any = (cell.column.columnDef as any).meta;
                     const w = colMeta?.width;
-                    const style = w ? { width: typeof w === "number" ? `${w}px` : w } : undefined;
+                    const style = w ? { minWidth: typeof w === "number" ? `${w}px` : w } : undefined;
 
                     return (
                       <TableCell key={cell.id} title={cellTitle} style={style}>
