@@ -64,49 +64,25 @@ function useCompanyColumns(
       {
         accessorKey: "name",
         header: "บริษัท",
-        meta: { width: 360 },
-        cell: ({ row }) => {
-          const company = row.original;
-          return (
-            <div className="max-w-[360px]">
-              <div className="font-medium text-foreground truncate" title={company.name}>
-                {company.name}
-              </div>
-              {company.shortName && (
-                <div className="text-xs text-muted-foreground truncate" title={company.shortName}>
-                  {company.shortName}
-                </div>
-              )}
-            </div>
-          );
-        },
+        meta: { width: 50   },
+        cell: ({ row }) => row.original.name ?? "-",
       },
       {
         accessorKey: "email",
         header: "อีเมล",
-        meta: { width: 260 },
-        cell: ({ row }) => {
-          const email = row.original.email;
-          return (
-            <div className="flex items-center gap-2 min-w-0">
-              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="truncate text-sm" title={email ?? "-"}>
-                {email ?? "-"}
-              </div>
-            </div>
-          );
-        },
+        meta: { width: 50 },
+        cell: ({ row }) => row.original.email ?? "-",
       },
       {
         accessorKey: "phone",
         header: "โทรศัพท์",
-        meta: { width: 160 },
+        meta: { width: 50 },
         cell: ({ row }) => row.original.phone ?? "-",
       },
       {
         accessorKey: "status",
         header: "สถานะ",
-        meta: { width: 120 },
+        meta: { width: 50 },
         cell: ({ row }) =>
           row.original.status ? (
             <Badge variant="secondary" className="capitalize">
@@ -119,7 +95,7 @@ function useCompanyColumns(
       {
         accessorKey: "createdAt",
         header: "สร้างเมื่อ",
-        meta: { width: 160 },
+        meta: { width: 50 },
         cell: ({ row }) =>
           row.original.createdAt
             ? thaiDateFormatter.format(new Date(row.original.createdAt))
@@ -128,13 +104,18 @@ function useCompanyColumns(
       {
         id: "actions",
         header: "",
-        meta: { width: 100 },
+        meta: { width: 50 },
         cell: ({ row }) => {
           const company = row.original;
           return (
             <div className="flex items-center justify-end gap-2">
               <Tooltip content={`ดู ${company.name}`} side="top">
-                <Button asChild size="icon-sm" variant="ghost" aria-label={`ดู ${company.name}`}>
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label={`ดู ${company.name}`}
+                >
                   <Link href={`/companies/${company.id}`}>
                     <Eye className="size-4" />
                   </Link>
@@ -142,7 +123,12 @@ function useCompanyColumns(
               </Tooltip>
 
               <Tooltip content={`แก้ไข ${company.name}`} side="top">
-                <Button asChild size="icon-sm" variant="outline" aria-label={`แก้ไข ${company.name}`}>
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="outline"
+                  aria-label={`แก้ไข ${company.name}`}
+                >
                   <Link href={`/companies/${company.id}/edit`}>
                     <Edit className="size-4" />
                   </Link>
