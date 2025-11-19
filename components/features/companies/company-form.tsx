@@ -5,6 +5,7 @@ import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { generateRandomCompany } from "@/lib/random-fill/company";
 
 type CompanyPayload = {
   name: string;
@@ -75,8 +76,9 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
       }
-    } catch (e: any) {
-      setError(String(e?.message ?? e));
+    } catch (error) {
+      const err = error as Error;
+      setError(err.message || String(err));
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           <FloatingLabelInput
             label="ชื่อบริษัท"
             value={payload.name}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, name: e.target.value }));
               clearFieldError("name");
             }}
@@ -110,7 +112,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           <FloatingLabelInput
             label="ชื่อย่อบริษัท"
             value={payload.shortName}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, shortName: e.target.value }));
               clearFieldError("shortName");
             }}
@@ -123,7 +125,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
             label="อีเมล"
             type="email"
             value={payload.email}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
@@ -135,7 +137,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           <FloatingLabelInput
             label="โทรศัพท์"
             value={payload.phone}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
@@ -147,7 +149,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           <FloatingLabelInput
             label="เลขประจำตัวผู้เสียภาษี"
             value={payload.taxId}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
@@ -159,7 +161,7 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
           <FloatingLabelInput
             label="ที่อยู่บริษัท"
             value={payload.addressLine}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, addressLine: e.target.value }));
               clearFieldError("addressLine");
             }}
@@ -181,6 +183,20 @@ export default function CompanyForm({ initial = {}, onSubmit, onCancel, submitLa
         <div className="md:col-span-2 pt-6 border-t my-2">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button variant="outline" size="lg" className="w-36" type="button" onClick={onCancel}>ยกเลิก</Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-40"
+              type="button"
+              onClick={() => {
+                setFieldErrors({});
+                setError(null);
+                const random = generateRandomCompany();
+                setPayload((p) => ({ ...p, ...random }));
+              }}
+            >
+              สุ่มข้อมูล
+            </Button>
             <Button size="lg" className="w-40" type="submit" disabled={loading}>{loading ? "กำลังบันทึก..." : submitLabel}</Button>
           </div>
         </div>
