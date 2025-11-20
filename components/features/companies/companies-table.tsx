@@ -302,7 +302,7 @@ function CompaniesPagination({
       </span>
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-        <label className="flex items-center gap-2 text-xs font-medium text-foreground">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           ต่อหน้า
           <select
             className="rounded-md border bg-background px-3 py-1 text-sm"
@@ -330,7 +330,7 @@ function CompaniesPagination({
           >
             ก่อนหน้า
           </Button>
-          <span className="text-xs font-semibold text-foreground">
+          <span className="text-sm text-muted-foreground">
             หน้า {pagination.page} / {isFinite(totalPages) ? totalPages : 1}
           </span>
           <Button
