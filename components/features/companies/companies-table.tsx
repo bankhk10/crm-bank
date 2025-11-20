@@ -256,7 +256,8 @@ function CompaniesToolbar(
           value={dateRange}
           onChange={onDateRangeChange}
           placeholder="เลือกช่วงวันที่"
-          className="w-full lg:w-[80%]"
+          className="w-full lg:w-[300px] block"
+
         />
       </div>
 
