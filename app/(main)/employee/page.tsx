@@ -13,10 +13,6 @@ export default function EmployeePage() {
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Employees</h1>
-          <p className="text-sm text-muted-foreground">Manage team members and assignments.</p>
-        </div>
         {canCreate ? (
           <Link
             className="rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
