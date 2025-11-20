@@ -291,7 +291,7 @@ function CompaniesPagination({
   const disableNav = loading || pagination.total === 0;
 
   return (
-    <div className="flex flex-col gap-4 rounded-md border bg-background/60 px-4 py-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-4 rounded-md border bg-background/60 px-4 mt-4 py-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
       <span>
         {pagination.total > 0
           ? `แสดง ${(pagination.page - 1) * pagination.perPage + 1}-${Math.min(

@@ -273,9 +273,9 @@ export function DataTable<TData, TValue>({
             <Loader2 className="h-4 w-4 animate-spin" /> โหลดข้อมูล...
           </div>
         )}
-      </div>
 
-      {footer}
+        {footer}
+      </div>
     </div>
   );
 }
