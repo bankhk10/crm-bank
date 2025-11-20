@@ -358,84 +358,8 @@ async function main() {
     }
   });
 
-  await prisma.employee.createMany({
-    data: [
-      {
-        name: admin.name,
-        email: admin.email,
-        userId: admin.id,
-        roleTitle: "System Owner",
-        departmentId: ops.id,
-        positionId: opsAnalyst.id
-      },
-      {
-        name: manager.name,
-        email: manager.email,
-        userId: manager.id,
-        roleTitle: "Regional Manager",
-        departmentId: sales.id,
-        positionId: salesManager.id
-      },
-      {
-        name: seller.name,
-        email: seller.email,
-        userId: seller.id,
-        roleTitle: "Sales Rep",
-        departmentId: sales.id,
-        positionId: salesRep.id
-      }
-    ]
-  });
-
-  const acme = await prisma.company.create({
-    data: {
-      name: "Acme Holdings",
-      status: "ACTIVE",
-      employees: {
-        create: [
-          {
-            name: "Ploy Saetang",
-            email: "ploy@acme.local",
-            roleTitle: "Customer Success",
-            phone: "+66 02-123-4567"
-          },
-          {
-            name: "Golf Jirasak",
-            email: "golf@acme.local",
-            roleTitle: "Account Executive",
-            phone: "+66 02-555-4567"
-          }
-        ]
-      }
-    }
-  });
-
-  await prisma.company.create({
-    data: {
-      name: "Globex Asia",
-      status: "ACTIVE",
-      employees: {
-        create: [
-          {
-            name: "Mint Chanakarn",
-            email: "mint@globex.local",
-            roleTitle: "Business Analyst",
-            phone: "+66 02-987-0000"
-          }
-        ]
-      }
-    }
-  });
-
-  await prisma.employee.create({
-    data: {
-      name: "Boat Phurin",
-      email: "boat@move-crm.local",
-      roleTitle: "Pre-Sales Engineer",
-      phone: "+66 081-222-3344",
-      company: { connect: { id: acme.id } }
-    }
-  });
+  // Employee seed data removed per request.
+  // Company seed data removed per request.
 }
 
 main()
