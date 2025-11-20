@@ -19,21 +19,7 @@ import {
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/Employee";
 
-// Mock data for visual testing and development (used when no `employees` prop provided)
-const mockEmployees: Employee[] = [
-  { id: "E001", name: "สมชาย ใจดี", email: "somchai@example.com", role: "ผู้จัดการ", phone: "+66 081-000-0001", companyId: "acme" },
-  { id: "E002", name: "สุนิสา แซ่ลี้", email: "sunisa@example.com", role: "พนักงานขาย", phone: "+66 081-000-0002", companyId: "acme" },
-  { id: "E003", name: "วิทยา กล้าหาญ", email: "wittaya@example.com", role: "บัญชี", phone: "+66 081-000-0003", companyId: "globex" },
-  { id: "E004", name: "ปาริฉัตร จันทร์ดี", email: "parichat@example.com", role: "IT", phone: "+66 081-000-0004", companyId: "globex" },
-  { id: "E005", name: "ดวงใจ สุขสันต์", email: "duangjai@example.com", role: "ฝ่ายผลิต", phone: "+66 081-000-0005", companyId: "acme" },
-  { id: "E006", name: "กิตติพงษ์ มากมี", email: "kittipong@example.com", role: "โลจิสติกส์", phone: "+66 081-000-0006", companyId: "acme" },
-  { id: "E007", name: "อารีรัตน์ ดีงาม", email: "areerut@example.com", role: "HR", phone: "+66 081-000-0007", companyId: "globex" },
-  { id: "E008", name: "ณัฐพล พ่วงพร้อม", email: "nutpol@example.com", role: "วิศวกร", phone: "+66 081-000-0008", companyId: "acme" },
-  { id: "E009", name: "สุดใจ แก้วใส", email: "sudjai@example.com", role: "客服", phone: "+66 081-000-0009", companyId: "acme" },
-  { id: "E010", name: "เมธา ประเสริฐ", email: "metha@example.com", role: "ผู้ช่วยผู้จัดการ", phone: "+66 081-000-0010", companyId: "globex" },
-  { id: "E011", name: "ฮาน่า สุวรรณ", email: "hana@example.com", role: "ฝ่ายบริการ", phone: "+66 081-000-0011", companyId: "acme" },
-  { id: "E012", name: "พิทยา ใจตรง", email: "pitaya@example.com", role: "หัวหน้างาน", phone: "+66 081-000-0012", companyId: "acme" },
-];
+// Note: mock data removed — component will show fetched data or empty state
 
 type EmployeesGridProps = {
   employees?: Employee[];
@@ -89,10 +75,10 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
     };
   }, [employees]);
 
-  // If no employees passed, use fetched data (if any), otherwise fall back to mock data
-  const data = (employees && employees.length > 0)
+  // If no employees passed, use fetched data (if any), otherwise empty list
+  const data: Employee[] = (employees && employees.length > 0)
     ? employees
-    : (fetched && fetched.length ? fetched : mockEmployees);
+    : (fetched && fetched.length ? fetched : []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
