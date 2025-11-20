@@ -93,7 +93,7 @@ export default function CompanyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="p-6 space-y-1">
       <Button
         variant="secondary"
         size="lg"
@@ -108,7 +108,7 @@ export default function CompanyForm({
       >
         สุ่มข้อมูล
       </Button>
-      <div className="grid gap-x-4 md:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
         <div>
           <FloatingLabelInput
             label="ชื่อบริษัท"
@@ -200,7 +200,8 @@ export default function CompanyForm({
             }}
             error={fieldErrors.addressLine?.[0]}
           />
-
+        </div>
+        <div className="md:col-span-2">
           <ThaiAddressPicker
             value={{
               province: payload.province,

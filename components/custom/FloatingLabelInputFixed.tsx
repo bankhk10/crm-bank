@@ -64,9 +64,7 @@ const SelectListbox: React.FC<SelectListboxProps> = ({
   }, []);
 
   const filteredOptions = query
-    ? options.filter((o) =>
-        o.label.toLowerCase().includes(query.toLowerCase())
-      )
+    ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
     : options;
 
   const selected = options.find((o) => String(o.value) === String(value));
@@ -91,9 +89,7 @@ const SelectListbox: React.FC<SelectListboxProps> = ({
         onClick={() => !disabled && setOpen((o) => !o)}
       >
         <span
-          className={`${
-            selected ? "text-gray-900" : "text-muted-foreground"
-          }`}
+          className={`${selected ? "text-gray-900" : "text-muted-foreground"}`}
         >
           {selected ? selected.label : placeholder}
         </span>
@@ -225,7 +221,9 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
   ];
 
   // For selects we don't have a real input `peer` state, so compute float based on value presence.
-  const valuePresent = Boolean((props as any).value || (props as any).defaultValue);
+  const valuePresent = Boolean(
+    (props as any).value || (props as any).defaultValue
+  );
 
   const selectLabelClasses = valuePresent
     ? ["top-[-10px]", "text-[13px]"]
@@ -240,7 +238,9 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     "peer-focus:text-[13px]",
   ];
 
-  const colorLabelClasses = hasError ? "text-red-500" : "text-gray-600 peer-focus:text-blue-500";
+  const colorLabelClasses = hasError
+    ? "text-red-500"
+    : "text-gray-600 peer-focus:text-blue-500";
 
   const labelClassName = [
     ...baseLabelShared,
@@ -249,7 +249,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
   ].join(" ");
 
   return (
-    <div className={`${prefix ? "flex" : ""} mb-6`}>
+    <div className={`${prefix ? "flex" : ""} mb-2`}>
       {prefix && (
         <span
           className={`flex h-[50px] items-center border border-r-0 border-gray-300 bg-gray-50 px-4 text-gray-600 ${
