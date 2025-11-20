@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import type { Employee } from "@/types/companies";
+import type { Employee } from "@/types/Employee.ts";
 
 const mockEmployees: Employee[] = [
   {

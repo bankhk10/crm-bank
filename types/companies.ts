@@ -3,12 +3,3 @@ export interface Company {
   name: string;
   status: "active" | "inactive";
 }
-
-export interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  phone: string;
-  companyId: string;
-}
