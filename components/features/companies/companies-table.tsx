@@ -109,10 +109,19 @@ function useCompanyColumns(
         cell: ({ row }) => {
           const s = (row.original.status || "").toString().toUpperCase();
           const map: Record<string, { label: string; className: string }> = {
-            ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
-            INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
+            ACTIVE: {
+              label: "ใช้งาน",
+              className: "bg-emerald-100 text-emerald-800",
+            },
+            INACTIVE: {
+              label: "ไม่ได้ใช้งาน",
+              className: "bg-gray-100 text-gray-800",
+            },
           };
-          const info = map[s] ?? { label: s || "-", className: "bg-gray-100 text-gray-800" };
+          const info = map[s] ?? {
+            label: s || "-",
+            className: "bg-gray-100 text-gray-800",
+          };
 
           if (!s) return "-";
 
@@ -158,12 +167,12 @@ function useCompanyColumns(
                 <Button
                   asChild
                   size="icon-sm"
-                  variant="ghost"
-                  className="text-slate-700 hover:bg-slate-100/70 rounded-md"
+                  variant="outline"
+                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                   aria-label={`ดู ${company.name}`}
                 >
                   <Link href={`/companies/${company.id}`}>
-                    <Eye className="size-4 text-slate-700" />
+                    <Eye className="size-4 text-blue-600" />
                   </Link>
                 </Button>
               </Tooltip>
@@ -173,11 +182,11 @@ function useCompanyColumns(
                   asChild
                   size="icon-sm"
                   variant="outline"
-                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
                   aria-label={`แก้ไข ${company.name}`}
                 >
                   <Link href={`/companies/${company.id}/edit`}>
-                    <Edit className="size-4 text-blue-600" />
+                    <Edit className="size-4 text-purple-600" />
                   </Link>
                 </Button>
               </Tooltip>
