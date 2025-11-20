@@ -7,7 +7,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -327,8 +327,9 @@ function CompaniesPagination({
               pagination.onPageChange(Math.max(1, pagination.page - 1))
             }
             disabled={disableNav || pagination.page <= 1}
+            aria-label="ก่อนหน้า"
           >
-            ก่อนหน้า
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground">
             หน้า {pagination.page} / {isFinite(totalPages) ? totalPages : 1}
@@ -340,8 +341,9 @@ function CompaniesPagination({
               pagination.onPageChange(Math.min(totalPages, pagination.page + 1))
             }
             disabled={disableNav || pagination.page >= totalPages}
+            aria-label="ถัดไป"
           >
-            ถัดไป
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
