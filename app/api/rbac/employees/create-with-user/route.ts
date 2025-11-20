@@ -53,18 +53,10 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  console.log("[api/rbac/employees/create-with-user] received body:", JSON.stringify(body));
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
     // Log zod issues to server console for easier debugging in dev
-    try {
-      console.log(
-        "[api/rbac/employees/create-with-user] Zod validation failed:",
-        JSON.stringify(parsed.error.flatten())
-      );
-    } catch (e) {
-      console.log("[api/rbac/employees/create-with-user] Zod validation failed (could not stringify)", parsed.error);
-    }
+
 
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
