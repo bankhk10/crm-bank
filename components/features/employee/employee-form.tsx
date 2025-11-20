@@ -9,6 +9,7 @@ import type { Employee } from "@/types/Employee.ts";
 import EmployeePersonalInfoSection from "./EmployeePersonalInfoSection";
 import EmployeeLoginInfoSection from "./EmployeeLoginInfoSection";
 import EmployeeFormButtons from "./EmployeeFormButtons";
+import generateRandomEmployee from "@/lib/random-fill/employee";
 
 interface EmployeeFormProps {
   employeeId?: string;
@@ -137,6 +138,42 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
     const numericValue = event.target.value.replace(/\D/g, "");
     if (numericValue.length <= 10) {
       setFormState((prev) => ({ ...prev, phone: numericValue }));
+    }
+  };
+
+  const handleRandomFill = () => {
+    if (!canEdit) return;
+    const p = generateRandomEmployee();
+    setFormState((prev) => ({
+      ...prev,
+      prefix: p.prefix,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      email: p.email,
+      phone: p.phone,
+      birthDate: p.birthDate,
+      employeeCode: p.employeeCode,
+    }));
+    setPassword(p.password ?? "");
+    setAddress({
+      province: p.province,
+      district: p.district,
+      subdistrict: p.subdistrict,
+      postalCode: p.postalCode,
+    });
+
+    // if there are select options, pick random ones
+    if (positionOptions && positionOptions.length) {
+      const pos = positionOptions[Math.floor(Math.random() * positionOptions.length)];
+      setFormState((prev) => ({ ...prev, position: pos.value }));
+    }
+    if (departmentOptions && departmentOptions.length) {
+      const dep = departmentOptions[Math.floor(Math.random() * departmentOptions.length)];
+      setFormState((prev) => ({ ...prev, department: dep.value }));
+    }
+    if (companyOptions && companyOptions.length) {
+      const c = companyOptions[Math.floor(Math.random() * companyOptions.length)];
+      setFormState((prev) => ({ ...prev, company: c.value }));
     }
   };
 
@@ -298,6 +335,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           employeeId={employeeId}
           permissionHint={permissionHint}
           onCancel={() => router.back()}
+          onRandomFill={handleRandomFill}
         />
       </form>
     </div>
