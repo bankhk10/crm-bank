@@ -94,20 +94,6 @@ export default function CompanyForm({
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-1">
-      <Button
-        variant="secondary"
-        size="lg"
-        className="w-40"
-        type="button"
-        onClick={() => {
-          setFieldErrors({});
-          setError(null);
-          const random = generateRandomCompany();
-          setPayload((p) => ({ ...p, ...random }));
-        }}
-      >
-        สุ่มข้อมูล
-      </Button>
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
         <div>
           <FloatingLabelInput
@@ -240,6 +226,21 @@ export default function CompanyForm({
           </div>
         </div>
       </div>
+
+      <Button
+        variant="secondary"
+        size="lg"
+        className="w-40"
+        type="button"
+        onClick={() => {
+          setFieldErrors({});
+          setError(null);
+          const random = generateRandomCompany();
+          setPayload((p) => ({ ...p, ...random }));
+        }}
+      >
+        สุ่มข้อมูล
+      </Button>
     </form>
   );
 }
