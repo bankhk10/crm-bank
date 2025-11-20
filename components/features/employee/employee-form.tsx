@@ -37,6 +37,9 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   const [formState, setFormState] = useState<EmployeeFormValues>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
+  const [companyOptions, setCompanyOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [positionOptions, setPositionOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [address, setAddress] = useState<{
     province?: string;
     district?: string;
@@ -67,6 +70,56 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
     }
 
     loadRoles();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // load companies / departments / positions for selects (ids)
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadReferences() {
+      try {
+        // companies endpoint returns { companies, total, page, perPage }
+        const cRes = await fetch(`/api/companies?perPage=100`);
+        if (cRes.ok) {
+          const d = await cRes.json();
+          if (mounted && Array.isArray(d.companies)) {
+            setCompanyOptions(d.companies.map((c: any) => ({ value: c.id, label: c.name })));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      try {
+        const dRes = await fetch(`/api/rbac/departments`);
+        if (dRes.ok) {
+          const dd = await dRes.json();
+          if (mounted && Array.isArray(dd)) {
+            setDepartmentOptions(dd.map((x: any) => ({ value: x.id, label: x.name })));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      try {
+        const pRes = await fetch(`/api/rbac/positions`);
+        if (pRes.ok) {
+          const pp = await pRes.json();
+          if (mounted && Array.isArray(pp)) {
+            setPositionOptions(pp.map((x: any) => ({ value: x.id, label: x.name })));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    loadReferences();
 
     return () => {
       mounted = false;
@@ -128,9 +181,9 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           employeeCode: formState.employeeCode,
           phone: formState.phone,
           birthDate: formState.birthDate,
-          position: formState.position,
-          department: formState.department,
-          company: formState.company,
+          positionId: formState.position,
+          departmentId: formState.department,
+          companyId: formState.company,
           responsibilityArea: formState.responsibilityArea,
           addressLine: formState.addressLine, // ที่อยู่บรรทัดแรก
           status: formState.status,
@@ -225,6 +278,9 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           setAddress={setAddress}
           canEdit={canEdit}
           calculatedAge={calculatedAge}
+          positionOptions={positionOptions}
+          departmentOptions={departmentOptions}
+          companyOptions={companyOptions}
         />
 
         <EmployeeLoginInfoSection

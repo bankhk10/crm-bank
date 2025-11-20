@@ -73,6 +73,21 @@ model Employee {
   id          String   @id @default(cuid())
   name        String
   email       String   @unique
+  // Extended employee fields
+  prefix      String?
+  firstName   String?
+  lastName    String?
+  employeeCode String?
+  birthDate   DateTime?
+  addressLine String?  @map("address_line")
+  province    String?
+  district    String?
+  subdistrict String?
+  postalCode  String?
+  responsibilityArea String?
+  status      String?
+  positionTitle String?
+  departmentName String?
   roleTitle   String?
   phone       String?
   createdAt   DateTime @default(now())

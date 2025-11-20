@@ -6,11 +6,31 @@ import { guardPermission } from "@/lib/api-guard";
 
 const payloadSchema = z.object({
   employee: z.object({
+    // basic identity
     name: z.string().min(2),
     email: z.string().email().optional(),
     roleTitle: z.string().optional(),
     phone: z.string().optional(),
-    companyId: z.string().optional()
+    companyId: z.string().optional(),
+    // extended fields from form
+    prefix: z.string().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    employeeCode: z.string().optional(),
+    birthDate: z.string().optional(),
+    addressLine: z.string().optional(),
+    address: z
+      .object({
+        province: z.string().optional(),
+        district: z.string().optional(),
+        subdistrict: z.string().optional(),
+        postalCode: z.string().optional(),
+      })
+      .optional(),
+    responsibilityArea: z.string().optional(),
+    status: z.string().optional(),
+    position: z.string().optional(),
+    department: z.string().optional()
   }),
   user: z
     .object({
@@ -34,6 +54,21 @@ export async function POST(request: Request) {
   }
 
   const { employee: empPayload, user: userPayload } = parsed.data;
+
+  // If frontend provided company name (empPayload.company) but not companyId,
+  // try to resolve the company by name to a companyId.
+  if (empPayload.company && !empPayload.companyId) {
+    try {
+      const comp = await db.company.findFirst({ where: { name: empPayload.company } });
+      if (comp) {
+        // assign back to payload so creation uses the id
+        (parsed.data.employee as any).companyId = comp.id;
+        empPayload.companyId = comp.id;
+      }
+    } catch (e) {
+      // ignore lookup errors; creation will proceed without companyId
+    }
+  }
 
   // Basic uniqueness checks
   if (empPayload.email) {
@@ -87,10 +122,40 @@ export async function POST(request: Request) {
         name: empPayload.name,
         roleTitle: roleTitle,
         phone: empPayload.phone,
-        companyId: empPayload.companyId
+        companyId: empPayload.companyId,
+        // optional extended fields
+        prefix: empPayload.prefix,
+        firstName: empPayload.firstName,
+        lastName: empPayload.lastName,
+        employeeCode: empPayload.employeeCode,
+        addressLine: empPayload.addressLine,
+        responsibilityArea: empPayload.responsibilityArea,
+        status: empPayload.status,
+        // store relation ids if provided
+        positionId: empPayload.position ?? undefined,
+        departmentId: empPayload.department ?? undefined,
+        // keep title/name fields if frontend sent names
+        positionTitle: typeof empPayload.position === "string" ? undefined : undefined,
+        departmentName: typeof empPayload.department === "string" ? undefined : undefined
       };
 
       if (empPayload.email) employeeCreateData.email = empPayload.email;
+      if (empPayload.birthDate) {
+        // attempt to parse ISO date strings
+        try {
+          const d = new Date(empPayload.birthDate);
+          if (!isNaN(d.getTime())) employeeCreateData.birthDate = d;
+        } catch (e) {
+          // ignore invalid date
+        }
+      }
+
+      if (empPayload.address) {
+        if (empPayload.address.province) employeeCreateData.province = empPayload.address.province;
+        if (empPayload.address.district) employeeCreateData.district = empPayload.address.district;
+        if (empPayload.address.subdistrict) employeeCreateData.subdistrict = empPayload.address.subdistrict;
+        if (empPayload.address.postalCode) employeeCreateData.postalCode = empPayload.address.postalCode;
+      }
       if (createdUser) employeeCreateData.userId = createdUser.id;
 
       const createdEmployee = await tx.employee.create({ data: employeeCreateData });
