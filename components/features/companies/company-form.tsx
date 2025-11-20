@@ -5,6 +5,7 @@ import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
+import Can from "@/components/rbac/Can";
 
 type CompanyPayload = {
   name: string;
@@ -227,20 +228,22 @@ export default function CompanyForm({
         </div>
       </div>
 
-      <Button
-        variant="secondary"
-        size="lg"
-        className="w-40"
-        type="button"
-        onClick={() => {
-          setFieldErrors({});
-          setError(null);
-          const random = generateRandomCompany();
-          setPayload((p) => ({ ...p, ...random }));
-        }}
-      >
-        สุ่มข้อมูล
-      </Button>
+      <Can permission="randomize">
+        <Button
+          variant="secondary"
+          size="lg"
+          className="w-40"
+          type="button"
+          onClick={() => {
+            setFieldErrors({});
+            setError(null);
+            const random = generateRandomCompany();
+            setPayload((p) => ({ ...p, ...random }));
+          }}
+        >
+          สุ่มข้อมูล
+        </Button>
+      </Can>
     </form>
   );
 }

@@ -208,6 +208,14 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "randomize",
+        name: "Randomize data",
+        category: "ACTION",
+        action: "randomize"
+      }
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.reject",
         name: "Reject product",
         category: "ACTION",
@@ -279,6 +287,7 @@ async function main() {
       "company.create",
       "company.edit",
       "company.delete",
+        "randomize",
       "data.products"
     ].map((key) => ({
       roleId: managerRole.id,
