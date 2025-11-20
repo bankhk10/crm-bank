@@ -5,7 +5,7 @@ import { isAuthorized } from "@/lib/rbac";
 
 const resourcePath = "/api/employee";
 
-export async function GET(_request: Request, { params }: { params: { employeeId: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
   const session = await auth();
 
   if (!session?.user) {
@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: { employeeId:
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { employeeId } = params;
+  const { employeeId } = (await params) as { employeeId: string };
 
   const employee = await db.employee.findUnique({
     where: { id: employeeId },
@@ -33,7 +33,7 @@ export async function GET(_request: Request, { params }: { params: { employeeId:
   return NextResponse.json({ employee });
 }
 
-export async function DELETE(_request: Request, { params }: { params: { employeeId: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
   const session = await auth();
 
   if (!session?.user) {
@@ -44,7 +44,7 @@ export async function DELETE(_request: Request, { params }: { params: { employee
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { employeeId } = params;
+  const { employeeId } = (await params) as { employeeId: string };
 
   try {
     const deleted = await db.employee.delete({ where: { id: employeeId } });
