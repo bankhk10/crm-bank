@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Trash2, PlusCircle, ChevronLeft, ChevronRight, Search, Edit2, Eye } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -39,7 +39,7 @@ type EmployeesGridProps = {
   employees?: Employee[];
 };
 
-export default function EmployeesGrid({ employees = [] }: EmployeesGridProps) {
+export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   const router = useRouter();
   const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
 
@@ -53,8 +53,46 @@ export default function EmployeesGrid({ employees = [] }: EmployeesGridProps) {
   const itemsPerPage = 8;
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
 
-  // If no employees passed, use mock data so the UI is visible during development
-  const data = employees && employees.length ? employees : mockEmployees;
+  // fetched employees (client-side). If `employees` prop provided prefer it,
+  // otherwise fetch from the API and fall back to mock data for visuals.
+  const [fetched, setFetched] = useState<Employee[] | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchLoading, setFetchLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      // don't fetch if server provided employees prop
+      if (employees && employees.length > 0) return;
+      setFetchLoading(true);
+      try {
+        const res = await fetch(`/api/employee`, { method: "GET" });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error || `Status ${res.status}`);
+        }
+        const json = await res.json();
+        if (!mounted) return;
+        setFetched(json.employees ?? []);
+      } catch (err: any) {
+        if (!mounted) return;
+        setFetchError(err?.message ?? String(err));
+      } finally {
+        if (!mounted) return;
+        setFetchLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [employees]);
+
+  // If no employees passed, use fetched data (if any), otherwise fall back to mock data
+  const data = (employees && employees.length > 0)
+    ? employees
+    : (fetched && fetched.length ? fetched : mockEmployees);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -77,7 +115,11 @@ export default function EmployeesGrid({ employees = [] }: EmployeesGridProps) {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await fetch(`/api/employee/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/employee/${deleteTarget.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || `Status ${res.status}`);
+      }
       setDeleteTarget(null);
       router.refresh();
     } catch (err) {
@@ -86,7 +128,7 @@ export default function EmployeesGrid({ employees = [] }: EmployeesGridProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || fetchLoading) {
     return <Card className="p-4 text-sm text-slate-500">กำลังโหลดรายการพนักงาน...</Card>;
   }
 
