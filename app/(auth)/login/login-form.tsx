@@ -120,42 +120,42 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {/* ⭐️ 👤 Email (ใช้ FloatingLabelInput) */}
-            <FloatingLabelInput
-              id="email"
-              name="email"
-              type="email"
-              label="USERNAME"
-              autoComplete="email"
-              aria-label="email"
-              required
-            />
-
-            {/* ⭐️ 🔒 Password (ใช้ FloatingLabelInput) */}
-            <FloatingLabelInput
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              label="PASSWORD"
-              autoComplete="current-password"
-              aria-label="password"
-              required
-              suffix={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-pressed={showPassword}
-                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                  className="text-gray-600 transition-all duration-200 hover:text-gray-800"
-                >
-                  <FontAwesomeIcon
-                    icon={showPassword ? faEyeSlash : faEye}
-                    className="text-xl px-3"
-                  />
-                </button>
-              }
-            />
+            <div>
+              <FloatingLabelInput
+                id="email"
+                name="email"
+                type="email"
+                label="USERNAME"
+                autoComplete="email"
+                aria-label="email"
+                required
+              />
+            </div>
+            <div>
+              <FloatingLabelInput
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label="PASSWORD"
+                autoComplete="current-password"
+                aria-label="password"
+                required
+                suffix={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-pressed={showPassword}
+                    aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                    className="text-gray-600 transition-all duration-200 hover:text-gray-800"
+                  >
+                    <FontAwesomeIcon
+                      icon={showPassword ? faEyeSlash : faEye}
+                      className="text-xl px-3"
+                    />
+                  </button>
+                }
+              />
+            </div>
 
             {/* Remember */}
             <div className="flex items-center justify-between px-4">
