@@ -4,7 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
-import { Trash2, PlusCircle, ChevronLeft, ChevronRight, Search, Edit2, Eye } from "lucide-react";
+import {
+  Trash2,
+  PlusCircle,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Edit2,
+  Eye,
+} from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,10 +37,14 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   const router = useRouter();
   const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
 
-  const canCreate = hasPermission("employee.manage") || hasPermission("employee.create");
-  const canEdit = hasPermission("employee.manage") || hasPermission("employee.edit");
-  const canDelete = hasPermission("employee.manage") || hasPermission("employee.delete");
-  const canView = hasPermission("menu.employees") || hasPermission("employee.view");
+  const canCreate =
+    hasPermission("employee.manage") || hasPermission("employee.create");
+  const canEdit =
+    hasPermission("employee.manage") || hasPermission("employee.edit");
+  const canDelete =
+    hasPermission("employee.manage") || hasPermission("employee.delete");
+  const canView =
+    hasPermission("menu.employees") || hasPermission("employee.view");
 
   const [query, setQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,9 +88,12 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   }, [employees]);
 
   // If no employees passed, use fetched data (if any), otherwise empty list
-  const data: Employee[] = (employees && employees.length > 0)
-    ? employees
-    : (fetched && fetched.length ? fetched : []);
+  const data: Employee[] =
+    employees && employees.length > 0
+      ? employees
+      : fetched && fetched.length
+      ? fetched
+      : [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -88,7 +103,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(q),
+        .includes(q)
     );
   }, [data, query]);
 
@@ -101,7 +116,9 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/employee/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/employee/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error || `Status ${res.status}`);
@@ -115,13 +132,19 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   };
 
   if (isLoading || fetchLoading) {
-    return <Card className="p-4 text-sm text-slate-500">กำลังโหลดรายการพนักงาน...</Card>;
+    return (
+      <Card className="p-4 text-sm text-slate-500">
+        กำลังโหลดรายการพนักงาน...
+      </Card>
+    );
   }
 
   if (!allowed) {
     return (
       <Card className="p-4">
-        <div className="text-sm text-red-600">คุณไม่มีสิทธิ์เปิดดูเมนูพนักงาน</div>
+        <div className="text-sm text-red-600">
+          คุณไม่มีสิทธิ์เปิดดูเมนูพนักงาน
+        </div>
       </Card>
     );
   }
@@ -131,7 +154,9 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
       {/* header: search + add */}
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full max-w-md items-center gap-2">
-          <span className="text-slate-400"><Search className="h-4 w-4" /></span>
+          <span className="text-slate-400">
+            <Search className="h-4 w-4" />
+          </span>
           <Input
             placeholder="ค้นหา"
             value={query}
@@ -146,7 +171,10 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
         {canCreate && (
           <Button asChild size="sm" className="mt-2 md:mt-0">
             <Link href="/dashboard/employees/new">
-              <span className="inline-flex items-center gap-2"><PlusCircle className="h-4 w-4" />เพิ่มพนักงาน</span>
+              <span className="inline-flex items-center gap-2">
+                <PlusCircle className="h-4 w-4" />
+                เพิ่มพนักงาน
+              </span>
             </Link>
           </Button>
         )}
@@ -155,7 +183,10 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
       {/* grid */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
         {pageItems.map((e) => (
-          <div key={e.id} className="relative rounded-xl border bg-white p-4 shadow-sm">
+          <div
+            key={e.id}
+            className="relative rounded-xl border bg-white p-4 shadow-sm"
+          >
             {canDelete && (
               <button
                 aria-label="ลบ"
@@ -169,10 +200,17 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
 
             <div className="flex flex-col items-center">
               <div className="relative mb-2 h-24 w-24 overflow-hidden rounded-full bg-slate-100">
-                <Image src="/images/man-avatar.png" alt={e.name ?? "avatar"} fill style={{ objectFit: "cover" }} />
+                <Image
+                  src="/images/man-avatar.png"
+                  alt={e.name ?? "avatar"}
+                  fill
+                  style={{ objectFit: "cover" }}
+                />
               </div>
               <div className="text-center">
-                <div className="text-sm font-semibold text-slate-900">{e.name}</div>
+                <div className="text-sm font-semibold text-slate-900">
+                  {e.name}
+                </div>
                 <div className="mt-1 text-xs text-slate-500">{e.role}</div>
               </div>
 
@@ -180,14 +218,20 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
                 {canEdit && (
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/dashboard/employees/${e.id}/edit`}>
-                      <span className="inline-flex items-center gap-2"><Edit2 className="h-4 w-4" />แก้ไข</span>
+                      <span className="inline-flex items-center gap-2">
+                        <Edit2 className="h-4 w-4" />
+                        แก้ไข
+                      </span>
                     </Link>
                   </Button>
                 )}
                 {canView && (
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/dashboard/employees/${e.id}`}>
-                      <span className="inline-flex items-center gap-2"><Eye className="h-4 w-4" />ประวัติ</span>
+                      <span className="inline-flex items-center gap-2">
+                        <Eye className="h-4 w-4" />
+                        ประวัติ
+                      </span>
                     </Link>
                   </Button>
                 )}
@@ -196,15 +240,21 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
               <div className="mt-4 w-full border-t pt-3 text-center text-sm text-slate-700">
                 <div className="flex justify-around">
                   <div>
-                    <div className="text-lg font-bold">{(e.id.charCodeAt(0) + 0 * 7) % 50}</div>
+                    <div className="text-lg font-bold">
+                      {(e.id.charCodeAt(0) + 0 * 7) % 50}
+                    </div>
                     <div className="text-xs text-slate-500">ที่เหลือ</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold">{(e.id.charCodeAt(0) + 1 * 7) % 50}</div>
+                    <div className="text-lg font-bold">
+                      {(e.id.charCodeAt(0) + 1 * 7) % 50}
+                    </div>
                     <div className="text-xs text-slate-500">กำลังทำ</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold">{(e.id.charCodeAt(0) + 2 * 7) % 50}</div>
+                    <div className="text-lg font-bold">
+                      {(e.id.charCodeAt(0) + 2 * 7) % 50}
+                    </div>
                     <div className="text-xs text-slate-500">สำเร็จ</div>
                   </div>
                 </div>
@@ -216,28 +266,54 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
 
       {/* pagination */}
       <div className="mt-4 flex items-center justify-between">
-        <div className="text-sm text-slate-500">{startDisplay}-{endDisplay} จาก {filtered.length}</div>
+        <div className="text-sm text-slate-500">
+          {startDisplay}-{endDisplay} จาก {filtered.length}
+        </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* confirm delete dialog */}
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
-        <DialogContent>
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[470px] sm:max-h-[200px] rounded-lg border-0">
           <DialogTitle>ลบพนักงาน</DialogTitle>
           <DialogDescription>
-            ยืนยันการลบ {deleteTarget?.name ?? "ผู้ใช้งาน"}? การกระทำนี้ไม่สามารถย้อนกลับได้
+            ยืนยันการลบ {deleteTarget?.name ?? "ผู้ใช้งาน"}?
+            การกระทำนี้ไม่สามารถย้อนกลับได้
           </DialogDescription>
 
           <DialogFooter className="mt-4 flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>ยกเลิก</Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete}><Trash2 className="h-4 w-4" /> ลบ</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteTarget(null)}
+            >
+              ยกเลิก
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4" /> ลบ
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
