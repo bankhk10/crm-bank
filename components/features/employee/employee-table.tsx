@@ -37,8 +37,11 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   const router = useRouter();
   const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
 
+  const permissionHint =
+    "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อเพิ่มพนักงานใหม่";
   const canCreate =
-    hasPermission("employee.manage") || hasPermission("employee.create");
+    !isLoading &&
+    (hasPermission("employee.manage") || hasPermission("employee.create"));
   const canEdit =
     hasPermission("employee.manage") || hasPermission("employee.edit");
   const canDelete =
@@ -153,10 +156,9 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
     <Card className="p-4">
       {/* header: search + add */}
       <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="flex w-full max-w-md items-center gap-2">
-          <span className="text-slate-400">
-            <Search className="h-4 w-4" />
-          </span>
+        <div className="relative w-full max-w-md">
+          {" "}
+          {/* 1. เปลี่ยน Div หลักเป็น relative */}
           <Input
             placeholder="ค้นหา"
             value={query}
@@ -164,18 +166,36 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
               setQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="max-w-full"
+            // 2. ปรับ padding ซ้าย (pl) ของ Input ให้เว้นที่ว่างสำหรับไอคอน
+            className="pl-10 pr-4 max-w-full"
           />
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            {" "}
+            {/* 3. วางไอคอนแบบ absolute */}
+            <Search className="h-4 w-4 text-slate-400" />
+          </span>
         </div>
 
-        {canCreate && (
+        {canCreate ? (
           <Button asChild size="sm" className="mt-2 md:mt-0">
-            <Link href="/dashboard/employees/new">
+            <Link href="/employee/new">
               <span className="inline-flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" />
                 เพิ่มพนักงาน
               </span>
             </Link>
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="mt-2 md:mt-0"
+            disabled
+            title={permissionHint}
+          >
+            <span className="inline-flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              เพิ่มพนักงาน
+            </span>
           </Button>
         )}
       </div>
