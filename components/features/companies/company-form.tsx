@@ -108,7 +108,7 @@ export default function CompanyForm({
       >
         สุ่มข้อมูล
       </Button>
-      <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
+      <div className="grid gap-x-4 md:grid-cols-2">
         <div>
           <FloatingLabelInput
             label="ชื่อบริษัท"
