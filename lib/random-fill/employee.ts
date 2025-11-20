@@ -84,7 +84,8 @@ export function generateRandomEmployee(overrides: Partial<EmployeeRandomPayload>
   const postalCode = subObj?.zip_code ? String(subObj.zip_code) : (10000 + Math.floor(Math.random() * 80000)).toString().slice(0, 5);
   const addressLine = `บ้านเลขที่ ${Math.ceil(Math.random() * 200)} ซอยสุทธิสาร ต.${subdistrict} อ.${district}`;
 
-  const payload: EmployeeRandomPayload = {
+  // Build a sanitized payload: only include known keys and copy overrides safely
+  const base: EmployeeRandomPayload = {
     prefix,
     firstName,
     lastName,
@@ -98,10 +99,35 @@ export function generateRandomEmployee(overrides: Partial<EmployeeRandomPayload>
     subdistrict,
     postalCode,
     password: `P@ss${randNumberString(6)}`,
-    ...overrides,
   };
 
-  return payload;
+  const allowedKeys: (keyof EmployeeRandomPayload)[] = [
+    "prefix",
+    "firstName",
+    "lastName",
+    "email",
+    "phone",
+    "birthDate",
+    "employeeCode",
+    "addressLine",
+    "province",
+    "district",
+    "subdistrict",
+    "postalCode",
+    "password",
+  ];
+
+  const sanitized: EmployeeRandomPayload = { ...base };
+
+  for (const k of allowedKeys) {
+    if (typeof overrides[k] !== "undefined" && overrides[k] !== null) {
+      // coerce postalCode to string if provided as number
+      if (k === "postalCode") sanitized.postalCode = String(overrides.postalCode);
+      else (sanitized as any)[k] = overrides[k];
+    }
+  }
+
+  return sanitized;
 }
 
 export default generateRandomEmployee;

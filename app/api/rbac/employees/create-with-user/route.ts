@@ -12,6 +12,7 @@ const payloadSchema = z.object({
     roleTitle: z.string().optional(),
     phone: z.string().optional(),
     companyId: z.string().optional(),
+    company: z.string().optional(),
     // extended fields from form
     prefix: z.string().optional(),
     firstName: z.string().optional(),
@@ -24,13 +25,17 @@ const payloadSchema = z.object({
         province: z.string().optional(),
         district: z.string().optional(),
         subdistrict: z.string().optional(),
-        postalCode: z.string().optional(),
+        // postalCode may be sent as number or string from various clients
+        postalCode: z.union([z.string(), z.number()]).optional(),
       })
       .optional(),
     responsibilityArea: z.string().optional(),
     status: z.string().optional(),
     position: z.string().optional(),
-    department: z.string().optional()
+    department: z.string().optional(),
+    // frontend sometimes sends relation ids as `positionId` / `departmentId`
+    positionId: z.string().optional(),
+    departmentId: z.string().optional()
   }),
   user: z
     .object({
@@ -48,8 +53,19 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
+  console.log("[api/rbac/employees/create-with-user] received body:", JSON.stringify(body));
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
+    // Log zod issues to server console for easier debugging in dev
+    try {
+      console.log(
+        "[api/rbac/employees/create-with-user] Zod validation failed:",
+        JSON.stringify(parsed.error.flatten())
+      );
+    } catch (e) {
+      console.log("[api/rbac/employees/create-with-user] Zod validation failed (could not stringify)", parsed.error);
+    }
+
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
   }
 
@@ -132,11 +148,10 @@ export async function POST(request: Request) {
         responsibilityArea: empPayload.responsibilityArea,
         status: empPayload.status,
         // store relation ids if provided
-        positionId: empPayload.position ?? undefined,
-        departmentId: empPayload.department ?? undefined,
-        // keep title/name fields if frontend sent names
-        positionTitle: typeof empPayload.position === "string" ? undefined : undefined,
-        departmentName: typeof empPayload.department === "string" ? undefined : undefined
+        positionId: empPayload.positionId ?? empPayload.position ?? undefined,
+        departmentId: empPayload.departmentId ?? empPayload.department ?? undefined,
+        // if frontend provided position/department objects instead of ids, you may
+        // want to extract/display names here. Keep empty for now.
       };
 
       if (empPayload.email) employeeCreateData.email = empPayload.email;
@@ -153,8 +168,10 @@ export async function POST(request: Request) {
       if (empPayload.address) {
         if (empPayload.address.province) employeeCreateData.province = empPayload.address.province;
         if (empPayload.address.district) employeeCreateData.district = empPayload.address.district;
-        if (empPayload.address.subdistrict) employeeCreateData.subdistrict = empPayload.address.subdistrict;
-        if (empPayload.address.postalCode) employeeCreateData.postalCode = empPayload.address.postalCode;
+          if (empPayload.address.subdistrict) employeeCreateData.subdistrict = empPayload.address.subdistrict;
+          if (typeof empPayload.address.postalCode !== "undefined" && empPayload.address.postalCode !== null) {
+            employeeCreateData.postalCode = String(empPayload.address.postalCode);
+          }
       }
       if (createdUser) employeeCreateData.userId = createdUser.id;
 
