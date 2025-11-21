@@ -111,6 +111,7 @@ export default function EditEmployeePage() {
             <EmployeeForm
               employeeId={employeeId}
               initial={payload}
+              hideBorder
               onSubmit={async (body) => {
                 const result = await handleUpdate(body);
                 if (result.success) router.push(`/employee`);
