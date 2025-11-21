@@ -13,7 +13,13 @@ import generateRandomEmployee from "@/lib/random-fill/employee";
 interface EmployeeFormProps {
   employeeId?: string;
   initial?: Partial<EmployeeFormValues>;
-  onSubmit?: (payload: any) => Promise<{ success: boolean; issues?: Record<string, string[]>; error?: string }>;
+  onSubmit?: (
+    payload: any
+  ) => Promise<{
+    success: boolean;
+    issues?: Record<string, string[]>;
+    error?: string;
+  }>;
   hideBorder?: boolean;
   onCancel?: () => void;
   registerRandomize?: (fn: () => void) => void;
@@ -32,19 +38,32 @@ type EmployeeFormValues = Partial<Employee> & {
   department?: string;
   company?: string;
   responsibilityArea?: string;
-  addressLine?: string; // ที่อยู่ (บรรทัดแรก)
+  addressLine?: string;
   status?: string;
-  roleDefinitionId?: string; // สำหรับ "สิทธิ์การใช้งาน"
-  role?: string; // Role เดิมใน code2 (อาจซ้ำซ้อนกับ roleDefinitionId)
+  roleDefinitionId?: string;
+  role?: string;
 };
 
-export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder, onCancel, registerRandomize }: EmployeeFormProps) {
+export default function EmployeeForm({
+  employeeId,
+  initial,
+  onSubmit,
+  hideBorder,
+  onCancel,
+  registerRandomize,
+}: EmployeeFormProps) {
   const [formState, setFormState] = useState<EmployeeFormValues>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
-  const [companyOptions, setCompanyOptions] = useState<Array<{ value: string; label: string }>>([]);
-  const [departmentOptions, setDepartmentOptions] = useState<Array<{ value: string; label: string }>>([]);
-  const [positionOptions, setPositionOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [companyOptions, setCompanyOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [departmentOptions, setDepartmentOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [positionOptions, setPositionOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
   const [address, setAddress] = useState<{
     province?: string;
     district?: string;
@@ -99,7 +118,9 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
         if (cRes.ok) {
           const d = await cRes.json();
           if (mounted && Array.isArray(d.companies)) {
-            setCompanyOptions(d.companies.map((c: any) => ({ value: c.id, label: c.name })));
+            setCompanyOptions(
+              d.companies.map((c: any) => ({ value: c.id, label: c.name }))
+            );
           }
         }
       } catch (e) {
@@ -111,7 +132,9 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
         if (dRes.ok) {
           const dd = await dRes.json();
           if (mounted && Array.isArray(dd)) {
-            setDepartmentOptions(dd.map((x: any) => ({ value: x.id, label: x.name })));
+            setDepartmentOptions(
+              dd.map((x: any) => ({ value: x.id, label: x.name }))
+            );
           }
         }
       } catch (e) {
@@ -123,7 +146,9 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
         if (pRes.ok) {
           const pp = await pRes.json();
           if (mounted && Array.isArray(pp)) {
-            setPositionOptions(pp.map((x: any) => ({ value: x.id, label: x.name })));
+            setPositionOptions(
+              pp.map((x: any) => ({ value: x.id, label: x.name }))
+            );
           }
         }
       } catch (e) {
@@ -175,15 +200,18 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
 
     // if there are select options, pick random ones
     if (positionOptions && positionOptions.length) {
-      const pos = positionOptions[Math.floor(Math.random() * positionOptions.length)];
+      const pos =
+        positionOptions[Math.floor(Math.random() * positionOptions.length)];
       setFormState((prev) => ({ ...prev, position: pos.value }));
     }
     if (departmentOptions && departmentOptions.length) {
-      const dep = departmentOptions[Math.floor(Math.random() * departmentOptions.length)];
+      const dep =
+        departmentOptions[Math.floor(Math.random() * departmentOptions.length)];
       setFormState((prev) => ({ ...prev, department: dep.value }));
     }
     if (companyOptions && companyOptions.length) {
-      const c = companyOptions[Math.floor(Math.random() * companyOptions.length)];
+      const c =
+        companyOptions[Math.floor(Math.random() * companyOptions.length)];
       setFormState((prev) => ({ ...prev, company: c.value }));
     }
   }, [canEdit, companyOptions, departmentOptions, positionOptions]);
@@ -257,7 +285,11 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
         return;
       }
       // password policy (only when provided)
-      if (password && String(password).length > 0 && String(password).length < 8) {
+      if (
+        password &&
+        String(password).length > 0 &&
+        String(password).length < 8
+      ) {
         setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
         setLoading(false);
         return;
@@ -331,7 +363,11 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
       if (onSubmit) {
         const result = await onSubmit(payload);
         if (!result.success) {
-          setError(result.error ?? Object.values(result.issues ?? {})[0]?.[0] ?? "Server error");
+          setError(
+            result.error ??
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error"
+          );
         } else {
           setSuccess("บันทึกเรียบร้อยแล้ว");
         }
@@ -376,7 +412,7 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
 
   return (
     <div className="bg-white sm:rounded-lg">
-      <form onSubmit={handleSubmit} className="p-6 space-y-1">
+      <form onSubmit={handleSubmit} className="space-y-1">
         {(!canEdit || error || success) && (
           <div>
             {!canEdit && (

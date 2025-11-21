@@ -21,7 +21,7 @@ export default function EmployeeFormButtons({
   hideBorder,
 }: EmployeeFormButtonsProps) {
   return (
-    <div className={`md:col-span-2 pt-6 ${hideBorder ? "my-2" : "border-t my-2"}`}>
+    <div className={`md:col-span-2 mt-8 ${hideBorder ? "my-2" : "border-t my-2"}`}>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Button
           size="lg"
