@@ -9,7 +9,6 @@ import EmployeePersonalInfoSection from "./EmployeePersonalInfoSection";
 import EmployeeLoginInfoSection from "./EmployeeLoginInfoSection";
 import EmployeeFormButtons from "./EmployeeFormButtons";
 import generateRandomEmployee from "@/lib/random-fill/employee";
-import { positionOptions as defaultPositionOptions } from "./employee-options";
 
 interface EmployeeFormProps {
   employeeId?: string;
@@ -40,6 +39,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
   const [companyOptions, setCompanyOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [departmentOptions, setDepartmentOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [positionOptions, setPositionOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [address, setAddress] = useState<{
     province?: string;
     district?: string;
@@ -107,7 +107,17 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
         // ignore
       }
 
-      // positions are now sourced from `components/features/employee/employee-options.ts`
+      try {
+        const pRes = await fetch(`/api/rbac/positions`);
+        if (pRes.ok) {
+          const pp = await pRes.json();
+          if (mounted && Array.isArray(pp)) {
+            setPositionOptions(pp.map((x: any) => ({ value: x.id, label: x.name })));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
     loadReferences();
@@ -152,9 +162,9 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
       postalCode: p.postalCode,
     });
 
-    // if there are select options, pick random ones (use central options)
-    if (defaultPositionOptions && defaultPositionOptions.length) {
-      const pos = defaultPositionOptions[Math.floor(Math.random() * defaultPositionOptions.length)];
+    // if there are select options, pick random ones
+    if (positionOptions && positionOptions.length) {
+      const pos = positionOptions[Math.floor(Math.random() * positionOptions.length)];
       setFormState((prev) => ({ ...prev, position: pos.value }));
     }
     if (departmentOptions && departmentOptions.length) {
@@ -313,6 +323,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           setAddress={setAddress}
           canEdit={canEdit}
           calculatedAge={calculatedAge}
+          positionOptions={positionOptions}
           departmentOptions={departmentOptions}
           companyOptions={companyOptions}
         />
