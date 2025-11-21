@@ -119,13 +119,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
     })
     .passthrough();
 
+  const userSchema = z
+    .object({
+      email: z.string().email().optional(),
+      password: z.string().min(8).optional(),
+      roleId: z.string().optional(),
+    })
+    .optional();
+
   const parseResult = employeeSchema.safeParse(body.employee);
   if (!parseResult.success) {
     return NextResponse.json({ error: "Validation failed", details: parseResult.error.flatten() }, { status: 400 });
   }
 
+  const userParseResult = userSchema.safeParse(body.user);
+  if (!userParseResult.success) {
+    return NextResponse.json({ error: "User validation failed", details: userParseResult.error.flatten() }, { status: 400 });
+  }
+
   try {
     const payload = parseResult.data as Record<string, any>;
+    const userPayload = userParseResult.data;
 
     const { companyId, departmentId, positionId, managerId, address, birthDate, ...other } = payload;
 
@@ -157,6 +171,62 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
     };
 
     const updated = await db.employee.update({ where: { id: employeeId }, data });
+
+    // Update linked User if user payload provided
+    if (userPayload && Object.keys(userPayload).length > 0) {
+      // Find the linked user
+      const existingEmployee = await db.employee.findUnique({
+        where: { id: employeeId },
+        include: { user: true }
+      });
+
+      if (existingEmployee?.user) {
+        const userId = existingEmployee.user.id;
+        const userUpdateData: any = {};
+
+        // Update email if provided
+        if (userPayload.email) {
+          userUpdateData.email = userPayload.email;
+        }
+
+        // Update password if provided (hash it first)
+        if (userPayload.password) {
+          const bcrypt = await import("bcryptjs");
+          userUpdateData.password = await bcrypt.hash(userPayload.password, 10);
+        }
+
+        // Update name from employee data
+        if (payload.prefix || payload.firstName || payload.lastName) {
+          userUpdateData.name = `${payload.prefix ?? ""} ${payload.firstName ?? ""} ${payload.lastName ?? ""}`.trim();
+        }
+
+        // Update user basic info
+        if (Object.keys(userUpdateData).length > 0) {
+          await db.user.update({
+            where: { id: userId },
+            data: userUpdateData
+          });
+        }
+
+        // Update role if provided
+        if (userPayload.roleId) {
+          // Remove existing roles
+          await db.userRole.updateMany({
+            where: { userId, deletedAt: null },
+            data: { deletedAt: new Date() }
+          });
+
+          // Add new role
+          await db.userRole.create({
+            data: {
+              userId,
+              roleId: userPayload.roleId
+            }
+          });
+        }
+      }
+    }
+
     return NextResponse.json({ employee: updated });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? "Update failed" }, { status: 400 });

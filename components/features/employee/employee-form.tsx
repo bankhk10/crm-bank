@@ -326,6 +326,12 @@ export default function EmployeeForm({
         setLoading(false);
         return;
       }
+      // Require password only for new employee creation (not for update)
+      if (!employeeId && !password) {
+        setError("กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ");
+        setLoading(false);
+        return;
+      }
       // phone format check (if provided)
       if (formState.phone) {
         const phoneDigits = String(formState.phone).replace(/\D/g, "");
@@ -404,11 +410,11 @@ export default function EmployeeForm({
           setSuccess("บันทึกเรียบร้อยแล้ว");
         }
       } else if (employeeId) {
-        // update existing employee
+        // update existing employee - include user data if provided
         res = await fetch(`/api/employee/${employeeId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employee: payload.employee }),
+          body: JSON.stringify(payload), // Send full payload including user
         });
 
         if (!res.ok) {
@@ -491,6 +497,7 @@ export default function EmployeeForm({
           roles={roles}
           canEdit={canEdit}
           showValidation={showValidation}
+          employeeId={employeeId}
         />
 
         <EmployeeFormButtons

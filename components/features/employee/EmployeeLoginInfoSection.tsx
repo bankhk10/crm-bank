@@ -33,6 +33,7 @@ interface EmployeeLoginInfoSectionProps {
   roles: Array<any>;
   canEdit: boolean;
   showValidation?: boolean;
+  employeeId?: string; // Add this to know if we're editing
 }
 
 export default function EmployeeLoginInfoSection({
@@ -43,6 +44,7 @@ export default function EmployeeLoginInfoSection({
   roles,
   canEdit,
   showValidation,
+  employeeId, // Receive employeeId prop
 }: EmployeeLoginInfoSectionProps) {
   const [showPassword, setShowPassword] = useState(false);
   return (
@@ -72,9 +74,9 @@ export default function EmployeeLoginInfoSection({
         {/* รหัสผ่าน */}
         <div>
           <FloatingLabelInput
-            label="รหัสผ่าน"
+            label={employeeId ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)" : "รหัสผ่าน"}
             type={showPassword ? "text" : "password"}
-            placeholder="รหัสผ่านสำหรับเข้าสู่ระบบ"
+            placeholder={employeeId ? "เว้นว่างหากไม่ต้องการเปลี่ยน" : "รหัสผ่านสำหรับเข้าสู่ระบบ"}
             value={password}
             disabled={!canEdit}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -100,7 +102,7 @@ export default function EmployeeLoginInfoSection({
               String(password).length > 0 &&
               String(password).length < 8
                 ? "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"
-                : !password && canEdit && showValidation
+                : !employeeId && !password && canEdit && showValidation
                 ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
                 : undefined
             }

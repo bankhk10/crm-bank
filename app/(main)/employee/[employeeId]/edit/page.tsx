@@ -80,7 +80,7 @@ export default function EditEmployeePage() {
       const res = await fetch(`/api/employee/${employeeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadData),
+        body: JSON.stringify(payloadData), // Send full payload including user data
       });
 
       if (!res.ok) {
