@@ -3,7 +3,11 @@
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import DatePicker from "@/components/custom/DatePicker";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import { prefixOptions, responsibilityAreaOptions } from "./employee-options";
+import {
+  prefixOptions,
+  responsibilityAreaOptions,
+  positionOptions as defaultPositionOptions,
+} from "./employee-options";
 import type { Employee } from "@/types/Employee";
 
 type EmployeeFormValues = Partial<Employee> & {
@@ -45,8 +49,6 @@ interface EmployeePersonalInfoSectionProps {
   >;
   canEdit: boolean;
   calculatedAge: () => string;
-  // options passed from parent (use id as value): { value: string; label: string }
-  positionOptions: Array<{ value: string; label: string }>;
   departmentOptions: Array<{ value: string; label: string }>;
   companyOptions: Array<{ value: string; label: string }>;
 }
@@ -59,7 +61,6 @@ export default function EmployeePersonalInfoSection({
   setAddress,
   canEdit,
   calculatedAge,
-  positionOptions,
   departmentOptions,
   companyOptions,
 }: EmployeePersonalInfoSectionProps) {
@@ -156,7 +157,7 @@ export default function EmployeePersonalInfoSection({
           <FloatingLabelInput
             label="ตำแหน่งงาน"
             type="select"
-            options={positionOptions}
+            options={defaultPositionOptions}
             value={formState.position ?? ""}
             disabled={!canEdit}
             onChange={handleChange("position")}

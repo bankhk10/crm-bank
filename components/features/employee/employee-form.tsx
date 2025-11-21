@@ -324,7 +324,6 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           setAddress={setAddress}
           canEdit={canEdit}
           calculatedAge={calculatedAge}
-          positionOptions={positionOptions}
           departmentOptions={departmentOptions}
           companyOptions={companyOptions}
         />
