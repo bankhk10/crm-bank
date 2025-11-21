@@ -139,7 +139,7 @@ export default function EditCompanyPage() {
                 if (result.success) router.push(`/companies`);
                 return result;
               }}
-              onCancel={() => router.push(`/companies/${companyId}`)}
+              onCancel={() => router.push(`/companies`)}
               submitLabel="บันทึก"
             />
           )}
