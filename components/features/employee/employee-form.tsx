@@ -14,6 +14,8 @@ interface EmployeeFormProps {
   employeeId?: string;
   initial?: Partial<EmployeeFormValues>;
   onSubmit?: (payload: any) => Promise<{ success: boolean; issues?: Record<string, string[]>; error?: string }>;
+  hideBorder?: boolean;
+  onCancel?: () => void;
 }
 
 // ขยาย Type ของ formState เพื่อรองรับฟิลด์ทั้งหมดจาก code1
@@ -35,7 +37,7 @@ type EmployeeFormValues = Partial<Employee> & {
   role?: string; // Role เดิมใน code2 (อาจซ้ำซ้อนกับ roleDefinitionId)
 };
 
-export default function EmployeeForm({ employeeId, initial, onSubmit }: EmployeeFormProps) {
+export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder, onCancel }: EmployeeFormProps) {
   const [formState, setFormState] = useState<EmployeeFormValues>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
@@ -359,13 +361,8 @@ export default function EmployeeForm({ employeeId, initial, onSubmit }: Employee
   };
 
   return (
-    <div className="bg-white shadow-sm sm:rounded-lg">
+    <div className="bg-white sm:rounded-lg">
       <form onSubmit={handleSubmit} className="p-6 space-y-1">
-        <div className="text-center">
-          <h5 className="font-semibold text-3xl my-5 border-b pb-6">
-            เพิ่มข้อมูลพนักงานใหม่
-          </h5>
-        </div>
         {(!canEdit || error || success) && (
           <div>
             {!canEdit && (
@@ -419,8 +416,9 @@ export default function EmployeeForm({ employeeId, initial, onSubmit }: Employee
           loading={loading}
           employeeId={employeeId}
           permissionHint={permissionHint}
-          onCancel={() => router.back()}
+          onCancel={onCancel ?? (() => router.back())}
           onRandomFill={handleRandomFill}
+          hideBorder={hideBorder}
         />
       </form>
     </div>
