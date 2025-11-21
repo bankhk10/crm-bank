@@ -61,6 +61,7 @@ export default function EmployeeLoginInfoSection({
             value={formState.email ?? ""}
             disabled={!canEdit}
             onChange={handleChange("email")}
+            required
           />
         </div>
 
@@ -89,6 +90,7 @@ export default function EmployeeLoginInfoSection({
                 )}
               </button>
             }
+            required
           />
         </div>
 
