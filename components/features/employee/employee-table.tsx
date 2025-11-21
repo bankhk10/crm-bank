@@ -155,7 +155,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   return (
     <Card className="p-4">
       {/* header: search + add */}
-      <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between mt-3">
         <div className="relative w-full max-w-md">
           {" "}
           {/* 1. เปลี่ยน Div หลักเป็น relative */}
@@ -177,18 +177,18 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
         </div>
 
         {canCreate ? (
-          <Button asChild size="sm" className="mt-2 md:mt-0">
-            <Link href="/employee/new">
+          <Link href="/employee/new">
+            <Button className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 mt-2 md:mt-0">
               <span className="inline-flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" />
                 เพิ่มพนักงาน
               </span>
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         ) : (
           <Button
-            size="sm"
-            className="mt-2 md:mt-0"
+            className="w-full md:w-auto mt-2 md:mt-0"
+            variant="outline"
             disabled
             title={permissionHint}
           >
