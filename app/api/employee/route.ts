@@ -26,6 +26,7 @@ export async function GET() {
   }
 
   const employees = await db.employee.findMany({
+    where: { deletedAt: null },
     include: {
       company: {
         select: {

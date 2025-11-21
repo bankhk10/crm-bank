@@ -47,8 +47,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { employeeId } = (await params) as { employeeId: string };
 
   try {
-    const deleted = await db.employee.delete({ where: { id: employeeId } });
-    return NextResponse.json({ employee: deleted });
+    const updated = await db.employee.update({ where: { id: employeeId }, data: { deletedAt: new Date() } });
+    return NextResponse.json({ employee: updated });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? "Delete failed" }, { status: 400 });
   }
