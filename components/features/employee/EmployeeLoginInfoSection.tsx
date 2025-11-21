@@ -61,7 +61,11 @@ export default function EmployeeLoginInfoSection({
             value={formState.email ?? ""}
             disabled={!canEdit}
             onChange={handleChange("email")}
-            required
+            error={
+              !formState.email && canEdit && showValidation
+                ? "กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ"
+                : undefined
+            }
           />
         </div>
 
@@ -90,7 +94,11 @@ export default function EmployeeLoginInfoSection({
                 )}
               </button>
             }
-            required
+            error={
+              !password && canEdit && showValidation
+                ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
+                : undefined
+            }
           />
         </div>
 
@@ -103,7 +111,11 @@ export default function EmployeeLoginInfoSection({
             value={formState.roleDefinitionId ?? ""}
             disabled={!canEdit || roles.length === 0}
             onChange={handleChange("roleDefinitionId")}
-            error={!formState.roleDefinitionId && canEdit && showValidation ? "กรุณาเลือกสิทธิ์การใช้งาน" : undefined}
+            error={
+              !formState.roleDefinitionId && canEdit && showValidation
+                ? "กรุณาเลือกสิทธิ์การใช้งาน"
+                : undefined
+            }
           />
         </div>
 
