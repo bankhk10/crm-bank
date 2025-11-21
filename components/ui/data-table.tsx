@@ -59,14 +59,18 @@ export function DataTable<TData, TValue>({
   });
 
   const skeletonRowCount = React.useMemo(() => Math.min(5, columns.length ? 5 : 0), [columns.length]);
-  const showEmptyState = !loading && table.getRowModel().rows.length === 0;
+  const rowCount = table.getRowModel().rows.length;
+  const showEmptyState = !loading && rowCount === 0;
+  const showSkeletons = loading && rowCount === 0;
+  const contentOpacityClass = loading && rowCount > 0 ? "opacity-80" : "opacity-100";
 
   return (
     <div className={cn("space-y-4", className)}>
       {toolbar}
 
-      <div className="rounded-md border overflow-hidden">
-        <Table>
+      <div className="relative rounded-md border overflow-hidden">
+        <div className={`transition-opacity duration-200 ${contentOpacityClass}`}>
+          <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -189,7 +193,7 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {loading &&
+            {showSkeletons &&
               Array.from({ length: skeletonRowCount || 3 }).map((_, rowIndex) => (
                 <TableRow key={`loading-${rowIndex}`}>
                   {columns.map((column, columnIndex) => {
@@ -218,7 +222,7 @@ export function DataTable<TData, TValue>({
                 </TableRow>
               ))}
 
-            {!loading && !showEmptyState &&
+            {(!loading || rowCount > 0) && !showEmptyState &&
               table.getRowModel().rows.map((row: any) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                   {row.getVisibleCells().map((cell: any) => {
@@ -266,9 +270,19 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
 
-        {loading && (
+        {/* Overlay spinner: always present but fades in/out for smoothness */}
+        <div
+          className={`pointer-events-none absolute right-3 top-3 flex items-center gap-2 rounded bg-white/80 px-3 py-1 text-sm text-muted-foreground shadow transition-opacity duration-200 ${
+            loading && rowCount > 0 ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <Loader2 className="h-4 w-4 animate-spin" /> กำลังอัพเดต...
+        </div>
+
+        {loading && rowCount === 0 && (
           <div className="flex items-center justify-center gap-2 border-t px-4 py-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> โหลดข้อมูล...
           </div>
