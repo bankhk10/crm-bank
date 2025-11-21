@@ -44,16 +44,21 @@ export default function CompaniesPage() {
   // auto-apply filters (debounced) when user types or changes date range
   useEffect(() => {
     // If the last applied search returned no results and the user is
-    // typing more characters (extending the query), wait a bit longer
-    // before applying filters to avoid frequent re-fetching and UI
-    // flicker. Otherwise use a normal short debounce.
+    // typing more characters (extending the query), do NOT auto-apply
+    // filters. This prevents sending additional requests while the user
+    // continues to type a longer query that is very unlikely to return
+    // results. The user can still submit explicitly with Enter.
     const isExtendingEmpty =
       total === 0 &&
       appliedFilters.query &&
       filterDraft.query.startsWith(appliedFilters.query) &&
       filterDraft.query.length > appliedFilters.query.length;
 
-    const delay = isExtendingEmpty ? 900 : 400;
+    if (isExtendingEmpty) {
+      return;
+    }
+
+    const delay = 400;
     const next = {
       query: filterDraft.query,
       dateRange: filterDraft.dateRange,
