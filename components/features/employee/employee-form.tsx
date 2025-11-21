@@ -107,6 +107,38 @@ export default function EmployeeForm({
     setFormState((prev) => ({ ...prev, ...initial }));
   }, [initial]);
 
+  // initialize address state when provided in `initial`
+  useEffect(() => {
+    if (!initial) return;
+    const addr = (initial as any).address;
+    if (addr && (addr.province || addr.district || addr.subdistrict || addr.postalCode !== undefined)) {
+      setAddress({
+        province: addr.province ?? undefined,
+        district: addr.district ?? undefined,
+        subdistrict: addr.subdistrict ?? undefined,
+        postalCode: addr.postalCode !== undefined ? String(addr.postalCode) : undefined,
+      });
+      return;
+    }
+
+    // fallback: maybe the API returned flat fields
+    const fallback = {
+      province: (initial as any).province ?? undefined,
+      district: (initial as any).district ?? undefined,
+      subdistrict: (initial as any).subdistrict ?? undefined,
+      postalCode:
+        (initial as any).postalCode !== undefined
+          ? String((initial as any).postalCode)
+          : (initial as any).zipCode !== undefined
+          ? String((initial as any).zipCode)
+          : undefined,
+    };
+
+    if (fallback.province || fallback.district || fallback.subdistrict || fallback.postalCode) {
+      setAddress(fallback);
+    }
+  }, [initial]);
+
   // load companies / departments / positions for selects (ids)
   useEffect(() => {
     let mounted = true;

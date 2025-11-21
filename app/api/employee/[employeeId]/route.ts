@@ -22,7 +22,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ emp
     where: { id: employeeId },
     include: {
       company: { select: { id: true, name: true } },
-      manager: { select: { id: true, name: true } }
+      manager: { select: { id: true, name: true } },
+      // include linked user and their active roles so callers (edit page) can
+      // prefill login/role information
+      user: {
+        select: {
+          id: true,
+          email: true,
+          userRoles: {
+            where: { deletedAt: null },
+            include: { role: true }
+          }
+        }
+      }
     }
   });
 

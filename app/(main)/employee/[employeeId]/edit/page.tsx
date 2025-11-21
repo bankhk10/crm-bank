@@ -42,8 +42,25 @@ export default function EditEmployeePage() {
             company: src.companyId ?? src.company?.id ?? "",
             responsibilityArea: src.responsibilityArea ?? "",
             addressLine: src.addressLine ?? "",
+              // Ensure address object is provided for the form's ThaiAddressPicker
+              address:
+                src.address ??
+                ({
+                  province: src.province ?? src.provinceName ?? "",
+                  district: src.district ?? "",
+                  subdistrict: src.subdistrict ?? "",
+                  postalCode: src.postalCode ?? src.zipCode ?? "",
+                } as any),
             status: src.status ?? "ACTIVE",
-            roleDefinitionId: src.roleDefinitionId ?? src.roleId ?? undefined,
+              // Try multiple places where role info may be stored:
+              // - explicit roleDefinitionId on employee
+              // - roleId on employee (legacy)
+              // - linked user -> userRoles -> role.id (first assigned role)
+              roleDefinitionId:
+                src.roleDefinitionId ??
+                src.roleId ??
+                (src.user && src.user.userRoles && src.user.userRoles[0]?.role?.id) ??
+                undefined,
           });
         }
       } catch (e: any) {
