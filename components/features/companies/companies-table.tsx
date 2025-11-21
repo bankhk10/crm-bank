@@ -7,7 +7,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -265,12 +265,18 @@ function CompaniesToolbar(
         {canCreate ? (
           <Link href="/companies/new">
             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-              สร้างบริษัท
+              <span className="inline-flex items-center gap-2">
+                <PlusCircle className="h-4 w-4" />
+                สร้างบริษัท
+              </span>
             </Button>
           </Link>
         ) : (
           <Button className="w-full lg:w-auto" variant="outline" disabled>
-            สร้างบริษัท
+            <span className="inline-flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              สร้างบริษัท
+            </span>
           </Button>
         )}
       </div>
