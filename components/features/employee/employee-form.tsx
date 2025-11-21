@@ -207,6 +207,47 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
     setLoading(true);
 
     try {
+      // Basic client-side validation before proceeding to server
+      // We set showValidation to true above so inline field errors will appear as well.
+      if (!formState.firstName) {
+        setError("กรุณากรอกชื่อ");
+        setLoading(false);
+        return;
+      }
+      if (!formState.lastName) {
+        setError("กรุณากรอกนามสกุล");
+        setLoading(false);
+        return;
+      }
+      if (!formState.email) {
+        setError("กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ");
+        setLoading(false);
+        return;
+      }
+      // simple email format check
+      const emailVal = String(formState.email ?? "").trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailVal && !emailRegex.test(emailVal)) {
+        setError("รูปแบบอีเมลไม่ถูกต้อง");
+        setLoading(false);
+        return;
+      }
+      // password policy (only when provided)
+      if (password && String(password).length > 0 && String(password).length < 8) {
+        setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+        setLoading(false);
+        return;
+      }
+      // phone format check (if provided)
+      if (formState.phone) {
+        const phoneDigits = String(formState.phone).replace(/\D/g, "");
+        if (phoneDigits.length < 9 || phoneDigits.length > 10) {
+          setError("กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)");
+          setLoading(false);
+          return;
+        }
+      }
+
       // ค้นหา Role Definition (สิทธิ์การใช้งาน)
       // Validate required fields shown on submit
       if (!formState.roleDefinitionId) {
@@ -326,6 +367,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           positionOptions={positionOptions}
           departmentOptions={departmentOptions}
           companyOptions={companyOptions}
+          showValidation={showValidation}
         />
 
         <EmployeeLoginInfoSection

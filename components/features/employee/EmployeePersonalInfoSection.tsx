@@ -48,6 +48,7 @@ interface EmployeePersonalInfoSectionProps {
   positionOptions: Array<{ value: string; label: string }>;
   departmentOptions: Array<{ value: string; label: string }>;
   companyOptions: Array<{ value: string; label: string }>;
+  showValidation?: boolean;
 }
 
 export default function EmployeePersonalInfoSection({
@@ -61,7 +62,9 @@ export default function EmployeePersonalInfoSection({
   positionOptions,
   departmentOptions,
   companyOptions,
+  showValidation,
 }: EmployeePersonalInfoSectionProps) {
+  const phoneDigits = formState.phone ? String(formState.phone).replace(/\D/g, "") : "";
   return (
     <>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl">
@@ -89,6 +92,7 @@ export default function EmployeePersonalInfoSection({
                 value={formState.firstName ?? ""}
                 disabled={!canEdit}
                 onChange={handleChange("firstName")}
+                error={!formState.firstName && canEdit && showValidation ? "กรุณากรอกชื่อ" : undefined}
               />
             </div>
             <div className="sm:col-span-2">
@@ -98,6 +102,7 @@ export default function EmployeePersonalInfoSection({
                 value={formState.lastName ?? ""}
                 disabled={!canEdit}
                 onChange={handleChange("lastName")}
+                error={!formState.lastName && canEdit && showValidation ? "กรุณากรอกนามสกุล" : undefined}
               />
             </div>
           </div>
@@ -122,6 +127,11 @@ export default function EmployeePersonalInfoSection({
             disabled={!canEdit}
             onChange={handlePhoneChange}
             maxLength={10}
+            error={
+              formState.phone && showValidation && (phoneDigits.length < 9 || phoneDigits.length > 10)
+                ? "กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)"
+                : undefined
+            }
           />
         </div>
 
