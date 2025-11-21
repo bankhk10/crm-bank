@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   const fromDate = parseDate(fromParam);
   const toDate = parseDate(toParam);
 
-  const where: Prisma.CompanyWhereInput = {};
+  const where: Prisma.CompanyWhereInput = { deletedAt: null };
 
   if (q) {
     where.OR = [

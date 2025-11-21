@@ -32,7 +32,7 @@ export async function GET(request: Request, context: any) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const company = await db.company.findUnique({ where: { id: params.companyId } });
+  const company = await db.company.findFirst({ where: { id: params.companyId, deletedAt: null } });
   if (!company) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   return NextResponse.json({ company });
@@ -86,6 +86,6 @@ export async function DELETE(request: Request, context: any) {
     return NextResponse.json({ error: "Forbidden - missing company.delete" }, { status: 403 });
   }
 
-  await db.company.delete({ where: { id: params.companyId } });
-  return NextResponse.json({ success: true });
+  const updated = await db.company.update({ where: { id: params.companyId }, data: { deletedAt: new Date() } });
+  return NextResponse.json({ success: true, company: updated });
 }
