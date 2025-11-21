@@ -94,8 +94,11 @@ export default function EmployeeLoginInfoSection({
                 )}
               </button>
             }
+            minLength={8}
             error={
-              !password && canEdit && showValidation
+              password && String(password).length > 0 && String(password).length < 8
+                ? "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"
+                : !password && canEdit && showValidation
                 ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
                 : undefined
             }
