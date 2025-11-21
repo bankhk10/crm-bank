@@ -130,17 +130,11 @@ export function DateRangePicker({
             className
           )}
         >
-          <span className="flex items-center gap-2 truncate">
+          <span className="flex items-center gap-4 truncate">
             <CalendarRange className="h-4 w-4" />
-            <span className="truncate" title={displayText}>
-              {hideLeftLabel ? null : buttonLabel ?? ""}
+            <span className="truncate mt-1" title={displayText}>
+              {hasSelection ? displayText : placeholder}
             </span>
-          </span>
-          <span
-            className="truncate text-right text-xs text-muted-foreground"
-            title={displayText}
-          >
-            {displayText}
           </span>
         </Button>
       </PopoverTrigger>
