@@ -357,7 +357,7 @@ async function main() {
   });
 
   const [adminPassword, managerPassword, sellerPassword] = await Promise.all([
-    hash("admin123", 12),
+    hash("b@b.com", 12),
     hash("manager123", 12),
     hash("seller123", 12),
   ]);
@@ -365,7 +365,7 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       name: "Somsak Admin",
-      email: "admin@move-crm.local",
+      email: "b@b.com",
       password: adminPassword,
       departmentId: ops.id,
       positionId: opsAnalyst.id,
