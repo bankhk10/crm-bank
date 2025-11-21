@@ -50,6 +50,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
   const { allowed, isLoading } = usePermission("employee.manage");
   const canEdit = !isLoading && allowed;
   const permissionHint =
@@ -200,12 +201,20 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canEdit) return;
+    // Trigger validation display for fields that should show errors on submit
+    setShowValidation(true);
     setError(null);
     setSuccess(null);
     setLoading(true);
 
     try {
       // ค้นหา Role Definition (สิทธิ์การใช้งาน)
+      // Validate required fields shown on submit
+      if (!formState.roleDefinitionId) {
+        setError("กรุณาเลือกสิทธิ์การใช้งาน");
+        setLoading(false);
+        return;
+      }
       const roleDefId = formState.roleDefinitionId ?? undefined;
       const roleDefObj = roles.find((r) => r.id === roleDefId);
 
@@ -327,6 +336,7 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
           setPassword={setPassword}
           roles={roles}
           canEdit={canEdit}
+          showValidation={showValidation}
         />
 
         <EmployeeFormButtons

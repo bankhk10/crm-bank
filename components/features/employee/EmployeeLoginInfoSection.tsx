@@ -1,7 +1,9 @@
 "use client";
 
+import React, { useState } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import { statusOptions } from "./employee-options";
+import { Eye, EyeOff } from "lucide-react";
 import type { Employee } from "@/types/Employee";
 
 type EmployeeFormValues = Partial<Employee> & {
@@ -30,6 +32,7 @@ interface EmployeeLoginInfoSectionProps {
   setPassword: React.Dispatch<React.SetStateAction<string>>;
   roles: Array<any>;
   canEdit: boolean;
+  showValidation?: boolean;
 }
 
 export default function EmployeeLoginInfoSection({
@@ -39,7 +42,9 @@ export default function EmployeeLoginInfoSection({
   setPassword,
   roles,
   canEdit,
+  showValidation,
 }: EmployeeLoginInfoSectionProps) {
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl">
@@ -63,12 +68,26 @@ export default function EmployeeLoginInfoSection({
         <div>
           <FloatingLabelInput
             label="รหัสผ่าน"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="รหัสผ่านสำหรับเข้าสู่ระบบ"
             value={password}
             disabled={!canEdit}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               setPassword(event.target.value)
+            }
+            suffix={
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="inline-flex items-center justify-center rounded p-1 text-gray-600 hover:text-gray-900"
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             }
           />
         </div>
@@ -76,12 +95,13 @@ export default function EmployeeLoginInfoSection({
         {/* สิทธิ์การใช้งาน (Role Definition) */}
         <div>
           <FloatingLabelInput
-            label="สิทธิ์การใช้งาน"
+            label="สิทธิ์การใช้งาน *"
             type="select"
             options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
             value={formState.roleDefinitionId ?? ""}
             disabled={!canEdit || roles.length === 0}
             onChange={handleChange("roleDefinitionId")}
+            error={!formState.roleDefinitionId && canEdit && showValidation ? "กรุณาเลือกสิทธิ์การใช้งาน" : undefined}
           />
         </div>
 
@@ -91,7 +111,7 @@ export default function EmployeeLoginInfoSection({
             label="สถานะการทำงาน"
             type="select"
             options={statusOptions}
-            value={formState.status ?? ""}
+            value={formState.status ?? "ACTIVE"}
             disabled={!canEdit}
             onChange={handleChange("status")}
           />
