@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Can from "@/components/rbac/Can";
 
 interface EmployeeFormButtonsProps {
   canEdit: boolean;
@@ -44,7 +43,7 @@ export default function EmployeeFormButtons({
           {loading
             ? "กำลังบันทึก..."
             : employeeId
-            ? "บันทึกการเปลี่ยนแปลง"
+            ? "บันทึก"
             : "บันทึก"}
         </Button>
       </div>

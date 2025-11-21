@@ -62,7 +62,7 @@ export default function NewEmployeePage() {
       <Card>
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5">
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
               เพิ่มข้อมูลพนักงานใหม่
             </h5>
           </div>
