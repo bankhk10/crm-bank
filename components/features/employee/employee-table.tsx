@@ -237,7 +237,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
               <div className="mt-3 flex gap-3">
                 {canEdit && (
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/employees/${e.id}/edit`}>
+                    <Link href={`/employee/${e.id}/edit`}>
                       <span className="inline-flex items-center gap-2">
                         <Edit2 className="h-4 w-4" />
                         แก้ไข
@@ -247,7 +247,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
                 )}
                 {canView && (
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/dashboard/employees/${e.id}`}>
+                    <Link href={`/employee/${e.id}`}>
                       <span className="inline-flex items-center gap-2">
                         <Eye className="h-4 w-4" />
                         ประวัติ

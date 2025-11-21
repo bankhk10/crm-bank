@@ -53,3 +53,30 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     return NextResponse.json({ error: err?.message ?? "Delete failed" }, { status: 400 });
   }
 }
+
+export async function PUT(request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAuthorized(resourcePath, session.user.permissions)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { employeeId } = (await params) as { employeeId: string };
+
+  const body = await request.json().catch(() => null);
+
+  if (!body || typeof body !== "object" || !body.employee) {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
+
+  try {
+    const updated = await db.employee.update({ where: { id: employeeId }, data: { ...body.employee } });
+    return NextResponse.json({ employee: updated });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? "Update failed" }, { status: 400 });
+  }
+}

@@ -12,6 +12,8 @@ import generateRandomEmployee from "@/lib/random-fill/employee";
 
 interface EmployeeFormProps {
   employeeId?: string;
+  initial?: Partial<EmployeeFormValues>;
+  onSubmit?: (payload: any) => Promise<{ success: boolean; issues?: Record<string, string[]>; error?: string }>;
 }
 
 // ขยาย Type ของ formState เพื่อรองรับฟิลด์ทั้งหมดจาก code1
@@ -33,7 +35,7 @@ type EmployeeFormValues = Partial<Employee> & {
   role?: string; // Role เดิมใน code2 (อาจซ้ำซ้อนกับ roleDefinitionId)
 };
 
-export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
+export default function EmployeeForm({ employeeId, initial, onSubmit }: EmployeeFormProps) {
   const [formState, setFormState] = useState<EmployeeFormValues>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
@@ -76,6 +78,12 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
       mounted = false;
     };
   }, []);
+
+  // initialize from `initial` prop when provided
+  useEffect(() => {
+    if (!initial) return;
+    setFormState((prev) => ({ ...prev, ...initial }));
+  }, [initial]);
 
   // load companies / departments / positions for selects (ids)
   useEffect(() => {
@@ -302,20 +310,46 @@ export default function EmployeeForm({ employeeId }: EmployeeFormProps) {
         };
       }
 
-      const res = await fetch("/api/rbac/employees/create-with-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      let res: Response | null = null;
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body?.error || "Server error");
+      if (onSubmit) {
+        const result = await onSubmit(payload);
+        if (!result.success) {
+          setError(result.error ?? Object.values(result.issues ?? {})[0]?.[0] ?? "Server error");
+        } else {
+          setSuccess("บันทึกเรียบร้อยแล้ว");
+        }
+      } else if (employeeId) {
+        // update existing employee
+        res = await fetch(`/api/employee/${employeeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ employee: payload.employee }),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body?.error || "Server error");
+        } else {
+          setSuccess("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว");
+        }
       } else {
-        setSuccess("สร้างพนักงานเรียบร้อยแล้ว");
-        setFormState({});
-        setPassword("");
-        setAddress({});
+        // create new employee + user
+        res = await fetch("/api/rbac/employees/create-with-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body?.error || "Server error");
+        } else {
+          setSuccess("สร้างพนักงานเรียบร้อยแล้ว");
+          setFormState({});
+          setPassword("");
+          setAddress({});
+        }
       }
     } catch (err) {
       setError(String(err));
