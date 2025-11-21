@@ -40,7 +40,7 @@ export default function NewEmployeePage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex justify-center mb-4">
+      {/* <div className="flex justify-center mb-4">
         <Can permission="randomize">
           <button
             type="button"
@@ -52,7 +52,7 @@ export default function NewEmployeePage() {
             สุ่มกรอก
           </button>
         </Can>
-      </div>
+      </div> */}
       {!canCreate ? (
         <Alert variant="destructive">
           <AlertDescription>{permissionHint}</AlertDescription>
@@ -62,7 +62,7 @@ export default function NewEmployeePage() {
       <Card>
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+            <h5 className="font-semibold text-3xl border-b pb-6">
               เพิ่มข้อมูลพนักงานใหม่
             </h5>
           </div>

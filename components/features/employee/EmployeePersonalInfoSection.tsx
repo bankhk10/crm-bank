@@ -67,7 +67,7 @@ export default function EmployeePersonalInfoSection({
   const phoneDigits = formState.phone ? String(formState.phone).replace(/\D/g, "") : "";
   return (
     <>
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl">
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลพนักงาน
       </h3>
 

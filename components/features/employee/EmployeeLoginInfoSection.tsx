@@ -47,7 +47,7 @@ export default function EmployeeLoginInfoSection({
   const [showPassword, setShowPassword] = useState(false);
   return (
     <>
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl">
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลการเข้าสู่ระบบ
       </h3>
 
@@ -96,7 +96,9 @@ export default function EmployeeLoginInfoSection({
             }
             minLength={8}
             error={
-              password && String(password).length > 0 && String(password).length < 8
+              password &&
+              String(password).length > 0 &&
+              String(password).length < 8
                 ? "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"
                 : !password && canEdit && showValidation
                 ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
