@@ -18,51 +18,44 @@ async function main() {
   const [sales, cs, ops] = await Promise.all([
     prisma.department.create({
       data: {
-        name: "Information Technology",
+        name: "แผนกเทคโนโลยีสารสนเทศ",
         code: "IT",
-        description: "แผนกเทคโนโลยีสารสนเทศ",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Sales Administration",
+        name: "แผนกบริหารงานขาย",
         code: "SA",
-        description: "แผนกบริหารงานขาย",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Sales Support",
+        name: "แผนกธุรการขาย",
         code: "SS",
-        description: "แผนกธุรการขาย",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Marketing",
+        name: "แผนกการตลาด",
         code: "MKT",
-        description: "แผนกการตลาด",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Market Development",
+        name: "แผนกพัฒนาตลาด",
         code: "MD",
-        description: "แผนกพัฒนาตลาด",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Accounting",
+        name: "แผนกบัญชี",
         code: "ACC",
-        description: "แผนกบัญชี",
       },
     }),
     prisma.department.create({
       data: {
-        name: "Human Resources",
+        name: "แผนกทรัพยากรบุคคล",
         code: "HR",
-        description: "แผนกทรัพยากรบุคคล",
       },
     }),
   ]);
