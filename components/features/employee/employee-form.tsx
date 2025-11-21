@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
@@ -16,6 +16,7 @@ interface EmployeeFormProps {
   onSubmit?: (payload: any) => Promise<{ success: boolean; issues?: Record<string, string[]>; error?: string }>;
   hideBorder?: boolean;
   onCancel?: () => void;
+  registerRandomize?: (fn: () => void) => void;
 }
 
 // ขยาย Type ของ formState เพื่อรองรับฟิลด์ทั้งหมดจาก code1
@@ -37,7 +38,7 @@ type EmployeeFormValues = Partial<Employee> & {
   role?: string; // Role เดิมใน code2 (อาจซ้ำซ้อนกับ roleDefinitionId)
 };
 
-export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder, onCancel }: EmployeeFormProps) {
+export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder, onCancel, registerRandomize }: EmployeeFormProps) {
   const [formState, setFormState] = useState<EmployeeFormValues>({});
   const [password, setPassword] = useState<string>("");
   const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
@@ -151,7 +152,7 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
     }
   };
 
-  const handleRandomFill = () => {
+  const handleRandomFill = useCallback(() => {
     if (!canEdit) return;
     const p = generateRandomEmployee();
     setFormState((prev) => ({
@@ -185,7 +186,20 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
       const c = companyOptions[Math.floor(Math.random() * companyOptions.length)];
       setFormState((prev) => ({ ...prev, company: c.value }));
     }
-  };
+  }, [canEdit, companyOptions, departmentOptions, positionOptions]);
+
+  // If parent provided a register function, give them the randomizer
+  useEffect(() => {
+    if (!registerRandomize) return;
+    registerRandomize(handleRandomFill);
+    return () => {
+      try {
+        registerRandomize(() => {});
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, [registerRandomize, handleRandomFill]);
 
   // ฟังก์ชันคำนวณอายุ (จาก code1)
   const calculatedAge = () => {
@@ -417,7 +431,6 @@ export default function EmployeeForm({ employeeId, initial, onSubmit, hideBorder
           employeeId={employeeId}
           permissionHint={permissionHint}
           onCancel={onCancel ?? (() => router.back())}
-          onRandomFill={handleRandomFill}
           hideBorder={hideBorder}
         />
       </form>

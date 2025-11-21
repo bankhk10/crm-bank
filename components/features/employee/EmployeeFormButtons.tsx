@@ -9,7 +9,6 @@ interface EmployeeFormButtonsProps {
   employeeId?: string;
   permissionHint: string;
   onCancel: () => void;
-  onRandomFill?: () => void;
   hideBorder?: boolean;
 }
 
@@ -19,7 +18,6 @@ export default function EmployeeFormButtons({
   employeeId,
   permissionHint,
   onCancel,
-  onRandomFill,
   hideBorder,
 }: EmployeeFormButtonsProps) {
   return (
@@ -50,19 +48,6 @@ export default function EmployeeFormButtons({
             : "บันทึก"}
         </Button>
       </div>
-
-      <Can permission="randomize">
-        <Button
-          size="lg"
-          className="w-36 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-          type="button"
-          onClick={onRandomFill}
-          disabled={!canEdit}
-          title={!canEdit ? permissionHint : undefined}
-        >
-          สุ่มกรอก
-        </Button>
-      </Can>
     </div>
   );
 }
