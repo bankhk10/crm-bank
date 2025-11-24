@@ -7,6 +7,7 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import Can from "@/components/rbac/Can";
 import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form";
+import generateRandomDealer from "@/lib/random-fill/dealer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -135,7 +136,7 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     setError(null);
     setFieldErrors({});
 
-    const payload: CustomerPayload & any = {
+      const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "DEALER",
       name: values.companyName ?? "",
@@ -145,11 +146,11 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       email: values.email ?? "",
       phone: values.phone ?? "",
       taxId: values.taxId ?? "",
-      addressLine: values.addressLine ?? "",
-      province: values.province ?? "",
-      district: values.district ?? "",
-      subdistrict: values.subdistrict ?? "",
-      postalCode: values.postalCode ?? "",
+        addressLine: values.addressLine ?? "",
+        province: values.province ?? "",
+        district: values.district ?? "",
+        subdistrict: values.subdistrict ?? "",
+        postalCode: values.postalCode != null ? String(values.postalCode) : "",
       status: values.status ?? "ACTIVE",
       contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""}`.trim(),
       contactPhone: values.contactPhone ?? "",
@@ -450,6 +451,36 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            type="button"
+            onClick={() => {
+              const rnd = generateRandomDealer();
+              setValues((p: any) => ({
+                ...p,
+                companyName: rnd.name ?? p.companyName,
+                taxId: rnd.taxId ?? p.taxId,
+                phone: rnd.phone ?? p.phone,
+                email: rnd.email ?? p.email,
+                addressLine: rnd.addressLine ?? p.addressLine,
+                province: rnd.province ?? p.province,
+                district: rnd.district ?? p.district,
+                subdistrict: rnd.subdistrict ?? p.subdistrict,
+                postalCode: rnd.postalCode ?? p.postalCode,
+                prefix: rnd.prefix ?? p.prefix,
+                firstName: rnd.firstName ?? p.firstName,
+                lastName: rnd.lastName ?? p.lastName,
+                contactPhone: rnd.contactPhone ?? p.contactPhone,
+                contactEmail: rnd.contactEmail ?? p.contactEmail,
+                businessNotes: rnd.businessNotes ?? p.businessNotes,
+                relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+              }));
+              setFieldErrors({});
+            }}
+          >
+            กรอกข้อมูลสุ่ม
+          </Button>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
