@@ -12,6 +12,11 @@ const customerSchema = z.object({
   customerCode: z.string().min(1),
   customerType: z.enum(["DEALER", "SUBDEALER", "FARMER", "BROKER"]),
   name: z.string().min(2),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  relationshipScore: z.number().int().optional(),
+  parentDealerId: z.string().optional(),
+  responsibleEmployeeId: z.string().optional(),
   prefix: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
@@ -141,7 +146,7 @@ export async function POST(request: Request) {
 
   try {
     const customer = await db.customer.create({
-      data: {
+      data: ({
         customerCode: parsed.data.customerCode,
         customerType: parsed.data.customerType,
         name: parsed.data.name,
@@ -156,13 +161,18 @@ export async function POST(request: Request) {
         district: parsed.data.district,
         subdistrict: parsed.data.subdistrict,
         postalCode: parsed.data.postalCode,
+        latitude: parsed.data.latitude ?? null,
+        longitude: parsed.data.longitude ?? null,
+        relationshipScore: parsed.data.relationshipScore ?? null,
+        parentDealerId: parsed.data.parentDealerId ?? null,
+        responsibleEmployeeId: parsed.data.responsibleEmployeeId ?? null,
         status: parsed.data.status ?? "ACTIVE",
         contactPerson: parsed.data.contactPerson,
         contactPhone: parsed.data.contactPhone,
         contactEmail: parsed.data.contactEmail || null,
         notes: parsed.data.notes,
         createdById: session.user.id,
-      },
+      } as any),
     });
 
     return NextResponse.json({ customer }, { status: 201 });

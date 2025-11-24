@@ -50,90 +50,91 @@ enum CreditLimitStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  isActive  Boolean  @default(true)
-  deletedAt DateTime?
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
   departmentId String?
   positionId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  department Department? @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
-  position   Position?   @relation("UserPosition", fields: [positionId], references: [id], onDelete: SetNull)
-  employeeProfile Employee? @relation("UserEmployeeProfile")
-  userRoles  UserRole[]
+  department          Department?              @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
+  position            Position?                @relation("UserPosition", fields: [positionId], references: [id], onDelete: SetNull)
+  employeeProfile     Employee?                @relation("UserEmployeeProfile")
+  userRoles           UserRole[]
   permissionOverrides UserPermissionOverride[]
 }
 
 model Company {
-  id        String         @id @default(cuid())
-  name      String
-  shortName String?        @map("short_name")
-  email     String?        @unique
-  phone     String?
-  taxId     String?        @map("tax_id")
-  addressLine String?      @map("address_line")
-  province  String?
-  district  String?
+  id          String        @id @default(cuid())
+  name        String
+  shortName   String?       @map("short_name")
+  email       String?       @unique
+  phone       String?
+  taxId       String?       @map("tax_id")
+  addressLine String?       @map("address_line")
+  province    String?
+  district    String?
   subdistrict String?
-  postalCode String?
-  status    CompanyStatus  @default(ACTIVE)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  deletedAt DateTime?
+  postalCode  String?
+  status      CompanyStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
 
   employees Employee[]
 }
 
 model Employee {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
+  id                 String    @id @default(cuid())
+  name               String
+  email              String    @unique
   // Extended employee fields
-  prefix      String?
-  firstName   String?
-  lastName    String?
-  employeeCode String?
-  birthDate   DateTime?
-  addressLine String?  @map("address_line")
-  province    String?
-  district    String?
-  subdistrict String?
-  postalCode  String?
+  prefix             String?
+  firstName          String?
+  lastName           String?
+  employeeCode       String?
+  birthDate          DateTime?
+  addressLine        String?   @map("address_line")
+  province           String?
+  district           String?
+  subdistrict        String?
+  postalCode         String?
   responsibilityArea String?
-  status      String?
-  positionTitle String?
-  departmentName String?
-  roleTitle   String?
-  phone       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  status             String?
+  positionTitle      String?
+  departmentName     String?
+  roleTitle          String?
+  phone              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
 
-  userId      String?  @unique
-  companyId   String?
+  userId       String? @unique
+  companyId    String?
   departmentId String?
   positionId   String?
-  managerId   String?
+  managerId    String?
 
-  user       User?      @relation("UserEmployeeProfile", fields: [userId], references: [id], onDelete: SetNull)
-  company    Company?   @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  department Department? @relation("EmployeeDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
-  position   Position?  @relation("EmployeePosition", fields: [positionId], references: [id], onDelete: SetNull)
-  reports    Employee[] @relation("EmployeeHierarchy")
-  manager    Employee?  @relation("EmployeeHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
+  user                 User?       @relation("UserEmployeeProfile", fields: [userId], references: [id], onDelete: SetNull)
+  company              Company?    @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  department           Department? @relation("EmployeeDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
+  position             Position?   @relation("EmployeePosition", fields: [positionId], references: [id], onDelete: SetNull)
+  reports              Employee[]  @relation("EmployeeHierarchy")
+  manager              Employee?   @relation("EmployeeHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
+  responsibleCustomers Customer[]  @relation("EmployeeResponsible")
 }
 
 model Department {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  code        String   @unique
+  code        String    @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
   positions Position[]
@@ -142,40 +143,40 @@ model Department {
 }
 
 model Position {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
   description   String?
-  level         Int      @default(1)
-  isManagerial  Boolean  @default(false)
+  level         Int       @default(1)
+  isManagerial  Boolean   @default(false)
   departmentId  String?
   defaultRoleId String?
   deletedAt     DateTime?
 
-  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  defaultRole Role?      @relation("RoleDefaultPositions", fields: [defaultRoleId], references: [id], onDelete: SetNull)
-  employees   Employee[] @relation("EmployeePosition")
-  users       User[]     @relation("UserPosition")
+  department  Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  defaultRole Role?       @relation("RoleDefaultPositions", fields: [defaultRoleId], references: [id], onDelete: SetNull)
+  employees   Employee[]  @relation("EmployeePosition")
+  users       User[]      @relation("UserPosition")
 }
 
 model Role {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
-  isSystem    Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isSystem    Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  permissions RolePermission[]
-  userRoles   UserRole[]
-  defaultPositions Position[] @relation("RoleDefaultPositions")
+  permissions      RolePermission[]
+  userRoles        UserRole[]
+  defaultPositions Position[]       @relation("RoleDefaultPositions")
 }
 
 model Permission {
-  id                String   @id @default(cuid())
-  key               String   @unique
+  id                String           @id @default(cuid())
+  key               String           @unique
   name              String
   description       String?
   category          PermissionType
@@ -183,8 +184,8 @@ model Permission {
   action            String?
   resource          String?
   defaultDataAccess DataAccessLevel?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
   deletedAt         DateTime?
 
   rolePermissions RolePermission[]
@@ -192,12 +193,12 @@ model Permission {
 }
 
 model RolePermission {
-  id           String   @id @default(cuid())
+  id           String           @id @default(cuid())
   roleId       String
   permissionId String
-  allow        Boolean  @default(true)
+  allow        Boolean          @default(true)
   dataAccess   DataAccessLevel?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime         @default(now())
   deletedAt    DateTime?
 
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -207,11 +208,11 @@ model RolePermission {
 }
 
 model UserRole {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
   roleId     String
   assignedBy String?
-  assignedAt DateTime @default(now())
+  assignedAt DateTime  @default(now())
   deletedAt  DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -221,13 +222,13 @@ model UserRole {
 }
 
 model UserPermissionOverride {
-  id           String   @id @default(cuid())
+  id           String           @id @default(cuid())
   userId       String
   permissionId String
   allow        Boolean
   dataAccess   DataAccessLevel?
   reason       String?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime         @default(now())
   deletedAt    DateTime?
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -237,32 +238,40 @@ model UserPermissionOverride {
 }
 
 model Customer {
-  id              String         @id @default(cuid())
-  customerCode    String         @unique
-  customerType    CustomerType
-  name            String
-  prefix          String?
-  firstName       String?
-  lastName        String?
-  email           String?
-  phone           String?
-  taxId           String?        @map("tax_id")
-  addressLine     String?        @map("address_line")
-  province        String?
-  district        String?
-  subdistrict     String?
-  postalCode      String?        @map("postal_code")
-  status          CustomerStatus @default(ACTIVE)
-  contactPerson   String?        @map("contact_person")
-  contactPhone    String?        @map("contact_phone")
-  contactEmail    String?        @map("contact_email")
-  notes           String?
-  createdById     String?        @map("created_by_id")
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deletedAt       DateTime?
+  id                    String         @id @default(cuid())
+  customerCode          String         @unique
+  customerType          CustomerType
+  name                  String
+  prefix                String?
+  firstName             String?
+  lastName              String?
+  email                 String?
+  phone                 String?
+  taxId                 String?        @map("tax_id")
+  addressLine           String?        @map("address_line")
+  province              String?
+  district              String?
+  subdistrict           String?
+  postalCode            String?        @map("postal_code")
+  status                CustomerStatus @default(ACTIVE)
+  contactPerson         String?        @map("contact_person")
+  contactPhone          String?        @map("contact_phone")
+  contactEmail          String?        @map("contact_email")
+  notes                 String?
+  latitude              String?
+  longitude             String?
+  relationshipScore     Int?
+  parentDealerId        String?
+  responsibleEmployeeId String?
+  createdById           String?        @map("created_by_id")
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  deletedAt             DateTime?
 
-  creditLimits    CreditLimit[]
+  creditLimits        CreditLimit[]
+  parentDealer        Customer?     @relation("ParentDealer", fields: [parentDealerId], references: [id], onDelete: SetNull)
+  subDealers          Customer[]    @relation("ParentDealer")
+  responsibleEmployee Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
 }
 
 model CreditLimit {
@@ -282,5 +291,5 @@ model CreditLimit {
   updatedAt       DateTime          @updatedAt
   deletedAt       DateTime?
 
-  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
