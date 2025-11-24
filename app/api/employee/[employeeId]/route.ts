@@ -141,6 +141,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
     const payload = parseResult.data as Record<string, any>;
     const userPayload = userParseResult.data;
 
+    // Load existing employee (with linked user) first for comparison (email/role changes)
+    const existingBefore = await db.employee.findUnique({
+      where: { id: employeeId },
+      include: { user: { include: { userRoles: true } } }
+    });
+
     const { companyId, departmentId, positionId, managerId, address, birthDate, ...other } = payload;
 
     // Map address object (from client) into top-level prisma fields
@@ -210,21 +216,36 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
 
         // Update role if provided
         if (userPayload.roleId) {
-          // Remove existing roles
-          await db.userRole.updateMany({
-            where: { userId, deletedAt: null },
-            data: { deletedAt: new Date() }
-          });
+          // Fetch all role assignments for this user
+          const existingRoles = await db.userRole.findMany({ where: { userId } });
+          const activeRoles = existingRoles.filter(r => !r.deletedAt);
 
-          // Add new role
-          await db.userRole.create({
-            data: {
-              userId,
-              roleId: userPayload.roleId
+          // If the desired role is already the only active role, skip
+          if (activeRoles.length === 1 && activeRoles[0].roleId === userPayload.roleId) {
+            // no-op
+          } else {
+            // Soft delete all active roles except the desired one
+            await db.userRole.updateMany({
+              where: { userId, roleId: { not: userPayload.roleId }, deletedAt: null },
+              data: { deletedAt: new Date() }
+            });
+
+            const target = existingRoles.find(r => r.roleId === userPayload.roleId);
+            if (target) {
+              // Reactivate if previously soft-deleted
+              if (target.deletedAt) {
+                await db.userRole.update({ where: { id: target.id }, data: { deletedAt: null } });
+              }
+            } else {
+              // Create new assignment
+              await db.userRole.create({ data: { userId, roleId: userPayload.roleId } });
             }
-          });
+          }
         }
       }
+    } else if (existingBefore?.user && payload.email && payload.email !== existingBefore.user.email) {
+      // Fallback: employee email changed but no explicit user payload passed; sync user email
+      await db.user.update({ where: { id: existingBefore.user.id }, data: { email: payload.email } });
     }
 
     return NextResponse.json({ employee: updated });

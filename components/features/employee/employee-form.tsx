@@ -388,7 +388,17 @@ export default function EmployeeForm({
         },
       };
 
-      if (password) {
+      // Always send user object when editing (employeeId) so email / role can update
+      // For create, require password (validated above); for update, password is optional
+      if (employeeId) {
+        // Update scenario: include email + roleId always, include password only if provided
+        payload.user = {
+          email: String(formState.email ?? "").trim(),
+          roleId: roleDefId,
+          ...(password ? { password: String(password) } : {}),
+        };
+      } else if (password) {
+        // Create scenario: password is mandatory (validated earlier)
         payload.user = {
           email: String(formState.email ?? "").trim(),
           password: String(password),
