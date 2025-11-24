@@ -405,24 +405,6 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
-          <DatePicker
-            label="วันเกิด"
-            value={values.birthDate}
-            onChange={(v) => setValues((p: any) => ({ ...p, birthDate: v }))}
-            placeholder=""
-          />
-        </div>
-
-        <div>
-          <FloatingLabelInput
-            label="อายุ"
-            value={calculatedAge()}
-            disabled={true}
-            onChange={() => {}}
-          />
-        </div>
-
-        <div>
           <FloatingLabelInput
             label="เบอร์โทรศัพท์ (บุคคล)"
             value={values.contactPhone}
@@ -432,7 +414,6 @@ export default function CustomerFormDealer({
             }}
           />
         </div>
-
         <div>
           <FloatingLabelInput
             label="E-mail (บุคคล)"
@@ -444,13 +425,29 @@ export default function CustomerFormDealer({
             }}
           />
         </div>
+        <div>
+          <DatePicker
+            label="วันเกิด"
+            value={values.birthDate}
+            onChange={(v) => setValues((p: any) => ({ ...p, birthDate: v }))}
+            placeholder=""
+          />
+        </div>
+        <div>
+          <FloatingLabelInput
+            label="อายุ"
+            value={calculatedAge()}
+            disabled={true}
+            onChange={() => {}}
+          />
+        </div>
       </div>
 
-      <div className="bg-gray-200 rounded p-3">
-        <h3 className="text-lg font-semibold">ข้อมูลเพิ่มเติม</h3>
-      </div>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลเพิ่มเติม
+      </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
           <FloatingLabelInput
             label="ร้านหลัก (ถ้ามี)"
@@ -499,12 +496,9 @@ export default function CustomerFormDealer({
             label="คะแนนความสัมพันธ์"
             type="select"
             options={[
-              { value: "", label: "(เลือก)" },
-              { value: "1", label: "1" },
-              { value: "2", label: "2" },
-              { value: "3", label: "3" },
-              { value: "4", label: "4" },
-              { value: "5", label: "5" },
+              { value: "แย่", label: "แย่" },
+              { value: "ปานกลาง", label: "ปานกลาง" },
+              { value: "ดี", label: "ดี" },
             ]}
             value={(values.relationshipScore ?? "") as any}
             onChange={(e: any) =>
@@ -518,14 +512,14 @@ export default function CustomerFormDealer({
       </div>
 
       <div>
-        <label className="block text-sm mb-1">หมายเหตุ</label>
+        <label className="block text-sm mb-1 mx-3">หมายเหตุ</label>
         <textarea
           value={values.businessNotes}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
             clearFieldError("notes");
           }}
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded-xl px-3 py-2"
           rows={3}
         />
       </div>
