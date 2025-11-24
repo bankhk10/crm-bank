@@ -387,23 +387,20 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
           <label className="block text-sm mb-1">ร้านหลัก (ถ้ามี)</label>
-          <input
-            list="dealer-list"
-            value={parentDealerLabel}
-            onChange={(e) => {
+          <FloatingLabelInput
+            label="ร้านหลัก (ถ้ามี)"
+            type="select"
+            options={dealerOptions.map((d) => ({ value: d.id, label: d.label }))}
+            value={values.parentDealer ?? ""}
+            onChange={(e: any) => {
               const v = e.target.value;
-              setParentDealerLabel(v);
-              const found = dealerOptions.find((d) => d.label === v);
-              setValues((p: any) => ({ ...p, parentDealer: found ? found.id : "" }));
+              setValues((p: any) => ({ ...p, parentDealer: v || "" }));
+              const found = dealerOptions.find((d) => d.id === v);
+              setParentDealerLabel(found ? found.label : "");
+              clearFieldError("parentDealer");
             }}
-            className="w-full border rounded px-3 py-2"
-            placeholder="ค้นหาชื่อร้านหลัก (ถ้ามี)"
+            searchable
           />
-          <datalist id="dealer-list">
-            {dealerOptions.map((d) => (
-              <option key={d.id} value={d.label} />
-            ))}
-          </datalist>
         </div>
 
         <div>
