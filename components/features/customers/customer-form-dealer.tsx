@@ -6,14 +6,23 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import Can from "@/components/rbac/Can";
-import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form";
+import {
+  CustomerFormProps,
+  CustomerPayload,
+  SubmitResult,
+} from "./customer-form";
 import generateRandomDealer from "@/lib/random-fill/dealer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
 type Option = { id: string; label: string };
 
-export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, submitLabel = "บันทึก" }: Props) {
+export default function CustomerFormDealer({
+  initial = {},
+  onSubmit,
+  onCancel,
+  submitLabel = "บันทึก",
+}: Props) {
   const [values, setValues] = useState<any>({
     customerCode: initial.customerCode ?? "",
     companyName: initial.name ?? "",
@@ -31,7 +40,7 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     parentDealer: (initial as any).parentDealer ?? "",
     responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? null,
     relationshipScore: (initial as any).relationshipScore ?? null,
-    businessNotes: (initial as any).businessNotes ?? (initial.notes ?? ""),
+    businessNotes: (initial as any).businessNotes ?? initial.notes ?? "",
     addressLine: initial.addressLine ?? "",
     province: initial.province ?? "",
     district: initial.district ?? "",
@@ -43,7 +52,8 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
   const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<Option[]>([]);
   const [parentDealerLabel, setParentDealerLabel] = useState<string>("");
-  const [responsibleEmployeeLabel, setResponsibleEmployeeLabel] = useState<string>("");
+  const [responsibleEmployeeLabel, setResponsibleEmployeeLabel] =
+    useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,9 +78,12 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
         const next = await fetchNextCustomerCode();
         if (mounted) {
           if (next) setValues((p: any) => ({ ...p, customerCode: next }));
+          // fallback simple padded counter based on timestamp
           else
-            // fallback simple padded counter based on timestamp
-            setValues((p: any) => ({ ...p, customerCode: `C${String(Date.now()).slice(-5)}` }));
+            setValues((p: any) => ({
+              ...p,
+              customerCode: `C${String(Date.now()).slice(-5)}`,
+            }));
         }
       }
     })();
@@ -85,12 +98,22 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     async function fetchOptions() {
       try {
         const [cRes, eRes] = await Promise.all([
-          fetch(`/api/customers?page=1&perPage=100&type=DEALER`).then((r) => r.json()).catch(() => ({ customers: [] })),
-          fetch(`/api/employee`).then((r) => r.json()).catch(() => ({ employees: [] })),
+          fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
+            .then((r) => r.json())
+            .catch(() => ({ customers: [] })),
+          fetch(`/api/employee`)
+            .then((r) => r.json())
+            .catch(() => ({ employees: [] })),
         ]);
 
-        const comps = (cRes.customers || []).map((c: any) => ({ id: c.id, label: c.name }));
-        const emps = (eRes.employees || []).map((e: any) => ({ id: e.id, label: e.name }));
+        const comps = (cRes.customers || []).map((c: any) => ({
+          id: c.id,
+          label: c.name,
+        }));
+        const emps = (eRes.employees || []).map((e: any) => ({
+          id: e.id,
+          label: e.name,
+        }));
         setDealerOptions(comps);
         setEmployeeOptions(emps);
       } catch (err) {
@@ -108,10 +131,17 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       if (found) setParentDealerLabel(found.label);
     }
     if (values.responsibleEmployeeId) {
-      const found = employeeOptions.find((d) => d.id === values.responsibleEmployeeId);
+      const found = employeeOptions.find(
+        (d) => d.id === values.responsibleEmployeeId
+      );
       if (found) setResponsibleEmployeeLabel(found.label);
     }
-  }, [dealerOptions, employeeOptions, values.parentDealer, values.responsibleEmployeeId]);
+  }, [
+    dealerOptions,
+    employeeOptions,
+    values.parentDealer,
+    values.responsibleEmployeeId,
+  ]);
 
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
@@ -136,7 +166,7 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     setError(null);
     setFieldErrors({});
 
-      const payload: CustomerPayload & any = {
+    const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "DEALER",
       name: values.companyName ?? "",
@@ -146,13 +176,15 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       email: values.email ?? "",
       phone: values.phone ?? "",
       taxId: values.taxId ?? "",
-        addressLine: values.addressLine ?? "",
-        province: values.province ?? "",
-        district: values.district ?? "",
-        subdistrict: values.subdistrict ?? "",
-        postalCode: values.postalCode != null ? String(values.postalCode) : "",
+      addressLine: values.addressLine ?? "",
+      province: values.province ?? "",
+      district: values.district ?? "",
+      subdistrict: values.subdistrict ?? "",
+      postalCode: values.postalCode != null ? String(values.postalCode) : "",
       status: values.status ?? "ACTIVE",
-      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""}`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${
+        values.lastName ?? ""
+      }`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.businessNotes ?? "",
@@ -160,8 +192,12 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       ...(values.latitude ? { latitude: values.latitude } : {}),
       ...(values.longitude ? { longitude: values.longitude } : {}),
       ...(values.parentDealer ? { parentDealerId: values.parentDealer } : {}),
-      ...(values.responsibleEmployeeId ? { responsibleEmployeeId: values.responsibleEmployeeId } : {}),
-      ...(values.relationshipScore ? { relationshipScore: Number(values.relationshipScore) } : {}),
+      ...(values.responsibleEmployeeId
+        ? { responsibleEmployeeId: values.responsibleEmployeeId }
+        : {}),
+      ...(values.relationshipScore
+        ? { relationshipScore: Number(values.relationshipScore) }
+        : {}),
     } as any;
 
     try {
@@ -169,7 +205,9 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด");
+          setError(
+            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+          );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
@@ -181,7 +219,17 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     }
   }
 
-
+  function calculatedAge() {
+    try {
+      if (!values.birthDate) return "";
+      const age = Math.floor(
+        (Date.now() - new Date(values.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+      );
+      return String(age);
+    } catch (err) {
+      return "";
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-1">
@@ -249,7 +297,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
             label="E-mail (บริษัท)"
             type="email"
             value={values.email}
-            onChange={(e: any) => { setValues((p: any) => ({ ...p, email: e.target.value })); clearFieldError("email"); }}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, email: e.target.value }));
+              clearFieldError("email");
+            }}
             error={fieldErrors.email?.[0]}
           />
         </div>
@@ -259,7 +310,9 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
             label="latitude (ละติจูด)"
             type="number"
             value={values.latitude}
-            onChange={(e: any) => setValues((p: any) => ({ ...p, latitude: e.target.value }))}
+            onChange={(e: any) =>
+              setValues((p: any) => ({ ...p, latitude: e.target.value }))
+            }
           />
         </div>
 
@@ -268,7 +321,9 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
             label="longitude (ลองจิจูด)"
             type="number"
             value={values.longitude}
-            onChange={(e: any) => setValues((p: any) => ({ ...p, longitude: e.target.value }))}
+            onChange={(e: any) =>
+              setValues((p: any) => ({ ...p, longitude: e.target.value }))
+            }
           />
         </div>
       </div>
@@ -320,7 +375,9 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
               { value: "บริษัท", label: "บริษัท" },
             ]}
             value={values.prefix}
-            onChange={(e: any) => setValues((p: any) => ({ ...p, prefix: e.target.value }))}
+            onChange={(e: any) =>
+              setValues((p: any) => ({ ...p, prefix: e.target.value }))
+            }
           />
         </div>
 
@@ -328,7 +385,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
           <FloatingLabelInput
             label="ชื่อ"
             value={values.firstName}
-            onChange={(e: any) => { setValues((p: any) => ({ ...p, firstName: e.target.value })); clearFieldError("firstName"); }}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, firstName: e.target.value }));
+              clearFieldError("firstName");
+            }}
             required
           />
         </div>
@@ -337,7 +397,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
           <FloatingLabelInput
             label="นามสกุล"
             value={values.lastName}
-            onChange={(e: any) => { setValues((p: any) => ({ ...p, lastName: e.target.value })); clearFieldError("lastName"); }}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, lastName: e.target.value }));
+              clearFieldError("lastName");
+            }}
             required
           />
         </div>
@@ -354,12 +417,11 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
         </div>
 
         <div>
-          <label className="block text-sm mb-1">อายุ</label>
-          <input
-            type="text"
-            value={values.birthDate ? String(Math.floor((Date.now() - new Date(values.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))) : ""}
-            readOnly
-            className="w-full border rounded px-3 py-2 bg-gray-50"
+          <FloatingLabelInput
+            label="อายุ"
+            value={calculatedAge()}
+            disabled={true}
+            onChange={() => {}}
           />
         </div>
 
@@ -367,7 +429,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
           <FloatingLabelInput
             label="เบอร์โทรศัพท์ (บุคคล)"
             value={values.contactPhone}
-            onChange={(e: any) => { setValues((p: any) => ({ ...p, contactPhone: e.target.value })); clearFieldError("contactPhone"); }}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
+              clearFieldError("contactPhone");
+            }}
           />
         </div>
 
@@ -376,7 +441,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
             label="E-mail (บุคคล)"
             type="email"
             value={values.contactEmail}
-            onChange={(e: any) => { setValues((p: any) => ({ ...p, contactEmail: e.target.value })); clearFieldError("contactEmail"); }}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
+              clearFieldError("contactEmail");
+            }}
           />
         </div>
       </div>
@@ -387,11 +455,13 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
-          <label className="block text-sm mb-1">ร้านหลัก (ถ้ามี)</label>
           <FloatingLabelInput
             label="ร้านหลัก (ถ้ามี)"
             type="select"
-            options={dealerOptions.map((d) => ({ value: d.id, label: d.label }))}
+            options={dealerOptions.map((d) => ({
+              value: d.id,
+              label: d.label,
+            }))}
             value={values.parentDealer ?? ""}
             onChange={(e: any) => {
               const v = e.target.value;
@@ -408,11 +478,17 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
           <FloatingLabelInput
             label="พนักงานที่รับผิดชอบ"
             type="select"
-            options={employeeOptions.map((d) => ({ value: d.id, label: d.label }))}
+            options={employeeOptions.map((d) => ({
+              value: d.id,
+              label: d.label,
+            }))}
             value={values.responsibleEmployeeId ?? ""}
             onChange={(e: any) => {
               const v = e.target.value;
-              setValues((p: any) => ({ ...p, responsibleEmployeeId: v || null }));
+              setValues((p: any) => ({
+                ...p,
+                responsibleEmployeeId: v || null,
+              }));
               const found = employeeOptions.find((d) => d.id === v);
               setResponsibleEmployeeLabel(found ? found.label : "");
               clearFieldError("responsibleEmployeeId");
@@ -434,7 +510,12 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
               { value: "5", label: "5" },
             ]}
             value={(values.relationshipScore ?? "") as any}
-            onChange={(e: any) => setValues((p: any) => ({ ...p, relationshipScore: Number(e.target.value) }))}
+            onChange={(e: any) =>
+              setValues((p: any) => ({
+                ...p,
+                relationshipScore: Number(e.target.value),
+              }))
+            }
           />
         </div>
       </div>
@@ -443,7 +524,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
         <label className="block text-sm mb-1">หมายเหตุ</label>
         <textarea
           value={values.businessNotes}
-          onChange={(e) => { setValues((p: any) => ({ ...p, businessNotes: e.target.value })); clearFieldError("notes"); }}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
+            clearFieldError("notes");
+          }}
           className="w-full border rounded px-3 py-2"
           rows={3}
         />
