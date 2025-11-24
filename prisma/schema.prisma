@@ -30,6 +30,25 @@ enum DataAccessLevel {
   VIEW_ALL
 }
 
+enum CustomerType {
+  DEALER
+  SUBDEALER
+  FARMER
+  BROKER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum CreditLimitStatus {
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -215,4 +234,53 @@ model UserPermissionOverride {
   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, permissionId])
+}
+
+model Customer {
+  id              String         @id @default(cuid())
+  customerCode    String         @unique
+  customerType    CustomerType
+  name            String
+  prefix          String?
+  firstName       String?
+  lastName        String?
+  email           String?
+  phone           String?
+  taxId           String?        @map("tax_id")
+  addressLine     String?        @map("address_line")
+  province        String?
+  district        String?
+  subdistrict     String?
+  postalCode      String?        @map("postal_code")
+  status          CustomerStatus @default(ACTIVE)
+  contactPerson   String?        @map("contact_person")
+  contactPhone    String?        @map("contact_phone")
+  contactEmail    String?        @map("contact_email")
+  notes           String?
+  createdById     String?        @map("created_by_id")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  creditLimits    CreditLimit[]
+}
+
+model CreditLimit {
+  id              String            @id @default(cuid())
+  customerId      String
+  limitAmount     Decimal           @db.Decimal(15, 2)
+  usedAmount      Decimal           @default(0) @db.Decimal(15, 2)
+  availableAmount Decimal           @default(0) @db.Decimal(15, 2)
+  status          CreditLimitStatus @default(ACTIVE)
+  effectiveDate   DateTime
+  expiryDate      DateTime?
+  approvedBy      String?
+  approvedAt      DateTime?
+  notes           String?
+  createdById     String?           @map("created_by_id")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }

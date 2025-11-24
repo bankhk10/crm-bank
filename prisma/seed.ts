@@ -185,6 +185,22 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "menu.customers",
+        name: "Customer menu",
+        category: "MENU",
+        menuPath: "/customers",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "menu.credit_limits",
+        name: "Credit Limit menu",
+        category: "MENU",
+        menuPath: "/credit-limits",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.create",
         name: "Create product",
         category: "ACTION",
@@ -248,6 +264,105 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "customer.create.dealer",
+        name: "Create DEALER customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.create.subdealer",
+        name: "Create SUBDEALER customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.create.farmer",
+        name: "Create FARMER customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.create.broker",
+        name: "Create BROKER customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.edit",
+        name: "Edit customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.delete",
+        name: "Delete customer",
+        category: "ACTION",
+        resource: "customer",
+        action: "delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.view",
+        name: "View customer details",
+        category: "ACTION",
+        resource: "customer",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.create",
+        name: "Create credit limit",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.edit",
+        name: "Edit credit limit",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.delete",
+        name: "Delete credit limit",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.view",
+        name: "View credit limit details",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "randomize",
         name: "Randomize data",
         category: "ACTION",
@@ -299,6 +414,24 @@ async function main() {
         defaultDataAccess: "VIEW_DEPARTMENT",
       },
     }),
+    prisma.permission.create({
+      data: {
+        key: "data.customers",
+        name: "Customer data scope",
+        category: "DATA",
+        resource: "customer",
+        defaultDataAccess: "VIEW_DEPARTMENT",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "data.creditlimits",
+        name: "Credit Limit data scope",
+        category: "DATA",
+        resource: "creditlimit",
+        defaultDataAccess: "VIEW_DEPARTMENT",
+      },
+    }),
   ]);
 
   const permissionMap = Object.fromEntries(
@@ -323,6 +456,8 @@ async function main() {
       "menu.dashboard",
       "menu.sales",
       "menu.companies",
+      "menu.customers",
+      "menu.credit_limits",
       "menu.products",
       "product.create",
       "product.edit",
@@ -331,8 +466,21 @@ async function main() {
       "company.create",
       "company.edit",
       "company.delete",
+      "customer.create.dealer",
+      "customer.create.subdealer",
+      "customer.create.farmer",
+      "customer.create.broker",
+      "customer.edit",
+      "customer.delete",
+      "customer.view",
+      "creditlimit.create",
+      "creditlimit.edit",
+      "creditlimit.delete",
+      "creditlimit.view",
       "randomize",
       "data.products",
+      "data.customers",
+      "data.creditlimits",
     ].map((key) => ({
       roleId: managerRole.id,
       permissionId: permissionMap[key].id,

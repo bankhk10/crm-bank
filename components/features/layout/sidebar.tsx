@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, Fragment } from "react";
-import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch } from "lucide-react";
+import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch, UserCog, DollarSign } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
 
@@ -51,6 +51,16 @@ export const navigationItems: SidebarNavItem[] = [
     label: "บริษัท",
     permissionKey: "menu.companies",
     icon: <Building2 className="h-4 w-4" />
+  },
+  {
+    href: "/customers",
+    label: "ลูกค้า",
+    permissionKey: "menu.customers",
+    icon: <UserCog className="h-4 w-4" />,
+    children: [
+      { href: "/customers", label: "ข้อมูลลูกค้า" },
+      { href: "/credit-limits", label: "จัดการวงเงิน" }
+    ]
   },
   {
     href: "/rbac",
