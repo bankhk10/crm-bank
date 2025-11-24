@@ -34,6 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email },
           include: {
             userRoles: {
+              where: { deletedAt: null },
               include: {
                 role: {
                   include: {
@@ -44,7 +45,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
               }
             },
-            permissionOverrides: { include: { permission: true } }
+            permissionOverrides: { where: { deletedAt: null }, include: { permission: true } }
           }
         });
         if (!user) {
@@ -88,7 +89,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // cast via unknown first to satisfy strict TypeScript when `user` may be AdapterUser
+        // Initial login: take enriched data directly
         const enriched = user as unknown as {
           roles: string[];
           permissions: Record<string, SessionPermission>;
@@ -101,8 +102,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.departmentId = enriched.departmentId ?? null;
         token.positionId = enriched.positionId ?? null;
         token.dataAccessByResource = enriched.dataAccessByResource ?? {};
+      } else if (token.sub) {
+        // Subsequent session refresh: re-fetch roles/permissions to reflect any RBAC changes
+        // Filter out soft-deleted roles & overrides
+        try {
+          const fresh = await db.user.findUnique({
+            where: { id: token.sub },
+            include: {
+              userRoles: {
+                where: { deletedAt: null },
+                include: {
+                  role: {
+                    include: {
+                      permissions: { include: { permission: true } }
+                    }
+                  }
+                }
+              },
+              permissionOverrides: { where: { deletedAt: null }, include: { permission: true } }
+            }
+          });
+          if (fresh) {
+            const rolePermissions = fresh.userRoles.flatMap((ur) => ur.role.permissions);
+            const permissionMap = buildPermissionMap(rolePermissions, fresh.permissionOverrides);
+            const dataAccessByResource = buildDataAccessByResource(permissionMap);
+            token.roles = fresh.userRoles.map((ur) => ur.role.slug);
+            token.permissions = permissionMap;
+            token.departmentId = fresh.departmentId ?? null;
+            token.positionId = fresh.positionId ?? null;
+            token.dataAccessByResource = dataAccessByResource;
+          }
+        } catch (e) {
+          // Silent fail: keep old token data
+        }
       }
-
       return token;
     },
     async session({ session, token }) {
