@@ -407,24 +407,20 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
         </div>
 
         <div>
-          <label className="block text-sm mb-1">พนักงานที่รับผิดชอบ</label>
-          <input
-            list="employee-list"
-            value={responsibleEmployeeLabel}
-            onChange={(e) => {
+          <FloatingLabelInput
+            label="พนักงานที่รับผิดชอบ"
+            type="select"
+            options={employeeOptions.map((d) => ({ value: d.id, label: d.label }))}
+            value={values.responsibleEmployeeId ?? ""}
+            onChange={(e: any) => {
               const v = e.target.value;
-              setResponsibleEmployeeLabel(v);
-              const found = employeeOptions.find((d) => d.label === v);
-              setValues((p: any) => ({ ...p, responsibleEmployeeId: found ? found.id : null }));
+              setValues((p: any) => ({ ...p, responsibleEmployeeId: v || null }));
+              const found = employeeOptions.find((d) => d.id === v);
+              setResponsibleEmployeeLabel(found ? found.label : "");
+              clearFieldError("responsibleEmployeeId");
             }}
-            className="w-full border rounded px-3 py-2"
-            placeholder="ค้นหาชื่อพนักงาน"
+            searchable
           />
-          <datalist id="employee-list">
-            {employeeOptions.map((d) => (
-              <option key={d.id} value={d.label} />
-            ))}
-          </datalist>
         </div>
 
         <div>
