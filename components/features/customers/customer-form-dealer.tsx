@@ -5,7 +5,6 @@ import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import Can from "@/components/rbac/Can";
-import { generateRandomCompany } from "@/lib/random-fill/company";
 import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form";
 
 type Props = Omit<CustomerFormProps, "customerType">;
@@ -149,23 +148,10 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
     }
   }
 
-  function fillRandom() {
-    const random = generateRandomCompany();
-    setValues((prev: any) => ({ ...prev, ...random }));
-    setFieldErrors({});
-    setError(null);
-  }
+
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-1">
-      <div className="flex justify-end">
-        <Can permission="randomize">
-          <Button type="button" onClick={fillRandom} className="mr-0">
-            สุ่มข้อมูล
-          </Button>
-        </Can>
-      </div>
-
       <div className="bg-gray-200 rounded p-3">
         <h3 className="text-lg font-semibold">ข้อมูลบริษัท</h3>
       </div>

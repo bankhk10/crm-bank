@@ -81,7 +81,9 @@ export default function NewCustomerPage() {
 
           {!selectedType ? (
             <div>
-              <p className="mb-4 text-center text-gray-600">กรุณาเลือกประเภทลูกค้าก่อน</p>
+              <p className="mb-4 text-center text-gray-600">
+                กรุณาเลือกประเภทลูกค้าก่อน
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {(Object.keys(typeLabels) as CustomerType[]).map((t) => (
                   <button
@@ -90,7 +92,9 @@ export default function NewCustomerPage() {
                     className="p-4 border rounded-lg hover:shadow-md text-left"
                   >
                     <div className="text-lg font-semibold">{typeLabels[t]}</div>
-                    <div className="text-sm text-gray-500">สร้างข้อมูลสำหรับ {typeLabels[t]}</div>
+                    <div className="text-sm text-gray-500">
+                      สร้างข้อมูลสำหรับ {typeLabels[t]}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -106,15 +110,6 @@ export default function NewCustomerPage() {
             </div>
           ) : (
             <div>
-              <div className="mb-4">
-                <button
-                  onClick={() => setSelectedType(null)}
-                  className="px-3 py-1 border rounded-md text-sm"
-                >
-                  ← เลือกประเภทใหม่
-                </button>
-              </div>
-
               {selectedType === "DEALER" && (
                 <CustomerFormDealer
                   onSubmit={async (payload) => {
