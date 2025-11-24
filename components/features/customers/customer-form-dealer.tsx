@@ -223,7 +223,8 @@ export default function CustomerFormDealer({
     try {
       if (!values.birthDate) return "";
       const age = Math.floor(
-        (Date.now() - new Date(values.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)
+        (Date.now() - new Date(values.birthDate).getTime()) /
+          (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -232,12 +233,11 @@ export default function CustomerFormDealer({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-1">
-      <div className="bg-gray-200 rounded p-3">
-        <h3 className="text-lg font-semibold">ข้อมูลบริษัท</h3>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลบริษัท
+      </h3>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
         <div>
           <FloatingLabelInput
             label="รหัสลูกค้า"
@@ -248,13 +248,12 @@ export default function CustomerFormDealer({
             }}
             roundedClass="rounded-lg"
             error={fieldErrors.customerCode?.[0]}
-            // user typically shouldn't edit, but allow copy/regenerate; mark disabled by default
             readOnly
             disabled
           />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <FloatingLabelInput
             label="ชื่อร้านค้า"
             value={values.companyName}
@@ -358,21 +357,19 @@ export default function CustomerFormDealer({
         />
       </div>
 
-      <div className="bg-gray-200 rounded p-3">
-        <h3 className="text-lg font-semibold">ข้อมูลบุคคล</h3>
-      </div>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลผู้ติดต่อ
+      </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
           <FloatingLabelInput
-            label="คำนำหน้า"
+            label="เลือกคำนำหน้า"
             type="select"
             options={[
-              { value: "", label: "เลือกคำนำหน้า" },
               { value: "นาย", label: "นาย" },
               { value: "นาง", label: "นาง" },
               { value: "นางสาว", label: "นางสาว" },
-              { value: "บริษัท", label: "บริษัท" },
             ]}
             value={values.prefix}
             onChange={(e: any) =>
