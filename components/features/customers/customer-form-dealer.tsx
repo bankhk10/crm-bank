@@ -225,6 +225,18 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       </div>
 
       <div className="md:col-span-2">
+        <FloatingLabelInput
+          label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          value={values.addressLine}
+          onChange={(e: any) => {
+            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
+            clearFieldError("addressLine");
+          }}
+        />
+      </div>
+
+      <div className="md:col-span-2">
         <ThaiAddressPicker
           value={{
             province: values.province,
