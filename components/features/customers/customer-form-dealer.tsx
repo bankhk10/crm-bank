@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
+import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import Can from "@/components/rbac/Can";
 import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form";
@@ -343,12 +344,11 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
-          <label className="block text-sm mb-1">วันเกิด</label>
-          <input
-            type="date"
-            value={values.birthDate ?? ""}
-            onChange={(e: any) => setValues((p: any) => ({ ...p, birthDate: e.target.value }))}
-            className="w-full border rounded px-3 py-2"
+          <DatePicker
+            label="วันเกิด"
+            value={values.birthDate}
+            onChange={(v) => setValues((p: any) => ({ ...p, birthDate: v }))}
+            placeholder=""
           />
         </div>
 
