@@ -5,7 +5,7 @@ import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 
-type CustomerPayload = {
+export type CustomerPayload = {
   customerCode: string;
   customerType: "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
   name: string;
@@ -27,13 +27,13 @@ type CustomerPayload = {
   notes?: string;
 };
 
-type SubmitResult = {
+export type SubmitResult = {
   success: boolean;
   issues?: Record<string, string[]>;
   error?: string;
 };
 
-interface Props {
+export interface CustomerFormProps {
   initial?: Partial<CustomerPayload>;
   customerType?: "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
   onSubmit: (payload: CustomerPayload) => Promise<SubmitResult>;
@@ -47,7 +47,7 @@ export default function CustomerForm({
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
-}: Props) {
+}: CustomerFormProps) {
   const [payload, setPayload] = useState<CustomerPayload>({
     customerCode: initial.customerCode ?? "",
     customerType: customerType ?? initial.customerType ?? "DEALER",

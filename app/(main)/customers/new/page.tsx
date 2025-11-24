@@ -1,10 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import CustomerForm from "@/components/features/customers/customer-form";
+import { useState } from "react";
+import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
+import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
+import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
+import CustomerFormBroker from "@/components/features/customers/customer-form-broker";
+
+type CustomerType = "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
 
 export default function NewCustomerPage() {
   const router = useRouter();
+  const [selectedType, setSelectedType] = useState<CustomerType | null>(null);
 
   async function handleCreate(payload: any) {
     try {
@@ -55,6 +62,13 @@ export default function NewCustomerPage() {
     }
   }
 
+  const typeLabels: Record<CustomerType, string> = {
+    DEALER: "ตัวแทนจำหน่าย",
+    SUBDEALER: "ตัวแทนจำหน่ายย่อย",
+    FARMER: "เกษตรกร",
+    BROKER: "นายหน้า",
+  };
+
   return (
     <section className="space-y-6">
       <div className="bg-white shadow-sm sm:rounded-lg">
@@ -65,17 +79,91 @@ export default function NewCustomerPage() {
             </h5>
           </div>
 
-          <CustomerForm
-            onSubmit={async (payload) => {
-              const result = await handleCreate(payload);
-              if (result.success) {
-                router.push("/customers");
-              }
-              return result;
-            }}
-            onCancel={() => router.push("/customers")}
-            submitLabel="บันทึก"
-          />
+          {!selectedType ? (
+            <div>
+              <p className="mb-4 text-center text-gray-600">กรุณาเลือกประเภทลูกค้าก่อน</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(Object.keys(typeLabels) as CustomerType[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedType(t)}
+                    className="p-4 border rounded-lg hover:shadow-md text-left"
+                  >
+                    <div className="text-lg font-semibold">{typeLabels[t]}</div>
+                    <div className="text-sm text-gray-500">สร้างข้อมูลสำหรับ {typeLabels[t]}</div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => router.push("/customers")}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-3xl"
+                >
+                  ย้อนกลับ
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4">
+                <button
+                  onClick={() => setSelectedType(null)}
+                  className="px-3 py-1 border rounded-md text-sm"
+                >
+                  ← เลือกประเภทใหม่
+                </button>
+              </div>
+
+              {selectedType === "DEALER" && (
+                <CustomerFormDealer
+                  onSubmit={async (payload) => {
+                    const result = await handleCreate(payload);
+                    if (result.success) router.push("/customers");
+                    return result;
+                  }}
+                  onCancel={() => setSelectedType(null)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {selectedType === "SUBDEALER" && (
+                <CustomerFormSubdealer
+                  onSubmit={async (payload) => {
+                    const result = await handleCreate(payload);
+                    if (result.success) router.push("/customers");
+                    return result;
+                  }}
+                  onCancel={() => setSelectedType(null)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {selectedType === "FARMER" && (
+                <CustomerFormFarmer
+                  onSubmit={async (payload) => {
+                    const result = await handleCreate(payload);
+                    if (result.success) router.push("/customers");
+                    return result;
+                  }}
+                  onCancel={() => setSelectedType(null)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {selectedType === "BROKER" && (
+                <CustomerFormBroker
+                  onSubmit={async (payload) => {
+                    const result = await handleCreate(payload);
+                    if (result.success) router.push("/customers");
+                    return result;
+                  }}
+                  onCancel={() => setSelectedType(null)}
+                  submitLabel="บันทึก"
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>
