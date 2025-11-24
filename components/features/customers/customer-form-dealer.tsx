@@ -47,6 +47,37 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
+  // get next sequential customerCode from backend (format C00001)
+  const fetchNextCustomerCode = async () => {
+    try {
+      const res = await fetch(`/api/customers/next-code`);
+      const json = await res.json();
+      if (res.ok && json.nextCode) return json.nextCode as string;
+    } catch (err) {
+      // ignore and fallback
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!initial?.customerCode && !values.customerCode) {
+        const next = await fetchNextCustomerCode();
+        if (mounted) {
+          if (next) setValues((p: any) => ({ ...p, customerCode: next }));
+          else
+            // fallback simple padded counter based on timestamp
+            setValues((p: any) => ({ ...p, customerCode: `C${String(Date.now()).slice(-5)}` }));
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     // fetch companies (for parent dealer) and employees (for responsible)
     async function fetchOptions() {
@@ -157,6 +188,22 @@ export default function CustomerFormDealer({ initial = {}, onSubmit, onCancel, s
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+        <div>
+          <FloatingLabelInput
+            label="รหัสลูกค้า"
+            value={values.customerCode}
+            onChange={(e: any) => {
+              setValues((p: any) => ({ ...p, customerCode: e.target.value }));
+              clearFieldError("customerCode");
+            }}
+            roundedClass="rounded-lg"
+            error={fieldErrors.customerCode?.[0]}
+            // user typically shouldn't edit, but allow copy/regenerate; mark disabled by default
+            readOnly
+            disabled
+          />
+        </div>
+
         <div>
           <FloatingLabelInput
             label="ชื่อร้านค้า"

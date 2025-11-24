@@ -123,6 +123,16 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
 
+  try {
+    console.info(`[api/customers] POST attempt`, {
+      userId: session?.user?.id ?? null,
+      customerType: body?.customerType ?? null,
+      customerCode: body?.customerCode ?? null,
+    });
+  } catch (logErr) {
+    // best-effort logging, don't break request
+  }
+
   // Check for type-specific create permission
   const customerType = body?.customerType;
   if (customerType) {
@@ -138,6 +148,13 @@ export async function POST(request: Request) {
   const parsed = customerSchema.safeParse(body);
 
   if (!parsed.success) {
+    try {
+      console.warn(`[api/customers] Invalid payload`, {
+        userId: session.user.id,
+        issues: parsed.error.flatten().fieldErrors,
+      });
+    } catch (logErr) {}
+
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
       { status: 400 }
@@ -175,8 +192,20 @@ export async function POST(request: Request) {
       } as any),
     });
 
+    try {
+      console.info(`[api/customers] Customer created`, {
+        userId: session.user.id,
+        customerId: customer.id,
+        customerCode: customer.customerCode,
+      });
+    } catch (logErr) {}
+
     return NextResponse.json({ customer }, { status: 201 });
   } catch (err) {
+    try {
+      console.error(`[api/customers] Error creating customer`, { error: err });
+    } catch (logErr) {}
+
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       const target = (err.meta && (err.meta as any).target) || [];
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
