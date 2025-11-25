@@ -28,6 +28,7 @@ export type CustomerRecord = {
   phone?: string;
   status?: string;
   createdAt?: string;
+  parentDealerId?: string | null;
 };
 
 export type CustomersPagination = {
@@ -265,6 +266,64 @@ function useCustomerColumns(
   );
 }
 
+function ParentDealerInfo({ parentDealerId }: { parentDealerId?: string | null }) {
+  const [data, setData] = React.useState<CustomerRecord | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!parentDealerId) return;
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/customers/${parentDealerId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch parent dealer");
+        return res.json();
+      })
+      .then((json) => {
+        if (!mounted) return;
+        setData(json as CustomerRecord);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setError(err?.message || "Error fetching parent dealer");
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [parentDealerId]);
+
+  if (!parentDealerId) {
+    return <div className="text-sm">ไม่มีข้อมูลตัวแทนหลัก</div>;
+  }
+  if (loading) return <div className="text-sm">กำลังโหลดข้อมูลตัวแทนหลัก...</div>;
+  if (error) return <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>;
+  if (!data) return <div className="text-sm">ไม่พบข้อมูลตัวแทนหลัก</div>;
+
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div>
+        <div className="text-xs text-muted-foreground">ตัวแทนหลัก</div>
+        <div className="font-medium">{data.name ?? "-"}</div>
+      </div>
+      <div>
+        <div className="text-xs text-muted-foreground">อีเมล</div>
+        <div className="font-medium">{data.email ?? "-"}</div>
+      </div>
+      <div>
+        <div className="text-xs text-muted-foreground">โทร</div>
+        <div className="font-medium">{data.phone ?? "-"}</div>
+      </div>
+    </div>
+  );
+}
+
 function CustomersToolbar(
   props: Pick<
     CustomersTableProps,
@@ -428,20 +487,7 @@ export function CustomersTable(props: CustomersTableProps) {
         const c = row.original as CustomerRecord;
         return (
           <div className="p-4 bg-slate-50">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div>
-                <div className="text-xs text-muted-foreground">อีเมล</div>
-                <div className="font-medium">{c.email ?? "-"}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">โทร</div>
-                <div className="font-medium">{c.phone ?? "-"}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">สร้างเมื่อ</div>
-                <div className="font-medium">{c.createdAt ? new Date(c.createdAt).toLocaleString() : "-"}</div>
-              </div>
-            </div>
+            <ParentDealerInfo parentDealerId={c.parentDealerId} />
           </div>
         );
       }}
