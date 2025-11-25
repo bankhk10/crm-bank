@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
+import { Prisma } from "@prisma/client";
 
 const resourcePath = "/api/temporary-credit-limits";
 
@@ -58,51 +59,80 @@ export async function POST(request: Request, context: any) {
   if (parsed.data.approve) {
     // Approve - create permanent credit limit and update status
     const result = await db.$transaction(async (tx) => {
-      // Create permanent credit limit
-      const creditLimit = await tx.creditLimit.create({
-        data: {
-          customerId: existing.customerId,
-          limitAmount: existing.requestedAmount,
-          usedAmount: 0,
-          availableAmount: existing.requestedAmount,
-          effectiveDate: now,
-          expiryDate: existing.expiryDate,
-          notes: `Temporary credit limit approved. Original notes: ${existing.notes || 'N/A'}`,
-          status: "ACTIVE",
-          approvedBy: session.user.id,
-          approvedAt: now,
-          createdById: existing.requestedById || session.user.id,
-        },
-      });
+        // If customer has an existing active credit limit with remaining available amount,
+        // merge the requested amount into that limit. Otherwise create a new credit limit.
+        const existingCredit = await tx.creditLimit.findFirst({
+          where: { customerId: existing.customerId, deletedAt: null, status: "ACTIVE" },
+          orderBy: { createdAt: "desc" },
+        });
 
-      // Update temporary credit limit status
-      const updatedTemp = await tx.temporaryCreditLimit.update({
-        where: { id: params.temporaryCreditLimitId },
-        data: {
-          status: "APPROVED",
-          approvedById: session.user.id,
-          approvedAt: now,
-        },
-        include: {
-          customer: true,
-          requestedBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
+        let creditLimit;
+
+        if (existingCredit && (existingCredit.availableAmount as any).gt?.(0)) {
+          // Merge requested amount into existing credit limit using Decimal arithmetic
+          const newLimitAmount = (existingCredit.limitAmount as any).add
+            ? (existingCredit.limitAmount as any).add(existing.requestedAmount as any)
+            : new Prisma.Decimal(String(existingCredit.limitAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+
+          const newAvailableAmount = (existingCredit.availableAmount as any).add
+            ? (existingCredit.availableAmount as any).add(existing.requestedAmount as any)
+            : new Prisma.Decimal(String(existingCredit.availableAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+
+          creditLimit = await tx.creditLimit.update({
+            where: { id: existingCredit.id },
+            data: {
+              limitAmount: newLimitAmount,
+              availableAmount: newAvailableAmount,
+              notes: `${existingCredit.notes ?? ""}\nMerged temporary credit: +${String(existing.requestedAmount)}`,
+            },
+          });
+        } else {
+          // Create permanent credit limit
+          creditLimit = await tx.creditLimit.create({
+            data: {
+              customerId: existing.customerId,
+              limitAmount: existing.requestedAmount,
+              usedAmount: 0,
+              availableAmount: existing.requestedAmount,
+              effectiveDate: now,
+              expiryDate: existing.expiryDate,
+              notes: `Temporary credit limit approved. Original notes: ${existing.notes || 'N/A'}`,
+              status: "ACTIVE",
+              approvedBy: session.user.id,
+              approvedAt: now,
+              createdById: existing.requestedById || session.user.id,
+            },
+          });
+        }
+
+        // Update temporary credit limit status
+        const updatedTemp = await tx.temporaryCreditLimit.update({
+          where: { id: params.temporaryCreditLimitId },
+          data: {
+            status: "APPROVED",
+            approvedById: session.user.id,
+            approvedAt: now,
+          },
+          include: {
+            customer: true,
+            requestedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            approvedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
             },
           },
-          approvedBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
+        });
 
-      return { temporaryCreditLimit: updatedTemp, creditLimit };
+        return { temporaryCreditLimit: updatedTemp, creditLimit };
     });
 
     return NextResponse.json(result);
