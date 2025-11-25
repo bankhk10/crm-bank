@@ -50,6 +50,7 @@ export default function EditCreditLimitPage() {
             ...prev,
             customerId: src.customerId ?? "",
             limitAmount: Number(src.limitAmount) ?? 0,
+            promoAmount: src.promoAmount ?? undefined,
             effectiveDate: src.effectiveDate ? new Date(src.effectiveDate) : new Date(),
             expiryDate: src.expiryDate ? new Date(src.expiryDate) : undefined,
             notes: src.notes ?? "",
