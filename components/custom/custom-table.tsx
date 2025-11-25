@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable, DataTableEmptyState } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type TablePagination = {
@@ -38,7 +39,6 @@ export interface CustomTableProps<TData, TValue = any> {
   onDateRangeChange?: (range: DateRange | undefined) => void;
 
   pagination?: TablePagination;
-  footer?: React.ReactNode;
   emptyState?: DataTableEmptyState;
   className?: string;
 }
@@ -112,17 +112,21 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           ต่อหน้า
-          <select
-            className="rounded-md border bg-background px-3 py-1 text-sm"
-            value={pagination.perPage}
-            onChange={(event) => pagination.onPerPageChange(Number(event.target.value))}
+          <Select
+            value={String(pagination.perPage)}
+            onValueChange={(value) => pagination.onPerPageChange(Number(value))}
           >
-            {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" className="ml-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <div className="flex items-center gap-2">
@@ -159,7 +163,6 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     data,
     loading,
     toolbar,
-    footer,
     canCreate,
     createHref,
     searchValue,
@@ -186,7 +189,7 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     />
   );
 
-  const builtFooter = footer ?? (pagination ? <DefaultPagination pagination={pagination} loading={loading} /> : undefined);
+  const builtFooter = pagination ? <DefaultPagination pagination={pagination} loading={loading} /> : undefined;
 
   return (
     <DataTable
