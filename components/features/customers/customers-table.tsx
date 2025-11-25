@@ -176,21 +176,7 @@ function useCustomerColumns(
           );
         },
       },
-      {
-        accessorKey: "createdAt",
-        header: "สร้างเมื่อ",
-        meta: {
-          headerAlign: "center",
-          minWidth: 120,
-          width: 160,
-          maxWidth: 220,
-          align: "center",
-        },
-        cell: ({ row }) =>
-          row.original.createdAt
-            ? thaiDateFormatter.format(new Date(row.original.createdAt))
-            : "-",
-      },
+      
       {
         id: "actions",
         header: "",
