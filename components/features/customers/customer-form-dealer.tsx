@@ -24,6 +24,7 @@ export default function CustomerFormDealer({
   submitLabel = "บันทึก",
 }: Props) {
   const [values, setValues] = useState<any>({
+    id: (initial as any).id ?? "",
     customerCode: initial.customerCode ?? "",
     companyName: initial.name ?? "",
     taxId: initial.taxId ?? "",
@@ -126,6 +127,12 @@ export default function CustomerFormDealer({
 
   // when options or initial change, set labels for inputs
   useEffect(() => {
+    // if parentDealer is set to self, clear it
+    if (values.parentDealer && values.id && values.parentDealer === values.id) {
+      setValues((p: any) => ({ ...p, parentDealer: "" }));
+      clearFieldError("parentDealer");
+    }
+
     if (values.parentDealer) {
       const found = dealerOptions.find((d) => d.id === values.parentDealer);
       if (found) setParentDealerLabel(found.label);
@@ -453,10 +460,12 @@ export default function CustomerFormDealer({
           <FloatingLabelInput
             label="ร้านหลัก (ถ้ามี)"
             type="select"
-            options={dealerOptions.map((d) => ({
-              value: d.id,
-              label: d.label,
-            }))}
+            options={dealerOptions
+              .filter((d) => d.id !== values.id)
+              .map((d) => ({
+                value: d.id,
+                label: d.label,
+              }))}
             value={values.parentDealer ?? ""}
             onChange={(e: any) => {
               const v = e.target.value;

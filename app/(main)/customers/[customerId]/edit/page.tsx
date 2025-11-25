@@ -17,6 +17,7 @@ export default function EditCustomerPage() {
 
   const [payload, setPayload] = useState<any>({
     customerCode: "",
+    id: "",
     customerType: "DEALER",
     name: "",
     prefix: "",
@@ -52,6 +53,7 @@ export default function EditCustomerPage() {
         const src = (json && (json.customer ?? json)) || {};
         if (mounted) {
           setPayload((prev: any) => ({
+            id: src.id ?? customerId,
             ...prev,
             customerCode: src.customerCode ?? "",
             customerType: src.customerType ?? "DEALER",
