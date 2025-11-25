@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit } from "lucide-react";
+import { Edit } from "lucide-react";
 import { CustomTable } from "@/components/custom/custom-table";
 
 export type CustomerRecord = {
@@ -13,7 +13,11 @@ export type CustomerRecord = {
   name: string;
   phone?: string | null;
   email?: string | null;
-  creditLimits?: Array<{ id: string; limitAmount: number; promoAmount?: number }>; // latest included
+  creditLimits?: Array<{
+    id: string;
+    limitAmount: number;
+    promoAmount?: number;
+  }>; // latest included
 };
 
 export interface CustomersCreditTableProps {
@@ -59,11 +63,16 @@ function useColumns() {
       },
       {
         id: "creditLimit",
-        header: "วงเงินล่าสุด",
+        header: "วงเงินเครดิตคงเหลือ",
         cell: ({ row }) => {
           const r = row.original;
           const cl = r.creditLimits && r.creditLimits[0];
-          return cl ? new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(cl.limitAmount) : "-";
+          return cl
+            ? new Intl.NumberFormat("th-TH", {
+                style: "currency",
+                currency: "THB",
+              }).format(cl.limitAmount)
+            : "-";
         },
         meta: { minWidth: 140, width: 180, align: "right" },
       },
@@ -73,10 +82,14 @@ function useColumns() {
         cell: ({ row }) => {
           const r = row.original;
           const cl = r.creditLimits && r.creditLimits[0];
-          if (!cl || cl.promoAmount === undefined || cl.promoAmount === null) return "-";
+          if (!cl || cl.promoAmount === undefined || cl.promoAmount === null)
+            return "-";
           const v = Number((cl as any).promoAmount);
           return Number.isFinite(v)
-            ? new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(v)
+            ? new Intl.NumberFormat("th-TH", {
+                style: "currency",
+                currency: "THB",
+              }).format(v)
             : "-";
         },
         meta: { minWidth: 160, width: 200, align: "right" },
@@ -87,7 +100,9 @@ function useColumns() {
         cell: ({ row }) => {
           const r = row.original;
           const cl = r.creditLimits && r.creditLimits[0];
-          const href = cl ? `/credit-limits/${cl.id}/edit` : `/credit-limits/new?customerId=${r.id}`;
+          const href = cl
+            ? `/credit-limits/${cl.id}/edit`
+            : `/credit-limits/new?customerId=${r.id}`;
           return (
             <div className="flex items-center justify-end gap-2">
               <Link href={href}>
@@ -108,7 +123,17 @@ function useColumns() {
 }
 
 export default function CustomersCreditTable(props: CustomersCreditTableProps) {
-  const { data, loading, pagination, searchValue, onSearchChange, isTyping, onSearchSubmit, dateRange, onDateRangeChange } = props;
+  const {
+    data,
+    loading,
+    pagination,
+    searchValue,
+    onSearchChange,
+    isTyping,
+    onSearchSubmit,
+    dateRange,
+    onDateRangeChange,
+  } = props;
   const columns = useColumns();
 
   return (
