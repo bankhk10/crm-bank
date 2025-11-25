@@ -11,7 +11,13 @@ import Tooltip from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 export type CustomerRecord = {
   id: string;
@@ -379,19 +385,25 @@ function CustomersPagination({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           ต่อหน้า
-          <select
-            className="rounded-md border bg-background px-3 py-1 text-sm"
-            value={pagination.perPage}
-            onChange={(event) =>
-              pagination.onPerPageChange(Number(event.target.value))
+          <Select
+            value={String(pagination.perPage)}
+            onValueChange={(value) =>
+              pagination.onPerPageChange(Number(value))
             }
           >
-            {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger size="sm" className="ml-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map(
+                (option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option}
+                  </SelectItem>
+                )
+              )}
+            </SelectContent>
+          </Select>
         </label>
 
         <div className="flex items-center gap-2">
