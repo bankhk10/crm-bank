@@ -27,6 +27,13 @@ export interface CustomersCreditTableProps {
     onPerPageChange: (n: number) => void;
     perPageOptions?: number[];
   };
+  // search helpers
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  isTyping?: boolean;
+  onSearchSubmit?: () => void;
+  dateRange?: any;
+  onDateRangeChange?: (range: any) => void;
 }
 
 function useColumns() {
@@ -101,7 +108,7 @@ function useColumns() {
 }
 
 export default function CustomersCreditTable(props: CustomersCreditTableProps) {
-  const { data, loading, pagination } = props;
+  const { data, loading, pagination, searchValue, onSearchChange, isTyping, onSearchSubmit, dateRange, onDateRangeChange } = props;
   const columns = useColumns();
 
   return (
@@ -109,6 +116,12 @@ export default function CustomersCreditTable(props: CustomersCreditTableProps) {
       columns={columns}
       data={data}
       loading={loading}
+      searchValue={searchValue}
+      onSearchChange={onSearchChange}
+      isTyping={isTyping}
+      onSearchSubmit={onSearchSubmit}
+      dateRange={dateRange}
+      onDateRangeChange={onDateRangeChange}
       pagination={
         pagination
           ? {

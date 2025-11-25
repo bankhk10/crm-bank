@@ -153,6 +153,12 @@ export default function CreditLimitsPage() {
           <CustomersCreditTable
             data={customers}
             loading={loading}
+            searchValue={filterDraft.query}
+            onSearchChange={(value) => setFilterDraft((prev) => ({ ...prev, query: value }))}
+            isTyping={isTyping}
+            onSearchSubmit={handleSearchSubmit}
+            dateRange={filterDraft.dateRange}
+            onDateRangeChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
             pagination={{
               page,
               perPage,
