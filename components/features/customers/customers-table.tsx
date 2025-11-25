@@ -6,7 +6,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle,
+} from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -182,7 +189,7 @@ function useCustomerColumns(
           );
         },
       },
-      
+
       {
         id: "actions",
         header: "",
@@ -359,8 +366,6 @@ function CustomersToolbar(
 }
 
 function CustomersPagination({
-
-  
   pagination,
   loading,
 }: {
@@ -389,21 +394,17 @@ function CustomersPagination({
           ต่อหน้า
           <Select
             value={String(pagination.perPage)}
-            onValueChange={(value) =>
-              pagination.onPerPageChange(Number(value))
-            }
+            onValueChange={(value) => pagination.onPerPageChange(Number(value))}
           >
             <SelectTrigger size="sm" className="ml-2">
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start">
-              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map(
-                (option) => (
-                  <SelectItem key={option} value={String(option)}>
-                    {option}
-                  </SelectItem>
-                )
-              )}
+              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
+                <SelectItem key={option} value={String(option)}>
+                  {option}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </label>
@@ -464,6 +465,7 @@ export function CustomersTable(props: CustomersTableProps) {
       columns={columns}
       data={data}
       loading={loading}
+      pagination={pagination}
       toolbar={
         <CustomersToolbar
           canCreate={canCreate}
