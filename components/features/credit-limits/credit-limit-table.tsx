@@ -74,7 +74,7 @@ function useColumns() {
               }).format(cl.limitAmount)
             : "-";
         },
-        meta: { minWidth: 140, width: 180, align: "right" },
+        meta: { minWidth: 140, width: 180, align: "center" },
       },
       {
         id: "promoAmount",
@@ -92,7 +92,7 @@ function useColumns() {
               }).format(v)
             : "-";
         },
-        meta: { minWidth: 160, width: 200, align: "right" },
+        meta: { minWidth: 160, width: 200, align: "center" },
       },
       {
         id: "actions",
