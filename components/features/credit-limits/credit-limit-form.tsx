@@ -106,6 +106,7 @@ export default function CreditLimitForm({
             }}
             required
             error={fieldErrors.customerId?.[0]}
+            disabled
           />
         </div>
 
