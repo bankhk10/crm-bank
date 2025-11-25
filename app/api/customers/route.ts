@@ -104,6 +104,11 @@ export async function GET(request: Request) {
           orderBy: { createdAt: "desc" },
           take: 1,
         },
+        temporaryCreditLimits: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        },
       },
     }),
   ]);

@@ -113,6 +113,12 @@ export default function CreditLimitsPage() {
             phone: c.phone,
             email: c.email,
             creditLimits: (c.creditLimits || []).map((cl: any) => ({ id: cl.id, limitAmount: cl.limitAmount, promoAmount: cl.promoAmount })),
+            temporaryCreditLimits: (c.temporaryCreditLimits || []).map((tcl: any) => ({
+              id: tcl.id,
+              requestedAmount: tcl.requestedAmount,
+              status: tcl.status,
+              expiryDate: tcl.expiryDate,
+            })),
           })));
           setTotal(typeof json.total === "number" ? json.total : 0);
         }

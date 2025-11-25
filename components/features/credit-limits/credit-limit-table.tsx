@@ -17,7 +17,13 @@ export type CustomerRecord = {
     id: string;
     limitAmount: number;
     promoAmount?: number;
-  }>; // latest included
+  }>;
+  temporaryCreditLimits?: Array<{
+    id: string;
+    requestedAmount: number;
+    status: string;
+    expiryDate: Date | string;
+  }>;
 };
 
 export interface CustomersCreditTableProps {
@@ -93,6 +99,43 @@ function useColumns() {
             : "-";
         },
         meta: { minWidth: 160, width: 200, align: "center" },
+      },
+      {
+        id: "temporaryCreditLimits",
+        header: "วงเงินเครดิตชั่วคราว",
+        cell: ({ row }) => {
+          const r = row.original;
+          const tempLimits = r.temporaryCreditLimits || [];
+          if (tempLimits.length === 0) return "-";
+          
+          return (
+            <div className="text-sm">
+              {tempLimits.map((temp, idx) => {
+                const statusColor = 
+                  temp.status === "APPROVED" ? "text-green-600" :
+                  temp.status === "REJECTED" ? "text-red-600" :
+                  "text-yellow-600";
+                const statusText = 
+                  temp.status === "APPROVED" ? "อนุมัติ" :
+                  temp.status === "REJECTED" ? "ไม่อนุมัติ" :
+                  "รออนุมัติ";
+                  
+                return (
+                  <div key={temp.id} className={idx > 0 ? "mt-1 pt-1 border-t" : ""}>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat("th-TH", {
+                        style: "currency",
+                        currency: "THB",
+                      }).format(Number(temp.requestedAmount))}
+                    </span>
+                    <span className={`ml-2 text-xs ${statusColor}`}>({statusText})</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        },
+        meta: { minWidth: 200, width: 220, align: "center" },
       },
       {
         id: "actions",
