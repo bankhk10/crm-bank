@@ -4,11 +4,7 @@ import React, { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import {
-  CreditLimitsTable,
-  type CreditLimitRecord,
-} from "@/components/features/credit-limits/credit-limits-table";
+import CustomersCreditTable, { type CustomerRecord } from "@/components/features/credit-limits/customers-credit-table";
 
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.credit_limits");
@@ -17,7 +13,7 @@ export default function CreditLimitsPage() {
   const canDelete = hasPermission("creditlimit.delete");
   const canView = !isLoading && allowed;
 
-  const [creditLimits, setCreditLimits] = useState<CreditLimitRecord[]>([]);
+  const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(12);
@@ -33,8 +29,7 @@ export default function CreditLimitsPage() {
     dateRange?: DateRange;
     status?: string;
   }>({ query: "", dateRange: undefined, status: "" });
-  const [deleteCandidate, setDeleteCandidate] = useState<CreditLimitRecord | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  // no inline delete in customers list; editing handled via dedicated credit-limit pages
 
   useEffect(() => {
     const isExtendingEmpty =
@@ -105,13 +100,20 @@ export default function CreditLimitsPage() {
         if (appliedFilters.dateRange?.to)
           params.set("to", appliedFilters.dateRange.to.toISOString());
 
-        const res = await fetch(`/api/credit-limits?${params.toString()}`, {
+        const res = await fetch(`/api/customers?${params.toString()}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("Failed to load credit limits");
         const json = await res.json();
         if (mounted) {
-          setCreditLimits(json.creditLimits ?? []);
+          setCustomers((json.customers ?? []).map((c: any) => ({
+            id: c.id,
+            customerCode: c.customerCode,
+            name: c.name,
+            phone: c.phone,
+            email: c.email,
+            creditLimits: (c.creditLimits || []).map((cl: any) => ({ id: cl.id, limitAmount: cl.limitAmount })),
+          })));
           setTotal(typeof json.total === "number" ? json.total : 0);
         }
       } catch (error) {
@@ -144,78 +146,13 @@ export default function CreditLimitsPage() {
         </Alert>
       )}
 
-      {deleteCandidate && (
-        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
-          <div
-            className="bg-black/50 absolute inset-0"
-            onClick={() => setDeleteCandidate(null)}
-          />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-lg p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">ยืนยันการลบ</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              คุณต้องการลบวงเงินนี้ ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteCandidate(null)}>
-                ยกเลิก
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  if (!deleteCandidate) return;
-                  setActionLoading(true);
-                  try {
-                    const res = await fetch(
-                      `/api/credit-limits/${deleteCandidate.id}`,
-                      { method: "DELETE" }
-                    );
-                    if (!res.ok) throw new Error("Delete failed");
-                    setCreditLimits((prev) =>
-                      prev.filter((c) => c.id !== deleteCandidate.id)
-                    );
-                    setDeleteCandidate(null);
-                  } catch (error) {
-                    const err = error as Error;
-                    setError(err.message || String(err));
-                  } finally {
-                    setActionLoading(false);
-                  }
-                }}
-                disabled={actionLoading}
-              >
-                {actionLoading ? "กำลังลบ..." : "ลบวงเงิน"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* delete handled on individual credit-limit pages; no inline delete here */}
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <CreditLimitsTable
-            data={creditLimits}
+          <CustomersCreditTable
+            data={customers}
             loading={loading}
-            canCreate={canCreate}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            onDeleteRequest={setDeleteCandidate}
-            searchValue={filterDraft.query}
-            onSearchChange={(value) =>
-              setFilterDraft((prev) => ({ ...prev, query: value }))
-            }
-            isTyping={isTyping}
-            onSearchSubmit={handleSearchSubmit}
-            dateRange={filterDraft.dateRange}
-            onDateRangeChange={(range) =>
-              setFilterDraft((prev) => ({
-                ...prev,
-                dateRange: range ?? undefined,
-              }))
-            }
-            statusFilter={filterDraft.status}
-            onStatusFilterChange={(status) =>
-              setFilterDraft((prev) => ({ ...prev, status }))
-            }
             pagination={{
               page,
               perPage,

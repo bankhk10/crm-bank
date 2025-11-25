@@ -11,6 +11,7 @@ const resourcePath = "/api/credit-limits";
 const creditLimitSchema = z.object({
   customerId: z.string().min(1),
   limitAmount: z.number().positive(),
+  promoAmount: z.number().nonnegative().optional(),
   effectiveDate: z.string().or(z.date()),
   expiryDate: z.string().or(z.date()).optional(),
   notes: z.string().optional(),
@@ -127,11 +128,13 @@ export async function POST(request: Request) {
       : undefined;
 
     const limitAmount = parsed.data.limitAmount;
+    const promoAmount = parsed.data.promoAmount;
 
     const creditLimit = await db.creditLimit.create({
       data: {
         customerId: parsed.data.customerId,
         limitAmount,
+        promoAmount: promoAmount ?? null,
         usedAmount: 0,
         availableAmount: limitAmount,
         effectiveDate,

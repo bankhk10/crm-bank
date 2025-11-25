@@ -8,6 +8,7 @@ import DatePicker from "@/components/custom/DatePicker";
 type CreditLimitPayload = {
   customerId: string;
   limitAmount: number;
+  promoAmount?: number;
   effectiveDate: Date;
   expiryDate?: Date;
   notes?: string;
@@ -37,6 +38,7 @@ export default function CreditLimitForm({
   const [payload, setPayload] = useState<CreditLimitPayload>({
     customerId: initial.customerId ?? "",
     limitAmount: initial.limitAmount ?? 0,
+    promoAmount: (initial as any).promoAmount ?? 0,
     effectiveDate: initial.effectiveDate ?? new Date(),
     expiryDate: initial.expiryDate,
     notes: initial.notes ?? "",
@@ -118,6 +120,19 @@ export default function CreditLimitForm({
             }}
             required
             error={fieldErrors.limitAmount?.[0]}
+          />
+        </div>
+
+        <div>
+          <FloatingLabelInput
+            label="วงเงินส่งเสริมกิจกรรม (บาท)"
+            type="number"
+            value={(payload.promoAmount ?? 0).toString()}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPayload((p) => ({ ...p, promoAmount: parseFloat(e.target.value) || 0 }));
+              clearFieldError("promoAmount");
+            }}
+            error={fieldErrors.promoAmount?.[0]}
           />
         </div>
 

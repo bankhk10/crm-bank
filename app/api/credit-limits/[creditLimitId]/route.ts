@@ -8,6 +8,7 @@ const resourcePath = "/api/credit-limits";
 
 const creditLimitUpdateSchema = z.object({
   limitAmount: z.number().positive().optional(),
+  promoAmount: z.number().nonnegative().optional(),
   usedAmount: z.number().optional(),
   effectiveDate: z.string().or(z.date()).optional(),
   expiryDate: z.string().or(z.date()).optional(),

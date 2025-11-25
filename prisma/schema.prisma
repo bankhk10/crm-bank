@@ -279,6 +279,7 @@ model CreditLimit {
   id              String            @id @default(cuid())
   customerId      String
   limitAmount     Decimal           @db.Decimal(15, 2)
+  promoAmount     Decimal?          @db.Decimal(15, 2)
   usedAmount      Decimal           @default(0) @db.Decimal(15, 2)
   availableAmount Decimal           @default(0) @db.Decimal(15, 2)
   status          CreditLimitStatus @default(ACTIVE)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import CreditLimitForm from "@/components/features/credit-limits/credit-limit-form";
 
@@ -8,6 +8,7 @@ export default function NewCreditLimitPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Array<{ id: string; name: string; customerCode: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     (async () => {
@@ -58,6 +59,7 @@ export default function NewCreditLimitPage() {
             <div className="text-center py-8">กำลังโหลดข้อมูลลูกค้า...</div>
           ) : (
             <CreditLimitForm
+              initial={{ customerId: searchParams?.get("customerId") ?? undefined }}
               customers={customers}
               onSubmit={async (payload) => {
                 const result = await handleCreate(payload);
