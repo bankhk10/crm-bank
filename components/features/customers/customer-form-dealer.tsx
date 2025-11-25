@@ -195,7 +195,7 @@ export default function CustomerFormDealer({
       ...(values.responsibleEmployeeId
         ? { responsibleEmployeeId: values.responsibleEmployeeId }
         : {}),
-      ...(values.relationshipScore
+      ...(values.relationshipScore != null
         ? { relationshipScore: Number(values.relationshipScore) }
         : {}),
     } as any;
@@ -496,15 +496,15 @@ export default function CustomerFormDealer({
             label="คะแนนความสัมพันธ์"
             type="select"
             options={[
-              { value: "แย่", label: "แย่" },
-              { value: "ปานกลาง", label: "ปานกลาง" },
-              { value: "ดี", label: "ดี" },
+              { value: "1", label: "แย่" },
+              { value: "2", label: "ปานกลาง" },
+              { value: "3", label: "ดี" },
             ]}
-            value={(values.relationshipScore ?? "") as any}
+            value={String(values.relationshipScore ?? "") as any}
             onChange={(e: any) =>
               setValues((p: any) => ({
                 ...p,
-                relationshipScore: Number(e.target.value),
+                relationshipScore: e.target.value ? Number(e.target.value) : null,
               }))
             }
           />
