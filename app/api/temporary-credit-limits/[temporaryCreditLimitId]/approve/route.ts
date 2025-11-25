@@ -78,11 +78,17 @@ export async function POST(request: Request, context: any) {
             ? (existingCredit.availableAmount as any).add(existing.requestedAmount as any)
             : new Prisma.Decimal(String(existingCredit.availableAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
 
+          // Determine expiry date: choose the later date between existing credit and temporary request, if both present
+          const newExpiryDate = existing.expiryDate && existingCredit.expiryDate
+            ? (existing.expiryDate > existingCredit.expiryDate ? existing.expiryDate : existingCredit.expiryDate)
+            : existing.expiryDate ?? existingCredit.expiryDate;
+
           creditLimit = await tx.creditLimit.update({
             where: { id: existingCredit.id },
             data: {
               limitAmount: newLimitAmount,
               availableAmount: newAvailableAmount,
+              expiryDate: newExpiryDate,
               notes: `${existingCredit.notes ?? ""}\nMerged temporary credit: +${String(existing.requestedAmount)}`,
             },
           });
