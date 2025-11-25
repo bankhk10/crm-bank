@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import DatePicker from "@/components/custom/DatePicker";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 
@@ -25,6 +26,7 @@ export type CustomerPayload = {
   contactPhone?: string;
   contactEmail?: string;
   notes?: string;
+  birthDate?: string;
 };
 
 export type SubmitResult = {
@@ -68,6 +70,7 @@ export default function CustomerForm({
     contactPhone: initial.contactPhone ?? "",
     contactEmail: initial.contactEmail ?? "",
     notes: initial.notes ?? "",
+    birthDate: initial.birthDate ?? "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -215,6 +218,18 @@ export default function CustomerForm({
               clearFieldError("lastName");
             }}
             error={fieldErrors.lastName?.[0]}
+          />
+        </div>
+
+        <div>
+          <DatePicker
+            label="วันเกิด"
+            value={payload.birthDate}
+            onChange={(v) => {
+              setPayload((p) => ({ ...p, birthDate: v }));
+              clearFieldError("birthDate");
+            }}
+            placeholder=""
           />
         </div>
 

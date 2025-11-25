@@ -244,6 +244,7 @@ model Customer {
   name                  String
   prefix                String?
   firstName             String?
+  birthDate             DateTime?
   lastName              String?
   email                 String?
   phone                 String?

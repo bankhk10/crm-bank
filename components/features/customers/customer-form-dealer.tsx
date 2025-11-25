@@ -173,6 +173,7 @@ export default function CustomerFormDealer({
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
+        birthDate: values.birthDate ?? undefined,
       email: values.email ?? "",
       phone: values.phone ?? "",
       taxId: values.taxId ?? "",
