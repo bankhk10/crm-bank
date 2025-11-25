@@ -5,6 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import CustomerForm from "@/components/features/customers/customer-form";
+import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
+import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
+import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
+import CustomerFormBroker from "@/components/features/customers/customer-form-broker";
 
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };
@@ -138,16 +142,73 @@ export default function EditCustomerPage() {
               <div className="mt-4 h-4 w-3/5 bg-slate-200 rounded" />
             </div>
           ) : (
-            <CustomerForm
-              initial={payload}
-              onSubmit={async (body) => {
-                const result = await handleUpdate(body);
-                if (result.success) router.push(`/customers`);
-                return result;
-              }}
-              onCancel={() => router.push(`/customers`)}
-              submitLabel="บันทึก"
-            />
+            <div>
+              {payload.customerType === "DEALER" && (
+                <CustomerFormDealer
+                  initial={payload}
+                  onSubmit={async (body) => {
+                    const result = await handleUpdate(body);
+                    if (result.success) router.push(`/customers`);
+                    return result;
+                  }}
+                  onCancel={() => router.push(`/customers`)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {payload.customerType === "SUBDEALER" && (
+                <CustomerFormSubdealer
+                  initial={payload}
+                  onSubmit={async (body) => {
+                    const result = await handleUpdate(body);
+                    if (result.success) router.push(`/customers`);
+                    return result;
+                  }}
+                  onCancel={() => router.push(`/customers`)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {payload.customerType === "FARMER" && (
+                <CustomerFormFarmer
+                  initial={payload}
+                  onSubmit={async (body) => {
+                    const result = await handleUpdate(body);
+                    if (result.success) router.push(`/customers`);
+                    return result;
+                  }}
+                  onCancel={() => router.push(`/customers`)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {payload.customerType === "BROKER" && (
+                <CustomerFormBroker
+                  initial={payload}
+                  onSubmit={async (body) => {
+                    const result = await handleUpdate(body);
+                    if (result.success) router.push(`/customers`);
+                    return result;
+                  }}
+                  onCancel={() => router.push(`/customers`)}
+                  submitLabel="บันทึก"
+                />
+              )}
+
+              {/* Fallback to generic form if type missing */}
+              {!payload.customerType && (
+                <CustomerForm
+                  initial={payload}
+                  onSubmit={async (body) => {
+                    const result = await handleUpdate(body);
+                    if (result.success) router.push(`/customers`);
+                    return result;
+                  }}
+                  onCancel={() => router.push(`/customers`)}
+                  submitLabel="บันทึก"
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
