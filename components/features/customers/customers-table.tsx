@@ -65,11 +65,6 @@ export interface CustomersTableProps {
   pagination: CustomersPagination;
 }
 
-const thaiDateFormatter = new Intl.DateTimeFormat("th-TH", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 const customerTypeMap: Record<string, string> = {
   DEALER: "ตัวแทนจำหน่าย",
