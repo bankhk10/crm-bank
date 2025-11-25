@@ -201,6 +201,14 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "menu.temporary_credit_limits",
+        name: "Temporary Credit Limit menu",
+        category: "MENU",
+        menuPath: "/temporary-credit-limits",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.create",
         name: "Create product",
         category: "ACTION",
@@ -363,6 +371,60 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "temporary_creditlimit.create",
+        name: "Create temporary credit limit",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "temporary_creditlimit.edit",
+        name: "Edit temporary credit limit",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "temporary_creditlimit.delete",
+        name: "Delete temporary credit limit",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "temporary_creditlimit.view",
+        name: "View temporary credit limit details",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "temporary_creditlimit.approve",
+        name: "Approve temporary credit limit",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "approve",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "temporary_creditlimit.reject",
+        name: "Reject temporary credit limit",
+        category: "ACTION",
+        resource: "temporary_creditlimit",
+        action: "reject",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "randomize",
         name: "Randomize data",
         category: "ACTION",
@@ -429,6 +491,15 @@ async function main() {
         name: "Credit Limit data scope",
         category: "DATA",
         resource: "creditlimit",
+        defaultDataAccess: "VIEW_DEPARTMENT",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "data.temporary_creditlimits",
+        name: "Temporary Credit Limit data scope",
+        category: "DATA",
+        resource: "temporary_creditlimit",
         defaultDataAccess: "VIEW_DEPARTMENT",
       },
     }),

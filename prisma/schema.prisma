@@ -49,6 +49,12 @@ enum CreditLimitStatus {
   EXPIRED
 }
 
+enum TemporaryCreditStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String    @id @default(cuid())
   name         String
@@ -61,11 +67,13 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  department          Department?              @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
-  position            Position?                @relation("UserPosition", fields: [positionId], references: [id], onDelete: SetNull)
-  employeeProfile     Employee?                @relation("UserEmployeeProfile")
-  userRoles           UserRole[]
-  permissionOverrides UserPermissionOverride[]
+  department                    Department?              @relation("DepartmentUsers", fields: [departmentId], references: [id], onDelete: SetNull)
+  position                      Position?                @relation("UserPosition", fields: [positionId], references: [id], onDelete: SetNull)
+  employeeProfile               Employee?                @relation("UserEmployeeProfile")
+  userRoles                     UserRole[]
+  permissionOverrides           UserPermissionOverride[]
+  requestedTemporaryCreditLimits TemporaryCreditLimit[]  @relation("TemporaryCreditRequester")
+  approvedTemporaryCreditLimits  TemporaryCreditLimit[]  @relation("TemporaryCreditApprover")
 }
 
 model Company {
@@ -269,10 +277,11 @@ model Customer {
   updatedAt             DateTime       @updatedAt
   deletedAt             DateTime?
 
-  creditLimits        CreditLimit[]
-  parentDealer        Customer?     @relation("ParentDealer", fields: [parentDealerId], references: [id], onDelete: SetNull)
-  subDealers          Customer[]    @relation("ParentDealer")
-  responsibleEmployee Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
+  creditLimits            CreditLimit[]
+  temporaryCreditLimits   TemporaryCreditLimit[]
+  parentDealer            Customer?     @relation("ParentDealer", fields: [parentDealerId], references: [id], onDelete: SetNull)
+  subDealers              Customer[]    @relation("ParentDealer")
+  responsibleEmployee     Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
 }
 
 model CreditLimit {
@@ -294,4 +303,25 @@ model CreditLimit {
   deletedAt       DateTime?
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model TemporaryCreditLimit {
+  id                  String                 @id @default(cuid())
+  customerId          String
+  requestedAmount     Decimal                @db.Decimal(15, 2)
+  expiryDate          DateTime
+  notes               String?
+  status              TemporaryCreditStatus  @default(PENDING)
+  rejectionReason     String?
+  requestedById       String?
+  requestedAt         DateTime               @default(now())
+  approvedById        String?
+  approvedAt          DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  deletedAt           DateTime?
+
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  requestedBy     User?    @relation("TemporaryCreditRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+  approvedBy      User?    @relation("TemporaryCreditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
 }
