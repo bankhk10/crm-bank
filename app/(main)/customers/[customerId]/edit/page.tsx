@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import CustomerForm from "@/components/features/customers/customer-form";
 import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
 import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
 import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
@@ -195,9 +194,9 @@ export default function EditCustomerPage() {
                 />
               )}
 
-              {/* Fallback to generic form if type missing */}
+              {/* Fallback to dealer form if type missing */}
               {!payload.customerType && (
-                <CustomerForm
+                <CustomerFormDealer
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
