@@ -477,7 +477,6 @@ export function CustomersTable(props: CustomersTableProps) {
           onStatusFilterChange={onStatusFilterChange}
         />
       }
-      footer={<CustomersPagination pagination={pagination} loading={loading} />}
       emptyState={{
         title: "ยังไม่มีลูกค้า",
         description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างลูกค้าใหม่",
