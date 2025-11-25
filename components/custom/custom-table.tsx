@@ -85,14 +85,7 @@ function DefaultToolbar(props: Pick<CustomTableProps<any>, "canCreate" | "search
               </span>
             </Button>
           </Link>
-        ) : (
-          <Button className="w-full lg:w-auto" variant="outline" disabled>
-            <span className="inline-flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              สร้างใหม่
-            </span>
-          </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );
