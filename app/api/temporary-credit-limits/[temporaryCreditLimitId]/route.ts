@@ -101,6 +101,14 @@ export async function PUT(request: Request, context: any) {
       : parsed.data.expiryDate;
   }
 
+  // If this record was previously rejected, sending an edit should return it to pending
+  if (existing.status === "REJECTED") {
+    updateData.status = "PENDING";
+    updateData.rejectionReason = null;
+    updateData.approvedById = null;
+    updateData.approvedAt = null;
+  }
+
   const temporaryCreditLimit = await db.temporaryCreditLimit.update({
     where: { id: params.temporaryCreditLimitId },
     data: updateData,
