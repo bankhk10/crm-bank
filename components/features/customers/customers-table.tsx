@@ -6,14 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  PlusCircle,
-} from "lucide-react";
+import { Eye, Edit, Trash2, PlusCircle } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -354,82 +347,6 @@ function CustomersToolbar(
               </span>
             </Button>
           )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CustomersPagination({
-  pagination,
-  loading,
-}: {
-  pagination: CustomersPagination;
-  loading?: boolean;
-}) {
-  const totalPages = Math.max(
-    1,
-    Math.ceil(pagination.total / pagination.perPage)
-  );
-  const disableNav = loading || pagination.total === 0;
-
-  return (
-    <div className="flex flex-col gap-4 rounded-md border bg-background/60 px-4 mt-4 py-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-      <span>
-        {pagination.total > 0
-          ? `แสดง ${(pagination.page - 1) * pagination.perPage + 1}-${Math.min(
-              pagination.page * pagination.perPage,
-              pagination.total
-            )} จาก ${pagination.total} รายการ`
-          : "ไม่มีข้อมูลให้แสดง"}
-      </span>
-
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          ต่อหน้า
-          <Select
-            value={String(pagination.perPage)}
-            onValueChange={(value) => pagination.onPerPageChange(Number(value))}
-          >
-            <SelectTrigger size="sm" className="ml-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
-                <SelectItem key={option} value={String(option)}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              pagination.onPageChange(Math.max(1, pagination.page - 1))
-            }
-            disabled={disableNav || pagination.page <= 1}
-            aria-label="ก่อนหน้า"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            หน้า {pagination.page} / {isFinite(totalPages) ? totalPages : 1}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              pagination.onPageChange(Math.min(totalPages, pagination.page + 1))
-            }
-            disabled={disableNav || pagination.page >= totalPages}
-            aria-label="ถัดไป"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </div>
