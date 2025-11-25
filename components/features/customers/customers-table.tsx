@@ -383,14 +383,14 @@ function ParentDealerInfo({ parentDealerId, dealerId }: { parentDealerId?: strin
 
   // Otherwise show parent dealer info
   if (!parentDealerId) {
-    return <div className="text-sm">ไม่มีข้อมูลตัวแทนหลัก</div>;
+    return <div className="text-sm">ไม่มีข้อมูลร้านหลัก</div>;
   }
-  if (!parent) return <div className="text-sm">ไม่พบข้อมูลตัวแทนหลัก</div>;
+  if (!parent) return <div className="text-sm">ไม่พบข้อมูลร้านหลัก</div>;
 
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       <div>
-        <div className="text-xs text-muted-foreground">ตัวแทนหลัก</div>
+        <div className="text-xs text-muted-foreground">ร้านหลัก</div>
         <div className="font-medium">{parent.name ?? "-"}</div>
       </div>
       <div>

@@ -27,11 +27,54 @@ const companyNames = [
   "สมาร์ทสตาร์",
   "ไทยโปรดักส์",
   "กรุ๊ป ซัพพลาย",
+  "เอปซิลอน กรุ๊ป",
+  "โอเมก้า เทรดดิ้ง",
+  "สยาม ดิจิตอล",
+  "ฟิวเจอร์ วิชั่น",
+  "โกลบอล ซิสเต็ม",
+  "เน็กซ์ เจน เน็ตเวิร์ค",
+  "ไพร์ม โซลูชั่น",
+  "โกลเด้น เกท",
+  "ซิลเวอร์ พลัส",
+  "ไซเบอร์ ลิงค์",
+  "อีซี่ คอร์ป",
+  "สตาร์ อินโนเวชั่น",
+  "บลู โอเชียน",
+  "กรีน เอ็นเนอร์จี",
+  "ท็อป เทียร์ เทค",
+  "วิสดอม ซอฟต์",
+  "อินฟินิตี้ เวิลด์",
+  "แมทริกซ์ ซัพพลาย",
+  "พาวเวอร์ กริด",
+  "ยูนิค ดีไซน์",
+  "ออพติม่า เซอร์วิส",
 ];
 
 const prefixes = ["นาย", "นาง", "นางสาว"];
-const firstNames = ["สมชาย", "สมหญิง", "กิตติ", "อรทัย", "จิราภรณ์", "อนุชา", "วรพล", "ธนภัทร", "ณัฐพล", "สุดารัตน์"];
-const lastNames = ["ศรีสวัสดิ์", "ประเสริฐ", "จันทร์อ่อน", "กาญจนกิจ", "บุญมาก", "ชัยชนะ", "ทรัพย์สมบัติ", "รัตนสุข", "ประดิษฐ์", "วัฒนารักษ์"];
+const firstNames = [
+  "สมชาย",
+  "สมหญิง",
+  "กิตติ",
+  "อรทัย",
+  "จิราภรณ์",
+  "อนุชา",
+  "วรพล",
+  "ธนภัทร",
+  "ณัฐพล",
+  "สุดารัตน์",
+];
+const lastNames = [
+  "ศรีสวัสดิ์",
+  "ประเสริฐ",
+  "จันทร์อ่อน",
+  "กาญจนกิจ",
+  "บุญมาก",
+  "ชัยชนะ",
+  "ทรัพย์สมบัติ",
+  "รัตนสุข",
+  "ประดิษฐ์",
+  "วัฒนารักษ์",
+];
 
 export type DealerRandomPayload = {
   customerCode?: string;
@@ -53,30 +96,51 @@ export type DealerRandomPayload = {
   relationshipScore?: number;
 };
 
-export function generateRandomDealer(overrides: Partial<DealerRandomPayload> = {}): DealerRandomPayload {
+export function generateRandomDealer(
+  overrides: Partial<DealerRandomPayload> = {}
+): DealerRandomPayload {
   const baseName = rand(companyNames);
   const prefix = rand(companyPrefixes);
   const name = `${prefix} ${baseName}`;
-  const short = baseName.split(" ")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  const short = baseName
+    .split(" ")[0]
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase();
   const phone = `0${Math.floor(Math.random() * 9) + 6}${randNumberString(8)}`;
   const email = `${short}${Math.floor(Math.random() * 900 + 100)}@example.com`;
   const taxId = randNumberString(13);
 
   const provObj = provincesData.length ? rand(provincesData) : undefined;
-  const districtObj = provObj?.districts && provObj.districts.length ? rand(provObj.districts) : undefined;
-  const subObj = districtObj?.sub_districts && districtObj.sub_districts.length ? rand(districtObj.sub_districts) : undefined;
+  const districtObj =
+    provObj?.districts && provObj.districts.length
+      ? rand(provObj.districts)
+      : undefined;
+  const subObj =
+    districtObj?.sub_districts && districtObj.sub_districts.length
+      ? rand(districtObj.sub_districts)
+      : undefined;
 
   const province = provObj?.name_th ?? "กรุงเทพมหานคร";
-  const district = districtObj?.name_th ?? `อำเภอ${Math.floor(Math.random() * 100)}`;
-  const subdistrict = subObj?.name_th ?? `ตำบล${Math.floor(Math.random() * 100)}`;
-  const postalCode = subObj?.zip_code ? String(subObj.zip_code) : (10000 + Math.floor(Math.random() * 80000)).toString().slice(0, 5);
-  const addressLine = `เลขที่ ${Math.ceil(Math.random() * 200)} ถนนสุขสวัสดิ์ ต.${subdistrict} อ.${district}`;
+  const district =
+    districtObj?.name_th ?? `อำเภอ${Math.floor(Math.random() * 100)}`;
+  const subdistrict =
+    subObj?.name_th ?? `ตำบล${Math.floor(Math.random() * 100)}`;
+  const postalCode = subObj?.zip_code
+    ? String(subObj.zip_code)
+    : (10000 + Math.floor(Math.random() * 80000)).toString().slice(0, 5);
+  const addressLine = `เลขที่ ${Math.ceil(
+    Math.random() * 200
+  )} ถนนสุขสวัสดิ์ ต.${subdistrict} อ.${district}`;
 
   const personPrefix = rand(prefixes);
   const firstName = rand(firstNames);
   const lastName = rand(lastNames);
-  const contactPhone = `0${Math.floor(Math.random() * 9) + 6}${randNumberString(8)}`;
-  const contactEmail = `${(firstName + lastName).replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}${Math.floor(Math.random() * 900 + 100)}@example.com`;
+  const contactPhone = `0${Math.floor(Math.random() * 9) + 6}${randNumberString(
+    8
+  )}`;
+  const contactEmail = `${(firstName + lastName)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toLowerCase()}${Math.floor(Math.random() * 900 + 100)}@example.com`;
 
   const payload: DealerRandomPayload = {
     name,
@@ -99,7 +163,8 @@ export function generateRandomDealer(overrides: Partial<DealerRandomPayload> = {
   };
 
   // ensure postalCode is string
-  if (typeof payload.postalCode === "number") payload.postalCode = String(payload.postalCode);
+  if (typeof payload.postalCode === "number")
+    payload.postalCode = String(payload.postalCode);
 
   return payload;
 }
