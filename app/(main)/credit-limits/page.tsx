@@ -112,7 +112,7 @@ export default function CreditLimitsPage() {
             name: c.name,
             phone: c.phone,
             email: c.email,
-            creditLimits: (c.creditLimits || []).map((cl: any) => ({ id: cl.id, limitAmount: cl.limitAmount })),
+            creditLimits: (c.creditLimits || []).map((cl: any) => ({ id: cl.id, limitAmount: cl.limitAmount, promoAmount: cl.promoAmount })),
           })));
           setTotal(typeof json.total === "number" ? json.total : 0);
         }

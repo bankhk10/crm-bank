@@ -20,6 +20,7 @@ export type CreditLimitRecord = {
     customerCode: string;
   };
   limitAmount: number;
+  promoAmount?: number;
   usedAmount: number;
   availableAmount: number;
   status: string;
@@ -108,6 +109,21 @@ function useCreditLimitColumns(
           align: "right",
         },
         cell: ({ row }) => currencyFormatter.format(row.original.limitAmount),
+      },
+      {
+        accessorKey: "promoAmount",
+        header: "วงเงินส่งเสริมกิจกรรม",
+        meta: {
+          headerAlign: "right",
+          minWidth: 140,
+          width: 170,
+          maxWidth: 200,
+          align: "right",
+        },
+        cell: ({ row }) =>
+          row.original.promoAmount !== undefined && row.original.promoAmount !== null
+            ? currencyFormatter.format(Number(row.original.promoAmount))
+            : "-",
       },
       {
         accessorKey: "usedAmount",

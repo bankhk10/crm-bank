@@ -13,7 +13,7 @@ export type CustomerRecord = {
   name: string;
   phone?: string | null;
   email?: string | null;
-  creditLimits?: Array<{ id: string; limitAmount: number }>; // latest included
+  creditLimits?: Array<{ id: string; limitAmount: number; promoAmount?: number }>; // latest included
 };
 
 export interface CustomersCreditTableProps {
@@ -59,6 +59,20 @@ function useColumns() {
           return cl ? new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(cl.limitAmount) : "-";
         },
         meta: { minWidth: 140, width: 180, align: "right" },
+      },
+      {
+        id: "promoAmount",
+        header: "วงเงินส่งเสริมกิจกรรม",
+        cell: ({ row }) => {
+          const r = row.original;
+          const cl = r.creditLimits && r.creditLimits[0];
+          if (!cl || cl.promoAmount === undefined || cl.promoAmount === null) return "-";
+          const v = Number((cl as any).promoAmount);
+          return Number.isFinite(v)
+            ? new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(v)
+            : "-";
+        },
+        meta: { minWidth: 160, width: 200, align: "right" },
       },
       {
         id: "actions",
