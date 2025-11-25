@@ -69,7 +69,8 @@ const customerTypeMap: Record<string, string> = {
 
 function useCustomerColumns(
   onDeleteRequest: (customer: CustomerRecord) => void,
-  canDelete: boolean
+  canDelete: boolean,
+  data: CustomerRecord[] | undefined
 ) {
   return React.useMemo<ColumnDef<CustomerRecord>[]>(
     () => [
@@ -83,18 +84,26 @@ function useCustomerColumns(
           align: "center",
           headerAlign: "center",
         },
-        cell: ({ row }) => (
-          <button
-            type="button"
-            onClick={() => row.toggleExpanded?.()}
-            aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
-            className="p-1 rounded hover:bg-slate-100"
-          >
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${row.getIsExpanded() ? "rotate-180" : "rotate-0"}`}
-            />
-          </button>
-        ),
+        cell: ({ row }) => {
+          const orig = row.original as CustomerRecord;
+          const hasChildren = !!data && data.some((d) => d.parentDealerId === orig.id);
+          const showExpander = hasChildren || !!orig.parentDealerId;
+
+          if (!showExpander) return <div className="p-1" />;
+
+          return (
+            <button
+              type="button"
+              onClick={() => row.toggleExpanded?.()}
+              aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
+              className="p-1 rounded hover:bg-slate-100"
+            >
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${row.getIsExpanded() ? "rotate-180" : "rotate-0"}`}
+              />
+            </button>
+          );
+        },
       },
       {
         accessorKey: "customerCode",
@@ -266,59 +275,131 @@ function useCustomerColumns(
   );
 }
 
-function ParentDealerInfo({ parentDealerId }: { parentDealerId?: string | null }) {
-  const [data, setData] = React.useState<CustomerRecord | null>(null);
+function ParentDealerInfo({ parentDealerId, dealerId }: { parentDealerId?: string | null; dealerId?: string | null }) {
+  const [parent, setParent] = React.useState<CustomerRecord | null>(null);
+  const [children, setChildren] = React.useState<CustomerRecord[] | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!parentDealerId) return;
     let mounted = true;
-    setLoading(true);
     setError(null);
-    fetch(`/api/customers/${parentDealerId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch parent dealer");
-        return res.json();
-      })
-      .then((json) => {
-        if (!mounted) return;
-        setData(json as CustomerRecord);
-      })
-      .catch((err) => {
-        if (!mounted) return;
-        setError(err?.message || "Error fetching parent dealer");
-      })
-      .finally(() => {
-        if (!mounted) return;
-        setLoading(false);
-      });
+    // If dealerId is provided (meaning this row is a main dealer), fetch its sub-dealers (children)
+    if (dealerId) {
+      setLoading(true);
+      fetch(`/api/customers?parentDealerId=${encodeURIComponent(dealerId)}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch sub-dealers");
+          return res.json();
+        })
+        .then((json) => {
+          if (!mounted) return;
+          // API returns { customers: [...] } or directly an array
+          const list = Array.isArray(json)
+            ? json
+            : json?.customers ?? json?.data ?? json?.items ?? [];
+          setChildren(list as CustomerRecord[]);
+        })
+        .catch((err) => {
+          if (!mounted) return;
+          setError(err?.message || "Error fetching sub-dealers");
+        })
+        .finally(() => {
+          if (!mounted) return;
+          setLoading(false);
+        });
+      return () => {
+        mounted = false;
+      };
+    }
+
+    // Otherwise, if there is a parentDealerId, fetch the parent dealer
+    if (parentDealerId) {
+      setLoading(true);
+      fetch(`/api/customers/${parentDealerId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch parent dealer");
+          return res.json();
+        })
+        .then((json) => {
+          if (!mounted) return;
+          // API returns { customer: {...} }
+          const p = json?.customer ?? (json as any);
+          setParent(p as CustomerRecord);
+        })
+        .catch((err) => {
+          if (!mounted) return;
+          setError(err?.message || "Error fetching parent dealer");
+        })
+        .finally(() => {
+          if (!mounted) return;
+          setLoading(false);
+        });
+    }
 
     return () => {
       mounted = false;
     };
-  }, [parentDealerId]);
+  }, [parentDealerId, dealerId]);
 
+  if (loading) return <div className="text-sm">กำลังโหลดข้อมูล...</div>;
+  if (error) return <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>;
+
+  // Show children when dealerId present (main dealer)
+  if (dealerId) {
+    if (!children || children.length === 0) {
+      return <div className="text-sm">ยังไม่มีร้านรองภายใต้ร้านหลักนี้</div>;
+    }
+
+    return (
+      <div className="space-y-3">
+        {children.map((child) => (
+          <div
+            key={child.id}
+            className="flex items-center justify-between rounded-md border p-3 bg-white"
+          >
+            <div className="flex items-center gap-4">
+              <div className="font-medium">{child.name ?? "-"}</div>
+              <div className="text-sm text-muted-foreground">{child.email ?? "-"}</div>
+              <div className="text-sm text-muted-foreground">{child.phone ?? "-"}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href={`/customers/${child.id}`}>
+                <Button size="icon-sm" variant="outline">
+                  <Eye className="size-4" />
+                </Button>
+              </Link>
+              <Link href={`/customers/${child.id}/edit`}>
+                <Button size="icon-sm" variant="outline">
+                  <Edit className="size-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Otherwise show parent dealer info
   if (!parentDealerId) {
     return <div className="text-sm">ไม่มีข้อมูลตัวแทนหลัก</div>;
   }
-  if (loading) return <div className="text-sm">กำลังโหลดข้อมูลตัวแทนหลัก...</div>;
-  if (error) return <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>;
-  if (!data) return <div className="text-sm">ไม่พบข้อมูลตัวแทนหลัก</div>;
+  if (!parent) return <div className="text-sm">ไม่พบข้อมูลตัวแทนหลัก</div>;
 
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       <div>
         <div className="text-xs text-muted-foreground">ตัวแทนหลัก</div>
-        <div className="font-medium">{data.name ?? "-"}</div>
+        <div className="font-medium">{parent.name ?? "-"}</div>
       </div>
       <div>
         <div className="text-xs text-muted-foreground">อีเมล</div>
-        <div className="font-medium">{data.email ?? "-"}</div>
+        <div className="font-medium">{parent.email ?? "-"}</div>
       </div>
       <div>
         <div className="text-xs text-muted-foreground">โทร</div>
-        <div className="font-medium">{data.phone ?? "-"}</div>
+        <div className="font-medium">{parent.phone ?? "-"}</div>
       </div>
     </div>
   );
@@ -453,7 +534,7 @@ export function CustomersTable(props: CustomersTableProps) {
     pagination,
   } = props;
 
-  const columns = useCustomerColumns(onDeleteRequest, canDelete);
+  const columns = useCustomerColumns(onDeleteRequest, canDelete, data);
   return (
     <CustomTable
       columns={columns}
@@ -487,7 +568,10 @@ export function CustomersTable(props: CustomersTableProps) {
         const c = row.original as CustomerRecord;
         return (
           <div className="p-4 bg-slate-50">
-            <ParentDealerInfo parentDealerId={c.parentDealerId} />
+            <ParentDealerInfo
+              parentDealerId={c.parentDealerId}
+              dealerId={c.parentDealerId ? undefined : c.id}
+            />
           </div>
         );
       }}
