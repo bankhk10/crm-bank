@@ -10,7 +10,7 @@ import {
   CustomerFormProps,
   CustomerPayload,
   SubmitResult,
-} from "./customer-form";
+} from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
