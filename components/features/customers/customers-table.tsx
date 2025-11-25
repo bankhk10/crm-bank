@@ -8,7 +8,7 @@ import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
-import { DataTable } from "@/components/ui/data-table";
+import CustomTable from "@/components/custom/custom-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import {
@@ -359,6 +359,8 @@ function CustomersToolbar(
 }
 
 function CustomersPagination({
+
+  
   pagination,
   loading,
 }: {
@@ -458,7 +460,7 @@ export function CustomersTable(props: CustomersTableProps) {
 
   const columns = useCustomerColumns(onDeleteRequest, canDelete);
   return (
-    <DataTable
+    <CustomTable
       columns={columns}
       data={data}
       loading={loading}

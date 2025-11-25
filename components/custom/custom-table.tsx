@@ -38,6 +38,7 @@ export interface CustomTableProps<TData, TValue = any> {
   onDateRangeChange?: (range: DateRange | undefined) => void;
 
   pagination?: TablePagination;
+  footer?: React.ReactNode;
   emptyState?: DataTableEmptyState;
   className?: string;
 }
@@ -158,6 +159,7 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     data,
     loading,
     toolbar,
+    footer,
     canCreate,
     createHref,
     searchValue,
@@ -184,7 +186,7 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     />
   );
 
-  const builtFooter = pagination ? <DefaultPagination pagination={pagination} loading={loading} /> : undefined;
+  const builtFooter = footer ?? (pagination ? <DefaultPagination pagination={pagination} loading={loading} /> : undefined);
 
   return (
     <DataTable
