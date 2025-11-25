@@ -155,7 +155,7 @@ export default function CompaniesPage() {
 
       {/* Delete confirm dialog */}
       {deleteCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
           <div
             className="bg-black/50 absolute inset-0"
             onClick={() => setDeleteCandidate(null)}
