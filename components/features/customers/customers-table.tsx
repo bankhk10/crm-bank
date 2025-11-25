@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, PlusCircle } from "lucide-react";
+import { Eye, Edit, Trash2, PlusCircle, ChevronDown } from "lucide-react";
 import Tooltip from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -72,6 +72,29 @@ function useCustomerColumns(
 ) {
   return React.useMemo<ColumnDef<CustomerRecord>[]>(
     () => [
+      {
+        id: "expander",
+        header: "",
+        meta: {
+          width: 36,
+          minWidth: 36,
+          maxWidth: 36,
+          align: "center",
+          headerAlign: "center",
+        },
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={() => row.toggleExpanded?.()}
+            aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
+            className="p-1 rounded hover:bg-slate-100"
+          >
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${row.getIsExpanded() ? "rotate-180" : "rotate-0"}`}
+            />
+          </button>
+        ),
+      },
       {
         accessorKey: "customerCode",
         header: "รหัสลูกค้า",
@@ -401,6 +424,27 @@ export function CustomersTable(props: CustomersTableProps) {
         ) : undefined,
       }}
       className="w-full"
+      renderSubComponent={({ row }) => {
+        const c = row.original as CustomerRecord;
+        return (
+          <div className="p-4 bg-slate-50">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div>
+                <div className="text-xs text-muted-foreground">อีเมล</div>
+                <div className="font-medium">{c.email ?? "-"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">โทร</div>
+                <div className="font-medium">{c.phone ?? "-"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">สร้างเมื่อ</div>
+                <div className="font-medium">{c.createdAt ? new Date(c.createdAt).toLocaleString() : "-"}</div>
+              </div>
+            </div>
+          </div>
+        );
+      }}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,10 @@ export interface CustomTableProps<TData, TValue = any> {
   pagination?: TablePagination;
   emptyState?: DataTableEmptyState;
   className?: string;
+  /** Optional sub-component renderer for expanded rows */
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode;
+  /** Optional function to decide whether a row can expand */
+  getRowCanExpand?: (row: Row<TData>) => boolean;
 }
 
 function DefaultToolbar(props: Pick<CustomTableProps<any>, "canCreate" | "searchValue" | "onSearchChange" | "isTyping" | "onSearchSubmit" | "dateRange" | "onDateRangeChange" | "createHref">) {
@@ -174,6 +178,8 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     pagination,
     emptyState,
     className,
+    renderSubComponent,
+    getRowCanExpand,
   } = props;
 
   const builtToolbar = toolbar ?? (
@@ -198,6 +204,8 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
       loading={loading}
       toolbar={builtToolbar}
       footer={builtFooter}
+      renderSubComponent={renderSubComponent as any}
+      getRowCanExpand={getRowCanExpand as any}
       emptyState={emptyState}
       className={className}
     />

@@ -7,6 +7,8 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getExpandedRowModel,
+  Row,
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
@@ -27,6 +29,16 @@ export interface DataTableProps<TData, TValue> {
   loading?: boolean;
   toolbar?: React.ReactNode;
   footer?: React.ReactNode;
+  /**
+   * Optional: render a sub-component when a row is expanded.
+   * If provided, expansion support will be enabled.
+   */
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode;
+  /**
+   * Optional: function to determine if a row can be expanded.
+   * If provided, expansion support will be enabled.
+   */
+  getRowCanExpand?: (row: Row<TData>) => boolean;
   emptyState?: DataTableEmptyState;
   className?: string;
 }
@@ -37,6 +49,8 @@ export function DataTable<TData, TValue>({
   loading,
   toolbar,
   footer,
+  renderSubComponent,
+  getRowCanExpand,
   emptyState = {
     title: "ไม่พบข้อมูล",
     description: "ลองปรับเงื่อนไขหรือสร้างรายการใหม่",
@@ -56,6 +70,8 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    ...(renderSubComponent || getRowCanExpand ? { getExpandedRowModel: getExpandedRowModel() } : {}),
+    ...(getRowCanExpand ? { getRowCanExpand } : {}),
   });
 
   const skeletonRowCount = React.useMemo(() => Math.min(5, columns.length ? 5 : 0), [columns.length]);
@@ -224,38 +240,48 @@ export function DataTable<TData, TValue>({
 
             {(!loading || rowCount > 0) && !showEmptyState &&
               table.getRowModel().rows.map((row: any) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
-                  {row.getVisibleCells().map((cell: any) => {
-                    const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
-                    const cellValue = cell.getValue();
-                    const cellTitle =
-                      typeof cellValue === "string" || typeof cellValue === "number"
-                        ? String(cellValue)
-                        : undefined;
+                <React.Fragment key={row.id}>
+                  <TableRow data-state={row.getIsSelected() ? "selected" : undefined}>
+                    {row.getVisibleCells().map((cell: any) => {
+                      const cellContent = flexRender(cell.column.columnDef.cell, cell.getContext());
+                      const cellValue = cell.getValue();
+                      const cellTitle =
+                        typeof cellValue === "string" || typeof cellValue === "number"
+                          ? String(cellValue)
+                          : undefined;
 
-                    const colMeta: any = (cell.column.columnDef as any).meta || {};
-                    const w = colMeta?.width;
-                    const minW = colMeta?.minWidth;
-                    const maxW = colMeta?.maxWidth;
-                    const align: string | undefined = colMeta?.align;
+                      const colMeta: any = (cell.column.columnDef as any).meta || {};
+                      const w = colMeta?.width;
+                      const minW = colMeta?.minWidth;
+                      const maxW = colMeta?.maxWidth;
+                      const align: string | undefined = colMeta?.align;
 
-                    const style: React.CSSProperties | undefined = (() => {
-                      const s: React.CSSProperties = {};
-                      if (minW !== undefined) s.minWidth = typeof minW === "number" ? `${minW}px` : minW;
-                      if (w !== undefined) s.width = typeof w === "number" ? `${w}px` : w;
-                      if (maxW !== undefined) s.maxWidth = typeof maxW === "number" ? `${maxW}px` : maxW;
-                      return Object.keys(s).length ? s : undefined;
-                    })();
+                      const style: React.CSSProperties | undefined = (() => {
+                        const s: React.CSSProperties = {};
+                        if (minW !== undefined) s.minWidth = typeof minW === "number" ? `${minW}px` : minW;
+                        if (w !== undefined) s.width = typeof w === "number" ? `${w}px` : w;
+                        if (maxW !== undefined) s.maxWidth = typeof maxW === "number" ? `${maxW}px` : maxW;
+                        return Object.keys(s).length ? s : undefined;
+                      })();
 
-                    const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+                      const alignClass = align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
 
-                    return (
-                      <TableCell key={cell.id} title={cellTitle} style={style} className={alignClass}>
-                        {cellContent}
+                      return (
+                        <TableCell key={cell.id} title={cellTitle} style={style} className={alignClass}>
+                          {cellContent}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+
+                  {renderSubComponent && row.getIsExpanded() && (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="p-0">
+                        {renderSubComponent({ row })}
                       </TableCell>
-                    );
-                  })}
-                </TableRow>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))}
 
             {showEmptyState && (
