@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import { Button } from "@/components/ui/button";
-import DatePicker from "@/components/custom/DatePicker";
 
 type CreditLimitPayload = {
   customerId: string;
@@ -64,7 +63,32 @@ export default function CreditLimitForm({
     setFieldErrors({});
 
     try {
-      const res = await onSubmit(payload);
+      // Normalize payload types: ensure numeric fields are numbers and dates are serialized
+      const submitPayload: any = {
+        customerId: payload.customerId,
+        limitAmount: Number(payload.limitAmount) || 0,
+        promoAmount:
+          payload.promoAmount !== undefined && payload.promoAmount !== null
+            ? Number((payload as any).promoAmount)
+            : undefined,
+        notes: payload.notes,
+      };
+
+      // Include optional dates if present (serialize to ISO)
+      if (payload.effectiveDate) {
+        submitPayload.effectiveDate =
+          payload.effectiveDate instanceof Date
+            ? payload.effectiveDate.toISOString()
+            : String(payload.effectiveDate);
+      }
+      if (payload.expiryDate) {
+        submitPayload.expiryDate =
+          payload.expiryDate instanceof Date
+            ? payload.expiryDate.toISOString()
+            : String(payload.expiryDate);
+      }
+
+      const res = await onSubmit(submitPayload);
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
@@ -137,39 +161,7 @@ export default function CreditLimitForm({
           />
         </div>
 
-        <div className="md:col-span-2">
-          <label className="text-sm font-medium text-gray-700 mb-2 block">
-            วันที่เริ่มใช้งาน <span className="text-red-500">*</span>
-          </label>
-          <DatePicker
-            value={payload.effectiveDate}
-            onChange={(date: string | undefined) => {
-              if (date) {
-                setPayload((p) => ({ ...p, effectiveDate: new Date(date) }));
-                clearFieldError("effectiveDate");
-              }
-            }}
-          />
-          {fieldErrors.effectiveDate?.[0] && (
-            <p className="text-sm text-red-500 mt-1">{fieldErrors.effectiveDate[0]}</p>
-          )}
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="text-sm font-medium text-gray-700 mb-2 block">
-            วันหมดอายุ (ถ้ามี)
-          </label>
-          <DatePicker
-            value={payload.expiryDate}
-            onChange={(date: string | undefined) => {
-              setPayload((p) => ({ ...p, expiryDate: date ? new Date(date) : undefined }));
-              clearFieldError("expiryDate");
-            }}
-          />
-          {fieldErrors.expiryDate?.[0] && (
-            <p className="text-sm text-red-500 mt-1">{fieldErrors.expiryDate[0]}</p>
-          )}
-        </div>
+        {/* Removed date fields as requested: effectiveDate and expiryDate */}
 
         <div className="md:col-span-2">
           <FloatingLabelInput
