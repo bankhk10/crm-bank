@@ -72,6 +72,13 @@ export default function EditCustomerPage() {
             contactPhone: src.contactPhone ?? "",
             contactEmail: src.contactEmail ?? "",
             notes: src.notes ?? "",
+            businessNotes: (src as any).businessNotes ?? src.notes ?? "",
+            latitude: (src as any).latitude ?? "",
+            longitude: (src as any).longitude ?? "",
+            parentDealer: (src as any).parentDealer ?? (src as any).parentDealerId ?? "",
+            responsibleEmployeeId: (src as any).responsibleEmployeeId ?? null,
+            relationshipScore: (src as any).relationshipScore ?? null,
+            birthDate: (src as any).birthDate ?? "",
           }));
         }
       } catch (e: any) {
