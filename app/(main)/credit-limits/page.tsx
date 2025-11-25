@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import CustomersCreditTable, { type CustomerRecord } from "@/components/features/credit-limits/customers-credit-table";
+import CustomersCreditTable, { type CustomerRecord } from "@/components/features/credit-limits/credit-limit-table";
 
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.credit_limits");
