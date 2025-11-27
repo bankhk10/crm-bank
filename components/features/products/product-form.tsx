@@ -1,0 +1,362 @@
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FloatingLabelInput } from "@/components/custom/FloatingLabelInputFixed";
+import { MultiSelect } from "@/components/custom/multi-select";
+import { Textarea } from "@/components/custom/Textarea";
+import { FileUpload } from "@/components/custom/file-upload";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  UNIT_OPTIONS,
+  PRODUCT_GROUP_OPTIONS,
+  BRAND_OPTIONS,
+  STATUS_OPTIONS,
+  PLANT_OPTIONS,
+  type ProductFormData,
+} from "@/types/product";
+
+interface ProductFormProps {
+  initialData?: Partial<ProductFormData>;
+  productId?: string;
+  isEdit?: boolean;
+}
+
+export function ProductForm({
+  initialData,
+  productId,
+  isEdit = false,
+}: ProductFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const [formData, setFormData] = useState<ProductFormData>({
+    productCode: initialData?.productCode || "",
+    name: initialData?.name || "",
+    commonName: initialData?.commonName || "",
+    unit: initialData?.unit || "",
+    productGroup: initialData?.productGroup || "",
+    brand: initialData?.brand || "",
+    packageSize: initialData?.packageSize || "",
+    packageSizePerBox: initialData?.packageSizePerBox || "",
+    status: initialData?.status || "ACTIVE",
+    usedForPlants: initialData?.usedForPlants || [],
+    salesPoint: initialData?.salesPoint || "",
+    properties: initialData?.properties || "",
+    images: initialData?.images || [],
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.productCode.trim()) {
+      newErrors.productCode = "กรุณากรอกรหัสสินค้า";
+    }
+
+    if (!formData.name.trim()) {
+      newErrors.name = "กรุณากรอกชื่อสินค้า";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      setError("กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // For now, we'll handle images separately through an upload API
+      // In production, you'd upload images first and get URLs
+      const payload = {
+        productCode: formData.productCode,
+        name: formData.name,
+        commonName: formData.commonName || undefined,
+        unit: formData.unit || undefined,
+        productGroup: formData.productGroup || undefined,
+        brand: formData.brand || undefined,
+        packageSize: formData.packageSize || undefined,
+        packageSizePerBox: formData.packageSizePerBox || undefined,
+        status: formData.status,
+        usedForPlants: formData.usedForPlants,
+        salesPoint: formData.salesPoint || undefined,
+        properties: formData.properties || undefined,
+      };
+
+      const url = isEdit ? `/api/products/${productId}` : "/api/products";
+      const method = isEdit ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "เกิดข้อผิดพลาด");
+      }
+
+      const data = await res.json();
+      setSuccess(true);
+
+      // TODO: Handle image upload here if images were selected
+      // await uploadImages(data.product.id, formData.images);
+
+      setTimeout(() => {
+        router.push("/products");
+        router.refresh();
+      }, 1500);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="bg-green-50 text-green-900 border-green-200">
+          <AlertDescription>
+            บันทึกข้อมูลสำเร็จ กำลังนำทางกลับไปหน้ารายการสินค้า...
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
+        <h2 className="text-xl font-semibold text-gray-900">ข้อมูลสินค้า</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FloatingLabelInput
+            label="รหัสสินค้า *"
+            type="text"
+            value={formData.productCode}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                productCode: (e.target as HTMLInputElement).value,
+              }))
+            }
+            error={errors.productCode}
+            disabled={loading}
+          />
+
+          <FloatingLabelInput
+            label="ชื่อสินค้า *"
+            type="text"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                name: (e.target as HTMLInputElement).value,
+              }))
+            }
+            error={errors.name}
+            disabled={loading}
+          />
+
+          <FloatingLabelInput
+            label="ชื่อสามัญ"
+            type="text"
+            value={formData.commonName}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                commonName: (e.target as HTMLInputElement).value,
+              }))
+            }
+            disabled={loading}
+          />
+
+          <FloatingLabelInput
+            label="หน่วยนับ"
+            type="select"
+            options={UNIT_OPTIONS}
+            value={formData.unit}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                unit: e.target.value,
+              }))
+            }
+            disabled={loading}
+            searchable
+          />
+
+          <FloatingLabelInput
+            label="กลุ่มสินค้า"
+            type="select"
+            options={PRODUCT_GROUP_OPTIONS}
+            value={formData.productGroup}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                productGroup: e.target.value,
+              }))
+            }
+            disabled={loading}
+            searchable
+          />
+
+          <FloatingLabelInput
+            label="แบรนด์สินค้า"
+            type="select"
+            options={BRAND_OPTIONS}
+            value={formData.brand}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                brand: e.target.value,
+              }))
+            }
+            disabled={loading}
+            searchable
+          />
+
+          <FloatingLabelInput
+            label="ขนาดบรรจุ"
+            type="text"
+            value={formData.packageSize}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                packageSize: (e.target as HTMLInputElement).value,
+              }))
+            }
+            disabled={loading}
+          />
+
+          <FloatingLabelInput
+            label="ขนาดบรรจุต่อลัง"
+            type="text"
+            value={formData.packageSizePerBox}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                packageSizePerBox: (e.target as HTMLInputElement).value,
+              }))
+            }
+            disabled={loading}
+          />
+
+          <FloatingLabelInput
+            label="สถานะสินค้า"
+            type="select"
+            options={STATUS_OPTIONS}
+            value={formData.status}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                status: e.target.value as "ACTIVE" | "INACTIVE",
+              }))
+            }
+            disabled={loading}
+          />
+
+          <div className="md:col-span-2">
+            <MultiSelect
+              label="ใช้กับพืช"
+              options={PLANT_OPTIONS}
+              value={formData.usedForPlants}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  usedForPlants: value as string[],
+                }))
+              }
+              disabled={loading}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Textarea
+              label="จุดขายสินค้า"
+              value={formData.salesPoint}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  salesPoint: e.target.value,
+                }))
+              }
+              disabled={loading}
+              rows={3}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Textarea
+              label="คุณสมบัติ"
+              value={formData.properties}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  properties: e.target.value,
+                }))
+              }
+              disabled={loading}
+              rows={3}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <FileUpload
+              label="อัพโหลดรูปภาพสินค้า"
+              value={formData.images || []}
+              onChange={(files) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  images: files,
+                }))
+              }
+              accept="image/jpeg,image/png"
+              maxFiles={5}
+              maxSizeMB={2}
+              disabled={loading}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={loading}
+        >
+          ยกเลิก
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading
+            ? "กำลังบันทึก..."
+            : isEdit
+            ? "บันทึกการแก้ไข"
+            : "สร้างสินค้า"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export default ProductForm;

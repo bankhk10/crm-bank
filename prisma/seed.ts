@@ -159,14 +159,7 @@ async function main() {
         menuPath: "/dashboard/salesReport",
       },
     }),
-    prisma.permission.create({
-      data: {
-        key: "menu.products",
-        name: "Product menu",
-        category: "MENU",
-        menuPath: "/dashboard/products",
-      },
-    }),
+    
     prisma.permission.create({
       data: {
         key: "menu.employees",
@@ -209,6 +202,14 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "menu.products",
+        name: "Product menu",
+        category: "MENU",
+        menuPath: "/products",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.create",
         name: "Create product",
         category: "ACTION",
@@ -218,11 +219,11 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
-        key: "product.edit",
-        name: "Edit product",
+        key: "product.update",
+        name: "Update product",
         category: "ACTION",
         resource: "product",
-        action: "edit",
+        action: "update",
       },
     }),
     prisma.permission.create({
@@ -236,11 +237,20 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
-        key: "product.approve",
-        name: "Approve product",
+        key: "product.view",
+        name: "View product details",
         category: "ACTION",
         resource: "product",
-        action: "approve",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "product.manage",
+        name: "Manage product (pricing, stock, promotions)",
+        category: "ACTION",
+        resource: "product",
+        action: "manage",
       },
     }),
     prisma.permission.create({
@@ -531,9 +541,10 @@ async function main() {
       "menu.credit_limits",
       "menu.products",
       "product.create",
-      "product.edit",
-      "product.approve",
-      "product.reject",
+      "product.update",
+      "product.delete",
+      "product.view",
+      "product.manage",
       "company.create",
       "company.edit",
       "company.delete",
@@ -564,8 +575,10 @@ async function main() {
     data: [
       "menu.dashboard",
       "menu.sales",
+      "menu.products",
       "product.create",
-      "product.edit",
+      "product.update",
+      "product.view",
       "data.products",
     ].map((key) => ({
       roleId: salesRole.id,

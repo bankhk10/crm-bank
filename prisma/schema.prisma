@@ -325,3 +325,87 @@ model TemporaryCreditLimit {
   requestedBy     User?    @relation("TemporaryCreditRequester", fields: [requestedById], references: [id], onDelete: SetNull)
   approvedBy      User?    @relation("TemporaryCreditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
 }
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Product {
+  id                    String        @id @default(cuid())
+  productCode           String        @unique
+  name                  String
+  commonName            String?
+  unit                  String?
+  productGroup          String?
+  brand                 String?
+  packageSize           String?
+  packageSizePerBox     String?
+  status                ProductStatus @default(ACTIVE)
+  usedForPlants         String[]
+  salesPoint            String?
+  properties            String?
+  price                 Decimal?      @db.Decimal(15, 2)
+  promotionBudget       Decimal?      @db.Decimal(15, 2)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  deletedAt             DateTime?
+
+  images                ProductImage[]
+  promotionItems        ProductPromotionItem[]
+  freeItems             ProductFreeItem[]
+  stockLots             ProductStockLot[]
+}
+
+model ProductImage {
+  id          String   @id @default(cuid())
+  productId   String
+  url         String
+  filename    String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductFreeItem {
+  id              String   @id @default(cuid())
+  productId       String
+  purchaseQty     Int
+  freeQty         Int
+  netPrice        Decimal? @db.Decimal(15, 2)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductPromotionItem {
+  id              String   @id @default(cuid())
+  productId       String
+  name            String
+  quantity        Int
+  price           Decimal? @db.Decimal(15, 2)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductStockLot {
+  id              String    @id @default(cuid())
+  productId       String
+  lotNumber       String
+  quantity        Int
+  importDate      DateTime
+  expiryDate      DateTime?
+  storageLocation String?
+  notes           String?
+  isUsed          Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
