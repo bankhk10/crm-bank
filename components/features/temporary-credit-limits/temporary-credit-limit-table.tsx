@@ -70,7 +70,7 @@ function useColumns(
       },
       {
         accessorKey: "requestedAmount",
-        header: "จำนวนเงินที่ขอ",
+        header: "จำนวนเงิน",
         cell: (info) => {
           const value = info.getValue() as number;
           return new Intl.NumberFormat("th-TH", {
@@ -78,7 +78,7 @@ function useColumns(
             currency: "THB",
           }).format(value);
         },
-        meta: { minWidth: 140, width: 160, align: "right" },
+        meta: { minWidth: 140, width: 160, align: "center" },
       },
       {
         accessorKey: "expiryDate",
@@ -104,17 +104,6 @@ function useColumns(
         accessorKey: "requestedBy.name",
         header: "ผู้ขอ",
         cell: (info) => info.getValue() || "-",
-        meta: { minWidth: 140, width: 160, align: "left" },
-      },
-      {
-        accessorKey: "requestedAt",
-        header: "วันที่ขอ",
-        cell: (info) => {
-          const value = info.getValue() as Date | string;
-          if (!value) return "-";
-          const date = typeof value === "string" ? new Date(value) : value;
-          return format(date, "dd MMM yyyy HH:mm", { locale: th });
-        },
         meta: { minWidth: 140, width: 160, align: "center" },
       },
       {
