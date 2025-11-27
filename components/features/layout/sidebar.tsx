@@ -35,7 +35,7 @@ export const navigationItems: SidebarNavItem[] = [
     ]
   },
   {
-    href: "/dashboard/products",
+    href: "/products",
     label: "สินค้า",
     permissionKey: "menu.products",
     icon: <PackageSearch className="h-4 w-4" />
