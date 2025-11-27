@@ -277,387 +277,358 @@ export default function ProductManagementPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
-
-      {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
-        <Link
-          href={`/products/${productId}`}
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          กลับหน้ารายละเอียดสินค้า
-        </Link>
-      </div>
-
-      {success && (
-        <Alert className="bg-green-50 text-green-900 border-green-200">
-          <AlertDescription>
-            บันทึกข้อมูลสำเร็จ กำลังนำทางกลับไปหน้ารายละเอียด...
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Page Title */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
-        <p className="text-muted-foreground">{product.name}</p>
-      </div>
+      <div className=" bg-white border rounded-xl shadow-sm p-8 space-y-8">
+        <h1 className="text-center text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
+        <p className="text-muted-foreground text-center">{product.name}</p>
 
-      {/* ----------------------------------------------------
-       * Price Section
-       * ---------------------------------------------------- */}
-      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-        <h2 className="text-xl font-semibold text-foreground">
-          จัดการราคาสินค้า
-        </h2>
+        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+          <h2 className="text-xl font-semibold text-foreground">
+            จัดการราคาสินค้า
+          </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FloatingLabelInput
-            label="ราคาสินค้า (บาท)"
-            type="number"
-            value={formData.price || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                price: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            disabled={saving}
-          />
-          <FloatingLabelInput
-            label="งบส่งเสริมการขาย (บาท)"
-            type="number"
-            value={formData.promotionBudget || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                promotionBudget: e.target.value
-                  ? Number(e.target.value)
-                  : undefined,
-              }))
-            }
-            disabled={saving}
-          />
-        </div>
-      </div>
-
-      {/* ----------------------------------------------------
-       * Free Items
-       * ---------------------------------------------------- */}
-      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">รายการของแถม</h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addFreeItem}
-            disabled={saving}
-          >
-            <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการของแถม
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FloatingLabelInput
+              label="ราคาสินค้า (บาท)"
+              type="number"
+              value={formData.price || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  price: e.target.value ? Number(e.target.value) : undefined,
+                }))
+              }
+              disabled={saving}
+            />
+            <FloatingLabelInput
+              label="งบส่งเสริมการขาย (บาท)"
+              type="number"
+              value={formData.promotionBudget || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  promotionBudget: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                }))
+              }
+              disabled={saving}
+            />
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {formData.freeItems.map((item, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
+        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">รายการของแถม</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addFreeItem}
+              disabled={saving}
             >
-              <FloatingLabelInput
-                label="จำนวนที่ซื้อ"
-                type="number"
-                value={item.purchaseQty}
-                onChange={(e) =>
-                  updateFreeItem(index, "purchaseQty", Number(e.target.value))
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="จำนวนของแถม"
-                type="number"
-                value={item.freeQty}
-                onChange={(e) =>
-                  updateFreeItem(index, "freeQty", Number(e.target.value))
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="ราคาสุทธิ"
-                type="number"
-                value={item.netPrice || ""}
-                onChange={(e) =>
-                  updateFreeItem(
-                    index,
-                    "netPrice",
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="หมายเหตุ"
-                type="text"
-                value={item.notes}
-                onChange={(e) =>
-                  updateFreeItem(index, "notes", e.target.value)
-                }
-                disabled={saving}
-              />
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeFreeItem(index)}
-                  disabled={saving}
-                  className="w-full"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-
-          {formData.freeItems.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              ยังไม่มีรายการของแถม
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ----------------------------------------------------
-       * Promotion Items
-       * ---------------------------------------------------- */}
-      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">รายการส่งเสริมการขาย</h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addPromotionItem}
-            disabled={saving}
-          >
-            <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการส่งเสริมการขาย
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-          {formData.promotionItems.map((item, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
-            >
-              <FloatingLabelInput
-                label="ชื่อสินค้า"
-                type="text"
-                value={item.name}
-                onChange={(e) =>
-                  updatePromotionItem(index, "name", e.target.value)
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="จำนวนคงเหลือ"
-                type="number"
-                value={item.quantity}
-                onChange={(e) =>
-                  updatePromotionItem(index, "quantity", Number(e.target.value))
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="ราคา"
-                type="number"
-                value={item.price || ""}
-                onChange={(e) =>
-                  updatePromotionItem(
-                    index,
-                    "price",
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                disabled={saving}
-              />
-              <FloatingLabelInput
-                label="หมายเหตุ"
-                type="text"
-                value={item.notes}
-                onChange={(e) =>
-                  updatePromotionItem(index, "notes", e.target.value)
-                }
-                disabled={saving}
-              />
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removePromotionItem(index)}
-                  disabled={saving}
-                  className="w-full"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-
-          {formData.promotionItems.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              ยังไม่มีรายการส่งเสริมการขาย
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ----------------------------------------------------
-       * Stock Management
-       * ---------------------------------------------------- */}
-      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">จัดการสต็อกสินค้า</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              ผลรวมจำนวนคงเหลือ: {getTotalStock()} หน่วย
-            </p>
+              <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการของแถม
+            </Button>
           </div>
 
+          <div className="space-y-4">
+            {formData.freeItems.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
+              >
+                <FloatingLabelInput
+                  label="จำนวนที่ซื้อ"
+                  type="number"
+                  value={item.purchaseQty}
+                  onChange={(e) =>
+                    updateFreeItem(index, "purchaseQty", Number(e.target.value))
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="จำนวนของแถม"
+                  type="number"
+                  value={item.freeQty}
+                  onChange={(e) =>
+                    updateFreeItem(index, "freeQty", Number(e.target.value))
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="ราคาสุทธิ"
+                  type="number"
+                  value={item.netPrice || ""}
+                  onChange={(e) =>
+                    updateFreeItem(
+                      index,
+                      "netPrice",
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="หมายเหตุ"
+                  type="text"
+                  value={item.notes}
+                  onChange={(e) =>
+                    updateFreeItem(index, "notes", e.target.value)
+                  }
+                  disabled={saving}
+                />
+                <div className="flex items-end">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeFreeItem(index)}
+                    disabled={saving}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {formData.freeItems.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                ยังไม่มีรายการของแถม
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">รายการส่งเสริมการขาย</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addPromotionItem}
+              disabled={saving}
+            >
+              <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการส่งเสริมการขาย
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {formData.promotionItems.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
+              >
+                <FloatingLabelInput
+                  label="ชื่อสินค้า"
+                  type="text"
+                  value={item.name}
+                  onChange={(e) =>
+                    updatePromotionItem(index, "name", e.target.value)
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="จำนวนคงเหลือ"
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) =>
+                    updatePromotionItem(
+                      index,
+                      "quantity",
+                      Number(e.target.value)
+                    )
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="ราคา"
+                  type="number"
+                  value={item.price || ""}
+                  onChange={(e) =>
+                    updatePromotionItem(
+                      index,
+                      "price",
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  disabled={saving}
+                />
+                <FloatingLabelInput
+                  label="หมายเหตุ"
+                  type="text"
+                  value={item.notes}
+                  onChange={(e) =>
+                    updatePromotionItem(index, "notes", e.target.value)
+                  }
+                  disabled={saving}
+                />
+                <div className="flex items-end">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removePromotionItem(index)}
+                    disabled={saving}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {formData.promotionItems.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                ยังไม่มีรายการส่งเสริมการขาย
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">จัดการสต็อกสินค้า</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                ผลรวมจำนวนคงเหลือ: {getTotalStock()} หน่วย
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addStockLot}
+              disabled={saving}
+            >
+              <Plus className="h-4 w-4 mr-2" /> เพิ่มสต็อกสินค้า
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {formData.stockLots.map((lot, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg"
+              >
+                {lot.id && (
+                  <div className="md:col-span-7">
+                    <p className="text-sm font-medium text-foreground">
+                      {lot.lotNumber}
+                      {lot.isUsed && (
+                        <span className="ml-2 text-xs text-red-600">
+                          (ถูกใช้งานแล้ว)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                <FloatingLabelInput
+                  label="จำนวนที่เพิ่ม"
+                  type="number"
+                  value={lot.quantity}
+                  onChange={(e) =>
+                    updateStockLot(index, "quantity", Number(e.target.value))
+                  }
+                  disabled={saving || (lot.id && lot.isUsed)}
+                />
+
+                <FloatingLabelInput
+                  label="วันที่นำเข้า"
+                  type="date"
+                  value={
+                    lot.importDate instanceof Date
+                      ? lot.importDate.toISOString().split("T")[0]
+                      : lot.importDate
+                  }
+                  onChange={(e) =>
+                    updateStockLot(index, "importDate", e.target.value)
+                  }
+                  disabled={saving || (lot.id && lot.isUsed)}
+                />
+
+                <FloatingLabelInput
+                  label="วันหมดอายุ"
+                  type="date"
+                  value={
+                    lot.expiryDate
+                      ? lot.expiryDate instanceof Date
+                        ? lot.expiryDate.toISOString().split("T")[0]
+                        : lot.expiryDate
+                      : ""
+                  }
+                  onChange={(e) =>
+                    updateStockLot(
+                      index,
+                      "expiryDate",
+                      e.target.value || undefined
+                    )
+                  }
+                  disabled={saving || (lot.id && lot.isUsed)}
+                />
+
+                <FloatingLabelInput
+                  label="สถานที่จัดเก็บ"
+                  type="select"
+                  options={storageOptions}
+                  value={lot.storageLocation || ""}
+                  onChange={(e) =>
+                    updateStockLot(index, "storageLocation", e.target.value)
+                  }
+                  disabled={saving || (lot.id && lot.isUsed)}
+                  searchable
+                />
+
+                <FloatingLabelInput
+                  label="หมายเหตุ"
+                  type="text"
+                  value={lot.notes}
+                  onChange={(e) =>
+                    updateStockLot(index, "notes", e.target.value)
+                  }
+                  disabled={saving || (lot.id && lot.isUsed)}
+                />
+
+                <div className="flex items-end md:col-span-2">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeStockLot(index)}
+                    disabled={saving || (lot.id && lot.isUsed)}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" /> ลบ
+                  </Button>
+                </div>
+              </div>
+            ))}
+
+            {formData.stockLots.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                ยังไม่มีสต็อกสินค้า
+              </p>
+            )}
+          </div>
+        </div>
+        {/* Buttons */}
+        <div className="flex justify-end gap-4 pt-4 border-t">
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            onClick={addStockLot}
+            onClick={() => router.back()}
             disabled={saving}
           >
-            <Plus className="h-4 w-4 mr-2" /> เพิ่มสต็อกสินค้า
+            ยกเลิก
+          </Button>
+
+          <Button type="submit" disabled={saving}>
+            {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
           </Button>
         </div>
-
-        <div className="space-y-4">
-          {formData.stockLots.map((lot, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg"
-            >
-              {lot.id && (
-                <div className="md:col-span-7">
-                  <p className="text-sm font-medium text-foreground">
-                    {lot.lotNumber}
-                    {lot.isUsed && (
-                      <span className="ml-2 text-xs text-red-600">
-                        (ถูกใช้งานแล้ว)
-                      </span>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              <FloatingLabelInput
-                label="จำนวนที่เพิ่ม"
-                type="number"
-                value={lot.quantity}
-                onChange={(e) =>
-                  updateStockLot(index, "quantity", Number(e.target.value))
-                }
-                disabled={saving || (lot.id && lot.isUsed)}
-              />
-
-              <FloatingLabelInput
-                label="วันที่นำเข้า"
-                type="date"
-                value={
-                  lot.importDate instanceof Date
-                    ? lot.importDate.toISOString().split("T")[0]
-                    : lot.importDate
-                }
-                onChange={(e) =>
-                  updateStockLot(index, "importDate", e.target.value)
-                }
-                disabled={saving || (lot.id && lot.isUsed)}
-              />
-
-              <FloatingLabelInput
-                label="วันหมดอายุ"
-                type="date"
-                value={
-                  lot.expiryDate
-                    ? lot.expiryDate instanceof Date
-                      ? lot.expiryDate.toISOString().split("T")[0]
-                      : lot.expiryDate
-                    : ""
-                }
-                onChange={(e) =>
-                  updateStockLot(
-                    index,
-                    "expiryDate",
-                    e.target.value || undefined
-                  )
-                }
-                disabled={saving || (lot.id && lot.isUsed)}
-              />
-
-              <FloatingLabelInput
-                label="สถานที่จัดเก็บ"
-                type="select"
-                options={storageOptions}
-                value={lot.storageLocation || ""}
-                onChange={(e) =>
-                  updateStockLot(index, "storageLocation", e.target.value)
-                }
-                disabled={saving || (lot.id && lot.isUsed)}
-                searchable
-              />
-
-              <FloatingLabelInput
-                label="หมายเหตุ"
-                type="text"
-                value={lot.notes}
-                onChange={(e) =>
-                  updateStockLot(index, "notes", e.target.value)
-                }
-                disabled={saving || (lot.id && lot.isUsed)}
-              />
-
-              <div className="flex items-end md:col-span-2">
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeStockLot(index)}
-                  disabled={saving || (lot.id && lot.isUsed)}
-                  className="w-full"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> ลบ
-                </Button>
-              </div>
-            </div>
-          ))}
-
-          {formData.stockLots.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              ยังไม่มีสต็อกสินค้า
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Buttons */}
-      <div className="flex justify-end gap-4 pt-4 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={saving}
-        >
-          ยกเลิก
-        </Button>
-
-        <Button type="submit" disabled={saving}>
-          {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-        </Button>
       </div>
     </form>
   );
