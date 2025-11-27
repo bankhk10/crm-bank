@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { productId } = params;
+  const { productId } = await params;
 
   try {
     const formData = await request.formData();
