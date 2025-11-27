@@ -24,7 +24,7 @@ const productSchema = z.object({
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: any }
 ) {
   const session = await auth();
 
@@ -36,8 +36,10 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const product = await db.product.findUnique({
-    where: { id: params.productId, deletedAt: null },
+  const { productId } = await params;
+
+  const product = await (db as any).product.findFirst({
+    where: { id: productId, deletedAt: null },
     include: {
       images: {
         orderBy: { order: "asc" },
@@ -63,7 +65,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: any }
 ) {
   const session = await auth();
 
@@ -93,8 +95,18 @@ export async function PATCH(
   }
 
   try {
-    const product = await db.product.update({
-      where: { id: params.productId, deletedAt: null },
+    const { productId } = await params;
+
+    const existing = await (db as any).product.findFirst({
+      where: { id: productId, deletedAt: null },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    const product = await (db as any).product.update({
+      where: { id: productId },
       data: parsed.data,
       include: {
         images: true,
@@ -128,7 +140,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: any }
 ) {
   const session = await auth();
 
@@ -148,10 +160,16 @@ export async function DELETE(
   }
 
   try {
-    await db.product.update({
-      where: { id: params.productId, deletedAt: null },
+    const { productId } = await params;
+
+    const result = await (db as any).product.updateMany({
+      where: { id: productId, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+
+    if (result.count === 0) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
