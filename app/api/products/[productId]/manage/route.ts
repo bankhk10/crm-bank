@@ -48,8 +48,9 @@ const managementSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
+  const { productId } = await params;
   const session = await auth();
 
   if (!session?.user) {
@@ -82,7 +83,7 @@ export async function PATCH(
     const result = await db.$transaction(async (tx) => {
       // Update price and promotion budget
       const product = await tx.product.update({
-        where: { id: params.productId, deletedAt: null },
+        where: { id: productId, deletedAt: null },
         data: {
           price: parsed.data.price,
           promotionBudget: parsed.data.promotionBudget,
@@ -92,7 +93,7 @@ export async function PATCH(
       // Handle free items
       if (parsed.data.freeItems) {
         const existingFreeItems = await tx.productFreeItem.findMany({
-          where: { productId: params.productId },
+          where: { productId },
         });
 
         const freeItemsToKeep = parsed.data.freeItems
@@ -102,7 +103,7 @@ export async function PATCH(
         // Delete removed items
         await tx.productFreeItem.deleteMany({
           where: {
-            productId: params.productId,
+            productId,
             id: { notIn: freeItemsToKeep.length > 0 ? freeItemsToKeep : undefined },
           },
         });
@@ -122,7 +123,7 @@ export async function PATCH(
           } else {
             await tx.productFreeItem.create({
               data: {
-                productId: params.productId,
+                productId,
                 purchaseQty: item.purchaseQty,
                 freeQty: item.freeQty,
                 netPrice: item.netPrice,
@@ -141,7 +142,7 @@ export async function PATCH(
 
         await tx.productPromotionItem.deleteMany({
           where: {
-            productId: params.productId,
+            productId,
             id: { notIn: promotionItemsToKeep.length > 0 ? promotionItemsToKeep : undefined },
           },
         });
@@ -160,7 +161,7 @@ export async function PATCH(
           } else {
             await tx.productPromotionItem.create({
               data: {
-                productId: params.productId,
+                productId,
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
@@ -175,7 +176,7 @@ export async function PATCH(
       if (parsed.data.stockLots) {
         // Get all existing stock lots
         const existingLots = await tx.productStockLot.findMany({
-          where: { productId: params.productId },
+          where: { productId },
         });
 
         // Generate next lot number
@@ -187,7 +188,7 @@ export async function PATCH(
             const newLotNumber = `Lot.${lotCount + parsed.data.stockLots.indexOf(item) + 1}`;
             await tx.productStockLot.create({
               data: {
-                productId: params.productId,
+                productId,
                 lotNumber: newLotNumber,
                 quantity: item.quantity,
                 importDate: new Date(item.importDate),
@@ -203,7 +204,7 @@ export async function PATCH(
 
       // Fetch updated product with all relations
       return tx.product.findUnique({
-        where: { id: params.productId },
+        where: { id: productId },
         include: {
           images: true,
           freeItems: true,
