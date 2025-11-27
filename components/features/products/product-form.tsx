@@ -94,8 +94,6 @@ export function ProductForm({
     setSuccess(false);
 
     try {
-      // For now, we'll handle images separately through an upload API
-      // In production, you'd upload images first and get URLs
       const payload = {
         productCode: formData.productCode,
         name: formData.name,
@@ -176,7 +174,7 @@ export function ProductForm({
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <FloatingLabelInput
           label="รหัสสินค้า *"
           type="text"
@@ -295,6 +293,19 @@ export function ProductForm({
           disabled={loading}
         />
 
+        <MultiSelect
+          label="ใช้กับพืช"
+          options={PLANT_OPTIONS}
+          value={formData.usedForPlants}
+          onChange={(value) =>
+            setFormData((prev) => ({
+              ...prev,
+              usedForPlants: value as string[],
+            }))
+          }
+          disabled={loading}
+        />
+
         <FloatingLabelInput
           label="สถานะสินค้า"
           type="select"
@@ -310,21 +321,6 @@ export function ProductForm({
           }
           disabled={loading}
         />
-
-        <div className="md:col-span-2">
-          <MultiSelect
-            label="ใช้กับพืช"
-            options={PLANT_OPTIONS}
-            value={formData.usedForPlants}
-            onChange={(value) =>
-              setFormData((prev) => ({
-                ...prev,
-                usedForPlants: value as string[],
-              }))
-            }
-            disabled={loading}
-          />
-        </div>
 
         <div className="md:col-span-2">
           <Textarea

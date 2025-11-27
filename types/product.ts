@@ -139,10 +139,26 @@ export const STATUS_OPTIONS = [
 ];
 
 export const PLANT_OPTIONS = [
-  { value: "ข้าว", label: "ข้าว" },
-  { value: "อ้อย", label: "อ้อย" },
-  { value: "มันสำปะหลัง", label: "มันสำปะหลัง" },
-  { value: "ปาล์มน้ำมัน", label: "ปาล์มน้ำมัน" },
+  { value: "ยางพารา", label: "ยางพารา" },
+  { value: "ข้าวโพดเลี้ยงสัตว์", label: "ข้าวโพดเลี้ยงสัตว์" },
+  { value: "ทุเรียน", label: "ทุเรียน" },
+  { value: "มังคุด", label: "มังคุด" },
+  { value: "ลำไย", label: "ลำไย" },
+  { value: "สับปะรด", label: "สับปะรด" },
+  { value: "มะพร้าว", label: "มะพร้าว" },
+  { value: "เงาะ", label: "เงาะ" },
+  { value: "ลิ้นจี่", label: "ลิ้นจี่" },
+  { value: "ลองกอง", label: "ลองกอง" },
+  { value: "กาแฟ", label: "กาแฟ" },
+  { value: "ส้มโอ", label: "ส้มโอ" },
+  { value: "ส้มเขียวหวาน", label: "ส้มเขียวหวาน" },
+  { value: "ถั่วเหลือง", label: "ถั่วเหลือง" },
+  { value: "กระเทียม", label: "กระเทียม" },
+  { value: "หอมแดง", label: "หอมแดง" },
+  { value: "หอมหัวใหญ่", label: "หอมหัวใหญ่" },
+  { value: "มะม่วง", label: "มะม่วง" },
+  { value: "มะนาว", label: "มะนาว" },
+  { value: "พริก", label: "พริก" },
 ];
 
 export const STORAGE_LOCATION_OPTIONS = [

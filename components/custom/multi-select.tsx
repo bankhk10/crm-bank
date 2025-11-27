@@ -25,7 +25,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
   value = [],
   onChange,
-  placeholder = "เลือกรายการ",
+  placeholder = "",
   disabled = false,
   error,
   searchable = true,
