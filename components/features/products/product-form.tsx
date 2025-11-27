@@ -16,6 +16,7 @@ import {
   PLANT_OPTIONS,
   type ProductFormData,
 } from "@/types/product";
+import generateRandomProduct from "@/lib/random-fill/product";
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -66,6 +67,7 @@ export function ProductForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // sampleImageUrls removed: random fill will NOT upload or set images
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -174,6 +176,27 @@ export function ProductForm({
     }
   };
 
+  // Fill form fields with generated random product data. Intentionally
+  // do NOT generate/upload images — user will choose images manually.
+  const handleRandomFill = async () => {
+    const payload = generateRandomProduct();
+    setFormData((prev) => ({
+      ...prev,
+      productCode: payload.productCode ?? prev.productCode,
+      name: payload.name ?? prev.name,
+      commonName: payload.commonName ?? prev.commonName,
+      unit: payload.unit ?? prev.unit,
+      productGroup: payload.productGroup ?? prev.productGroup,
+      brand: payload.brand ?? prev.brand,
+      packageSize: payload.packageSize ?? prev.packageSize,
+      packageSizePerBox: payload.packageSizePerBox ?? prev.packageSizePerBox,
+      status: payload.status ?? prev.status,
+      usedForPlants: payload.usedForPlants ?? prev.usedForPlants,
+      salesPoint: payload.salesPoint ?? prev.salesPoint,
+      properties: payload.properties ?? prev.properties,
+    }));
+  };
+
   const uploadImages = (
     productId: string,
     files: File[],
@@ -228,6 +251,17 @@ export function ProductForm({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="md:col-span-2 flex items-center justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+            onClick={handleRandomFill}
+            disabled={loading}
+          >
+            กรอกแบบสุ่ม
+          </Button>
+        </div>
         <FloatingLabelInput
           label="รหัสสินค้า *"
           type="text"
@@ -433,6 +467,8 @@ export function ProductForm({
               }))
             }
           />
+
+          {/* random-fill no longer uploads or shows sample images */}
         </div>
       </div>
 
