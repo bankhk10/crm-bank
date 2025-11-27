@@ -375,7 +375,7 @@ export function ProductForm({
           hideBorder ? "my-2" : "border-t my-2"
         }`}
       >
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
