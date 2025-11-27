@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import type { TemporaryCreditLimitFormData } from "@/types/temporary-credit-limit";
 
@@ -28,7 +29,11 @@ export default function TemporaryCreditLimitForm({
   submitLabel = "บันทึก",
   readonly = false,
 }: Props) {
-  const [payload, setPayload] = useState<TemporaryCreditLimitFormData>({
+  const [payload, setPayload] = useState<
+    Omit<TemporaryCreditLimitFormData, "expiryDate"> & {
+      expiryDate?: string | Date | undefined;
+    }
+  >({
     customerId: initial.customerId ?? "",
     requestedAmount: initial.requestedAmount ?? 0,
     expiryDate: initial.expiryDate ?? new Date(),
@@ -89,11 +94,8 @@ export default function TemporaryCreditLimitForm({
     }
   }
 
-  const formatDateForInput = (date: Date | string | undefined) => {
-    if (!date) return "";
-    const d = typeof date === "string" ? new Date(date) : date;
-    return d.toISOString().split("T")[0];
-  };
+  // Date handling: the `DatePicker` emits a `YYYY-MM-DD` string or `undefined`.
+  // The submit handler already handles both `Date` and string values.
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-1">
@@ -109,7 +111,6 @@ export default function TemporaryCreditLimitForm({
             label="ลูกค้า"
             type="select"
             options={[
-              { value: "", label: "เลือกลูกค้า" },
               ...customers.map((c) => ({
                 value: c.id,
                 label: `${c.customerCode} - ${c.name}`,
@@ -144,18 +145,14 @@ export default function TemporaryCreditLimitForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            วันหมดอายุ <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            value={formatDateForInput(payload.expiryDate)}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPayload((p) => ({ ...p, expiryDate: new Date(e.target.value) }));
+          <DatePicker
+            label="วันหมดอายุ"
+            value={payload.expiryDate as string | Date | undefined}
+            onChange={(v) => {
+              setPayload((p) => ({ ...p, expiryDate: v ? v : undefined }));
               clearFieldError("expiryDate");
             }}
-            required
+            placeholder=""
             disabled={readonly}
           />
           {fieldErrors.expiryDate?.[0] && (
