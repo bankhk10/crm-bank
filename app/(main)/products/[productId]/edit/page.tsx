@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ProductForm from "@/components/features/products/product-form";
+import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/types/product";
@@ -76,7 +77,7 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <section className="space-y-6">
       <div className="flex items-center gap-4">
         <Link
           href="/products"
@@ -87,31 +88,32 @@ export default function EditProductPage() {
         </Link>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">แก้ไขสินค้า</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          แก้ไขข้อมูลสินค้า: {product.name}
-        </p>
-      </div>
+      <Card>
+        <div className="p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl border-b pb-6">แก้ไขสินค้า</h5>
+          </div>
 
-      <ProductForm
-        initialData={{
-          productCode: product.productCode,
-          name: product.name,
-          commonName: product.commonName || "",
-          unit: product.unit || "",
-          productGroup: product.productGroup || "",
-          brand: product.brand || "",
-          packageSize: product.packageSize || "",
-          packageSizePerBox: product.packageSizePerBox || "",
-          status: product.status,
-          usedForPlants: product.usedForPlants,
-          salesPoint: product.salesPoint || "",
-          properties: product.properties || "",
-        }}
-        productId={productId}
-        isEdit
-      />
-    </div>
+          <ProductForm
+            initialData={{
+              productCode: product.productCode,
+              name: product.name,
+              commonName: product.commonName || "",
+              unit: product.unit || "",
+              productGroup: product.productGroup || "",
+              brand: product.brand || "",
+              packageSize: product.packageSize || "",
+              packageSizePerBox: product.packageSizePerBox || "",
+              status: product.status,
+              usedForPlants: product.usedForPlants,
+              salesPoint: product.salesPoint || "",
+              properties: product.properties || "",
+            }}
+            productId={productId}
+            isEdit
+          />
+        </div>
+      </Card>
+    </section>
   );
 }
