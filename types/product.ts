@@ -84,6 +84,8 @@ export interface ProductFormData {
   salesPoint?: string;
   properties?: string;
   images?: File[];
+  /** index in `images` that should be treated as the cover (0-based) */
+  coverIndex?: number | null;
 }
 
 export interface ProductManagementFormData {

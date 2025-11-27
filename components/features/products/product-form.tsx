@@ -46,6 +46,7 @@ export function ProductForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const [formData, setFormData] = useState<ProductFormData>({
     productCode: initialData?.productCode || "",
@@ -61,6 +62,7 @@ export function ProductForm({
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
     images: initialData?.images || [],
+    coverIndex: (initialData as any)?.coverIndex ?? null,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -107,6 +109,7 @@ export function ProductForm({
         usedForPlants: formData.usedForPlants,
         salesPoint: formData.salesPoint || undefined,
         properties: formData.properties || undefined,
+        coverIndex: formData.coverIndex ?? undefined,
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -128,27 +131,40 @@ export function ProductForm({
           }, 1200);
         }
       } else {
-        const res = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || "เกิดข้อผิดพลาด");
-        }
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || "เกิดข้อผิดพลาด");
+          }
 
-        const data = await res.json();
-        setSuccess(true);
+          const data = await res.json();
 
-        // TODO: Handle image upload here if images were selected
-        // await uploadImages(data.product.id, formData.images);
+          // If there are images to upload, do that now with progress
+          if (formData.images && formData.images.length > 0) {
+            try {
+              setUploadProgress(0);
+              await uploadImages(data.product.id, formData.images, formData.coverIndex ?? undefined);
+              setUploadProgress(null);
+            } catch (err) {
+              console.error(err);
+              setError("อัพโหลดรูปภาพล้มเหลว");
+              setUploadProgress(null);
+              setLoading(false);
+              return;
+            }
+          }
 
-        setTimeout(() => {
-          router.push("/products");
-          router.refresh();
-        }, 1500);
+          setSuccess(true);
+
+          setTimeout(() => {
+            router.push("/products");
+            router.refresh();
+          }, 1500);
       }
     } catch (err) {
       const error = err as Error;
@@ -156,6 +172,43 @@ export function ProductForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  const uploadImages = (
+    productId: string,
+    files: File[],
+    coverIndex?: number
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const form = new FormData();
+      files.forEach((f) => form.append("images", f));
+      if (typeof coverIndex === "number") form.append("coverIndex", String(coverIndex));
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `/api/products/${productId}/images`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const json = JSON.parse(xhr.responseText || "{}");
+            resolve(json);
+          } catch (err) {
+            resolve({});
+          }
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.send(form);
+    });
   };
 
   return (
@@ -357,18 +410,43 @@ export function ProductForm({
             label="อัพโหลดรูปภาพสินค้า"
             value={formData.images || []}
             onChange={(files) =>
-              setFormData((prev) => ({
-                ...prev,
-                images: files,
-              }))
+                setFormData((prev) => ({
+                  ...prev,
+                  images: files,
+                  // if cover not set, default to first image
+                  coverIndex:
+                    prev.coverIndex !== undefined && prev.coverIndex !== null
+                      ? prev.coverIndex
+                      : files.length > 0
+                      ? 0
+                      : null,
+                }))
             }
             accept="image/jpeg,image/png"
             maxFiles={5}
             maxSizeMB={2}
             disabled={loading}
+            onSetCover={(index) =>
+              setFormData((prev) => ({
+                ...prev,
+                coverIndex: index,
+              }))
+            }
           />
         </div>
       </div>
+
+      {uploadProgress !== null && (
+        <div className="md:col-span-2 mt-4">
+          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+            <div
+              className="h-3 bg-green-600 transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-1">กำลังอัพโหลดรูป: {uploadProgress}%</div>
+        </div>
+      )}
 
       <div
         className={`md:col-span-2 mt-8 ${
