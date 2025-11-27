@@ -21,9 +21,7 @@ interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
   productId?: string;
   isEdit?: boolean;
-  onSubmit?: (
-    payload: any
-  ) => Promise<{
+  onSubmit?: (payload: any) => Promise<{
     success: boolean;
     issues?: Record<string, string[]>;
     error?: string;
@@ -119,7 +117,11 @@ export function ProductForm({
       if (onSubmit) {
         const result = await onSubmit(payload);
         if (!result.success) {
-          setError(result.error ?? Object.values(result.issues ?? {})[0]?.[0] ?? "Server error");
+          setError(
+            result.error ??
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error"
+          );
         } else {
           setSuccess(true);
           setTimeout(() => {
@@ -174,201 +176,209 @@ export function ProductForm({
         </Alert>
       )}
 
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
-        <h2 className="text-xl font-semibold text-gray-900">ข้อมูลสินค้า</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FloatingLabelInput
+          label="รหัสสินค้า *"
+          type="text"
+          value={formData.productCode}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              productCode: e.target.value,
+            }))
+          }
+          error={errors.productCode}
+          disabled={loading}
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FloatingLabelInput
-            label="รหัสสินค้า *"
-            type="text"
-            value={formData.productCode}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        <FloatingLabelInput
+          label="ชื่อสินค้า *"
+          type="text"
+          value={formData.name}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              name: e.target.value,
+            }))
+          }
+          error={errors.name}
+          disabled={loading}
+        />
+
+        <FloatingLabelInput
+          label="ชื่อสามัญ"
+          type="text"
+          value={formData.commonName}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              commonName: e.target.value,
+            }))
+          }
+          disabled={loading}
+        />
+
+        <FloatingLabelInput
+          label="หน่วยนับ"
+          type="select"
+          options={UNIT_OPTIONS}
+          value={formData.unit}
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) =>
+            setFormData((prev) => ({
+              ...prev,
+              unit: e.target.value,
+            }))
+          }
+          disabled={loading}
+          searchable
+        />
+
+        <FloatingLabelInput
+          label="กลุ่มสินค้า"
+          type="select"
+          options={PRODUCT_GROUP_OPTIONS}
+          value={formData.productGroup}
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) =>
+            setFormData((prev) => ({
+              ...prev,
+              productGroup: e.target.value,
+            }))
+          }
+          disabled={loading}
+          searchable
+        />
+
+        <FloatingLabelInput
+          label="แบรนด์สินค้า"
+          type="select"
+          options={BRAND_OPTIONS}
+          value={formData.brand}
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) =>
+            setFormData((prev) => ({
+              ...prev,
+              brand: e.target.value,
+            }))
+          }
+          disabled={loading}
+          searchable
+        />
+
+        <FloatingLabelInput
+          label="ขนาดบรรจุ"
+          type="text"
+          value={formData.packageSize}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              packageSize: e.target.value,
+            }))
+          }
+          disabled={loading}
+        />
+
+        <FloatingLabelInput
+          label="ขนาดบรรจุต่อลัง"
+          type="text"
+          value={formData.packageSizePerBox}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              packageSizePerBox: e.target.value,
+            }))
+          }
+          disabled={loading}
+        />
+
+        <FloatingLabelInput
+          label="สถานะสินค้า"
+          type="select"
+          options={STATUS_OPTIONS}
+          value={formData.status}
+          onChange={(
+            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+          ) =>
+            setFormData((prev) => ({
+              ...prev,
+              status: e.target.value as "ACTIVE" | "INACTIVE",
+            }))
+          }
+          disabled={loading}
+        />
+
+        <div className="md:col-span-2">
+          <MultiSelect
+            label="ใช้กับพืช"
+            options={PLANT_OPTIONS}
+            value={formData.usedForPlants}
+            onChange={(value) =>
               setFormData((prev) => ({
                 ...prev,
-                productCode: e.target.value,
+                usedForPlants: value as string[],
               }))
             }
-            error={errors.productCode}
             disabled={loading}
           />
+        </div>
 
-          <FloatingLabelInput
-            label="ชื่อสินค้า *"
-            type="text"
-            value={formData.name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        <div className="md:col-span-2">
+          <Textarea
+            label="จุดขายสินค้า"
+            value={formData.salesPoint}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                name: e.target.value,
+                salesPoint: e.target.value,
               }))
             }
-            error={errors.name}
             disabled={loading}
+            rows={3}
           />
+        </div>
 
-          <FloatingLabelInput
-            label="ชื่อสามัญ"
-            type="text"
-            value={formData.commonName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        <div className="md:col-span-2">
+          <Textarea
+            label="คุณสมบัติ"
+            value={formData.properties}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                commonName: e.target.value,
+                properties: e.target.value,
               }))
             }
             disabled={loading}
+            rows={3}
           />
+        </div>
 
-          <FloatingLabelInput
-            label="หน่วยนับ"
-            type="select"
-            options={UNIT_OPTIONS}
-            value={formData.unit}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
+        <div className="md:col-span-2">
+          <FileUpload
+            label="อัพโหลดรูปภาพสินค้า"
+            value={formData.images || []}
+            onChange={(files) =>
               setFormData((prev) => ({
                 ...prev,
-                unit: e.target.value,
+                images: files,
               }))
             }
-            disabled={loading}
-            searchable
-          />
-
-          <FloatingLabelInput
-            label="กลุ่มสินค้า"
-            type="select"
-            options={PRODUCT_GROUP_OPTIONS}
-            value={formData.productGroup}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
-              setFormData((prev) => ({
-                ...prev,
-                productGroup: e.target.value,
-              }))
-            }
-            disabled={loading}
-            searchable
-          />
-
-          <FloatingLabelInput
-            label="แบรนด์สินค้า"
-            type="select"
-            options={BRAND_OPTIONS}
-            value={formData.brand}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
-              setFormData((prev) => ({
-                ...prev,
-                brand: e.target.value,
-              }))
-            }
-            disabled={loading}
-            searchable
-          />
-
-          <FloatingLabelInput
-            label="ขนาดบรรจุ"
-            type="text"
-            value={formData.packageSize}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFormData((prev) => ({
-                ...prev,
-                packageSize: e.target.value,
-              }))
-            }
+            accept="image/jpeg,image/png"
+            maxFiles={5}
+            maxSizeMB={2}
             disabled={loading}
           />
-
-          <FloatingLabelInput
-            label="ขนาดบรรจุต่อลัง"
-            type="text"
-            value={formData.packageSizePerBox}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFormData((prev) => ({
-                ...prev,
-                packageSizePerBox: e.target.value,
-              }))
-            }
-            disabled={loading}
-          />
-
-          <FloatingLabelInput
-            label="สถานะสินค้า"
-            type="select"
-            options={STATUS_OPTIONS}
-            value={formData.status}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
-              setFormData((prev) => ({
-                ...prev,
-                status: e.target.value as "ACTIVE" | "INACTIVE",
-              }))
-            }
-            disabled={loading}
-          />
-
-          <div className="md:col-span-2">
-            <MultiSelect
-              label="ใช้กับพืช"
-              options={PLANT_OPTIONS}
-              value={formData.usedForPlants}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  usedForPlants: value as string[],
-                }))
-              }
-              disabled={loading}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <Textarea
-              label="จุดขายสินค้า"
-              value={formData.salesPoint}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  salesPoint: e.target.value,
-                }))
-              }
-              disabled={loading}
-              rows={3}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <Textarea
-              label="คุณสมบัติ"
-              value={formData.properties}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  properties: e.target.value,
-                }))
-              }
-              disabled={loading}
-              rows={3}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <FileUpload
-              label="อัพโหลดรูปภาพสินค้า"
-              value={formData.images || []}
-              onChange={(files) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  images: files,
-                }))
-              }
-              accept="image/jpeg,image/png"
-              maxFiles={5}
-              maxSizeMB={2}
-              disabled={loading}
-            />
-          </div>
         </div>
       </div>
 
-      <div className={`md:col-span-2 mt-8 ${hideBorder ? "my-2" : "border-t my-2"}`}>
+      <div
+        className={`md:col-span-2 mt-8 ${
+          hideBorder ? "my-2" : "border-t my-2"
+        }`}
+      >
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
             size="lg"
