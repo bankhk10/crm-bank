@@ -1,3 +1,5 @@
+/* --- FULL FILE WITH MODERN UI STYLE --- */
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -8,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingLabelInput } from "@/components/custom/FloatingLabelInputFixed";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import type { Product, ProductManagementFormData, STORAGE_LOCATION_OPTIONS } from "@/types/product";
+import type { Product, ProductManagementFormData } from "@/types/product";
 import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/types/product";
 
 export default function ProductManagementPage() {
@@ -32,6 +34,9 @@ export default function ProductManagementPage() {
     stockLots: [],
   });
 
+  /* ----------------------------------------------------
+   * Load Product Data
+   * ---------------------------------------------------- */
   useEffect(() => {
     if (!productId) return;
 
@@ -42,7 +47,6 @@ export default function ProductManagementPage() {
         const data = await res.json();
         setProduct(data.product);
 
-        // Initialize form data
         setFormData({
           price: data.product.price ? Number(data.product.price) : undefined,
           promotionBudget: data.product.promotionBudget
@@ -77,8 +81,7 @@ export default function ProductManagementPage() {
             })) || [],
         });
       } catch (err) {
-        const error = err as Error;
-        setError(error.message);
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
@@ -87,6 +90,9 @@ export default function ProductManagementPage() {
     fetchProduct();
   }, [productId]);
 
+  /* ----------------------------------------------------
+   * Submit
+   * ---------------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -111,13 +117,15 @@ export default function ProductManagementPage() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      const error = err as Error;
-      setError(error.message);
+      setError((err as Error).message);
     } finally {
       setSaving(false);
     }
   };
 
+  /* ----------------------------------------------------
+   * Free items
+   * ---------------------------------------------------- */
   const addFreeItem = () => {
     setFormData((prev) => ({
       ...prev,
@@ -144,6 +152,9 @@ export default function ProductManagementPage() {
     }));
   };
 
+  /* ----------------------------------------------------
+   * Promotion Items
+   * ---------------------------------------------------- */
   const addPromotionItem = () => {
     setFormData((prev) => ({
       ...prev,
@@ -170,6 +181,9 @@ export default function ProductManagementPage() {
     }));
   };
 
+  /* ----------------------------------------------------
+   * Stock Lots
+   * ---------------------------------------------------- */
   const addStockLot = () => {
     setFormData((prev) => ({
       ...prev,
@@ -188,7 +202,7 @@ export default function ProductManagementPage() {
 
   const removeStockLot = (index: number) => {
     const lot = formData.stockLots[index];
-    // Only allow deletion of new lots (no id) or unused lots
+
     if (lot.id && lot.isUsed) {
       setError("ไม่สามารถลบรายการที่ถูกใช้งานแล้ว");
       return;
@@ -210,15 +224,21 @@ export default function ProductManagementPage() {
   };
 
   const getTotalStock = () => {
-    return formData.stockLots.reduce((sum, lot) => sum + (lot.quantity || 0), 0);
+    return formData.stockLots.reduce(
+      (sum, lot) => sum + (lot.quantity || 0),
+      0
+    );
   };
 
+  /* ----------------------------------------------------
+   * Loading / No Permission
+   * ---------------------------------------------------- */
   if (permissionLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
+          <p className="mt-4 text-muted-foreground">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -227,9 +247,7 @@ export default function ProductManagementPage() {
   if (!hasPermission) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>
-          คุณไม่มีสิทธิ์ในการจัดการสินค้า
-        </AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์ในการจัดการสินค้า</AlertDescription>
       </Alert>
     );
   }
@@ -253,23 +271,23 @@ export default function ProductManagementPage() {
     );
   }
 
+  /* ----------------------------------------------------
+   * MAIN UI
+   * ---------------------------------------------------- */
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
+    <form onSubmit={handleSubmit} className="space-y-10">
+
+      {/* Header */}
+      <div className="flex items-center justify-between border-b pb-4">
         <Link
           href={`/products/${productId}`}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          กลับไปหน้ารายละเอียดสินค้า
+          กลับหน้ารายละเอียดสินค้า
         </Link>
       </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {success && (
         <Alert className="bg-green-50 text-green-900 border-green-200">
@@ -279,16 +297,20 @@ export default function ProductManagementPage() {
         </Alert>
       )}
 
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">จัดการสินค้า</h1>
-        <p className="mt-1 text-sm text-gray-500">{product.name}</p>
+      {/* Page Title */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
+        <p className="text-muted-foreground">{product.name}</p>
       </div>
 
-      {/* Price Management */}
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
-        <h2 className="text-xl font-semibold text-gray-900">
+      {/* ----------------------------------------------------
+       * Price Section
+       * ---------------------------------------------------- */}
+      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+        <h2 className="text-xl font-semibold text-foreground">
           จัดการราคาสินค้า
         </h2>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FloatingLabelInput
             label="ราคาสินค้า (บาท)"
@@ -297,9 +319,7 @@ export default function ProductManagementPage() {
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                price: (e.target as HTMLInputElement).value
-                  ? Number((e.target as HTMLInputElement).value)
-                  : undefined,
+                price: e.target.value ? Number(e.target.value) : undefined,
               }))
             }
             disabled={saving}
@@ -311,8 +331,8 @@ export default function ProductManagementPage() {
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                promotionBudget: (e.target as HTMLInputElement).value
-                  ? Number((e.target as HTMLInputElement).value)
+                promotionBudget: e.target.value
+                  ? Number(e.target.value)
                   : undefined,
               }))
             }
@@ -321,10 +341,12 @@ export default function ProductManagementPage() {
         </div>
       </div>
 
-      {/* Free Items */}
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
+      {/* ----------------------------------------------------
+       * Free Items
+       * ---------------------------------------------------- */}
+      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">รายการของแถม</h2>
+          <h2 className="text-xl font-semibold">รายการของแถม</h2>
           <Button
             type="button"
             variant="outline"
@@ -332,8 +354,7 @@ export default function ProductManagementPage() {
             onClick={addFreeItem}
             disabled={saving}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มรายการของแถม
+            <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการของแถม
           </Button>
         </div>
 
@@ -348,11 +369,7 @@ export default function ProductManagementPage() {
                 type="number"
                 value={item.purchaseQty}
                 onChange={(e) =>
-                  updateFreeItem(
-                    index,
-                    "purchaseQty",
-                    Number((e.target as HTMLInputElement).value)
-                  )
+                  updateFreeItem(index, "purchaseQty", Number(e.target.value))
                 }
                 disabled={saving}
               />
@@ -361,11 +378,7 @@ export default function ProductManagementPage() {
                 type="number"
                 value={item.freeQty}
                 onChange={(e) =>
-                  updateFreeItem(
-                    index,
-                    "freeQty",
-                    Number((e.target as HTMLInputElement).value)
-                  )
+                  updateFreeItem(index, "freeQty", Number(e.target.value))
                 }
                 disabled={saving}
               />
@@ -377,9 +390,7 @@ export default function ProductManagementPage() {
                   updateFreeItem(
                     index,
                     "netPrice",
-                    (e.target as HTMLInputElement).value
-                      ? Number((e.target as HTMLInputElement).value)
-                      : undefined
+                    e.target.value ? Number(e.target.value) : undefined
                   )
                 }
                 disabled={saving}
@@ -387,13 +398,9 @@ export default function ProductManagementPage() {
               <FloatingLabelInput
                 label="หมายเหตุ"
                 type="text"
-                value={item.notes || ""}
+                value={item.notes}
                 onChange={(e) =>
-                  updateFreeItem(
-                    index,
-                    "notes",
-                    (e.target as HTMLInputElement).value
-                  )
+                  updateFreeItem(index, "notes", e.target.value)
                 }
                 disabled={saving}
               />
@@ -411,18 +418,21 @@ export default function ProductManagementPage() {
               </div>
             </div>
           ))}
+
           {formData.freeItems.length === 0 && (
-            <p className="text-center text-gray-500 py-8">ยังไม่มีรายการของแถม</p>
+            <p className="text-center text-muted-foreground py-8">
+              ยังไม่มีรายการของแถม
+            </p>
           )}
         </div>
       </div>
 
-      {/* Promotion Items */}
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
+      {/* ----------------------------------------------------
+       * Promotion Items
+       * ---------------------------------------------------- */}
+      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">
-            รายการส่งเสริมการขาย
-          </h2>
+          <h2 className="text-xl font-semibold">รายการส่งเสริมการขาย</h2>
           <Button
             type="button"
             variant="outline"
@@ -430,8 +440,7 @@ export default function ProductManagementPage() {
             onClick={addPromotionItem}
             disabled={saving}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มรายการส่งเสริมการขาย
+            <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการส่งเสริมการขาย
           </Button>
         </div>
 
@@ -446,11 +455,7 @@ export default function ProductManagementPage() {
                 type="text"
                 value={item.name}
                 onChange={(e) =>
-                  updatePromotionItem(
-                    index,
-                    "name",
-                    (e.target as HTMLInputElement).value
-                  )
+                  updatePromotionItem(index, "name", e.target.value)
                 }
                 disabled={saving}
               />
@@ -459,11 +464,7 @@ export default function ProductManagementPage() {
                 type="number"
                 value={item.quantity}
                 onChange={(e) =>
-                  updatePromotionItem(
-                    index,
-                    "quantity",
-                    Number((e.target as HTMLInputElement).value)
-                  )
+                  updatePromotionItem(index, "quantity", Number(e.target.value))
                 }
                 disabled={saving}
               />
@@ -475,9 +476,7 @@ export default function ProductManagementPage() {
                   updatePromotionItem(
                     index,
                     "price",
-                    (e.target as HTMLInputElement).value
-                      ? Number((e.target as HTMLInputElement).value)
-                      : undefined
+                    e.target.value ? Number(e.target.value) : undefined
                   )
                 }
                 disabled={saving}
@@ -485,13 +484,9 @@ export default function ProductManagementPage() {
               <FloatingLabelInput
                 label="หมายเหตุ"
                 type="text"
-                value={item.notes || ""}
+                value={item.notes}
                 onChange={(e) =>
-                  updatePromotionItem(
-                    index,
-                    "notes",
-                    (e.target as HTMLInputElement).value
-                  )
+                  updatePromotionItem(index, "notes", e.target.value)
                 }
                 disabled={saving}
               />
@@ -509,25 +504,27 @@ export default function ProductManagementPage() {
               </div>
             </div>
           ))}
+
           {formData.promotionItems.length === 0 && (
-            <p className="text-center text-gray-500 py-8">
+            <p className="text-center text-muted-foreground py-8">
               ยังไม่มีรายการส่งเสริมการขาย
             </p>
           )}
         </div>
       </div>
 
-      {/* Stock Management */}
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
+      {/* ----------------------------------------------------
+       * Stock Management
+       * ---------------------------------------------------- */}
+      <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              จัดการสต็อกสินค้า
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-xl font-semibold">จัดการสต็อกสินค้า</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               ผลรวมจำนวนคงเหลือ: {getTotalStock()} หน่วย
             </p>
           </div>
+
           <Button
             type="button"
             variant="outline"
@@ -535,8 +532,7 @@ export default function ProductManagementPage() {
             onClick={addStockLot}
             disabled={saving}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            เพิ่มสต็อกสินค้า
+            <Plus className="h-4 w-4 mr-2" /> เพิ่มสต็อกสินค้า
           </Button>
         </div>
 
@@ -548,7 +544,7 @@ export default function ProductManagementPage() {
             >
               {lot.id && (
                 <div className="md:col-span-7">
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-foreground">
                     {lot.lotNumber}
                     {lot.isUsed && (
                       <span className="ml-2 text-xs text-red-600">
@@ -558,19 +554,17 @@ export default function ProductManagementPage() {
                   </p>
                 </div>
               )}
+
               <FloatingLabelInput
                 label="จำนวนที่เพิ่ม"
                 type="number"
                 value={lot.quantity}
                 onChange={(e) =>
-                  updateStockLot(
-                    index,
-                    "quantity",
-                    Number((e.target as HTMLInputElement).value)
-                  )
+                  updateStockLot(index, "quantity", Number(e.target.value))
                 }
                 disabled={saving || (lot.id && lot.isUsed)}
               />
+
               <FloatingLabelInput
                 label="วันที่นำเข้า"
                 type="date"
@@ -580,14 +574,11 @@ export default function ProductManagementPage() {
                     : lot.importDate
                 }
                 onChange={(e) =>
-                  updateStockLot(
-                    index,
-                    "importDate",
-                    (e.target as HTMLInputElement).value
-                  )
+                  updateStockLot(index, "importDate", e.target.value)
                 }
                 disabled={saving || (lot.id && lot.isUsed)}
               />
+
               <FloatingLabelInput
                 label="วันหมดอายุ"
                 type="date"
@@ -602,11 +593,12 @@ export default function ProductManagementPage() {
                   updateStockLot(
                     index,
                     "expiryDate",
-                    (e.target as HTMLInputElement).value || undefined
+                    e.target.value || undefined
                   )
                 }
                 disabled={saving || (lot.id && lot.isUsed)}
               />
+
               <FloatingLabelInput
                 label="สถานที่จัดเก็บ"
                 type="select"
@@ -618,19 +610,17 @@ export default function ProductManagementPage() {
                 disabled={saving || (lot.id && lot.isUsed)}
                 searchable
               />
+
               <FloatingLabelInput
                 label="หมายเหตุ"
                 type="text"
-                value={lot.notes || ""}
+                value={lot.notes}
                 onChange={(e) =>
-                  updateStockLot(
-                    index,
-                    "notes",
-                    (e.target as HTMLInputElement).value
-                  )
+                  updateStockLot(index, "notes", e.target.value)
                 }
                 disabled={saving || (lot.id && lot.isUsed)}
               />
+
               <div className="flex items-end md:col-span-2">
                 <Button
                   type="button"
@@ -640,19 +630,22 @@ export default function ProductManagementPage() {
                   disabled={saving || (lot.id && lot.isUsed)}
                   className="w-full"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  ลบ
+                  <Trash2 className="h-4 w-4 mr-2" /> ลบ
                 </Button>
               </div>
             </div>
           ))}
+
           {formData.stockLots.length === 0 && (
-            <p className="text-center text-gray-500 py-8">ยังไม่มีสต็อกสินค้า</p>
+            <p className="text-center text-muted-foreground py-8">
+              ยังไม่มีสต็อกสินค้า
+            </p>
           )}
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
+      {/* Buttons */}
+      <div className="flex justify-end gap-4 pt-4 border-t">
         <Button
           type="button"
           variant="outline"
@@ -661,6 +654,7 @@ export default function ProductManagementPage() {
         >
           ยกเลิก
         </Button>
+
         <Button type="submit" disabled={saving}>
           {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
         </Button>
