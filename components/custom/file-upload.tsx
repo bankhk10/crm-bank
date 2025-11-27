@@ -13,6 +13,8 @@ export interface FileUploadProps {
   maxSizeMB?: number;
   error?: string;
   disabled?: boolean;
+  /** Optional callback when a file is marked as the primary/cover image */
+  onSetCover?: (index: number) => void;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
@@ -24,9 +26,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   maxSizeMB = 2,
   error,
   disabled = false,
+  onSetCover,
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [coverIndex, setCoverIndex] = useState<number | null>(
+    value.length > 0 ? 0 : null
+  );
   const hasError = !!error;
 
   const handleFiles = (files: FileList | null) => {
@@ -73,12 +79,71 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     });
 
     if (validFiles.length > 0) {
-      onChange([...value, ...validFiles]);
+      // Resize/compress images before passing up
+      Promise.all(validFiles.map((f) => resizeAndCompressImage(f))).then(
+        (processed) => {
+          onChange([...value, ...processed]);
+          // if no cover set yet, set first new image as cover
+          if (coverIndex === null && processed.length > 0) {
+            setCoverIndex(value.length);
+            onSetCover?.(value.length);
+          }
+        }
+      );
     }
 
     if (errors.length > 0) {
       alert(errors.join("\n"));
     }
+  };
+
+  // Resize and compress images using canvas (no extra deps)
+  const resizeAndCompressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      if (!file.type.startsWith("image/")) return resolve(file);
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const maxDim = 1200; // max width/height
+        let { width, height } = img as unknown as { width: number; height: number };
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const newFile = new File([blob], file.name, {
+                  type: blob.type || file.type,
+                });
+                resolve(newFile);
+              } else {
+                resolve(file);
+              }
+            },
+            file.type === "image/png" ? "image/png" : "image/jpeg",
+            0.85
+          );
+        } else {
+          resolve(file);
+        }
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    });
   };
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
@@ -162,35 +227,69 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             return (
               <div
                 key={index}
-                className="relative border rounded-lg overflow-hidden bg-white shadow-sm"
+                className="relative rounded-lg overflow-hidden bg-white shadow-sm border"
               >
-                {preview ? (
-                  <img
-                    src={preview}
-                    alt={file.name}
-                    className="w-full h-32 object-cover"
-                    onLoad={() => URL.revokeObjectURL(preview)}
-                  />
-                ) : (
-                  <div className="w-full h-32 flex items-center justify-center bg-gray-100">
-                    <FileImage className="h-12 w-12 text-gray-400" />
+                <div className="relative group">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt={file.name}
+                      className="w-full h-36 object-cover transition-transform duration-200 group-hover:scale-105"
+                      onLoad={() => URL.revokeObjectURL(preview)}
+                    />
+                  ) : (
+                    <div className="w-full h-36 flex items-center justify-center bg-gray-100">
+                      <FileImage className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCoverIndex(index);
+                          onSetCover?.(index);
+                        }}
+                        className={`inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm hover:bg-white/20 ${
+                          coverIndex === index ? "ring-2 ring-yellow-400" : ""
+                        }`}
+                        title="ตั้งภาพเป็นหน้าปก"
+                        disabled={disabled}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z" />
+                        </svg>
+                        <span className="ml-1">ปก</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(index);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-red-600/80 px-2 py-1 text-xs text-white hover:bg-red-600"
+                        title="ลบ"
+                        disabled={disabled}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                )}
 
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeFile(index);
-                  }}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow"
-                  disabled={disabled}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-
-                <div className="p-2 text-xs text-gray-600 truncate">
-                  {file.name}
+                  <div className="p-2 text-xs text-gray-600 truncate">
+                    <div className="font-medium text-sm text-gray-800 truncate">
+                      {file.name}
+                    </div>
+                    <div className="text-xxs text-gray-500 mt-1">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                      {coverIndex === index && (
+                        <span className="ml-2 inline-block rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5 text-[10px]">หน้าปก</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
