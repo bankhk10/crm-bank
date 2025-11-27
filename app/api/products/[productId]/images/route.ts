@@ -99,4 +99,70 @@ export async function POST(request: Request, { params }: { params: any }) {
   }
 }
 
+export async function DELETE(request: Request, { params }: { params: any }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAuthorized(resourcePath, session.user.permissions)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (!session.user.permissions?.["product.update"]?.allow) {
+    return NextResponse.json(
+      { error: "Forbidden - missing product.update" },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const { productId } = await params;
+    const body = await request.json().catch(() => ({}));
+    const imageIds: string[] = Array.isArray(body.imageIds) ? body.imageIds : [];
+
+    if (imageIds.length === 0) {
+      return NextResponse.json({ error: "No imageIds provided" }, { status: 400 });
+    }
+
+    // find records to delete (ensure they belong to this product)
+    const recs = await (db as any).productImage.findMany({
+      where: { id: { in: imageIds }, productId },
+    });
+
+    // delete files from disk
+    for (const r of recs) {
+      try {
+        // r.url is like '/uploads/products/{productId}/{storedFilename}'
+        const rel = String(r.url).replace(/^\//, "");
+        const filepath = path.join(process.cwd(), "public", rel);
+        if (fs.existsSync(filepath)) {
+          await fs.promises.unlink(filepath);
+        }
+      } catch (err) {
+        console.error("Failed to unlink file for image", r.id, err);
+      }
+    }
+
+    // delete DB records
+    await (db as any).productImage.deleteMany({
+      where: { id: { in: imageIds }, productId },
+    });
+
+    // reorder remaining images
+    const remaining = await (db as any).productImage.findMany({ where: { productId }, orderBy: { order: 'asc' } });
+    await Promise.all(
+      remaining.map((img: any, idx: number) => (db as any).productImage.update({ where: { id: img.id }, data: { order: idx } }))
+    );
+
+    const result = await (db as any).productImage.findMany({ where: { productId }, orderBy: { order: 'asc' } });
+
+    return NextResponse.json({ success: true, images: result });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
+  }
+}
+
 

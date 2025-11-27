@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FloatingLabelInput } from "@/components/custom/FloatingLabelInputFixed";
 import { MultiSelect } from "@/components/custom/multi-select";
@@ -65,6 +65,17 @@ export function ProductForm({
     images: initialData?.images || [],
     coverIndex: (initialData as any)?.coverIndex ?? null,
   });
+
+  // track existing image ids that were present when the form mounted
+  const originalExistingIdsRef = useRef<string[]>([]);
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const ids = (initialData?.images || [])
+      .filter((i: any) => typeof (i as any).id === "string")
+      .map((i: any) => (i as any).id as string);
+    originalExistingIdsRef.current = ids;
+  }, [initialData]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   // sampleImageUrls removed: random fill will NOT upload or set images
@@ -133,40 +144,60 @@ export function ProductForm({
           }, 1200);
         }
       } else {
-          const res = await fetch(url, {
-            method,
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "เกิดข้อผิดพลาด");
+        }
+
+        const data = await res.json();
+
+        // If editing and there are removed existing images, delete them first
+        if (isEdit && removedImageIds.length > 0) {
+          const delRes = await fetch(`/api/products/${productId}/images`, {
+            method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ imageIds: removedImageIds }),
           });
 
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data.error || "เกิดข้อผิดพลาด");
+          if (!delRes.ok) {
+            const d = await delRes.json().catch(() => ({}));
+            throw new Error(d.error || "ลบรูปภาพล้มเหลว");
           }
+        }
 
-          const data = await res.json();
-
-          // If there are images to upload, do that now with progress
-          if (formData.images && formData.images.length > 0) {
-            try {
+        // If there are new File objects to upload, do that now with progress
+        if (formData.images && formData.images.length > 0) {
+          try {
+            const filesToUpload = (formData.images as any[]).filter((i) => i instanceof File) as File[];
+            if (filesToUpload.length > 0) {
               setUploadProgress(0);
-              await uploadImages(data.product.id, formData.images, formData.coverIndex ?? undefined);
+              await uploadImages(data.product.id, filesToUpload, formData.coverIndex ?? undefined);
               setUploadProgress(null);
-            } catch (err) {
-              console.error(err);
-              setError("อัพโหลดรูปภาพล้มเหลว");
-              setUploadProgress(null);
-              setLoading(false);
-              return;
             }
+          } catch (err) {
+            console.error(err);
+            setError("อัพโหลดรูปภาพล้มเหลว");
+            setUploadProgress(null);
+            setLoading(false);
+            return;
           }
+        }
 
-          setSuccess(true);
+        // clear removed ids after successful deletion
+        setRemovedImageIds([]);
 
-          setTimeout(() => {
-            router.push("/products");
-            router.refresh();
-          }, 1500);
+        setSuccess(true);
+
+        setTimeout(() => {
+          router.push("/products");
+          router.refresh();
+        }, 1500);
       }
     } catch (err) {
       const error = err as Error;

@@ -83,7 +83,15 @@ export interface ProductFormData {
   usedForPlants: string[];
   salesPoint?: string;
   properties?: string;
-  images?: File[];
+  images?: Array<
+    | File
+    | {
+        id?: string;
+        url: string;
+        name?: string;
+        size?: number;
+      }
+  >;
   /** index in `images` that should be treated as the cover (0-based) */
   coverIndex?: number | null;
 }

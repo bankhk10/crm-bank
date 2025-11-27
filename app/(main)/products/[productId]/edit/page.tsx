@@ -108,6 +108,13 @@ export default function EditProductPage() {
               usedForPlants: product.usedForPlants,
               salesPoint: product.salesPoint || "",
               properties: product.properties || "",
+              images: product.images?.map((img: any) => ({
+                id: img.id,
+                url: img.url,
+                name: img.filename,
+                size: 0,
+              })) || [],
+              coverIndex: product.images && product.images.length > 0 ? 0 : null,
             }}
             productId={productId}
             isEdit
