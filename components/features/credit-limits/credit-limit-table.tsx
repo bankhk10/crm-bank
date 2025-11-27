@@ -59,7 +59,7 @@ function useColumns() {
         accessorKey: "name",
         header: "ชื่อลูกค้า",
         cell: (info) => info.getValue() || "-",
-        meta: { minWidth: 200, width: 260, align: "left" },
+        meta: { minWidth: 200, width: 200, align: "left" },
       },
       {
         accessorKey: "phone",
@@ -80,11 +80,11 @@ function useColumns() {
               }).format(cl.limitAmount)
             : "-";
         },
-        meta: { minWidth: 140, width: 180, align: "center" },
+        meta: { minWidth: 140, width: 150, align: "center" },
       },
       {
         id: "promoAmount",
-        header: "วงเงินส่งเสริมกิจกรรม",
+        header: "วงเงินส่งเสริมการขาย",
         cell: ({ row }) => {
           const r = row.original;
           const cl = r.creditLimits && r.creditLimits[0];
@@ -98,7 +98,7 @@ function useColumns() {
               }).format(v)
             : "-";
         },
-        meta: { minWidth: 160, width: 200, align: "center" },
+        meta: { minWidth: 160, width: 150, align: "center" },
       },
       {
         id: "temporaryCreditLimits",

@@ -150,7 +150,7 @@ export default function CreditLimitForm({
 
         <div>
           <FloatingLabelInput
-            label="วงเงินส่งเสริมกิจกรรม (บาท)"
+            label="วงเงินส่งเสริมการขาย (บาท)"
             type="number"
             value={(payload.promoAmount ?? 0).toString()}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
