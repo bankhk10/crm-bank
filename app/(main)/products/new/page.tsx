@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
-import { usePermission } from "@/hooks/use-permission";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import ProductForm from "@/components/features/products/product-form";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card } from "@/components/ui/card";
+import { usePermission } from "@/hooks/use-permission";
 
 export default function NewProductPage() {
-  const { hasPermission, isLoading } = usePermission("product.create");
+  const { allowed, isLoading } = usePermission("product.create");
+  const canCreate = !isLoading && allowed;
+  const permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่";
 
   if (isLoading) {
     return (
@@ -21,36 +22,23 @@ export default function NewProductPage() {
     );
   }
 
-  if (!hasPermission) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>
-          คุณไม่มีสิทธิ์ในการสร้างสินค้า
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/products"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          กลับไปหน้ารายการสินค้า
-        </Link>
-      </div>
+    <section className="space-y-6">
+      {!canCreate ? (
+        <Alert variant="destructive">
+          <AlertDescription>{permissionHint}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">เพิ่มสินค้าใหม่</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          กรอกข้อมูลสินค้าที่ต้องการเพิ่มลงในระบบ
-        </p>
-      </div>
+      <Card>
+        <div className="p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl border-b pb-6">เพิ่มสินค้าใหม่</h5>
+          </div>
 
-      <ProductForm />
-    </div>
+          <ProductForm />
+        </div>
+      </Card>
+    </section>
   );
 }

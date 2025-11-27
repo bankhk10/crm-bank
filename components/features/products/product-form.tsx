@@ -21,12 +21,28 @@ interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
   productId?: string;
   isEdit?: boolean;
+  onSubmit?: (
+    payload: any
+  ) => Promise<{
+    success: boolean;
+    issues?: Record<string, string[]>;
+    error?: string;
+  }>;
+  onCancel?: () => void;
+  hideBorder?: boolean;
+  canEdit?: boolean;
+  permissionHint?: string;
 }
 
 export function ProductForm({
   initialData,
   productId,
   isEdit = false,
+  onSubmit,
+  onCancel,
+  hideBorder,
+  canEdit = true,
+  permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่",
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -68,11 +84,12 @@ export function ProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       setError("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
+
+    if (!canEdit) return;
 
     setLoading(true);
     setError(null);
@@ -99,27 +116,40 @@ export function ProductForm({
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
       const method = isEdit ? "PATCH" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (onSubmit) {
+        const result = await onSubmit(payload);
+        if (!result.success) {
+          setError(result.error ?? Object.values(result.issues ?? {})[0]?.[0] ?? "Server error");
+        } else {
+          setSuccess(true);
+          setTimeout(() => {
+            router.push("/products");
+            router.refresh();
+          }, 1200);
+        }
+      } else {
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-      if (!res.ok) {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "เกิดข้อผิดพลาด");
+        }
+
         const data = await res.json();
-        throw new Error(data.error || "เกิดข้อผิดพลาด");
+        setSuccess(true);
+
+        // TODO: Handle image upload here if images were selected
+        // await uploadImages(data.product.id, formData.images);
+
+        setTimeout(() => {
+          router.push("/products");
+          router.refresh();
+        }, 1500);
       }
-
-      const data = await res.json();
-      setSuccess(true);
-
-      // TODO: Handle image upload here if images were selected
-      // await uploadImages(data.product.id, formData.images);
-
-      setTimeout(() => {
-        router.push("/products");
-        router.refresh();
-      }, 1500);
     } catch (err) {
       const error = err as Error;
       setError(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -152,10 +182,10 @@ export function ProductForm({
             label="รหัสสินค้า *"
             type="text"
             value={formData.productCode}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                productCode: (e.target as HTMLInputElement).value,
+                productCode: e.target.value,
               }))
             }
             error={errors.productCode}
@@ -166,10 +196,10 @@ export function ProductForm({
             label="ชื่อสินค้า *"
             type="text"
             value={formData.name}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                name: (e.target as HTMLInputElement).value,
+                name: e.target.value,
               }))
             }
             error={errors.name}
@@ -180,10 +210,10 @@ export function ProductForm({
             label="ชื่อสามัญ"
             type="text"
             value={formData.commonName}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                commonName: (e.target as HTMLInputElement).value,
+                commonName: e.target.value,
               }))
             }
             disabled={loading}
@@ -194,7 +224,7 @@ export function ProductForm({
             type="select"
             options={UNIT_OPTIONS}
             value={formData.unit}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
                 unit: e.target.value,
@@ -209,7 +239,7 @@ export function ProductForm({
             type="select"
             options={PRODUCT_GROUP_OPTIONS}
             value={formData.productGroup}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
                 productGroup: e.target.value,
@@ -224,7 +254,7 @@ export function ProductForm({
             type="select"
             options={BRAND_OPTIONS}
             value={formData.brand}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
                 brand: e.target.value,
@@ -238,10 +268,10 @@ export function ProductForm({
             label="ขนาดบรรจุ"
             type="text"
             value={formData.packageSize}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                packageSize: (e.target as HTMLInputElement).value,
+                packageSize: e.target.value,
               }))
             }
             disabled={loading}
@@ -251,10 +281,10 @@ export function ProductForm({
             label="ขนาดบรรจุต่อลัง"
             type="text"
             value={formData.packageSizePerBox}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
-                packageSizePerBox: (e.target as HTMLInputElement).value,
+                packageSizePerBox: e.target.value,
               }))
             }
             disabled={loading}
@@ -265,7 +295,7 @@ export function ProductForm({
             type="select"
             options={STATUS_OPTIONS}
             value={formData.status}
-            onChange={(e) =>
+            onChange={(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
               setFormData((prev) => ({
                 ...prev,
                 status: e.target.value as "ACTIVE" | "INACTIVE",
@@ -293,7 +323,7 @@ export function ProductForm({
             <Textarea
               label="จุดขายสินค้า"
               value={formData.salesPoint}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setFormData((prev) => ({
                   ...prev,
                   salesPoint: e.target.value,
@@ -308,7 +338,7 @@ export function ProductForm({
             <Textarea
               label="คุณสมบัติ"
               value={formData.properties}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setFormData((prev) => ({
                   ...prev,
                   properties: e.target.value,
@@ -338,22 +368,29 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={loading}
-        >
-          ยกเลิก
-        </Button>
-        <Button type="submit" disabled={loading}>
-          {loading
-            ? "กำลังบันทึก..."
-            : isEdit
-            ? "บันทึกการแก้ไข"
-            : "สร้างสินค้า"}
-        </Button>
+      <div className={`md:col-span-2 mt-8 ${hideBorder ? "my-2" : "border-t my-2"}`}>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            type="button"
+            onClick={onCancel ?? (() => router.back())}
+            disabled={!canEdit}
+            title={!canEdit ? permissionHint : undefined}
+          >
+            ยกเลิก
+          </Button>
+
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={!canEdit || loading}
+            title={!canEdit ? permissionHint : undefined}
+          >
+            {loading ? "กำลังบันทึก..." : "บันทึก"}
+          </Button>
+        </div>
       </div>
     </form>
   );
