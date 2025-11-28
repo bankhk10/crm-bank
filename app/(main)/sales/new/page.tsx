@@ -1,0 +1,68 @@
+"use client";
+
+import React from "react";
+import { useRouter } from "next/navigation";
+import { SaleForm } from "@/components/features/sales/sale-form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { usePermission } from "@/hooks/use-permission";
+import type { SaleFormData } from "@/types/sales";
+
+export default function NewSalePage() {
+  const router = useRouter();
+  const { hasPermission, allowed, isLoading } = usePermission("sale.create");
+
+  const handleSubmit = async (data: SaleFormData) => {
+    const res = await fetch("/api/sales", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || "Failed to create sale");
+    }
+
+    const result = await res.json();
+
+    // Show warnings if any
+    if (result.stockWarnings && result.stockWarnings.length > 0) {
+      console.warn("Stock warnings:", result.stockWarnings);
+    }
+
+    // Redirect to sale detail page
+    router.push(`/sales/${result.sale.id}`);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <div className="container mx-auto py-8">
+        <Alert variant="destructive">
+          <AlertDescription>คุณไม่มีสิทธิ์สร้างรายการขาย</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">สร้างรายการขายใหม่</h1>
+        <p className="text-gray-500 mt-2">กรอกข้อมูลรายการขายสินค้า</p>
+      </div>
+
+      <SaleForm onSubmit={handleSubmit} />
+    </div>
+  );
+}

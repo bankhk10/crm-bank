@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, Fragment } from "react";
-import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch, UserCog, DollarSign } from "lucide-react";
+import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch, UserCog, DollarSign, ShoppingCart } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
 
@@ -39,6 +39,12 @@ export const navigationItems: SidebarNavItem[] = [
     label: "สินค้า",
     permissionKey: "menu.products",
     icon: <PackageSearch className="h-4 w-4" />
+  },
+  {
+    href: "/sales",
+    label: "การขาย",
+    permissionKey: "menu.sales",
+    icon: <ShoppingCart className="h-4 w-4" />
   },
   {
     href: "/sales-forecasts",

@@ -74,6 +74,9 @@ model User {
   permissionOverrides           UserPermissionOverride[]
   requestedTemporaryCreditLimits TemporaryCreditLimit[]  @relation("TemporaryCreditRequester")
   approvedTemporaryCreditLimits  TemporaryCreditLimit[]  @relation("TemporaryCreditApprover")
+  createdSales                  Sale[]                   @relation("SaleCreator")
+  approvedSales                 Sale[]                   @relation("SaleApprover")
+  saleStatusChanges             SaleStatusHistory[]      @relation("StatusHistoryUser")
 }
 
 model Company {
@@ -135,6 +138,7 @@ model Employee {
   manager              Employee?   @relation("EmployeeHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
   responsibleCustomers Customer[]  @relation("EmployeeResponsible")
   salesForecasts       SalesForecast[] @relation("EmployeeSalesForecast")
+  sales                Sale[]      @relation("SaleEmployee")
 }
 
 model Department {
@@ -284,6 +288,7 @@ model Customer {
   subDealers              Customer[]    @relation("ParentDealer")
   responsibleEmployee     Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
   salesForecastDetails    SalesForecastMonthlyDetail[] @relation("ForecastCustomer")
+  sales                   Sale[]        @relation("SaleCustomer")
 }
 
 model CreditLimit {
@@ -358,6 +363,7 @@ model Product {
   freeItems             ProductFreeItem[]
   stockLots             ProductStockLot[]
   salesForecastDetails  SalesForecastMonthlyDetail[] @relation("ForecastProduct")
+  saleItems             SaleItem[]    @relation("SaleItemProduct")
 }
 
 model ProductImage {
@@ -459,4 +465,114 @@ model SalesForecastMonthlyDetail {
   customer Customer      @relation("ForecastCustomer", fields: [customerId], references: [id], onDelete: Cascade)
 
   @@unique([forecastId, month, productId, customerId])
+}
+
+enum SaleStatus {
+  PENDING           // รอดำเนินการ
+  APPROVED          // อนุมัติแล้ว
+  REJECTED          // ไม่อนุมัติ
+  AWAITING_PAYMENT  // รอดำเนินการชำระเงิน
+  PAID              // ชำระเงินแล้ว
+  AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
+  DELIVERED         // จัดส่งแล้ว
+  EXPIRED           // หมดอายุ
+  CANCELLED         // ยกเลิก
+  COMPLETED         // เสร็จสิ้น
+}
+
+enum PaymentTerm {
+  PREPAID       // โอนเงินก่อน
+  CREDIT        // ส่งของก่อน
+}
+
+model Sale {
+  id                    String      @id @default(cuid())
+  saleNumber            String      @unique
+  customerId            String
+  employeeId            String
+  status                SaleStatus  @default(PENDING)
+  paymentTerm           PaymentTerm
+  
+  // Credit information
+  creditDays            Int?
+  creditDueDate         DateTime?
+  usePromotionalCredit  Boolean     @default(false)
+  promotionalCreditUsed Decimal?    @db.Decimal(15, 2)
+  
+  // Dates
+  saleDate              DateTime
+  deliveryDate          DateTime?
+  actualDeliveryDate    DateTime?
+  deliveryUpdateCount   Int         @default(0)
+  
+  // Addresses
+  billingAddress        String?
+  shippingAddress       String?
+  
+  // Amounts
+  subtotalAmount        Decimal     @db.Decimal(15, 2)
+  shippingCost          Decimal     @default(0) @db.Decimal(15, 2)
+  otherCosts            Decimal     @default(0) @db.Decimal(15, 2)
+  otherCostsDescription String?
+  totalAmount           Decimal     @db.Decimal(15, 2)
+  
+  // Notes
+  notes                 String?
+  
+  // Payment information
+  paymentDate           DateTime?
+  paymentNotes          String?
+  
+  // Delivery notes
+  deliveryNotes         String?
+  
+  // Approval information
+  approvedById          String?
+  approvedAt            DateTime?
+  rejectionReason       String?
+  rejectedAt            DateTime?
+  
+  // Audit fields
+  createdById           String
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  deletedAt             DateTime?
+  
+  // Relations
+  customer              Customer    @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  employee              Employee    @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy             User        @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy            User?       @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  
+  items                 SaleItem[]
+  statusHistory         SaleStatusHistory[]
+}
+
+model SaleItem {
+  id                    String   @id @default(cuid())
+  saleId                String
+  productId             String
+  quantity              Int
+  unitPrice             Decimal  @db.Decimal(15, 2)
+  originalPrice         Decimal  @db.Decimal(15, 2)
+  priceModified         Boolean  @default(false)
+  totalPrice            Decimal  @db.Decimal(15, 2)
+  stockAtSale           Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  sale                  Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product               Product  @relation("SaleItemProduct", fields: [productId], references: [id], onDelete: Restrict)
+}
+
+model SaleStatusHistory {
+  id              String     @id @default(cuid())
+  saleId          String
+  status          SaleStatus
+  notes           String?
+  changedById     String
+  changedAt       DateTime   @default(now())
+  
+  sale            Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  changedBy       User       @relation("StatusHistoryUser", fields: [changedById], references: [id], onDelete: Restrict)
 }

@@ -218,6 +218,51 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "sale.create",
+        name: "Create sale",
+        category: "ACTION",
+        resource: "sale",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.edit",
+        name: "Edit sale",
+        category: "ACTION",
+        resource: "sale",
+        action: "edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.view",
+        name: "View sale details",
+        category: "ACTION",
+        resource: "sale",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.approve",
+        name: "Approve sale",
+        category: "ACTION",
+        resource: "sale",
+        action: "approve",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.confirm-payment",
+        name: "Confirm sale payment",
+        category: "ACTION",
+        resource: "sale",
+        action: "confirm_payment",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.create",
         name: "Create product",
         category: "ACTION",
@@ -549,6 +594,11 @@ async function main() {
       "menu.credit_limits",
       "menu.products",
       "menu.sales_forecasts",
+      "sale.create",
+      "sale.edit",
+      "sale.view",
+      "sale.approve",
+      "sale.confirm-payment",
       "product.create",
       "product.update",
       "product.delete",
@@ -586,6 +636,9 @@ async function main() {
       "menu.sales",
       "menu.products",
       "menu.sales_forecasts",
+      "sale.create",
+      "sale.edit",
+      "sale.view",
       "product.create",
       "product.update",
       "product.view",
