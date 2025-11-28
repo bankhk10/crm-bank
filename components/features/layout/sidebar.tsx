@@ -41,6 +41,12 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <PackageSearch className="h-4 w-4" />
   },
   {
+    href: "/sales-forecasts",
+    label: "ประมาณการยอดขาย",
+    permissionKey: "menu.sales_forecasts",
+    icon: <DollarSign className="h-4 w-4" />
+  },
+  {
     href: "/employee",
     label: "พนักงาน",
     permissionKey: "menu.employees",

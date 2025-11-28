@@ -210,6 +210,14 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "menu.sales_forecasts",
+        name: "Sales Forecasts menu",
+        category: "MENU",
+        menuPath: "/sales-forecasts",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "product.create",
         name: "Create product",
         category: "ACTION",
@@ -540,6 +548,7 @@ async function main() {
       "menu.customers",
       "menu.credit_limits",
       "menu.products",
+      "menu.sales_forecasts",
       "product.create",
       "product.update",
       "product.delete",
@@ -576,6 +585,7 @@ async function main() {
       "menu.dashboard",
       "menu.sales",
       "menu.products",
+      "menu.sales_forecasts",
       "product.create",
       "product.update",
       "product.view",
