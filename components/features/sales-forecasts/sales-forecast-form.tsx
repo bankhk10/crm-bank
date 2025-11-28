@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -81,7 +81,7 @@ export function SalesForecastForm({
   onSubmit,
   isLoading = false,
 }: SalesForecastFormProps) {
-  const [calculating, setCalculating] = useState(false);
+  const [/*calculating*/, setCalculating] = useState(false);
 
   const form = useForm<SalesForecastFormData>({
     resolver: zodResolver(salesForecastSchema),
@@ -102,15 +102,15 @@ export function SalesForecastForm({
     await onSubmit(data as CreateSalesForecastInput);
   };
 
-  const calculateTotal = () => {
-    setCalculating(true);
-    const details = form.getValues("monthlyDetails");
-    const total = details.reduce((sum, detail) => {
-      return sum + (detail.quantity * detail.unitPrice);
+  // Compute total amount from watched monthly details without side-effects
+  const watchedDetails = form.watch("monthlyDetails") || [];
+  const totalAmount = useMemo(() => {
+    return (watchedDetails || []).reduce((sum: number, detail: any) => {
+      const qty = Number(detail?.quantity) || 0;
+      const price = Number(detail?.unitPrice) || 0;
+      return sum + qty * price;
     }, 0);
-    setCalculating(false);
-    return total;
-  };
+  }, [watchedDetails]);
 
   const addMonthlyDetail = () => {
     append({
@@ -409,15 +409,15 @@ export function SalesForecastForm({
               </div>
             )}
 
-            {fields.length > 0 && (
+                {fields.length > 0 && (
               <div className="mt-6 pt-6 border-t">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>ยอดรวมทั้งหมด:</span>
                   <span className="text-blue-600">
-                    {calculateTotal().toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
+                        {totalAmount.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{" "}
                     บาท
                   </span>
                 </div>

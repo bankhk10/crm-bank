@@ -43,17 +43,21 @@ export default function NewSalesForecastPage() {
 
         if (employeesRes.ok) {
           const empData = await employeesRes.json();
-          setEmployees(empData.data || empData);
+          // API may return { employees: [...] } or { data: [...] } or an array directly
+          const empList = empData.employees ?? empData.data ?? empData;
+          setEmployees(Array.isArray(empList) ? empList : []);
         }
 
         if (productsRes.ok) {
           const prodData = await productsRes.json();
-          setProducts(prodData.data || prodData);
+          const prodList = prodData.products ?? prodData.data ?? prodData;
+          setProducts(Array.isArray(prodList) ? prodList : []);
         }
 
         if (customersRes.ok) {
           const custData = await customersRes.json();
-          setCustomers(custData.data || custData);
+          const custList = custData.customers ?? custData.data ?? custData;
+          setCustomers(Array.isArray(custList) ? custList : []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
