@@ -13,6 +13,7 @@ import {
 } from "@/components/custom/select";
 import DatePicker from "@/components/custom/DatePicker";
 import { Textarea } from "@/components/custom/Textarea";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -92,7 +93,21 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   );
   const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate || "");
   const [billingAddress, setBillingAddress] = useState(initialData?.billingAddress || "");
+  const [billingStreet, setBillingStreet] = useState("");
+  const [billingThaiAddress, setBillingThaiAddress] = useState<{
+    province?: string;
+    district?: string;
+    subdistrict?: string;
+    postalCode?: string;
+  }>({});
   const [shippingAddress, setShippingAddress] = useState(initialData?.shippingAddress || "");
+  const [shippingStreet, setShippingStreet] = useState("");
+  const [shippingThaiAddress, setShippingThaiAddress] = useState<{
+    province?: string;
+    district?: string;
+    subdistrict?: string;
+    postalCode?: string;
+  }>({});
   const [items, setItems] = useState<SaleItemFormData[]>(initialData?.items || []);
   const [shippingCost, setShippingCost] = useState(initialData?.shippingCost || 0);
   const [otherCosts, setOtherCosts] = useState(initialData?.otherCosts || 0);
@@ -133,6 +148,34 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
       }
     }
   }, [customerId, customers]);
+
+  // Combine billing address parts into full address
+  useEffect(() => {
+    const parts = [
+      billingStreet,
+      billingThaiAddress.subdistrict ? `ตำบล${billingThaiAddress.subdistrict}` : "",
+      billingThaiAddress.district ? `อำเภอ${billingThaiAddress.district}` : "",
+      billingThaiAddress.province ? `จังหวัด${billingThaiAddress.province}` : "",
+      billingThaiAddress.postalCode || "",
+    ].filter(Boolean);
+    if (parts.length > 0) {
+      setBillingAddress(parts.join(" "));
+    }
+  }, [billingStreet, billingThaiAddress]);
+
+  // Combine shipping address parts into full address
+  useEffect(() => {
+    const parts = [
+      shippingStreet,
+      shippingThaiAddress.subdistrict ? `ตำบล${shippingThaiAddress.subdistrict}` : "",
+      shippingThaiAddress.district ? `อำเภอ${shippingThaiAddress.district}` : "",
+      shippingThaiAddress.province ? `จังหวัด${shippingThaiAddress.province}` : "",
+      shippingThaiAddress.postalCode || "",
+    ].filter(Boolean);
+    if (parts.length > 0) {
+      setShippingAddress(parts.join(" "));
+    }
+  }, [shippingStreet, shippingThaiAddress]);
 
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
@@ -182,7 +225,8 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
 
   // Copy billing address to shipping address
   const handleCopyAddress = () => {
-    setShippingAddress(billingAddress);
+    setShippingStreet(billingStreet);
+    setShippingThaiAddress(billingThaiAddress);
   };
 
   // Validate and submit
@@ -378,7 +422,7 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="วงเงินส่งเสริมการขายที่ใช้"
               type="number"
               value={promotionalCreditUsed}
-              onChange={(e) => setPromotionalCreditUsed(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPromotionalCreditUsed(Number(e.target.value))}
             />
           )}
         </CardContent>
@@ -403,7 +447,7 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               </Select>
             </div>
 
-            <DatePicker label="วันที่ขาย *" value={saleDate} onChange={setSaleDate} />
+            <DatePicker label="วันที่ขาย *" value={saleDate} onChange={(val) => setSaleDate(val || "")} />
           </div>
 
           {paymentTerm === "CREDIT" && (
@@ -412,17 +456,17 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                 label="เครดิต (วัน)"
                 type="number"
                 value={creditDays}
-                onChange={(e) => setCreditDays(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreditDays(Number(e.target.value))}
               />
               <DatePicker
                 label="ครบกำหนดชำระ"
                 value={creditDueDate}
-                onChange={setCreditDueDate}
+                onChange={(val) => setCreditDueDate(val || "")}
               />
             </div>
           )}
 
-          <DatePicker label="วันที่จัดส่ง" value={deliveryDate} onChange={setDeliveryDate} />
+          <DatePicker label="วันที่จัดส่ง" value={deliveryDate} onChange={(val) => setDeliveryDate(val || "")} />
         </CardContent>
       </Card>
 
@@ -431,25 +475,39 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
           <CardTitle>ที่อยู่</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Textarea
-            label="ที่อยู่วางบิล"
-            value={billingAddress}
-            onChange={(e) => setBillingAddress(e.target.value)}
-            rows={3}
-          />
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">ที่อยู่วางบิล</h4>
+            <FloatingLabelInput
+              label="ที่อยู่ / เลขที่ / ถนน"
+              type="text"
+              value={billingStreet}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBillingStreet(e.target.value)}
+            />
+            <ThaiAddressPicker 
+              value={billingThaiAddress}
+              onChange={setBillingThaiAddress}
+            />
+          </div>
 
           <div className="flex items-center gap-2">
-            <Textarea
-              label="ที่อยู่จัดส่ง"
-              value={shippingAddress}
-              onChange={(e) => setShippingAddress(e.target.value)}
-              rows={3}
-              className="flex-1"
-            />
-            <Button type="button" variant="outline" onClick={handleCopyAddress} className="mt-6">
+            <Button type="button" variant="outline" onClick={handleCopyAddress} size="sm">
               <Copy className="h-4 w-4 mr-2" />
-              คัดลอก
+              คัดลอกที่อยู่วางบิลไปที่อยู่จัดส่ง
             </Button>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">ที่อยู่จัดส่ง</h4>
+            <FloatingLabelInput
+              label="ที่อยู่ / เลขที่ / ถนน"
+              type="text"
+              value={shippingStreet}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShippingStreet(e.target.value)}
+            />
+            <ThaiAddressPicker 
+              value={shippingThaiAddress}
+              onChange={setShippingThaiAddress}
+            />
           </div>
         </CardContent>
       </Card>
@@ -522,13 +580,13 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                       label="จำนวน"
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => handleUpdateItem(index, "quantity", Number(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(index, "quantity", Number(e.target.value))}
                     />
                     <FloatingLabelInput
                       label="ราคาต่อหน่วย"
                       type="number"
                       value={item.unitPrice}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         handleUpdateItem(index, "unitPrice", Number(e.target.value))
                       }
                     />
@@ -571,13 +629,13 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="ค่าขนส่ง"
               type="number"
               value={shippingCost}
-              onChange={(e) => setShippingCost(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShippingCost(Number(e.target.value))}
             />
             <FloatingLabelInput
               label="ค่าใช้จ่ายอื่นๆ"
               type="number"
               value={otherCosts}
-              onChange={(e) => setOtherCosts(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherCosts(Number(e.target.value))}
             />
           </div>
 
@@ -586,7 +644,7 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="รายละเอียดค่าใช้จ่ายอื่นๆ"
               type="text"
               value={otherCostsDescription}
-              onChange={(e) => setOtherCostsDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherCostsDescription(e.target.value)}
             />
           )}
 
