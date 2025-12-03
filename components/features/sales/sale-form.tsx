@@ -544,7 +544,10 @@ export function SaleForm({
                       )}
 
                       {usePromotionalCredit && (
-                        <Badge variant="secondary" className="ml-auto bg-green-300/20 text-green-700 border-green-600">
+                        <Badge
+                          variant="secondary"
+                          className="ml-auto bg-green-300/20 text-green-700 border-green-600"
+                        >
                           เปิดใช้งาน
                         </Badge>
                       )}
@@ -625,22 +628,24 @@ export function SaleForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">ที่อยู่วางบิล</h4>
-            <FloatingLabelInput
-              label="ที่อยู่ / เลขที่ / ถนน"
-              type="text"
-              value={billingStreet}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setBillingStreet(e.target.value)
-              }
-            />
-            <ThaiAddressPicker
-              value={billingThaiAddress}
-              onChange={setBillingThaiAddress}
-            />
+            <h4 className="text-sm font-medium mx-2">ที่อยู่วางบิล</h4>
+            <div className="mt-6 flex flex-col gap-3">
+              <FloatingLabelInput
+                label="ที่อยู่ / เลขที่ / ถนน"
+                type="text"
+                value={billingStreet}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setBillingStreet(e.target.value)
+                }
+              />
+              <ThaiAddressPicker
+                value={billingThaiAddress}
+                onChange={setBillingThaiAddress}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex justify-end">
             <Button
               type="button"
               variant="outline"
@@ -648,24 +653,26 @@ export function SaleForm({
               size="sm"
             >
               <Copy className="h-4 w-4 mr-2" />
-              คัดลอกที่อยู่วางบิลไปที่อยู่จัดส่ง
+              คัดลอกจากที่อยู่วางบิล
             </Button>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">ที่อยู่จัดส่ง</h4>
-            <FloatingLabelInput
-              label="ที่อยู่ / เลขที่ / ถนน"
-              type="text"
-              value={shippingStreet}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setShippingStreet(e.target.value)
-              }
-            />
-            <ThaiAddressPicker
-              value={shippingThaiAddress}
-              onChange={setShippingThaiAddress}
-            />
+            <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
+              <div className="mt-6 flex flex-col gap-3">
+              <FloatingLabelInput
+                label="ที่อยู่ / เลขที่ / ถนน"
+                type="text"
+                value={shippingStreet}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setShippingStreet(e.target.value)
+                }
+              />
+              <ThaiAddressPicker
+                value={shippingThaiAddress}
+                onChange={setShippingThaiAddress}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
