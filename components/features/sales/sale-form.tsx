@@ -542,7 +542,7 @@ export function SaleForm({
                       )}
 
                       {usePromotionalCredit && (
-                        <Badge variant="secondary" className="ml-2">
+                        <Badge variant="secondary" className="ml-auto">
                           เปิดใช้งาน
                         </Badge>
                       )}
