@@ -333,7 +333,7 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
       {errors.length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
