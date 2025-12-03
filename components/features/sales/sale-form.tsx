@@ -705,7 +705,8 @@ export function SaleForm({
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Product Select */}
                     <div className="md:col-span-2">
                       <FloatingLabelInput
                         label="สินค้า"
@@ -722,17 +723,20 @@ export function SaleForm({
                       />
                     </div>
 
+                    {/* Stock Quantity */}
                     {product && (
-                      <div className="flex items-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedProductDetail(product)}
-                        >
-                          <Info className="h-4 w-4 mr-2" />
-                          รายละเอียด
-                        </Button>
+                      <div className="flex items-start justify-between">
+                        <div className="mt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedProductDetail(product)}
+                          >
+                            <Info className="h-4 w-4 mr-2" />
+                            รายละเอียด
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -769,8 +773,9 @@ export function SaleForm({
                       disabled
                       readOnly
                     />
+
                     {product && (
-                      <div>
+                      <div className="mx-4">
                         <label className="text-sm text-gray-500 block mb-1">
                           คงเหลือ
                         </label>
@@ -820,16 +825,18 @@ export function SaleForm({
             />
           </div>
 
-          {otherCosts > 0 && (
-            <FloatingLabelInput
-              label="รายละเอียดค่าใช้จ่ายอื่นๆ"
-              type="text"
-              value={otherCostsDescription}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setOtherCostsDescription(e.target.value)
-              }
-            />
-          )}
+          <div className="mb-4">
+            {otherCosts > 0 && (
+              <FloatingLabelInput
+                label="รายละเอียดค่าใช้จ่ายอื่นๆ"
+                type="text"
+                value={otherCostsDescription}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setOtherCostsDescription(e.target.value)
+                }
+              />
+            )}
+          </div>
 
           <Textarea
             label="หมายเหตุ"
