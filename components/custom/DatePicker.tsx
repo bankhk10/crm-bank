@@ -137,7 +137,7 @@ function DatePicker({
             variant={"outline"}
             className={cn(
               // เพิ่ม hover:bg-white และ hover:text-gray-700 (เพื่อให้ตัวหนังสือไม่เปลี่ยนสีหรือจางลง)
-              "relative w-full h-[50px] px-5 pr-12 text-lg justify-start text-left font-normal rounded-lg hover:bg-white hover:text-gray-700",
+              "relative w-full h-[50px] px-5 pr-12 text-base justify-start text-left font-normal rounded-lg hover:bg-white hover:text-gray-700",
               !date && "text-muted-foreground",
               className
             )}
