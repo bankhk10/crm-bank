@@ -58,12 +58,14 @@ interface SaleFormProps {
   initialData?: Partial<SaleFormData> & { id?: string };
   onSubmit: (data: SaleFormData) => Promise<void>;
   isEdit?: boolean;
+  onCancel?: () => void;
 }
 
 export function SaleForm({
   initialData,
   onSubmit,
   isEdit = false,
+  onCancel,
 }: SaleFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -868,21 +870,24 @@ export function SaleForm({
         </CardContent>
       </Card>
 
-      <div className="flex gap-4 justify-end">
+      <div className="flex gap-4 justify-center mt-8">
         <Button
+          size="lg"
+          className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
           type="button"
-          variant="outline"
-          onClick={() => router.back()}
+          onClick={onCancel ?? (() => router.back())}
           disabled={loading}
         >
           ยกเลิก
         </Button>
-        <Button type="submit" disabled={loading}>
-          {loading
-            ? "กำลังบันทึก..."
-            : isEdit
-            ? "บันทึกการแก้ไข"
-            : "สร้างรายการขาย"}
+
+        <Button
+          size="lg"
+          className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? "กำลังบันทึก..." : "บันทึก"}
         </Button>
       </div>
 
