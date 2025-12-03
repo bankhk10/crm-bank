@@ -7,16 +7,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 
-export default function EditSalePage({ params }: { params: { id: string } }) {
+export default function EditSalePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("sale.edit");
+
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
 
   const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/sales/${params.id}`)
+    fetch(`/api/sales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch sale");
         return res.json();
@@ -62,10 +65,10 @@ export default function EditSalePage({ params }: { params: { id: string } }) {
         setError(err.message);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (data: SaleFormData) => {
-    const res = await fetch(`/api/sales/${params.id}`, {
+    const res = await fetch(`/api/sales/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -77,7 +80,7 @@ export default function EditSalePage({ params }: { params: { id: string } }) {
     }
 
     // Redirect to sale detail page
-    router.push(`/sales/${params.id}`);
+    router.push(`/sales/${id}`);
   };
 
   if (isLoading || loading) {
