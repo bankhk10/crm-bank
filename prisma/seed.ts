@@ -14,6 +14,8 @@ async function main() {
   await prisma.department.deleteMany();
   await prisma.company.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.customer.deleteMany();
+  await prisma.product.deleteMany();
 
   const [sales, cs, ops] = await Promise.all([
     prisma.department.create({
@@ -697,8 +699,193 @@ async function main() {
     },
   });
 
+  // สร้าง Employee สำหรับ users
+  const adminEmployee = await prisma.employee.create({
+    data: {
+      name: admin.name,
+      email: admin.email,
+      userId: admin.id,
+      departmentId: admin.departmentId,
+      positionId: admin.positionId,
+      status: "ACTIVE",
+      employeeCode: "EMP001",
+    },
+  });
+
+  const managerEmployee = await prisma.employee.create({
+    data: {
+      name: manager.name,
+      email: manager.email,
+      userId: manager.id,
+      departmentId: manager.departmentId,
+      positionId: manager.positionId,
+      status: "ACTIVE",
+      employeeCode: "EMP002",
+    },
+  });
+
+  const sellerEmployee = await prisma.employee.create({
+    data: {
+      name: seller.name,
+      email: seller.email,
+      userId: seller.id,
+      departmentId: seller.departmentId,
+      positionId: seller.positionId,
+      status: "ACTIVE",
+      employeeCode: "EMP003",
+    },
+  });
+
+  console.log("✅ สร้าง Employee สำหรับ users เรียบร้อย");
+
   // Employee seed data removed per request.
   // Company seed data removed per request.
+
+  // สร้างบริษัทใหม่ 2 บริษัท
+  const company1 = await prisma.company.create({
+    data: {
+      name: "บริษัท เกษตรสยาม จำกัด",
+      shortName: "เกษตรสยาม",
+      email: "info@kasetsiam.co.th",
+      phone: "02-123-4567",
+      taxId: "0105558123456",
+      addressLine: "123 ถนนพหลโยธิน",
+      province: "กรุงเทพมหานคร",
+      district: "จตุจักร",
+      subdistrict: "ลาดยาว",
+      postalCode: "10900",
+      status: "ACTIVE",
+    },
+  });
+
+  const company2 = await prisma.company.create({
+    data: {
+      name: "บริษัท ไทยการเกษตร อินเตอร์เนชั่นแนล จำกัด",
+      shortName: "ไทยการเกษตร",
+      email: "contact@thaiagri.com",
+      phone: "02-987-6543",
+      taxId: "0105559876543",
+      addressLine: "456 ถนนงามวงศ์วาน",
+      province: "นนทบุรี",
+      district: "บางกรวย",
+      subdistrict: "บางกรวย",
+      postalCode: "11130",
+      status: "ACTIVE",
+    },
+  });
+
+  console.log("✅ สร้างบริษัทใหม่ 2 บริษัท:", company1.name, company2.name);
+
+  // สร้างสินค้าใหม่ 2 รายการ
+  const product1 = await prisma.product.create({
+    data: {
+      productCode: "P-2024-001",
+      name: "ปุ๋ยยูเรีย 46-0-0",
+      commonName: "ปุ๋ยยูเรีย",
+      unit: "กระสอบ",
+      productGroup: "ปุ๋ยเคมี",
+      brand: "เกษตรไทย",
+      packageSize: "50 กก.",
+      packageSizePerBox: "1",
+      status: "ACTIVE",
+      usedForPlants: ["ข้าว", "อ้อย", "ข้าวโพด"],
+      salesPoint: "ปุ๋ยไนโตรเจนสูง เหมาะสำหรับพืชใบ",
+      properties: "ไนโตรเจน 46%, ละลายน้ำได้ดี",
+      price: 850.00,
+      promotionBudget: 50.00,
+    },
+  });
+
+  const product2 = await prisma.product.create({
+    data: {
+      productCode: "P-2024-002",
+      name: "ปุ๋ยสูตร 15-15-15",
+      commonName: "ปุ๋ยสูตรสมดุล",
+      unit: "กระสอบ",
+      productGroup: "ปุ๋ยเคมี",
+      brand: "เกษตรไทย",
+      packageSize: "50 กก.",
+      packageSizePerBox: "1",
+      status: "ACTIVE",
+      usedForPlants: ["ข้าว", "พืชผัก", "ไม้ผล"],
+      salesPoint: "ปุ๋ยสูตรสมดุล เหมาะกับพืชทุกชนิด",
+      properties: "N-P-K สมดุล 15-15-15",
+      price: 950.00,
+      promotionBudget: 75.00,
+    },
+  });
+
+  console.log("✅ สร้างสินค้าใหม่ 2 รายการ:", product1.name, product2.name);
+
+  // สร้างลูกค้าใหม่ 2 ราย
+  const customer1 = await prisma.customer.create({
+    data: {
+      customerCode: "CUS-2024-001",
+      customerType: "DEALER",
+      name: "ร้านเกษตรกรรมพัฒนา",
+      prefix: "นาย",
+      firstName: "สมชาย",
+      lastName: "ใจดี",
+      birthDate: new Date("1980-05-15"),
+      email: "somchai@kasettikorn.com",
+      phone: "081-234-5678",
+      taxId: "1234567890123",
+      addressLine: "99 หมู่ 5 ถนนสุขุมวิท",
+      province: "ชลบุรี",
+      district: "บางละมุง",
+      subdistrict: "หนองปรือ",
+      postalCode: "20150",
+      status: "ACTIVE",
+      contactPerson: "นายสมชาย ใจดี",
+      contactPhone: "081-234-5678",
+      contactEmail: "somchai@kasettikorn.com",
+      notes: "ลูกค้า DEALER ระดับใหญ่ ครอบคลุมพื้นที่จังหวัดชลบุรี",
+      latitude: "13.0217",
+      longitude: "100.9253",
+      relationshipScore: 85,
+      responsibleEmployeeId: sellerEmployee.id,
+      createdById: seller.id,
+    },
+  });
+
+  const customer2 = await prisma.customer.create({
+    data: {
+      customerCode: "CUS-2024-002",
+      customerType: "SUBDEALER",
+      name: "ร้านเกษตรบ้านสวน",
+      prefix: "นาง",
+      firstName: "มาลี",
+      lastName: "รักษ์สวน",
+      birthDate: new Date("1975-08-20"),
+      email: "malee@bansuankaset.com",
+      phone: "089-876-5432",
+      taxId: "9876543210987",
+      addressLine: "77 หมู่ 3",
+      province: "ปทุมธานี",
+      district: "ลำลูกกา",
+      subdistrict: "ลาดสวาย",
+      postalCode: "12150",
+      status: "ACTIVE",
+      contactPerson: "นางมาลี รักษ์สวน",
+      contactPhone: "089-876-5432",
+      contactEmail: "malee@bansuankaset.com",
+      notes: "ลูกค้า SUBDEALER พื้นที่ปทุมธานี มีฐานลูกค้าเกษตรกรดี",
+      latitude: "14.0505",
+      longitude: "100.7163",
+      relationshipScore: 75,
+      parentDealerId: customer1.id,
+      responsibleEmployeeId: sellerEmployee.id,
+      createdById: manager.id,
+    },
+  });
+
+  console.log("✅ สร้างลูกค้าใหม่ 2 ราย:", customer1.name, customer2.name);
+
+  console.log("\n🎉 Seed ข้อมูลเรียบร้อยแล้ว!");
+  console.log("📊 สรุปข้อมูลที่สร้าง:");
+  console.log(`  - บริษัท: ${company1.name}, ${company2.name}`);
+  console.log(`  - สินค้า: ${product1.name}, ${product2.name}`);
+  console.log(`  - ลูกค้า: ${customer1.name}, ${customer2.name}`);
 }
 
 main()
