@@ -659,7 +659,7 @@ export function SaleForm({
 
           <div className="space-y-3">
             <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
-              <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-6 flex flex-col gap-3">
               <FloatingLabelInput
                 label="ที่อยู่ / เลขที่ / ถนน"
                 type="text"
@@ -719,7 +719,6 @@ export function SaleForm({
                           value: product.id,
                           label: `${product.name} - ${product.productCode}`,
                         }))}
-                        placeholder="เลือกสินค้า"
                       />
                     </div>
 
