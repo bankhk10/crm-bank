@@ -4,13 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Copy, Info } from "lucide-react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/custom/select";
 import DatePicker from "@/components/custom/DatePicker";
 import { Textarea } from "@/components/custom/Textarea";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
@@ -34,10 +27,14 @@ interface Customer {
   customerCode: string;
   billingAddress?: string;
   shippingAddress?: string;
-  creditLimit?: number;
-  usedCredit?: number;
-  availableCredit?: number;
-  promotionalCredit?: number;
+  creditLimits?: Array<{
+    id: string;
+    limitAmount: number;
+    promoAmount?: number;
+    usedAmount: number;
+    availableAmount: number;
+    status: string;
+  }>;
 }
 
 interface Employee {
@@ -276,9 +273,11 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
 
     // Check credit limit for CREDIT payment
     if (paymentTerm === "CREDIT" && selectedCustomer) {
-      const availableCredit = selectedCustomer.availableCredit || 0;
+      const creditLimit = selectedCustomer.creditLimits?.[0];
+      const availableCredit = creditLimit?.availableAmount ? Number(creditLimit.availableAmount) : 0;
+      const promoAmount = creditLimit?.promoAmount ? Number(creditLimit.promoAmount) : 0;
       const promotionalAvailable = usePromotionalCredit
-        ? (selectedCustomer.promotionalCredit || 0) - promotionalCreditUsed
+        ? promoAmount - promotionalCreditUsed
         : 0;
 
       if (total > availableCredit + promotionalAvailable) {
@@ -365,66 +364,68 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">ลูกค้า *</label>
-              <Select value={customerId} onValueChange={setCustomerId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกลูกค้า" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} ({customer.customerCode})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FloatingLabelInput
+              label="ลูกค้า *"
+              type="select"
+              searchable
+              value={customerId}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomerId(e.target.value)}
+              options={customers.map((customer) => ({
+                value: customer.id,
+                label: `${customer.name} (${customer.customerCode})`,
+              }))}
+              placeholder="เลือกลูกค้า"
+            />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">พนักงานขาย *</label>
-              <Select value={employeeId} onValueChange={setEmployeeId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกพนักงานขาย" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FloatingLabelInput
+              label="พนักงานขาย *"
+              type="select"
+              searchable
+              value={employeeId}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEmployeeId(e.target.value)}
+              options={employees.map((employee) => ({
+                value: employee.id,
+                label: employee.name,
+              }))}
+              placeholder="เลือกพนักงานขาย"
+            />
           </div>
 
-          {selectedCustomer && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FloatingLabelInput
-                label="วงเงินเครดิตคงเหลือ"
-                type="number"
-                value={selectedCustomer.availableCredit || 0}
-                disabled
-                readOnly
-              />
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  checked={usePromotionalCredit}
-                  onCheckedChange={(checked) => setUsePromotionalCredit(!!checked)}
-                />
-                <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
-              </div>
-            </div>
-          )}
+          {selectedCustomer && (() => {
+            const creditLimit = selectedCustomer.creditLimits?.[0];
+            const availableAmount = creditLimit?.availableAmount ? Number(creditLimit.availableAmount) : 0;
+            const promoAmount = creditLimit?.promoAmount ? Number(creditLimit.promoAmount) : 0;
+            
+            return (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FloatingLabelInput
+                    label="วงเงินเครดิตคงเหลือ"
+                    type="number"
+                    value={availableAmount}
+                    disabled={!usePromotionalCredit}
+                    readOnly
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={usePromotionalCredit}
+                      onCheckedChange={(checked) => setUsePromotionalCredit(!!checked)}
+                    />
+                    <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
+                  </div>
+                </div>
 
-          {usePromotionalCredit && selectedCustomer?.promotionalCredit && (
-            <FloatingLabelInput
-              label="วงเงินส่งเสริมการขายที่ใช้"
-              type="number"
-              value={promotionalCreditUsed}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPromotionalCreditUsed(Number(e.target.value))}
-            />
-          )}
+                {usePromotionalCredit && promoAmount > 0 && (
+                  <FloatingLabelInput
+                    label="วงเงินส่งเสริมการขายที่ใช้"
+                    type="number"
+                    value={promotionalCreditUsed}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPromotionalCreditUsed(Number(e.target.value))}
+                  />
+                )}
+              </>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -434,18 +435,16 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">เงื่อนไขการชำระเงิน *</label>
-              <Select value={paymentTerm} onValueChange={(v) => setPaymentTerm(v as any)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PREPAID">โอนเงินก่อน</SelectItem>
-                  <SelectItem value="CREDIT">ส่งของก่อน</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FloatingLabelInput
+              label="เงื่อนไขการชำระเงิน *"
+              type="select"
+              value={paymentTerm}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentTerm(e.target.value as any)}
+              options={[
+                { value: "PREPAID", label: "โอนเงินก่อน" },
+                { value: "CREDIT", label: "ส่งของก่อน" },
+              ]}
+            />
 
             <DatePicker label="วันที่ขาย *" value={saleDate} onChange={(val) => setSaleDate(val || "")} />
           </div>
@@ -542,22 +541,18 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
-                      <label className="text-sm font-medium mb-2 block">สินค้า</label>
-                      <Select
+                      <FloatingLabelInput
+                        label="สินค้า"
+                        type="select"
+                        searchable
                         value={item.productId}
-                        onValueChange={(v) => handleUpdateItem(index, "productId", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="เลือกสินค้า" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products.map((product) => (
-                            <SelectItem key={product.id} value={product.id}>
-                              {product.name} - {product.productCode}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateItem(index, "productId", e.target.value)}
+                        options={products.map((product) => ({
+                          value: product.id,
+                          label: `${product.name} - ${product.productCode}`,
+                        }))}
+                        placeholder="เลือกสินค้า"
+                      />
                     </div>
 
                     {product && (
