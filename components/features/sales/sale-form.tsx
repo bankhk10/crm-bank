@@ -575,7 +575,7 @@ export function SaleForm({
           <CardTitle>เงื่อนไขการชำระเงินและวันที่</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FloatingLabelInput
               label="เงื่อนไขการชำระเงิน *"
               type="select"
@@ -593,6 +593,12 @@ export function SaleForm({
               label="วันที่ขาย *"
               value={saleDate}
               onChange={(val) => setSaleDate(val || "")}
+            />
+
+            <DatePicker
+              label="วันที่จัดส่ง"
+              value={deliveryDate}
+              onChange={(val) => setDeliveryDate(val || "")}
             />
           </div>
 
@@ -613,12 +619,6 @@ export function SaleForm({
               />
             </div>
           )}
-
-          <DatePicker
-            label="วันที่จัดส่ง"
-            value={deliveryDate}
-            onChange={(val) => setDeliveryDate(val || "")}
-          />
         </CardContent>
       </Card>
 
