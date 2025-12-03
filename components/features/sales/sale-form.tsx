@@ -681,8 +681,8 @@ export function SaleForm({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>รายการสินค้า</span>
-            <Button type="button" onClick={handleAddItem} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button type="button" onClick={handleAddItem} size="sm" className="bg-green-700 hover:bg-green-800 text-white rounded-xl">
+              <Plus className="h-4 w-2" />
               เพิ่มรายการ
             </Button>
           </CardTitle>
@@ -852,7 +852,7 @@ export function SaleForm({
           <CardTitle>สรุปยอดรวม</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="flex justify-between text-lg">
+          <div className="flex justify-between">
             <span>รวมเป็นเงิน:</span>
             <span className="font-medium">
               ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
