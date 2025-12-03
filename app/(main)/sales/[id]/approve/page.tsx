@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -22,7 +22,8 @@ import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/types/sales";
 import { SaleStatusLabels, PaymentTermLabels } from "@/types/sales";
 
-export default function ApproveSalePage({ params }: { params: { id: string } }) {
+export default function ApproveSalePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("sale.approve");
 
@@ -37,7 +38,7 @@ export default function ApproveSalePage({ params }: { params: { id: string } }) 
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/sales/${params.id}`)
+    fetch(`/api/sales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch sale");
         return res.json();
@@ -50,12 +51,12 @@ export default function ApproveSalePage({ params }: { params: { id: string } }) 
         setError(err.message);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleApprove = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/sales/${params.id}/approve`, {
+      const res = await fetch(`/api/sales/${id}/approve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: approveNotes }),
@@ -66,7 +67,7 @@ export default function ApproveSalePage({ params }: { params: { id: string } }) 
         throw new Error(error.error || "Failed to approve sale");
       }
 
-      router.push(`/sales/${params.id}`);
+      router.push(`/sales/${id}`);
     } catch (err: any) {
       setError(err.message);
       setActionLoading(false);
@@ -81,7 +82,7 @@ export default function ApproveSalePage({ params }: { params: { id: string } }) 
 
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/sales/${params.id}/reject`, {
+      const res = await fetch(`/api/sales/${id}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: rejectReason }),
@@ -92,7 +93,7 @@ export default function ApproveSalePage({ params }: { params: { id: string } }) 
         throw new Error(error.error || "Failed to reject sale");
       }
 
-      router.push(`/sales/${params.id}`);
+      router.push(`/sales/${id}`);
     } catch (err: any) {
       setError(err.message);
       setActionLoading(false);

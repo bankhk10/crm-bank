@@ -5,7 +5,7 @@ import { db as prisma } from "@/lib/db";
 // POST /api/sales/[id]/reject - Reject sale
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -15,6 +15,7 @@ export async function POST(
 
     // TODO: Check if user has approval permission
 
+    const { id } = await params;
     const body = await request.json();
     const { reason } = body;
 
@@ -26,7 +27,7 @@ export async function POST(
     }
 
     const sale = await prisma.sale.findUnique({
-      where: { id: params.id, deletedAt: null },
+      where: { id, deletedAt: null },
     });
 
     if (!sale) {
@@ -41,7 +42,7 @@ export async function POST(
     }
 
     const updatedSale = await prisma.sale.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: "REJECTED",
         rejectionReason: reason,
