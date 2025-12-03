@@ -6,6 +6,7 @@ import { SaleForm } from "@/components/features/sales/sale-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
+import { Card } from "@/components/ui/card";
 
 export default function NewSalePage() {
   const router = useRouter();
@@ -56,11 +57,16 @@ export default function NewSalePage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">สร้างรายการขายใหม่</h1>
-      </div>
-      <SaleForm onSubmit={handleSubmit} />
-    </div>
+    <section className="space-y-6 container mx-auto py-8">
+      <Card>
+        <div className="p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl border-b pb-6">สร้างรายการขายใหม่</h5>
+          </div>
+
+          <SaleForm onSubmit={handleSubmit} />
+        </div>
+      </Card>
+    </section>
   );
 }

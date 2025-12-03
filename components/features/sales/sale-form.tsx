@@ -60,7 +60,11 @@ interface SaleFormProps {
   isEdit?: boolean;
 }
 
-export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProps) {
+export function SaleForm({
+  initialData,
+  onSubmit,
+  isEdit = false,
+}: SaleFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -78,7 +82,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
     initialData?.paymentTerm || "PREPAID"
   );
   const [creditDays, setCreditDays] = useState(initialData?.creditDays || 0);
-  const [creditDueDate, setCreditDueDate] = useState(initialData?.creditDueDate || "");
+  const [creditDueDate, setCreditDueDate] = useState(
+    initialData?.creditDueDate || ""
+  );
   const [usePromotionalCredit, setUsePromotionalCredit] = useState(
     initialData?.usePromotionalCredit || false
   );
@@ -88,8 +94,12 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   const [saleDate, setSaleDate] = useState(
     initialData?.saleDate || new Date().toISOString().split("T")[0]
   );
-  const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate || "");
-  const [billingAddress, setBillingAddress] = useState(initialData?.billingAddress || "");
+  const [deliveryDate, setDeliveryDate] = useState(
+    initialData?.deliveryDate || ""
+  );
+  const [billingAddress, setBillingAddress] = useState(
+    initialData?.billingAddress || ""
+  );
   const [billingStreet, setBillingStreet] = useState("");
   const [billingThaiAddress, setBillingThaiAddress] = useState<{
     province?: string;
@@ -97,7 +107,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
     subdistrict?: string;
     postalCode?: string;
   }>({});
-  const [shippingAddress, setShippingAddress] = useState(initialData?.shippingAddress || "");
+  const [shippingAddress, setShippingAddress] = useState(
+    initialData?.shippingAddress || ""
+  );
   const [shippingStreet, setShippingStreet] = useState("");
   const [shippingThaiAddress, setShippingThaiAddress] = useState<{
     province?: string;
@@ -105,8 +117,12 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
     subdistrict?: string;
     postalCode?: string;
   }>({});
-  const [items, setItems] = useState<SaleItemFormData[]>(initialData?.items || []);
-  const [shippingCost, setShippingCost] = useState(initialData?.shippingCost || 0);
+  const [items, setItems] = useState<SaleItemFormData[]>(
+    initialData?.items || []
+  );
+  const [shippingCost, setShippingCost] = useState(
+    initialData?.shippingCost || 0
+  );
   const [otherCosts, setOtherCosts] = useState(initialData?.otherCosts || 0);
   const [otherCostsDescription, setOtherCostsDescription] = useState(
     initialData?.otherCostsDescription || ""
@@ -114,10 +130,13 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   const [notes, setNotes] = useState(initialData?.notes || "");
 
   // Selected customer info
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
 
   // Product detail modal
-  const [selectedProductDetail, setSelectedProductDetail] = useState<Product | null>(null);
+  const [selectedProductDetail, setSelectedProductDetail] =
+    useState<Product | null>(null);
 
   // Load customers, employees, products
   useEffect(() => {
@@ -150,9 +169,13 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   useEffect(() => {
     const parts = [
       billingStreet,
-      billingThaiAddress.subdistrict ? `ตำบล${billingThaiAddress.subdistrict}` : "",
+      billingThaiAddress.subdistrict
+        ? `ตำบล${billingThaiAddress.subdistrict}`
+        : "",
       billingThaiAddress.district ? `อำเภอ${billingThaiAddress.district}` : "",
-      billingThaiAddress.province ? `จังหวัด${billingThaiAddress.province}` : "",
+      billingThaiAddress.province
+        ? `จังหวัด${billingThaiAddress.province}`
+        : "",
       billingThaiAddress.postalCode || "",
     ].filter(Boolean);
     if (parts.length > 0) {
@@ -164,9 +187,15 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   useEffect(() => {
     const parts = [
       shippingStreet,
-      shippingThaiAddress.subdistrict ? `ตำบล${shippingThaiAddress.subdistrict}` : "",
-      shippingThaiAddress.district ? `อำเภอ${shippingThaiAddress.district}` : "",
-      shippingThaiAddress.province ? `จังหวัด${shippingThaiAddress.province}` : "",
+      shippingThaiAddress.subdistrict
+        ? `ตำบล${shippingThaiAddress.subdistrict}`
+        : "",
+      shippingThaiAddress.district
+        ? `อำเภอ${shippingThaiAddress.district}`
+        : "",
+      shippingThaiAddress.province
+        ? `จังหวัด${shippingThaiAddress.province}`
+        : "",
       shippingThaiAddress.postalCode || "",
     ].filter(Boolean);
     if (parts.length > 0) {
@@ -175,7 +204,10 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   }, [shippingStreet, shippingThaiAddress]);
 
   // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.quantity * item.unitPrice,
+    0
+  );
   const total = subtotal + shippingCost + otherCosts;
 
   // Add item
@@ -198,7 +230,11 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   };
 
   // Update item
-  const handleUpdateItem = (index: number, field: keyof SaleItemFormData, value: any) => {
+  const handleUpdateItem = (
+    index: number,
+    field: keyof SaleItemFormData,
+    value: any
+  ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
 
@@ -238,7 +274,8 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
     // Validation
     if (!customerId) newErrors.push("กรุณาเลือกลูกค้า");
     if (!employeeId) newErrors.push("กรุณาเลือกพนักงานขาย");
-    if (items.length === 0) newErrors.push("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
+    if (items.length === 0)
+      newErrors.push("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
     if (!saleDate) newErrors.push("กรุณาระบุวันที่ขาย");
 
     // Validate items
@@ -266,7 +303,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
       // Check price modification
       if (item.priceModified) {
         newWarnings.push(
-          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${item.originalPrice} เป็น ${item.unitPrice}`
+          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${
+            item.originalPrice
+          } เป็น ${item.unitPrice}`
         );
       }
     });
@@ -274,8 +313,12 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
     // Check credit limit for CREDIT payment
     if (paymentTerm === "CREDIT" && selectedCustomer) {
       const creditLimit = selectedCustomer.creditLimits?.[0];
-      const availableCredit = creditLimit?.availableAmount ? Number(creditLimit.availableAmount) : 0;
-      const promoAmount = creditLimit?.promoAmount ? Number(creditLimit.promoAmount) : 0;
+      const availableCredit = creditLimit?.availableAmount
+        ? Number(creditLimit.availableAmount)
+        : 0;
+      const promoAmount = creditLimit?.promoAmount
+        ? Number(creditLimit.promoAmount)
+        : 0;
       const promotionalAvailable = usePromotionalCredit
         ? promoAmount - promotionalCreditUsed
         : 0;
@@ -314,7 +357,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
         creditDays: paymentTerm === "CREDIT" ? creditDays : undefined,
         creditDueDate: paymentTerm === "CREDIT" ? creditDueDate : undefined,
         usePromotionalCredit,
-        promotionalCreditUsed: usePromotionalCredit ? promotionalCreditUsed : undefined,
+        promotionalCreditUsed: usePromotionalCredit
+          ? promotionalCreditUsed
+          : undefined,
         saleDate,
         deliveryDate: deliveryDate || undefined,
         billingAddress,
@@ -333,7 +378,7 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {errors.length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -369,7 +414,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               type="select"
               searchable
               value={customerId}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCustomerId(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setCustomerId(e.target.value)
+              }
               options={customers.map((customer) => ({
                 value: customer.id,
                 label: `${customer.name} (${customer.customerCode})`,
@@ -382,7 +429,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               type="select"
               searchable
               value={employeeId}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setEmployeeId(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setEmployeeId(e.target.value)
+              }
               options={employees.map((employee) => ({
                 value: employee.id,
                 label: employee.name,
@@ -391,41 +440,50 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
             />
           </div>
 
-          {selectedCustomer && (() => {
-            const creditLimit = selectedCustomer.creditLimits?.[0];
-            const availableAmount = creditLimit?.availableAmount ? Number(creditLimit.availableAmount) : 0;
-            const promoAmount = creditLimit?.promoAmount ? Number(creditLimit.promoAmount) : 0;
-            
-            return (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FloatingLabelInput
-                    label="วงเงินเครดิตคงเหลือ"
-                    type="number"
-                    value={availableAmount}
-                    disabled={!usePromotionalCredit}
-                    readOnly
-                  />
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={usePromotionalCredit}
-                      onCheckedChange={(checked) => setUsePromotionalCredit(!!checked)}
-                    />
-                    <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
-                  </div>
-                </div>
+          {selectedCustomer &&
+            (() => {
+              const creditLimit = selectedCustomer.creditLimits?.[0];
+              const availableAmount = creditLimit?.availableAmount
+                ? Number(creditLimit.availableAmount)
+                : 0;
+              const promoAmount = creditLimit?.promoAmount
+                ? Number(creditLimit.promoAmount)
+                : 0;
 
-                {usePromotionalCredit && promoAmount > 0 && (
-                  <FloatingLabelInput
-                    label="วงเงินส่งเสริมการขายที่ใช้"
-                    type="number"
-                    value={promotionalCreditUsed}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPromotionalCreditUsed(Number(e.target.value))}
-                  />
-                )}
-              </>
-            );
-          })()}
+              return (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FloatingLabelInput
+                      label="วงเงินเครดิตคงเหลือ"
+                      type="number"
+                      value={availableAmount}
+                      disabled={!usePromotionalCredit}
+                      readOnly
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={usePromotionalCredit}
+                        onCheckedChange={(checked) =>
+                          setUsePromotionalCredit(!!checked)
+                        }
+                      />
+                      <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
+                    </div>
+                  </div>
+
+                  {usePromotionalCredit && promoAmount > 0 && (
+                    <FloatingLabelInput
+                      label="วงเงินส่งเสริมการขายที่ใช้"
+                      type="number"
+                      value={promotionalCreditUsed}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPromotionalCreditUsed(Number(e.target.value))
+                      }
+                    />
+                  )}
+                </>
+              );
+            })()}
         </CardContent>
       </Card>
 
@@ -439,14 +497,20 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="เงื่อนไขการชำระเงิน *"
               type="select"
               value={paymentTerm}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentTerm(e.target.value as any)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setPaymentTerm(e.target.value as any)
+              }
               options={[
                 { value: "PREPAID", label: "โอนเงินก่อน" },
                 { value: "CREDIT", label: "ส่งของก่อน" },
               ]}
             />
 
-            <DatePicker label="วันที่ขาย *" value={saleDate} onChange={(val) => setSaleDate(val || "")} />
+            <DatePicker
+              label="วันที่ขาย *"
+              value={saleDate}
+              onChange={(val) => setSaleDate(val || "")}
+            />
           </div>
 
           {paymentTerm === "CREDIT" && (
@@ -455,7 +519,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                 label="เครดิต (วัน)"
                 type="number"
                 value={creditDays}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCreditDays(Number(e.target.value))}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCreditDays(Number(e.target.value))
+                }
               />
               <DatePicker
                 label="ครบกำหนดชำระ"
@@ -465,7 +531,11 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
             </div>
           )}
 
-          <DatePicker label="วันที่จัดส่ง" value={deliveryDate} onChange={(val) => setDeliveryDate(val || "")} />
+          <DatePicker
+            label="วันที่จัดส่ง"
+            value={deliveryDate}
+            onChange={(val) => setDeliveryDate(val || "")}
+          />
         </CardContent>
       </Card>
 
@@ -480,16 +550,23 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="ที่อยู่ / เลขที่ / ถนน"
               type="text"
               value={billingStreet}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBillingStreet(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBillingStreet(e.target.value)
+              }
             />
-            <ThaiAddressPicker 
+            <ThaiAddressPicker
               value={billingThaiAddress}
               onChange={setBillingThaiAddress}
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" onClick={handleCopyAddress} size="sm">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCopyAddress}
+              size="sm"
+            >
               <Copy className="h-4 w-4 mr-2" />
               คัดลอกที่อยู่วางบิลไปที่อยู่จัดส่ง
             </Button>
@@ -501,9 +578,11 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="ที่อยู่ / เลขที่ / ถนน"
               type="text"
               value={shippingStreet}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShippingStreet(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setShippingStreet(e.target.value)
+              }
             />
-            <ThaiAddressPicker 
+            <ThaiAddressPicker
               value={shippingThaiAddress}
               onChange={setShippingThaiAddress}
             />
@@ -546,7 +625,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                         type="select"
                         searchable
                         value={item.productId}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleUpdateItem(index, "productId", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          handleUpdateItem(index, "productId", e.target.value)
+                        }
                         options={products.map((product) => ({
                           value: product.id,
                           label: `${product.name} - ${product.productCode}`,
@@ -575,14 +656,24 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                       label="จำนวน"
                       type="number"
                       value={item.quantity}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateItem(index, "quantity", Number(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleUpdateItem(
+                          index,
+                          "quantity",
+                          Number(e.target.value)
+                        )
+                      }
                     />
                     <FloatingLabelInput
                       label="ราคาต่อหน่วย"
                       type="number"
                       value={item.unitPrice}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleUpdateItem(index, "unitPrice", Number(e.target.value))
+                        handleUpdateItem(
+                          index,
+                          "unitPrice",
+                          Number(e.target.value)
+                        )
                       }
                     />
                     <FloatingLabelInput
@@ -594,8 +685,12 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                     />
                     {product && (
                       <div>
-                        <label className="text-sm text-gray-500 block mb-1">คงเหลือ</label>
-                        <Badge variant="outline">{product.stockQuantity || 0} {product.unit || ''}</Badge>
+                        <label className="text-sm text-gray-500 block mb-1">
+                          คงเหลือ
+                        </label>
+                        <Badge variant="outline">
+                          {product.stockQuantity || 0} {product.unit || ""}
+                        </Badge>
                       </div>
                     )}
                   </div>
@@ -603,7 +698,8 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
                   {item.priceModified && (
                     <Alert>
                       <AlertDescription className="text-sm">
-                        ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿{item.originalPrice.toLocaleString()}
+                        ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿
+                        {item.originalPrice.toLocaleString()}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -624,13 +720,17 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="ค่าขนส่ง"
               type="number"
               value={shippingCost}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setShippingCost(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setShippingCost(Number(e.target.value))
+              }
             />
             <FloatingLabelInput
               label="ค่าใช้จ่ายอื่นๆ"
               type="number"
               value={otherCosts}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherCosts(Number(e.target.value))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setOtherCosts(Number(e.target.value))
+              }
             />
           </div>
 
@@ -639,7 +739,9 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
               label="รายละเอียดค่าใช้จ่ายอื่นๆ"
               type="text"
               value={otherCostsDescription}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtherCostsDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setOtherCostsDescription(e.target.value)
+              }
             />
           )}
 
@@ -659,15 +761,25 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
         <CardContent className="space-y-2">
           <div className="flex justify-between text-lg">
             <span>รวมเป็นเงิน:</span>
-            <span className="font-medium">฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+            <span className="font-medium">
+              ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span>ค่าขนส่ง:</span>
-            <span>฿{shippingCost.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+            <span>
+              ฿
+              {shippingCost.toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span>ค่าใช้จ่ายอื่นๆ:</span>
-            <span>฿{otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+            <span>
+              ฿
+              {otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            </span>
           </div>
           <div className="border-t pt-2 flex justify-between text-xl font-bold">
             <span>ยอดเงินสุทธิ:</span>
@@ -679,27 +791,41 @@ export function SaleForm({ initialData, onSubmit, isEdit = false }: SaleFormProp
       </Card>
 
       <div className="flex gap-4 justify-end">
-        <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={loading}
+        >
           ยกเลิก
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? "กำลังบันทึก..." : isEdit ? "บันทึกการแก้ไข" : "สร้างรายการขาย"}
+          {loading
+            ? "กำลังบันทึก..."
+            : isEdit
+            ? "บันทึกการแก้ไข"
+            : "สร้างรายการขาย"}
         </Button>
       </div>
 
       {/* Product Detail Modal */}
-      <Dialog open={!!selectedProductDetail} onOpenChange={() => setSelectedProductDetail(null)}>
+      <Dialog
+        open={!!selectedProductDetail}
+        onOpenChange={() => setSelectedProductDetail(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>รายละเอียดสินค้า</DialogTitle>
             <DialogDescription>
-              {selectedProductDetail?.name} ({selectedProductDetail?.productCode})
+              {selectedProductDetail?.name} (
+              {selectedProductDetail?.productCode})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <h4 className="font-medium mb-2">รายการของแถม</h4>
-              {selectedProductDetail?.freeItems && selectedProductDetail.freeItems.length > 0 ? (
+              {selectedProductDetail?.freeItems &&
+              selectedProductDetail.freeItems.length > 0 ? (
                 <ul className="list-disc pl-5">
                   {selectedProductDetail.freeItems.map((item, i) => (
                     <li key={i}>

@@ -41,13 +41,7 @@ export default function CompaniesPage() {
   );
   const [actionLoading, setActionLoading] = useState(false);
 
-  // auto-apply filters (debounced) when user types or changes date range
   useEffect(() => {
-    // If the last applied search returned no results and the user is
-    // typing more characters (extending the query), do NOT auto-apply
-    // filters. This prevents sending additional requests while the user
-    // continues to type a longer query that is very unlikely to return
-    // results. The user can still submit explicitly with Enter.
     const isExtendingEmpty =
       total === 0 &&
       appliedFilters.query &&
