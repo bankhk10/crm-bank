@@ -17,6 +17,8 @@ export interface ProductRecord extends Product {
     promotionItems: number;
     stockLots: number;
   };
+  stockQuantity?: number;
+  reserved?: number;
 }
 
 interface ProductsTableProps {
@@ -82,18 +84,57 @@ export function ProductsTable({
       ),
     },
     {
-      accessorKey: "brand",
-      header: "แบรนด์",
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.brand || "-"}</div>
-      ),
+      accessorKey: "price",
+      header: "ราคาสินค้า",
+      cell: ({ row }) => {
+        const price = row.original.price;
+        return (
+          <div className="text-sm">
+            {price == null ? (
+              "-"
+            ) : (
+              <span>
+                ฿{Number(price).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "unit",
-      header: "หน่วย",
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.unit || "-"}</div>
-      ),
+      accessorKey: "stockQuantity",
+      header: "สต็อกทั้งหมด",
+      cell: ({ row }) => {
+        const totalStock =
+          row.original.stockQuantity ??
+          (row.original.stockLots
+            ? row.original.stockLots.reduce((s, lot) => s + (lot.quantity || 0), 0)
+            : 0);
+
+        return <div className="text-sm">{totalStock.toLocaleString()}</div>;
+      },
+    },
+    {
+      accessorKey: "reserved",
+      header: "สต็อกจอง",
+      cell: ({ row }) => {
+        const reserved = row.original.reserved ?? 0;
+        return <div className="text-sm">{reserved.toLocaleString()}</div>;
+      },
+    },
+    {
+      id: "availableStock",
+      header: "สต็อกคงเหลือ",
+      cell: ({ row }) => {
+        const totalStock =
+          row.original.stockQuantity ??
+          (row.original.stockLots
+            ? row.original.stockLots.reduce((s, lot) => s + (lot.quantity || 0), 0)
+            : 0);
+        const reserved = row.original.reserved ?? 0;
+        const available = Math.max(0, totalStock - reserved);
+        return <div className="text-sm">{available.toLocaleString()}</div>;
+      },
     },
     {
       accessorKey: "status",
