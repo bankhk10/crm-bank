@@ -6,9 +6,10 @@ import type { PaymentConfirmationData } from "@/types/sales";
 // POST /api/sales/[id]/confirm-payment - Confirm payment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,7 +25,7 @@ export async function POST(
     }
 
     const sale = await prisma.sale.findUnique({
-      where: { id: params.id, deletedAt: null },
+      where: { id, deletedAt: null },
     });
 
     if (!sale) {
@@ -47,7 +48,7 @@ export async function POST(
     }
 
     const updatedSale = await prisma.sale.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: nextStatus,
         paymentDate: new Date(body.paymentDate),

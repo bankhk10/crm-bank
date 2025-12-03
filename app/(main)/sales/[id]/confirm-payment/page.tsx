@@ -12,8 +12,10 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Textarea } from "@/components/custom/Textarea";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleWithRelations, PaymentConfirmationData } from "@/types/sales";
+import { use } from "react";
 
-export default function ConfirmPaymentPage({ params }: { params: { id: string } }) {
+export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { hasPermission, allowed, isLoading: permissionLoading } = usePermission("sale.confirm-payment");
 
@@ -28,7 +30,7 @@ export default function ConfirmPaymentPage({ params }: { params: { id: string } 
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/sales/${params.id}`)
+    fetch(`/api/sales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch sale");
         return res.json();
@@ -45,7 +47,7 @@ export default function ConfirmPaymentPage({ params }: { params: { id: string } 
         setError(err.message);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +68,7 @@ export default function ConfirmPaymentPage({ params }: { params: { id: string } 
         deliveryNotes: deliveryNotes || undefined,
       };
 
-      const res = await fetch(`/api/sales/${params.id}/confirm-payment`, {
+      const res = await fetch(`/api/sales/${id}/confirm-payment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -77,7 +79,7 @@ export default function ConfirmPaymentPage({ params }: { params: { id: string } 
         throw new Error(error.error || "Failed to confirm payment");
       }
 
-      router.push(`/sales/${params.id}`);
+      router.push(`/sales/${id}`);
     } catch (err: any) {
       setError(err.message);
       setSubmitting(false);
