@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -15,7 +15,8 @@ import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/types/sales";
 import { SaleStatusLabels, PaymentTermLabels, getSaleStatusColor } from "@/types/sales";
 
-export default function SaleDetailPage({ params }: { params: { id: string } }) {
+export default function SaleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const { hasPermission } = usePermission("menu.sales");
   const canEdit = hasPermission("sale.edit");
@@ -26,7 +27,7 @@ export default function SaleDetailPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/sales/${params.id}`)
+    fetch(`/api/sales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch sale");
         return res.json();
@@ -39,7 +40,7 @@ export default function SaleDetailPage({ params }: { params: { id: string } }) {
         setError(err.message);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (

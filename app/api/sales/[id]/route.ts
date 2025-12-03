@@ -7,7 +7,7 @@ import type { SaleFormData } from "@/types/sales";
 // GET /api/sales/[id] - Get sale detail
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -15,17 +15,12 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const sale = await prisma.sale.findUnique({
-      where: { id: params.id, deletedAt: null },
+      where: { id, deletedAt: null },
       include: {
         customer: {
-          select: {
-            id: true,
-            name: true,
-            customerCode: true,
-            phone: true,
-            email: true,
-          },
           include: {
             creditLimits: {
               where: {
@@ -40,37 +35,12 @@ export async function GET(
             },
           },
         },
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            employeeCode: true,
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        approvedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        employee: true,
+        createdBy: true,
+        approvedBy: true,
         items: {
           include: {
             product: {
-              select: {
-                id: true,
-                name: true,
-                productCode: true,
-                unit: true,
-                price: true,
-              },
               include: {
                 stockLots: {
                   where: { isUsed: false },
@@ -81,13 +51,7 @@ export async function GET(
         },
         statusHistory: {
           include: {
-            changedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
+            changedBy: true,
           },
           orderBy: { changedAt: "desc" },
         },
@@ -181,7 +145,7 @@ export async function GET(
 // PUT /api/sales/[id] - Update sale
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -189,11 +153,12 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body: SaleFormData = await request.json();
 
     // Check if sale exists and can be edited
     const existingSale = await prisma.sale.findUnique({
-      where: { id: params.id, deletedAt: null },
+      where: { id, deletedAt: null },
     });
 
     if (!existingSale) {
@@ -212,7 +177,7 @@ export async function PUT(
 
     // Update sale
     const sale = await prisma.sale.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         customerId: body.customerId,
         employeeId: body.employeeId,
@@ -259,33 +224,11 @@ export async function PUT(
           : undefined,
       },
       include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            customerCode: true,
-            phone: true,
-            email: true,
-          },
-        },
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            employeeCode: true,
-          },
-        },
+        customer: true,
+        employee: true,
         items: {
           include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                productCode: true,
-                unit: true,
-                price: true,
-              },
-            },
+            product: true,
           },
         },
       },
@@ -304,7 +247,7 @@ export async function PUT(
 // DELETE /api/sales/[id] - Delete sale (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -312,8 +255,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const sale = await prisma.sale.findUnique({
-      where: { id: params.id, deletedAt: null },
+      where: { id, deletedAt: null },
       include: {
         items: true,
       },
@@ -325,7 +270,7 @@ export async function DELETE(
 
     // Soft delete
     await prisma.sale.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         deletedAt: new Date(),
         statusHistory: {
