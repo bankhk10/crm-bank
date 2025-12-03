@@ -521,13 +521,13 @@ export function SaleForm({
 
                           <div
                             className={`
-          flex items-center justify-between px-3 py-2 border rounded-lg bg-white dark:bg-slate-900
-          ${
-            promotionalCreditUsed > promoAmount
-              ? "border-red-500"
-              : "border-gray-300"
-          }
-        `}
+                               flex items-center justify-between px-3 py-2 border rounded-lg bg-white dark:bg-slate-900
+                              ${
+                                promotionalCreditUsed > promoAmount
+                                  ? "border-red-500"
+                                  : "border-gray-300"
+                              }
+                            `}
                           >
                             <input
                               type="number"
