@@ -6,6 +6,7 @@ import { SaleForm } from "@/components/features/sales/sale-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
+import { Card } from "@/components/ui/card";
 
 export default function EditSalePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -115,13 +116,17 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">แก้ไขรายการขาย</h1>
-        <p className="text-gray-500 mt-2">แก้ไขข้อมูลรายการขายสินค้า</p>
-      </div>
-
-      <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
-    </div>
+    <section className="space-y-6 container mx-auto py-8">
+      <Card>
+        <div className="p-6">
+          <div className="text-center">
+            <h5 className="font-semibold text-3xl border-b pb-6">
+              แก้ไขรายการขาย
+            </h5>
+          </div>
+           <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
+        </div>
+      </Card>
+    </section>
   );
 }
