@@ -13,9 +13,7 @@ import generateRandomEmployee from "@/lib/random-fill/employee";
 interface EmployeeFormProps {
   employeeId?: string;
   initial?: Partial<EmployeeFormValues>;
-  onSubmit?: (
-    payload: any
-  ) => Promise<{
+  onSubmit?: (payload: any) => Promise<{
     success: boolean;
     issues?: Record<string, string[]>;
     error?: string;
@@ -25,14 +23,12 @@ interface EmployeeFormProps {
   registerRandomize?: (fn: () => void) => void;
 }
 
-// ขยาย Type ของ formState เพื่อรองรับฟิลด์ทั้งหมดจาก code1
-// ในการใช้งานจริง ควรอ้างอิงจาก Type `Employee` ของคุณ
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
   firstName?: string;
   lastName?: string;
   employeeCode?: string;
-  birthDate?: string; // ใช้ string (YYYY-MM-DD) สำหรับ input type="date"
+  birthDate?: string;
   age?: number | string;
   position?: string;
   department?: string;
@@ -85,7 +81,7 @@ export default function EmployeeForm({
 
     async function loadRoles() {
       try {
-        const res = await fetch("/api/rbac/roles"); // นี่คือ "สิทธิ์การใช้งาน" (Role Definitions)
+        const res = await fetch("/api/rbac/roles");
         if (!res.ok) return;
         const data = await res.json();
         if (mounted) setRoles(data);
@@ -111,12 +107,19 @@ export default function EmployeeForm({
   useEffect(() => {
     if (!initial) return;
     const addr = (initial as any).address;
-    if (addr && (addr.province || addr.district || addr.subdistrict || addr.postalCode !== undefined)) {
+    if (
+      addr &&
+      (addr.province ||
+        addr.district ||
+        addr.subdistrict ||
+        addr.postalCode !== undefined)
+    ) {
       setAddress({
         province: addr.province ?? undefined,
         district: addr.district ?? undefined,
         subdistrict: addr.subdistrict ?? undefined,
-        postalCode: addr.postalCode !== undefined ? String(addr.postalCode) : undefined,
+        postalCode:
+          addr.postalCode !== undefined ? String(addr.postalCode) : undefined,
       });
       return;
     }
@@ -134,7 +137,12 @@ export default function EmployeeForm({
           : undefined,
     };
 
-    if (fallback.province || fallback.district || fallback.subdistrict || fallback.postalCode) {
+    if (
+      fallback.province ||
+      fallback.district ||
+      fallback.subdistrict ||
+      fallback.postalCode
+    ) {
       setAddress(fallback);
     }
   }, [initial]);
@@ -195,7 +203,6 @@ export default function EmployeeForm({
     };
   }, []);
 
-  // ฟังก์ชัน Handle Change แบบทั่วไป
   const handleChange =
     (field: keyof EmployeeFormValues) =>
     (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -284,15 +291,12 @@ export default function EmployeeForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canEdit) return;
-    // Trigger validation display for fields that should show errors on submit
     setShowValidation(true);
     setError(null);
     setSuccess(null);
     setLoading(true);
 
     try {
-      // Basic client-side validation before proceeding to server
-      // We set showValidation to true above so inline field errors will appear as well.
       if (!formState.firstName) {
         setError("กรุณากรอกชื่อ");
         setLoading(false);
@@ -308,7 +312,6 @@ export default function EmployeeForm({
         setLoading(false);
         return;
       }
-      // simple email format check
       const emailVal = String(formState.email ?? "").trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailVal && !emailRegex.test(emailVal)) {
@@ -316,7 +319,6 @@ export default function EmployeeForm({
         setLoading(false);
         return;
       }
-      // password policy (only when provided)
       if (
         password &&
         String(password).length > 0 &&
@@ -326,13 +328,11 @@ export default function EmployeeForm({
         setLoading(false);
         return;
       }
-      // Require password only for new employee creation (not for update)
       if (!employeeId && !password) {
         setError("กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ");
         setLoading(false);
         return;
       }
-      // phone format check (if provided)
       if (formState.phone) {
         const phoneDigits = String(formState.phone).replace(/\D/g, "");
         if (phoneDigits.length < 9 || phoneDigits.length > 10) {
@@ -342,8 +342,6 @@ export default function EmployeeForm({
         }
       }
 
-      // ค้นหา Role Definition (สิทธิ์การใช้งาน)
-      // Validate required fields shown on submit
       if (!formState.roleDefinitionId) {
         setError("กรุณาเลือกสิทธิ์การใช้งาน");
         setLoading(false);
