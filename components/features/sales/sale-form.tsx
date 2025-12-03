@@ -486,8 +486,8 @@ export function SaleForm({
                     />
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 p-4  dark:bg-blue-950 rounded-lg border">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3 p-4 dark:bg-blue-950 rounded-lg border">
                       <Checkbox
                         id="use-promo-credit"
                         checked={usePromotionalCredit}
@@ -499,78 +499,65 @@ export function SaleForm({
                         }}
                         className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
+
                       <label
                         htmlFor="use-promo-credit"
-                        className="text-sm font-medium cursor-pointer select-none flex-1"
+                        className="text-sm font-medium cursor-pointer select-none"
                       >
                         ใช้วงเงินส่งเสริมการขาย
                       </label>
+
+                      {usePromotionalCredit && promoAmount > 0 && (
+                        <div
+                          className={`flex items-center px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 ${
+                            promotionalCreditUsed > promoAmount
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <input
+                            type="number"
+                            value={promotionalCreditUsed || ""}
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              const value = e.target.value;
+
+                              // ป้องกัน 0 นำหน้า
+                              if (value === "" || value === "0") {
+                                setPromotionalCreditUsed(0);
+                              } else {
+                                const numValue = Number(value);
+                                setPromotionalCreditUsed(numValue);
+                              }
+                            }}
+                            min={0}
+                            max={promoAmount}
+                            step="0.01"
+                            className="w-36 bg-transparent outline-none text-right"
+                          />
+
+                          <span className="ml-2 text-gray-500 text-sm">฿</span>
+                        </div>
+                      )}
+
                       {usePromotionalCredit && (
-                        <Badge variant="secondary" className="ml-auto">
+                        <Badge variant="secondary" className="ml-2">
                           เปิดใช้งาน
                         </Badge>
                       )}
                     </div>
 
-                    {usePromotionalCredit && promoAmount > 0 && (
-                      <div className="pl-4 space-y-2">
-                        <div className="flex flex-col space-y-1">
-                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            วงเงินส่งเสริมการขายที่ใช้ *
-                          </label>
-
-                          <div
-                            className={`
-                               flex items-center justify-between px-3 py-2 border rounded-lg bg-white dark:bg-slate-900
-                              ${
-                                promotionalCreditUsed > promoAmount
-                                  ? "border-red-500"
-                                  : "border-gray-300"
-                              }
-                            `}
-                          >
-                            <input
-                              type="number"
-                              value={promotionalCreditUsed || ""}
-                              onChange={(
-                                e: React.ChangeEvent<HTMLInputElement>
-                              ) => {
-                                const value = e.target.value;
-
-                                // ป้องกัน 0 นำหน้า
-                                if (value === "" || value === "0") {
-                                  setPromotionalCreditUsed(0);
-                                } else {
-                                  const numValue = Number(value);
-                                  setPromotionalCreditUsed(numValue);
-                                }
-                              }}
-                              min={0}
-                              max={promoAmount}
-                              step="0.01"
-                              className="w-full bg-transparent outline-none text-right"
-                            />
-
-                            <span className="ml-2 text-gray-500 text-sm">
-                              ฿
-                            </span>
-                          </div>
-                        </div>
-
-                        {promotionalCreditUsed > promoAmount && (
-                          <Alert variant="destructive" className="mt-1">
-                            <AlertDescription className="text-sm">
-                              ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ
-                              (คงเหลือ: ฿{promoAmount.toLocaleString()})
-                            </AlertDescription>
-                          </Alert>
-                        )}
-
-                        <p className="text-xs text-gray-500">
-                          สามารถใช้ได้สูงสุด: ฿{promoAmount.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
+                    {usePromotionalCredit &&
+                      promoAmount > 0 &&
+                      promotionalCreditUsed > promoAmount && (
+                        <Alert variant="destructive" className="mt-1">
+                          <AlertDescription className="text-sm">
+                            ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ
+                            (คงเหลือ: ฿{promoAmount.toLocaleString()})
+                          </AlertDescription>
+                        </Alert>
+                      )}
                   </div>
                 </>
               );
