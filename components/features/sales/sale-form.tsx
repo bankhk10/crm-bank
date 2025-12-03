@@ -421,7 +421,6 @@ export function SaleForm({
                 value: customer.id,
                 label: `${customer.name} (${customer.customerCode})`,
               }))}
-              placeholder="เลือกลูกค้า"
             />
 
             <FloatingLabelInput
@@ -436,7 +435,6 @@ export function SaleForm({
                 value: employee.id,
                 label: employee.name,
               }))}
-              placeholder="เลือกพนักงานขาย"
             />
           </div>
 
