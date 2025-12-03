@@ -662,13 +662,12 @@ export function SaleForm({
               <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
               <Button
                 type="button"
-                variant="outline"
                 onClick={handleCopyAddress}
                 size="sm"
-                className="ml-2"
+                className="ml-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
               >
                 <Copy className="h-4 w-4 mr-2" />
-                คัดลอกจากที่อยู่วางบิล
+                คัดลอกที่อยู่วางบิล
               </Button>
             </div>
             <div className="mt-4 flex flex-col gap-3">
