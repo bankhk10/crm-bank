@@ -42,6 +42,50 @@ export async function POST(
       nextStatus = "AWAITING_DELIVERY";
     }
 
+    // Check if customer has credit limit for credit sales
+    if (sale.paymentTerm === "CREDIT") {
+      const creditLimit = await prisma.creditLimit.findFirst({
+        where: {
+          customerId: sale.customerId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
+      });
+
+      if (!creditLimit) {
+        return NextResponse.json(
+          { error: "Customer does not have an active credit limit" },
+          { status: 400 }
+        );
+      }
+
+      // Check if customer has enough credit available
+      const availableCredit = Number(creditLimit.availableAmount);
+      const saleTotal = Number(sale.totalAmount);
+
+      if (availableCredit < saleTotal) {
+        return NextResponse.json(
+          {
+            error: `Insufficient credit limit. Available: ฿${availableCredit.toLocaleString()}, Required: ฿${saleTotal.toLocaleString()}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Update credit limit: deduct from available, add to used
+      await prisma.creditLimit.update({
+        where: { id: creditLimit.id },
+        data: {
+          usedAmount: {
+            increment: sale.totalAmount,
+          },
+          availableAmount: {
+            decrement: sale.totalAmount,
+          },
+        },
+      });
+    }
+
     const updatedSale = await prisma.sale.update({
       where: { id },
       data: {

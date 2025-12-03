@@ -166,7 +166,39 @@ export async function PUT(
     }
 
     // If sale is approved, reset to PENDING for re-approval
-    const needsReapproval = existingSale.status === "APPROVED";
+    const needsReapproval =
+      existingSale.status === "APPROVED" ||
+      existingSale.status === "AWAITING_PAYMENT" ||
+      existingSale.status === "AWAITING_DELIVERY";
+
+    // Return credit limit if sale was approved and used credit
+    if (
+      needsReapproval &&
+      existingSale.paymentTerm === "CREDIT"
+    ) {
+      const creditLimit = await prisma.creditLimit.findFirst({
+        where: {
+          customerId: existingSale.customerId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
+      });
+
+      if (creditLimit) {
+        // Return the credit: decrease used, increase available
+        await prisma.creditLimit.update({
+          where: { id: creditLimit.id },
+          data: {
+            usedAmount: {
+              decrement: existingSale.totalAmount,
+            },
+            availableAmount: {
+              increment: existingSale.totalAmount,
+            },
+          },
+        });
+      }
+    }
 
     // Calculate totals
     const subtotal = body.items.reduce(
@@ -266,6 +298,39 @@ export async function DELETE(
 
     if (!sale) {
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
+    }
+
+    // Return credit limit if sale was approved and used credit
+    if (
+      sale.paymentTerm === "CREDIT" &&
+      (sale.status === "APPROVED" ||
+        sale.status === "AWAITING_PAYMENT" ||
+        sale.status === "AWAITING_DELIVERY" ||
+        sale.status === "DELIVERED" ||
+        sale.status === "COMPLETED")
+    ) {
+      const creditLimit = await prisma.creditLimit.findFirst({
+        where: {
+          customerId: sale.customerId,
+          status: "ACTIVE",
+          deletedAt: null,
+        },
+      });
+
+      if (creditLimit) {
+        // Return the credit: decrease used, increase available
+        await prisma.creditLimit.update({
+          where: { id: creditLimit.id },
+          data: {
+            usedAmount: {
+              decrement: sale.totalAmount,
+            },
+            availableAmount: {
+              increment: sale.totalAmount,
+            },
+          },
+        });
+      }
     }
 
     // Soft delete
