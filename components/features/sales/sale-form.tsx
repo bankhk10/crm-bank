@@ -310,6 +310,24 @@ export function SaleForm({
       }
     });
 
+    // Check promotional credit validation
+    if (usePromotionalCredit && selectedCustomer) {
+      const creditLimit = selectedCustomer.creditLimits?.[0];
+      const promoAmount = creditLimit?.promoAmount
+        ? Number(creditLimit.promoAmount)
+        : 0;
+      
+      if (promotionalCreditUsed > promoAmount) {
+        newErrors.push(
+          `วงเงินส่งเสริมการขายที่ใช้เกินวงเงินคงเหลือ (คงเหลือ: ฿${promoAmount.toLocaleString()})`
+        );
+      }
+      
+      if (promotionalCreditUsed < 0) {
+        newErrors.push("วงเงินส่งเสริมการขายที่ใช้ต้องเป็นจำนวนบวก");
+      }
+    }
+
     // Check credit limit for CREDIT payment
     if (paymentTerm === "CREDIT" && selectedCustomer) {
       const creditLimit = selectedCustomer.creditLimits?.[0];
@@ -468,23 +486,64 @@ export function SaleForm({
                     />
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={usePromotionalCredit}
-                      onCheckedChange={(checked) =>
-                        setUsePromotionalCredit(!!checked)
-                      }
-                    />
-                    <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
-                    {usePromotionalCredit && promoAmount > 0 && (
-                      <FloatingLabelInput
-                        label="วงเงินส่งเสริมการขายที่ใช้"
-                        type="number"
-                        value={promotionalCreditUsed}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setPromotionalCreditUsed(Number(e.target.value))
-                        }
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3 p-4  dark:bg-blue-950 rounded-lg border">
+                      <Checkbox
+                        id="use-promo-credit"
+                        checked={usePromotionalCredit}
+                        onCheckedChange={(checked) => {
+                          setUsePromotionalCredit(!!checked);
+                          if (!checked) {
+                            setPromotionalCreditUsed(0);
+                          }
+                        }}
+                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
+                      <label
+                        htmlFor="use-promo-credit"
+                        className="text-sm font-medium cursor-pointer select-none flex-1"
+                      >
+                        ใช้วงเงินส่งเสริมการขาย
+                      </label>
+                      {usePromotionalCredit && (
+                        <Badge variant="secondary" className="ml-auto">
+                          เปิดใช้งาน
+                        </Badge>
+                      )}
+                    </div>
+
+                    {usePromotionalCredit && promoAmount > 0 && (
+                      <div className="pl-4 space-y-2">
+                        <FloatingLabelInput
+                          label="วงเงินส่งเสริมการขายที่ใช้ *"
+                          type="number"
+                          value={promotionalCreditUsed || ""}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const value = e.target.value;
+                            // ป้องกันเลข 0 นำหน้า
+                            if (value === "" || value === "0") {
+                              setPromotionalCreditUsed(0);
+                            } else {
+                              const numValue = Number(value);
+                              setPromotionalCreditUsed(numValue);
+                            }
+                          }}
+                          min="0"
+                          max={promoAmount}
+                          step="0.01"
+                          className={promotionalCreditUsed > promoAmount ? "border-red-500" : ""}
+                        />
+                        {promotionalCreditUsed > promoAmount && (
+                          <Alert variant="destructive" className="mt-2">
+                            <AlertDescription className="text-sm">
+                              ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ (คงเหลือ: ฿{promoAmount.toLocaleString()})
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          สามารถใช้ได้สูงสุด: ฿{promoAmount.toLocaleString()}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </>
