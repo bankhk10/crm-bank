@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Copy, Info } from "lucide-react";
+import { Plus, Trash2, Copy, Info, Shuffle } from "lucide-react";
 import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import DatePicker from "@/components/custom/DatePicker";
 import { Textarea } from "@/components/custom/Textarea";
@@ -276,6 +276,73 @@ export function SaleForm({
     setShippingThaiAddress(billingThaiAddress);
   };
 
+  // Random fill form for testing/demo — try server API first, fallback to client-side
+  const handleRandomFill = async () => {
+    try {
+      const res = await fetch("/api/random-fill/sale");
+      if (res.ok) {
+        const data = await res.json();
+        const s: any = data.sale;
+        if (s) {
+          setCustomerId(s.customerId || "");
+          setEmployeeId(s.employeeId || "");
+          setPaymentTerm(s.paymentTerm || "PREPAID");
+          setCreditDays(s.creditDays || 0);
+          setCreditDueDate(s.creditDueDate || "");
+          setUsePromotionalCredit(!!s.usePromotionalCredit);
+          setPromotionalCreditUsed(s.promotionalCreditUsed || 0);
+          setSaleDate(s.saleDate || new Date().toISOString().split("T")[0]);
+          setDeliveryDate(s.deliveryDate || "");
+          setBillingAddress(s.billingAddress || "");
+          setShippingAddress(s.shippingAddress || "");
+          setItems(s.items || []);
+          setShippingCost(s.shippingCost || 0);
+          setOtherCosts(s.otherCosts || 0);
+          setOtherCostsDescription(s.otherCostsDescription || "");
+          setNotes(s.notes || "");
+          setBillingStreet(s.billingAddress || "");
+          setShippingStreet(s.shippingAddress || "");
+          return;
+        }
+      }
+    } catch (e) {
+      // API not available or failed — fallback to local generator below
+      console.warn("random-fill API failed, falling back to client generator", e);
+    }
+
+    // Client-side fallback (uses helper) — move demo data out of component
+    if (customers.length === 0 || employees.length === 0 || products.length === 0) {
+      alert("ไม่พบข้อมูลลูกค้า/พนักงาน/สินค้า เพียงพอสำหรับการสุ่ม");
+      return;
+    }
+
+    try {
+      const { generateRandomSaleClient } = await import("@/lib/random-fill/sale-client");
+      const s = generateRandomSaleClient(customers, employees, products);
+
+      setCustomerId(s.customerId || "");
+      setEmployeeId(s.employeeId || "");
+      setPaymentTerm(s.paymentTerm || "PREPAID");
+      setCreditDays(s.creditDays || 0);
+      setCreditDueDate(s.creditDueDate || "");
+      setUsePromotionalCredit(!!s.usePromotionalCredit);
+      setPromotionalCreditUsed(s.promotionalCreditUsed || 0);
+      setSaleDate(s.saleDate || new Date().toISOString().split("T")[0]);
+      setDeliveryDate(s.deliveryDate || "");
+      setBillingAddress(s.billingAddress || "");
+      setShippingAddress(s.shippingAddress || "");
+      setItems(s.items || []);
+      setShippingCost(s.shippingCost || 0);
+      setOtherCosts(s.otherCosts || 0);
+      setOtherCostsDescription(s.otherCostsDescription || "");
+      setNotes(s.notes || "");
+      setBillingStreet(s.billingAddress || "");
+      setShippingStreet(s.shippingAddress || "");
+    } catch (err) {
+      console.warn("Failed to load client generator", err);
+    }
+  };
+
   // Validate and submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -437,7 +504,18 @@ export function SaleForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>ข้อมูลลูกค้าและพนักงาน</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>ข้อมูลลูกค้าและพนักงาน</span>
+            <Button
+              type="button"
+              onClick={handleRandomFill}
+              size="sm"
+              className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl"
+            >
+              <Shuffle className="h-4 w-4 mr-2" />
+              สุ่มข้อมูล
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
