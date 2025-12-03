@@ -316,13 +316,13 @@ export function SaleForm({
       const promoAmount = creditLimit?.promoAmount
         ? Number(creditLimit.promoAmount)
         : 0;
-      
+
       if (promotionalCreditUsed > promoAmount) {
         newErrors.push(
           `วงเงินส่งเสริมการขายที่ใช้เกินวงเงินคงเหลือ (คงเหลือ: ฿${promoAmount.toLocaleString()})`
         );
       }
-      
+
       if (promotionalCreditUsed < 0) {
         newErrors.push("วงเงินส่งเสริมการขายที่ใช้ต้องเป็นจำนวนบวก");
       }
@@ -514,32 +514,58 @@ export function SaleForm({
 
                     {usePromotionalCredit && promoAmount > 0 && (
                       <div className="pl-4 space-y-2">
-                        <FloatingLabelInput
-                          label="วงเงินส่งเสริมการขายที่ใช้ *"
-                          type="number"
-                          value={promotionalCreditUsed || ""}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const value = e.target.value;
-                            // ป้องกันเลข 0 นำหน้า
-                            if (value === "" || value === "0") {
-                              setPromotionalCreditUsed(0);
-                            } else {
-                              const numValue = Number(value);
-                              setPromotionalCreditUsed(numValue);
-                            }
-                          }}
-                          min="0"
-                          max={promoAmount}
-                          step="0.01"
-                          className={promotionalCreditUsed > promoAmount ? "border-red-500" : ""}
-                        />
+                        <div className="flex flex-col space-y-1">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            วงเงินส่งเสริมการขายที่ใช้ *
+                          </label>
+
+                          <div
+                            className={`
+          flex items-center justify-between px-3 py-2 border rounded-lg bg-white dark:bg-slate-900
+          ${
+            promotionalCreditUsed > promoAmount
+              ? "border-red-500"
+              : "border-gray-300"
+          }
+        `}
+                          >
+                            <input
+                              type="number"
+                              value={promotionalCreditUsed || ""}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) => {
+                                const value = e.target.value;
+
+                                // ป้องกัน 0 นำหน้า
+                                if (value === "" || value === "0") {
+                                  setPromotionalCreditUsed(0);
+                                } else {
+                                  const numValue = Number(value);
+                                  setPromotionalCreditUsed(numValue);
+                                }
+                              }}
+                              min={0}
+                              max={promoAmount}
+                              step="0.01"
+                              className="w-full bg-transparent outline-none text-right"
+                            />
+
+                            <span className="ml-2 text-gray-500 text-sm">
+                              ฿
+                            </span>
+                          </div>
+                        </div>
+
                         {promotionalCreditUsed > promoAmount && (
-                          <Alert variant="destructive" className="mt-2">
+                          <Alert variant="destructive" className="mt-1">
                             <AlertDescription className="text-sm">
-                              ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ (คงเหลือ: ฿{promoAmount.toLocaleString()})
+                              ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ
+                              (คงเหลือ: ฿{promoAmount.toLocaleString()})
                             </AlertDescription>
                           </Alert>
                         )}
+
                         <p className="text-xs text-gray-500">
                           สามารถใช้ได้สูงสุด: ฿{promoAmount.toLocaleString()}
                         </p>
