@@ -641,7 +641,7 @@ export function SaleForm({
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <h4 className="text-sm font-medium mx-2">ที่อยู่วางบิล</h4>
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-3">
               <FloatingLabelInput
                 label="ที่อยู่ / เลขที่ / ถนน"
                 type="text"
@@ -671,7 +671,7 @@ export function SaleForm({
                 คัดลอกจากที่อยู่วางบิล
               </Button>
             </div>
-            <div className="mt-6 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-3">
               <FloatingLabelInput
                 label="ที่อยู่ / เลขที่ / ถนน"
                 type="text"
