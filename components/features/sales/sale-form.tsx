@@ -458,27 +458,35 @@ export function SaleForm({
                       disabled={!usePromotionalCredit}
                       readOnly
                     />
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={usePromotionalCredit}
-                        onCheckedChange={(checked) =>
-                          setUsePromotionalCredit(!!checked)
-                        }
-                      />
-                      <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
-                    </div>
+
+                    <FloatingLabelInput
+                      label="วงเงินส่งเสริมการขายคงเหลือ"
+                      type="number"
+                      value={promoAmount}
+                      disabled
+                      readOnly
+                    />
                   </div>
 
-                  {usePromotionalCredit && promoAmount > 0 && (
-                    <FloatingLabelInput
-                      label="วงเงินส่งเสริมการขายที่ใช้"
-                      type="number"
-                      value={promotionalCreditUsed}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setPromotionalCreditUsed(Number(e.target.value))
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={usePromotionalCredit}
+                      onCheckedChange={(checked) =>
+                        setUsePromotionalCredit(!!checked)
                       }
                     />
-                  )}
+                    <label className="text-sm">ใช้วงเงินส่งเสริมการขาย</label>
+                    {usePromotionalCredit && promoAmount > 0 && (
+                      <FloatingLabelInput
+                        label="วงเงินส่งเสริมการขายที่ใช้"
+                        type="number"
+                        value={promotionalCreditUsed}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setPromotionalCreditUsed(Number(e.target.value))
+                        }
+                      />
+                    )}
+                  </div>
                 </>
               );
             })()}
