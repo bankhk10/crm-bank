@@ -50,8 +50,20 @@ interface Product {
   price?: number;
   unit?: string;
   stockQuantity?: number;
-  promotionItems?: Array<{ name: string; quantity: number }>;
-  freeItems?: Array<{ purchaseQty: number; freeQty: number }>;
+  promotionItems?: Array<{ 
+    id: string;
+    name: string; 
+    quantity: number;
+    price?: number;
+    notes?: string;
+  }>;
+  freeItems?: Array<{ 
+    id: string;
+    purchaseQty: number; 
+    freeQty: number;
+    netPrice?: number;
+    notes?: string;
+  }>;
 }
 
 interface SaleFormProps {
@@ -909,7 +921,7 @@ export function SaleForm({
         open={!!selectedProductDetail}
         onOpenChange={() => setSelectedProductDetail(null)}
       >
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>รายละเอียดสินค้า</DialogTitle>
             <DialogDescription>
@@ -917,35 +929,94 @@ export function SaleForm({
               {selectedProductDetail?.productCode})
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Stock Quantity */}
+            <div className="border-b pb-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-lg">จำนวนคงเหลือ</h4>
+                <Badge variant="outline" className="text-lg px-4 py-2">
+                  {selectedProductDetail?.stockQuantity || 0}{" "}
+                  {selectedProductDetail?.unit || "หน่วย"}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Free Items */}
             <div>
-              <h4 className="font-medium mb-2">รายการของแถม</h4>
+              <h4 className="font-medium text-lg mb-3">รายการของแถม</h4>
               {selectedProductDetail?.freeItems &&
               selectedProductDetail.freeItems.length > 0 ? (
-                <ul className="list-disc pl-5">
+                <div className="space-y-2">
                   {selectedProductDetail.freeItems.map((item, i) => (
-                    <li key={i}>
-                      ซื้อ {item.purchaseQty} แถม {item.freeQty}
-                    </li>
+                    <div
+                      key={item.id}
+                      className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">
+                            ซื้อ {item.purchaseQty} แถม {item.freeQty}
+                          </span>
+                          {item.netPrice && (
+                            <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                              (ราคาสุทธิ: ฿{Number(item.netPrice).toLocaleString()})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {item.notes && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          หมายเหตุ: {item.notes}
+                        </p>
+                      )}
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
-                <p className="text-gray-500">ไม่มีรายการของแถม</p>
+                <p className="text-gray-500 text-sm bg-gray-50 dark:bg-gray-900/20 p-3 rounded-lg">
+                  ไม่มีรายการของแถม
+                </p>
               )}
             </div>
+
+            {/* Promotion Items */}
             <div>
-              <h4 className="font-medium mb-2">รายการส่งเสริมการขาย</h4>
+              <h4 className="font-medium text-lg mb-3">
+                รายการส่งเสริมการขาย
+              </h4>
               {selectedProductDetail?.promotionItems &&
               selectedProductDetail.promotionItems.length > 0 ? (
-                <ul className="list-disc pl-5">
+                <div className="space-y-2">
                   {selectedProductDetail.promotionItems.map((item, i) => (
-                    <li key={i}>
-                      {item.name} - {item.quantity} ชิ้น
-                    </li>
+                    <div
+                      key={item.id}
+                      className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                            - {item.quantity} ชิ้น
+                          </span>
+                          {item.price && (
+                            <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                              (ราคา: ฿{Number(item.price).toLocaleString()})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {item.notes && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          หมายเหตุ: {item.notes}
+                        </p>
+                      )}
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
-                <p className="text-gray-500">ไม่มีรายการส่งเสริมการขาย</p>
+                <p className="text-gray-500 text-sm bg-gray-50 dark:bg-gray-900/20 p-3 rounded-lg">
+                  ไม่มีรายการส่งเสริมการขาย
+                </p>
               )}
             </div>
           </div>

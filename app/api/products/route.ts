@@ -70,7 +70,7 @@ export async function GET(request: Request) {
     };
   }
 
-  const [total, products] = await Promise.all([
+  const [total, productsRaw] = await Promise.all([
     db.product.count({ where }),
     db.product.findMany({
       where,
@@ -80,6 +80,13 @@ export async function GET(request: Request) {
       include: {
         images: {
           orderBy: { order: "asc" },
+        },
+        promotionItems: true,
+        freeItems: true,
+        stockLots: {
+          where: {
+            isUsed: false,
+          },
         },
         _count: {
           select: {
@@ -91,6 +98,18 @@ export async function GET(request: Request) {
       },
     }),
   ]);
+
+  // Calculate stock quantity from stock lots
+  const products = productsRaw.map((product) => {
+    const stockQuantity = product.stockLots.reduce(
+      (sum, lot) => sum + lot.quantity,
+      0
+    );
+    return {
+      ...product,
+      stockQuantity,
+    };
+  });
 
   return NextResponse.json({ products, total, page, perPage });
 }
