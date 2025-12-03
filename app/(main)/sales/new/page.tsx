@@ -59,9 +59,7 @@ export default function NewSalePage() {
     <div className="container mx-auto py-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">สร้างรายการขายใหม่</h1>
-        <p className="text-gray-500 mt-2">กรอกข้อมูลรายการขายสินค้า</p>
       </div>
-
       <SaleForm onSubmit={handleSubmit} />
     </div>
   );
