@@ -645,20 +645,20 @@ export function SaleForm({
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCopyAddress}
-              size="sm"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              คัดลอกจากที่อยู่วางบิล
-            </Button>
-          </div>
-
           <div className="space-y-3">
-            <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCopyAddress}
+                size="sm"
+                className="ml-2"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                คัดลอกจากที่อยู่วางบิล
+              </Button>
+            </div>
             <div className="mt-6 flex flex-col gap-3">
               <FloatingLabelInput
                 label="ที่อยู่ / เลขที่ / ถนน"
