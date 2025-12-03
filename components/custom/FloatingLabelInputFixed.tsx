@@ -203,7 +203,7 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
   const effectiveRounded = roundedClass || "rounded-lg";
 
   const baseInputClasses = [
-    "peer block w-full h-[50px] px-5 text-lg bg-white",
+    "peer block w-full h-[50px] px-5 text-base bg-white",
     "border text-gray-900",
     effectiveRounded,
     "placeholder-transparent",
