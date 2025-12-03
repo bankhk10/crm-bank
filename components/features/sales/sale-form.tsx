@@ -931,7 +931,7 @@ export function SaleForm({
           </DialogHeader>
           <div className="space-y-6">
             {/* Stock Quantity */}
-            <div className="border-b pb-4">
+            {/* <div className="border-b pb-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-lg">จำนวนคงเหลือ</h4>
                 <Badge variant="outline" className="text-lg px-4 py-2">
@@ -939,7 +939,7 @@ export function SaleForm({
                   {selectedProductDetail?.unit || "หน่วย"}
                 </Badge>
               </div>
-            </div>
+            </div> */}
 
             {/* Free Items */}
             <div>
@@ -996,7 +996,7 @@ export function SaleForm({
                         <div>
                           <span className="font-medium">{item.name}</span>
                           <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                            - {item.quantity} ชิ้น
+                            - คงเหลือ {item.quantity} ชิ้น
                           </span>
                           {item.price && (
                             <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
