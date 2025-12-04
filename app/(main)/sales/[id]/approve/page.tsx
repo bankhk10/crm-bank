@@ -253,23 +253,71 @@ export default function ApproveSalePage({
         </CardContent>
       </Card>
 
-      {/* ** ❗ Price Warning Section (Refined Modern Block) ** */}
+      {/* Price Change Warning */}
       {priceWarnings.length > 0 && (
-        <Alert
-          variant="destructive"
-          className="border-l-4 border-red-600 bg-red-50 text-sm p-4 leading-relaxed"
-        >
-          <TrendingDown className="mr-2" />
-          พบการเปลี่ยนแปลงราคา กรุณาตรวจสอบความถูกต้องก่อนอนุมัติ
-          <ul className="mt-2 space-y-2">
-            {priceWarnings.map((w, i) => (
-              <li key={i} className="bg-white p-3 rounded border text-gray-700">
-                {w.productName} → ปรับจาก ฿{w.originalPrice.toLocaleString()} →
-                ฿{w.modifiedPrice.toLocaleString()}
-              </li>
-            ))}
-          </ul>
-        </Alert>
+        <Card className="border-2 border-orange-200 bg-gradient-to-br from-white via-orange-50 to-amber-50 shadow-lg">
+          <CardHeader className="space-y-2">
+            <CardTitle className="flex items-center gap-3 text-lg text-orange-900">
+              <div className="p-2 bg-orange-100 rounded-xl">
+                <TrendingDown className="h-5 w-5 text-orange-600" />
+              </div>
+              พบการเปลี่ยนแปลงราคา
+            </CardTitle>
+            <p className="text-sm text-orange-800">
+              กรุณาตรวจสอบรายการด้านล่างก่อนอนุมัติ ระบบตรวจพบการแก้ไขราคาจากค่ามาตรฐาน
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {priceWarnings.map((w, i) => {
+              const original = Number(w.originalPrice ?? 0);
+              const modified = Number(w.modifiedPrice ?? 0);
+              const diff = modified - original;
+              const diffPercent = original ? (diff / original) * 100 : 0;
+              const diffPositive = diff >= 0;
+              return (
+                <div
+                  key={i}
+                  className="rounded-2xl border border-orange-200 bg-white/80 p-4 shadow-sm"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <p className="font-semibold text-gray-900 text-base">
+                      {w.productName}
+                    </p>
+                    <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs w-fit">
+                      ปรับราคา
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-sm">
+                    <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
+                      <span className="text-gray-500 text-xs">ราคาเดิม</span>
+                      <p className="text-gray-700 font-semibold line-through">
+                        ฿{original.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-orange-50 p-3 border border-orange-100">
+                      <span className="text-gray-500 text-xs">ราคาปัจจุบัน</span>
+                      <p className="text-orange-700 font-bold">
+                        ฿{modified.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white p-3 border border-orange-100">
+                      <span className="text-gray-500 text-xs">ส่วนต่าง</span>
+                      <p
+                        className={`font-bold ${diffPositive ? "text-green-600" : "text-red-600"}`}
+                      >
+                        {diffPositive ? "+" : ""}
+                        {diff.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท
+                        <span className="text-xs block text-gray-500">
+                          ({diffPercent.toFixed(2)}%)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
       )}
 
       {/* Stock Warning */}
@@ -349,41 +397,101 @@ export default function ApproveSalePage({
 
         {/* 📱 Mobile Card View */}
         <div className="block lg:hidden divide-y">
-          {sale.items.map((item, i) => (
-            <div key={i} className="p-4">
-              <p className="font-semibold text-gray-900">{item.product.name}</p>
-              <p className="text-xs text-gray-500 mb-3">
-                {item.product.productCode}
-              </p>
+          {sale.items.map((item, i) => {
+            const originalUnitPrice = Number(item.originalPrice ?? item.unitPrice ?? 0);
+            const currentUnitPrice = Number(item.unitPrice ?? 0);
+            const quantity = Number(item.quantity ?? 0);
+            const currentTotal = Number(item.totalPrice ?? currentUnitPrice * quantity);
+            const originalTotal = originalUnitPrice * quantity;
+            const priceChanged = Boolean(item.priceModified);
 
-              <div className="grid grid-cols-2 text-sm gap-2">
-                <div>
-                  <span className="text-gray-500 text-xs">จำนวน</span>
-                  <p className="font-medium">
-                    {item.quantity} {item.product.unit}
-                  </p>
+            return (
+              <div
+                key={item.id ?? i}
+                className={`p-4 transition-all ${
+                  priceChanged ? "bg-orange-50/70 border-l-4 border-orange-300" : ""
+                }`}
+              >
+                <p className="font-semibold text-gray-900">{item.product.name}</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  {item.product.productCode}
+                </p>
+
+                <div className="grid grid-cols-2 text-sm gap-2">
+                  <div>
+                    <span className="text-gray-500 text-xs">จำนวน</span>
+                    <p className="font-medium">
+                      {item.quantity} {item.product.unit}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs">ราคา/หน่วย</span>
+                    <p className={`font-semibold ${priceChanged ? "text-orange-700" : ""}`}>
+                      ฿
+                      {currentUnitPrice.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t">
+                    <p className="text-gray-500 text-xs">รวม</p>
+                    <p className={`text-base font-bold ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                      ฿
+                      {currentTotal.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-500 text-xs">ราคา/หน่วย</span>
-                  <p className="font-semibold">
-                    ฿{item.unitPrice.toLocaleString()}
-                  </p>
-                </div>
-                <div className="col-span-2 pt-1 border-t">
-                  <p className="text-gray-500 text-xs">รวม</p>
-                  <p className="text-base font-bold text-blue-600">
-                    ฿{item.totalPrice.toLocaleString()}
-                  </p>
-                </div>
+
+                {priceChanged && (
+                  <div className="mt-3 rounded-xl border border-orange-200 bg-white/80 p-3 text-sm">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-orange-700">
+                      <TrendingDown className="h-3 w-3" /> มีการปรับราคา
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      <div>
+                        <span className="block">ราคาเดิม</span>
+                        <span className="font-semibold line-through">
+                          ฿
+                          {originalUnitPrice.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="block">ราคาปัจจุบัน</span>
+                        <span className="font-semibold text-orange-700">
+                          ฿
+                          {currentUnitPrice.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex justify-between text-xs text-gray-600">
+                      <span>รวมเดิม</span>
+                      <span className="line-through">
+                        ฿
+                        {originalTotal.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm font-semibold text-orange-700">
+                      <span>รวมใหม่</span>
+                      <span>
+                        ฿
+                        {currentTotal.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {item.priceModified && (
-                <Badge variant="destructive" className="mt-2">
-                  ราคาเปลี่ยนจาก ฿{item.originalPrice.toLocaleString()}
-                </Badge>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Mobile Summary */}
@@ -462,32 +570,79 @@ export default function ApproveSalePage({
             </thead>
 
             <tbody className="divide-y">
-              {sale.items.map((item, i) => (
-                <tr key={i} className="hover:bg-blue-50/40 transition">
-                  <td className="p-4">
-                    <p className="font-semibold text-gray-900">
-                      {item.product.name}
-                    </p>
-                    <span className="text-xs text-gray-500">
-                      {item.product.productCode}
-                    </span>
-                    {item.priceModified && (
-                      <Badge variant="destructive" className="text-xs ml-2">
-                        ราคาเดิม ฿{item.originalPrice.toLocaleString()}
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="text-center p-4 font-medium">
-                    {item.quantity} {item.product.unit}
-                  </td>
-                  <td className="text-right p-4">
-                    ฿{item.unitPrice.toLocaleString()}
-                  </td>
-                  <td className="text-right p-4 font-bold text-blue-600">
-                    ฿{item.totalPrice.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
+              {sale.items.map((item, i) => {
+                const originalUnitPrice = Number(item.originalPrice ?? item.unitPrice ?? 0);
+                const currentUnitPrice = Number(item.unitPrice ?? 0);
+                const quantity = Number(item.quantity ?? 0);
+                const currentTotal = Number(item.totalPrice ?? currentUnitPrice * quantity);
+                const originalTotal = originalUnitPrice * quantity;
+                const priceChanged = Boolean(item.priceModified);
+
+                return (
+                  <tr
+                    key={item.id ?? i}
+                    className={`transition ${
+                      priceChanged ? "bg-orange-50/70" : ""
+                    } hover:bg-blue-50/40`}
+                  >
+                    <td className="p-4 align-top">
+                      <p className="font-semibold text-gray-900">
+                        {item.product.name}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        {item.product.productCode}
+                      </span>
+                      {priceChanged && (
+                        <div className="mx-4 mt-2 inline-flex flex-wrap items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                          <TrendingDown className="h-3 w-3" /> ราคาเดิม ฿
+                          {originalUnitPrice.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </div>
+                      )}
+                    </td>
+                    <td className="text-center p-4 font-medium align-middle">
+                      {item.quantity} {item.product.unit}
+                    </td>
+                    <td className="text-right p-4 align-middle">
+                      <div className="flex flex-col items-end">
+                        <span className={`font-semibold ${priceChanged ? "text-orange-700" : ""}`}>
+                          ฿
+                          {currentUnitPrice.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                        {priceChanged && (
+                          <span className="text-xs text-gray-500 line-through">
+                            ฿
+                            {originalUnitPrice.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="text-right p-4 align-middle">
+                      <div className="flex flex-col items-end">
+                        <span className={`font-bold ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                          ฿
+                          {currentTotal.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                        {priceChanged && (
+                          <span className="text-xs text-gray-500 line-through">
+                            ฿
+                            {originalTotal.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {/* Summary Rows */}
               <tr className="bg-blue-50/60">
