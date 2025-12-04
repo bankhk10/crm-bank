@@ -1,13 +1,30 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Settings } from "lucide-react";
+import { Eye, Edit, Trash2, Settings, MoreHorizontal } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import Tooltip from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { CustomTable, TablePagination } from "@/components/custom/custom-table";
 import type { Product } from "@/types/product";
 
@@ -56,6 +73,23 @@ export function ProductsTable({
   onDateRangeChange,
   pagination,
 }: ProductsTableProps) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<ProductRecord | null>(
+    null
+  );
+
+  const openDeleteConfirm = (p: ProductRecord) => {
+    setProductToDelete(p);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (productToDelete) {
+      onDeleteRequest?.(productToDelete);
+    }
+    setConfirmOpen(false);
+    setProductToDelete(null);
+  };
   const columns: ColumnDef<ProductRecord>[] = [
     {
       accessorKey: "productCode",
@@ -161,75 +195,98 @@ export function ProductsTable({
       header: "การจัดการ",
       cell: ({ row }) => {
         const product = row.original;
-
         return (
-          <div className="flex items-center justify-end gap-2">
-            {canView && (
-              <Tooltip content={`ดู ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-                  aria-label={`ดู ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}`}>
-                    <Eye className="size-4 text-blue-600" />
-                  </Link>
-                </Button>
-              </Tooltip>
-            )}
+          <div className="flex items-center justify-center">
+            {(canView || canUpdate || canManage) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    className="rounded-md"
+                    aria-label={`เมนูเพิ่มเติม ${product.name}`}
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>การจัดการ</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {canView && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/products/${product.id}`}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        ดู
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
 
-            {canUpdate && (
-              <Tooltip content={`แก้ไข ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                  aria-label={`แก้ไข ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}/edit`}>
-                    <Edit className="size-4 text-purple-600" />
-                  </Link>
-                </Button>
-              </Tooltip>
-            )}
+                  {canUpdate && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/products/${product.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        แก้ไข
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
 
-            {canManage && (
-              <Tooltip content={`จัดการ ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
-                  aria-label={`จัดการ ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}/manage`}>
-                    <Settings className="size-4 text-green-600" />
-                  </Link>
-                </Button>
-              </Tooltip>
-            )}
+                  {canManage && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/products/${product.id}/manage`}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        จัดการ
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
 
-            {canDelete && (
-              <Tooltip content={`ลบ ${product.name}`} side="top">
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                  onClick={() => onDeleteRequest?.(product)}
-                  aria-label={`ลบ ${product.name}`}
-                >
-                  <Trash2 className="size-4 text-red-600" />
-                </Button>
-              </Tooltip>
+                  {canDelete && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => openDeleteConfirm(product)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        ลบ
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         );
       },
     },
   ];
+
+  // Confirm delete dialog
+  const DeleteConfirmDialog = (
+    <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>ยืนยันการลบ</DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          คุณแน่ใจหรือไม่ที่จะลบสินค้านี้: "{productToDelete?.name}"?
+          การกระทำนี้ไม่สามารถย้อนกลับได้
+        </DialogDescription>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+            ยกเลิก
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirmDelete}
+            className="ml-2"
+          >
+            ลบ
+          </Button>
+        </DialogFooter>
+        <DialogClose />
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <CustomTable
