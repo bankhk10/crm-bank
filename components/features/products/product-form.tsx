@@ -9,6 +9,14 @@ import { FileUpload } from "@/components/custom/file-upload";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import {
   UNIT_OPTIONS,
   PRODUCT_GROUP_OPTIONS,
   BRAND_OPTIONS,
@@ -293,11 +301,15 @@ export function ProductForm({
       )}
 
       {success && (
-        <Alert className="bg-green-50 text-green-900 border-green-200">
-          <AlertDescription>
-            บันทึกข้อมูลสำเร็จ กำลังนำทางกลับไปหน้ารายการสินค้า...
-          </AlertDescription>
-        </Alert>
+        <Dialog open={true}>
+          <DialogContent>
+            <div className="flex flex-col items-center justify-center py-8 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+              <DialogTitle>บันทึกข้อมูลสำเร็จ</DialogTitle>
+              <DialogDescription>กำลังนำทางกลับไปหน้ารายการสินค้า...</DialogDescription>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
