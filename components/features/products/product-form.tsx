@@ -291,6 +291,15 @@ export function ProductForm({
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {success && (
+        <Alert className="bg-green-50 text-green-900 border-green-200">
+          <AlertDescription>
+            บันทึกข้อมูลสำเร็จ กำลังนำทางกลับไปหน้ารายการสินค้า...
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <FloatingLabelInput
           label="รหัสสินค้า *"
