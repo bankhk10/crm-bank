@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/types/sales";
-import { SaleStatusLabels, PaymentTermLabels } from "@/types/sales";
+import { PaymentTermLabels } from "@/types/sales";
 
 export default function ApproveSalePage({
   params,
@@ -43,7 +43,7 @@ export default function ApproveSalePage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("sale.approve");
+  const { allowed, isLoading } = usePermission("sale.approve");
 
   const [data, setData] = useState<SaleDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,11 +80,7 @@ export default function ApproveSalePage({
         body: JSON.stringify({ notes: approveNotes }),
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to approve sale");
-      }
-
+      if (!res.ok) throw new Error((await res.json()).error);
       router.push(`/sales/${id}`);
     } catch (err: any) {
       setError(err.message);
@@ -93,11 +89,7 @@ export default function ApproveSalePage({
   };
 
   const handleReject = async () => {
-    if (!rejectReason.trim()) {
-      setError("กรุณาระบุเหตุผลในการไม่อนุมัติ");
-      return;
-    }
-
+    if (!rejectReason.trim()) return setError("กรุณาระบุเหตุผลในการไม่อนุมัติ");
     setActionLoading(true);
     try {
       const res = await fetch(`/api/sales/${id}/reject`, {
@@ -106,11 +98,7 @@ export default function ApproveSalePage({
         body: JSON.stringify({ reason: rejectReason }),
       });
 
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to reject sale");
-      }
-
+      if (!res.ok) throw new Error((await res.json()).error);
       router.push(`/sales/${id}`);
     } catch (err: any) {
       setError(err.message);
@@ -118,806 +106,551 @@ export default function ApproveSalePage({
     }
   };
 
-  if (isLoading || loading) {
+  /* Loading ------------------------------------------------------------------------------------------------------*/
+  if (isLoading || loading)
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="text-center">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
-            <CheckCircle className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-blue-600" />
-          </div>
-          <p className="mt-6 text-gray-700 font-medium">กำลังโหลดข้อมูล...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="animate-spin h-14 w-14 border-4 border-blue-300 border-t-blue-700 rounded-full"></div>
+        <p className="text-gray-600 ml-4 text-lg">กำลังโหลดข้อมูล...</p>
       </div>
     );
-  }
 
-  if (!allowed) {
+  if (!allowed)
     return (
-      <div className="container mx-auto py-12 px-4">
-        <Alert variant="destructive" className="border-l-4 border-red-600">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertDescription className="ml-2">
-            <strong>ไม่มีสิทธิ์เข้าถึง</strong> - คุณไม่มีสิทธิ์อนุมัติรายการขาย
-          </AlertDescription>
+      <div className="p-10 max-w-xl mx-auto">
+        <Alert
+          variant="destructive"
+          className="border-l-4 border-red-600 text-base p-4"
+        >
+          <AlertTriangle className="mr-2" /> ไม่มีสิทธิ์เข้าถึงหน้านี้
         </Alert>
       </div>
     );
-  }
-
-  if (error && !data) {
-    return (
-      <div className="container mx-auto py-12 px-4">
-        <Alert variant="destructive" className="border-l-4 border-red-600">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertDescription className="ml-2">
-            <strong>เกิดข้อผิดพลาด</strong> - {error || "ไม่พบข้อมูลรายการขาย"}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
 
   if (!data) return null;
 
   const { sale, priceWarnings, stockWarnings, creditInfo } = data;
 
-  if (sale.status !== "PENDING") {
+  if (sale.status !== "PENDING")
     return (
-      <div className="container mx-auto py-12 px-4 max-w-3xl">
-        <Card className="border-l-4 border-yellow-500">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <AlertTriangle className="h-6 w-6 text-yellow-600 mt-1" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-2">
-                  ไม่สามารถดำเนินการได้
-                </h3>
-                <p className="text-gray-600">
-                  รายการขายนี้ไม่อยู่ในสถานะรอการอนุมัติ
-                </p>
-              </div>
-            </div>
+      <div className="max-w-lg mx-auto py-16 text-center">
+        <Card className="border-l-4 border-yellow-500 shadow-md">
+          <CardContent className="py-6">
+            <AlertTriangle className="text-yellow-600 mx-auto h-8 w-8" />
+            <p className="mt-4 text-gray-700 font-medium">
+              รายการนี้ไม่ได้อยู่ในสถานะรออนุมัติ
+            </p>
           </CardContent>
         </Card>
-        <div className="mt-6 flex justify-center">
-          <Button
-            onClick={() => router.push(`/sales/${sale.id}`)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            กลับไปดูรายละเอียด
-          </Button>
-        </div>
+        <Button
+          onClick={() => router.push(`/sales/${sale.id}`)}
+          className="mt-6"
+        >
+          <ArrowLeft className="mr-2 h-4" /> กลับสู่หน้ารายละเอียด
+        </Button>
       </div>
     );
-  }
+
+  /* MAIN UI ------------------------------------------------------------------------------------------------------*/
 
   return (
-    <div className="container mx-auto py-4 sm:py-8 px-3 sm:px-4 max-w-7xl">
-      {/* Header Section */}
-      <div className="mb-4 sm:mb-8">
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border border-gray-100">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl shadow-lg flex-shrink-0">
-                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent break-words">
-                    พิจารณาอนุมัติรายการขาย
-                  </h1>
-                  <div className="mt-1 sm:mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                    <span className="font-mono font-semibold text-blue-600 truncate">
-                      {sale.saleNumber}
-                    </span>
-                    <span className="text-gray-300 hidden sm:inline">•</span>
-                    <span className="text-gray-500 truncate">
-                      {sale.customer.name}
-                    </span>
-                  </div>
-                </div>
-              </div>
+    <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
+      {/* Sale Summary Card */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+        <CardHeader className="border-b bg-white/50 backdrop-blur p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+              <FileText className="h-4 w-4 sm:h-10 sm:w-10 text-blue-600" />
             </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Badge className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-amber-100 text-amber-800 border-amber-200">
-                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                รอการอนุมัติ
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4 sm:space-y-6">
-        {error && (
-          <Alert
-            variant="destructive"
-            className="border-l-4 border-red-600 animate-in fade-in slide-in-from-top-2"
-          >
-            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-            <AlertDescription className="ml-2 text-sm sm:text-base">
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Price Warnings */}
-        {priceWarnings.length > 0 && (
-          <Alert
-            variant="destructive"
-            className="border-l-4 border-red-600 bg-red-50"
-          >
-            <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-            <AlertDescription className="ml-2">
-              <div className="flex items-start gap-2">
-                <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <strong className="text-sm sm:text-base block mb-2 sm:mb-3">
-                    ⚠️ คำเตือน: มีการแก้ไขราคาสินค้า
-                  </strong>
-                  <div className="space-y-3 sm:space-y-4">
-                    {priceWarnings.map((w, i) => (
-                      <div
-                        key={i}
-                        className="bg-white rounded-lg p-3 sm:p-4 border border-red-200"
-                      >
-                        <p className="font-semibold text-gray-900 mb-2 text-sm sm:text-base break-words">
-                          {w.productName}
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
-                          <div>
-                            <span className="text-gray-600">ราคามาตรฐาน:</span>
-                            <p className="font-semibold text-gray-900">
-                              ฿{w.originalPrice.toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">ราคาที่แก้ไข:</span>
-                            <p className="font-semibold text-orange-600">
-                              ฿{w.modifiedPrice.toLocaleString()}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">ส่วนต่าง:</span>
-                            <p
-                              className={`font-bold ${
-                                w.percentageDiff > 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }`}
-                            >
-                              {w.percentageDiff > 0 ? "+" : ""}
-                              {w.percentageDiff.toFixed(2)}%
-                              <span className="text-xs ml-1 block sm:inline">
-                                (฿{w.difference.toLocaleString()})
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-3 sm:mt-4 text-xs sm:text-sm font-medium text-red-800 bg-red-100 rounded-lg p-2 sm:p-3 border border-red-200">
-                    💡 กรุณาตรวจสอบราคาให้ถูกต้องก่อนอนุมัติรายการขาย
-                  </p>
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Stock Warnings */}
-        {stockWarnings.length > 0 && (
-          <Alert className="border-l-4 border-amber-500 bg-amber-50">
-            <Package className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-            <AlertDescription className="ml-2">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 text-amber-600 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <strong className="text-sm sm:text-base text-amber-900 block mb-2 sm:mb-3">
-                    คำเตือนสต็อกสินค้า
-                  </strong>
-                  <div className="space-y-2">
-                    {stockWarnings.map((w, i) => (
-                      <div
-                        key={i}
-                        className="bg-white rounded-lg p-2 sm:p-3 border border-amber-200"
-                      >
-                        <p className="font-medium text-gray-900 text-sm sm:text-base break-words">
-                          <Package className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1 sm:mr-2 text-amber-600" />
-                          {w.productName}
-                        </p>
-                        <p className="text-xs sm:text-sm text-amber-800 mt-1">
-                          สต็อกไม่เพียงพอ: มีอยู่{" "}
-                          <span className="font-bold">{w.available}</span> หน่วย
-                          • ต้องการ{" "}
-                          <span className="font-bold">{w.requested}</span> หน่วย
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Sale Summary */}
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="border-b bg-white/50 backdrop-blur p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-              <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-              </div>
-              <span className="text-base sm:text-xl">สรุปรายการขาย</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 lg:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
-              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                  <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500 font-medium">
-                    ลูกค้า
-                  </span>
-                </div>
-                <p
-                  className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
-                  title={sale.customer.name}
-                >
+            <span className="text-base sm:text-xl px-5">
+              <h1 className="text-2xl font-bold text-gray-900">
+                พิจารณาอนุมัติรายการขาย
+              </h1>
+              <div className="mt-1 sm:mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm sm:text-base">
+                <span className="font-mono font-semibold text-blue-600 truncate">
+                  {sale.saleNumber}
+                </span>
+                <span className="text-gray-300 hidden sm:inline">•</span>
+                <span className="text-gray-500 truncate">
                   {sale.customer.name}
-                </p>
+                </span>
               </div>
-
-              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                  <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500 font-medium">
-                    พนักงานขาย
-                  </span>
+            </span>
+            <Badge className="px-3 py-1.5 bg-amber-100 text-amber-700 border-amber-200 text-sm justify-end ml-auto">
+              รอการอนุมัติ
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                 </div>
-                <p
-                  className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
-                  title={sale.employee.name}
-                >
-                  {sale.employee.name}
-                </p>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                  ลูกค้า
+                </span>
               </div>
-
-              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                  <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-                    <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500 font-medium">
-                    เงื่อนไขชำระ
-                  </span>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-sm sm:text-base px-2 sm:px-3 py-0.5 sm:py-1 font-semibold"
-                >
-                  {PaymentTermLabels[sale.paymentTerm]}
-                </Badge>
-              </div>
-
-              <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                  <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500 font-medium">
-                    วันที่ขาย
-                  </span>
-                </div>
-                <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg">
-                  {format(new Date(sale.saleDate), "dd MMM yyyy", {
-                    locale: th,
-                  })}
-                </p>
-              </div>
+              <p
+                className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
+                title={sale.customer.name}
+              >
+                {sale.customer.name}
+              </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-4 sm:p-5 lg:p-6 border border-blue-100">
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex justify-between items-center text-sm sm:text-base">
-                  <span className="text-gray-700 font-medium">รวมเป็นเงิน</span>
-                  <span className="font-semibold text-gray-900">
-                    ฿
-                    {Number(sale.subtotalAmount).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 </div>
-
-                <div className="flex justify-between items-center text-sm sm:text-base">
-                  <span className="text-gray-600 flex items-center gap-1.5 sm:gap-2">
-                    <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
-                    ค่าขนส่ง
-                  </span>
-                  <span className="font-medium text-gray-700">
-                    ฿
-                    {Number(sale.shippingCost).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-
-                {sale.otherCosts > 0 && (
-                  <div className="flex justify-between items-center text-sm sm:text-base">
-                    <span className="text-gray-600">ค่าใช้จ่ายอื่นๆ</span>
-                    <span className="font-medium text-gray-700">
-                      ฿
-                      {Number(sale.otherCosts).toLocaleString("th-TH", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                )}
-
-                <div className="border-t-2 border-blue-200 pt-3 sm:pt-4 flex justify-between items-center flex-wrap gap-2">
-                  <span className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2">
-                    <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                    ยอดเงินสุทธิ
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    ฿
-                    {Number(sale.totalAmount).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                  พนักงานขาย
+                </span>
               </div>
+              <p
+                className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
+                title={sale.employee.name}
+              >
+                {sale.employee.name}
+              </p>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Items */}
-        <Card className="border-0 shadow-lg overflow-hidden">
-          <CardHeader className=" from-slate-50 to-gray-50 border-b p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl flex items-center gap-2 flex-wrap">
-              <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
-                <Package className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                </div>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                  เงื่อนไขชำระ
+                </span>
               </div>
-              <span>รายการสินค้า</span>
               <Badge
-                variant="secondary"
-                className="ml-0 sm:ml-2 text-xs sm:text-sm"
-              >
-                {sale.items.length} รายการ
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {/* Mobile View */}
-            <div className="block lg:hidden divide-y divide-gray-100">
-              {sale.items.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className={`p-4 ${
-                    idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                  }`}
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                      <Package className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm break-words">
-                        {item.product.name}
-                      </p>
-                      <p className="text-xs text-gray-500 font-mono mt-0.5">
-                        {item.product.productCode}
-                      </p>
-                      {item.priceModified && (
-                        <Badge variant="destructive" className="text-xs mt-2">
-                          <TrendingDown className="h-3 w-3 mr-1" />
-                          ราคาปรับจาก ฿
-                          {Number(item.originalPrice).toLocaleString()}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-gray-500 text-xs">จำนวน</span>
-                      <p className="font-semibold text-gray-900">
-                        {item.quantity} {item.product.unit || "หน่วย"}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-xs">
-                        ราคาต่อหน่วย
-                      </span>
-                      <p className="font-medium text-gray-700">
-                        ฿
-                        {Number(item.unitPrice).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-gray-500 text-xs">รวม</span>
-                      <p className="font-bold text-blue-600 text-lg">
-                        ฿
-                        {Number(item.totalPrice).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop View */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gradient-to-r from-gray-50 to-slate-50 border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-6 font-semibold text-gray-700">
-                      สินค้า
-                    </th>
-                    <th className="text-right py-4 px-6 font-semibold text-gray-700">
-                      จำนวน
-                    </th>
-                    <th className="text-right py-4 px-6 font-semibold text-gray-700">
-                      ราคาต่อหน่วย
-                    </th>
-                    <th className="text-right py-4 px-6 font-semibold text-gray-700">
-                      รวม
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {sale.items.map((item, idx) => (
-                    <tr
-                      key={item.id}
-                      className={`hover:bg-blue-50/50 transition-colors ${
-                        idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"
-                      }`}
-                    >
-                      <td className="py-4 px-6">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0 mt-1">
-                            <Package className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {item.product.name}
-                            </p>
-                            <p className="text-sm text-gray-500 font-mono mt-0.5">
-                              {item.product.productCode}
-                            </p>
-                            {item.priceModified && (
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge
-                                  variant="destructive"
-                                  className="text-xs"
-                                >
-                                  <TrendingDown className="h-3 w-3 mr-1" />
-                                  ราคาปรับจาก ฿
-                                  {Number(item.originalPrice).toLocaleString()}
-                                </Badge>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-6">
-                        <span className="font-semibold text-gray-900">
-                          {item.quantity}
-                        </span>
-                        <span className="text-sm text-gray-500 ml-1">
-                          {item.product.unit || "หน่วย"}
-                        </span>
-                      </td>
-                      <td className="text-right py-4 px-6">
-                        <span className="font-medium text-gray-700">
-                          ฿
-                          {Number(item.unitPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </span>
-                      </td>
-                      <td className="text-right py-4 px-6">
-                        <span className="font-bold text-blue-600 text-lg">
-                          ฿
-                          {Number(item.totalPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Credit Info for CREDIT payment */}
-        {sale.paymentTerm === "CREDIT" && (
-          <Card
-            className={`border-2 shadow-lg ${
-              creditInfo.willExceedLimit
-                ? "border-red-300 bg-red-50/50"
-                : "border-green-300 bg-green-50/50"
-            }`}
-          >
-            <CardHeader className="bg-white/80 backdrop-blur border-b p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2 flex-wrap">
-                <div
-                  className={`p-1.5 sm:p-2 rounded-lg ${
-                    creditInfo.willExceedLimit ? "bg-red-100" : "bg-green-100"
-                  }`}
-                >
-                  <CreditCard
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                      creditInfo.willExceedLimit
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  />
-                </div>
-                <span>ข้อมูลวงเงินเครดิต</span>
-                {creditInfo.willExceedLimit && (
-                  <Badge
-                    variant="destructive"
-                    className="text-xs sm:text-sm ml-0 sm:ml-2"
-                  >
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    เกินวงเงิน
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-4 lg:p-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                    <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                      วงเงินเครดิต
-                    </span>
-                  </div>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-all">
-                    ฿{creditInfo.creditLimit.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
-                    <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                      ใช้ไปแล้ว
-                    </span>
-                  </div>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600 break-all">
-                    ฿{creditInfo.usedCredit.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                    <DollarSign
-                      className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                        creditInfo.willExceedLimit
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
-                    />
-                    <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                      คงเหลือ
-                    </span>
-                  </div>
-                  <p
-                    className={`text-lg sm:text-xl lg:text-2xl font-bold break-all ${
-                      creditInfo.willExceedLimit
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    ฿{creditInfo.availableCredit.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200 shadow-sm">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
-                    <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                      ยอดขายนี้
-                    </span>
-                  </div>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600 break-all">
-                    ฿{creditInfo.currentSaleAmount.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              {creditInfo.willExceedLimit && (
-                <Alert
-                  variant="destructive"
-                  className="border-2 border-red-400"
-                >
-                  <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <AlertDescription className="ml-2">
-                    <strong className="text-sm sm:text-base">
-                      ⚠️ คำเตือน: ยอดขายเกินวงเงินเครดิต
-                    </strong>
-                    <p className="mt-2 text-xs sm:text-sm">
-                      ยอดขายนี้จะทำให้ลูกค้าเกินวงเงินเครดิตที่กำหนดไว้
-                      กรุณาพิจารณาอย่างรอบคอบก่อนอนุมัติ
-                    </p>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Action Buttons */}
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-lg border-t-2 border-gray-200 p-4 lg:p-6 rounded-xl shadow-2xl">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            {/* ⬅ ปุ่มย้อนกลับ — ขนาดใหญ่แล้ว */}
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => router.back()}
-              className="border-2 text-gray-600 hover:bg-gray-100 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              ย้อนกลับ
-            </Button>
-
-            {/* ➡ ปุ่มอนุมัติ / ไม่อนุมัติ */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Button
                 variant="outline"
-                size="lg"
-                onClick={() => setShowRejectDialog(true)}
-                disabled={actionLoading}
-                className="w-full sm:w-auto border-2 border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold"
+                className="text-sm sm:text-base px-2 sm:px-3 py-0.5 sm:py-1 font-semibold"
               >
-                <XCircle className="h-5 w-5 mr-2" />
-                ไม่อนุมัติ
-              </Button>
+                {PaymentTermLabels[sale.paymentTerm]}
+              </Badge>
+            </div>
 
-              <Button
-                size="lg"
-                onClick={() => setShowApproveDialog(true)}
-                disabled={actionLoading}
-                className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-              >
-                <CheckCircle className="h-5 w-5 mr-2" />
-                อนุมัติรายการขาย
-              </Button>
+            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+                </div>
+                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                  วันที่ขาย
+                </span>
+              </div>
+              <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg">
+                {format(new Date(sale.saleDate), "dd MMM yyyy", {
+                  locale: th,
+                })}
+              </p>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Approve Dialog */}
-      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <DialogContent className="sm:max-w-[500px] max-w-[calc(100vw-2rem)] mx-4">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0">
-                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+      {/* ** ❗ Price Warning Section (Refined Modern Block) ** */}
+      {priceWarnings.length > 0 && (
+        <Alert
+          variant="destructive"
+          className="border-l-4 border-red-600 bg-red-50 text-sm p-4 leading-relaxed"
+        >
+          <TrendingDown className="mr-2" />
+          พบการเปลี่ยนแปลงราคา กรุณาตรวจสอบความถูกต้องก่อนอนุมัติ
+          <ul className="mt-2 space-y-2">
+            {priceWarnings.map((w, i) => (
+              <li key={i} className="bg-white p-3 rounded border text-gray-700">
+                {w.productName} → ปรับจาก ฿{w.originalPrice.toLocaleString()} →
+                ฿{w.modifiedPrice.toLocaleString()}
+              </li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {/* Stock Warning */}
+      {stockWarnings.length > 0 && (
+        <Alert className="border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 text-sm p-4 leading-relaxed">
+          <Package className="mr-2" /> สินค้าบางรายการสต็อกไม่พอ
+          {stockWarnings.map((w, i) => (
+            <p key={i} className="mt-1">
+              • {w.productName} เหลือ {w.available} ต้องใช้ {w.requested}
+            </p>
+          ))}
+        </Alert>
+      )}
+
+      {/* 💳 Credit Information — Glass Premium UI */}
+      {sale.paymentTerm === "CREDIT" && (
+        <Card
+          className={`backdrop-blur-lg rounded-2xl p-6 shadow-sm border-2 ${
+            creditInfo.willExceedLimit
+              ? "border-red-300 bg-red-50/60"
+              : "border-green-300 bg-green-50/60"
+          }`}
+        >
+          <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
+            <CreditCard className="text-blue-600" /> ข้อมูลวงเงินเครดิต
+            {creditInfo.willExceedLimit && (
+              <Badge variant="destructive" className="ml-2 text-xs px-2 py-1">
+                เกินวงเงิน
+              </Badge>
+            )}
+          </h3>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+            <div className="bg-white p-4 rounded-xl border shadow-sm">
+              <span className="text-sm text-gray-600">วงเงิน</span>
+              <p className="font-bold text-xl text-gray-900 mt-1">
+                ฿{creditInfo.creditLimit.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border shadow-sm">
+              <span className="text-sm text-gray-600">ใช้ไปแล้ว</span>
+              <p className="font-bold text-xl text-orange-600 mt-1">
+                ฿{creditInfo.usedCredit.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border shadow-sm">
+              <span className="text-sm text-gray-600">คงเหลือ</span>
+              <p
+                className={`font-bold text-xl mt-1 ${
+                  creditInfo.willExceedLimit ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                ฿{creditInfo.availableCredit.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border shadow-sm">
+              <span className="text-sm text-gray-600">ยอดขายนี้</span>
+              <p className="font-bold text-xl text-purple-600 mt-1">
+                ฿{creditInfo.currentSaleAmount.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ========================== 📦 รายการสินค้า ========================== */}
+      <Card className="rounded-2xl shadow-sm border overflow-hidden">
+        <CardHeader className="p-5 border-b bg-gradient-to-r from-slate-50 to-blue-50/40">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            <Package className="h-5 w-5 text-blue-600" />
+            รายการสินค้า
+            <Badge className="ml-2 text-xs bg-blue-100 text-blue-700 border-blue-300">
+              {sale.items.length} รายการ
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+
+        {/* 📱 Mobile Card View */}
+        <div className="block lg:hidden divide-y">
+          {sale.items.map((item, i) => (
+            <div key={i} className="p-4">
+              <p className="font-semibold text-gray-900">{item.product.name}</p>
+              <p className="text-xs text-gray-500 mb-3">
+                {item.product.productCode}
+              </p>
+
+              <div className="grid grid-cols-2 text-sm gap-2">
+                <div>
+                  <span className="text-gray-500 text-xs">จำนวน</span>
+                  <p className="font-medium">
+                    {item.quantity} {item.product.unit}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 text-xs">ราคา/หน่วย</span>
+                  <p className="font-semibold">
+                    ฿{item.unitPrice.toLocaleString()}
+                  </p>
+                </div>
+                <div className="col-span-2 pt-1 border-t">
+                  <p className="text-gray-500 text-xs">รวม</p>
+                  <p className="text-base font-bold text-blue-600">
+                    ฿{item.totalPrice.toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <span>ยืนยันการอนุมัติรายการขาย</span>
-            </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base pt-2">
-              คุณต้องการอนุมัติรายการขาย{" "}
-              <span className="font-semibold text-blue-600 break-all">
-                {sale.saleNumber}
-              </span>{" "}
-              ยอดเงิน{" "}
-              <span className="font-bold text-green-600 break-all">
+
+              {item.priceModified && (
+                <Badge variant="destructive" className="mt-2">
+                  ราคาเปลี่ยนจาก ฿{item.originalPrice.toLocaleString()}
+                </Badge>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile Summary */}
+        <div className="block lg:hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 border-t-2 border-blue-200">
+          <div className="p-4 space-y-3">
+            <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-700">
+                รวมเป็นเงิน
+              </span>
+              <span className="text-base font-semibold text-gray-900">
+                ฿
+                {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-blue-600" />
+                ค่าขนส่ง
+              </span>
+              <span className="text-base font-medium text-gray-700">
+                ฿
+                {Number(sale.shippingCost).toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+
+            {sale.otherCosts > 0 && (
+              <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
+                <span className="text-sm text-gray-600">ค่าใช้จ่ายอื่นๆ</span>
+                <span className="text-base font-medium text-gray-700">
+                  ฿
+                  {Number(sale.otherCosts).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-3 pb-2">
+              <span className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-blue-600" />
+                ยอดเงินสุทธิ
+              </span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 ฿
                 {Number(sale.totalAmount).toLocaleString("th-TH", {
                   minimumFractionDigits: 2,
                 })}
-              </span>{" "}
-              ใช่หรือไม่?
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 💻 Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b">
+                <th className="text-left p-4 font-semibold text-gray-600">
+                  สินค้า
+                </th>
+                <th className="text-center p-4 font-semibold text-gray-600">
+                  จำนวน
+                </th>
+                <th className="text-right p-4 font-semibold text-gray-600">
+                  ราคา/หน่วย
+                </th>
+                <th className="text-right p-4 font-semibold text-gray-700">
+                  ราคารวม
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y">
+              {sale.items.map((item, i) => (
+                <tr key={i} className="hover:bg-blue-50/40 transition">
+                  <td className="p-4">
+                    <p className="font-semibold text-gray-900">
+                      {item.product.name}
+                    </p>
+                    <span className="text-xs text-gray-500">
+                      {item.product.productCode}
+                    </span>
+                    {item.priceModified && (
+                      <Badge variant="destructive" className="text-xs ml-2">
+                        ราคาเดิม ฿{item.originalPrice.toLocaleString()}
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="text-center p-4 font-medium">
+                    {item.quantity} {item.product.unit}
+                  </td>
+                  <td className="text-right p-4">
+                    ฿{item.unitPrice.toLocaleString()}
+                  </td>
+                  <td className="text-right p-4 font-bold text-blue-600">
+                    ฿{item.totalPrice.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Summary Rows */}
+              <tr className="bg-blue-50/60">
+                <td
+                  colSpan={3}
+                  className="text-left p-4 font-semibold text-gray-700"
+                >
+                  รวมเป็นเงิน
+                </td>
+                <td className="text-right p-4 font-bold text-gray-900">
+                  ฿
+                  {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              <tr className="bg-blue-50/40">
+                <td
+                  colSpan={3}
+                  className="text-right p-4 font-medium text-gray-600"
+                >
+                  <span className="inline-flex items-center gap-2 justify-start w-full">
+                    <Truck className="h-4 w-4 text-blue-600" />
+                    ค่าขนส่ง
+                  </span>
+                </td>
+                <td className="text-right p-4 font-semibold text-gray-700">
+                  ฿
+                  {Number(sale.shippingCost).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+              {sale.otherCosts > 0 && (
+                <tr className="bg-blue-50/40">
+                  <td
+                    colSpan={3}
+                    className="text-left p-4 font-medium text-gray-600"
+                  >
+                    ค่าใช้จ่ายอื่นๆ
+                  </td>
+                  <td className="text-right p-4 font-semibold text-gray-700">
+                    ฿
+                    {Number(sale.otherCosts).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </td>
+                </tr>
+              )}
+              <tr className="bg-blue-50/40">
+                <td
+                  colSpan={3}
+                  className="text-left p-4 font-bold text-gray-900"
+                >
+                  ยอดเงินสุทธิ
+                </td>
+                <td className="text-right p-4 text-blue-700 text-xl font-bold">
+                  ฿
+                  {Number(sale.totalAmount).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* 🧊 Sticky Bottom Action Bar Modern Glass UI */}
+      <div className="sticky bottom-0 z-50 backdrop-blur-xl border-t bg-white/90 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.08)] px-6 py-4 rounded-t-xl">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="text-gray-600 hover:bg-gray-100 px-6 py-5 text-base rounded-xl flex items-center gap-2"
+          >
+            <ArrowLeft className="h-5" /> กลับ
+          </Button>
+
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => setShowRejectDialog(true)}
+              className="border-red-300 text-red-600 hover:bg-red-50 px-7 py-4 rounded-xl font-semibold"
+            >
+              <XCircle className="h-5 mr-2" /> ไม่อนุมัติ
+            </Button>
+
+            <Button
+              onClick={() => setShowApproveDialog(true)}
+              className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-7 py-4 rounded-xl shadow-lg hover:brightness-110 font-semibold"
+            >
+              <CheckCircle className="h-5 mr-2" /> อนุมัติ
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* APPROVE DIALOG */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex gap-2 items-center">
+              <CheckCircle className="text-green-600" /> ยืนยันอนุมัติ
+            </DialogTitle>
+            <DialogDescription>
+              อนุมัติรายการเลข <b>{sale.saleNumber}</b> มูลค่า
+              <b className="text-green-600">
+                {" "}
+                ฿{sale.totalAmount.toLocaleString()}
+              </b>
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
-              <p className="text-xs sm:text-sm text-blue-800">
-                💡 เมื่ออนุมัติแล้ว รายการขายจะถูกบันทึกและไม่สามารถแก้ไขได้
-              </p>
-            </div>
-            <Textarea
-              label="หมายเหตุ (ถ้ามี)"
-              value={approveNotes}
-              onChange={(e) => setApproveNotes(e.target.value)}
-              rows={3}
-              placeholder="ระบุหมายเหตุเพิ่มเติม..."
-            />
-          </div>
-          <DialogFooter className="gap-2 flex-col sm:flex-row">
+
+          <Textarea
+            label="หมายเหตุ"
+            value={approveNotes}
+            onChange={(e) => setApproveNotes(e.target.value)}
+          />
+
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowApproveDialog(false)}
-              disabled={actionLoading}
-              className="w-full sm:w-auto border-2"
             >
               ยกเลิก
             </Button>
-            <Button
-              onClick={handleApprove}
-              disabled={actionLoading}
-              className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {actionLoading ? "กำลังบันทึก..." : "ยืนยันการอนุมัติ"}
+            <Button onClick={handleApprove} className="bg-green-600 text-white">
+              ยืนยัน
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
+      {/* REJECT  DIALOG */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="sm:max-w-[500px] max-w-[calc(100vw-2rem)] mx-4">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <div className="p-1.5 sm:p-2 bg-red-100 rounded-lg flex-shrink-0">
-                <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
-              </div>
-              <span>ไม่อนุมัติรายการขาย</span>
+            <DialogTitle className="flex gap-2 items-center text-red-600">
+              <XCircle /> ไม่อนุมัติรายการ
             </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base pt-2">
-              กรุณาระบุเหตุผลในการไม่อนุมัติรายการขาย{" "}
-              <span className="font-semibold text-blue-600 break-all">
-                {sale.saleNumber}
-              </span>
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
-            <div className="bg-red-50 rounded-lg p-3 sm:p-4 border border-red-200">
-              <p className="text-xs sm:text-sm text-red-800 flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  การไม่อนุมัติจะทำให้รายการขายถูกยกเลิก
-                  และต้องระบุเหตุผลที่ชัดเจน
-                </span>
-              </p>
-            </div>
-            <Textarea
-              label="เหตุผลในการไม่อนุมัติ *"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              rows={4}
-              error={!rejectReason.trim() ? "กรุณาระบุเหตุผล" : ""}
-              placeholder="เช่น ราคาสินค้าไม่ถูกต้อง, เกินวงเงินเครดิต, ข้อมูลไม่ครบถ้วน..."
-            />
-          </div>
-          <DialogFooter className="gap-2 flex-col sm:flex-row">
+
+          <Textarea
+            label="เหตุผล (*)"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            error={!rejectReason.trim() ? "จำเป็นต้องระบุ" : ""}
+          />
+
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowRejectDialog(false)}
-              disabled={actionLoading}
-              className="w-full sm:w-auto border-2"
             >
               ยกเลิก
             </Button>
             <Button
               variant="destructive"
+              disabled={!rejectReason.trim()}
               onClick={handleReject}
-              disabled={actionLoading || !rejectReason.trim()}
-              className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700"
             >
-              <XCircle className="h-4 w-4 mr-2" />
-              {actionLoading ? "กำลังบันทึก..." : "ยืนยันไม่อนุมัติ"}
+              ยืนยันไม่อนุมัติ
             </Button>
           </DialogFooter>
         </DialogContent>
