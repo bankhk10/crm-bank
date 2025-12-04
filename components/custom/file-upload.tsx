@@ -192,7 +192,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     <div className="mb-4">
       {/* Header Label + Upload Button + Counter */}
       <div className="flex items-center justify-start mb-2">
-        <label className="text-sm font-medium text-gray-800">{label}</label>
+        <label className="text-lg font-semibold text-gray-800">{label}</label>
       </div>
       <div className="flex items-center gap-2 mt-4 mb-4">
         <Button
