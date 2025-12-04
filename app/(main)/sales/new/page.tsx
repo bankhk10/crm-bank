@@ -62,7 +62,7 @@ export default function NewSalePage() {
         <div className="p-6">
           <div className="text-center">
             <h5 className="font-semibold text-3xl border-b pb-6">
-              สร้างรายการขายใหม่
+              สร้างบันทึกการขาย ( Sales note )
             </h5>
           </div>
           <SaleForm onSubmit={handleSubmit} />

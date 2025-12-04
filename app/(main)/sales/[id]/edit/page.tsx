@@ -121,7 +121,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
         <div className="p-6">
           <div className="text-center">
             <h5 className="font-semibold text-3xl border-b pb-6">
-              แก้ไขรายการขาย
+              แก้ไขบันทึกการขาย ( Sales note )
             </h5>
           </div>
            <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
