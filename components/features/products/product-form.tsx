@@ -31,6 +31,7 @@ interface ProductFormProps {
   hideBorder?: boolean;
   canEdit?: boolean;
   permissionHint?: string;
+  showRandomFill?: boolean;
 }
 
 export function ProductForm({
@@ -42,6 +43,7 @@ export function ProductForm({
   hideBorder,
   canEdit = true,
   permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่",
+  showRandomFill = process.env.NEXT_PUBLIC_SHOW_RANDOM_FILL === "true",
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -88,7 +90,7 @@ export function ProductForm({
     }
 
     if (!formData.name.trim()) {
-      newErrors.name = "กรุณากรอกชื่อสินค้า";
+      newErrors.name = "กรุณากรอกชื่อการค้า";
     }
 
     setErrors(newErrors);
@@ -97,7 +99,7 @@ export function ProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return; 
+    if (!validateForm()) return;
 
     if (!canEdit) return;
 
@@ -299,17 +301,6 @@ export function ProductForm({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div className="md:col-span-2 flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            size="sm"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-            onClick={handleRandomFill}
-            disabled={loading}
-          >
-            กรอกแบบสุ่ม
-          </Button>
-        </div>
         <FloatingLabelInput
           label="รหัสสินค้า *"
           type="text"
@@ -319,7 +310,7 @@ export function ProductForm({
         />
 
         <FloatingLabelInput
-          label="ชื่อสินค้า *"
+          label="ชื่อการค้า *"
           type="text"
           value={formData.name}
           onChange={(e) => updateField("name", e.target.value)}
@@ -550,6 +541,19 @@ export function ProductForm({
           </Button>
         </div>
       </div>
+      {showRandomFill && (
+        <div className="flex items-center justify-end gap-2 mb-2">
+          <Button
+            type="button"
+            size="sm"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-md"
+            onClick={handleRandomFill}
+            disabled={loading}
+          >
+            กรอกแบบสุ่ม
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
