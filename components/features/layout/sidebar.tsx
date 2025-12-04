@@ -4,7 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, Fragment } from "react";
-import { X, ChevronDown, ChevronRight, LayoutDashboard, Users2, Building2, ShieldCheck, PackageSearch, UserCog, DollarSign, ShoppingCart } from "lucide-react";
+import {
+  X,
+  ChevronDown,
+  ChevronRight,
+  LayoutDashboard,
+  Users2,
+  Building2,
+  ShieldCheck,
+  PackageSearch,
+  UserCog,
+  DollarSign,
+  ShoppingCart,
+} from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
 
@@ -31,38 +43,39 @@ export const navigationItems: SidebarNavItem[] = [
     children: [
       { href: "/dashboard/aggregateReport", label: "ภาพรวม" },
       { href: "/dashboard/salesReport", label: "การขาย" },
-      { href: "/dashboard/activityReport", label: "กิจกรรม" }
-    ]
+      { href: "/dashboard/activityReport", label: "กิจกรรม" },
+    ],
   },
   {
     href: "/products",
     label: "สินค้า",
     permissionKey: "menu.products",
-    icon: <PackageSearch className="h-4 w-4" />
+    icon: <PackageSearch className="h-4 w-4" />,
   },
   {
     href: "/sales",
     label: "การขาย",
     permissionKey: "menu.sales",
-    icon: <ShoppingCart className="h-4 w-4" />
+
+    icon: <DollarSign className="h-4 w-4" />,
   },
-  {
-    href: "/sales-forecasts",
-    label: "ประมาณการยอดขาย",
-    permissionKey: "menu.sales_forecasts",
-    icon: <DollarSign className="h-4 w-4" />
-  },
+  // {
+  //   href: "/sales-forecasts",
+  //   label: "ประมาณการยอดขาย",
+  //   permissionKey: "menu.sales_forecasts",
+  //   icon: <ShoppingCart className="h-4 w-4" />,
+  // },
   {
     href: "/employee",
     label: "พนักงาน",
     permissionKey: "menu.employees",
-    icon: <Users2 className="h-4 w-4" />
+    icon: <Users2 className="h-4 w-4" />,
   },
   {
     href: "/companies",
     label: "บริษัท",
     permissionKey: "menu.companies",
-    icon: <Building2 className="h-4 w-4" />
+    icon: <Building2 className="h-4 w-4" />,
   },
   {
     href: "/customers",
@@ -72,15 +85,15 @@ export const navigationItems: SidebarNavItem[] = [
     children: [
       { href: "/customers", label: "ข้อมูลลูกค้า" },
       { href: "/credit-limits", label: "จัดการวงเงิน" },
-      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว" }
-    ]
+      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว" },
+    ],
   },
   {
     href: "/rbac",
     label: "สิทธิ์",
     permissionKey: "rbac.manage",
-    icon: <ShieldCheck className="h-4 w-4" />
-  }
+    icon: <ShieldCheck className="h-4 w-4" />,
+  },
 ];
 
 interface SidebarProps {
@@ -89,31 +102,41 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-export default function Sidebar({ permissions, className, onClose }: SidebarProps) {
+export default function Sidebar({
+  permissions,
+  className,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const items = useMemo(
-    () => navigationItems.filter((item) => permissions[item.permissionKey]?.allow),
+    () =>
+      navigationItems.filter((item) => permissions[item.permissionKey]?.allow),
     [permissions]
   );
   const [openKey, setOpenKey] = useState<string | null>(() => {
-    const parent = items.find((item) => item.children?.some((c) => pathname.startsWith(c.href)));
+    const parent = items.find((item) =>
+      item.children?.some((c) => pathname.startsWith(c.href))
+    );
     return parent?.href ?? null;
   });
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
 
   // Keep openKey in sync with the current pathname so parent menus
   // close when navigating away from their children.
   useEffect(() => {
-    const parent = items.find((item) => item.children?.some((c) => pathname.startsWith(c.href)));
+    const parent = items.find((item) =>
+      item.children?.some((c) => pathname.startsWith(c.href))
+    );
     setOpenKey(parent?.href ?? null);
   }, [pathname, items]);
 
   return (
     <aside
       className={
-       "w-64 shrink-0 bg-[#b92626] text-white " + (className ? className : "")
+        "w-64 shrink-0 bg-[#b92626] text-white " + (className ? className : "")
       }
     >
       {/* Mobile close button */}
@@ -151,7 +174,9 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
               <Fragment key={item.href}>
                 <button
                   type="button"
-                  onClick={() => setOpenKey((k) => (k === item.href ? null : item.href))}
+                  onClick={() =>
+                    setOpenKey((k) => (k === item.href ? null : item.href))
+                  }
                   className={
                     "group flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left transition " +
                     (activeParent
@@ -201,11 +226,11 @@ export default function Sidebar({ permissions, className, onClose }: SidebarProp
               key={item.href}
               href={item.href}
               className={
-                  "flex items-center gap-2 rounded-lg px-4 py-3 transition " +
-                  (activeParent
-                    ? "bg-[#7f1515] rounded-xl font-semibold text-white"
-                    : "hover:bg-[#991b1b]")
-                }
+                "flex items-center gap-2 rounded-lg px-4 py-3 transition " +
+                (activeParent
+                  ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                  : "hover:bg-[#991b1b]")
+              }
               onClick={() => onClose?.()}
             >
               <span className="text-white/90">{item.icon}</span>

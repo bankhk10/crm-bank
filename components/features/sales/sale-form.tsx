@@ -506,7 +506,7 @@ export function SaleForm({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>ข้อมูลลูกค้าและพนักงาน</span>
-            <Button
+            {/* <Button
               type="button"
               onClick={handleRandomFill}
               size="sm"
@@ -514,7 +514,7 @@ export function SaleForm({
             >
               <Shuffle className="h-4 w-4 mr-2" />
               สุ่มข้อมูล
-            </Button>
+            </Button> */}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -876,7 +876,7 @@ export function SaleForm({
                   </div>
 
                   {item.priceModified && (
-                    <Alert>
+                    <Alert className="bg-yellow-100 border-yellow-300">
                       <AlertDescription className="text-sm">
                         ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿
                         {item.originalPrice.toLocaleString()}
