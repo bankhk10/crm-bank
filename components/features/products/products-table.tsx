@@ -67,14 +67,7 @@ export function ProductsTable({
     {
       accessorKey: "name",
       header: "ชื่อสินค้า",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-          {row.original.commonName && (
-            <div className="text-sm text-gray-500">{row.original.commonName}</div>
-          )}
-        </div>
-      ),
+      cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
     },
     {
       accessorKey: "productGroup",
@@ -94,7 +87,10 @@ export function ProductsTable({
               "-"
             ) : (
               <span>
-                ฿{Number(price).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                ฿
+                {Number(price).toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
               </span>
             )}
           </div>
@@ -108,7 +104,10 @@ export function ProductsTable({
         const totalStock =
           row.original.stockQuantity ??
           (row.original.stockLots
-            ? row.original.stockLots.reduce((s, lot) => s + (lot.quantity || 0), 0)
+            ? row.original.stockLots.reduce(
+                (s, lot) => s + (lot.quantity || 0),
+                0
+              )
             : 0);
 
         return <div className="text-sm">{totalStock.toLocaleString()}</div>;
@@ -129,7 +128,10 @@ export function ProductsTable({
         const totalStock =
           row.original.stockQuantity ??
           (row.original.stockLots
-            ? row.original.stockLots.reduce((s, lot) => s + (lot.quantity || 0), 0)
+            ? row.original.stockLots.reduce(
+                (s, lot) => s + (lot.quantity || 0),
+                0
+              )
             : 0);
         const reserved = row.original.reserved ?? 0;
         const available = Math.max(0, totalStock - reserved);
