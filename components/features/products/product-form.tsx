@@ -396,11 +396,16 @@ export function ProductForm({
 
         <FloatingLabelInput
           label="ขนาดบรรจุต่อลัง"
-          type="text"
+          type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          min={0}
+          step={1}
           value={formData.packageSizePerBox}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({
               ...prev,
+              // store numeric input as string to match ProductFormData
               packageSizePerBox: e.target.value,
             }))
           }
