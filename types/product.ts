@@ -127,7 +127,7 @@ export interface ProductManagementFormData {
 
 export const UNIT_OPTIONS = [
   { value: "ชิ้น", label: "ชิ้น" },
-  { value: "อัน", label: "อัน" },
+  { value: "กล่อง", label: "กล่อง" },
   { value: "ถุง", label: "ถุง" },
 ];
 
