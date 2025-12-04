@@ -50,16 +50,16 @@ interface Product {
   price?: number;
   unit?: string;
   stockQuantity?: number;
-  promotionItems?: Array<{ 
+  promotionItems?: Array<{
     id: string;
-    name: string; 
+    name: string;
     quantity: number;
     price?: number;
     notes?: string;
   }>;
-  freeItems?: Array<{ 
+  freeItems?: Array<{
     id: string;
-    purchaseQty: number; 
+    purchaseQty: number;
     freeQty: number;
     netPrice?: number;
     notes?: string;
@@ -307,17 +307,26 @@ export function SaleForm({
       }
     } catch (e) {
       // API not available or failed — fallback to local generator below
-      console.warn("random-fill API failed, falling back to client generator", e);
+      console.warn(
+        "random-fill API failed, falling back to client generator",
+        e
+      );
     }
 
     // Client-side fallback (uses helper) — move demo data out of component
-    if (customers.length === 0 || employees.length === 0 || products.length === 0) {
+    if (
+      customers.length === 0 ||
+      employees.length === 0 ||
+      products.length === 0
+    ) {
       alert("ไม่พบข้อมูลลูกค้า/พนักงาน/สินค้า เพียงพอสำหรับการสุ่ม");
       return;
     }
 
     try {
-      const { generateRandomSaleClient } = await import("@/lib/random-fill/sale-client");
+      const { generateRandomSaleClient } = await import(
+        "@/lib/random-fill/sale-client"
+      );
       const s = generateRandomSaleClient(customers, employees, products);
 
       setCustomerId(s.customerId || "");
@@ -770,7 +779,12 @@ export function SaleForm({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>รายการสินค้า</span>
-            <Button type="button" onClick={handleAddItem} size="sm" className="bg-green-700 hover:bg-green-800 text-white rounded-xl">
+            <Button
+              type="button"
+              onClick={handleAddItem}
+              size="sm"
+              className="bg-green-700 hover:bg-green-800 text-white rounded-xl"
+            >
               <Plus className="h-4 w-2" />
               เพิ่มรายการ
             </Button>
@@ -1008,15 +1022,15 @@ export function SaleForm({
           </DialogHeader>
           <div className="space-y-6">
             {/* Stock Quantity */}
-            {/* <div className="border-b pb-4">
+            <div className="border-b pb-4">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium text-lg">จำนวนคงเหลือ</h4>
+                <h4 className="font-medium text-lg">งบส่งเสริมการขาย</h4>
                 <Badge variant="outline" className="text-lg px-4 py-2">
-                  {selectedProductDetail?.stockQuantity || 0}{" "}
-                  {selectedProductDetail?.unit || "หน่วย"}
+                  {selectedProductDetail?.promotionBudget || 0} บาท
+                  {/* {selectedProductDetail?.unit || "หน่วย"} */}
                 </Badge>
               </div>
-            </div> */}
+            </div>
 
             {/* Free Items */}
             <div>
@@ -1036,7 +1050,8 @@ export function SaleForm({
                           </span>
                           {item.netPrice && (
                             <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                              (ราคาสุทธิ: ฿{Number(item.netPrice).toLocaleString()})
+                              (ราคาสุทธิ: ฿
+                              {Number(item.netPrice).toLocaleString()})
                             </span>
                           )}
                         </div>
@@ -1058,9 +1073,7 @@ export function SaleForm({
 
             {/* Promotion Items */}
             <div>
-              <h4 className="font-medium text-lg mb-3">
-                รายการส่งเสริมการขาย
-              </h4>
+              <h4 className="font-medium text-lg mb-3">รายการส่งเสริมการขาย</h4>
               {selectedProductDetail?.promotionItems &&
               selectedProductDetail.promotionItems.length > 0 ? (
                 <div className="space-y-2">
