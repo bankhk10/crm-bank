@@ -481,7 +481,7 @@ export default function ApproveSalePage({
 
         {/* Items */}
         <Card className="border-0 shadow-lg overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 border-b p-4 sm:p-6">
+          <CardHeader className=" from-slate-50 to-gray-50 border-b p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2 flex-wrap">
               <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
                 <Package className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
