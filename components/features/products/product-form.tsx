@@ -97,10 +97,7 @@ export function ProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
-      setError("กรุณากรอกข้อมูลให้ครบถ้วน");
-      return;
-    }
+    if (!validateForm()) return; 
 
     if (!canEdit) return;
 
@@ -174,10 +171,16 @@ export function ProductForm({
         // If there are new File objects to upload, do that now with progress
         if (formData.images && formData.images.length > 0) {
           try {
-            const filesToUpload = (formData.images as any[]).filter((i) => i instanceof File) as File[];
+            const filesToUpload = (formData.images as any[]).filter(
+              (i) => i instanceof File
+            ) as File[];
             if (filesToUpload.length > 0) {
               setUploadProgress(0);
-              await uploadImages(data.product.id, filesToUpload, formData.coverIndex ?? undefined);
+              await uploadImages(
+                data.product.id,
+                filesToUpload,
+                formData.coverIndex ?? undefined
+              );
               setUploadProgress(null);
             }
           } catch (err) {
@@ -228,6 +231,19 @@ export function ProductForm({
     }));
   };
 
+  // 📌 อัปเดตฟิลด์ และเคลียร์ error อัตโนมัติ
+  const updateField = (field: keyof ProductFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // เคลียร์ error เมื่อเริ่มพิมพ์
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const newErr = { ...prev };
+      delete newErr[field];
+      return newErr;
+    });
+  };
+
   const uploadImages = (
     productId: string,
     files: File[],
@@ -236,7 +252,8 @@ export function ProductForm({
     return new Promise((resolve, reject) => {
       const form = new FormData();
       files.forEach((f) => form.append("images", f));
-      if (typeof coverIndex === "number") form.append("coverIndex", String(coverIndex));
+      if (typeof coverIndex === "number")
+        form.append("coverIndex", String(coverIndex));
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `/api/products/${productId}/images`);
@@ -297,28 +314,16 @@ export function ProductForm({
           label="รหัสสินค้า *"
           type="text"
           value={formData.productCode}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFormData((prev) => ({
-              ...prev,
-              productCode: e.target.value,
-            }))
-          }
+          onChange={(e) => updateField("productCode", e.target.value)}
           error={errors.productCode}
-          disabled={loading}
         />
 
         <FloatingLabelInput
           label="ชื่อสินค้า *"
           type="text"
           value={formData.name}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFormData((prev) => ({
-              ...prev,
-              name: e.target.value,
-            }))
-          }
+          onChange={(e) => updateField("name", e.target.value)}
           error={errors.name}
-          disabled={loading}
         />
 
         <FloatingLabelInput
@@ -475,17 +480,17 @@ export function ProductForm({
             label="อัพโหลดรูปภาพสินค้า"
             value={formData.images || []}
             onChange={(files) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  images: files,
-                  // if cover not set, default to first image
-                  coverIndex:
-                    prev.coverIndex !== undefined && prev.coverIndex !== null
-                      ? prev.coverIndex
-                      : files.length > 0
-                      ? 0
-                      : null,
-                }))
+              setFormData((prev) => ({
+                ...prev,
+                images: files,
+                // if cover not set, default to first image
+                coverIndex:
+                  prev.coverIndex !== undefined && prev.coverIndex !== null
+                    ? prev.coverIndex
+                    : files.length > 0
+                    ? 0
+                    : null,
+              }))
             }
             accept="image/jpeg,image/png"
             maxFiles={5}
@@ -511,7 +516,9 @@ export function ProductForm({
               style={{ width: `${uploadProgress}%` }}
             />
           </div>
-          <div className="text-xs text-gray-500 mt-1">กำลังอัพโหลดรูป: {uploadProgress}%</div>
+          <div className="text-xs text-gray-500 mt-1">
+            กำลังอัพโหลดรูป: {uploadProgress}%
+          </div>
         </div>
       )}
 
