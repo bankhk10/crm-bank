@@ -196,7 +196,7 @@ export function ProductsTable({
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-start px-5">
             {(canView || canUpdate || canManage) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
