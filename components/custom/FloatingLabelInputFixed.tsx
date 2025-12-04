@@ -199,17 +199,23 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     (props as any).name ||
     `input-${label.replace(/\s+/g, "-")}`;
   const hasError = !!error;
+  const isDisabled = Boolean((props as any).disabled || (props as any).readOnly);
 
   const effectiveRounded = roundedClass || "rounded-lg";
 
   const baseInputClasses = [
-    "peer block w-full h-[50px] px-5 text-base bg-white",
-    "border text-gray-900",
+    "peer block w-full h-[50px] px-5 text-base",
+    isDisabled
+      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+      : "bg-white text-gray-900",
+    "border",
     effectiveRounded,
     "placeholder-transparent",
     "outline-none focus:outline-none focus:ring-0 focus-visible:ring-0",
     hasError
       ? "border-red-500 focus:border-red-500"
+      : isDisabled
+      ? "border-gray-200"
       : "border-gray-300 focus:border-blue-500",
   ];
 
@@ -240,6 +246,8 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
 
   const colorLabelClasses = hasError
     ? "text-red-500"
+    : isDisabled
+    ? "text-gray-400"
     : "text-gray-600 peer-focus:text-blue-500";
 
   const labelClassName = [
