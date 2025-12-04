@@ -29,7 +29,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   label,
   value = [],
   onChange,
-  accept = "image/jpeg,image/png",
+  accept = "image/jpeg,image/png,image/webp,image/avif,image/svg+xml",
   maxFiles = 5,
   maxSizeMB = 2,
   error,
@@ -38,7 +38,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [coverIndex, setCoverIndex] = useState<number | null>(value.length > 0 ? 0 : null);
+  const [coverIndex, setCoverIndex] = useState<number | null>(
+    value.length > 0 ? 0 : null
+  );
   const hasError = !!error;
 
   const handleFiles = (files: FileList | null) => {
@@ -112,7 +114,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       const url = URL.createObjectURL(file);
       img.onload = () => {
         const maxDim = 1200; // max width/height
-        let { width, height } = img as unknown as { width: number; height: number };
+        let { width, height } = img as unknown as {
+          width: number;
+          height: number;
+        };
         if (width > maxDim || height > maxDim) {
           const ratio = Math.min(maxDim / width, maxDim / height);
           width = Math.round(width * ratio);
@@ -185,43 +190,43 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-      </label>
-
-      <div
-        className={`relative border-2 border-dashed rounded-lg p-6 text-center ${
-          dragActive
-            ? "border-blue-500 bg-blue-50"
-            : hasError
-            ? "border-red-500 bg-red-50"
-            : "border-gray-300 bg-gray-50"
-        } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={openFileDialog}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          accept={accept}
-          onChange={handleChange}
-          disabled={disabled}
-          className="hidden"
-        />
-
-        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-        <p className="text-sm text-gray-600 mb-1">
-          คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่
-        </p>
-        <p className="text-xs text-gray-500">
-          รองรับไฟล์: {accept.split(",").join(", ")} | ขนาดไม่เกิน {maxSizeMB}MB
-          | สูงสุด {maxFiles} ไฟล์
-        </p>
+      {/* Header Label + Upload Button + Counter */}
+      <div className="flex items-center justify-start mb-2">
+        <label className="text-sm font-medium text-gray-800">{label}</label>
       </div>
+      <div className="flex items-center gap-2 mt-4 mb-4">
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            openFileDialog();
+          }}
+          disabled={disabled}
+          className="border-blue-600 text-blue-600 hover:bg-blue-50 flex items-center gap-2 rounded-full px-4 py-1.5"
+        >
+          <Upload className="w-4 h-4" />
+          เลือกรูปภาพ
+        </Button>
+
+        <span className="text-xs bg-gray-100 px-2.5 py-1 rounded-full text-gray-600">
+          {value.length}/{maxFiles} รูป
+        </span>
+      </div>
+
+      <p className="text-xs text-gray-500 mb-4">
+        อนุญาตเฉพาะไฟล์: JPG, PNG, WebP, AVIF, SVG ขนาดไม่เกิน {maxSizeMB}
+        MB/ไฟล์
+      </p>
+
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={accept}
+        onChange={handleChange}
+        disabled={disabled}
+        className="hidden"
+      />
 
       {/* Preview uploaded files */}
       {value.length > 0 && (
@@ -229,7 +234,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           {value.map((file, index) => {
             const isFile = file instanceof File;
             const isImage = isFile ? file.type.startsWith("image/") : true;
-            const preview = isFile ? URL.createObjectURL(file) : (file as ExistingImage).url;
+            const preview = isFile
+              ? URL.createObjectURL(file)
+              : (file as ExistingImage).url;
 
             return (
               <div
@@ -237,20 +244,24 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 className="relative rounded-lg overflow-hidden bg-white shadow-sm border"
               >
                 <div className="relative group">
-                    {preview ? (
-                      <img
-                        src={preview}
-                        alt={isFile ? file.name : (file as ExistingImage).name || "image"}
-                        className="w-full h-36 object-cover transition-transform duration-200 group-hover:scale-105"
-                        onLoad={() => {
-                          if (isFile) URL.revokeObjectURL(preview as string);
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-36 flex items-center justify-center bg-gray-100">
-                        <FileImage className="h-12 w-12 text-gray-400" />
-                      </div>
-                    )}
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt={
+                        isFile
+                          ? file.name
+                          : (file as ExistingImage).name || "image"
+                      }
+                      className="w-full h-36 object-cover transition-transform duration-200 group-hover:scale-105"
+                      onLoad={() => {
+                        if (isFile) URL.revokeObjectURL(preview as string);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-36 flex items-center justify-center bg-gray-100">
+                      <FileImage className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
 
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
                     <div className="flex gap-2">
@@ -267,8 +278,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                         title="ตั้งภาพเป็นหน้าปก"
                         disabled={disabled}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z"
+                          />
                         </svg>
                         <span className="ml-1">ปก</span>
                       </button>
@@ -290,12 +312,25 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
                   <div className="p-2 text-xs text-gray-600 truncate">
                     <div className="font-medium text-sm text-gray-800 truncate">
-                      {isFile ? (file as File).name : (file as ExistingImage).name || (file as ExistingImage).url.split('/').pop()}
+                      {isFile
+                        ? (file as File).name
+                        : (file as ExistingImage).name ||
+                          (file as ExistingImage).url.split("/").pop()}
                     </div>
                     <div className="text-xxs text-gray-500 mt-1">
-                      {isFile ? `${((file as File).size / 1024 / 1024).toFixed(2)} MB` : ((file as ExistingImage).size ? `${((file as ExistingImage).size! / 1024 / 1024).toFixed(2)} MB` : "")}
+                      {isFile
+                        ? `${((file as File).size / 1024 / 1024).toFixed(2)} MB`
+                        : (file as ExistingImage).size
+                        ? `${(
+                            (file as ExistingImage).size! /
+                            1024 /
+                            1024
+                          ).toFixed(2)} MB`
+                        : ""}
                       {coverIndex === index && (
-                        <span className="ml-2 inline-block rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5 text-[10px]">หน้าปก</span>
+                        <span className="ml-2 inline-block rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5 text-[10px]">
+                          หน้าปก
+                        </span>
                       )}
                     </div>
                   </div>
