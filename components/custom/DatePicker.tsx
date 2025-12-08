@@ -13,6 +13,8 @@ import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -117,44 +119,32 @@ function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="relative w-full">
-        {/* Floating label */}
+      <div className="w-full">
         {label && (
-          <label
-            id={`datepicker-label-${label.replace(/\s+/g, "-")}`}
-            className={cn(
-              "absolute px-1 bg-white transition-all duration-200 ease-in-out pointer-events-none z-10 left-[15px]",
-              date || open ? "-top-2 text-[13px]" : "top-[15px] text-[15px]",
-              date ? "text-gray-700" : "text-gray-600"
-            )}
-          >
+          <Label id={`datepicker-label-${label.replace(/\s+/g, "-")}`} className="mb-1 px-1">
             {label}
-          </label>
+          </Label>
         )}
 
         <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "relative w-full h-[50px] px-5 pr-12 text-base justify-start text-left font-normal rounded-lg hover:bg-white hover:text-gray-700",
-              !date && "text-muted-foreground",
-              className
-            )}
-            disabled={disabled}
-            title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
-            aria-labelledby={
-              label
-                ? `datepicker-label-${label.replace(/\s+/g, "-")}`
-                : undefined
-            }
-          >
-            <span className="truncate">
-              {date ? thaiDisplay : <span>{placeholder}</span>}
-            </span>
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+          <div className="relative w-full">
+            <Input
+              readOnly
+              value={date ? thaiDisplay : ""}
+              placeholder={placeholder}
+              className={cn("pr-10 h-11 text-base", className)}
+              disabled={disabled}
+              title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
+              aria-labelledby={
+                label
+                  ? `datepicker-label-${label.replace(/\s+/g, "-")}`
+                  : undefined
+              }
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
               <CalendarIcon className="h-4 w-4" aria-hidden="true" />
             </span>
-          </Button>
+          </div>
         </PopoverTrigger>
       </div>
       <PopoverContent
