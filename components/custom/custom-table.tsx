@@ -9,7 +9,13 @@ import { Button } from "@/components/ui/button";
 import { DataTable, DataTableEmptyState } from "@/components/ui/data-table";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type TablePagination = {
@@ -47,8 +53,29 @@ export interface CustomTableProps<TData, TValue = any> {
   getRowCanExpand?: (row: Row<TData>) => boolean;
 }
 
-function DefaultToolbar(props: Pick<CustomTableProps<any>, "canCreate" | "searchValue" | "onSearchChange" | "isTyping" | "onSearchSubmit" | "dateRange" | "onDateRangeChange" | "createHref">) {
-  const { canCreate, searchValue, onSearchChange, isTyping, onSearchSubmit, dateRange, onDateRangeChange, createHref } = props;
+function DefaultToolbar(
+  props: Pick<
+    CustomTableProps<any>,
+    | "canCreate"
+    | "searchValue"
+    | "onSearchChange"
+    | "isTyping"
+    | "onSearchSubmit"
+    | "dateRange"
+    | "onDateRangeChange"
+    | "createHref"
+  >
+) {
+  const {
+    canCreate,
+    searchValue,
+    onSearchChange,
+    isTyping,
+    onSearchSubmit,
+    dateRange,
+    onDateRangeChange,
+    createHref,
+  } = props;
 
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:grid-cols-3 lg:items-end">
@@ -91,8 +118,17 @@ function DefaultToolbar(props: Pick<CustomTableProps<any>, "canCreate" | "search
   );
 }
 
-function DefaultPagination({ pagination, loading }: { pagination: TablePagination; loading?: boolean }) {
-  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.perPage));
+function DefaultPagination({
+  pagination,
+  loading,
+}: {
+  pagination: TablePagination;
+  loading?: boolean;
+}) {
+  const totalPages = Math.max(
+    1,
+    Math.ceil(pagination.total / pagination.perPage)
+  );
   const disableNav = loading || pagination.total === 0;
 
   return (
@@ -108,7 +144,6 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          ต่อหน้า
           <Select
             value={String(pagination.perPage)}
             onValueChange={(value) => pagination.onPerPageChange(Number(value))}
@@ -130,7 +165,9 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
           <Button
             variant="outline"
             size="sm"
-            onClick={() => pagination.onPageChange(Math.max(1, pagination.page - 1))}
+            onClick={() =>
+              pagination.onPageChange(Math.max(1, pagination.page - 1))
+            }
             disabled={disableNav || pagination.page <= 1}
             aria-label="ก่อนหน้า"
           >
@@ -142,7 +179,9 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
           <Button
             variant="outline"
             size="sm"
-            onClick={() => pagination.onPageChange(Math.min(totalPages, pagination.page + 1))}
+            onClick={() =>
+              pagination.onPageChange(Math.min(totalPages, pagination.page + 1))
+            }
             disabled={disableNav || pagination.page >= totalPages}
             aria-label="ถัดไป"
           >
@@ -154,7 +193,9 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
   );
 }
 
-export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, TValue>) {
+export function CustomTable<TData, TValue = any>(
+  props: CustomTableProps<TData, TValue>
+) {
   const {
     columns,
     data,
@@ -188,7 +229,9 @@ export function CustomTable<TData, TValue = any>(props: CustomTableProps<TData, 
     />
   );
 
-  const builtFooter = pagination ? <DefaultPagination pagination={pagination} loading={loading} /> : undefined;
+  const builtFooter = pagination ? (
+    <DefaultPagination pagination={pagination} loading={loading} />
+  ) : undefined;
 
   return (
     <DataTable
