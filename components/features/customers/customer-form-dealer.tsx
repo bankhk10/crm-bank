@@ -383,7 +383,7 @@ export default function CustomerFormDealer({
         </div>
       </div>
 
-      <div className="md:col-span-2 mt-2">
+      <div className="md:col-span-2 mt-6">
         <Label className={labelTextClass}>
           ที่อยู่บริษัท (บ้านเลขที่, ถนน, ฯลฯ)
         </Label>
