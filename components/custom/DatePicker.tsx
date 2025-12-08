@@ -145,7 +145,7 @@ function DatePicker({
               readOnly
               value={date ? thaiDisplay : ""}
               placeholder={placeholder}
-              className={cn("pr-10 h-11 text-base", className)}
+              className={cn("pr-10 h-11 text-base !bg-white", className)}
               disabled={disabled}
               title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
               aria-labelledby={

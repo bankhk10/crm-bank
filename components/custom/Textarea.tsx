@@ -22,7 +22,7 @@ export const Textarea: React.FC<TextareaProps> = ({
   const valuePresent = Boolean(props.value || props.defaultValue);
 
   const baseTextareaClasses = [
-    "peer block w-full min-h-[100px] px-5 py-3 text-lg bg-white",
+    "peer block w-full min-h-[100px] px-5 py-3 text-lg",
     "border text-gray-900",
     roundedClass,
     "placeholder-transparent",
@@ -31,6 +31,9 @@ export const Textarea: React.FC<TextareaProps> = ({
       ? "border-red-500 focus:border-red-500"
       : "border-gray-300 focus:border-blue-500",
   ].join(" ");
+
+  // apply disabled/readOnly background
+  const bgClass = props.readOnly || props.disabled ? "bg-gray-100" : "bg-white";
 
   const baseLabelShared = [
     "absolute px-1 bg-white transition-all duration-200 ease-in-out pointer-events-none z-10",
@@ -62,7 +65,7 @@ export const Textarea: React.FC<TextareaProps> = ({
     <div className="mb-2">
       <div className="relative w-full">
         <textarea
-          className={baseTextareaClasses}
+          className={[bgClass, baseTextareaClasses].join(" ")}
           id={textareaId}
           placeholder=" "
           {...props}
