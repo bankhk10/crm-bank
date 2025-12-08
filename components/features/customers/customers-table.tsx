@@ -462,7 +462,7 @@ function CustomersToolbar(
               if (event.key === "Enter") onSearchSubmit?.();
             }}
             placeholder="ค้นหารหัส, ชื่อ, อีเมล, โทรศัพท์"
-            className="h-11 w-full"
+            className="mt-1 text-base h-11 w-full"
           />
         </div>
 
