@@ -121,7 +121,10 @@ function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <div className="w-full">
         {label && (
-          <Label id={`datepicker-label-${label.replace(/\s+/g, "-")}`} className="mb-1 px-1">
+          <Label
+            id={`datepicker-label-${label.replace(/\s+/g, "-")}`}
+            className="mx-2 mb-1 text-base"
+          >
             {label}
           </Label>
         )}

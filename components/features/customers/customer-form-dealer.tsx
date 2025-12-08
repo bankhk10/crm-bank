@@ -580,7 +580,7 @@ export default function CustomerFormDealer({
             className="mt-1 text-base h-11"
           />
         </div>
-        <div>
+        <div className="mt-2">
           <DatePicker
             label="วันเกิด"
             value={values.birthDate}
