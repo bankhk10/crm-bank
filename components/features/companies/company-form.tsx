@@ -115,7 +115,7 @@ export default function CompanyForm({
               clearFieldError("name");
             }}
             required
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.name?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
@@ -130,7 +130,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, shortName: e.target.value }));
               clearFieldError("shortName");
             }}
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.shortName?.[0] && (
             <p className="text-xs text-red-600 mt-1">
@@ -148,7 +148,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.email?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
@@ -163,7 +163,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.phone?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
@@ -178,7 +178,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.taxId?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.taxId[0]}</p>
@@ -218,7 +218,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, addressLine: e.target.value }));
               clearFieldError("addressLine");
             }}
-            className="mt-1 text-base h-10"
+            className="mt-1 text-base h-11"
           />
           {fieldErrors.addressLine?.[0] && (
             <p className="text-xs text-red-600 mt-1">

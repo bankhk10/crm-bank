@@ -159,7 +159,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       <div className="w-full">
         <Label className="mx-2 mt-2 text-base">รหัสไปรษณีย์</Label>
-        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base !h-10" />
+        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base !h-11" />
       </div>
     </div>
   );
