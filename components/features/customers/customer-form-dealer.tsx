@@ -603,7 +603,7 @@ export default function CustomerFormDealer({
         ข้อมูลเพิ่มเติม
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <div>
           <Label className="mx-2 mt-2 text-base">ร้านหลัก (ถ้ามี)</Label>
           <Select
@@ -687,10 +687,35 @@ export default function CustomerFormDealer({
             </SelectContent>
           </Select>
         </div>
+        <div>
+          <Label className="mx-2 mt-2 text-base">สถานะ</Label>
+          <Select
+            value={values.status ?? "ACTIVE"}
+            onValueChange={(v) => {
+              setValues((p: any) => ({ ...p, status: v }));
+              clearFieldError("status");
+            }}
+          >
+            <SelectTrigger className="mt-1 text-base h-11">
+              <SelectValue placeholder="เลือกสถานะ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>สถานะ</SelectLabel>
+                <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
+                <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
+                <SelectItem value="SUSPENDED">ระงับ</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {fieldErrors.status?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.status[0]}</p>
+          )}
+        </div>
       </div>
 
       <div>
-        <label className="block text-sm mb-1 mx-3">หมายเหตุ</label>
+        <Label className="mx-2 mt-2 text-base mb-2">หมายเหตุ</Label>
         <textarea
           value={values.businessNotes}
           onChange={(e) => {
