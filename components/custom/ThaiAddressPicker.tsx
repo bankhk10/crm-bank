@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 type AddressValue = {
   province?: string;
@@ -87,78 +89,77 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       <div className="w-full">
-        <FloatingLabelInput
-          label="จังหวัด"
-          type="select"
-          options={provinces.map((p: any) => ({
-            value: p.name,
-            label: p.name,
-          }))}
+        <Label className="mx-2 mt-2 text-base">จังหวัด</Label>
+        <Select
           value={province ?? ""}
-          placeholder=""
-          searchable
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) => {
-            const v = (e.target as HTMLInputElement).value;
+          onValueChange={(v) => {
             setProvince(v || undefined);
             setDistrict(undefined);
             setSubdistrict(undefined);
           }}
-        />
+          
+        >
+          <SelectTrigger className="w-full mt-1">
+            <SelectValue placeholder="เลือกจังหวัด" />
+          </SelectTrigger>
+          <SelectContent >
+            {provinces.map((p: any) => (
+              <SelectItem key={p.id} value={p.name}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="w-full">
-        <FloatingLabelInput
-          label="อำเภอ/เขต"
-          type="select"
-          options={districts.map((d: any) => ({
-            value: d.name,
-            label: d.name,
-          }))}
+        <Label className="mx-2 mt-2 text-base">อำเภอ/เขต</Label>
+        <Select
           value={district ?? ""}
-          placeholder={province ? "" : ""}
-          disabled={!province}
-          searchable
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) => {
-            const v = (e.target as HTMLInputElement).value;
+          onValueChange={(v) => {
             setDistrict(v || undefined);
             setSubdistrict(undefined);
           }}
-        />
+          disabled={!province}
+        >
+          <SelectTrigger className="w-full mt-1">
+            <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "กรุณาเลือกจังหวัดก่อน"} />
+          </SelectTrigger>
+          <SelectContent>
+            {districts.map((d: any) => (
+              <SelectItem key={d.id} value={d.name}>
+                {d.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="w-full">
-        <FloatingLabelInput
-          label="ตำบล"
-          type="select"
-          options={subdistricts.map((s: any) => ({
-            value: s.name,
-            label: s.name,
-          }))}
+        <Label className="mx-2 mt-2 text-base">ตำบล</Label>
+        <Select
           value={subdistrict ?? ""}
-          placeholder={district ? "" : ""}
-          disabled={!district}
-          searchable
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) => {
-            const v = (e.target as HTMLInputElement).value;
+          onValueChange={(v) => {
             setSubdistrict(v || undefined);
           }}
-        />
+          disabled={!district}
+        >
+          <SelectTrigger className="w-full mt-1">
+            <SelectValue placeholder={district ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"} />
+          </SelectTrigger>
+          <SelectContent>
+            {subdistricts.map((s: any) => (
+              <SelectItem key={s.id} value={s.name}>
+                {s.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="w-full">
-        <FloatingLabelInput
-          label="รหัสไปรษณีย์"
-          type="text"
-          value={postalCode ?? ""}
-          readOnly
-          disabled
-        />
+        <Label className="mx-2 mt-2 text-base">รหัสไปรษณีย์</Label>
+        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base" />
       </div>
     </div>
   );

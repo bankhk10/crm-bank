@@ -1,8 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 import Can from "@/components/rbac/Can";
@@ -97,96 +105,117 @@ export default function CompanyForm({
     <form onSubmit={handleSubmit} className="p-6 space-y-1">
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
         <div>
-          <FloatingLabelInput
-            label="ชื่อบริษัท"
+          <Label className="mx-2 mt-2 text-base">ชื่อบริษัท</Label>
+          <Input
             value={payload.name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, name: e.target.value }));
               clearFieldError("name");
             }}
             required
-            error={fieldErrors.name?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.name?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="ชื่อย่อบริษัท"
+          <Label className="mx-2 mt-2 text-base">ชื่อย่อบริษัท</Label>
+          <Input
             value={payload.shortName}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, shortName: e.target.value }));
               clearFieldError("shortName");
             }}
-            error={fieldErrors.shortName?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.shortName?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.shortName[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="อีเมล"
+          <Label className="mx-2 mt-2 text-base">อีเมล</Label>
+          <Input
             type="email"
             value={payload.email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
-            error={fieldErrors.email?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.email?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="โทรศัพท์"
+          <Label className="mx-2 mt-2 text-base">โทรศัพท์</Label>
+          <Input
             value={payload.phone}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
-            error={fieldErrors.phone?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.phone?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="เลขประจำตัวผู้เสียภาษี"
+          <Label className="mx-2 mt-2 text-base">เลขประจำตัวผู้เสียภาษี</Label>
+          <Input
             value={payload.taxId}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
-            error={fieldErrors.taxId?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.taxId?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.taxId[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="สถานะ"
-            type="select"
-            options={[
-              { value: "ACTIVE", label: "ใช้งาน" },
-              { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
-            ]}
+          <Label className="mx-2 mt-2 text-base">สถานะ</Label>
+          <Select
             value={payload.status}
-            onChange={(
-              e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-            ) => {
-              setPayload((p) => ({ ...p, status: e.target.value }));
+            onValueChange={(v) => {
+              setPayload((p) => ({ ...p, status: v }));
               clearFieldError("status");
             }}
-            error={fieldErrors.status?.[0]}
-          />
+          >
+            <SelectTrigger className="w-full mt-1">
+              <SelectValue placeholder="เลือกสถานะ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
+              <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
+            </SelectContent>
+          </Select>
+          {fieldErrors.status?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.status[0]}</p>
+          )}
         </div>
 
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="ที่อยู่บริษัท"
+          <Label className="mx-2 mt-2 text-base">ที่อยู่บริษัท</Label>
+          <Input
             value={payload.addressLine}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            onChange={(e) => {
               setPayload((p) => ({ ...p, addressLine: e.target.value }));
               clearFieldError("addressLine");
             }}
-            error={fieldErrors.addressLine?.[0]}
+            className="mt-1 text-base"
           />
+          {fieldErrors.addressLine?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.addressLine[0]}</p>
+          )}
         </div>
         <div className="md:col-span-2">
           <ThaiAddressPicker
