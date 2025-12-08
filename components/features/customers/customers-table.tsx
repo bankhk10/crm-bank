@@ -4,13 +4,25 @@ import * as React from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import type { DateRange } from "react-day-picker";
+import {
+  Eye,
+  Edit,
+  Trash2,
+  PlusCircle,
+  ChevronDown,
+  Mail,
+  Phone,
+  UserRound,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, PlusCircle, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import Tooltip from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectTrigger,
@@ -65,6 +77,71 @@ const customerTypeMap: Record<string, string> = {
   FARMER: "เกษตรกร",
   BROKER: "นายหน้า",
 };
+
+const statusStyle: Record<
+  string,
+  { label: string; className: string; dot: string }
+> = {
+  ACTIVE: {
+    label: "ใช้งาน",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
+    dot: "bg-emerald-500",
+  },
+  INACTIVE: {
+    label: "ไม่ได้ใช้งาน",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    dot: "bg-slate-400",
+  },
+  SUSPENDED: {
+    label: "ระงับ",
+    className:
+      "bg-orange-50 text-orange-700 ring-1 ring-orange-100 dark:bg-orange-900/30 dark:text-orange-50",
+    dot: "bg-orange-500",
+  },
+};
+
+function CustomerStatusBadge({
+  status,
+  className,
+}: {
+  status?: string;
+  className?: string;
+}) {
+  const key = (status || "").toUpperCase();
+  const info = statusStyle[key] ?? {
+    label: key || "ไม่ระบุ",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    dot: "bg-slate-400",
+  };
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+        info.className,
+        className
+      )}
+    >
+      <span className={cn("h-2 w-2 rounded-full", info.dot)} aria-hidden />
+      {info.label}
+    </span>
+  );
+}
+
+function CustomerTypeBadge({ type }: { type?: string }) {
+  const label = customerTypeMap[type ?? ""] || "ไม่ระบุ";
+  return (
+    <Badge
+      variant="outline"
+      className="rounded-full border-slate-200 bg-slate-50 text-slate-700"
+    >
+      {label}
+    </Badge>
+  );
+}
 
 function useCustomerColumns(
   onDeleteRequest: (customer: CustomerRecord) => void,
@@ -182,34 +259,9 @@ function useCustomerColumns(
         },
         cell: ({ row }) => {
           const s = (row.original.status || "").toString().toUpperCase();
-          const map: Record<string, { label: string; className: string }> = {
-            ACTIVE: {
-              label: "ใช้งาน",
-              className: "bg-emerald-100 text-emerald-800",
-            },
-            INACTIVE: {
-              label: "ไม่ได้ใช้งาน",
-              className: "bg-gray-100 text-gray-800",
-            },
-            SUSPENDED: {
-              label: "ระงับ",
-              className: "bg-orange-100 text-orange-800",
-            },
-          };
-          const info = map[s] ?? {
-            label: s || "-",
-            className: "bg-gray-100 text-gray-800",
-          };
-
           if (!s) return "-";
 
-          return (
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${info.className}`}
-            >
-              {info.label}
-            </span>
-          );
+          return <CustomerStatusBadge status={s} className="text-sm" />;
         },
       },
 
@@ -543,6 +595,205 @@ function CustomersToolbar(
   );
 }
 
+function CustomersCards(
+  props: Pick<
+    CustomersTableProps,
+    | "data"
+    | "loading"
+    | "canDelete"
+    | "onDeleteRequest"
+    | "canCreate"
+    | "pagination"
+  >
+) {
+  const { data, loading, canDelete, onDeleteRequest, canCreate, pagination } =
+    props;
+
+  const skeleton = (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <Card
+          key={`loading-${idx}`}
+          className="h-full border border-slate-200/80 shadow-sm"
+        >
+          <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
+          <div className="space-y-3 p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (loading) return skeleton;
+
+  const hasData = data && data.length > 0;
+  if (!hasData) {
+    return (
+      <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center text-sm text-slate-600">
+        <div className="mb-2 text-base font-semibold text-slate-900">
+          ยังไม่มีลูกค้าในหน้านี้
+        </div>
+        <p className="mb-4 text-sm text-slate-600">
+          ลองปรับการค้นหาหรือเพิ่มลูกค้าใหม่
+        </p>
+        {canCreate ? (
+          <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+            <Link href="/customers/new">สร้างลูกค้าใหม่</Link>
+          </Button>
+        ) : null}
+      </Card>
+    );
+  }
+
+  const { page, perPage, total, onPageChange, onPerPageChange, perPageOptions } =
+    pagination;
+  const totalPages = Math.max(1, Math.ceil((total || 0) / perPage));
+  const startDisplay = (page - 1) * perPage + 1;
+  const endDisplay = (page - 1) * perPage + data.length;
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {data.map((customer) => (
+          <Card
+            key={customer.id}
+            className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400" />
+            <div className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <UserRound className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <div className="text-base font-semibold text-slate-900 line-clamp-1">
+                      {customer.name || "-"}
+                    </div>
+                    <div className="text-xs text-slate-500">{customer.customerCode || "-"}</div>
+                  </div>
+                </div>
+                <CustomerStatusBadge status={customer.status} />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <CustomerTypeBadge type={customer.customerType} />
+                {customer.parentDealerId ? (
+                  <Badge className="rounded-full bg-purple-50 text-purple-700 ring-1 ring-purple-100">
+                    ร้านรอง
+                  </Badge>
+                ) : (
+                  <Badge className="rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+                    ร้านหลัก
+                  </Badge>
+                )}
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-700">
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                  <Mail className="h-4 w-4 text-slate-400" />
+                  <span className="line-clamp-1">{customer.email || "-"}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                  <Phone className="h-4 w-4 text-slate-400" />
+                  <span className="line-clamp-1">{customer.phone || "-"}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button asChild size="sm" variant="outline" className="border-blue-100 text-blue-700 hover:bg-blue-50">
+                  <Link href={`/customers/${customer.id}`}>
+                    <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="border-indigo-100 text-indigo-700 hover:bg-indigo-50">
+                  <Link href={`/customers/${customer.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                  </Link>
+                </Button>
+                {canDelete ? (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="bg-red-50 text-red-700 hover:bg-red-100"
+                    onClick={() => onDeleteRequest(customer)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> ลบ
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white/80 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs font-medium text-slate-600">
+          แสดง {startDisplay}-{endDisplay} จาก {total}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+          {perPageOptions && perPageOptions.length ? (
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => {
+                onPerPageChange(Number(v));
+              }}
+            >
+              <SelectTrigger className="h-9 w-[110px] text-sm">
+                <SelectValue placeholder="ต่อหน้า" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {perPageOptions.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)}>
+                    {opt} รายการ
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+
+          <div className="inline-flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-slate-700"
+              disabled={page <= 1}
+              onClick={() => onPageChange(Math.max(1, page - 1))}
+            >
+              ก่อนหน้า
+            </Button>
+            <span className="text-xs text-slate-500">
+              หน้า {page} / {totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-slate-700"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            >
+              ถัดไป
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CustomersTable(props: CustomersTableProps) {
   const {
     data,
@@ -563,12 +814,9 @@ export function CustomersTable(props: CustomersTableProps) {
 
   const columns = useCustomerColumns(onDeleteRequest, canDelete, data);
   return (
-    <CustomTable
-      columns={columns}
-      data={data}
-      loading={loading}
-      pagination={pagination}
-      toolbar={
+    <div className="space-y-6">
+      {/* Mobile & Tablet: card layout */}
+      <div className="lg:hidden space-y-4">
         <CustomersToolbar
           canCreate={canCreate}
           searchValue={searchValue}
@@ -580,28 +828,60 @@ export function CustomersTable(props: CustomersTableProps) {
           statusFilter={statusFilter}
           onStatusFilterChange={onStatusFilterChange}
         />
-      }
-      emptyState={{
-        title: "ยังไม่มีลูกค้า",
-        description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างลูกค้าใหม่",
-        action: canCreate ? (
-          <Link href="/customers/new">
-            <Button size="sm">สร้างลูกค้าใหม่</Button>
-          </Link>
-        ) : undefined,
-      }}
-      className="w-full"
-      renderSubComponent={({ row }) => {
-        const c = row.original as CustomerRecord;
-        return (
-          <div className="p-4 bg-slate-50">
-            <ParentDealerInfo
-              parentDealerId={c.parentDealerId}
-              dealerId={c.parentDealerId ? undefined : c.id}
+
+        <CustomersCards
+          data={data}
+          loading={loading}
+          canCreate={canCreate}
+          canDelete={canDelete}
+          onDeleteRequest={onDeleteRequest}
+          pagination={pagination}
+        />
+      </div>
+
+      {/* Desktop & up: original table */}
+      <div className="hidden lg:block">
+        <CustomTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          pagination={pagination}
+          toolbar={
+            <CustomersToolbar
+              canCreate={canCreate}
+              searchValue={searchValue}
+              onSearchChange={onSearchChange}
+              dateRange={dateRange}
+              onDateRangeChange={onDateRangeChange}
+              customerTypeFilter={customerTypeFilter}
+              onCustomerTypeFilterChange={onCustomerTypeFilterChange}
+              statusFilter={statusFilter}
+              onStatusFilterChange={onStatusFilterChange}
             />
-          </div>
-        );
-      }}
-    />
+          }
+          emptyState={{
+            title: "ยังไม่มีลูกค้า",
+            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างลูกค้าใหม่",
+            action: canCreate ? (
+              <Link href="/customers/new">
+                <Button size="sm">สร้างลูกค้าใหม่</Button>
+              </Link>
+            ) : undefined,
+          }}
+          className="w-full"
+          renderSubComponent={({ row }) => {
+            const c = row.original as CustomerRecord;
+            return (
+              <div className="p-4 bg-slate-50">
+                <ParentDealerInfo
+                  parentDealerId={c.parentDealerId}
+                  dealerId={c.parentDealerId ? undefined : c.id}
+                />
+              </div>
+            );
+          }}
+        />
+      </div>
+    </div>
   );
 }
