@@ -658,8 +658,14 @@ function CustomersCards(
     );
   }
 
-  const { page, perPage, total, onPageChange, onPerPageChange, perPageOptions } =
-    pagination;
+  const {
+    page,
+    perPage,
+    total,
+    onPageChange,
+    onPerPageChange,
+    perPageOptions,
+  } = pagination;
   const totalPages = Math.max(1, Math.ceil((total || 0) / perPage));
   const startDisplay = (page - 1) * perPage + 1;
   const endDisplay = (page - 1) * perPage + data.length;
@@ -683,7 +689,9 @@ function CustomersCards(
                     <div className="text-base font-semibold text-slate-900 line-clamp-1">
                       {customer.name || "-"}
                     </div>
-                    <div className="text-xs text-slate-500">{customer.customerCode || "-"}</div>
+                    <div className="text-xs text-slate-500">
+                      {customer.customerCode || "-"}
+                    </div>
                   </div>
                 </div>
                 <CustomerStatusBadge status={customer.status} />
@@ -714,12 +722,22 @@ function CustomersCards(
               </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
-                <Button asChild size="sm" variant="outline" className="border-blue-100 text-blue-700 hover:bg-blue-50">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-100 text-blue-700 hover:bg-blue-50"
+                >
                   <Link href={`/customers/${customer.id}`}>
                     <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline" className="border-indigo-100 text-indigo-700 hover:bg-indigo-50">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+                >
                   <Link href={`/customers/${customer.id}/edit`}>
                     <Edit className="mr-2 h-4 w-4" /> แก้ไข
                   </Link>
