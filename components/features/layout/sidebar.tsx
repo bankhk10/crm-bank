@@ -135,9 +135,7 @@ export default function Sidebar({
 
   return (
     <aside
-      className={
-        "w-64 shrink-0 bg-[#b92626] text-white " + (className ? className : "")
-      }
+      className={`relative flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-[#b92626] text-white ${className ?? ""}`}
     >
       {/* Mobile close button */}
       {onClose && (
