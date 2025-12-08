@@ -15,12 +15,7 @@ import {
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import Can from "@/components/rbac/Can";
-import {
-  CustomerFormProps,
-  CustomerPayload,
-  SubmitResult,
-} from "./customer-form-types";
+import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
@@ -29,7 +24,7 @@ type Option = { id: string; label: string };
 
 const labelTextClass = "mx-2 mt-2 text-base";
 const inputTextClass =
-  "mt-1 h-11 text-base text-gray-700 placeholder:text-gray-500";
+  "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormDealer({
   initial = {},
