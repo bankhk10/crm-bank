@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -247,103 +257,116 @@ export default function CustomerFormDealer({
       </h3>
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
         <div>
-          <FloatingLabelInput
-            label="รหัสลูกค้า"
+          <Label className="mx-2 mt-2 text-base">รหัสลูกค้า</Label>
+          <Input
             value={values.customerCode}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, customerCode: e.target.value }));
               clearFieldError("customerCode");
             }}
-            roundedClass="rounded-lg"
-            error={fieldErrors.customerCode?.[0]}
             readOnly
             disabled
+            className="mt-1 text-base h-11"
           />
+          {fieldErrors.customerCode?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.customerCode[0]}</p>
+          )}
         </div>
 
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="ชื่อร้านค้า"
+          <Label className="mx-2 mt-2 text-base">ชื่อร้านค้า</Label>
+          <Input
             value={values.companyName}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, companyName: e.target.value }));
               clearFieldError("name");
             }}
             required
-            error={fieldErrors.name?.[0]}
+            className="mt-1 text-base h-11"
           />
+          {fieldErrors.name?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="เลขประจำตัวผู้เสียภาษี"
+          <Label className="mx-2 mt-2 text-base">เลขประจำตัวผู้เสียภาษี</Label>
+          <Input
             value={values.taxId}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
+            className="mt-1 text-base h-11"
           />
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="เบอร์โทรศัพท์ (บริษัท)"
+          <Label className="mx-2 mt-2 text-base">เบอร์โทรศัพท์ (บริษัท)</Label>
+          <Input
             value={values.phone}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
             required
+            className="mt-1 text-base h-11"
           />
         </div>
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
-          <FloatingLabelInput
-            label="E-mail (บริษัท)"
+          <Label className="mx-2 mt-2 text-base">E-mail (บริษัท)</Label>
+          <Input
             type="email"
             value={values.email}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
-            error={fieldErrors.email?.[0]}
+            className="mt-1 text-base h-11"
           />
+          {fieldErrors.email?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="latitude (ละติจูด)"
+          <Label className="mx-2 mt-2 text-base">latitude (ละติจูด)</Label>
+          <Input
             type="number"
             value={values.latitude}
-            onChange={(e: any) =>
+            onChange={(e) =>
               setValues((p: any) => ({ ...p, latitude: e.target.value }))
             }
+            className="mt-1 text-base h-11"
           />
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="longitude (ลองจิจูด)"
+          <Label className="mx-2 mt-2 text-base">longitude (ลองจิจูด)</Label>
+          <Input
             type="number"
             value={values.longitude}
-            onChange={(e: any) =>
+            onChange={(e) =>
               setValues((p: any) => ({ ...p, longitude: e.target.value }))
             }
+            className="mt-1 text-base h-11"
           />
         </div>
       </div>
 
       <div className="md:col-span-2">
-        <FloatingLabelInput
-          label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+        <Label className="mx-2 mt-2 text-base">ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+        <Input
           placeholder="123/45 หมู่ 6 ต. ... อ. ..."
           value={values.addressLine}
-          onChange={(e: any) => {
+          onChange={(e) => {
             setValues((p: any) => ({ ...p, addressLine: e.target.value }));
             clearFieldError("addressLine");
           }}
+          className="mt-1 text-base h-11"
         />
       </div>
 
@@ -371,66 +394,76 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
-          <FloatingLabelInput
-            label="เลือกคำนำหน้า"
-            type="select"
-            options={[
-              { value: "นาย", label: "นาย" },
-              { value: "นาง", label: "นาง" },
-              { value: "นางสาว", label: "นางสาว" },
-            ]}
+          <Label className="mx-2 mt-2 text-base">เลือกคำนำหน้า</Label>
+          <Select
             value={values.prefix}
-            onChange={(e: any) =>
-              setValues((p: any) => ({ ...p, prefix: e.target.value }))
+            onValueChange={(v) =>
+              setValues((p: any) => ({ ...p, prefix: v }))
             }
-          />
+          >
+            <SelectTrigger className="mt-1 text-base h-11">
+              <SelectValue placeholder="เลือกคำนำหน้า" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>คำนำหน้า</SelectLabel>
+                <SelectItem value="นาย">นาย</SelectItem>
+                <SelectItem value="นาง">นาง</SelectItem>
+                <SelectItem value="นางสาว">นางสาว</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="ชื่อ"
+          <Label className="mx-2 mt-2 text-base">ชื่อ</Label>
+          <Input
             value={values.firstName}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, firstName: e.target.value }));
               clearFieldError("firstName");
             }}
             required
+            className="mt-1 text-base h-11"
           />
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="นามสกุล"
+          <Label className="mx-2 mt-2 text-base">นามสกุล</Label>
+          <Input
             value={values.lastName}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, lastName: e.target.value }));
               clearFieldError("lastName");
             }}
             required
+            className="mt-1 text-base h-11"
           />
         </div>
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
-          <FloatingLabelInput
-            label="เบอร์โทรศัพท์ (บุคคล)"
+          <Label className="mx-2 mt-2 text-base">เบอร์โทรศัพท์ (บุคคล)</Label>
+          <Input
             value={values.contactPhone}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
               clearFieldError("contactPhone");
             }}
+            className="mt-1 text-base h-11"
           />
         </div>
         <div>
-          <FloatingLabelInput
-            label="E-mail (บุคคล)"
+          <Label className="mx-2 mt-2 text-base">E-mail (บุคคล)</Label>
+          <Input
             type="email"
             value={values.contactEmail}
-            onChange={(e: any) => {
+            onChange={(e) => {
               setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
               clearFieldError("contactEmail");
             }}
+            className="mt-1 text-base h-11"
           />
         </div>
         <div>
@@ -442,11 +475,12 @@ export default function CustomerFormDealer({
           />
         </div>
         <div>
-          <FloatingLabelInput
-            label="อายุ"
+          <Label className="mx-2 mt-2 text-base">อายุ</Label>
+          <Input
             value={calculatedAge()}
             disabled={true}
             onChange={() => {}}
+            className="mt-1 text-base h-11"
           />
         </div>
       </div>
@@ -457,38 +491,39 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
-          <FloatingLabelInput
-            label="ร้านหลัก (ถ้ามี)"
-            type="select"
-            options={dealerOptions
-              .filter((d) => d.id !== values.id)
-              .map((d) => ({
-                value: d.id,
-                label: d.label,
-              }))}
+          <Label className="mx-2 mt-2 text-base">ร้านหลัก (ถ้ามี)</Label>
+          <Select
             value={values.parentDealer ?? ""}
-            onChange={(e: any) => {
-              const v = e.target.value;
+            onValueChange={(v) => {
               setValues((p: any) => ({ ...p, parentDealer: v || "" }));
               const found = dealerOptions.find((d) => d.id === v);
               setParentDealerLabel(found ? found.label : "");
               clearFieldError("parentDealer");
             }}
-            searchable
-          />
+          >
+            <SelectTrigger className="mt-1 text-base h-11">
+              <SelectValue placeholder="เลือกร้านหลัก" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>ร้านหลัก</SelectLabel>
+                {dealerOptions
+                  .filter((d) => d.id !== values.id)
+                  .map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="พนักงานที่รับผิดชอบ"
-            type="select"
-            options={employeeOptions.map((d) => ({
-              value: d.id,
-              label: d.label,
-            }))}
+          <Label className="mx-2 mt-2 text-base">พนักงานที่รับผิดชอบ</Label>
+          <Select
             value={values.responsibleEmployeeId ?? ""}
-            onChange={(e: any) => {
-              const v = e.target.value;
+            onValueChange={(v) => {
               setValues((p: any) => ({
                 ...p,
                 responsibleEmployeeId: v || null,
@@ -497,27 +532,46 @@ export default function CustomerFormDealer({
               setResponsibleEmployeeLabel(found ? found.label : "");
               clearFieldError("responsibleEmployeeId");
             }}
-            searchable
-          />
+          >
+            <SelectTrigger className="mt-1 text-base h-11">
+              <SelectValue placeholder="เลือกพนักงาน" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>พนักงาน</SelectLabel>
+                {employeeOptions.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="คะแนนความสัมพันธ์"
-            type="select"
-            options={[
-              { value: "1", label: "แย่" },
-              { value: "2", label: "ปานกลาง" },
-              { value: "3", label: "ดี" },
-            ]}
-            value={String(values.relationshipScore ?? "") as any}
-            onChange={(e: any) =>
+          <Label className="mx-2 mt-2 text-base">คะแนนความสัมพันธ์</Label>
+          <Select
+            value={String(values.relationshipScore ?? "")}
+            onValueChange={(v) =>
               setValues((p: any) => ({
                 ...p,
-                relationshipScore: e.target.value ? Number(e.target.value) : null,
+                relationshipScore: v ? Number(v) : null,
               }))
             }
-          />
+          >
+            <SelectTrigger className="mt-1 text-base h-11">
+              <SelectValue placeholder="เลือกคะแนน" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>คะแนน</SelectLabel>
+                <SelectItem value="1">แย่</SelectItem>
+                <SelectItem value="2">ปานกลาง</SelectItem>
+                <SelectItem value="3">ดี</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
