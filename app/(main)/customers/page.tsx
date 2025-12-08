@@ -9,13 +9,16 @@ import {
   CustomersTable,
   type CustomerRecord,
 } from "@/components/features/customers/customers-table";
+import { UserCog } from "lucide-react";
+
 
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
-  const canCreate = hasPermission("customer.create.dealer") || 
-                    hasPermission("customer.create.subdealer") ||
-                    hasPermission("customer.create.farmer") ||
-                    hasPermission("customer.create.broker");
+  const canCreate =
+    hasPermission("customer.create.dealer") ||
+    hasPermission("customer.create.subdealer") ||
+    hasPermission("customer.create.farmer") ||
+    hasPermission("customer.create.broker");
   const canView = !isLoading && allowed;
 
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
@@ -36,7 +39,9 @@ export default function CustomersPage() {
     customerType?: string;
     status?: string;
   }>({ query: "", dateRange: undefined, customerType: "", status: "" });
-  const [deleteCandidate, setDeleteCandidate] = useState<CustomerRecord | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<CustomerRecord | null>(
+    null
+  );
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -72,14 +77,22 @@ export default function CustomersPage() {
       setPage(1);
     }, delay);
     return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.dateRange, filterDraft.customerType, filterDraft.status, total, appliedFilters.query]);
+  }, [
+    filterDraft.query,
+    filterDraft.dateRange,
+    filterDraft.customerType,
+    filterDraft.status,
+    total,
+    appliedFilters.query,
+  ]);
 
   const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
 
   const isTyping =
     filterDraft.query !== appliedFilters.query ||
-    mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange) ||
+    mkRangeKey(filterDraft.dateRange) !==
+      mkRangeKey(appliedFilters.dateRange) ||
     filterDraft.customerType !== appliedFilters.customerType ||
     filterDraft.status !== appliedFilters.status;
 
@@ -107,8 +120,7 @@ export default function CustomersPage() {
           params.set("q", appliedFilters.query.trim());
         if (appliedFilters.customerType)
           params.set("type", appliedFilters.customerType);
-        if (appliedFilters.status)
-          params.set("status", appliedFilters.status);
+        if (appliedFilters.status) params.set("status", appliedFilters.status);
         if (appliedFilters.dateRange?.from)
           params.set("from", appliedFilters.dateRange.from.toISOString());
         if (appliedFilters.dateRange?.to)
@@ -166,7 +178,10 @@ export default function CustomersPage() {
               ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
             </p>
             <div className="mt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteCandidate(null)}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteCandidate(null)}
+              >
                 ยกเลิก
               </Button>
               <Button
@@ -202,6 +217,16 @@ export default function CustomersPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <UserCog className="w-9 h-9 text-blue-600" />
+
+              <h1 className="text-3xl font-bold tracking-tight">
+                ข้อมูลลูกค้า
+              </h1>
+            </div>
+          </div>
+
           <CustomersTable
             data={customers}
             loading={loading}
