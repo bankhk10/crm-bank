@@ -9,7 +9,7 @@ import {
   setYear,
   parseISO,
 } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, RotateCcw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -117,6 +117,16 @@ function DatePicker({
     ? `${format(date, "dd/MM")}/${getYear(date) + 543}`
     : placeholder;
 
+  const handleClear = () => {
+    setDate(undefined);
+    if (onChange) onChange(undefined);
+  };
+
+  const handleConfirm = () => {
+    if (date && onChange) onChange(toYMD(date));
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <div className="w-full">
@@ -206,6 +216,19 @@ function DatePicker({
           }
           onMonthChange={setDate}
         />
+        <div className="flex items-center justify-between gap-2 p-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground pl-0"
+            onClick={handleClear}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" /> ล้างช่วงวันที่
+          </Button>
+          <Button size="sm" onClick={handleConfirm}>
+            ยืนยัน
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
