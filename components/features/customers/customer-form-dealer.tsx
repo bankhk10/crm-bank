@@ -200,7 +200,7 @@ export default function CustomerFormDealer({
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
-        birthDate: values.birthDate ?? undefined,
+      birthDate: values.birthDate ?? undefined,
       email: values.email ?? "",
       phone: values.phone ?? "",
       taxId: values.taxId ?? "",
@@ -289,7 +289,9 @@ export default function CustomerFormDealer({
             className="mt-1 text-base h-11"
           />
           {fieldErrors.customerCode?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.customerCode[0]}</p>
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.customerCode[0]}
+            </p>
           )}
         </div>
 
@@ -377,10 +379,12 @@ export default function CustomerFormDealer({
         </div>
       </div>
 
-      <div className="md:col-span-2">
-        <Label className="mx-2 mt-2 text-base">ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+      <div className="md:col-span-2 mt-2">
+        <Label className="mx-2 mt-2 text-base">
+          ที่อยู่บริษัท (บ้านเลขที่, ถนน, ฯลฯ)
+        </Label>
         <Input
-          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          placeholder="123/45 หมู่ 6"
           value={values.addressLine}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, addressLine: e.target.value }));
@@ -412,13 +416,18 @@ export default function CustomerFormDealer({
         ที่อยู่วางบิล
       </h3>
 
-      <div className="md:col-span-2">
-        <Label className="mx-2 mt-2 text-base">ที่อยู่วางบิล (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+      <div className="md:col-span-2 mt-6">
+        <Label className="mx-2 mt-2 text-base">
+          ที่อยู่วางบิล (บ้านเลขที่, ถนน, ฯลฯ)
+        </Label>
         <Input
-          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          placeholder="123/45 หมู่ 6"
           value={values.billingAddressLine}
           onChange={(e) => {
-            setValues((p: any) => ({ ...p, billingAddressLine: e.target.value }));
+            setValues((p: any) => ({
+              ...p,
+              billingAddressLine: e.target.value,
+            }));
             clearFieldError("billingAddressLine");
           }}
           className="mt-1 text-base h-11"
@@ -434,8 +443,8 @@ export default function CustomerFormDealer({
             postalCode: values.billingPostalCode,
           }}
           onChange={(next) => {
-            setValues((p: any) => ({ 
-              ...p, 
+            setValues((p: any) => ({
+              ...p,
               billingProvince: next.province,
               billingDistrict: next.district,
               billingSubdistrict: next.subdistrict,
@@ -453,13 +462,18 @@ export default function CustomerFormDealer({
         ที่อยู่จัดส่ง
       </h3>
 
-      <div className="md:col-span-2">
-        <Label className="mx-2 mt-2 text-base">ที่อยู่จัดส่ง (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+      <div className="md:col-span-2 mt-6">
+        <Label className="mx-2 mt-2 text-base">
+          ที่อยู่จัดส่ง (บ้านเลขที่, ถนน, ฯลฯ)
+        </Label>
         <Input
-          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          placeholder="123/45 หมู่ 6"
           value={values.shippingAddressLine}
           onChange={(e) => {
-            setValues((p: any) => ({ ...p, shippingAddressLine: e.target.value }));
+            setValues((p: any) => ({
+              ...p,
+              shippingAddressLine: e.target.value,
+            }));
             clearFieldError("shippingAddressLine");
           }}
           className="mt-1 text-base h-11"
@@ -475,8 +489,8 @@ export default function CustomerFormDealer({
             postalCode: values.shippingPostalCode,
           }}
           onChange={(next) => {
-            setValues((p: any) => ({ 
-              ...p, 
+            setValues((p: any) => ({
+              ...p,
               shippingProvince: next.province,
               shippingDistrict: next.district,
               shippingSubdistrict: next.subdistrict,
@@ -496,12 +510,10 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
-          <Label className="mx-2 mt-2 text-base">เลือกคำนำหน้า</Label>
+          <Label className="mx-2 mt-2 text-base">คำนำหน้า</Label>
           <Select
             value={values.prefix}
-            onValueChange={(v) =>
-              setValues((p: any) => ({ ...p, prefix: v }))
-            }
+            onValueChange={(v) => setValues((p: any) => ({ ...p, prefix: v }))}
           >
             <SelectTrigger className="mt-1 text-base h-11">
               <SelectValue placeholder="เลือกคำนำหน้า" />
