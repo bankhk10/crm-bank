@@ -99,7 +99,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           }}
           
         >
-          <SelectTrigger className="w-full mt-1">
+          <SelectTrigger className="w-full mt-1 text-base !h-10">
             <SelectValue placeholder="เลือกจังหวัด" />
           </SelectTrigger>
           <SelectContent >
@@ -122,7 +122,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           }}
           disabled={!province}
         >
-          <SelectTrigger className="w-full mt-1">
+          <SelectTrigger className="w-full mt-1 text-base !h-10">
             <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "กรุณาเลือกจังหวัดก่อน"} />
           </SelectTrigger>
           <SelectContent>
@@ -144,7 +144,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           }}
           disabled={!district}
         >
-          <SelectTrigger className="w-full mt-1">
+          <SelectTrigger className="w-full mt-1 text-base !h-10">
             <SelectValue placeholder={district ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"} />
           </SelectTrigger>
           <SelectContent>
@@ -159,7 +159,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       <div className="w-full">
         <Label className="mx-2 mt-2 text-base">รหัสไปรษณีย์</Label>
-        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base" />
+        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base !h-10" />
       </div>
     </div>
   );

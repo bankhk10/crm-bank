@@ -10,6 +10,8 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
@@ -102,7 +104,7 @@ export default function CompanyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-1">
+    <form onSubmit={handleSubmit} className="space-y-1">
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
         <div>
           <Label className="mx-2 mt-2 text-base">ชื่อบริษัท</Label>
@@ -113,7 +115,7 @@ export default function CompanyForm({
               clearFieldError("name");
             }}
             required
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.name?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
@@ -128,10 +130,12 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, shortName: e.target.value }));
               clearFieldError("shortName");
             }}
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.shortName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.shortName[0]}</p>
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.shortName[0]}
+            </p>
           )}
         </div>
 
@@ -144,7 +148,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.email?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
@@ -159,7 +163,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.phone?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
@@ -174,7 +178,7 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.taxId?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.taxId[0]}</p>
@@ -190,12 +194,15 @@ export default function CompanyForm({
               clearFieldError("status");
             }}
           >
-            <SelectTrigger className="w-full mt-1">
+            <SelectTrigger className="w-full h-12 mt-1 text-base">
               <SelectValue placeholder="เลือกสถานะ" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
-              <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
+              <SelectGroup>
+                <SelectLabel>สถานะ</SelectLabel>
+                <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
+                <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
           {fieldErrors.status?.[0] && (
@@ -211,10 +218,12 @@ export default function CompanyForm({
               setPayload((p) => ({ ...p, addressLine: e.target.value }));
               clearFieldError("addressLine");
             }}
-            className="mt-1 text-base"
+            className="mt-1 text-base h-10"
           />
           {fieldErrors.addressLine?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.addressLine[0]}</p>
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.addressLine[0]}
+            </p>
           )}
         </div>
         <div className="md:col-span-2">
