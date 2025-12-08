@@ -27,6 +27,10 @@ type Props = Omit<CustomerFormProps, "customerType">;
 
 type Option = { id: string; label: string };
 
+const labelTextClass = "mx-2 mt-2 text-base";
+const inputTextClass =
+  "mt-1 h-11 text-base text-gray-700 placeholder:text-gray-500";
+
 export default function CustomerFormDealer({
   initial = {},
   onSubmit,
@@ -277,7 +281,7 @@ export default function CustomerFormDealer({
       </h3>
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
         <div>
-          <Label className="mx-2 mt-2 text-base">รหัสลูกค้า</Label>
+          <Label className={labelTextClass}>รหัสลูกค้า</Label>
           <Input
             value={values.customerCode}
             onChange={(e) => {
@@ -286,7 +290,7 @@ export default function CustomerFormDealer({
             }}
             readOnly
             disabled
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
           {fieldErrors.customerCode?.[0] && (
             <p className="text-xs text-red-600 mt-1">
@@ -296,7 +300,7 @@ export default function CustomerFormDealer({
         </div>
 
         <div className="md:col-span-2">
-          <Label className="mx-2 mt-2 text-base">ชื่อร้านค้า</Label>
+          <Label className={labelTextClass}>ชื่อร้านค้า</Label>
           <Input
             value={values.companyName}
             onChange={(e) => {
@@ -304,7 +308,7 @@ export default function CustomerFormDealer({
               clearFieldError("name");
             }}
             required
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
           {fieldErrors.name?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
@@ -312,19 +316,19 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">เลขประจำตัวผู้เสียภาษี</Label>
+          <Label className={labelTextClass}>เลขประจำตัวผู้เสียภาษี</Label>
           <Input
             value={values.taxId}
             onChange={(e) => {
               setValues((p: any) => ({ ...p, taxId: e.target.value }));
               clearFieldError("taxId");
             }}
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">เบอร์โทรศัพท์ (บริษัท)</Label>
+          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บริษัท)</Label>
           <Input
             value={values.phone}
             onChange={(e) => {
@@ -332,14 +336,14 @@ export default function CustomerFormDealer({
               clearFieldError("phone");
             }}
             required
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
-          <Label className="mx-2 mt-2 text-base">E-mail (บริษัท)</Label>
+          <Label className={labelTextClass}>E-mail (บริษัท)</Label>
           <Input
             type="email"
             value={values.email}
@@ -347,7 +351,7 @@ export default function CustomerFormDealer({
               setValues((p: any) => ({ ...p, email: e.target.value }));
               clearFieldError("email");
             }}
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
           {fieldErrors.email?.[0] && (
             <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
@@ -355,32 +359,32 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">latitude (ละติจูด)</Label>
+          <Label className={labelTextClass}>latitude (ละติจูด)</Label>
           <Input
             type="number"
             value={values.latitude}
             onChange={(e) =>
               setValues((p: any) => ({ ...p, latitude: e.target.value }))
             }
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">longitude (ลองจิจูด)</Label>
+          <Label className={labelTextClass}>longitude (ลองจิจูด)</Label>
           <Input
             type="number"
             value={values.longitude}
             onChange={(e) =>
               setValues((p: any) => ({ ...p, longitude: e.target.value }))
             }
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
       </div>
 
       <div className="md:col-span-2 mt-2">
-        <Label className="mx-2 mt-2 text-base">
+        <Label className={labelTextClass}>
           ที่อยู่บริษัท (บ้านเลขที่, ถนน, ฯลฯ)
         </Label>
         <Input
@@ -390,7 +394,7 @@ export default function CustomerFormDealer({
             setValues((p: any) => ({ ...p, addressLine: e.target.value }));
             clearFieldError("addressLine");
           }}
-          className="mt-1 text-base h-11"
+          className={inputTextClass}
         />
       </div>
 
@@ -417,7 +421,7 @@ export default function CustomerFormDealer({
       </h3>
 
       <div className="md:col-span-2 mt-6">
-        <Label className="mx-2 mt-2 text-base">
+        <Label className={labelTextClass}>
           ที่อยู่วางบิล (บ้านเลขที่, ถนน, ฯลฯ)
         </Label>
         <Input
@@ -430,7 +434,7 @@ export default function CustomerFormDealer({
             }));
             clearFieldError("billingAddressLine");
           }}
-          className="mt-1 text-base h-11"
+          className={inputTextClass}
         />
       </div>
 
@@ -463,7 +467,7 @@ export default function CustomerFormDealer({
       </h3>
 
       <div className="md:col-span-2 mt-6">
-        <Label className="mx-2 mt-2 text-base">
+        <Label className={labelTextClass}>
           ที่อยู่จัดส่ง (บ้านเลขที่, ถนน, ฯลฯ)
         </Label>
         <Input
@@ -476,7 +480,7 @@ export default function CustomerFormDealer({
             }));
             clearFieldError("shippingAddressLine");
           }}
-          className="mt-1 text-base h-11"
+          className={inputTextClass}
         />
       </div>
 
@@ -510,12 +514,12 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
-          <Label className="mx-2 mt-2 text-base">คำนำหน้า</Label>
+          <Label className={labelTextClass}>คำนำหน้า</Label>
           <Select
             value={values.prefix}
             onValueChange={(v) => setValues((p: any) => ({ ...p, prefix: v }))}
           >
-            <SelectTrigger className="mt-1 text-base h-11">
+            <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกคำนำหน้า" />
             </SelectTrigger>
             <SelectContent>
@@ -530,7 +534,7 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">ชื่อ</Label>
+          <Label className={labelTextClass}>ชื่อ</Label>
           <Input
             value={values.firstName}
             onChange={(e) => {
@@ -538,12 +542,12 @@ export default function CustomerFormDealer({
               clearFieldError("firstName");
             }}
             required
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">นามสกุล</Label>
+          <Label className={labelTextClass}>นามสกุล</Label>
           <Input
             value={values.lastName}
             onChange={(e) => {
@@ -551,25 +555,25 @@ export default function CustomerFormDealer({
               clearFieldError("lastName");
             }}
             required
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
-          <Label className="mx-2 mt-2 text-base">เบอร์โทรศัพท์ (บุคคล)</Label>
+          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล)</Label>
           <Input
             value={values.contactPhone}
             onChange={(e) => {
               setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
               clearFieldError("contactPhone");
             }}
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
         <div>
-          <Label className="mx-2 mt-2 text-base">E-mail (บุคคล)</Label>
+          <Label className={labelTextClass}>E-mail (บุคคล)</Label>
           <Input
             type="email"
             value={values.contactEmail}
@@ -577,7 +581,7 @@ export default function CustomerFormDealer({
               setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
               clearFieldError("contactEmail");
             }}
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
         <div className="mt-2">
@@ -589,12 +593,12 @@ export default function CustomerFormDealer({
           />
         </div>
         <div>
-          <Label className="mx-2 mt-2 text-base">อายุ</Label>
+          <Label className={labelTextClass}>อายุ</Label>
           <Input
             value={calculatedAge()}
             disabled={true}
             onChange={() => {}}
-            className="mt-1 text-base h-11"
+            className={inputTextClass}
           />
         </div>
       </div>
@@ -605,7 +609,7 @@ export default function CustomerFormDealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <div>
-          <Label className="mx-2 mt-2 text-base">ร้านหลัก (ถ้ามี)</Label>
+          <Label className={labelTextClass}>ร้านหลัก (ถ้ามี)</Label>
           <Select
             value={values.parentDealer ?? ""}
             onValueChange={(v) => {
@@ -615,7 +619,7 @@ export default function CustomerFormDealer({
               clearFieldError("parentDealer");
             }}
           >
-            <SelectTrigger className="mt-1 text-base h-11">
+            <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกร้านหลัก" />
             </SelectTrigger>
             <SelectContent>
@@ -634,7 +638,7 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">พนักงานที่รับผิดชอบ</Label>
+          <Label className={labelTextClass}>พนักงานที่รับผิดชอบ</Label>
           <Select
             value={values.responsibleEmployeeId ?? ""}
             onValueChange={(v) => {
@@ -647,7 +651,7 @@ export default function CustomerFormDealer({
               clearFieldError("responsibleEmployeeId");
             }}
           >
-            <SelectTrigger className="mt-1 text-base h-11">
+            <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกพนักงาน" />
             </SelectTrigger>
             <SelectContent>
@@ -664,7 +668,7 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className="mx-2 mt-2 text-base">คะแนนความสัมพันธ์</Label>
+          <Label className={labelTextClass}>คะแนนความสัมพันธ์</Label>
           <Select
             value={String(values.relationshipScore ?? "")}
             onValueChange={(v) =>
@@ -674,7 +678,7 @@ export default function CustomerFormDealer({
               }))
             }
           >
-            <SelectTrigger className="mt-1 text-base h-11">
+            <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกคะแนน" />
             </SelectTrigger>
             <SelectContent>
@@ -688,7 +692,7 @@ export default function CustomerFormDealer({
           </Select>
         </div>
         <div>
-          <Label className="mx-2 mt-2 text-base">สถานะ</Label>
+          <Label className={labelTextClass}>สถานะ</Label>
           <Select
             value={values.status ?? "ACTIVE"}
             onValueChange={(v) => {
@@ -696,7 +700,7 @@ export default function CustomerFormDealer({
               clearFieldError("status");
             }}
           >
-            <SelectTrigger className="mt-1 text-base h-11">
+            <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกสถานะ" />
             </SelectTrigger>
             <SelectContent>
@@ -715,14 +719,14 @@ export default function CustomerFormDealer({
       </div>
 
       <div>
-        <Label className="mx-2 mt-2 text-base mb-2">หมายเหตุ</Label>
+        <Label className={`${labelTextClass} mb-2`}>หมายเหตุ</Label>
         <textarea
           value={values.businessNotes}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
             clearFieldError("notes");
           }}
-          className="w-full border rounded-xl px-3 py-2"
+          className="w-full border rounded-xl px-3 py-2 text-base text-gray-700 placeholder:text-gray-400"
           rows={3}
         />
       </div>
