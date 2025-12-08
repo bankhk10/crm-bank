@@ -59,7 +59,6 @@ export interface CustomersTableProps {
   pagination: CustomersPagination;
 }
 
-
 const customerTypeMap: Record<string, string> = {
   DEALER: "ตัวแทนจำหน่าย",
   SUBDEALER: "ตัวแทนจำหน่ายย่อย",
@@ -86,7 +85,8 @@ function useCustomerColumns(
         },
         cell: ({ row }) => {
           const orig = row.original as CustomerRecord;
-          const hasChildren = !!data && data.some((d) => d.parentDealerId === orig.id);
+          const hasChildren =
+            !!data && data.some((d) => d.parentDealerId === orig.id);
           const showExpander = hasChildren || !!orig.parentDealerId;
 
           if (!showExpander) return <div className="p-1" />;
@@ -99,7 +99,9 @@ function useCustomerColumns(
               className="p-1 rounded hover:bg-slate-100"
             >
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${row.getIsExpanded() ? "rotate-180" : "rotate-0"}`}
+                className={`h-4 w-4 transition-transform ${
+                  row.getIsExpanded() ? "rotate-180" : "rotate-0"
+                }`}
               />
             </button>
           );
@@ -275,7 +277,13 @@ function useCustomerColumns(
   );
 }
 
-function ParentDealerInfo({ parentDealerId, dealerId }: { parentDealerId?: string | null; dealerId?: string | null }) {
+function ParentDealerInfo({
+  parentDealerId,
+  dealerId,
+}: {
+  parentDealerId?: string | null;
+  dealerId?: string | null;
+}) {
   const [parent, setParent] = React.useState<CustomerRecord | null>(null);
   const [children, setChildren] = React.useState<CustomerRecord[] | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -343,7 +351,10 @@ function ParentDealerInfo({ parentDealerId, dealerId }: { parentDealerId?: strin
   }, [parentDealerId, dealerId]);
 
   if (loading) return <div className="text-sm">กำลังโหลดข้อมูล...</div>;
-  if (error) return <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>;
+  if (error)
+    return (
+      <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>
+    );
 
   // Show children when dealerId present (main dealer)
   if (dealerId) {
@@ -360,8 +371,12 @@ function ParentDealerInfo({ parentDealerId, dealerId }: { parentDealerId?: strin
           >
             <div className="flex items-center gap-4">
               <div className="font-medium">{child.name ?? "-"}</div>
-              <div className="text-sm text-muted-foreground">{child.email ?? "-"}</div>
-              <div className="text-sm text-muted-foreground">{child.phone ?? "-"}</div>
+              <div className="text-sm text-muted-foreground">
+                {child.email ?? "-"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {child.phone ?? "-"}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Link href={`/customers/${child.id}`}>
@@ -453,45 +468,57 @@ function CustomersToolbar(
 
         <div className="space-y-2">
           <label className="text-sm font-medium mx-2">ประเภทลูกค้า</label>
-          <select
-            value={customerTypeFilter || ""}
-            onChange={(e) => onCustomerTypeFilterChange?.(e.target.value)}
-            className="h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">ทั้งหมด</option>
-            <option value="DEALER">ตัวแทนจำหน่าย</option>
-            <option value="SUBDEALER">ตัวแทนจำหน่ายย่อย</option>
-            <option value="FARMER">เกษตรกร</option>
-            <option value="BROKER">นายหน้า</option>
-          </select>
+          {(() => {
+            const ALL_VALUE = "__ALL__";
+            return (
+              <Select
+                value={customerTypeFilter ? customerTypeFilter : ALL_VALUE}
+                onValueChange={(v) =>
+                  onCustomerTypeFilterChange?.(v === ALL_VALUE ? "" : v)
+                }
+              >
+                <SelectTrigger className="mt-1 text-base h-11">
+                  <SelectValue placeholder="ทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
+                  <SelectItem value="DEALER">ตัวแทนจำหน่าย</SelectItem>
+                  <SelectItem value="SUBDEALER">ตัวแทนจำหน่ายย่อย</SelectItem>
+                  <SelectItem value="FARMER">เกษตรกร</SelectItem>
+                  <SelectItem value="BROKER">นายหน้า</SelectItem>
+                </SelectContent>
+              </Select>
+            );
+          })()}
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium mx-2">สถานะ</label>
-          <select
-            value={statusFilter || ""}
-            onChange={(e) => onStatusFilterChange?.(e.target.value)}
-            className="h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">ทั้งหมด</option>
-            <option value="ACTIVE">ใช้งาน</option>
-            <option value="INACTIVE">ไม่ได้ใช้งาน</option>
-            <option value="SUSPENDED">ระงับ</option>
-          </select>
+          {(() => {
+            const ALL_STATUS = "__ALL_STATUS__";
+            return (
+              <Select
+                value={statusFilter ? statusFilter : ALL_STATUS}
+                onValueChange={(v) =>
+                  onStatusFilterChange?.(v === ALL_STATUS ? "" : v)
+                }
+              >
+                <SelectTrigger className="mt-1 text-base h-11">
+                  <SelectValue placeholder="ทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_STATUS}>ทั้งหมด</SelectItem>
+                  <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
+                  <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
+                  <SelectItem value="SUSPENDED">ระงับ</SelectItem>
+                </SelectContent>
+              </Select>
+            );
+          })()}
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3 lg:items-end">
-        <div className="space-y-2 lg:col-span-2">
-          <label className="text-sm font-medium mx-2">กรองตามวันที่</label>
-          <DateRangePicker
-            value={dateRange}
-            onChange={onDateRangeChange}
-            placeholder="เลือกช่วงวันที่"
-            className="w-full lg:w-[300px] block"
-          />
-        </div>
-
+      <div className="grid gap-4 lg:items-end mt-4">
         <div className="flex items-end lg:justify-end">
           {canCreate ? (
             <Link href="/customers/new">
