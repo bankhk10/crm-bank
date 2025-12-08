@@ -21,6 +21,16 @@ const customerUpdateSchema = z.object({
   district: z.string().optional(),
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
+  billingAddressLine: z.string().optional(),
+  billingProvince: z.string().optional(),
+  billingDistrict: z.string().optional(),
+  billingSubdistrict: z.string().optional(),
+  billingPostalCode: z.string().optional(),
+  shippingAddressLine: z.string().optional(),
+  shippingProvince: z.string().optional(),
+  shippingDistrict: z.string().optional(),
+  shippingSubdistrict: z.string().optional(),
+  shippingPostalCode: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
   contactPerson: z.string().optional(),
   contactPhone: z.string().optional(),
@@ -82,8 +92,16 @@ export async function PUT(request: Request, context: any) {
   const body = await request.json().catch(() => null);
   const normalizedBody = body && typeof body === "object" ? { ...(body as Record<string, unknown>) } : body;
   
-  if (normalizedBody && typeof (normalizedBody as any).postalCode === "number") {
-    (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
+  if (normalizedBody && typeof normalizedBody === "object") {
+    if (typeof (normalizedBody as any).postalCode === "number") {
+      (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
+    }
+    if (typeof (normalizedBody as any).billingPostalCode === "number") {
+      (normalizedBody as any).billingPostalCode = String((normalizedBody as any).billingPostalCode);
+    }
+    if (typeof (normalizedBody as any).shippingPostalCode === "number") {
+      (normalizedBody as any).shippingPostalCode = String((normalizedBody as any).shippingPostalCode);
+    }
   }
 
   const parsed = customerUpdateSchema.safeParse(normalizedBody);

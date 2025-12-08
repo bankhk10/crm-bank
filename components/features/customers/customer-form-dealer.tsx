@@ -57,6 +57,16 @@ export default function CustomerFormDealer({
     district: initial.district ?? "",
     subdistrict: initial.subdistrict ?? "",
     postalCode: initial.postalCode ?? "",
+    billingAddressLine: (initial as any).billingAddressLine ?? "",
+    billingProvince: (initial as any).billingProvince ?? "",
+    billingDistrict: (initial as any).billingDistrict ?? "",
+    billingSubdistrict: (initial as any).billingSubdistrict ?? "",
+    billingPostalCode: (initial as any).billingPostalCode ?? "",
+    shippingAddressLine: (initial as any).shippingAddressLine ?? "",
+    shippingProvince: (initial as any).shippingProvince ?? "",
+    shippingDistrict: (initial as any).shippingDistrict ?? "",
+    shippingSubdistrict: (initial as any).shippingSubdistrict ?? "",
+    shippingPostalCode: (initial as any).shippingPostalCode ?? "",
     status: initial.status ?? "ACTIVE",
   });
 
@@ -199,6 +209,16 @@ export default function CustomerFormDealer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
+      billingAddressLine: values.billingAddressLine ?? "",
+      billingProvince: values.billingProvince ?? "",
+      billingDistrict: values.billingDistrict ?? "",
+      billingSubdistrict: values.billingSubdistrict ?? "",
+      billingPostalCode: values.billingPostalCode ?? "",
+      shippingAddressLine: values.shippingAddressLine ?? "",
+      shippingProvince: values.shippingProvince ?? "",
+      shippingDistrict: values.shippingDistrict ?? "",
+      shippingSubdistrict: values.shippingSubdistrict ?? "",
+      shippingPostalCode: values.shippingPostalCode ?? "",
       status: values.status ?? "ACTIVE",
       contactPerson: `${values.firstName ?? ""} ${
         values.lastName ?? ""
@@ -384,6 +404,88 @@ export default function CustomerFormDealer({
             clearFieldError("district");
             clearFieldError("subdistrict");
             clearFieldError("postalCode");
+          }}
+        />
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่วางบิล
+      </h3>
+
+      <div className="md:col-span-2">
+        <Label className="mx-2 mt-2 text-base">ที่อยู่วางบิล (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+        <Input
+          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          value={values.billingAddressLine}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, billingAddressLine: e.target.value }));
+            clearFieldError("billingAddressLine");
+          }}
+          className="mt-1 text-base h-11"
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <ThaiAddressPicker
+          value={{
+            province: values.billingProvince,
+            district: values.billingDistrict,
+            subdistrict: values.billingSubdistrict,
+            postalCode: values.billingPostalCode,
+          }}
+          onChange={(next) => {
+            setValues((p: any) => ({ 
+              ...p, 
+              billingProvince: next.province,
+              billingDistrict: next.district,
+              billingSubdistrict: next.subdistrict,
+              billingPostalCode: next.postalCode,
+            }));
+            clearFieldError("billingProvince");
+            clearFieldError("billingDistrict");
+            clearFieldError("billingSubdistrict");
+            clearFieldError("billingPostalCode");
+          }}
+        />
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่จัดส่ง
+      </h3>
+
+      <div className="md:col-span-2">
+        <Label className="mx-2 mt-2 text-base">ที่อยู่จัดส่ง (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+        <Input
+          placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+          value={values.shippingAddressLine}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, shippingAddressLine: e.target.value }));
+            clearFieldError("shippingAddressLine");
+          }}
+          className="mt-1 text-base h-11"
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <ThaiAddressPicker
+          value={{
+            province: values.shippingProvince,
+            district: values.shippingDistrict,
+            subdistrict: values.shippingSubdistrict,
+            postalCode: values.shippingPostalCode,
+          }}
+          onChange={(next) => {
+            setValues((p: any) => ({ 
+              ...p, 
+              shippingProvince: next.province,
+              shippingDistrict: next.district,
+              shippingSubdistrict: next.subdistrict,
+              shippingPostalCode: next.postalCode,
+            }));
+            clearFieldError("shippingProvince");
+            clearFieldError("shippingDistrict");
+            clearFieldError("shippingSubdistrict");
+            clearFieldError("shippingPostalCode");
           }}
         />
       </div>

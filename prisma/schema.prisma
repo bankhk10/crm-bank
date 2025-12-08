@@ -267,6 +267,16 @@ model Customer {
   district              String?
   subdistrict           String?
   postalCode            String?        @map("postal_code")
+  billingAddressLine    String?        @map("billing_address_line")
+  billingProvince       String?        @map("billing_province")
+  billingDistrict       String?        @map("billing_district")
+  billingSubdistrict    String?        @map("billing_subdistrict")
+  billingPostalCode     String?        @map("billing_postal_code")
+  shippingAddressLine   String?        @map("shipping_address_line")
+  shippingProvince      String?        @map("shipping_province")
+  shippingDistrict      String?        @map("shipping_district")
+  shippingSubdistrict   String?        @map("shipping_subdistrict")
+  shippingPostalCode    String?        @map("shipping_postal_code")
   status                CustomerStatus @default(ACTIVE)
   contactPerson         String?        @map("contact_person")
   contactPhone          String?        @map("contact_phone")

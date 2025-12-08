@@ -35,6 +35,16 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
     district: initial.district ?? "",
     subdistrict: initial.subdistrict ?? "",
     postalCode: initial.postalCode ?? "",
+    billingAddressLine: (initial as any).billingAddressLine ?? "",
+    billingProvince: (initial as any).billingProvince ?? "",
+    billingDistrict: (initial as any).billingDistrict ?? "",
+    billingSubdistrict: (initial as any).billingSubdistrict ?? "",
+    billingPostalCode: (initial as any).billingPostalCode ?? "",
+    shippingAddressLine: (initial as any).shippingAddressLine ?? "",
+    shippingProvince: (initial as any).shippingProvince ?? "",
+    shippingDistrict: (initial as any).shippingDistrict ?? "",
+    shippingSubdistrict: (initial as any).shippingSubdistrict ?? "",
+    shippingPostalCode: (initial as any).shippingPostalCode ?? "",
     status: initial.status ?? "ACTIVE",
     contactPerson: initial.contactPerson ?? "",
     contactPhone: initial.contactPhone ?? "",
@@ -292,6 +302,74 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
               clearFieldError("district");
               clearFieldError("subdistrict");
               clearFieldError("postalCode");
+            }}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <h3 className="text-lg font-semibold mb-3 mt-4 text-gray-700">ที่อยู่วางบิล</h3>
+        </div>
+
+        <div className="md:col-span-2">
+          <Label className="mx-2 mt-2 text-base">ที่อยู่วางบิล</Label>
+          <Input
+            value={(payload as any).billingAddressLine}
+            onChange={(e) => {
+              setPayload((p) => ({ ...p, billingAddressLine: e.target.value } as any));
+              clearFieldError("billingAddressLine");
+            }}
+            className="mt-1 text-base h-11"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <ThaiAddressPicker
+            value={{
+              province: (payload as any).billingProvince,
+              district: (payload as any).billingDistrict,
+              subdistrict: (payload as any).billingSubdistrict,
+              postalCode: (payload as any).billingPostalCode,
+            }}
+            onChange={(next) => {
+              setPayload((p) => ({ ...p, billingProvince: next.province, billingDistrict: next.district, billingSubdistrict: next.subdistrict, billingPostalCode: next.postalCode } as any));
+              clearFieldError("billingProvince");
+              clearFieldError("billingDistrict");
+              clearFieldError("billingSubdistrict");
+              clearFieldError("billingPostalCode");
+            }}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <h3 className="text-lg font-semibold mb-3 mt-4 text-gray-700">ที่อยู่จัดส่ง</h3>
+        </div>
+
+        <div className="md:col-span-2">
+          <Label className="mx-2 mt-2 text-base">ที่อยู่จัดส่ง</Label>
+          <Input
+            value={(payload as any).shippingAddressLine}
+            onChange={(e) => {
+              setPayload((p) => ({ ...p, shippingAddressLine: e.target.value } as any));
+              clearFieldError("shippingAddressLine");
+            }}
+            className="mt-1 text-base h-11"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <ThaiAddressPicker
+            value={{
+              province: (payload as any).shippingProvince,
+              district: (payload as any).shippingDistrict,
+              subdistrict: (payload as any).shippingSubdistrict,
+              postalCode: (payload as any).shippingPostalCode,
+            }}
+            onChange={(next) => {
+              setPayload((p) => ({ ...p, shippingProvince: next.province, shippingDistrict: next.district, shippingSubdistrict: next.subdistrict, shippingPostalCode: next.postalCode } as any));
+              clearFieldError("shippingProvince");
+              clearFieldError("shippingDistrict");
+              clearFieldError("shippingSubdistrict");
+              clearFieldError("shippingPostalCode");
             }}
           />
         </div>

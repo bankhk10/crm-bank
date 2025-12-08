@@ -27,6 +27,16 @@ type Customer = {
   district?: string | null;
   subdistrict?: string | null;
   postalCode?: string | null;
+  billingAddressLine?: string | null;
+  billingProvince?: string | null;
+  billingDistrict?: string | null;
+  billingSubdistrict?: string | null;
+  billingPostalCode?: string | null;
+  shippingAddressLine?: string | null;
+  shippingProvince?: string | null;
+  shippingDistrict?: string | null;
+  shippingSubdistrict?: string | null;
+  shippingPostalCode?: string | null;
   status?: string | null;
   contactPerson?: string | null;
   contactPhone?: string | null;
@@ -193,6 +203,52 @@ export default function CustomerDetailPage() {
                             .filter(Boolean)
                             .join(", ")}
                           {customer.postalCode ? ` ${customer.postalCode}` : ""}
+                        </div>
+                      </div>
+                    ) : "-"
+                  }
+                />
+              </div>
+
+              <Separator />
+
+              <h3 className="text-lg font-semibold">ที่อยู่วางบิล</h3>
+              <div className="grid grid-cols-1 gap-6">
+                <DetailItem
+                  label="ที่อยู่วางบิล"
+                  className="sm:col-span-2"
+                  value={
+                    customer.billingAddressLine || customer.billingSubdistrict || customer.billingDistrict || customer.billingProvince || customer.billingPostalCode ? (
+                      <div>
+                        {customer.billingAddressLine && <div>{customer.billingAddressLine}</div>}
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {[customer.billingSubdistrict, customer.billingDistrict, customer.billingProvince]
+                            .filter(Boolean)
+                            .join(", ")}
+                          {customer.billingPostalCode ? ` ${customer.billingPostalCode}` : ""}
+                        </div>
+                      </div>
+                    ) : "-"
+                  }
+                />
+              </div>
+
+              <Separator />
+
+              <h3 className="text-lg font-semibold">ที่อยู่จัดส่ง</h3>
+              <div className="grid grid-cols-1 gap-6">
+                <DetailItem
+                  label="ที่อยู่จัดส่ง"
+                  className="sm:col-span-2"
+                  value={
+                    customer.shippingAddressLine || customer.shippingSubdistrict || customer.shippingDistrict || customer.shippingProvince || customer.shippingPostalCode ? (
+                      <div>
+                        {customer.shippingAddressLine && <div>{customer.shippingAddressLine}</div>}
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {[customer.shippingSubdistrict, customer.shippingDistrict, customer.shippingProvince]
+                            .filter(Boolean)
+                            .join(", ")}
+                          {customer.shippingPostalCode ? ` ${customer.shippingPostalCode}` : ""}
                         </div>
                       </div>
                     ) : "-"
