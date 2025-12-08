@@ -113,7 +113,7 @@ function DefaultPagination({ pagination, loading }: { pagination: TablePaginatio
             value={String(pagination.perPage)}
             onValueChange={(value) => pagination.onPerPageChange(Number(value))}
           >
-            <SelectTrigger size="sm" className="ml-2">
+            <SelectTrigger size="sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start">

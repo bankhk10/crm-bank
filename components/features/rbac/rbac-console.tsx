@@ -795,7 +795,7 @@ export default function RBACConsole() {
                               togglePermission(permission.id, true, value as DataAccessLevel)
                             }
                           >
-                            <SelectTrigger className="w-44">
+                            <SelectTrigger>
                               <SelectValue placeholder="เลือกระดับข้อมูล" />
                             </SelectTrigger>
                             <SelectContent>

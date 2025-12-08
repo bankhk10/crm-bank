@@ -194,7 +194,7 @@ export default function CompanyForm({
               clearFieldError("status");
             }}
           >
-            <SelectTrigger className="w-full h-12 mt-1 text-base">
+            <SelectTrigger className="mt-1 text-base">
               <SelectValue placeholder="เลือกสถานะ" />
             </SelectTrigger>
             <SelectContent>
