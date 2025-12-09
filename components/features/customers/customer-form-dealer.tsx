@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -31,6 +32,7 @@ export default function CustomerFormDealer({
   onCancel,
   submitLabel = "บันทึก",
 }: Props) {
+  const router = useRouter();
   const [values, setValues] = useState<any>({
     id: (initial as any).id ?? "",
     customerCode: initial.customerCode ?? "",
@@ -764,7 +766,14 @@ export default function CustomerFormDealer({
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
             type="button"
-            onClick={onCancel}
+            onClick={() => {
+              try {
+                if (onCancel) onCancel();
+              } catch (e) {
+                /* ignore */
+              }
+              router.push("/customers");
+            }}
           >
             ยกเลิก
           </Button>
