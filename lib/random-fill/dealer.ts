@@ -87,6 +87,16 @@ export type DealerRandomPayload = {
   district?: string;
   subdistrict?: string;
   postalCode?: string;
+  billingAddressLine?: string;
+  billingProvince?: string;
+  billingDistrict?: string;
+  billingSubdistrict?: string;
+  billingPostalCode?: string;
+  shippingAddressLine?: string;
+  shippingProvince?: string;
+  shippingDistrict?: string;
+  shippingSubdistrict?: string;
+  shippingPostalCode?: string;
   prefix?: string;
   firstName?: string;
   lastName?: string;
@@ -132,6 +142,50 @@ export function generateRandomDealer(
     Math.random() * 200
   )} ถนนสุขสวัสดิ์ ต.${subdistrict} อ.${district}`;
 
+  // billing address (either same area or separate random pick)
+  const provObjB = provincesData.length ? rand(provincesData) : undefined;
+  const districtObjB =
+    provObjB?.districts && provObjB.districts.length
+      ? rand(provObjB.districts)
+      : undefined;
+  const subObjB =
+    districtObjB?.sub_districts && districtObjB.sub_districts.length
+      ? rand(districtObjB.sub_districts)
+      : undefined;
+  const billingProvince = provObjB?.name_th ?? province;
+  const billingDistrict =
+    districtObjB?.name_th ?? `อำเภอ${Math.floor(Math.random() * 100)}`;
+  const billingSubdistrict =
+    subObjB?.name_th ?? `ตำบล${Math.floor(Math.random() * 100)}`;
+  const billingPostalCode = subObjB?.zip_code
+    ? String(subObjB.zip_code)
+    : (10000 + Math.floor(Math.random() * 80000)).toString().slice(0, 5);
+  const billingAddressLine = `เลขที่ ${Math.ceil(
+    Math.random() * 200
+  )} หมู่ ${Math.ceil(Math.random() * 15)} ต.${billingSubdistrict} อ.${billingDistrict}`;
+
+  // shipping address (separate random pick)
+  const provObjS = provincesData.length ? rand(provincesData) : undefined;
+  const districtObjS =
+    provObjS?.districts && provObjS.districts.length
+      ? rand(provObjS.districts)
+      : undefined;
+  const subObjS =
+    districtObjS?.sub_districts && districtObjS.sub_districts.length
+      ? rand(districtObjS.sub_districts)
+      : undefined;
+  const shippingProvince = provObjS?.name_th ?? province;
+  const shippingDistrict =
+    districtObjS?.name_th ?? `อำเภอ${Math.floor(Math.random() * 100)}`;
+  const shippingSubdistrict =
+    subObjS?.name_th ?? `ตำบล${Math.floor(Math.random() * 100)}`;
+  const shippingPostalCode = subObjS?.zip_code
+    ? String(subObjS.zip_code)
+    : (10000 + Math.floor(Math.random() * 80000)).toString().slice(0, 5);
+  const shippingAddressLine = `เลขที่ ${Math.ceil(
+    Math.random() * 200
+  )} ถนนสุขุมวิท ต.${shippingSubdistrict} อ.${shippingDistrict}`;
+
   const personPrefix = rand(prefixes);
   const firstName = rand(firstNames);
   const lastName = rand(lastNames);
@@ -152,6 +206,16 @@ export function generateRandomDealer(
     district,
     subdistrict,
     postalCode,
+    billingAddressLine,
+    billingProvince,
+    billingDistrict,
+    billingSubdistrict,
+    billingPostalCode,
+    shippingAddressLine,
+    shippingProvince,
+    shippingDistrict,
+    shippingSubdistrict,
+    shippingPostalCode,
     prefix: personPrefix,
     firstName,
     lastName,
