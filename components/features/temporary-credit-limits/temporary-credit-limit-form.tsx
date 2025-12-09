@@ -1,9 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import type { TemporaryCreditLimitFormData } from "@/types/temporary-credit-limit";
 
 type SubmitResult = {
@@ -106,42 +114,52 @@ export default function TemporaryCreditLimitForm({
       )}
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+        {/* style classes match dealer form */}
+        {/** label and input classes kept consistent with customer forms */}
+        {/** md:col-span-2: customer select */}
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="ลูกค้า"
-            type="select"
-            options={[
-              ...customers.map((c) => ({
-                value: c.id,
-                label: `${c.customerCode} - ${c.name}`,
-              })),
-            ]}
+          <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">ลูกค้า</Label>
+          <Select
             value={payload.customerId}
-            onChange={(
-              e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-            ) => {
-              setPayload((p) => ({ ...p, customerId: e.target.value }));
+            onValueChange={(v) => {
+              setPayload((p) => ({ ...p, customerId: v }));
               clearFieldError("customerId");
             }}
-            required
-            error={fieldErrors.customerId?.[0]}
             disabled={readonly}
-          />
+          >
+            <SelectTrigger className="mt-1 h-11 text-base placeholder:text-gray-500">
+              <SelectValue placeholder="เลือกลูกค้า" />
+            </SelectTrigger>
+            <SelectContent>
+              {(customers || []).map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {`${c.customerCode} - ${c.name}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fieldErrors.customerId?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.customerId[0]}</p>
+          )}
         </div>
 
         <div>
-          <FloatingLabelInput
-            label="จำนวนเงินที่ขอ (บาท)"
+          <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">จำนวนเงินที่ขอ (บาท)</Label>
+          <Input
             type="number"
-            value={payload.requestedAmount.toString()}
+            value={String(payload.requestedAmount ?? 0)}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, requestedAmount: parseFloat(e.target.value) || 0 }));
               clearFieldError("requestedAmount");
             }}
             required
-            error={fieldErrors.requestedAmount?.[0]}
             disabled={readonly}
+            className="mt-1 h-11 text-base placeholder:text-gray-500"
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           />
+          {fieldErrors.requestedAmount?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.requestedAmount[0]}</p>
+          )}
         </div>
 
         <div>
@@ -161,16 +179,19 @@ export default function TemporaryCreditLimitForm({
         </div>
 
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="หมายเหตุ"
+          <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">หมายเหตุ</Label>
+          <Input
             value={payload.notes}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setPayload((p) => ({ ...p, notes: e.target.value }));
               clearFieldError("notes");
             }}
-            error={fieldErrors.notes?.[0]}
             disabled={readonly}
+            className="mt-1 h-11 text-base placeholder:text-gray-500"
           />
+          {fieldErrors.notes?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.notes[0]}</p>
+          )}
         </div>
 
         {!readonly && (
