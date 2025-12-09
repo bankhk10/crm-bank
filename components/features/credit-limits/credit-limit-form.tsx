@@ -1,7 +1,7 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import React, { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 type CreditLimitPayload = {
@@ -27,6 +27,9 @@ interface Props {
   submitLabel?: string;
 }
 
+const labelText = "mx-2 text-sm font-bold text-gray-900";
+const inputClass = "mt-1 h-11 text-base placeholder:text-gray-500";
+
 export default function CreditLimitForm({
   initial = {},
   customers = [],
@@ -37,24 +40,22 @@ export default function CreditLimitForm({
   const [payload, setPayload] = useState<CreditLimitPayload>({
     customerId: initial.customerId ?? "",
     limitAmount: initial.limitAmount ?? 0,
-    promoAmount: (initial as any).promoAmount ?? 0,
+    promoAmount: initial.promoAmount ?? 0,
     effectiveDate: initial.effectiveDate ?? new Date(),
     expiryDate: initial.expiryDate,
     notes: initial.notes ?? "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [error, setError] = useState<string | null>(null);
 
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev || !(field in prev)) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
+  const clearError = (f: string) =>
+    setFieldErrors((p) => {
+      const n = { ...p };
+      delete n[f];
+      return n;
     });
-  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,138 +64,125 @@ export default function CreditLimitForm({
     setFieldErrors({});
 
     try {
-      // Normalize payload types: ensure numeric fields are numbers and dates are serialized
-      const submitPayload: any = {
+      const body: any = {
         customerId: payload.customerId,
-        limitAmount: Number(payload.limitAmount) || 0,
+        limitAmount: Number(payload.limitAmount),
         promoAmount:
-          payload.promoAmount !== undefined && payload.promoAmount !== null
-            ? Number((payload as any).promoAmount)
+          payload.promoAmount !== undefined
+            ? Number(payload.promoAmount)
             : undefined,
         notes: payload.notes,
       };
 
-      // Include optional dates if present (serialize to ISO)
-      if (payload.effectiveDate) {
-        submitPayload.effectiveDate =
-          payload.effectiveDate instanceof Date
-            ? payload.effectiveDate.toISOString()
-            : String(payload.effectiveDate);
-      }
-      if (payload.expiryDate) {
-        submitPayload.expiryDate =
-          payload.expiryDate instanceof Date
-            ? payload.expiryDate.toISOString()
-            : String(payload.expiryDate);
-      }
+      if (payload.effectiveDate)
+        body.effectiveDate = payload.effectiveDate.toISOString();
 
-      const res = await onSubmit(submitPayload);
+      if (payload.expiryDate)
+        body.expiryDate = payload.expiryDate.toISOString();
+
+      const res = await onSubmit(body);
       if (!res.success) {
-        if (res.issues) {
-          setFieldErrors(res.issues);
-          setError(
-            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
-          );
-        } else {
-          setError(res.error ?? "เกิดข้อผิดพลาด");
-        }
+        if (res.issues) setFieldErrors(res.issues);
+        setError(res.error ?? "เกิดข้อผิดพลาด");
       }
-    } catch (error) {
-      const err = error as Error;
-      setError(err.message || String(err));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-1">
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      {/* ---------------- HEADER ---------------- */}
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-200 py-3 px-4 rounded-2xl">
+        ข้อมูลวงเงินเครดิตลูกค้า
+      </h3>
+
+      {/* ---------------- FORM GRID ---------------- */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* ลูกค้า */}
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="ลูกค้า"
-            type="select"
-            options={[
-              { value: "", label: "เลือกลูกค้า" },
-              ...customers.map((c) => ({
-                value: c.id,
-                label: `${c.customerCode} - ${c.name}`,
-              })),
-            ]}
-            value={payload.customerId}
-            onChange={(
-              e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-            ) => {
-              setPayload((p) => ({ ...p, customerId: e.target.value }));
-              clearFieldError("customerId");
-            }}
-            required
-            error={fieldErrors.customerId?.[0]}
+          <Label className={labelText}>ลูกค้า</Label>
+          <Input
+            value={
+              customers.find((c) => c.id === payload.customerId)
+                ? `${
+                    customers.find((c) => c.id === payload.customerId)!
+                      .customerCode
+                  } - ${
+                    customers.find((c) => c.id === payload.customerId)!.name
+                  }`
+                : ""
+            }
+            readOnly
             disabled
+            className={`${inputClass} w-full border rounded-xl px-3 py-3`}
           />
+          {fieldErrors.customerId && (
+            <p className="text-red-600 text-sm">{fieldErrors.customerId}</p>
+          )}
         </div>
 
+        {/* limitAmount */}
         <div>
-          <FloatingLabelInput
-            label="วงเงิน (บาท)"
+          <Label className={labelText}>วงเงิน (บาท)</Label>
+          <Input
             type="number"
-            value={payload.limitAmount.toString()}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPayload((p) => ({ ...p, limitAmount: parseFloat(e.target.value) || 0 }));
-              clearFieldError("limitAmount");
+            className={inputClass}
+            value={payload.limitAmount}
+            onChange={(e) => {
+              setPayload((p) => ({
+                ...p,
+                limitAmount: Number(e.target.value),
+              }));
+              clearError("limitAmount");
             }}
-            required
-            error={fieldErrors.limitAmount?.[0]}
           />
         </div>
 
+        {/* promoAmount */}
         <div>
-          <FloatingLabelInput
-            label="วงเงินส่งเสริมการขาย (บาท)"
+          <Label className={labelText}>วงเงินส่งเสริมการขาย (บาท)</Label>
+          <Input
             type="number"
-            value={(payload.promoAmount ?? 0).toString()}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPayload((p) => ({ ...p, promoAmount: parseFloat(e.target.value) || 0 }));
-              clearFieldError("promoAmount");
-            }}
-            error={fieldErrors.promoAmount?.[0]}
+            className={inputClass}
+            value={payload.promoAmount ?? 0}
+            onChange={(e) =>
+              setPayload((p) => ({ ...p, promoAmount: Number(e.target.value) }))
+            }
           />
         </div>
 
-        {/* Removed date fields as requested: effectiveDate and expiryDate */}
-
+        {/* Notes */}
         <div className="md:col-span-2">
-          <FloatingLabelInput
-            label="หมายเหตุ"
+          <Label className={labelText}>หมายเหตุ</Label>
+          <textarea
+            rows={3}
             value={payload.notes}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPayload((p) => ({ ...p, notes: e.target.value }));
-              clearFieldError("notes");
-            }}
-            error={fieldErrors.notes?.[0]}
+            onChange={(e) =>
+              setPayload((p) => ({ ...p, notes: e.target.value }))
+            }
+            className="w-full border rounded-xl px-3 py-2 text-base mt-1"
           />
         </div>
+      </div>
 
-        <div className="md:col-span-2 pt-6 border-t my-2">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button
-              size="lg"
-              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-              type="button"
-              onClick={onCancel}
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              size="lg"
-              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "กำลังบันทึก..." : submitLabel}
-            </Button>
-          </div>
-        </div>
+      {/* ---------------- ACTION BUTTONS ---------------- */}
+      <div className="pt-6 border-t flex flex-col sm:flex-row gap-3 justify-center">
+        <Button
+          type="button"
+          className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+          onClick={onCancel}
+        >
+          ยกเลิก
+        </Button>
+
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+        >
+          {loading ? "กำลังบันทึก..." : submitLabel}
+        </Button>
       </div>
     </form>
   );
