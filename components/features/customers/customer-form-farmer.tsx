@@ -138,6 +138,14 @@ export default function CustomerFormFarmer({
     });
   };
 
+  function removePlot(index: number) {
+    setValues((prev: any) => {
+      const nextPlots = [...(prev.farmPlots || [])];
+      nextPlots.splice(index, 1);
+      return { ...prev, farmPlots: nextPlots };
+    });
+  }
+
   function handlePlotChange(idx: number, key: keyof FarmPlot, value: string) {
     setValues((prev: any) => {
       const nextPlots = [...(prev.farmPlots || [])];
@@ -371,6 +379,26 @@ export default function CustomerFormFarmer({
           key={idx}
           className="space-y-3 border border-gray-200 rounded-2xl p-4 mt-4"
         >
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-semibold text-gray-700">แปลงที่ {idx + 1}</div>
+            <div>
+              <Button
+                type="button"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-2xl px-3 py-1"
+                onClick={() => {
+                  if (
+                    // confirm before deleting
+                    typeof window !== "undefined" &&
+                    window.confirm(`ต้องการลบแปลงที่ ${idx + 1} หรือไม่?`)
+                  ) {
+                    removePlot(idx);
+                  }
+                }}
+              >
+                ลบแปลง
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
             <div>
               <Label className={labelTextClass}>Latitude</Label>
@@ -460,7 +488,7 @@ export default function CustomerFormFarmer({
       <div className="text-center">
         <Button
           type="button"
-          className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-4 "
+          className="bg-blue-500 hover:bg-blue-700 text-white rounded-2xl px-4 "
           onClick={() =>
             setValues((p: any) => ({
               ...p,
