@@ -770,13 +770,13 @@ function CustomersCards(
                 onPerPageChange(Number(v));
               }}
             >
-              <SelectTrigger className="h-9 w-[110px] text-sm">
+              <SelectTrigger className="h-9 w-[70px] text-sm">
                 <SelectValue placeholder="ต่อหน้า" />
               </SelectTrigger>
               <SelectContent align="end">
                 {perPageOptions.map((opt) => (
                   <SelectItem key={opt} value={String(opt)}>
-                    {opt} รายการ
+                    {opt}
                   </SelectItem>
                 ))}
               </SelectContent>
