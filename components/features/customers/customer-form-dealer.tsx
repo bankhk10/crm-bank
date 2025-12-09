@@ -23,8 +23,7 @@ type Props = Omit<CustomerFormProps, "customerType">;
 type Option = { id: string; label: string };
 
 const labelTextClass = "mx-2 mt-2 text-base";
-const inputTextClass =
-  "mt-1 h-11 text-base placeholder:text-gray-500";
+const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormDealer({
   initial = {},
@@ -325,11 +324,13 @@ export default function CustomerFormDealer({
         <div>
           <Label className={labelTextClass}>เบอร์โทรศัพท์ (บริษัท)</Label>
           <Input
+            type="number"
             value={values.phone}
             onChange={(e) => {
               setValues((p: any) => ({ ...p, phone: e.target.value }));
               clearFieldError("phone");
             }}
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
             required
             className={inputTextClass}
           />
@@ -361,6 +362,7 @@ export default function CustomerFormDealer({
             onChange={(e) =>
               setValues((p: any) => ({ ...p, latitude: e.target.value }))
             }
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
             className={inputTextClass}
           />
         </div>
@@ -373,6 +375,7 @@ export default function CustomerFormDealer({
             onChange={(e) =>
               setValues((p: any) => ({ ...p, longitude: e.target.value }))
             }
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
             className={inputTextClass}
           />
         </div>
