@@ -725,7 +725,7 @@ export default function CustomerFormDealer({
             setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
             clearFieldError("notes");
           }}
-          className="w-full border rounded-xl px-3 py-2 text-base text-gray-700 placeholder:text-gray-400"
+          className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
           rows={3}
         />
       </div>
