@@ -227,8 +227,8 @@ function useCustomerColumns(
         meta: {
           headerAlign: "left",
           minWidth: 120,
-          width: 140,
-          maxWidth: 180,
+          width: 120,
+          maxWidth: 120,
           align: "left",
         },
         cell: ({ row }) => row.original.phone ?? "-",
