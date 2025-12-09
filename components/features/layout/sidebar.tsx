@@ -178,7 +178,7 @@ export default function Sidebar({
                   className={
                     "group flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left transition " +
                     (activeParent
-                      ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                      ? "bg-[#991b1b] rounded-xl font-semibold text-white"
                       : "hover:bg-[#991b1b]")
                   }
                 >
@@ -191,7 +191,7 @@ export default function Sidebar({
                   )}
                 </button>
                 {open && (
-                  <div className="mx-2 mb-1">
+                  <div className="mx-2 mb-1 bg-[#991b1b] rounded-lg">
                     {item.children.map((child) => {
                       const childActive = isActive(child.href);
                       return (
@@ -226,7 +226,7 @@ export default function Sidebar({
               className={
                 "flex items-center gap-2 rounded-lg px-4 py-3 transition " +
                 (activeParent
-                  ? "bg-[#7f1515] rounded-xl font-semibold text-white"
+                  ? "bg-[#991b1b] rounded-xl font-semibold text-white"
                   : "hover:bg-[#991b1b]")
               }
               onClick={() => onClose?.()}
