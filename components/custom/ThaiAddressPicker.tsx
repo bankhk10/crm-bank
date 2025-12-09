@@ -134,7 +134,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           <SelectTrigger className="mt-1 text-base">
             <SelectValue
               placeholder={
-                province ? "เลือกอำเภอ/เขต" : "กรุณาเลือกจังหวัดก่อน"
+                province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"
               }
             />
           </SelectTrigger>
@@ -161,7 +161,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         >
           <SelectTrigger className="mt-1 text-base">
             <SelectValue
-              placeholder={district ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"}
+              placeholder={district ? "เลือกตำบล" : "เลือกอำเภอก่อน"}
             />
           </SelectTrigger>
           <SelectContent>

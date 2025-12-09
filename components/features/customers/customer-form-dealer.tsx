@@ -273,7 +273,7 @@ export default function CustomerFormDealer({
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
       </h3>
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <div>
           <Label className={labelTextClass}>รหัสลูกค้า</Label>
           <Input
@@ -320,7 +320,9 @@ export default function CustomerFormDealer({
             className={inputTextClass}
           />
         </div>
+      </div>
 
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
           <Label className={labelTextClass}>เบอร์โทรศัพท์ (บริษัท)</Label>
           <Input
@@ -335,9 +337,6 @@ export default function CustomerFormDealer({
             className={inputTextClass}
           />
         </div>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
           <Label className={labelTextClass}>E-mail (บริษัท)</Label>
           <Input
@@ -383,7 +382,7 @@ export default function CustomerFormDealer({
 
       <div className="md:col-span-2 mt-6">
         <Label className={labelTextClass}>
-          ที่อยู่บริษัท (บ้านเลขที่, ถนน, ฯลฯ)
+          ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)
         </Label>
         <Input
           placeholder="123/45 หมู่ 6"
@@ -420,7 +419,7 @@ export default function CustomerFormDealer({
 
       <div className="md:col-span-2 mt-6">
         <Label className={labelTextClass}>
-          ที่อยู่วางบิล (บ้านเลขที่, ถนน, ฯลฯ)
+          ที่อยู่วางบิล (บ้านเลขที่ หมู่ ซอย ถนน)
         </Label>
         <Input
           placeholder="123/45 หมู่ 6"
@@ -466,7 +465,7 @@ export default function CustomerFormDealer({
 
       <div className="md:col-span-2 mt-6">
         <Label className={labelTextClass}>
-          ที่อยู่จัดส่ง (บ้านเลขที่, ถนน, ฯลฯ)
+          ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)
         </Label>
         <Input
           placeholder="123/45 หมู่ 6"

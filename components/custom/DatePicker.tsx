@@ -133,7 +133,7 @@ function DatePicker({
         {label && (
           <Label
             id={`datepicker-label-${label.replace(/\s+/g, "-")}`}
-            className="mx-2 mb-1 text-base"
+            className="mx-2 mb-1 text-sm font-bold text-gray-900"
           >
             {label}
           </Label>

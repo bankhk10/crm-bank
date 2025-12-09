@@ -15,7 +15,11 @@ import {
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form-types";
+import {
+  CustomerFormProps,
+  CustomerPayload,
+  SubmitResult,
+} from "./customer-form-types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -88,7 +92,11 @@ export default function CustomerFormSubdealer({
         const next = await fetchNextCustomerCode();
         if (mounted) {
           if (next) setValues((p: any) => ({ ...p, customerCode: next }));
-          else setValues((p: any) => ({ ...p, customerCode: `C${String(Date.now()).slice(-5)}` }));
+          else
+            setValues((p: any) => ({
+              ...p,
+              customerCode: `C${String(Date.now()).slice(-5)}`,
+            }));
         }
       }
     })();
@@ -102,12 +110,22 @@ export default function CustomerFormSubdealer({
     async function fetchOptions() {
       try {
         const [cRes, eRes] = await Promise.all([
-          fetch(`/api/customers?page=1&perPage=100&type=DEALER`).then((r) => r.json()).catch(() => ({ customers: [] })),
-          fetch(`/api/employee`).then((r) => r.json()).catch(() => ({ employees: [] })),
+          fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
+            .then((r) => r.json())
+            .catch(() => ({ customers: [] })),
+          fetch(`/api/employee`)
+            .then((r) => r.json())
+            .catch(() => ({ employees: [] })),
         ]);
 
-        const comps = (cRes.customers || []).map((c: any) => ({ id: c.id, label: c.name }));
-        const emps = (eRes.employees || []).map((e: any) => ({ id: e.id, label: e.name }));
+        const comps = (cRes.customers || []).map((c: any) => ({
+          id: c.id,
+          label: c.name,
+        }));
+        const emps = (eRes.employees || []).map((e: any) => ({
+          id: e.id,
+          label: e.name,
+        }));
         setDealerOptions(comps);
         setEmployeeOptions(emps);
       } catch (err) {
@@ -149,20 +167,32 @@ export default function CustomerFormSubdealer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""} ${values.lastName ?? ""}`.trim(),
+      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${
+        values.firstName ?? ""
+      } ${values.lastName ?? ""}`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.notes ?? "",
       ...(values.latitude ? { latitude: values.latitude } : {}),
       ...(values.longitude ? { longitude: values.longitude } : {}),
-      ...(values.receiveFromDealer ? { receiveFromDealer: values.receiveFromDealer } : {}),
-      ...(values.mainCompetitor ? { mainCompetitor: values.mainCompetitor } : {}),
+      ...(values.receiveFromDealer
+        ? { receiveFromDealer: values.receiveFromDealer }
+        : {}),
+      ...(values.mainCompetitor
+        ? { mainCompetitor: values.mainCompetitor }
+        : {}),
       ...(values.areaCrops ? { areaCrops: values.areaCrops } : {}),
-      ...(values.averageMonthlyPurchase ? { averageMonthlyPurchase: values.averageMonthlyPurchase } : {}),
-      ...(values.mainProductSold ? { mainProductSold: values.mainProductSold } : {}),
+      ...(values.averageMonthlyPurchase
+        ? { averageMonthlyPurchase: values.averageMonthlyPurchase }
+        : {}),
+      ...(values.mainProductSold
+        ? { mainProductSold: values.mainProductSold }
+        : {}),
       ...(values.brandsSold ? { brandsSold: values.brandsSold } : {}),
       ...(values.areaType ? { areaType: values.areaType } : {}),
-      ...(values.responsibleEmployeeId ? { responsibleEmployeeId: values.responsibleEmployeeId } : {}),
+      ...(values.responsibleEmployeeId
+        ? { responsibleEmployeeId: values.responsibleEmployeeId }
+        : {}),
       ...(values.relationshipScore != null && values.relationshipScore !== ""
         ? { relationshipScore: Number(values.relationshipScore) }
         : {}),
@@ -173,7 +203,9 @@ export default function CustomerFormSubdealer({
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด");
+          setError(
+            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+          );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
@@ -188,7 +220,10 @@ export default function CustomerFormSubdealer({
   function calculatedAge() {
     try {
       if (!values.birthDate) return "";
-      const age = Math.floor((Date.now() - new Date(values.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      const age = Math.floor(
+        (Date.now() - new Date(values.birthDate).getTime()) /
+          (1000 * 60 * 60 * 24 * 365.25)
+      );
       return String(age);
     } catch (err) {
       return "";
@@ -197,9 +232,11 @@ export default function CustomerFormSubdealer({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">ข้อมูลบริษัท</h3>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลบริษัท
+      </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <div>
           <Label className={labelTextClass}>รหัสลูกค้า</Label>
           <Input
@@ -212,7 +249,11 @@ export default function CustomerFormSubdealer({
             disabled
             className={inputTextClass}
           />
-          {fieldErrors.customerCode?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.customerCode[0]}</p>}
+          {fieldErrors.customerCode?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.customerCode[0]}
+            </p>
+          )}
         </div>
 
         <div className="md:col-span-2">
@@ -226,7 +267,9 @@ export default function CustomerFormSubdealer({
             required
             className={inputTextClass}
           />
-          {fieldErrors.name?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>}
+          {fieldErrors.name?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
+          )}
         </div>
 
         <div>
@@ -240,10 +283,13 @@ export default function CustomerFormSubdealer({
             className={inputTextClass}
           />
         </div>
+      </div>
 
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
           <Label className={labelTextClass}>เบอร์โทรศัพท์ (บริษัท)</Label>
           <Input
+            type="number"
             value={values.phone}
             onChange={(e) => {
               setValues((p: any) => ({ ...p, phone: e.target.value }));
@@ -253,9 +299,6 @@ export default function CustomerFormSubdealer({
             className={inputTextClass}
           />
         </div>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
           <Label className={labelTextClass}>E-mail (บริษัท)</Label>
           <Input
@@ -267,7 +310,9 @@ export default function CustomerFormSubdealer({
             }}
             className={inputTextClass}
           />
-          {fieldErrors.email?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>}
+          {fieldErrors.email?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
+          )}
         </div>
 
         <div>
@@ -275,7 +320,9 @@ export default function CustomerFormSubdealer({
           <Input
             type="number"
             value={values.latitude}
-            onChange={(e) => setValues((p: any) => ({ ...p, latitude: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, latitude: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -285,14 +332,18 @@ export default function CustomerFormSubdealer({
           <Input
             type="number"
             value={values.longitude}
-            onChange={(e) => setValues((p: any) => ({ ...p, longitude: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, longitude: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
       </div>
 
       <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)</Label>
+        <Label className={labelTextClass}>
+          ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)
+        </Label>
         <Input
           placeholder="123/45 หมู่ 6"
           value={values.addressLine}
@@ -322,7 +373,9 @@ export default function CustomerFormSubdealer({
         />
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">ข้อมูลบุคคล</h3>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลบุคคล
+      </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
@@ -346,7 +399,9 @@ export default function CustomerFormSubdealer({
               </SelectGroup>
             </SelectContent>
           </Select>
-          {fieldErrors.prefix?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>}
+          {fieldErrors.prefix?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>
+          )}
         </div>
 
         <div>
@@ -360,7 +415,11 @@ export default function CustomerFormSubdealer({
             required
             className={inputTextClass}
           />
-          {fieldErrors.firstName?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.firstName[0]}</p>}
+          {fieldErrors.firstName?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.firstName[0]}
+            </p>
+          )}
         </div>
 
         <div>
@@ -374,7 +433,11 @@ export default function CustomerFormSubdealer({
             required
             className={inputTextClass}
           />
-          {fieldErrors.lastName?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.lastName[0]}</p>}
+          {fieldErrors.lastName?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.lastName[0]}
+            </p>
+          )}
         </div>
       </div>
 
@@ -389,7 +452,11 @@ export default function CustomerFormSubdealer({
             }}
             className={inputTextClass}
           />
-          {fieldErrors.contactPhone?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.contactPhone[0]}</p>}
+          {fieldErrors.contactPhone?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.contactPhone[0]}
+            </p>
+          )}
         </div>
 
         <div>
@@ -403,7 +470,11 @@ export default function CustomerFormSubdealer({
             }}
             className={inputTextClass}
           />
-          {fieldErrors.contactEmail?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.contactEmail[0]}</p>}
+          {fieldErrors.contactEmail?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.contactEmail[0]}
+            </p>
+          )}
         </div>
 
         <div className="mt-2">
@@ -417,11 +488,18 @@ export default function CustomerFormSubdealer({
 
         <div>
           <Label className={labelTextClass}>อายุ</Label>
-          <Input value={calculatedAge()} disabled={true} onChange={() => {}} className={inputTextClass} />
+          <Input
+            value={calculatedAge()}
+            disabled={true}
+            onChange={() => {}}
+            className={inputTextClass}
+          />
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">ข้อมูลเพิ่มเติม (Sub-Dealer)</h3>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลเพิ่มเติม (Sub-Dealer)
+      </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <div>
@@ -455,7 +533,9 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>คู่แข่งหลัก</Label>
           <Input
             value={values.mainCompetitor}
-            onChange={(e) => setValues((p: any) => ({ ...p, mainCompetitor: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, mainCompetitor: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -464,7 +544,9 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>พืชในพื้นที่</Label>
           <Input
             value={values.areaCrops}
-            onChange={(e) => setValues((p: any) => ({ ...p, areaCrops: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, areaCrops: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -476,7 +558,12 @@ export default function CustomerFormSubdealer({
           <Input
             type="number"
             value={values.averageMonthlyPurchase}
-            onChange={(e) => setValues((p: any) => ({ ...p, averageMonthlyPurchase: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({
+                ...p,
+                averageMonthlyPurchase: e.target.value,
+              }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -485,7 +572,9 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>สินค้าหลักที่ขาย</Label>
           <Input
             value={values.mainProductSold}
-            onChange={(e) => setValues((p: any) => ({ ...p, mainProductSold: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, mainProductSold: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -494,7 +583,9 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>ยี่ห้อที่จำหน่าย</Label>
           <Input
             value={values.brandsSold}
-            onChange={(e) => setValues((p: any) => ({ ...p, brandsSold: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, brandsSold: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -505,7 +596,9 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>ประเภทพื้นที่</Label>
           <Input
             value={values.areaType}
-            onChange={(e) => setValues((p: any) => ({ ...p, areaType: e.target.value }))}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, areaType: e.target.value }))
+            }
             className={inputTextClass}
           />
         </div>
@@ -539,7 +632,12 @@ export default function CustomerFormSubdealer({
           <Label className={labelTextClass}>คะแนนความสัมพันธ์</Label>
           <Select
             value={String(values.relationshipScore ?? "")}
-            onValueChange={(v) => setValues((p: any) => ({ ...p, relationshipScore: v ? Number(v) : null }))}
+            onValueChange={(v) =>
+              setValues((p: any) => ({
+                ...p,
+                relationshipScore: v ? Number(v) : null,
+              }))
+            }
           >
             <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกคะแนน" />
@@ -573,10 +671,20 @@ export default function CustomerFormSubdealer({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button size="lg" className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl" type="button" onClick={onCancel}>
+          <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            type="button"
+            onClick={onCancel}
+          >
             ย้อนกลับ
           </Button>
-          <Button size="lg" className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl" type="submit" disabled={loading}>
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "กำลังบันทึก..." : submitLabel}
           </Button>
         </div>
