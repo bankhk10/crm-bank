@@ -91,6 +91,8 @@ export default function CreditLimitsPage() {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("perPage", String(perPage));
+        // Only show DEALER customers on this page
+        params.set("type", "DEALER");
         if (appliedFilters.query.trim())
           params.set("q", appliedFilters.query.trim());
         if (appliedFilters.status)
