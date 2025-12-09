@@ -208,21 +208,7 @@ function useCustomerColumns(
         },
         cell: ({ row }) => row.original.name ?? "-",
       },
-      {
-        accessorKey: "customerType",
-        header: "ประเภท",
-        meta: {
-          headerAlign: "center",
-          minWidth: 130,
-          width: 130,
-          maxWidth: 130,
-          align: "center",
-        },
-        cell: ({ row }) => {
-          const type = row.original.customerType;
-          return customerTypeMap[type] || type || "-";
-        },
-      },
+
       {
         accessorKey: "email",
         header: "อีเมล",
@@ -246,6 +232,18 @@ function useCustomerColumns(
           align: "left",
         },
         cell: ({ row }) => row.original.phone ?? "-",
+      },
+      {
+        accessorKey: "customerType",
+        header: "ประเภท",
+        meta: {
+          headerAlign: "center",
+          minWidth: 130,
+          width: 130,
+          maxWidth: 130,
+          align: "center",
+        },
+        cell: ({ row }) => row.original.customerType ?? "-",
       },
       {
         accessorKey: "status",
@@ -534,10 +532,10 @@ function CustomersToolbar(
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
-                  <SelectItem value="DEALER">ตัวแทนจำหน่าย</SelectItem>
-                  <SelectItem value="SUBDEALER">ตัวแทนจำหน่ายย่อย</SelectItem>
-                  <SelectItem value="FARMER">เกษตรกร</SelectItem>
-                  <SelectItem value="BROKER">นายหน้า</SelectItem>
+                  <SelectItem value="DEALER">DEALER</SelectItem>
+                  <SelectItem value="SUBDEALER">SUBDEALER</SelectItem>
+                  <SelectItem value="FARMER">FARMER</SelectItem>
+                  <SelectItem value="BROKER">BROKER</SelectItem>
                 </SelectContent>
               </Select>
             );
