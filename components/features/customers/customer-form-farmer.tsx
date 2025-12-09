@@ -385,15 +385,7 @@ export default function CustomerFormFarmer({
               <Button
                 type="button"
                 className="bg-red-600 hover:bg-red-700 text-white rounded-2xl px-3 py-1"
-                onClick={() => {
-                  if (
-                    // confirm before deleting
-                    typeof window !== "undefined" &&
-                    window.confirm(`ต้องการลบแปลงที่ ${idx + 1} หรือไม่?`)
-                  ) {
-                    removePlot(idx);
-                  }
-                }}
+                onClick={() => removePlot(idx)}
               >
                 ลบแปลง
               </Button>
