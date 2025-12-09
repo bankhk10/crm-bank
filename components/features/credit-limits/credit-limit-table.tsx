@@ -62,12 +62,6 @@ function useColumns() {
         meta: { minWidth: 200, width: 200, align: "left" },
       },
       {
-        accessorKey: "phone",
-        header: "โทรศัพท์",
-        cell: (info) => info.getValue() || "-",
-        meta: { minWidth: 140, width: 160, align: "left" },
-      },
-      {
         id: "creditLimit",
         header: "วงเงินเครดิตคงเหลือ",
         cell: ({ row }) => {
@@ -80,7 +74,7 @@ function useColumns() {
               }).format(cl.limitAmount)
             : "-";
         },
-        meta: { minWidth: 140, width: 150, align: "center" },
+        meta: { minWidth: 170, width: 170, align: "center" },
       },
       {
         id: "promoAmount",
@@ -98,7 +92,7 @@ function useColumns() {
               }).format(v)
             : "-";
         },
-        meta: { minWidth: 160, width: 150, align: "center" },
+        meta: { minWidth: 180, width: 180, align: "center" },
       },
       {
         id: "temporaryCreditLimits",
@@ -135,7 +129,7 @@ function useColumns() {
             </div>
           );
         },
-        meta: { minWidth: 200, width: 220, align: "center" },
+        meta: { minWidth: 170, width: 170, align: "center" },
       },
       {
         id: "actions",
@@ -149,7 +143,7 @@ function useColumns() {
           return (
             <div className="flex items-center justify-end gap-2">
               <Link href={href}>
-                <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700">
                   <span className="inline-flex items-center gap-2">
                     <Edit className="h-4 w-4" />
                     แก้ไขวงเงิน
@@ -159,7 +153,7 @@ function useColumns() {
             </div>
           );
         },
-        meta: { minWidth: 160, width: 200, align: "right" },
+        meta: { minWidth: 130, width: 130, align: "right" },
       },
     ];
   }, []);
