@@ -189,9 +189,9 @@ function useCustomerColumns(
         header: "รหัสลูกค้า",
         meta: {
           headerAlign: "left",
-          minWidth: 120,
-          width: 150,
-          maxWidth: 180,
+          minWidth: 100,
+          width: 130,
+          maxWidth: 130,
           align: "left",
         },
         cell: ({ row }) => row.original.customerCode ?? "-",
@@ -213,9 +213,9 @@ function useCustomerColumns(
         header: "ประเภท",
         meta: {
           headerAlign: "center",
-          minWidth: 140,
-          width: 160,
-          maxWidth: 200,
+          minWidth: 130,
+          width: 130,
+          maxWidth: 130,
           align: "center",
         },
         cell: ({ row }) => {
