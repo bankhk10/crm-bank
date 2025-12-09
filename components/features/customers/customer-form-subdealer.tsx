@@ -25,7 +25,7 @@ type Props = Omit<CustomerFormProps, "customerType">;
 
 type Option = { id: string; label: string };
 
-const labelTextClass = "mx-2 mt-2 text-base";
+const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormSubdealer({
@@ -445,6 +445,7 @@ export default function CustomerFormSubdealer({
         <div>
           <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล)</Label>
           <Input
+            type="number"
             value={values.contactPhone}
             onChange={(e) => {
               setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
