@@ -370,6 +370,38 @@ export default function CustomerFormFarmer({
         </div>
       </div>
 
+      <div className="md:col-span-2 mt-6">
+        <Label className={labelTextClass}>
+          ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)
+        </Label>
+        <Input
+          placeholder="123/45 หมู่ 6"
+          value={values.addressLine}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
+            clearFieldError("addressLine");
+          }}
+          className={inputTextClass}
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <ThaiAddressPicker
+          value={{
+            province: values.province,
+            district: values.district,
+            subdistrict: values.subdistrict,
+            postalCode: values.postalCode,
+          }}
+          onChange={(next) => {
+            setValues((p: any) => ({ ...p, ...next }));
+            clearFieldError("province");
+            clearFieldError("district");
+            clearFieldError("subdistrict");
+            clearFieldError("postalCode");
+          }}
+        />
+      </div>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลแปลงเกษตร
       </h3>
@@ -380,7 +412,9 @@ export default function CustomerFormFarmer({
           className="space-y-3 border border-gray-200 rounded-2xl p-4 mt-4"
         >
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-semibold text-gray-700">แปลงที่ {idx + 1}</div>
+            <div className="text-sm font-semibold text-gray-700">
+              แปลงที่ {idx + 1}
+            </div>
             <div>
               <Button
                 type="button"
@@ -504,41 +538,8 @@ export default function CustomerFormFarmer({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่
+        ข้อมูลอื่นๆ
       </h3>
-
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.addressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
-            clearFieldError("addressLine");
-          }}
-          className={inputTextClass}
-        />
-      </div>
-
-      <div className="md:col-span-2">
-        <ThaiAddressPicker
-          value={{
-            province: values.province,
-            district: values.district,
-            subdistrict: values.subdistrict,
-            postalCode: values.postalCode,
-          }}
-          onChange={(next) => {
-            setValues((p: any) => ({ ...p, ...next }));
-            clearFieldError("province");
-            clearFieldError("district");
-            clearFieldError("subdistrict");
-            clearFieldError("postalCode");
-          }}
-        />
-      </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
