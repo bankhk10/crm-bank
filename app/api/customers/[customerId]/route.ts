@@ -42,6 +42,29 @@ const customerUpdateSchema = z.object({
   responsibleEmployeeId: z.string().optional().or(z.literal("")),
   relationshipScore: z.number().int().nullable().optional(),
   birthDate: z.string().optional().or(z.literal("")),
+  // SUBDEALER specific fields
+  receiveFromDealer: z.string().optional(),
+  mainCompetitor: z.string().optional(),
+  areaCrops: z.string().optional(),
+  averageMonthlyPurchase: z.string().optional(),
+  mainProductSold: z.string().optional(),
+  brandsSold: z.string().optional(),
+  areaType: z.string().optional(),
+  // FARMER specific fields
+  farmPlots: z.any().optional(),
+  // BROKER specific fields
+  cropTypes: z.string().optional(),
+  currentYield: z.string().optional(),
+  farmerCount: z.string().optional(),
+  plotCount: z.string().optional(),
+  totalAreaRai: z.string().optional(),
+  harvestPerYear: z.string().optional(),
+  creditDays: z.string().optional(),
+  chemicalValuePerCycle: z.string().optional(),
+  chemicalQtyPerCycle: z.string().optional(),
+  regularShops: z.string().optional(),
+  serviceTypes: z.string().optional(),
+  usedBrands: z.string().optional(),
 });
 
 export async function GET(request: Request, context: any) {

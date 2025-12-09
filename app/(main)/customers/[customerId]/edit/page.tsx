@@ -46,6 +46,30 @@ export default function EditCustomerPage() {
     contactPhone: "",
     contactEmail: "",
     notes: "",
+    // SUBDEALER specific fields
+    receiveFromDealer: "",
+    mainCompetitor: "",
+    areaCrops: "",
+    averageMonthlyPurchase: "",
+    mainProductSold: "",
+    brandsSold: "",
+    areaType: "",
+    companyName: "",
+    // FARMER specific fields
+    farmPlots: [],
+    // BROKER specific fields
+    cropTypes: "",
+    currentYield: "",
+    farmerCount: "",
+    plotCount: "",
+    totalAreaRai: "",
+    harvestPerYear: "",
+    creditDays: "",
+    chemicalValuePerCycle: "",
+    chemicalQtyPerCycle: "",
+    regularShops: "",
+    serviceTypes: "",
+    usedBrands: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -101,6 +125,40 @@ export default function EditCustomerPage() {
             responsibleEmployeeId: (src as any).responsibleEmployeeId ?? null,
             relationshipScore: (src as any).relationshipScore ?? null,
             birthDate: (src as any).birthDate ?? "",
+            // SUBDEALER specific fields
+            receiveFromDealer: (src as any).receiveFromDealer ?? "",
+            mainCompetitor: (src as any).mainCompetitor ?? "",
+            areaCrops: (src as any).areaCrops ?? "",
+            averageMonthlyPurchase: (src as any).averageMonthlyPurchase ?? "",
+            mainProductSold: (src as any).mainProductSold ?? "",
+            brandsSold: (src as any).brandsSold ?? "",
+            areaType: (src as any).areaType ?? "",
+            companyName: src.name ?? "",
+            // FARMER specific fields
+            farmPlots: (src as any).farmPlots ?? [
+              {
+                latitude: "",
+                longitude: "",
+                areaRai: "",
+                cropType: "",
+                variety: "",
+                soilType: "",
+                waterSource: "",
+              },
+            ],
+            // BROKER specific fields
+            cropTypes: (src as any).cropTypes ?? "",
+            currentYield: (src as any).currentYield ?? "",
+            farmerCount: (src as any).farmerCount ?? "",
+            plotCount: (src as any).plotCount ?? "",
+            totalAreaRai: (src as any).totalAreaRai ?? "",
+            harvestPerYear: (src as any).harvestPerYear ?? "",
+            creditDays: (src as any).creditDays ?? "",
+            chemicalValuePerCycle: (src as any).chemicalValuePerCycle ?? "",
+            chemicalQtyPerCycle: (src as any).chemicalQtyPerCycle ?? "",
+            regularShops: (src as any).regularShops ?? "",
+            serviceTypes: (src as any).serviceTypes ?? "",
+            usedBrands: (src as any).usedBrands ?? "",
           }));
         }
       } catch (e: any) {

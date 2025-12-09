@@ -287,6 +287,33 @@ model Customer {
   relationshipScore     Int?
   parentDealerId        String?
   responsibleEmployeeId String?
+  
+  // SUBDEALER specific fields
+  receiveFromDealer     String?
+  mainCompetitor        String?
+  areaCrops             String?
+  averageMonthlyPurchase String?
+  mainProductSold       String?
+  brandsSold            String?
+  areaType              String?
+  
+  // FARMER specific fields - stored as JSON
+  farmPlots             Json?
+  
+  // BROKER specific fields
+  cropTypes             String?
+  currentYield          String?
+  farmerCount           String?
+  plotCount             String?
+  totalAreaRai          String?
+  harvestPerYear        String?
+  creditDays            String?
+  chemicalValuePerCycle String?
+  chemicalQtyPerCycle   String?
+  regularShops          String?
+  serviceTypes          String?
+  usedBrands            String?
+  
   createdById           String?        @map("created_by_id")
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt

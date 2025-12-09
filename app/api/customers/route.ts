@@ -44,6 +44,29 @@ const customerSchema = z.object({
   contactPhone: z.string().optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   notes: z.string().optional(),
+  // SUBDEALER specific fields
+  receiveFromDealer: z.string().optional(),
+  mainCompetitor: z.string().optional(),
+  areaCrops: z.string().optional(),
+  averageMonthlyPurchase: z.string().optional(),
+  mainProductSold: z.string().optional(),
+  brandsSold: z.string().optional(),
+  areaType: z.string().optional(),
+  // FARMER specific fields
+  farmPlots: z.any().optional(),
+  // BROKER specific fields
+  cropTypes: z.string().optional(),
+  currentYield: z.string().optional(),
+  farmerCount: z.string().optional(),
+  plotCount: z.string().optional(),
+  totalAreaRai: z.string().optional(),
+  harvestPerYear: z.string().optional(),
+  creditDays: z.string().optional(),
+  chemicalValuePerCycle: z.string().optional(),
+  chemicalQtyPerCycle: z.string().optional(),
+  regularShops: z.string().optional(),
+  serviceTypes: z.string().optional(),
+  usedBrands: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -229,6 +252,29 @@ export async function POST(request: Request) {
         contactPhone: parsed.data.contactPhone,
         contactEmail: parsed.data.contactEmail || null,
         notes: parsed.data.notes,
+        // SUBDEALER specific fields
+        receiveFromDealer: parsed.data.receiveFromDealer ?? null,
+        mainCompetitor: parsed.data.mainCompetitor ?? null,
+        areaCrops: parsed.data.areaCrops ?? null,
+        averageMonthlyPurchase: parsed.data.averageMonthlyPurchase ?? null,
+        mainProductSold: parsed.data.mainProductSold ?? null,
+        brandsSold: parsed.data.brandsSold ?? null,
+        areaType: parsed.data.areaType ?? null,
+        // FARMER specific fields
+        farmPlots: parsed.data.farmPlots ?? null,
+        // BROKER specific fields
+        cropTypes: parsed.data.cropTypes ?? null,
+        currentYield: parsed.data.currentYield ?? null,
+        farmerCount: parsed.data.farmerCount ?? null,
+        plotCount: parsed.data.plotCount ?? null,
+        totalAreaRai: parsed.data.totalAreaRai ?? null,
+        harvestPerYear: parsed.data.harvestPerYear ?? null,
+        creditDays: parsed.data.creditDays ?? null,
+        chemicalValuePerCycle: parsed.data.chemicalValuePerCycle ?? null,
+        chemicalQtyPerCycle: parsed.data.chemicalQtyPerCycle ?? null,
+        regularShops: parsed.data.regularShops ?? null,
+        serviceTypes: parsed.data.serviceTypes ?? null,
+        usedBrands: parsed.data.usedBrands ?? null,
         createdById: session.user.id,
       } as any),
     });
