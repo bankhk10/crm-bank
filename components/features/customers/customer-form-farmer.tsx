@@ -20,6 +20,7 @@ import {
   CustomerPayload,
   SubmitResult,
 } from "./customer-form-types";
+import generateRandomFarmer from "@/lib/random-fill/farmer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -585,6 +586,33 @@ export default function CustomerFormFarmer({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            type="button"
+            onClick={() => {
+              const rnd = generateRandomFarmer();
+              setValues((p: any) => ({
+                ...p,
+                prefix: rnd.prefix ?? p.prefix,
+                firstName: rnd.firstName ?? p.firstName,
+                lastName: rnd.lastName ?? p.lastName,
+                birthDate: rnd.birthDate ?? p.birthDate,
+                phone: rnd.phone ?? p.phone,
+                email: rnd.email ?? p.email,
+                addressLine: rnd.addressLine ?? p.addressLine,
+                province: rnd.province ?? p.province,
+                district: rnd.district ?? p.district,
+                subdistrict: rnd.subdistrict ?? p.subdistrict,
+                postalCode: rnd.postalCode ?? p.postalCode,
+                farmPlots: rnd.farmPlots ?? p.farmPlots,
+                notes: rnd.notes ?? p.notes,
+              }));
+              setFieldErrors({});
+            }}
+          >
+            กรอกข้อมูลสุ่ม
+          </Button>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"

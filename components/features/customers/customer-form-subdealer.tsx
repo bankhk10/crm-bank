@@ -20,6 +20,7 @@ import {
   CustomerPayload,
   SubmitResult,
 } from "./customer-form-types";
+import generateRandomSubdealer from "@/lib/random-fill/subdealer";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -672,6 +673,46 @@ export default function CustomerFormSubdealer({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            type="button"
+            onClick={() => {
+              const rnd = generateRandomSubdealer();
+              setValues((p: any) => ({
+                ...p,
+                companyName: rnd.companyName ?? p.companyName,
+                taxId: rnd.taxId ?? p.taxId,
+                phone: rnd.phone ?? p.phone,
+                email: rnd.email ?? p.email,
+                latitude: rnd.latitude ?? p.latitude,
+                longitude: rnd.longitude ?? p.longitude,
+                addressLine: rnd.addressLine ?? p.addressLine,
+                province: rnd.province ?? p.province,
+                district: rnd.district ?? p.district,
+                subdistrict: rnd.subdistrict ?? p.subdistrict,
+                postalCode: rnd.postalCode ?? p.postalCode,
+                prefix: rnd.prefix ?? p.prefix,
+                firstName: rnd.firstName ?? p.firstName,
+                lastName: rnd.lastName ?? p.lastName,
+                birthDate: rnd.birthDate ?? p.birthDate,
+                contactPhone: rnd.contactPhone ?? p.contactPhone,
+                contactEmail: rnd.contactEmail ?? p.contactEmail,
+                receiveFromDealer: rnd.receiveFromDealer ?? p.receiveFromDealer,
+                mainCompetitor: rnd.mainCompetitor ?? p.mainCompetitor,
+                areaCrops: rnd.areaCrops ?? p.areaCrops,
+                averageMonthlyPurchase: rnd.averageMonthlyPurchase ?? p.averageMonthlyPurchase,
+                mainProductSold: rnd.mainProductSold ?? p.mainProductSold,
+                brandsSold: rnd.brandsSold ?? p.brandsSold,
+                areaType: rnd.areaType ?? p.areaType,
+                relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+                notes: rnd.notes ?? p.notes,
+              }));
+              setFieldErrors({});
+            }}
+          >
+            กรอกข้อมูลสุ่ม
+          </Button>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"

@@ -758,7 +758,7 @@ export default function CustomerFormDealer({
               setFieldErrors({});
             }}
           >
-            กรอกข้อมูลสุ่ม
+            กรอกข้อมูลแบบสุ่ม
           </Button>
           <Button
             size="lg"

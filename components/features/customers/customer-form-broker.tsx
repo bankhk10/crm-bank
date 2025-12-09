@@ -20,6 +20,7 @@ import {
   CustomerPayload,
   SubmitResult,
 } from "./customer-form-types";
+import generateRandomBroker from "@/lib/random-fill/broker";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -577,6 +578,44 @@ export default function CustomerFormBroker({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            type="button"
+            onClick={() => {
+              const rnd = generateRandomBroker();
+              setValues((p: any) => ({
+                ...p,
+                prefix: rnd.prefix ?? p.prefix,
+                firstName: rnd.firstName ?? p.firstName,
+                lastName: rnd.lastName ?? p.lastName,
+                birthDate: rnd.birthDate ?? p.birthDate,
+                phone: rnd.phone ?? p.phone,
+                email: rnd.email ?? p.email,
+                addressLine: rnd.addressLine ?? p.addressLine,
+                province: rnd.province ?? p.province,
+                district: rnd.district ?? p.district,
+                subdistrict: rnd.subdistrict ?? p.subdistrict,
+                postalCode: rnd.postalCode ?? p.postalCode,
+                cropTypes: rnd.cropTypes ?? p.cropTypes,
+                currentYield: rnd.currentYield ?? p.currentYield,
+                farmerCount: rnd.farmerCount ?? p.farmerCount,
+                plotCount: rnd.plotCount ?? p.plotCount,
+                totalAreaRai: rnd.totalAreaRai ?? p.totalAreaRai,
+                harvestPerYear: rnd.harvestPerYear ?? p.harvestPerYear,
+                creditDays: rnd.creditDays ?? p.creditDays,
+                chemicalValuePerCycle: rnd.chemicalValuePerCycle ?? p.chemicalValuePerCycle,
+                chemicalQtyPerCycle: rnd.chemicalQtyPerCycle ?? p.chemicalQtyPerCycle,
+                regularShops: rnd.regularShops ?? p.regularShops,
+                serviceTypes: rnd.serviceTypes ?? p.serviceTypes,
+                usedBrands: rnd.usedBrands ?? p.usedBrands,
+                notes: rnd.notes ?? p.notes,
+              }));
+              setFieldErrors({});
+            }}
+          >
+            กรอกข้อมูลสุ่ม
+          </Button>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
