@@ -15,16 +15,25 @@ import {
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import { CustomerFormProps, CustomerPayload, SubmitResult } from "./customer-form-types";
+import {
+  CustomerFormProps,
+  CustomerPayload,
+  SubmitResult,
+} from "./customer-form-types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
 type Option = { id: string; label: string };
 
-const labelTextClass = "mx-2 mt-2 text-base";
+const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
-export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, submitLabel = "เพิ่มลูกค้า" }: Props) {
+export default function CustomerFormBroker({
+  initial = {},
+  onSubmit,
+  onCancel,
+  submitLabel = "เพิ่มลูกค้า",
+}: Props) {
   const [values, setValues] = useState<any>({
     id: (initial as any).id ?? "",
     customerCode: initial.customerCode ?? "",
@@ -78,7 +87,11 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
         const next = await fetchNextCustomerCode();
         if (mounted) {
           if (next) setValues((p: any) => ({ ...p, customerCode: next }));
-          else setValues((p: any) => ({ ...p, customerCode: `C${String(Date.now()).slice(-5)}` }));
+          else
+            setValues((p: any) => ({
+              ...p,
+              customerCode: `C${String(Date.now()).slice(-5)}`,
+            }));
         }
       }
     })();
@@ -91,8 +104,13 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
   useEffect(() => {
     async function fetchEmployees() {
       try {
-        const res = await fetch(`/api/employee`).then((r) => r.json()).catch(() => ({ employees: [] }));
-        const emps = (res.employees || []).map((e: any) => ({ id: e.id, label: e.name }));
+        const res = await fetch(`/api/employee`)
+          .then((r) => r.json())
+          .catch(() => ({ employees: [] }));
+        const emps = (res.employees || []).map((e: any) => ({
+          id: e.id,
+          label: e.name,
+        }));
         setEmployeeOptions(emps);
       } catch (err) {
         // ignore
@@ -120,7 +138,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "BROKER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""} ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${
+        values.firstName ?? ""
+      } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -132,7 +152,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""}`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${
+        values.lastName ?? ""
+      }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -148,7 +170,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
       regularShops: values.regularShops ?? "",
       serviceTypes: values.serviceTypes ?? "",
       usedBrands: values.usedBrands ?? "",
-      ...(values.responsibleEmployeeId ? { responsibleEmployeeId: values.responsibleEmployeeId } : {}),
+      ...(values.responsibleEmployeeId
+        ? { responsibleEmployeeId: values.responsibleEmployeeId }
+        : {}),
     } as any;
 
     try {
@@ -156,7 +180,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด");
+          setError(
+            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+          );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
@@ -171,7 +197,10 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
   function calculatedAge() {
     try {
       if (!values.birthDate) return "";
-      const age = Math.floor((Date.now() - new Date(values.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      const age = Math.floor(
+        (Date.now() - new Date(values.birthDate).getTime()) /
+          (1000 * 60 * 60 * 24 * 365.25)
+      );
       return String(age);
     } catch (err) {
       return "";
@@ -180,9 +209,11 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">หมวดข้อมูลบุคคล</h3>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        หมวดข้อมูลบุคคล
+      </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <div>
           <Label className={labelTextClass}>รหัสลูกค้า</Label>
           <Input
@@ -195,7 +226,11 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
             disabled
             className={inputTextClass}
           />
-          {fieldErrors.customerCode?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.customerCode[0]}</p>}
+          {fieldErrors.customerCode?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.customerCode[0]}
+            </p>
+          )}
         </div>
 
         <div>
@@ -219,7 +254,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
               </SelectGroup>
             </SelectContent>
           </Select>
-          {fieldErrors.prefix?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>}
+          {fieldErrors.prefix?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>
+          )}
         </div>
 
         <div>
@@ -233,7 +270,11 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
             required
             className={inputTextClass}
           />
-          {fieldErrors.firstName?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.firstName[0]}</p>}
+          {fieldErrors.firstName?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.firstName[0]}
+            </p>
+          )}
         </div>
 
         <div>
@@ -247,9 +288,15 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
             required
             className={inputTextClass}
           />
-          {fieldErrors.lastName?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.lastName[0]}</p>}
+          {fieldErrors.lastName?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.lastName[0]}
+            </p>
+          )}
         </div>
+      </div>
 
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
           <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล) *</Label>
           <Input
@@ -261,11 +308,10 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
             required
             className={inputTextClass}
           />
-          {fieldErrors.phone?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>}
+          {fieldErrors.phone?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
+          )}
         </div>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <div>
           <Label className={labelTextClass}>E-mail (บุคคล)</Label>
           <Input
@@ -277,7 +323,9 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
             }}
             className={inputTextClass}
           />
-          {fieldErrors.email?.[0] && <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>}
+          {fieldErrors.email?.[0] && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
+          )}
         </div>
 
         <div className="mt-2">
@@ -291,130 +339,19 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
 
         <div>
           <Label className={labelTextClass}>อายุ</Label>
-          <Input value={calculatedAge()} disabled={true} onChange={() => {}} className={inputTextClass} />
-        </div>
-      </div>
-
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">หมวดข้อมูล Broker</h3>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        <div>
-          <Label className={labelTextClass}>พืชหลัก (Crop Types)</Label>
           <Input
-            value={values.cropTypes}
-            onChange={(e) => setValues((p: any) => ({ ...p, cropTypes: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ปริมาณผลผลิตปัจจุบัน</Label>
-          <Input
-            value={values.currentYield}
-            onChange={(e) => setValues((p: any) => ({ ...p, currentYield: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>จำนวนเกษตรกรในเครือ</Label>
-          <Input
-            type="number"
-            value={values.farmerCount}
-            onChange={(e) => setValues((p: any) => ({ ...p, farmerCount: e.target.value }))}
+            value={calculatedAge()}
+            disabled={true}
+            onChange={() => {}}
             className={inputTextClass}
           />
         </div>
       </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>จำนวนแปลง</Label>
-          <Input
-            type="number"
-            value={values.plotCount}
-            onChange={(e) => setValues((p: any) => ({ ...p, plotCount: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ขนาดพื้นที่รวม (ไร่)</Label>
-          <Input
-            type="number"
-            value={values.totalAreaRai}
-            onChange={(e) => setValues((p: any) => ({ ...p, totalAreaRai: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>รอบปลูกต่อปี</Label>
-          <Input
-            type="number"
-            value={values.harvestPerYear}
-            onChange={(e) => setValues((p: any) => ({ ...p, harvestPerYear: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>เครดิตให้เกษตรกร (วัน)</Label>
-          <Input
-            type="number"
-            value={values.creditDays}
-            onChange={(e) => setValues((p: any) => ({ ...p, creditDays: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>มูลค่าสารเคมี/รอบ (บาท)</Label>
-          <Input
-            type="number"
-            value={values.chemicalValuePerCycle}
-            onChange={(e) => setValues((p: any) => ({ ...p, chemicalValuePerCycle: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ปริมาณสารเคมี/รอบ</Label>
-          <Input
-            value={values.chemicalQtyPerCycle}
-            onChange={(e) => setValues((p: any) => ({ ...p, chemicalQtyPerCycle: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>ร้านค้าประจำ</Label>
-          <Input
-            value={values.regularShops}
-            onChange={(e) => setValues((p: any) => ({ ...p, regularShops: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ประเภทบริการที่ให้</Label>
-          <Input
-            value={values.serviceTypes}
-            onChange={(e) => setValues((p: any) => ({ ...p, serviceTypes: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ยี่ห้อที่ใช้</Label>
-          <Input
-            value={values.usedBrands}
-            onChange={(e) => setValues((p: any) => ({ ...p, usedBrands: e.target.value }))}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">ที่อยู่</h3>
 
       <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)</Label>
+        <Label className={labelTextClass}>
+          ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)
+        </Label>
         <Input
           placeholder="123/45 หมู่ 6"
           value={values.addressLine}
@@ -443,6 +380,158 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
           }}
         />
       </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        หมวดข้อมูล Broker
+      </h3>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+        <div>
+          <Label className={labelTextClass}>พืชหลัก (Crop Types)</Label>
+          <Input
+            value={values.cropTypes}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, cropTypes: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>ปริมาณผลผลิตปัจจุบัน</Label>
+          <Input
+            value={values.currentYield}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, currentYield: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>จำนวนเกษตรกรในเครือ</Label>
+          <Input
+            type="number"
+            value={values.farmerCount}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, farmerCount: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+        <div>
+          <Label className={labelTextClass}>จำนวนแปลง</Label>
+          <Input
+            type="number"
+            value={values.plotCount}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, plotCount: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>ขนาดพื้นที่รวม (ไร่)</Label>
+          <Input
+            type="number"
+            value={values.totalAreaRai}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, totalAreaRai: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>รอบปลูกต่อปี</Label>
+          <Input
+            type="number"
+            value={values.harvestPerYear}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, harvestPerYear: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+        <div>
+          <Label className={labelTextClass}>เครดิตให้เกษตรกร (วัน)</Label>
+          <Input
+            type="number"
+            value={values.creditDays}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, creditDays: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>มูลค่าสารเคมี/รอบ (บาท)</Label>
+          <Input
+            type="number"
+            value={values.chemicalValuePerCycle}
+            onChange={(e) =>
+              setValues((p: any) => ({
+                ...p,
+                chemicalValuePerCycle: e.target.value,
+              }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>ปริมาณสารเคมี/รอบ</Label>
+          <Input
+            value={values.chemicalQtyPerCycle}
+            onChange={(e) =>
+              setValues((p: any) => ({
+                ...p,
+                chemicalQtyPerCycle: e.target.value,
+              }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+        <div>
+          <Label className={labelTextClass}>ร้านค้าประจำ</Label>
+          <Input
+            value={values.regularShops}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, regularShops: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>ประเภทบริการที่ให้</Label>
+          <Input
+            value={values.serviceTypes}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, serviceTypes: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+        <div>
+          <Label className={labelTextClass}>ยี่ห้อที่ใช้</Label>
+          <Input
+            value={values.usedBrands}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, usedBrands: e.target.value }))
+            }
+            className={inputTextClass}
+          />
+        </div>
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลอื่นๆ
+      </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <div>
@@ -488,10 +577,20 @@ export default function CustomerFormBroker({ initial = {}, onSubmit, onCancel, s
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button size="lg" className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl" type="button" onClick={onCancel}>
+          <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            type="button"
+            onClick={onCancel}
+          >
             ย้อนกลับ
           </Button>
-          <Button size="lg" className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl" type="submit" disabled={loading}>
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "กำลังบันทึก..." : submitLabel}
           </Button>
         </div>
