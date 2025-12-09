@@ -834,7 +834,7 @@ export function CustomersTable(props: CustomersTableProps) {
   return (
     <div className="space-y-6">
       {/* Mobile & Tablet: card layout */}
-      <div className="lg:hidden space-y-4">
+      <div className="xl:hidden space-y-4">
         <CustomersToolbar
           canCreate={canCreate}
           searchValue={searchValue}
@@ -858,7 +858,7 @@ export function CustomersTable(props: CustomersTableProps) {
       </div>
 
       {/* Desktop & up: original table */}
-      <div className="hidden lg:block">
+      <div className="hidden xl:block">
         <CustomTable
           columns={columns}
           data={data}
