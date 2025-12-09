@@ -174,7 +174,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         </Select>
       </div>
 
-      <div className="w-full sm:w-100"> 
+      <div className="w-full"> 
         <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
           รหัสไปรษณีย์
         </Label>
