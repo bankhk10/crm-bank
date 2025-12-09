@@ -1,18 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { usePermission } from "@/hooks/use-permission";
-import type { Employee } from "@/types/Employee.ts";
-import generateRandomEmployee from "@/lib/random-fill/employee";
-
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
-import DatePicker from "@/components/custom/DatePicker";
-import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import { prefixOptions, responsibilityAreaOptions, statusOptions } from "./employee-options";
-import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
+import DatePicker from "@/components/custom/DatePicker";
+import { Eye, EyeOff } from "lucide-react";
+import { usePermission } from "@/hooks/use-permission";
+import generateRandomEmployee from "@/lib/random-fill/employee";
+import type { Employee } from "@/types/Employee.ts";
+import {
+  prefixOptions,
+  responsibilityAreaOptions,
+  statusOptions,
+} from "./employee-options";
 
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
@@ -26,6 +39,10 @@ type EmployeeFormValues = Partial<Employee> & {
   company?: string;
   responsibilityArea?: string;
   addressLine?: string;
+  province?: string;
+  district?: string;
+  subdistrict?: string;
+  postalCode?: string;
   status?: string;
   roleDefinitionId?: string;
   role?: string;
@@ -44,381 +61,10 @@ interface EmployeeFormProps {
   registerRandomize?: (fn: () => void) => void;
 }
 
-interface EmployeePersonalInfoSectionProps {
-  formState: EmployeeFormValues;
-  handleChange: (
-    field: keyof EmployeeFormValues
-  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  handlePhoneChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  address: {
-    province?: string;
-    district?: string;
-    subdistrict?: string;
-    postalCode?: string;
-  };
-  setAddress: React.Dispatch<
-    React.SetStateAction<{
-      province?: string;
-      district?: string;
-      subdistrict?: string;
-      postalCode?: string;
-    }>
-  >;
-  canEdit: boolean;
-  calculatedAge: () => string;
-  positionOptions: Array<{ value: string; label: string }>;
-  departmentOptions: Array<{ value: string; label: string }>;
-  companyOptions: Array<{ value: string; label: string }>;
-  showValidation?: boolean;
-}
+type Option = { value: string; label: string };
 
-function EmployeePersonalInfoSection({
-  formState,
-  handleChange,
-  handlePhoneChange,
-  address,
-  setAddress,
-  canEdit,
-  calculatedAge,
-  positionOptions,
-  departmentOptions,
-  companyOptions,
-  showValidation,
-}: EmployeePersonalInfoSectionProps) {
-  const phoneDigits = formState.phone ? String(formState.phone).replace(/\D/g, "") : "";
-  return (
-    <>
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ข้อมูลพนักงาน
-      </h3>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-6">
-        {/* แถว คำนำหน้า / ชื่อ / นามสกุล */}
-        <div className="sm:col-span-2">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
-            <div className="sm:col-span-1">
-              <FloatingLabelInput
-                label="คำนำหน้า"
-                type="select"
-                options={prefixOptions}
-                value={formState.prefix ?? ""}
-                disabled={!canEdit}
-                onChange={handleChange("prefix")}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <FloatingLabelInput
-                label="ชื่อ"
-                placeholder="เช่น สมชาย"
-                value={formState.firstName ?? ""}
-                disabled={!canEdit}
-                onChange={handleChange("firstName")}
-                error={!formState.firstName && canEdit && showValidation ? "กรุณากรอกชื่อ" : undefined}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <FloatingLabelInput
-                label="นามสกุล"
-                placeholder="เช่น ใจดี"
-                value={formState.lastName ?? ""}
-                disabled={!canEdit}
-                onChange={handleChange("lastName")}
-                error={!formState.lastName && canEdit && showValidation ? "กรุณากรอกนามสกุล" : undefined}
-              />
-            </div>
-          </div>
-        </div>
-        {/* รหัสพนักงาน */}
-        <div>
-          <FloatingLabelInput
-            label="รหัสพนักงาน"
-            placeholder="เช่น EMP-0001"
-            value={formState.employeeCode ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("employeeCode")}
-          />
-        </div>
-
-        {/* เบอร์โทรศัพท์ */}
-        <div>
-          <FloatingLabelInput
-            label="เบอร์โทรศัพท์"
-            placeholder="0xx-xxx-xxxx"
-            value={formState.phone ?? ""}
-            disabled={!canEdit}
-            onChange={handlePhoneChange}
-            maxLength={10}
-            error={
-              formState.phone && showValidation && (phoneDigits.length < 9 || phoneDigits.length > 10)
-                ? "กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)"
-                : undefined
-            }
-          />
-        </div>
-
-        {/* วันเกิด */}
-        <div>
-          <DatePicker
-            label="วันเกิด"
-            value={formState.birthDate}
-            onChange={(v) =>
-              handleChange("birthDate")({
-                target: { value: v },
-              } as React.ChangeEvent<HTMLInputElement>)
-            }
-            disabled={!canEdit}
-            placeholder=""
-          />
-        </div>
-
-        {/* อายุ (คำนวณ) */}
-        <div>
-          <FloatingLabelInput
-            label="อายุ"
-            value={calculatedAge()}
-            disabled={true}
-            onChange={() => {}}
-          />
-        </div>
-
-        {/* ตำแหน่งงาน */}
-        <div>
-          <FloatingLabelInput
-            label="ตำแหน่งงาน"
-            type="select"
-            options={positionOptions}
-            value={formState.position ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("position")}
-          />
-        </div>
-
-        {/* แผนก */}
-        <div>
-          <FloatingLabelInput
-            label="แผนก"
-            type="select"
-            options={departmentOptions}
-            value={formState.department ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("department")}
-          />
-        </div>
-
-        {/* สังกัดบริษัท */}
-        <div>
-          <FloatingLabelInput
-            label="สังกัดบริษัท"
-            type="select"
-            options={companyOptions}
-            value={formState.company ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("company")}
-          />
-        </div>
-
-        {/* เขตที่รับผิดชอบ */}
-        <div>
-          <FloatingLabelInput
-            label="เขตที่รับผิดชอบ"
-            type="select"
-            options={responsibilityAreaOptions}
-            value={formState.responsibilityArea ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("responsibilityArea")}
-          />
-        </div>
-
-        {/* ที่อยู่ (บรรทัดแรก) */}
-        <div className="sm:col-span-2">
-          <FloatingLabelInput
-            label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
-            placeholder="123/45 หมู่ 6 ต. ... อ. ..."
-            value={formState.addressLine ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("addressLine")}
-          />
-        </div>
-
-        {/* ที่อยู่ (Picker) */}
-        <div className="sm:col-span-2">
-          <ThaiAddressPicker
-            value={address}
-            onChange={(next) => setAddress(next)}
-          />
-        </div>
-      </div>
-    </>
-  );
-}
-
-interface EmployeeLoginInfoSectionProps {
-  formState: EmployeeFormValues;
-  handleChange: (
-    field: keyof EmployeeFormValues
-  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-  password: string;
-  setPassword: React.Dispatch<React.SetStateAction<string>>;
-  roles: Array<any>;
-  canEdit: boolean;
-  showValidation?: boolean;
-  employeeId?: string; // Add this to know if we're editing
-}
-
-function EmployeeLoginInfoSection({
-  formState,
-  handleChange,
-  password,
-  setPassword,
-  roles,
-  canEdit,
-  showValidation,
-  employeeId,
-}: EmployeeLoginInfoSectionProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  return (
-    <>
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ข้อมูลการเข้าสู่ระบบ
-      </h3>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-6">
-        {/* อีเมล */}
-        <div>
-          <FloatingLabelInput
-            label="อีเมลสำหรับเข้าสู่ระบบ"
-            type="email"
-            placeholder="jane@example.com"
-            value={formState.email ?? ""}
-            disabled={!canEdit}
-            onChange={handleChange("email")}
-            error={
-              !formState.email && canEdit && showValidation
-                ? "กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ"
-                : undefined
-            }
-          />
-        </div>
-
-        {/* รหัสผ่าน */}
-        <div>
-          <FloatingLabelInput
-            label={employeeId ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)" : "รหัสผ่าน"}
-            type={showPassword ? "text" : "password"}
-            placeholder={employeeId ? "เว้นว่างหากไม่ต้องการเปลี่ยน" : "รหัสผ่านสำหรับเข้าสู่ระบบ"}
-            value={password}
-            disabled={!canEdit}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-              setPassword(event.target.value)
-            }
-            suffix={
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="inline-flex items-center justify-center rounded p-1 text-gray-600 hover:text-gray-900"
-                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            }
-            minLength={8}
-            error={
-              password &&
-              String(password).length > 0 &&
-              String(password).length < 8
-                ? "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"
-                : !employeeId && !password && canEdit && showValidation
-                ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
-                : undefined
-            }
-          />
-        </div>
-
-        {/* สิทธิ์การใช้งาน (Role Definition) */}
-        <div>
-          <FloatingLabelInput
-            label="สิทธิ์การใช้งาน *"
-            type="select"
-            options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
-            value={formState.roleDefinitionId ?? ""}
-            disabled={!canEdit || roles.length === 0}
-            onChange={handleChange("roleDefinitionId")}
-            error={
-              !formState.roleDefinitionId && canEdit && showValidation
-                ? "กรุณาเลือกสิทธิ์การใช้งาน"
-                : undefined
-            }
-          />
-        </div>
-
-        {/* สถานะการทำงาน */}
-        <div>
-          <FloatingLabelInput
-            label="สถานะการทำงาน"
-            type="select"
-            options={statusOptions}
-            value={formState.status ?? "ACTIVE"}
-            disabled={!canEdit}
-            onChange={handleChange("status")}
-          />
-        </div>
-      </div>
-    </>
-  );
-}
-
-interface EmployeeFormButtonsProps {
-  canEdit: boolean;
-  loading: boolean;
-  employeeId?: string;
-  permissionHint: string;
-  onCancel: () => void;
-  hideBorder?: boolean;
-}
-
-function EmployeeFormButtons({
-  canEdit,
-  loading,
-  employeeId,
-  permissionHint,
-  onCancel,
-  hideBorder,
-}: EmployeeFormButtonsProps) {
-  return (
-    <div className={`md:col-span-2 mt-8 ${hideBorder ? "my-2" : "border-t my-2"}`}>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <Button
-          size="lg"
-          className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-          type="button"
-          onClick={onCancel}
-          disabled={!canEdit}
-          title={!canEdit ? permissionHint : undefined}
-        >
-          ยกเลิก
-        </Button>
-
-        <Button
-          size="lg"
-          className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-          type="submit"
-          disabled={!canEdit || loading}
-          title={!canEdit ? permissionHint : undefined}
-        >
-          {loading
-            ? "กำลังบันทึก..."
-            : employeeId
-            ? "บันทึก"
-            : "บันทึก"}
-        </Button>
-      </div>
-    </div>
-  );
-}
+const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
+const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function EmployeeForm({
   employeeId,
@@ -428,33 +74,33 @@ export default function EmployeeForm({
   onCancel,
   registerRandomize,
 }: EmployeeFormProps) {
-  const [formState, setFormState] = useState<EmployeeFormValues>({});
+  const [values, setValues] = useState<EmployeeFormValues>({
+    status: "ACTIVE",
+  });
   const [password, setPassword] = useState<string>("");
-  const [roles, setRoles] = useState<Array<any>>([]); // นี่คือ Role Definitions จาก API
-  const [companyOptions, setCompanyOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [departmentOptions, setDepartmentOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [positionOptions, setPositionOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [address, setAddress] = useState<{
-    province?: string;
-    district?: string;
-    subdistrict?: string;
-    postalCode?: string;
-  }>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [roles, setRoles] = useState<Array<any>>([]);
+  const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<Option[]>([]);
+  const [positionOptions, setPositionOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [showValidation, setShowValidation] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const { allowed, isLoading } = usePermission("employee.manage");
   const canEdit = !isLoading && allowed;
   const permissionHint =
     "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อจัดการข้อมูลพนักงาน";
   const router = useRouter();
+
+  const clearFieldError = useCallback((field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev || !(field in prev)) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -477,63 +123,46 @@ export default function EmployeeForm({
     };
   }, []);
 
-  // initialize from `initial` prop when provided
-  useEffect(() => {
-    if (!initial) return;
-    setFormState((prev) => ({ ...prev, ...initial }));
-  }, [initial]);
-
-  // initialize address state when provided in `initial`
+  // initialize values from `initial`
   useEffect(() => {
     if (!initial) return;
     const addr = (initial as any).address;
-    if (
-      addr &&
-      (addr.province ||
-        addr.district ||
-        addr.subdistrict ||
-        addr.postalCode !== undefined)
-    ) {
-      setAddress({
-        province: addr.province ?? undefined,
-        district: addr.district ?? undefined,
-        subdistrict: addr.subdistrict ?? undefined,
-        postalCode:
-          addr.postalCode !== undefined ? String(addr.postalCode) : undefined,
-      });
-      return;
-    }
-
-    // fallback: maybe the API returned flat fields
-    const fallback = {
-      province: (initial as any).province ?? undefined,
-      district: (initial as any).district ?? undefined,
-      subdistrict: (initial as any).subdistrict ?? undefined,
+    setValues((prev) => ({
+      ...prev,
+      ...initial,
+      province:
+        addr?.province ??
+        (initial as any).province ??
+        (initial as any).provinceName ??
+        prev.province,
+      district:
+        addr?.district ??
+        (initial as any).district ??
+        (initial as any).districtName ??
+        prev.district,
+      subdistrict:
+        addr?.subdistrict ??
+        (initial as any).subdistrict ??
+        (initial as any).subDistrictName ??
+        prev.subdistrict,
       postalCode:
-        (initial as any).postalCode !== undefined
+        addr?.postalCode != null
+          ? String(addr.postalCode)
+          : (initial as any).postalCode != null
           ? String((initial as any).postalCode)
-          : (initial as any).zipCode !== undefined
+          : (initial as any).zipCode != null
           ? String((initial as any).zipCode)
-          : undefined,
-    };
-
-    if (
-      fallback.province ||
-      fallback.district ||
-      fallback.subdistrict ||
-      fallback.postalCode
-    ) {
-      setAddress(fallback);
-    }
+          : prev.postalCode,
+      status: (initial as any).status ?? prev.status ?? "ACTIVE",
+    }));
   }, [initial]);
 
-  // load companies / departments / positions for selects (ids)
+  // load companies / departments / positions for selects
   useEffect(() => {
     let mounted = true;
 
     async function loadReferences() {
       try {
-        // companies endpoint returns { companies, total, page, perPage }
         const cRes = await fetch(`/api/companies?perPage=100`);
         if (cRes.ok) {
           const d = await cRes.json();
@@ -583,59 +212,79 @@ export default function EmployeeForm({
     };
   }, []);
 
-  const handleChange =
-    (field: keyof EmployeeFormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setFormState((prev) => ({ ...prev, [field]: event.target.value }));
-    };
+  const handleChange = useCallback(
+    (key: keyof EmployeeFormValues) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const v = (e.target as HTMLInputElement).value;
+        setValues((prev) => ({ ...prev, [key]: v }));
+        clearFieldError(String(key));
+      },
+    [clearFieldError]
+  );
 
-  const handlePhoneChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = event.target.value.replace(/\D/g, "");
-    if (numericValue.length <= 10) {
-      setFormState((prev) => ({ ...prev, phone: numericValue }));
+  const handleSelect = useCallback(
+    (key: keyof EmployeeFormValues) =>
+      (v: string) => {
+        setValues((prev) => ({ ...prev, [key]: v }));
+        clearFieldError(String(key));
+      },
+    [clearFieldError]
+  );
+
+  const handlePhoneChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const numericValue = event.target.value.replace(/\D/g, "");
+      if (numericValue.length <= 10) {
+        setValues((prev) => ({ ...prev, phone: numericValue }));
+      }
+      clearFieldError("phone");
+    },
+    [clearFieldError]
+  );
+
+  const calculatedAge = useMemo(() => {
+    if (typeof values.age === "number" && values.age >= 0) {
+      return String(values.age);
     }
-  };
+    if (values.birthDate) {
+      try {
+        return String(
+          Math.floor(
+            (Date.now() - new Date(values.birthDate).getTime()) /
+              (1000 * 60 * 60 * 24 * 365.25)
+          )
+        );
+      } catch (e) {
+        return "";
+      }
+    }
+    return "";
+  }, [values.age, values.birthDate]);
 
   const handleRandomFill = useCallback(() => {
     if (!canEdit) return;
     const p = generateRandomEmployee();
-    setFormState((prev) => ({
+    setValues((prev) => ({
       ...prev,
-      prefix: p.prefix,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      email: p.email,
-      phone: p.phone,
-      birthDate: p.birthDate,
-      employeeCode: p.employeeCode,
+      prefix: p.prefix ?? prev.prefix,
+      firstName: p.firstName ?? prev.firstName,
+      lastName: p.lastName ?? prev.lastName,
+      email: p.email ?? prev.email,
+      phone: p.phone ?? prev.phone,
+      birthDate: p.birthDate ?? prev.birthDate,
+      employeeCode: p.employeeCode ?? prev.employeeCode,
+      province: p.province ?? prev.province,
+      district: p.district ?? prev.district,
+      subdistrict: p.subdistrict ?? prev.subdistrict,
+      postalCode: p.postalCode ?? prev.postalCode,
     }));
     setPassword(p.password ?? "");
-    setAddress({
-      province: p.province,
-      district: p.district,
-      subdistrict: p.subdistrict,
-      postalCode: p.postalCode,
-    });
+    clearFieldError("firstName");
+    clearFieldError("lastName");
+    clearFieldError("email");
+    clearFieldError("phone");
+  }, [canEdit, clearFieldError]);
 
-    // if there are select options, pick random ones
-    if (positionOptions && positionOptions.length) {
-      const pos =
-        positionOptions[Math.floor(Math.random() * positionOptions.length)];
-      setFormState((prev) => ({ ...prev, position: pos.value }));
-    }
-    if (departmentOptions && departmentOptions.length) {
-      const dep =
-        departmentOptions[Math.floor(Math.random() * departmentOptions.length)];
-      setFormState((prev) => ({ ...prev, department: dep.value }));
-    }
-    if (companyOptions && companyOptions.length) {
-      const c =
-        companyOptions[Math.floor(Math.random() * companyOptions.length)];
-      setFormState((prev) => ({ ...prev, company: c.value }));
-    }
-  }, [canEdit, companyOptions, departmentOptions, positionOptions]);
-
-  // If parent provided a register function, give them the randomizer
   useEffect(() => {
     if (!registerRandomize) return;
     registerRandomize(handleRandomFill);
@@ -648,139 +297,105 @@ export default function EmployeeForm({
     };
   }, [registerRandomize, handleRandomFill]);
 
-  // ฟังก์ชันคำนวณอายุ (จาก code1)
-  const calculatedAge = () => {
-    if (typeof formState.age === "number" && formState.age >= 0) {
-      return String(formState.age);
-    }
-    if (formState.birthDate) {
-      try {
-        return String(
-          Math.floor(
-            (Date.now() - new Date(formState.birthDate).getTime()) /
-              (1000 * 60 * 60 * 24 * 365.25)
-          )
-        );
-      } catch (e) {
-        return "";
-      }
-    }
-    return "";
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canEdit) return;
-    setShowValidation(true);
+    setLoading(true);
     setError(null);
     setSuccess(null);
-    setLoading(true);
+    setFieldErrors({});
+
+    const nextFieldErrors: Record<string, string[]> = {};
+    const pushErr = (field: string, msg: string) => {
+      nextFieldErrors[field] = [msg];
+    };
+
+    if (!values.firstName) pushErr("firstName", "กรุณากรอกชื่อ");
+    if (!values.lastName) pushErr("lastName", "กรุณากรอกนามสกุล");
+    if (!values.email) pushErr("email", "กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ");
+    const emailVal = String(values.email ?? "").trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailVal && !emailRegex.test(emailVal)) {
+      pushErr("email", "รูปแบบอีเมลไม่ถูกต้อง");
+    }
+
+    if (password && password.length < 8 && password.length > 0) {
+      pushErr("password", "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+    }
+    if (!employeeId && !password) {
+      pushErr("password", "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ");
+    }
+
+    if (values.phone) {
+      const phoneDigits = String(values.phone).replace(/\D/g, "");
+      if (phoneDigits.length < 9 || phoneDigits.length > 10) {
+        pushErr("phone", "กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)");
+      }
+    }
+
+    if (!values.roleDefinitionId) {
+      pushErr("roleDefinitionId", "กรุณาเลือกสิทธิ์การใช้งาน");
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError(Object.values(nextFieldErrors)[0][0]);
+      setLoading(false);
+      return;
+    }
+
+    const roleDefId = values.roleDefinitionId ?? undefined;
+    const roleDefObj = roles.find((r) => r.id === roleDefId);
+
+    const address = {
+      province: values.province,
+      district: values.district,
+      subdistrict: values.subdistrict,
+      postalCode: values.postalCode,
+    };
+    const hasAddress = Boolean(
+      address.province || address.district || address.subdistrict || address.postalCode
+    );
+
+    const payload: any = {
+      employee: {
+        prefix: values.prefix,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        employeeCode: values.employeeCode,
+        phone: values.phone,
+        birthDate: values.birthDate,
+        positionId: values.position,
+        departmentId: values.department,
+        companyId: values.company,
+        responsibilityArea: values.responsibilityArea,
+        addressLine: values.addressLine,
+        status: values.status ?? "ACTIVE",
+        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${
+          values.lastName ?? ""
+        }`.trim(),
+        email: emailVal || undefined,
+        roleTitle: (values.roleDefinitionId && roleDefObj?.name) || undefined,
+        ...(hasAddress ? { address } : {}),
+      },
+    };
+
+    if (employeeId) {
+      payload.user = {
+        email: emailVal,
+        roleId: roleDefId,
+        ...(password ? { password: String(password) } : {}),
+      };
+    } else if (password) {
+      payload.user = {
+        email: emailVal,
+        password: String(password),
+        roleId: roleDefId,
+      };
+    }
 
     try {
-      if (!formState.firstName) {
-        setError("กรุณากรอกชื่อ");
-        setLoading(false);
-        return;
-      }
-      if (!formState.lastName) {
-        setError("กรุณากรอกนามสกุล");
-        setLoading(false);
-        return;
-      }
-      if (!formState.email) {
-        setError("กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ");
-        setLoading(false);
-        return;
-      }
-      const emailVal = String(formState.email ?? "").trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (emailVal && !emailRegex.test(emailVal)) {
-        setError("รูปแบบอีเมลไม่ถูกต้อง");
-        setLoading(false);
-        return;
-      }
-      if (
-        password &&
-        String(password).length > 0 &&
-        String(password).length < 8
-      ) {
-        setError("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
-        setLoading(false);
-        return;
-      }
-      if (!employeeId && !password) {
-        setError("กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ");
-        setLoading(false);
-        return;
-      }
-      if (formState.phone) {
-        const phoneDigits = String(formState.phone).replace(/\D/g, "");
-        if (phoneDigits.length < 9 || phoneDigits.length > 10) {
-          setError("กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)");
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (!formState.roleDefinitionId) {
-        setError("กรุณาเลือกสิทธิ์การใช้งาน");
-        setLoading(false);
-        return;
-      }
-      const roleDefId = formState.roleDefinitionId ?? undefined;
-      const roleDefObj = roles.find((r) => r.id === roleDefId);
-
-      const payload: any = {
-        employee: {
-          // รวมฟิลด์ทั้งหมดจาก formState
-          prefix: formState.prefix,
-          firstName: formState.firstName,
-          lastName: formState.lastName,
-          employeeCode: formState.employeeCode,
-          phone: formState.phone,
-          birthDate: formState.birthDate,
-          positionId: formState.position,
-          departmentId: formState.department,
-          companyId: formState.company,
-          responsibilityArea: formState.responsibilityArea,
-          addressLine: formState.addressLine, // ที่อยู่บรรทัดแรก
-          status: formState.status,
-
-          // ข้อมูลจาก code2 เดิม
-          name: `${formState.prefix ?? ""} ${formState.firstName ?? ""} ${
-            formState.lastName ?? ""
-          }`.trim(), // สร้างชื่อเต็ม
-          email: String(formState.email ?? "").trim() || undefined,
-
-          // ข้อมูล Role/Address
-          roleTitle:
-            (formState.roleDefinitionId && roleDefObj?.name) || undefined, // ชื่่อสิทธิ์
-          address:
-            address &&
-            (address.province ||
-              address.district ||
-              address.subdistrict ||
-              address.postalCode)
-              ? address
-              : undefined,
-        },
-      };
-      if (employeeId) {
-        payload.user = {
-          email: String(formState.email ?? "").trim(),
-          roleId: roleDefId,
-          ...(password ? { password: String(password) } : {}),
-        };
-      } else if (password) {
-        payload.user = {
-          email: String(formState.email ?? "").trim(),
-          password: String(password),
-          roleId: roleDefId,
-        };
-      }
-
       let res: Response | null = null;
-
       if (onSubmit) {
         const result = await onSubmit(payload);
         if (!result.success) {
@@ -789,6 +404,7 @@ export default function EmployeeForm({
               Object.values(result.issues ?? {})[0]?.[0] ??
               "Server error"
           );
+          setFieldErrors(result.issues ?? {});
         } else {
           setSuccess("บันทึกเรียบร้อยแล้ว");
         }
@@ -806,7 +422,6 @@ export default function EmployeeForm({
           setSuccess("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว");
         }
       } else {
-        // create new employee + user
         res = await fetch("/api/rbac/employees/create-with-user", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -818,9 +433,8 @@ export default function EmployeeForm({
           setError(body?.error || "Server error");
         } else {
           setSuccess("สร้างพนักงานเรียบร้อยแล้ว");
-          setFormState({});
+          setValues({ status: "ACTIVE" });
           setPassword("");
-          setAddress({});
         }
       }
     } catch (err) {
@@ -828,11 +442,11 @@ export default function EmployeeForm({
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="bg-white sm:rounded-lg">
-      <form onSubmit={handleSubmit} className="space-y-1">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {(!canEdit || error || success) && (
           <div>
             {!canEdit && (
@@ -857,39 +471,368 @@ export default function EmployeeForm({
           </div>
         )}
 
-        <EmployeePersonalInfoSection
-          formState={formState}
-          handleChange={handleChange}
-          handlePhoneChange={handlePhoneChange}
-          address={address}
-          setAddress={setAddress}
-          canEdit={canEdit}
-          calculatedAge={calculatedAge}
-          positionOptions={positionOptions}
-          departmentOptions={departmentOptions}
-          companyOptions={companyOptions}
-          showValidation={showValidation}
-        />
+        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+          ข้อมูลพนักงาน
+        </h3>
 
-        <EmployeeLoginInfoSection
-          formState={formState}
-          handleChange={handleChange}
-          password={password}
-          setPassword={setPassword}
-          roles={roles}
-          canEdit={canEdit}
-          showValidation={showValidation}
-          employeeId={employeeId}
-        />
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+          <div>
+            <Label className={labelTextClass}>คำนำหน้า</Label>
+            <Select
+              value={values.prefix ?? ""}
+              onValueChange={handleSelect("prefix")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกคำนำหน้า" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>คำนำหน้า</SelectLabel>
+                  {prefixOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <EmployeeFormButtons
-          canEdit={canEdit}
-          loading={loading}
-          employeeId={employeeId}
-          permissionHint={permissionHint}
-          onCancel={onCancel ?? (() => router.back())}
-          hideBorder={hideBorder}
-        />
+          <div className="md:col-span-2">
+            <Label className={labelTextClass}>ชื่อ</Label>
+            <Input
+              value={values.firstName ?? ""}
+              onChange={handleChange("firstName")}
+              disabled={!canEdit}
+              required
+              className={inputTextClass}
+            />
+            {fieldErrors.firstName?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.firstName[0]}</p>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <Label className={labelTextClass}>นามสกุล</Label>
+            <Input
+              value={values.lastName ?? ""}
+              onChange={handleChange("lastName")}
+              disabled={!canEdit}
+              required
+              className={inputTextClass}
+            />
+            {fieldErrors.lastName?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.lastName[0]}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+          <div>
+            <Label className={labelTextClass}>รหัสพนักงาน</Label>
+            <Input
+              value={values.employeeCode ?? ""}
+              onChange={handleChange("employeeCode")}
+              disabled={!canEdit}
+              className={inputTextClass}
+            />
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>เบอร์โทรศัพท์</Label>
+            <Input
+              value={values.phone ?? ""}
+              onChange={handlePhoneChange}
+              disabled={!canEdit}
+              className={inputTextClass}
+            />
+            {fieldErrors.phone?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
+            )}
+          </div>
+
+          <div className="mt-2">
+            <DatePicker
+              label="วันเกิด"
+              value={values.birthDate}
+              onChange={(v) => {
+                setValues((p) => ({ ...p, birthDate: v }));
+                clearFieldError("birthDate");
+              }}
+              disabled={!canEdit}
+              placeholder=""
+            />
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>อายุ</Label>
+            <Input value={calculatedAge} disabled className={inputTextClass} />
+          </div>
+        </div>
+
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+          <div>
+            <Label className={labelTextClass}>ตำแหน่งงาน</Label>
+            <Select
+              value={values.position ?? ""}
+              onValueChange={handleSelect("position")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกตำแหน่ง" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>ตำแหน่ง</SelectLabel>
+                  {positionOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>แผนก</Label>
+            <Select
+              value={values.department ?? ""}
+              onValueChange={handleSelect("department")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกแผนก" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>แผนก</SelectLabel>
+                  {departmentOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>สังกัดบริษัท</Label>
+            <Select
+              value={values.company ?? ""}
+              onValueChange={handleSelect("company")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกบริษัท" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>บริษัท</SelectLabel>
+                  {companyOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>เขตที่รับผิดชอบ</Label>
+            <Select
+              value={values.responsibilityArea ?? ""}
+              onValueChange={handleSelect("responsibilityArea")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกเขต" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>เขต</SelectLabel>
+                  {responsibilityAreaOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="md:col-span-2 mt-2">
+          <Label className={labelTextClass}>ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)</Label>
+          <Input
+            placeholder="123/45 หมู่ 6"
+            value={values.addressLine ?? ""}
+            onChange={handleChange("addressLine")}
+            disabled={!canEdit}
+            className={inputTextClass}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <ThaiAddressPicker
+            value={{
+              province: values.province,
+              district: values.district,
+              subdistrict: values.subdistrict,
+              postalCode: values.postalCode,
+            }}
+            onChange={(next) => {
+              setValues((p) => ({ ...p, ...next }));
+              clearFieldError("province");
+              clearFieldError("district");
+              clearFieldError("subdistrict");
+              clearFieldError("postalCode");
+            }}
+          />
+        </div>
+
+        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+          ข้อมูลการเข้าสู่ระบบ
+        </h3>
+
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+          <div>
+            <Label className={labelTextClass}>อีเมลสำหรับเข้าสู่ระบบ</Label>
+            <Input
+              type="email"
+              value={values.email ?? ""}
+              onChange={handleChange("email")}
+              disabled={!canEdit}
+              required
+              className={inputTextClass}
+            />
+            {fieldErrors.email?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
+            )}
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>
+              {employeeId
+                ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
+                : "รหัสผ่าน"}
+            </Label>
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearFieldError("password");
+                }}
+                disabled={!canEdit}
+                placeholder={
+                  employeeId ? "เว้นว่างหากไม่ต้องการเปลี่ยน" : "รหัสผ่านสำหรับเข้าสู่ระบบ"
+                }
+                className={`${inputTextClass} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-600 hover:text-gray-900"
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+            {fieldErrors.password?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.password[0]}</p>
+            )}
+          </div>
+
+          <div>
+            <Label className={labelTextClass}>สิทธิ์การใช้งาน *</Label>
+            <Select
+              value={values.roleDefinitionId ?? ""}
+              onValueChange={handleSelect("roleDefinitionId")}
+              disabled={!canEdit || roles.length === 0}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกสิทธิ์การใช้งาน" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>สิทธิ์</SelectLabel>
+                  {roles.map((r: any) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {fieldErrors.roleDefinitionId?.[0] && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.roleDefinitionId[0]}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+          <div>
+            <Label className={labelTextClass}>สถานะการทำงาน</Label>
+            <Select
+              value={values.status ?? "ACTIVE"}
+              onValueChange={handleSelect("status")}
+              disabled={!canEdit}
+            >
+              <SelectTrigger className={inputTextClass}>
+                <SelectValue placeholder="เลือกสถานะ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>สถานะ</SelectLabel>
+                  {statusOptions.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className={`md:col-span-2 pt-6 ${hideBorder ? "my-2" : "border-t my-2"}`}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button
+              size="lg"
+              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+              type="button"
+              onClick={handleRandomFill}
+              disabled={!canEdit}
+              title={!canEdit ? permissionHint : undefined}
+            >
+              กรอกข้อมูลสุ่ม
+            </Button>
+            <Button
+              size="lg"
+              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+              type="button"
+              onClick={onCancel ?? (() => router.back())}
+              disabled={!canEdit}
+              title={!canEdit ? permissionHint : undefined}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              size="lg"
+              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+              type="submit"
+              disabled={!canEdit || loading}
+              title={!canEdit ? permissionHint : undefined}
+            >
+              {loading ? "กำลังบันทึก..." : "บันทึก"}
+            </Button>
+          </div>
+        </div>
       </form>
     </div>
   );
