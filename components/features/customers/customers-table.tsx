@@ -705,7 +705,7 @@ function CustomersCards(
             key={customer.id}
             className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-cyan-400" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-gray-500 to-gray-400" />
             <div className="p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
