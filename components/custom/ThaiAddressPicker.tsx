@@ -3,7 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 type AddressValue = {
   province?: string;
@@ -89,7 +95,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-base">จังหวัด</Label>
+        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+          จังหวัด
+        </Label>
         <Select
           value={province ?? ""}
           onValueChange={(v) => {
@@ -97,12 +105,11 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
             setDistrict(undefined);
             setSubdistrict(undefined);
           }}
-          
         >
           <SelectTrigger className="mt-1 text-base">
             <SelectValue placeholder="เลือกจังหวัด" />
           </SelectTrigger>
-          <SelectContent >
+          <SelectContent>
             {provinces.map((p: any) => (
               <SelectItem key={p.id} value={p.name}>
                 {p.name}
@@ -113,7 +120,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
       </div>
 
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-base">อำเภอ/เขต</Label>
+        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+          อำเภอ/เขต
+        </Label>
         <Select
           value={district ?? ""}
           onValueChange={(v) => {
@@ -123,7 +132,11 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           disabled={!province}
         >
           <SelectTrigger className="mt-1 text-base">
-            <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "กรุณาเลือกจังหวัดก่อน"} />
+            <SelectValue
+              placeholder={
+                province ? "เลือกอำเภอ/เขต" : "กรุณาเลือกจังหวัดก่อน"
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {districts.map((d: any) => (
@@ -136,7 +149,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
       </div>
 
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-base">ตำบล</Label>
+        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+          ตำบล
+        </Label>
         <Select
           value={subdistrict ?? ""}
           onValueChange={(v) => {
@@ -145,7 +160,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           disabled={!district}
         >
           <SelectTrigger className="mt-1 text-base">
-            <SelectValue placeholder={district ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"} />
+            <SelectValue
+              placeholder={district ? "เลือกตำบล" : "กรุณาเลือกอำเภอก่อน"}
+            />
           </SelectTrigger>
           <SelectContent>
             {subdistricts.map((s: any) => (
@@ -158,8 +175,15 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
       </div>
 
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-base">รหัสไปรษณีย์</Label>
-        <Input value={postalCode ?? ""} readOnly disabled className="mt-1 text-base !h-11" />
+        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+          รหัสไปรษณีย์
+        </Label>
+        <Input
+          value={postalCode ?? ""}
+          readOnly
+          disabled
+          className="mt-1 text-base !h-11"
+        />
       </div>
     </div>
   );
