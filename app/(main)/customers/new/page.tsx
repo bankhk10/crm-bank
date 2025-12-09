@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
 import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
 import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
@@ -12,6 +12,15 @@ type CustomerType = "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
 export default function NewCustomerPage() {
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<CustomerType | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const t = searchParams?.get("type")?.toUpperCase();
+    if (!t) return;
+    if (t === "DEALER" || t === "SUBDEALER" || t === "FARMER" || t === "BROKER") {
+      setSelectedType(t as CustomerType);
+    }
+  }, [searchParams]);
 
   async function handleCreate(payload: any) {
     try {

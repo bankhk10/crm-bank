@@ -571,16 +571,45 @@ function CustomersToolbar(
       </div>
 
       <div className="grid gap-4 lg:items-end mt-4">
-        <div className="flex items-end lg:justify-end">
+        <div className="flex flex-wrap gap-2 items-center lg:justify-end">
           {canCreate ? (
-            <Link href="/customers/new">
-              <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-                <span className="inline-flex items-center gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  สร้างลูกค้า
-                </span>
-              </Button>
-            </Link>
+            <>
+              <Link href="/customers/new?type=DEALER">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <span className="inline-flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    เพิ่ม DEALER
+                  </span>
+                </Button>
+              </Link>
+
+              <Link href="/customers/new?type=SUBDEALER">
+                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                  <span className="inline-flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    เพิ่ม SUBDEALER
+                  </span>
+                </Button>
+              </Link>
+
+              <Link href="/customers/new?type=FARMER">
+                <Button className="bg-amber-600 hover:bg-amber-700">
+                  <span className="inline-flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    เพิ่ม FARMER
+                  </span>
+                </Button>
+              </Link>
+
+              <Link href="/customers/new?type=BROKER">
+                <Button className="bg-purple-600 hover:bg-purple-700">
+                  <span className="inline-flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    เพิ่ม BROKER
+                  </span>
+                </Button>
+              </Link>
+            </>
           ) : (
             <Button className="w-full lg:w-auto" variant="outline" disabled>
               <span className="inline-flex items-center gap-2">
