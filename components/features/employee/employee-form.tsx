@@ -5,23 +5,14 @@ import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { Employee } from "@/types/Employee.ts";
-import EmployeePersonalInfoSection from "./EmployeePersonalInfoSection";
-import EmployeeLoginInfoSection from "./EmployeeLoginInfoSection";
-import EmployeeFormButtons from "./EmployeeFormButtons";
 import generateRandomEmployee from "@/lib/random-fill/employee";
 
-interface EmployeeFormProps {
-  employeeId?: string;
-  initial?: Partial<EmployeeFormValues>;
-  onSubmit?: (payload: any) => Promise<{
-    success: boolean;
-    issues?: Record<string, string[]>;
-    error?: string;
-  }>;
-  hideBorder?: boolean;
-  onCancel?: () => void;
-  registerRandomize?: (fn: () => void) => void;
-}
+import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import DatePicker from "@/components/custom/DatePicker";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
+import { prefixOptions, responsibilityAreaOptions, statusOptions } from "./employee-options";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
@@ -39,6 +30,395 @@ type EmployeeFormValues = Partial<Employee> & {
   roleDefinitionId?: string;
   role?: string;
 };
+
+interface EmployeeFormProps {
+  employeeId?: string;
+  initial?: Partial<EmployeeFormValues>;
+  onSubmit?: (payload: any) => Promise<{
+    success: boolean;
+    issues?: Record<string, string[]>;
+    error?: string;
+  }>;
+  hideBorder?: boolean;
+  onCancel?: () => void;
+  registerRandomize?: (fn: () => void) => void;
+}
+
+interface EmployeePersonalInfoSectionProps {
+  formState: EmployeeFormValues;
+  handleChange: (
+    field: keyof EmployeeFormValues
+  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handlePhoneChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  address: {
+    province?: string;
+    district?: string;
+    subdistrict?: string;
+    postalCode?: string;
+  };
+  setAddress: React.Dispatch<
+    React.SetStateAction<{
+      province?: string;
+      district?: string;
+      subdistrict?: string;
+      postalCode?: string;
+    }>
+  >;
+  canEdit: boolean;
+  calculatedAge: () => string;
+  positionOptions: Array<{ value: string; label: string }>;
+  departmentOptions: Array<{ value: string; label: string }>;
+  companyOptions: Array<{ value: string; label: string }>;
+  showValidation?: boolean;
+}
+
+function EmployeePersonalInfoSection({
+  formState,
+  handleChange,
+  handlePhoneChange,
+  address,
+  setAddress,
+  canEdit,
+  calculatedAge,
+  positionOptions,
+  departmentOptions,
+  companyOptions,
+  showValidation,
+}: EmployeePersonalInfoSectionProps) {
+  const phoneDigits = formState.phone ? String(formState.phone).replace(/\D/g, "") : "";
+  return (
+    <>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลพนักงาน
+      </h3>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-6">
+        {/* แถว คำนำหน้า / ชื่อ / นามสกุล */}
+        <div className="sm:col-span-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
+            <div className="sm:col-span-1">
+              <FloatingLabelInput
+                label="คำนำหน้า"
+                type="select"
+                options={prefixOptions}
+                value={formState.prefix ?? ""}
+                disabled={!canEdit}
+                onChange={handleChange("prefix")}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <FloatingLabelInput
+                label="ชื่อ"
+                placeholder="เช่น สมชาย"
+                value={formState.firstName ?? ""}
+                disabled={!canEdit}
+                onChange={handleChange("firstName")}
+                error={!formState.firstName && canEdit && showValidation ? "กรุณากรอกชื่อ" : undefined}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <FloatingLabelInput
+                label="นามสกุล"
+                placeholder="เช่น ใจดี"
+                value={formState.lastName ?? ""}
+                disabled={!canEdit}
+                onChange={handleChange("lastName")}
+                error={!formState.lastName && canEdit && showValidation ? "กรุณากรอกนามสกุล" : undefined}
+              />
+            </div>
+          </div>
+        </div>
+        {/* รหัสพนักงาน */}
+        <div>
+          <FloatingLabelInput
+            label="รหัสพนักงาน"
+            placeholder="เช่น EMP-0001"
+            value={formState.employeeCode ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("employeeCode")}
+          />
+        </div>
+
+        {/* เบอร์โทรศัพท์ */}
+        <div>
+          <FloatingLabelInput
+            label="เบอร์โทรศัพท์"
+            placeholder="0xx-xxx-xxxx"
+            value={formState.phone ?? ""}
+            disabled={!canEdit}
+            onChange={handlePhoneChange}
+            maxLength={10}
+            error={
+              formState.phone && showValidation && (phoneDigits.length < 9 || phoneDigits.length > 10)
+                ? "กรุณากรอกหมายเลขโทรศัพท์ที่ถูกต้อง (9-10 หลัก)"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* วันเกิด */}
+        <div>
+          <DatePicker
+            label="วันเกิด"
+            value={formState.birthDate}
+            onChange={(v) =>
+              handleChange("birthDate")({
+                target: { value: v },
+              } as React.ChangeEvent<HTMLInputElement>)
+            }
+            disabled={!canEdit}
+            placeholder=""
+          />
+        </div>
+
+        {/* อายุ (คำนวณ) */}
+        <div>
+          <FloatingLabelInput
+            label="อายุ"
+            value={calculatedAge()}
+            disabled={true}
+            onChange={() => {}}
+          />
+        </div>
+
+        {/* ตำแหน่งงาน */}
+        <div>
+          <FloatingLabelInput
+            label="ตำแหน่งงาน"
+            type="select"
+            options={positionOptions}
+            value={formState.position ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("position")}
+          />
+        </div>
+
+        {/* แผนก */}
+        <div>
+          <FloatingLabelInput
+            label="แผนก"
+            type="select"
+            options={departmentOptions}
+            value={formState.department ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("department")}
+          />
+        </div>
+
+        {/* สังกัดบริษัท */}
+        <div>
+          <FloatingLabelInput
+            label="สังกัดบริษัท"
+            type="select"
+            options={companyOptions}
+            value={formState.company ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("company")}
+          />
+        </div>
+
+        {/* เขตที่รับผิดชอบ */}
+        <div>
+          <FloatingLabelInput
+            label="เขตที่รับผิดชอบ"
+            type="select"
+            options={responsibilityAreaOptions}
+            value={formState.responsibilityArea ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("responsibilityArea")}
+          />
+        </div>
+
+        {/* ที่อยู่ (บรรทัดแรก) */}
+        <div className="sm:col-span-2">
+          <FloatingLabelInput
+            label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+            placeholder="123/45 หมู่ 6 ต. ... อ. ..."
+            value={formState.addressLine ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("addressLine")}
+          />
+        </div>
+
+        {/* ที่อยู่ (Picker) */}
+        <div className="sm:col-span-2">
+          <ThaiAddressPicker
+            value={address}
+            onChange={(next) => setAddress(next)}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+interface EmployeeLoginInfoSectionProps {
+  formState: EmployeeFormValues;
+  handleChange: (
+    field: keyof EmployeeFormValues
+  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  password: string;
+  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  roles: Array<any>;
+  canEdit: boolean;
+  showValidation?: boolean;
+  employeeId?: string; // Add this to know if we're editing
+}
+
+function EmployeeLoginInfoSection({
+  formState,
+  handleChange,
+  password,
+  setPassword,
+  roles,
+  canEdit,
+  showValidation,
+  employeeId,
+}: EmployeeLoginInfoSectionProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  return (
+    <>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลการเข้าสู่ระบบ
+      </h3>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-6">
+        {/* อีเมล */}
+        <div>
+          <FloatingLabelInput
+            label="อีเมลสำหรับเข้าสู่ระบบ"
+            type="email"
+            placeholder="jane@example.com"
+            value={formState.email ?? ""}
+            disabled={!canEdit}
+            onChange={handleChange("email")}
+            error={
+              !formState.email && canEdit && showValidation
+                ? "กรุณากรอกอีเมลสำหรับเข้าสู่ระบบ"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* รหัสผ่าน */}
+        <div>
+          <FloatingLabelInput
+            label={employeeId ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)" : "รหัสผ่าน"}
+            type={showPassword ? "text" : "password"}
+            placeholder={employeeId ? "เว้นว่างหากไม่ต้องการเปลี่ยน" : "รหัสผ่านสำหรับเข้าสู่ระบบ"}
+            value={password}
+            disabled={!canEdit}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              setPassword(event.target.value)
+            }
+            suffix={
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="inline-flex items-center justify-center rounded p-1 text-gray-600 hover:text-gray-900"
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            }
+            minLength={8}
+            error={
+              password &&
+              String(password).length > 0 &&
+              String(password).length < 8
+                ? "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"
+                : !employeeId && !password && canEdit && showValidation
+                ? "กรุณากรอกรหัสผ่านสำหรับเข้าสู่ระบบ"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* สิทธิ์การใช้งาน (Role Definition) */}
+        <div>
+          <FloatingLabelInput
+            label="สิทธิ์การใช้งาน *"
+            type="select"
+            options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
+            value={formState.roleDefinitionId ?? ""}
+            disabled={!canEdit || roles.length === 0}
+            onChange={handleChange("roleDefinitionId")}
+            error={
+              !formState.roleDefinitionId && canEdit && showValidation
+                ? "กรุณาเลือกสิทธิ์การใช้งาน"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* สถานะการทำงาน */}
+        <div>
+          <FloatingLabelInput
+            label="สถานะการทำงาน"
+            type="select"
+            options={statusOptions}
+            value={formState.status ?? "ACTIVE"}
+            disabled={!canEdit}
+            onChange={handleChange("status")}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+interface EmployeeFormButtonsProps {
+  canEdit: boolean;
+  loading: boolean;
+  employeeId?: string;
+  permissionHint: string;
+  onCancel: () => void;
+  hideBorder?: boolean;
+}
+
+function EmployeeFormButtons({
+  canEdit,
+  loading,
+  employeeId,
+  permissionHint,
+  onCancel,
+  hideBorder,
+}: EmployeeFormButtonsProps) {
+  return (
+    <div className={`md:col-span-2 mt-8 ${hideBorder ? "my-2" : "border-t my-2"}`}>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Button
+          size="lg"
+          className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+          type="button"
+          onClick={onCancel}
+          disabled={!canEdit}
+          title={!canEdit ? permissionHint : undefined}
+        >
+          ยกเลิก
+        </Button>
+
+        <Button
+          size="lg"
+          className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+          type="submit"
+          disabled={!canEdit || loading}
+          title={!canEdit ? permissionHint : undefined}
+        >
+          {loading
+            ? "กำลังบันทึก..."
+            : employeeId
+            ? "บันทึก"
+            : "บันทึก"}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function EmployeeForm({
   employeeId,
