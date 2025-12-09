@@ -213,7 +213,7 @@ export default function CustomerFormBroker({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        หมวดข้อมูลบุคคล
+        ข้อมูลบุคคล
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
@@ -385,7 +385,7 @@ export default function CustomerFormBroker({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        หมวดข้อมูล Broker
+        ข้อมูล Broker
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
@@ -606,8 +606,10 @@ export default function CustomerFormBroker({
                 totalAreaRai: rnd.totalAreaRai ?? p.totalAreaRai,
                 harvestPerYear: rnd.harvestPerYear ?? p.harvestPerYear,
                 creditDays: rnd.creditDays ?? p.creditDays,
-                chemicalValuePerCycle: rnd.chemicalValuePerCycle ?? p.chemicalValuePerCycle,
-                chemicalQtyPerCycle: rnd.chemicalQtyPerCycle ?? p.chemicalQtyPerCycle,
+                chemicalValuePerCycle:
+                  rnd.chemicalValuePerCycle ?? p.chemicalValuePerCycle,
+                chemicalQtyPerCycle:
+                  rnd.chemicalQtyPerCycle ?? p.chemicalQtyPerCycle,
                 regularShops: rnd.regularShops ?? p.regularShops,
                 serviceTypes: rnd.serviceTypes ?? p.serviceTypes,
                 usedBrands: rnd.usedBrands ?? p.usedBrands,
