@@ -191,7 +191,7 @@ export default function Sidebar({
                   )}
                 </button>
                 {open && (
-                  <div className="mx-2 mb-1 rounded-lg bg-[#991b1b] p-1">
+                  <div className="mx-2 mb-1">
                     {item.children.map((child) => {
                       const childActive = isActive(child.href);
                       return (
@@ -201,8 +201,8 @@ export default function Sidebar({
                           className={
                             "flex items-center justify-between rounded px-4 py-3 transition " +
                             (childActive
-                              ? "bg-[#7f1515] rounded-xl font-semibold text-white"
-                              : "text-white/80 hover:bg-[#7f1515]")
+                              ? "font-semibold text-white"
+                              : "text-white/80")
                           }
                           onClick={() => onClose?.()}
                         >

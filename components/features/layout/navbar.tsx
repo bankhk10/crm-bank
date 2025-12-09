@@ -35,14 +35,14 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
       <div className="flex items-center gap-1 text-sm">
         <Button
           variant="ghost"
-          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10"
+          className="p-2 rounded hover:bg-white/10"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5 text-white" />
         </Button>
         <Button
           variant="ghost"
-          className="hidden sm:inline-flex p-2 rounded hover:bg-white/10"
+          className="p-2 rounded hover:bg-white/10"
           aria-label="Language"
         >
           <Globe className="h-5 w-5 text-white" />
