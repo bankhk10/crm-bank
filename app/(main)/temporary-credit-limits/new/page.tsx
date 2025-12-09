@@ -12,7 +12,7 @@ export default function NewTemporaryCreditLimitPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/customers?perPage=1000");
+        const res = await fetch("/api/customers?perPage=1000&type=DEALER");
         if (res.ok) {
           const json = await res.json();
           setCustomers(json.customers ?? []);

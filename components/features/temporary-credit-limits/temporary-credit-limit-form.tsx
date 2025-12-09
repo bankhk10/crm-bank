@@ -162,7 +162,7 @@ export default function TemporaryCreditLimitForm({
           )}
         </div>
 
-        <div>
+        <div className="mt-2">
           <DatePicker
             label="วันหมดอายุ"
             value={payload.expiryDate as string | Date | undefined}

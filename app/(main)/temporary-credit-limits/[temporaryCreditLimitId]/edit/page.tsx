@@ -19,7 +19,7 @@ export default function EditTemporaryCreditLimitPage() {
     (async () => {
       try {
         const [customersRes, itemRes] = await Promise.all([
-          fetch("/api/customers?perPage=1000"),
+          fetch("/api/customers?perPage=1000&type=DEALER"),
           fetch(`/api/temporary-credit-limits/${id}`),
         ]);
 
