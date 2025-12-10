@@ -196,6 +196,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       </div>
       <div className="flex items-center gap-2 mt-4 mb-4">
         <Button
+          type="button"
           variant="outline"
           onClick={(e) => {
             e.stopPropagation();
@@ -272,9 +273,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                           setCoverIndex(index);
                           onSetCover?.(index);
                         }}
-                        className={`inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm hover:bg-white/20 ${
-                          coverIndex === index ? "ring-2 ring-yellow-400" : ""
-                        }`}
+                        className={`inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm hover:bg-white/20 ${coverIndex === index ? "ring-2 ring-yellow-400" : ""
+                          }`}
                         title="ตั้งภาพเป็นหน้าปก"
                         disabled={disabled}
                       >
@@ -315,18 +315,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                       {isFile
                         ? (file as File).name
                         : (file as ExistingImage).name ||
-                          (file as ExistingImage).url.split("/").pop()}
+                        (file as ExistingImage).url.split("/").pop()}
                     </div>
                     <div className="text-xxs text-gray-500 mt-1">
                       {isFile
                         ? `${((file as File).size / 1024 / 1024).toFixed(2)} MB`
                         : (file as ExistingImage).size
-                        ? `${(
+                          ? `${(
                             (file as ExistingImage).size! /
                             1024 /
                             1024
                           ).toFixed(2)} MB`
-                        : ""}
+                          : ""}
                       {coverIndex === index && (
                         <span className="ml-2 inline-block rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5 text-[10px]">
                           หน้าปก
