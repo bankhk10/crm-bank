@@ -86,6 +86,11 @@ export function ProductsTable({
     {
       accessorKey: "productCode",
       header: "รหัสสินค้า",
+      meta: {
+        width: 120,
+        minWidth: 100,
+        maxWidth: 150,
+      },
       cell: ({ row }) => (
         <div className="font-medium">{row.original.productCode}</div>
       ),
@@ -93,6 +98,11 @@ export function ProductsTable({
     {
       accessorKey: "name",
       header: "ชื่อสินค้า",
+      meta: {
+        width: 200,
+        minWidth: 150,
+        maxWidth: 250,
+      },
       cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
     },
     {
@@ -184,10 +194,17 @@ export function ProductsTable({
     {
       id: "actions",
       header: "การจัดการ",
+      meta: {
+        width: 200,
+        minWidth: 200,
+        maxWidth: 200,
+        align: "right",
+        sticky: "right",
+      },
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="flex items-center justify-start gap-2 px-5">
+          <div className="flex items-center justify-end gap-2 px-2">
             {canView && (
               <Tooltip content={`ดู ${product.name}`} side="top">
                 <Button
