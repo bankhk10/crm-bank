@@ -2,9 +2,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FloatingLabelInput } from "@/components/custom/FloatingLabelInputFixed";
-import { MultiSelect } from "@/components/custom/multi-select";
-import { Textarea } from "@/components/custom/Textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FileUpload } from "@/components/custom/file-upload";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,6 +33,9 @@ import {
   type ProductFormData,
 } from "@/types/product";
 import generateRandomProduct from "@/lib/random-fill/product";
+
+const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
+const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -140,8 +151,8 @@ export function ProductForm({
         if (!result.success) {
           setError(
             result.error ??
-              Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error"
+            Object.values(result.issues ?? {})[0]?.[0] ??
+            "Server error"
           );
         } else {
           setSuccess(true);
@@ -312,152 +323,239 @@ export function ProductForm({
         </Dialog>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <FloatingLabelInput
-          label="รหัสสินค้า *"
-          type="text"
-          value={formData.productCode}
-          onChange={(e) => updateField("productCode", e.target.value)}
-          error={errors.productCode}
-        />
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลสินค้า
+      </h3>
 
-        <FloatingLabelInput
-          label="ชื่อการค้า *"
-          type="text"
-          value={formData.name}
-          onChange={(e) => updateField("name", e.target.value)}
-          error={errors.name}
-        />
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+        <div>
+          <Label className={labelTextClass}>รหัสสินค้า *</Label>
+          <Input
+            value={formData.productCode}
+            onChange={(e) => updateField("productCode", e.target.value)}
+            required
+            className={inputTextClass}
+          />
+          {errors.productCode && (
+            <p className="text-xs text-red-600 mt-1">{errors.productCode}</p>
+          )}
+        </div>
 
-        <FloatingLabelInput
-          label="ชื่อสามัญ"
-          type="text"
-          value={formData.commonName}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFormData((prev) => ({
-              ...prev,
-              commonName: e.target.value,
-            }))
-          }
-          disabled={loading}
-        />
+        <div>
+          <Label className={labelTextClass}>ชื่อการค้า *</Label>
+          <Input
+            value={formData.name}
+            onChange={(e) => updateField("name", e.target.value)}
+            required
+            className={inputTextClass}
+          />
+          {errors.name && (
+            <p className="text-xs text-red-600 mt-1">{errors.name}</p>
+          )}
+        </div>
 
-        <FloatingLabelInput
-          label="หน่วยนับ"
-          type="select"
-          options={UNIT_OPTIONS}
-          value={formData.unit}
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) =>
-            setFormData((prev) => ({
-              ...prev,
-              unit: e.target.value,
-            }))
-          }
-          disabled={loading}
-          searchable
-        />
+        <div>
+          <Label className={labelTextClass}>ชื่อสามัญ</Label>
+          <Input
+            value={formData.commonName}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                commonName: e.target.value,
+              }))
+            }
+            disabled={loading}
+            className={inputTextClass}
+          />
+        </div>
 
-        <FloatingLabelInput
-          label="กลุ่มสินค้า"
-          type="select"
-          options={PRODUCT_GROUP_OPTIONS}
-          value={formData.productGroup}
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) =>
-            setFormData((prev) => ({
-              ...prev,
-              productGroup: e.target.value,
-            }))
-          }
-          disabled={loading}
-          searchable
-        />
+        <div>
+          <Label className={labelTextClass}>หน่วยนับ</Label>
+          <Select
+            value={formData.unit}
+            onValueChange={(v) =>
+              setFormData((prev) => ({
+                ...prev,
+                unit: v,
+              }))
+            }
+            disabled={loading}
+          >
+            <SelectTrigger className={inputTextClass}>
+              <SelectValue placeholder="เลือกหน่วยนับ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>หน่วยนับ</SelectLabel>
+                {UNIT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <FloatingLabelInput
-          label="แบรนด์สินค้า"
-          type="select"
-          options={BRAND_OPTIONS}
-          value={formData.brand}
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) =>
-            setFormData((prev) => ({
-              ...prev,
-              brand: e.target.value,
-            }))
-          }
-          disabled={loading}
-          searchable
-        />
+        <div>
+          <Label className={labelTextClass}>กลุ่มสินค้า</Label>
+          <Select
+            value={formData.productGroup}
+            onValueChange={(v) =>
+              setFormData((prev) => ({
+                ...prev,
+                productGroup: v,
+              }))
+            }
+            disabled={loading}
+          >
+            <SelectTrigger className={inputTextClass}>
+              <SelectValue placeholder="เลือกกลุ่มสินค้า" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>กลุ่มสินค้า</SelectLabel>
+                {PRODUCT_GROUP_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <FloatingLabelInput
-          label="ขนาดบรรจุ"
-          type="text"
-          value={formData.packageSize}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFormData((prev) => ({
-              ...prev,
-              packageSize: e.target.value,
-            }))
-          }
-          disabled={loading}
-        />
+        <div>
+          <Label className={labelTextClass}>แบรนด์สินค้า</Label>
+          <Select
+            value={formData.brand}
+            onValueChange={(v) =>
+              setFormData((prev) => ({
+                ...prev,
+                brand: v,
+              }))
+            }
+            disabled={loading}
+          >
+            <SelectTrigger className={inputTextClass}>
+              <SelectValue placeholder="เลือกแบรนด์" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>แบรนด์</SelectLabel>
+                {BRAND_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <FloatingLabelInput
-          label="ขนาดบรรจุต่อลัง"
-          type="number"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          min={0}
-          step={1}
-          value={formData.packageSizePerBox}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setFormData((prev) => ({
-              ...prev,
-              // store numeric input as string to match ProductFormData
-              packageSizePerBox: e.target.value,
-            }))
-          }
-          disabled={loading}
-        />
+        <div>
+          <Label className={labelTextClass}>ขนาดบรรจุ</Label>
+          <Input
+            value={formData.packageSize}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                packageSize: e.target.value,
+              }))
+            }
+            disabled={loading}
+            className={inputTextClass}
+          />
+        </div>
 
-        <MultiSelect
-          label="ใช้กับพืช"
-          options={PLANT_OPTIONS}
-          value={formData.usedForPlants}
-          onChange={(value) =>
-            setFormData((prev) => ({
-              ...prev,
-              usedForPlants: value as string[],
-            }))
-          }
-          disabled={loading}
-        />
+        <div>
+          <Label className={labelTextClass}>ขนาดบรรจุต่อลัง</Label>
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            value={formData.packageSizePerBox}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                packageSizePerBox: e.target.value,
+              }))
+            }
+            disabled={loading}
+            className={inputTextClass}
+          />
+        </div>
 
-        <FloatingLabelInput
-          label="สถานะสินค้า"
-          type="select"
-          options={STATUS_OPTIONS}
-          value={formData.status}
-          onChange={(
-            e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
-          ) =>
-            setFormData((prev) => ({
-              ...prev,
-              status: e.target.value as "ACTIVE" | "INACTIVE",
-            }))
-          }
-          disabled={loading}
-        />
+        <div>
+          <Label className={labelTextClass}>ใช้กับพืช</Label>
+          <Select
+            value={formData.usedForPlants.join(",")}
+            onValueChange={(v) => {
+              const values = v ? v.split(",").filter(Boolean) : [];
+              setFormData((prev) => ({
+                ...prev,
+                usedForPlants: values,
+              }));
+            }}
+            disabled={loading}
+          >
+            <SelectTrigger className={inputTextClass}>
+              <SelectValue placeholder="เลือกพืช">
+                {formData.usedForPlants.length > 0
+                  ? `เลือกแล้ว ${formData.usedForPlants.length} รายการ`
+                  : "เลือกพืช"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>พืช</SelectLabel>
+                {PLANT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500 mt-1">
+            หมายเหตุ: ปัจจุบันรองรับการเลือกเพียง 1 รายการ
+          </p>
+        </div>
+
+        <div>
+          <Label className={labelTextClass}>สถานะสินค้า</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(v) =>
+              setFormData((prev) => ({
+                ...prev,
+                status: v as "ACTIVE" | "INACTIVE",
+              }))
+            }
+            disabled={loading}
+          >
+            <SelectTrigger className={inputTextClass}>
+              <SelectValue placeholder="เลือกสถานะ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>สถานะ</SelectLabel>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="md:col-span-2">
-          <Textarea
-            label="จุดขายสินค้า"
+          <Label className={`${labelTextClass} mb-2`}>จุดขายสินค้า</Label>
+          <textarea
             value={formData.salesPoint}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
                 salesPoint: e.target.value,
@@ -465,14 +563,15 @@ export function ProductForm({
             }
             disabled={loading}
             rows={3}
+            className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
           />
         </div>
 
         <div className="md:col-span-2">
-          <Textarea
-            label="คุณสมบัติ"
+          <Label className={`${labelTextClass} mb-2`}>คุณสมบัติ</Label>
+          <textarea
             value={formData.properties}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
                 properties: e.target.value,
@@ -480,6 +579,7 @@ export function ProductForm({
             }
             disabled={loading}
             rows={3}
+            className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
           />
         </div>
 
@@ -496,8 +596,8 @@ export function ProductForm({
                   prev.coverIndex !== undefined && prev.coverIndex !== null
                     ? prev.coverIndex
                     : files.length > 0
-                    ? 0
-                    : null,
+                      ? 0
+                      : null,
               }))
             }
             accept="image/jpeg,image/png"
@@ -530,12 +630,19 @@ export function ProductForm({
         </div>
       )}
 
-      <div
-        className={`md:col-span-2 mt-8 ${
-          hideBorder ? "my-2" : "border-t my-2"
-        }`}
-      >
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+      <div className="md:col-span-2 pt-6 border-t my-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {showRandomFill && (
+            <Button
+              size="lg"
+              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+              type="button"
+              onClick={handleRandomFill}
+              disabled={loading}
+            >
+              กรอกข้อมูลแบบสุ่ม
+            </Button>
+          )}
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
@@ -558,19 +665,6 @@ export function ProductForm({
           </Button>
         </div>
       </div>
-      {showRandomFill && (
-        <div className="flex items-center justify-end gap-2 mb-2">
-          <Button
-            type="button"
-            size="sm"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-            onClick={handleRandomFill}
-            disabled={loading}
-          >
-            กรอกแบบสุ่ม
-          </Button>
-        </div>
-      )}
     </form>
   );
 }
