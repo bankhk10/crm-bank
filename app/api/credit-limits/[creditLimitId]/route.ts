@@ -7,7 +7,7 @@ import { isAuthorized } from "@/lib/rbac";
 const resourcePath = "/api/credit-limits";
 
 const creditLimitUpdateSchema = z.object({
-  limitAmount: z.number().positive().optional(),
+  limitAmount: z.number().nonnegative().optional(),
   promoAmount: z.number().nonnegative().optional(),
   usedAmount: z.number().optional(),
   effectiveDate: z.string().or(z.date()).optional(),

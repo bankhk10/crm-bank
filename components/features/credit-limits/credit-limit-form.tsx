@@ -49,6 +49,13 @@ export default function CreditLimitForm({
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
+  // keep display text for numeric inputs so user can clear the field while typing
+  const [limitAmountText, setLimitAmountText] = useState<string>(
+    String(initial.limitAmount ?? 0)
+  );
+  const [promoAmountText, setPromoAmountText] = useState<string>(
+    String(initial.promoAmount ?? 0)
+  );
 
   const clearError = (f: string) =>
     setFieldErrors((p) => {
@@ -64,15 +71,19 @@ export default function CreditLimitForm({
     setFieldErrors({});
 
     try {
+      // parse display text to numbers; allow empty as 0
+      const parsedLimit = limitAmountText === "" ? 0 : Number(limitAmountText);
+      const parsedPromo = promoAmountText === "" ? 0 : Number(promoAmountText);
+
       const body: any = {
         customerId: payload.customerId,
-        limitAmount: Number(payload.limitAmount),
-        promoAmount:
-          payload.promoAmount !== undefined
-            ? Number(payload.promoAmount)
-            : undefined,
+        limitAmount: parsedLimit,
+        promoAmount: parsedPromo,
         notes: payload.notes,
       };
+
+      // keep payload in sync with parsed values
+      setPayload((p) => ({ ...p, limitAmount: parsedLimit, promoAmount: parsedPromo }));
 
       if (payload.effectiveDate)
         body.effectiveDate = payload.effectiveDate.toISOString();
@@ -128,14 +139,19 @@ export default function CreditLimitForm({
           <Input
             type="number"
             className={inputClass}
-            value={String(payload.limitAmount ?? 0)}
+            value={limitAmountText}
             onChange={(e) => {
               const raw = e.target.value;
-              // strip leading zeros but keep single zero when appropriate
               const cleaned = raw.replace(/^0+(?=\d)/, "");
-              const num = cleaned === "" ? 0 : Number(cleaned);
-              setPayload((p) => ({ ...p, limitAmount: num }));
+              // allow empty string while typing
+              setLimitAmountText(cleaned === "" ? "" : cleaned);
               clearError("limitAmount");
+            }}
+            onBlur={() => {
+              // ensure display shows 0 instead of empty and sync payload
+              if (limitAmountText === "") setLimitAmountText("0");
+              const num = limitAmountText === "" ? 0 : Number(limitAmountText);
+              setPayload((p) => ({ ...p, limitAmount: num }));
             }}
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           />
@@ -147,14 +163,17 @@ export default function CreditLimitForm({
           <Input
             type="number"
             className={inputClass}
-            value={String(payload.promoAmount ?? 0)}
+            value={promoAmountText}
             onChange={(e) => {
               const raw = e.target.value;
-              // strip leading zeros but keep single zero when appropriate
               const cleaned = raw.replace(/^0+(?=\d)/, "");
-              const num = cleaned === "" ? 0 : Number(cleaned);
-              setPayload((p) => ({ ...p, promoAmount: num }));
+              setPromoAmountText(cleaned === "" ? "" : cleaned);
               clearError("promoAmount");
+            }}
+            onBlur={() => {
+              if (promoAmountText === "") setPromoAmountText("0");
+              const num = promoAmountText === "" ? 0 : Number(promoAmountText);
+              setPayload((p) => ({ ...p, promoAmount: num }));
             }}
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           />
