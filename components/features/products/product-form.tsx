@@ -487,23 +487,61 @@ export function ProductForm({
           />
         </div>
 
+
         <div>
           <Label className={labelTextClass}>ใช้กับพืช</Label>
+
           <Select
             value={formData.usedForPlants.length > 0 ? "selected" : ""}
             disabled={loading}
           >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกพืช">
-                {formData.usedForPlants.length > 0
-                  ? formData.usedForPlants
-                    .map((plantValue) => {
-                      const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
-                      return plant ? plant.label : plantValue;
-                    })
-                    .join(", ")
-                  : "เลือกพืช"}
-              </SelectValue>
+            <SelectTrigger className={`${inputTextClass} ${formData.usedForPlants.length > 0 ? 'h-auto min-h-[44px] py-2' : ''}`}>
+              <div className="flex flex-wrap gap-1.5 w-full">
+                {formData.usedForPlants.length > 0 ? (
+                  formData.usedForPlants.map((plantValue) => {
+                    const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
+                    return (
+                      <div
+                        key={plantValue}
+                        className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <span>{plant ? plant.label : plantValue}</span>
+                        <span
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!loading) {
+                              setFormData((prev) => ({
+                                ...prev,
+                                usedForPlants: prev.usedForPlants.filter((v) => v !== plantValue),
+                              }));
+                            }
+                          }}
+                          className="hover:bg-green-200 rounded-full p-0.5 transition-colors cursor-pointer"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <span className="text-gray-500">คลิกเพื่อเลือกพืช</span>
+                )}
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
