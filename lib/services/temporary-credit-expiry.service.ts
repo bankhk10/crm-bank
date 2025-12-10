@@ -13,8 +13,8 @@ export class TemporaryCreditExpiryService {
     private isRunning = false;
 
     // ตั้งค่าให้รันทุก 5 นาที (300000 ms)
-    // private readonly INTERVAL_MS = 5 * 60 * 1000;
-    private readonly INTERVAL_MS = 50 * 1000;
+    private readonly INTERVAL_MS = 50 * 60 * 1000;
+    // private readonly INTERVAL_MS = 50 * 1000;
 
     /**
      * เริ่มต้น background service
