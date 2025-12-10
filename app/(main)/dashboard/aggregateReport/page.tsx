@@ -1,13 +1,26 @@
-export default function AggregateReportPage() {
+"use client";
+
+import { Construction } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function InProgressPage() {
   return (
-    <section className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.Aggregate Report Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aliquam ea quis quasi. Quo natus doloribus sint dignissimos, asperiores reiciendis, in quaerat odit corrupti eaque aliquam! Aspernatur veritatis nobis nisi corporis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ab praesentium incidunt earum corrupti totam sed officiis, dolorum eligendi alias. Ut architecto eius numquam nisi, quis sint debitis iure exercitationem at.</h1>
-        <p className="text-sm text-muted-foreground">High level metrics across the CRM.</p>
-      </header>
-      <div className="rounded border bg-white p-4 shadow-sm">
-        <p className="text-sm text-slate-600">Replace this placeholder with charts and KPIs.</p>
-      </div>
-    </section>
+    <div className="flex items-center justify-center min-h-[70vh] from-gray-100 to-gray-200">
+      <Card className="max-w-sm w-full rounded-2xl shadow-lg text-center p-6 sm:p-10">
+        <CardContent className="flex flex-col items-center space-y-4">
+          <Construction className="w-16 h-16 text-primary" />
+
+          <h1 className="text-3xl font-bold text-primary">
+            อยู่ระหว่างดำเนินการ
+          </h1>
+
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            หน้านี้กำลังอยู่ระหว่างการปรับแต่งและพัฒนา
+            <br />
+            โปรดกลับมาอีกครั้งในภายหลัง
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -83,6 +83,60 @@ interface SaleFormProps {
   onCancel?: () => void;
 }
 
+// Helper to parse Thai address from string
+function parseAddress(address: string) {
+  if (!address) return { street: "", thaiAddress: {} };
+
+  let street = address;
+  const thaiAddress: {
+    province?: string;
+    district?: string;
+    subdistrict?: string;
+    postalCode?: string;
+  } = {};
+
+  // 1. Extract Postal Code (5 digits at end or alone)
+  const postalMatch = street.match(/\s+(\d{5})\s*$/) || street.match(/(\d{5})\s*$/);
+  if (postalMatch) {
+    thaiAddress.postalCode = postalMatch[1];
+    street = street.replace(postalMatch[0], "");
+  }
+
+  // 2. Province (Changwat)
+  let provinceFound = false;
+  const provinceMatch = street.match(/(?:จังหวัด|จ\.)\s*([^\s]+)/);
+  if (provinceMatch) {
+    thaiAddress.province = provinceMatch[1];
+    street = street.replace(provinceMatch[0], "");
+    provinceFound = true;
+  }
+
+  if (!provinceFound) {
+    // Special case for Bangkok without prefix
+    const bkkMatch = street.match(/\s+(กรุงเทพมหานคร|กรุงเทพฯ|กทม\.)/);
+    if (bkkMatch) {
+      thaiAddress.province = bkkMatch[1];
+      street = street.replace(bkkMatch[0], "");
+    }
+  }
+
+  // 3. District (Amphoe/Khet)
+  const districtMatch = street.match(/(?:อำเภอ|อ\.|เขต)\s*([^\s]+)/);
+  if (districtMatch) {
+    thaiAddress.district = districtMatch[1];
+    street = street.replace(districtMatch[0], "");
+  }
+
+  // 4. Subdistrict (Tambon/Khwaeng)
+  const subdistrictMatch = street.match(/(?:ตำบล|ต\.|แขวง)\s*([^\s]+)/);
+  if (subdistrictMatch) {
+    thaiAddress.subdistrict = subdistrictMatch[1];
+    street = street.replace(subdistrictMatch[0], "");
+  }
+
+  return { street: street.trim().replace(/,\s*$/, ""), thaiAddress };
+}
+
 export function SaleForm({
   initialData,
   onSubmit,
@@ -124,26 +178,20 @@ export function SaleForm({
   const [deliveryDate, setDeliveryDate] = useState(
     initialData?.deliveryDate || ""
   );
+  // Initialize state with parsed address
+  const [parsedBilling] = useState(() => parseAddress(initialData?.billingAddress || ""));
+  const [parsedShipping] = useState(() => parseAddress(initialData?.shippingAddress || ""));
+
   const [billingAddress, setBillingAddress] = useState(
     initialData?.billingAddress || ""
   );
-  const [billingStreet, setBillingStreet] = useState("");
-  const [billingThaiAddress, setBillingThaiAddress] = useState<{
-    province?: string;
-    district?: string;
-    subdistrict?: string;
-    postalCode?: string;
-  }>({});
+  const [billingStreet, setBillingStreet] = useState(parsedBilling.street);
+  const [billingThaiAddress, setBillingThaiAddress] = useState(parsedBilling.thaiAddress);
   const [shippingAddress, setShippingAddress] = useState(
     initialData?.shippingAddress || ""
   );
-  const [shippingStreet, setShippingStreet] = useState("");
-  const [shippingThaiAddress, setShippingThaiAddress] = useState<{
-    province?: string;
-    district?: string;
-    subdistrict?: string;
-    postalCode?: string;
-  }>({});
+  const [shippingStreet, setShippingStreet] = useState(parsedShipping.street);
+  const [shippingThaiAddress, setShippingThaiAddress] = useState(parsedShipping.thaiAddress);
   const [items, setItems] = useState<SaleItemFormData[]>(
     initialData?.items || []
   );
@@ -185,12 +233,27 @@ export function SaleForm({
     if (customerId) {
       const customer = customers.find((c) => c.id === customerId);
       setSelectedCustomer(customer || null);
-      if (customer) {
+
+      // Determine if we should update address from customer default
+      // We update if NOT in edit mode, OR if user changed the customer from the initial one
+      const isInitialCustomer = initialData?.customerId === customerId;
+      const shouldUpdateAddress = customer && (!isEdit || !isInitialCustomer);
+
+      if (shouldUpdateAddress) {
         setBillingAddress(customer.billingAddress || "");
+
+        const parsedBill = parseAddress(customer.billingAddress || "");
+        setBillingStreet(parsedBill.street);
+        setBillingThaiAddress(parsedBill.thaiAddress);
+
         setShippingAddress(customer.shippingAddress || "");
+
+        const parsedShip = parseAddress(customer.shippingAddress || "");
+        setShippingStreet(parsedShip.street);
+        setShippingThaiAddress(parsedShip.thaiAddress);
       }
     }
-  }, [customerId, customers]);
+  }, [customerId, customers, isEdit, initialData?.customerId]);
 
   // Combine billing address parts into full address
   useEffect(() => {

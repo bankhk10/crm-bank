@@ -1,21 +1,26 @@
-export default function SalesReportPage() {
+"use client";
+
+import { Construction } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
+export default function InProgressPage() {
   return (
-    <section className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold">Sales Report</h1>
-        <p className="text-sm text-muted-foreground">Monitor pipeline conversions and revenue.
-        </p>
-      </header>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded border bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-medium">Pipeline</h2>
-          <p className="text-sm text-slate-600">Visualize deal stages here.</p>
-        </div>
-        <div className="rounded border bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-medium">Revenue</h2>
-          <p className="text-sm text-slate-600">Chart total monthly revenue.</p>
-        </div>
-      </div>
-    </section>
+    <div className="flex items-center justify-center min-h-[70vh] from-gray-100 to-gray-200">
+      <Card className="max-w-sm w-full rounded-2xl shadow-lg text-center p-6 sm:p-10">
+        <CardContent className="flex flex-col items-center space-y-4">
+          <Construction className="w-16 h-16 text-primary" />
+
+          <h1 className="text-3xl font-bold text-primary">
+            อยู่ระหว่างดำเนินการ
+          </h1>
+
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            หน้านี้กำลังอยู่ระหว่างการปรับแต่งและพัฒนา
+            <br />
+            โปรดกลับมาอีกครั้งในภายหลัง
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
