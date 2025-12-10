@@ -67,12 +67,36 @@ function useColumns() {
         cell: ({ row }) => {
           const r = row.original;
           const cl = r.creditLimits && r.creditLimits[0];
-          return cl
-            ? new Intl.NumberFormat("th-TH", {
-                style: "currency",
-                currency: "THB",
-              }).format(cl.limitAmount)
-            : "-";
+
+          if (!cl) return "-";
+
+          let totalLimit = cl.limitAmount;
+
+          // เพิ่มวงเงินชั่วคราวที่ APPROVED และยังไม่หมดอายุ
+          const tempLimits = r.temporaryCreditLimits || [];
+          const approvedLimits = tempLimits.filter(temp => temp.status === "APPROVED");
+
+          if (approvedLimits.length > 0) {
+            // เอารายการล่าสุด
+            const latestTemp = approvedLimits.sort((a, b) => {
+              const dateA = new Date(a.expiryDate).getTime();
+              const dateB = new Date(b.expiryDate).getTime();
+              return dateB - dateA;
+            })[0];
+
+            const expiryDate = new Date(latestTemp.expiryDate);
+            const now = new Date();
+
+            // ถ้ายังไม่หมดอายุ เพิ่มวงเงินชั่วคราว
+            if (expiryDate >= now) {
+              totalLimit = totalLimit + Number(latestTemp.requestedAmount);
+            }
+          }
+
+          return new Intl.NumberFormat("th-TH", {
+            style: "currency",
+            currency: "THB",
+          }).format(totalLimit);
         },
         meta: { minWidth: 170, width: 170, align: "center" },
       },
@@ -87,9 +111,9 @@ function useColumns() {
           const v = Number((cl as any).promoAmount);
           return Number.isFinite(v)
             ? new Intl.NumberFormat("th-TH", {
-                style: "currency",
-                currency: "THB",
-              }).format(v)
+              style: "currency",
+              currency: "THB",
+            }).format(v)
             : "-";
         },
         meta: { minWidth: 180, width: 180, align: "center" },
@@ -100,32 +124,55 @@ function useColumns() {
         cell: ({ row }) => {
           const r = row.original;
           const tempLimits = r.temporaryCreditLimits || [];
-          if (tempLimits.length === 0) return "-";
-          
+
+          // หารายการล่าสุดที่ APPROVED
+          const approvedLimits = tempLimits
+            .filter(temp => temp.status === "APPROVED")
+            .sort((a, b) => {
+              const dateA = new Date(a.expiryDate).getTime();
+              const dateB = new Date(b.expiryDate).getTime();
+              return dateB - dateA; // เรียงจากใหม่ไปเก่า
+            });
+
+          if (approvedLimits.length === 0) {
+            return new Intl.NumberFormat("th-TH", {
+              style: "currency",
+              currency: "THB",
+            }).format(0);
+          }
+
+          // เอารายการล่าสุด
+          const latestTemp = approvedLimits[0];
+          const expiryDate = new Date(latestTemp.expiryDate);
+          const now = new Date();
+
+          // ถ้าหมดอายุแล้ว แสดง 0
+          if (expiryDate < now) {
+            return (
+              <div className="text-sm">
+                <span className="font-medium text-gray-400">
+                  {new Intl.NumberFormat("th-TH", {
+                    style: "currency",
+                    currency: "THB",
+                  }).format(0)}
+                </span>
+                <span className="ml-2 text-xs text-red-600">(หมดอายุ)</span>
+              </div>
+            );
+          }
+
+          // ถ้ายังไม่หมดอายุ แสดงจำนวนเงิน
           return (
             <div className="text-sm">
-              {tempLimits.map((temp, idx) => {
-                const statusColor = 
-                  temp.status === "APPROVED" ? "text-green-600" :
-                  temp.status === "REJECTED" ? "text-red-600" :
-                  "text-yellow-600";
-                const statusText = 
-                  temp.status === "APPROVED" ? "อนุมัติ" :
-                  temp.status === "REJECTED" ? "ไม่อนุมัติ" :
-                  "รออนุมัติ";
-                  
-                return (
-                  <div key={temp.id} className={idx > 0 ? "mt-1 pt-1 border-t" : ""}>
-                    <span className="font-medium">
-                      {new Intl.NumberFormat("th-TH", {
-                        style: "currency",
-                        currency: "THB",
-                      }).format(Number(temp.requestedAmount))}
-                    </span>
-                    <span className={`ml-2 text-xs ${statusColor}`}>({statusText})</span>
-                  </div>
-                );
-              })}
+              <span className="font-medium text-green-600">
+                {new Intl.NumberFormat("th-TH", {
+                  style: "currency",
+                  currency: "THB",
+                }).format(Number(latestTemp.requestedAmount))}
+              </span>
+              <div className="text-xs text-gray-500 mt-1">
+                หมดอายุ: {expiryDate.toLocaleDateString("th-TH")}
+              </div>
             </div>
           );
         },
@@ -187,13 +234,13 @@ export default function CustomersCreditTable(props: CustomersCreditTableProps) {
       pagination={
         pagination
           ? {
-              page: pagination.page,
-              perPage: pagination.perPage,
-              total: pagination.total,
-              onPageChange: pagination.onPageChange,
-              onPerPageChange: pagination.onPerPageChange,
-              perPageOptions: pagination.perPageOptions,
-            }
+            page: pagination.page,
+            perPage: pagination.perPage,
+            total: pagination.total,
+            onPageChange: pagination.onPageChange,
+            onPerPageChange: pagination.onPerPageChange,
+            perPageOptions: pagination.perPageOptions,
+          }
           : undefined
       }
       canCreate={false}

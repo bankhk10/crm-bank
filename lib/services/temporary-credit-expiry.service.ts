@@ -144,10 +144,11 @@ export class TemporaryCreditExpiryService {
                             },
                         });
 
-                        // อัพเดท TemporaryCreditLimit
+                        // อัพเดท TemporaryCreditLimit - เปลี่ยนสถานะเป็น EXPIRED
                         await tx.temporaryCreditLimit.update({
                             where: { id: tempCredit.id },
                             data: {
+                                status: "EXPIRED",
                                 isReverted: true,
                                 revertedAt: now,
                             },

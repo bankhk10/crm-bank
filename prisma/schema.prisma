@@ -53,6 +53,7 @@ enum TemporaryCreditStatus {
   PENDING
   APPROVED
   REJECTED
+  EXPIRED
 }
 
 model User {

@@ -34,7 +34,7 @@
 2. สำหรับแต่ละรายการที่พบ:
    - ลดวงเงินใน `CreditLimit` (limitAmount และ availableAmount)
    - ตั้งค่า `temporaryCreditAmount = 0` และ `temporaryCreditExpiryDate = null`
-   - อัพเดท `isReverted = true` และ `revertedAt = ปัจจุบัน`
+   - อัพเดท `status = EXPIRED`, `isReverted = true` และ `revertedAt = ปัจจุบัน`
    - เพิ่ม note ใน CreditLimit
 
 3. ตรวจสอบว่า availableAmount ไม่ติดลบ (ถ้าติดลบจะไม่ revert และ log warning)
