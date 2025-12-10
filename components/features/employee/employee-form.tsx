@@ -709,7 +709,7 @@ export default function EmployeeForm({
           ข้อมูลการเข้าสู่ระบบ
         </h3>
 
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
           <div>
             <Label className={labelTextClass}>อีเมลสำหรับเข้าสู่ระบบ</Label>
             <Input
@@ -784,10 +784,7 @@ export default function EmployeeForm({
               <p className="text-xs text-red-600 mt-1">{fieldErrors.roleDefinitionId[0]}</p>
             )}
           </div>
-        </div>
-
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-          <div>
+                 <div>
             <Label className={labelTextClass}>สถานะการทำงาน</Label>
             <Select
               value={values.status ?? "ACTIVE"}
