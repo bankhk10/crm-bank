@@ -70,7 +70,7 @@ function useColumns() {
 
           if (!cl) return "-";
 
-          let totalLimit = cl.limitAmount;
+          let totalLimit = Number(cl.limitAmount);
 
           // เพิ่มวงเงินชั่วคราวที่ APPROVED และยังไม่หมดอายุ
           const tempLimits = r.temporaryCreditLimits || [];
