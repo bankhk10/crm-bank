@@ -100,7 +100,7 @@ export function SalesTable({
       accessorKey: "totalAmount",
       header: "ยอดรวม",
       cell: ({ row }) => (
-        <div className="text-right font-medium">
+        <div className=" font-medium">
           ฿{Number(row.original.totalAmount).toLocaleString("th-TH", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -209,8 +209,8 @@ export function SalesTable({
         page,
         perPage,
         total,
-        onPageChange: onPageChange || (() => {}),
-        onPerPageChange: onPerPageChange || (() => {}),
+        onPageChange: onPageChange || (() => { }),
+        onPerPageChange: onPerPageChange || (() => { }),
       }}
       emptyState={{
         title: "ไม่พบข้อมูลรายการขาย",
