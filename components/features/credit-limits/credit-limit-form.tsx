@@ -128,14 +128,16 @@ export default function CreditLimitForm({
           <Input
             type="number"
             className={inputClass}
-            value={payload.limitAmount}
+            value={String(payload.limitAmount ?? 0)}
             onChange={(e) => {
-              setPayload((p) => ({
-                ...p,
-                limitAmount: Number(e.target.value),
-              }));
+              const raw = e.target.value;
+              // strip leading zeros but keep single zero when appropriate
+              const cleaned = raw.replace(/^0+(?=\d)/, "");
+              const num = cleaned === "" ? 0 : Number(cleaned);
+              setPayload((p) => ({ ...p, limitAmount: num }));
               clearError("limitAmount");
             }}
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           />
         </div>
 
@@ -145,10 +147,16 @@ export default function CreditLimitForm({
           <Input
             type="number"
             className={inputClass}
-            value={payload.promoAmount ?? 0}
-            onChange={(e) =>
-              setPayload((p) => ({ ...p, promoAmount: Number(e.target.value) }))
-            }
+            value={String(payload.promoAmount ?? 0)}
+            onChange={(e) => {
+              const raw = e.target.value;
+              // strip leading zeros but keep single zero when appropriate
+              const cleaned = raw.replace(/^0+(?=\d)/, "");
+              const num = cleaned === "" ? 0 : Number(cleaned);
+              setPayload((p) => ({ ...p, promoAmount: num }));
+              clearError("promoAmount");
+            }}
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           />
         </div>
 
