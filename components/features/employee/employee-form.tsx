@@ -26,6 +26,7 @@ import {
   responsibilityAreaOptions,
   statusOptions,
 } from "./employee-options";
+import { json } from "stream/consumers";
 
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
@@ -77,6 +78,11 @@ export default function EmployeeForm({
   const [values, setValues] = useState<EmployeeFormValues>({
     status: "ACTIVE",
   });
+
+  console.log("🎯 Current values state:", values);
+  console.log("🎯 Current prefix:", values.prefix);
+
+
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
   const [roles, setRoles] = useState<Array<any>>([]);
@@ -126,6 +132,8 @@ export default function EmployeeForm({
   // initialize values from `initial`
   useEffect(() => {
     if (!initial) return;
+    console.log("🔍 Initial data received:", initial);
+    console.log("🔍 Prefix from initial:", initial.prefix);
     const addr = (initial as any).address;
     setValues((prev) => ({
       ...prev,
@@ -149,10 +157,10 @@ export default function EmployeeForm({
         addr?.postalCode != null
           ? String(addr.postalCode)
           : (initial as any).postalCode != null
-          ? String((initial as any).postalCode)
-          : (initial as any).zipCode != null
-          ? String((initial as any).zipCode)
-          : prev.postalCode,
+            ? String((initial as any).postalCode)
+            : (initial as any).zipCode != null
+              ? String((initial as any).zipCode)
+              : prev.postalCode,
       status: (initial as any).status ?? prev.status ?? "ACTIVE",
     }));
   }, [initial]);
@@ -225,7 +233,26 @@ export default function EmployeeForm({
   const handleSelect = useCallback(
     (key: keyof EmployeeFormValues) =>
       (v: string) => {
-        setValues((prev) => ({ ...prev, [key]: v }));
+        console.log(`🔽 handleSelect called for ${String(key)}:`, v);
+
+        // Don't update if trying to set empty string over existing value
+        // This prevents Select from clearing values during re-renders
+        setValues((prev) => {
+          console.log(`🔽 Before set - ${String(key)}:`, prev[key]);
+
+          // Skip update if new value is empty and previous value exists
+          if (v === "" && prev[key] && prev[key] !== "") {
+            console.log(`🔽 Skipping empty string update for ${String(key)}, keeping:`, prev[key]);
+            return { ...prev }; // Return new object with same values
+          }
+
+          const next = { ...prev, [key]: v };
+          console.log(`🔽 After set - ${String(key)}:`, next[key]);
+          if (key === "prefix") {
+            console.log("🔽 Full state after prefix change:", next);
+          }
+          return next;
+        });
         clearFieldError(String(key));
       },
     [clearFieldError]
@@ -251,7 +278,7 @@ export default function EmployeeForm({
         return String(
           Math.floor(
             (Date.now() - new Date(values.birthDate).getTime()) /
-              (1000 * 60 * 60 * 24 * 365.25)
+            (1000 * 60 * 60 * 24 * 365.25)
           )
         );
       } catch (e) {
@@ -290,7 +317,7 @@ export default function EmployeeForm({
     registerRandomize(handleRandomFill);
     return () => {
       try {
-        registerRandomize(() => {});
+        registerRandomize(() => { });
       } catch (e) {
         // ignore
       }
@@ -371,9 +398,8 @@ export default function EmployeeForm({
         responsibilityArea: values.responsibilityArea,
         addressLine: values.addressLine,
         status: values.status ?? "ACTIVE",
-        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${
-          values.lastName ?? ""
-        }`.trim(),
+        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${values.lastName ?? ""
+          }`.trim(),
         email: emailVal || undefined,
         roleTitle: (values.roleDefinitionId && roleDefObj?.name) || undefined,
         ...(hasAddress ? { address } : {}),
@@ -401,8 +427,8 @@ export default function EmployeeForm({
         if (!result.success) {
           setError(
             result.error ??
-              Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error"
+            Object.values(result.issues ?? {})[0]?.[0] ??
+            "Server error"
           );
           setFieldErrors(result.issues ?? {});
         } else {
@@ -685,7 +711,13 @@ export default function EmployeeForm({
               postalCode: values.postalCode,
             }}
             onChange={(next) => {
-              setValues((p) => ({ ...p, ...next }));
+              console.log("🗺️ ThaiAddressPicker onChange:", next);
+              setValues((p) => {
+                console.log("🗺️ Before merge - prefix:", p.prefix);
+                const merged = { ...p, ...next };
+                console.log("🗺️ After merge - prefix:", merged.prefix);
+                return merged;
+              });
               clearFieldError("province");
               clearFieldError("district");
               clearFieldError("subdistrict");

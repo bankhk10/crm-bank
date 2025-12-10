@@ -24,12 +24,18 @@ export default function EditEmployeePage() {
       setLoading(true);
       try {
         const res = await fetch(`/api/employee/${employeeId}`);
+
         if (!res.ok) throw new Error("Failed to load employee");
         const json = await res.json();
         const src = (json && (json.employee ?? json)) || {};
+
+        console.log("📡 API Response src:", src);
+        console.log("📡 src.prefix:", src.prefix);
+
         if (mounted) {
+
           // Map API fields into the form's expected initial shape if needed
-          setPayload({
+          const mappedPayload = {
             prefix: src.prefix ?? "",
             firstName: src.firstName ?? src.name ?? "",
             lastName: src.lastName ?? "",
@@ -42,26 +48,29 @@ export default function EditEmployeePage() {
             company: src.companyId ?? src.company?.id ?? "",
             responsibilityArea: src.responsibilityArea ?? "",
             addressLine: src.addressLine ?? "",
-              // Ensure address object is provided for the form's ThaiAddressPicker
-              address:
-                src.address ??
-                ({
-                  province: src.province ?? src.provinceName ?? "",
-                  district: src.district ?? "",
-                  subdistrict: src.subdistrict ?? "",
-                  postalCode: src.postalCode ?? src.zipCode ?? "",
-                } as any),
+            // Ensure address object is provided for the form's ThaiAddressPicker
+            address:
+              src.address ??
+              ({
+                province: src.province ?? src.provinceName ?? "",
+                district: src.district ?? "",
+                subdistrict: src.subdistrict ?? "",
+                postalCode: src.postalCode ?? src.zipCode ?? "",
+              } as any),
             status: src.status ?? "ACTIVE",
-              // Try multiple places where role info may be stored:
-              // - explicit roleDefinitionId on employee
-              // - roleId on employee (legacy)
-              // - linked user -> userRoles -> role.id (first assigned role)
-              roleDefinitionId:
-                src.roleDefinitionId ??
-                src.roleId ??
-                (src.user && src.user.userRoles && src.user.userRoles[0]?.role?.id) ??
-                undefined,
-          });
+            // Try multiple places where role info may be stored:
+            // - explicit roleDefinitionId on employee
+            // - roleId on employee (legacy)
+            // - linked user -> userRoles -> role.id (first assigned role)
+            roleDefinitionId:
+              src.roleDefinitionId ??
+              src.roleId ??
+              (src.user && src.user.userRoles && src.user.userRoles[0]?.role?.id) ??
+              undefined,
+          };
+          console.log("📦 Mapped payload:", mappedPayload);
+          console.log("📦 Mapped payload.prefix:", mappedPayload.prefix);
+          setPayload(mappedPayload);
         }
       } catch (e: any) {
         if (mounted) setError(String(e?.message ?? e));
