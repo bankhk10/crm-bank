@@ -3,19 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Settings, MoreHorizontal } from "lucide-react";
+import { Eye, Edit, Trash2, Settings } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import Tooltip from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -112,7 +104,7 @@ export function ProductsTable({
     },
     {
       accessorKey: "price",
-      header: "ราคาสินค้า",
+      header: "ราคา",
       cell: ({ row }) => {
         const price = row.original.price;
         return (
@@ -133,15 +125,15 @@ export function ProductsTable({
     },
     {
       accessorKey: "stockQuantity",
-      header: "สต็อกทั้งหมด",
+      header: "ทั้งหมด",
       cell: ({ row }) => {
         const totalStock =
           row.original.stockQuantity ??
           (row.original.stockLots
             ? row.original.stockLots.reduce(
-                (s, lot) => s + (lot.quantity || 0),
-                0
-              )
+              (s, lot) => s + (lot.quantity || 0),
+              0
+            )
             : 0);
 
         return <div className="text-sm">{totalStock.toLocaleString()}</div>;
@@ -149,7 +141,7 @@ export function ProductsTable({
     },
     {
       accessorKey: "reserved",
-      header: "สต็อกจอง",
+      header: "จอง",
       cell: ({ row }) => {
         const reserved = row.original.reserved ?? 0;
         return <div className="text-sm">{reserved.toLocaleString()}</div>;
@@ -157,15 +149,15 @@ export function ProductsTable({
     },
     {
       id: "availableStock",
-      header: "สต็อกคงเหลือ",
+      header: "คงเหลือ",
       cell: ({ row }) => {
         const totalStock =
           row.original.stockQuantity ??
           (row.original.stockLots
             ? row.original.stockLots.reduce(
-                (s, lot) => s + (lot.quantity || 0),
-                0
-              )
+              (s, lot) => s + (lot.quantity || 0),
+              0
+            )
             : 0);
         const reserved = row.original.reserved ?? 0;
         const available = Math.max(0, totalStock - reserved);
@@ -179,11 +171,10 @@ export function ProductsTable({
         const isActive = row.original.status === "ACTIVE";
         return (
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-              isActive
-                ? "bg-emerald-100 text-emerald-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${isActive
+              ? "bg-emerald-100 text-emerald-800"
+              : "bg-gray-100 text-gray-800"
+              }`}
           >
             {isActive ? "ใช้งาน" : "ไม่ใช้งาน"}
           </span>
@@ -196,63 +187,67 @@ export function ProductsTable({
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="flex items-center justify-start px-5">
-            {(canView || canUpdate || canManage) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon-sm"
-                    className="rounded-md"
-                    aria-label={`เมนูเพิ่มเติม ${product.name}`}
-                  >
-                    <MoreHorizontal className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>การจัดการ</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {canView && (
-                    <DropdownMenuItem asChild>
-                      <Link href={`/products/${product.id}`}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        ดู
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+          <div className="flex items-center justify-start gap-2 px-5">
+            {canView && (
+              <Tooltip content={`ดู ${product.name}`} side="top">
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="outline"
+                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                  aria-label={`ดู ${product.name}`}
+                >
+                  <Link href={`/products/${product.id}`}>
+                    <Eye className="size-4 text-blue-600" />
+                  </Link>
+                </Button>
+              </Tooltip>
+            )}
 
-                  {canUpdate && (
-                    <DropdownMenuItem asChild>
-                      <Link href={`/products/${product.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        แก้ไข
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+            {canUpdate && (
+              <Tooltip content={`แก้ไข ${product.name}`} side="top">
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="outline"
+                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                  aria-label={`แก้ไข ${product.name}`}
+                >
+                  <Link href={`/products/${product.id}/edit`}>
+                    <Edit className="size-4 text-purple-600" />
+                  </Link>
+                </Button>
+              </Tooltip>
+            )}
 
-                  {canManage && (
-                    <DropdownMenuItem asChild>
-                      <Link href={`/products/${product.id}/manage`}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        จัดการ
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+            {canManage && (
+              <Tooltip content={`จัดการ ${product.name}`} side="top">
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="outline"
+                  className="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
+                  aria-label={`จัดการ ${product.name}`}
+                >
+                  <Link href={`/products/${product.id}/manage`}>
+                    <Settings className="size-4 text-green-600" />
+                  </Link>
+                </Button>
+              </Tooltip>
+            )}
 
-                  {canDelete && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => openDeleteConfirm(product)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        ลบ
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {canDelete && (
+              <Tooltip content={`ลบ ${product.name}`} side="top">
+                <Button
+                  variant="destructive"
+                  size="icon-sm"
+                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                  onClick={() => openDeleteConfirm(product)}
+                  aria-label={`ลบ ${product.name}`}
+                >
+                  <Trash2 className="size-4 text-red-600" />
+                </Button>
+              </Tooltip>
             )}
           </div>
         );
