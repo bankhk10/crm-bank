@@ -99,6 +99,7 @@ export function ProductForm({
   }, [initialData]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [plantSearchQuery, setPlantSearchQuery] = useState("");
   // sampleImageUrls removed: random fill will NOT upload or set images
 
   const validateForm = (): boolean => {
@@ -522,18 +523,6 @@ export function ProductForm({
                           }}
                           className="hover:bg-green-200 rounded-full p-0.5 transition-colors cursor-pointer"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-3 w-3"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
                         </span>
                       </div>
                     );
@@ -545,35 +534,83 @@ export function ProductForm({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
-                {PLANT_OPTIONS.map((opt) => {
-                  const isSelected = formData.usedForPlants.includes(opt.value);
-                  return (
-                    <div
-                      key={opt.value}
-                      className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const newValues = isSelected
-                          ? formData.usedForPlants.filter((v) => v !== opt.value)
-                          : [...formData.usedForPlants, opt.value];
-                        setFormData((prev) => ({
-                          ...prev,
-                          usedForPlants: newValues,
-                        }));
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => { }}
-                        className="w-4 h-4 cursor-pointer"
-                      />
-                      <span className="text-sm">{opt.label}</span>
+                <div className="sticky top-0 bg-white z-10 pb-2">
+                  <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
+
+                  {/* Search input */}
+                  <div className="px-2 pb-2">
+                    <Input
+                      placeholder="ค้นหาพืช..."
+                      value={plantSearchQuery}
+                      onChange={(e) => setPlantSearchQuery(e.target.value)}
+                      className="h-8 text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+
+                  {/* Clear all button */}
+                  {formData.usedForPlants.length > 0 && (
+                    <div className="px-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setFormData((prev) => ({
+                            ...prev,
+                            usedForPlants: [],
+                          }));
+                        }}
+                        className="text-xs text-red-600 hover:text-red-700 hover:underline"
+                      >
+                        ลบทั้งหมด ({formData.usedForPlants.length})
+                      </button>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
+
+                {/* Filtered options */}
+                <div className="max-h-60 overflow-y-auto">
+                  {PLANT_OPTIONS.filter((opt) =>
+                    opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
+                  ).map((opt) => {
+                    const isSelected = formData.usedForPlants.includes(opt.value);
+                    return (
+                      <div
+                        key={opt.value}
+                        className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const newValues = isSelected
+                            ? formData.usedForPlants.filter((v) => v !== opt.value)
+                            : [...formData.usedForPlants, opt.value];
+                          setFormData((prev) => ({
+                            ...prev,
+                            usedForPlants: newValues,
+                          }));
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => { }}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                        <span className="text-sm">{opt.label}</span>
+                      </div>
+                    );
+                  })}
+
+                  {/* No results message */}
+                  {PLANT_OPTIONS.filter((opt) =>
+                    opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
+                  ).length === 0 && (
+                      <div className="px-2 py-4 text-center text-sm text-gray-500">
+                        ไม่พบผลลัพธ์
+                      </div>
+                    )}
+                </div>
               </SelectGroup>
             </SelectContent>
           </Select>
