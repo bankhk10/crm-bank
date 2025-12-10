@@ -5,11 +5,27 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, AlertTriangle, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  AlertTriangle,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  Building,
+  Calendar,
+  FileText,
+  CreditCard,
+  Truck
+} from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Customer = {
   id: string;
@@ -46,9 +62,9 @@ type Customer = {
 };
 
 const statusMap: Record<string, { label: string; className: string }> = {
-  ACTIVE: { label: "ใช้งาน", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-  INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
-  SUSPENDED: { label: "ระงับ", className: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
+  ACTIVE: { label: "ใช้งาน", className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" },
+  INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200" },
+  SUSPENDED: { label: "ระงับ", className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" },
 };
 
 const customerTypeMap: Record<string, string> = {
@@ -61,19 +77,62 @@ const customerTypeMap: Record<string, string> = {
 interface DetailItemProps {
   label: string;
   value: React.ReactNode;
+  icon?: React.ElementType;
   className?: string;
+  fullWidth?: boolean;
 }
 
-const DetailItem: React.FC<DetailItemProps> = ({ label, value, className }) => (
-  <div className={className}>
-    <p className="text-xs font-medium uppercase text-muted-foreground tracking-wider mb-1">
-      {label}
-    </p>
-    <div className="text-base font-normal text-foreground break-words">
+const DetailItem: React.FC<DetailItemProps> = ({ label, value, icon: Icon, className, fullWidth }) => (
+  <div className={`p-4 rounded-lg border bg-card text-card-foreground shadow-sm ${fullWidth ? "col-span-full" : ""} ${className}`}>
+    <div className="flex items-center gap-2 mb-2">
+      {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+      <p className="text-sm font-medium text-muted-foreground">
+        {label}
+      </p>
+    </div>
+    <div className="text-base font-semibold text-foreground break-words pl-6">
       {value}
     </div>
   </div>
 );
+
+const AddressBlock: React.FC<{
+  title: string;
+  icon: React.ElementType;
+  addressLine?: string | null;
+  subdistrict?: string | null;
+  district?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
+}> = ({ title, icon: Icon, addressLine, subdistrict, district, province, postalCode }) => {
+  const hasAddress = addressLine || subdistrict || district || province || postalCode;
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {hasAddress ? (
+          <div className="space-y-1 text-sm">
+            {addressLine && <p className="font-medium">{addressLine}</p>}
+            <p className="text-muted-foreground">
+              {[subdistrict, district, province]
+                .filter(Boolean)
+                .join(" / ")}
+            </p>
+            {postalCode && <p className="text-muted-foreground">{postalCode}</p>}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">ไม่มีข้อมูลที่อยู่</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function CustomerDetailPage() {
   const { customerId } = useParams() as { customerId: string };
@@ -108,8 +167,8 @@ export default function CustomerDetailPage() {
 
   if (!canView) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <Alert variant="destructive">
+      <div className="flex h-[50vh] items-center justify-center p-6">
+        <Alert variant="destructive" className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
           <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลลูกค้านี้</AlertDescription>
@@ -118,169 +177,195 @@ export default function CustomerDetailPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-[200px] lg:col-span-2" />
+          <Skeleton className="h-[200px]" />
+          <Skeleton className="h-[300px] lg:col-span-3" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>ข้อผิดพลาด</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-4 text-center">
+        <div className="rounded-full bg-muted p-4">
+          <User className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-xl font-semibold">ไม่พบข้อมูลลูกค้า</h2>
+        <p className="text-muted-foreground">รหัสลูกค้า: {customerId}</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          กลับ
+        </Button>
+      </div>
+    );
+  }
+
+  const statusInfo = customer.status ? statusMap[customer.status.toUpperCase()] : null;
+
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {loading ? (
-              <div className="h-8 w-full bg-gray-200 rounded animate-pulse" />
-            ) : customer ? (
-              <div className="relative flex items-center justify-center min-h-[40px]">
-                <div className="flex flex-col space-y-1 text-center">
-                  <span className="text-2xl font-semibold leading-none">
-                    {customer.name}
-                  </span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    ({customer.customerCode})
-                  </span>
-                </div>
-              </div>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Button variant="ghost" size="sm" className="-ml-2 h-8 text-muted-foreground" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              ลูกค้าทั้งหมด
+            </Button>
+          </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{customer.name}</h1>
+            {statusInfo ? (
+              <Badge variant="outline" className={statusInfo.className}>
+                {statusInfo.label}
+              </Badge>
             ) : (
-              <span className="text-xl font-semibold">ไม่พบข้อมูลลูกค้า</span>
+              <Badge variant="secondary">{customer.status ?? "-"}</Badge>
             )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>ข้อผิดพลาดในการโหลดข้อมูล</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          </div>
+          <p className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
+            <Building className="h-3 w-3" /> {customer.customerCode}
+            <span className="text-gray-300">•</span>
+            <span className="font-medium text-foreground">
+              {customerTypeMap[customer.customerType] || customer.customerType}
+            </span>
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`./${customerId}/edit`}> {/* Relative path to edit */}
+              <Pencil className="mr-2 h-4 w-4" />
+              แก้ไขข้อมูล
+            </Link>
+          </Button>
+          {/* Add Delete button logic here if needed, consistent with permissions */}
+        </div>
+      </div>
 
-          {loading ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="h-12 bg-gray-100 rounded animate-pulse" />
-                <div className="h-12 bg-gray-100 rounded animate-pulse" />
+      <Separator />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Left Column: Key Details */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                ข้อมูลทั่วไป
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <DetailItem label="คำนำหน้า" value={customer.prefix || "-"} icon={User} />
+              <DetailItem label="ชื่อ-นามสกุล" value={`${customer.firstName || ""} ${customer.lastName || ""}`.trim() || "-"} icon={User} />
+              <DetailItem label="อีเมล" value={customer.email || "-"} icon={Mail} />
+              <DetailItem label="เบอร์โทรศัพท์" value={customer.phone || "-"} icon={Phone} />
+              <DetailItem label="เลขผู้เสียภาษี" value={customer.taxId || "-"} icon={FileText} className="sm:col-span-2" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                ผู้ติดต่อ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <DetailItem label="ชื่อผู้ติดต่อ" value={customer.contactPerson || "-"} icon={User} />
+              <DetailItem label="เบอร์โทรศัพท์" value={customer.contactPhone || "-"} icon={Phone} />
+              <DetailItem label="อีเมล" value={customer.contactEmail || "-"} icon={Mail} className="sm:col-span-2" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                หมายเหตุ
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="p-4 bg-muted/50 rounded-lg text-sm leading-relaxed whitespace-pre-wrap">
+                {customer.notes || "ไม่มีหมายเหตุ"}
               </div>
-            </div>
-          ) : customer ? (
-            <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem 
-                  label="ประเภทลูกค้า" 
-                  value={customerTypeMap[customer.customerType] || customer.customerType} 
-                />
-                <DetailItem
-                  label="สถานะ"
-                  value={(() => {
-                    const s = (customer.status ?? "").toUpperCase();
-                    const info = statusMap[s];
-                    if (!info) return <Badge variant="secondary">{customer.status ?? "-"}</Badge>;
-                    return <Badge className={info.className}>{info.label}</Badge>;
-                  })()}
-                />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Addresses & Meta */}
+        <div className="space-y-6">
+          {/* Addresses */}
+          <div className="space-y-4">
+            <AddressBlock
+              title="ที่อยู่จดทะเบียน"
+              icon={MapPin}
+              addressLine={customer.addressLine}
+              subdistrict={customer.subdistrict}
+              district={customer.district}
+              province={customer.province}
+              postalCode={customer.postalCode}
+            />
+            <AddressBlock
+              title="ที่อยู่วางบิล"
+              icon={FileText}
+              addressLine={customer.billingAddressLine}
+              subdistrict={customer.billingSubdistrict}
+              district={customer.billingDistrict}
+              province={customer.billingProvince}
+              postalCode={customer.billingPostalCode}
+            />
+            <AddressBlock
+              title="ที่อยู่จัดส่ง"
+              icon={Truck}
+              addressLine={customer.shippingAddressLine}
+              subdistrict={customer.shippingSubdistrict}
+              district={customer.shippingDistrict}
+              province={customer.shippingProvince}
+              postalCode={customer.shippingPostalCode}
+            />
+          </div>
+
+          {/* Metadata */}
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">สร้างเมื่อ</span>
+                <span className="font-medium">
+                  {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("th-TH", {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : "-"}
+                </span>
               </div>
+            </CardContent>
+          </Card>
+        </div>
 
-              <Separator />
-
-              <h3 className="text-lg font-semibold">ข้อมูลทั่วไป</h3>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem label="คำนำหน้า" value={customer.prefix ?? "-"} />
-                <DetailItem label="ชื่อ" value={customer.firstName ?? "-"} />
-                <DetailItem label="นามสกุล" value={customer.lastName ?? "-"} />
-                <DetailItem label="อีเมล" value={customer.email ?? "-"} />
-                <DetailItem label="โทรศัพท์" value={customer.phone ?? "-"} />
-                <DetailItem label="เลขประจำตัวผู้เสียภาษี" value={customer.taxId ?? "-"} />
-              </div>
-
-              <Separator />
-
-              <h3 className="text-lg font-semibold">ที่อยู่</h3>
-              <div className="grid grid-cols-1 gap-6">
-                <DetailItem
-                  label="ที่อยู่"
-                  className="sm:col-span-2"
-                  value={
-                    customer.addressLine || customer.subdistrict || customer.district || customer.province || customer.postalCode ? (
-                      <div>
-                        {customer.addressLine && <div>{customer.addressLine}</div>}
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {[customer.subdistrict, customer.district, customer.province]
-                            .filter(Boolean)
-                            .join(", ")}
-                          {customer.postalCode ? ` ${customer.postalCode}` : ""}
-                        </div>
-                      </div>
-                    ) : "-"
-                  }
-                />
-              </div>
-
-              <Separator />
-
-              <h3 className="text-lg font-semibold">ที่อยู่วางบิล</h3>
-              <div className="grid grid-cols-1 gap-6">
-                <DetailItem
-                  label="ที่อยู่วางบิล"
-                  className="sm:col-span-2"
-                  value={
-                    customer.billingAddressLine || customer.billingSubdistrict || customer.billingDistrict || customer.billingProvince || customer.billingPostalCode ? (
-                      <div>
-                        {customer.billingAddressLine && <div>{customer.billingAddressLine}</div>}
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {[customer.billingSubdistrict, customer.billingDistrict, customer.billingProvince]
-                            .filter(Boolean)
-                            .join(", ")}
-                          {customer.billingPostalCode ? ` ${customer.billingPostalCode}` : ""}
-                        </div>
-                      </div>
-                    ) : "-"
-                  }
-                />
-              </div>
-
-              <Separator />
-
-              <h3 className="text-lg font-semibold">ที่อยู่จัดส่ง</h3>
-              <div className="grid grid-cols-1 gap-6">
-                <DetailItem
-                  label="ที่อยู่จัดส่ง"
-                  className="sm:col-span-2"
-                  value={
-                    customer.shippingAddressLine || customer.shippingSubdistrict || customer.shippingDistrict || customer.shippingProvince || customer.shippingPostalCode ? (
-                      <div>
-                        {customer.shippingAddressLine && <div>{customer.shippingAddressLine}</div>}
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {[customer.shippingSubdistrict, customer.shippingDistrict, customer.shippingProvince]
-                            .filter(Boolean)
-                            .join(", ")}
-                          {customer.shippingPostalCode ? ` ${customer.shippingPostalCode}` : ""}
-                        </div>
-                      </div>
-                    ) : "-"
-                  }
-                />
-              </div>
-
-              <Separator />
-
-              <h3 className="text-lg font-semibold">ผู้ติดต่อ</h3>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem label="ชื่อผู้ติดต่อ" value={customer.contactPerson ?? "-"} />
-                <DetailItem label="โทรศัพท์ผู้ติดต่อ" value={customer.contactPhone ?? "-"} />
-                <DetailItem label="อีเมลผู้ติดต่อ" value={customer.contactEmail ?? "-"} className="sm:col-span-2" />
-              </div>
-
-              <Separator />
-
-              <DetailItem label="หมายเหตุ" value={customer.notes ?? "-"} />
-              <DetailItem
-                label="สร้างเมื่อ"
-                value={customer.createdAt ? new Date(customer.createdAt).toLocaleString() : "-"}
-              />
-            </>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              <AlertTriangle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-              <p>ไม่พบข้อมูลลูกค้าที่ตรงกับ ID นี้</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }
