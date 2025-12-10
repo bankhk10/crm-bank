@@ -3,7 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Copy, Info, Shuffle } from "lucide-react";
-import FloatingLabelInput from "@/components/custom/FloatingLabelInputFixed";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
 import { Textarea } from "@/components/custom/Textarea";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
@@ -79,6 +89,9 @@ export function SaleForm({
   isEdit = false,
   onCancel,
 }: SaleFormProps) {
+  const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
+  const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -393,8 +406,7 @@ export function SaleForm({
       // Check price modification
       if (item.priceModified) {
         newWarnings.push(
-          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${
-            item.originalPrice
+          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${item.originalPrice
           } เป็น ${item.unitPrice}`
         );
       }
@@ -528,33 +540,49 @@ export function SaleForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FloatingLabelInput
-              label="ลูกค้า *"
-              type="select"
-              searchable
-              value={customerId}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setCustomerId(e.target.value)
-              }
-              options={customers.map((customer) => ({
-                value: customer.id,
-                label: `${customer.name} (${customer.customerCode})`,
-              }))}
-            />
+            <div>
+              <Label className={labelTextClass}>ลูกค้า *</Label>
+              <Select
+                value={customerId}
+                onValueChange={(val) => setCustomerId(val)}
+              >
+                <SelectTrigger className={inputTextClass}>
+                  <SelectValue placeholder="เลือกลูกค้า" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>ลูกค้า</SelectLabel>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} ({customer.customerCode})
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <FloatingLabelInput
-              label="พนักงานขาย *"
-              type="select"
-              searchable
-              value={employeeId}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setEmployeeId(e.target.value)
-              }
-              options={employees.map((employee) => ({
-                value: employee.id,
-                label: employee.name,
-              }))}
-            />
+            <div>
+              <Label className={labelTextClass}>พนักงานขาย *</Label>
+              <Select
+                value={employeeId}
+                onValueChange={(val) => setEmployeeId(val)}
+              >
+                <SelectTrigger className={inputTextClass}>
+                  <SelectValue placeholder="เลือกพนักงานขาย" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>พนักงานขาย</SelectLabel>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {selectedCustomer &&
@@ -570,21 +598,27 @@ export function SaleForm({
               return (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FloatingLabelInput
-                      label="วงเงินเครดิตคงเหลือ"
-                      type="number"
-                      value={availableAmount}
-                      disabled={!usePromotionalCredit}
-                      readOnly
-                    />
+                    <div>
+                      <Label className={labelTextClass}>วงเงินเครดิตคงเหลือ</Label>
+                      <Input
+                        type="number"
+                        value={availableAmount}
+                        disabled
+                        readOnly
+                        className={`${inputTextClass} bg-gray-100`}
+                      />
+                    </div>
 
-                    <FloatingLabelInput
-                      label="วงเงินส่งเสริมการขายคงเหลือ"
-                      type="number"
-                      value={promoAmount}
-                      disabled
-                      readOnly
-                    />
+                    <div>
+                      <Label className={labelTextClass}>วงเงินส่งเสริมการขายคงเหลือ</Label>
+                      <Input
+                        type="number"
+                        value={promoAmount}
+                        disabled
+                        readOnly
+                        className={`${inputTextClass} bg-gray-100`}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -610,11 +644,10 @@ export function SaleForm({
 
                       {usePromotionalCredit && promoAmount > 0 && (
                         <div
-                          className={`flex items-center px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 ${
-                            promotionalCreditUsed > promoAmount
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          }`}
+                          className={`flex items-center px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 ${promotionalCreditUsed > promoAmount
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
                         >
                           <input
                             type="number"
@@ -675,47 +708,63 @@ export function SaleForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FloatingLabelInput
-              label="เงื่อนไขการชำระเงิน *"
-              type="select"
-              value={paymentTerm}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setPaymentTerm(e.target.value as any)
-              }
-              options={[
-                { value: "PREPAID", label: "โอนเงินก่อน" },
-                { value: "CREDIT", label: "ส่งของก่อน" },
-              ]}
-            />
+            <div>
+              <Label className={labelTextClass}>เงื่อนไขการชำระเงิน *</Label>
+              <Select
+                value={paymentTerm}
+                onValueChange={(val: any) => setPaymentTerm(val)}
+              >
+                <SelectTrigger className={inputTextClass}>
+                  <SelectValue placeholder="เลือกเงื่อนไข" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>เงื่อนไข</SelectLabel>
+                    <SelectItem value="PREPAID">โอนเงินก่อน</SelectItem>
+                    <SelectItem value="CREDIT">ส่งของก่อน</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <DatePicker
-              label="วันที่ขาย *"
-              value={saleDate}
-              onChange={(val) => setSaleDate(val || "")}
-            />
+            <div className="mt-2">
+              <DatePicker
+                label="วันที่ขาย *"
+                value={saleDate}
+                onChange={(val) => setSaleDate(val || "")}
+                placeholder=""
+              />
+            </div>
 
-            <DatePicker
-              label="วันที่จัดส่ง"
-              value={deliveryDate}
-              onChange={(val) => setDeliveryDate(val || "")}
-            />
+            <div className="mt-2">
+              <DatePicker
+                label="วันที่จัดส่ง"
+                value={deliveryDate}
+                onChange={(val) => setDeliveryDate(val || "")}
+                placeholder=""
+              />
+            </div>
           </div>
 
           {paymentTerm === "CREDIT" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FloatingLabelInput
-                label="เครดิต (วัน)"
-                type="number"
-                value={creditDays}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCreditDays(Number(e.target.value))
-                }
-              />
-              <DatePicker
-                label="ครบกำหนดชำระ"
-                value={creditDueDate}
-                onChange={(val) => setCreditDueDate(val || "")}
-              />
+              <div>
+                <Label className={labelTextClass}>เครดิต (วัน)</Label>
+                <Input
+                  type="number"
+                  value={creditDays}
+                  onChange={(e) => setCreditDays(Number(e.target.value))}
+                  className={inputTextClass}
+                />
+              </div>
+              <div className="mt-2">
+                <DatePicker
+                  label="ครบกำหนดชำระ"
+                  value={creditDueDate}
+                  onChange={(val) => setCreditDueDate(val || "")}
+                  placeholder=""
+                />
+              </div>
             </div>
           )}
         </CardContent>
@@ -729,14 +778,14 @@ export function SaleForm({
           <div className="space-y-3">
             <h4 className="text-sm font-medium mx-2">ที่อยู่วางบิล</h4>
             <div className="mt-4 flex flex-col gap-3">
-              <FloatingLabelInput
-                label="ที่อยู่ / เลขที่ / ถนน"
-                type="text"
-                value={billingStreet}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setBillingStreet(e.target.value)
-                }
-              />
+              <div>
+                <Label className={labelTextClass}>ที่อยู่ / เลขที่ / ถนน</Label>
+                <Input
+                  value={billingStreet}
+                  onChange={(e) => setBillingStreet(e.target.value)}
+                  className={inputTextClass}
+                />
+              </div>
               <ThaiAddressPicker
                 value={billingThaiAddress}
                 onChange={setBillingThaiAddress}
@@ -758,14 +807,14 @@ export function SaleForm({
               </Button>
             </div>
             <div className="mt-4 flex flex-col gap-3">
-              <FloatingLabelInput
-                label="ที่อยู่ / เลขที่ / ถนน"
-                type="text"
-                value={shippingStreet}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setShippingStreet(e.target.value)
-                }
-              />
+              <div>
+                <Label className={labelTextClass}>ที่อยู่ / เลขที่ / ถนน</Label>
+                <Input
+                  value={shippingStreet}
+                  onChange={(e) => setBillingStreet(e.target.value)}
+                  className={inputTextClass}
+                />
+              </div>
               <ThaiAddressPicker
                 value={shippingThaiAddress}
                 onChange={setShippingThaiAddress}
@@ -811,24 +860,32 @@ export function SaleForm({
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Product Select */}
                     <div className="md:col-span-2">
-                      <FloatingLabelInput
-                        label="สินค้า"
-                        type="select"
-                        searchable
+                      <Label className={labelTextClass}>สินค้า</Label>
+                      <Select
                         value={item.productId}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                          handleUpdateItem(index, "productId", e.target.value)
+                        onValueChange={(val) =>
+                          handleUpdateItem(index, "productId", val)
                         }
-                        options={products.map((product) => ({
-                          value: product.id,
-                          label: `${product.name} - ${product.productCode}`,
-                        }))}
-                      />
+                      >
+                        <SelectTrigger className={inputTextClass}>
+                          <SelectValue placeholder="เลือกสินค้า" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>สินค้า</SelectLabel>
+                            {products.map((product) => (
+                              <SelectItem key={product.id} value={product.id}>
+                                {product.name} - {product.productCode}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* Stock Quantity */}
                     {product && (
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between mt-7">
                         <div className="mt-2">
                           <Button
                             type="button"
@@ -845,40 +902,49 @@ export function SaleForm({
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <FloatingLabelInput
-                      label="จำนวน"
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleUpdateItem(
-                          index,
-                          "quantity",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                    <FloatingLabelInput
-                      label="ราคาต่อหน่วย"
-                      type="number"
-                      value={item.unitPrice}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        handleUpdateItem(
-                          index,
-                          "unitPrice",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                    <FloatingLabelInput
-                      label="รวม"
-                      type="number"
-                      value={item.quantity * item.unitPrice}
-                      disabled
-                      readOnly
-                    />
+                    <div>
+                      <Label className={labelTextClass}>จำนวน</Label>
+                      <Input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleUpdateItem(
+                            index,
+                            "quantity",
+                            Number(e.target.value)
+                          )
+                        }
+                        className={inputTextClass}
+                      />
+                    </div>
+                    <div>
+                      <Label className={labelTextClass}>ราคาต่อหน่วย</Label>
+                      <Input
+                        type="number"
+                        value={item.unitPrice}
+                        onChange={(e) =>
+                          handleUpdateItem(
+                            index,
+                            "unitPrice",
+                            Number(e.target.value)
+                          )
+                        }
+                        className={inputTextClass}
+                      />
+                    </div>
+                    <div>
+                      <Label className={labelTextClass}>รวม</Label>
+                      <Input
+                        type="number"
+                        value={item.quantity * item.unitPrice}
+                        disabled
+                        readOnly
+                        className={`${inputTextClass} bg-gray-100`}
+                      />
+                    </div>
 
                     {product && (
-                      <div className="mx-4">
+                      <div className="mx-4 mt-4">
                         <label className="text-sm text-gray-500 block mb-1">
                           คงเหลือ
                         </label>
@@ -910,34 +976,36 @@ export function SaleForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FloatingLabelInput
-              label="ค่าขนส่ง"
-              type="number"
-              value={shippingCost}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setShippingCost(Number(e.target.value))
-              }
-            />
-            <FloatingLabelInput
-              label="ค่าใช้จ่ายอื่นๆ"
-              type="number"
-              value={otherCosts}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setOtherCosts(Number(e.target.value))
-              }
-            />
+            <div>
+              <Label className={labelTextClass}>ค่าขนส่ง</Label>
+              <Input
+                type="number"
+                value={shippingCost}
+                onChange={(e) => setShippingCost(Number(e.target.value))}
+                className={inputTextClass}
+              />
+            </div>
+            <div>
+              <Label className={labelTextClass}>ค่าใช้จ่ายอื่นๆ</Label>
+              <Input
+                type="number"
+                value={otherCosts}
+                onChange={(e) => setOtherCosts(Number(e.target.value))}
+                className={inputTextClass}
+              />
+            </div>
           </div>
 
           <div className="mb-4">
             {otherCosts > 0 && (
-              <FloatingLabelInput
-                label="รายละเอียดค่าใช้จ่ายอื่นๆ"
-                type="text"
-                value={otherCostsDescription}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setOtherCostsDescription(e.target.value)
-                }
-              />
+              <div>
+                <Label className={labelTextClass}>รายละเอียดค่าใช้จ่ายอื่นๆ</Label>
+                <Input
+                  value={otherCostsDescription}
+                  onChange={(e) => setOtherCostsDescription(e.target.value)}
+                  className={inputTextClass}
+                />
+              </div>
             )}
           </div>
 
@@ -1036,7 +1104,7 @@ export function SaleForm({
             <div>
               <h4 className="font-medium text-lg mb-3">รายการของแถม</h4>
               {selectedProductDetail?.freeItems &&
-              selectedProductDetail.freeItems.length > 0 ? (
+                selectedProductDetail.freeItems.length > 0 ? (
                 <div className="space-y-2">
                   {selectedProductDetail.freeItems.map((item, i) => (
                     <div
@@ -1075,7 +1143,7 @@ export function SaleForm({
             <div>
               <h4 className="font-medium text-lg mb-3">รายการส่งเสริมการขาย</h4>
               {selectedProductDetail?.promotionItems &&
-              selectedProductDetail.promotionItems.length > 0 ? (
+                selectedProductDetail.promotionItems.length > 0 ? (
                 <div className="space-y-2">
                   {selectedProductDetail.promotionItems.map((item, i) => (
                     <div
