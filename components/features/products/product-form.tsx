@@ -490,37 +490,55 @@ export function ProductForm({
         <div>
           <Label className={labelTextClass}>ใช้กับพืช</Label>
           <Select
-            value={formData.usedForPlants.join(",")}
-            onValueChange={(v) => {
-              const values = v ? v.split(",").filter(Boolean) : [];
-              setFormData((prev) => ({
-                ...prev,
-                usedForPlants: values,
-              }));
-            }}
+            value={formData.usedForPlants.length > 0 ? "selected" : ""}
             disabled={loading}
           >
             <SelectTrigger className={inputTextClass}>
               <SelectValue placeholder="เลือกพืช">
                 {formData.usedForPlants.length > 0
-                  ? `เลือกแล้ว ${formData.usedForPlants.length} รายการ`
+                  ? formData.usedForPlants
+                    .map((plantValue) => {
+                      const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
+                      return plant ? plant.label : plantValue;
+                    })
+                    .join(", ")
                   : "เลือกพืช"}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>พืช</SelectLabel>
-                {PLANT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
+                <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
+                {PLANT_OPTIONS.map((opt) => {
+                  const isSelected = formData.usedForPlants.includes(opt.value);
+                  return (
+                    <div
+                      key={opt.value}
+                      className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const newValues = isSelected
+                          ? formData.usedForPlants.filter((v) => v !== opt.value)
+                          : [...formData.usedForPlants, opt.value];
+                        setFormData((prev) => ({
+                          ...prev,
+                          usedForPlants: newValues,
+                        }));
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => { }}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm">{opt.label}</span>
+                    </div>
+                  );
+                })}
               </SelectGroup>
             </SelectContent>
           </Select>
-          <p className="text-xs text-gray-500 mt-1">
-            หมายเหตุ: ปัจจุบันรองรับการเลือกเพียง 1 รายการ
-          </p>
         </div>
 
         <div>
