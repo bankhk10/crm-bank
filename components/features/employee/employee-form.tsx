@@ -79,9 +79,6 @@ export default function EmployeeForm({
     status: "ACTIVE",
   });
 
-  console.log("🎯 Current values state:", values);
-  console.log("🎯 Current prefix:", values.prefix);
-
 
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
@@ -132,8 +129,6 @@ export default function EmployeeForm({
   // initialize values from `initial`
   useEffect(() => {
     if (!initial) return;
-    console.log("🔍 Initial data received:", initial);
-    console.log("🔍 Prefix from initial:", initial.prefix);
     const addr = (initial as any).address;
     setValues((prev) => ({
       ...prev,
@@ -233,25 +228,15 @@ export default function EmployeeForm({
   const handleSelect = useCallback(
     (key: keyof EmployeeFormValues) =>
       (v: string) => {
-        console.log(`🔽 handleSelect called for ${String(key)}:`, v);
-
         // Don't update if trying to set empty string over existing value
         // This prevents Select from clearing values during re-renders
         setValues((prev) => {
-          console.log(`🔽 Before set - ${String(key)}:`, prev[key]);
-
           // Skip update if new value is empty and previous value exists
           if (v === "" && prev[key] && prev[key] !== "") {
-            console.log(`🔽 Skipping empty string update for ${String(key)}, keeping:`, prev[key]);
             return { ...prev }; // Return new object with same values
           }
 
-          const next = { ...prev, [key]: v };
-          console.log(`🔽 After set - ${String(key)}:`, next[key]);
-          if (key === "prefix") {
-            console.log("🔽 Full state after prefix change:", next);
-          }
-          return next;
+          return { ...prev, [key]: v };
         });
         clearFieldError(String(key));
       },
@@ -711,13 +696,7 @@ export default function EmployeeForm({
               postalCode: values.postalCode,
             }}
             onChange={(next) => {
-              console.log("🗺️ ThaiAddressPicker onChange:", next);
-              setValues((p) => {
-                console.log("🗺️ Before merge - prefix:", p.prefix);
-                const merged = { ...p, ...next };
-                console.log("🗺️ After merge - prefix:", merged.prefix);
-                return merged;
-              });
+              setValues((p) => ({ ...p, ...next }));
               clearFieldError("province");
               clearFieldError("district");
               clearFieldError("subdistrict");

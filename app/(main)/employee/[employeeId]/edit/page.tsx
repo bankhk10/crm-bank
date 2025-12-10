@@ -29,9 +29,6 @@ export default function EditEmployeePage() {
         const json = await res.json();
         const src = (json && (json.employee ?? json)) || {};
 
-        console.log("📡 API Response src:", src);
-        console.log("📡 src.prefix:", src.prefix);
-
         if (mounted) {
 
           // Map API fields into the form's expected initial shape if needed
@@ -68,8 +65,6 @@ export default function EditEmployeePage() {
               (src.user && src.user.userRoles && src.user.userRoles[0]?.role?.id) ??
               undefined,
           };
-          console.log("📦 Mapped payload:", mappedPayload);
-          console.log("📦 Mapped payload.prefix:", mappedPayload.prefix);
           setPayload(mappedPayload);
         }
       } catch (e: any) {
