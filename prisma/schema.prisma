@@ -345,6 +345,10 @@ model CreditLimit {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   deletedAt       DateTime?
+  
+  // Temporary credit tracking
+  temporaryCreditAmount Decimal?    @default(0) @db.Decimal(15, 2)
+  temporaryCreditExpiryDate DateTime?
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
@@ -364,6 +368,11 @@ model TemporaryCreditLimit {
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
   deletedAt           DateTime?
+  
+  // Track which credit limit this was applied to
+  appliedToCreditLimitId String?
+  isReverted          Boolean                @default(false)
+  revertedAt          DateTime?
 
   customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   requestedBy     User?    @relation("TemporaryCreditRequester", fields: [requestedById], references: [id], onDelete: SetNull)

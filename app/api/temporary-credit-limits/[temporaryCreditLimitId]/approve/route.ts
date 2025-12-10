@@ -59,86 +59,91 @@ export async function POST(request: Request, context: any) {
   if (parsed.data.approve) {
     // Approve - create permanent credit limit and update status
     const result = await db.$transaction(async (tx) => {
-        // If customer has an existing active credit limit with remaining available amount,
-        // merge the requested amount into that limit. Otherwise create a new credit limit.
-        const existingCredit = await tx.creditLimit.findFirst({
-          where: { customerId: existing.customerId, deletedAt: null, status: "ACTIVE" },
-          orderBy: { createdAt: "desc" },
-        });
+      // If customer has an existing active credit limit with remaining available amount,
+      // merge the requested amount into that limit. Otherwise create a new credit limit.
+      const existingCredit = await tx.creditLimit.findFirst({
+        where: { customerId: existing.customerId, deletedAt: null, status: "ACTIVE" },
+        orderBy: { createdAt: "desc" },
+      });
 
-        let creditLimit;
+      let creditLimit;
 
-        if (existingCredit && (existingCredit.availableAmount as any).gt?.(0)) {
-          // Merge requested amount into existing credit limit using Decimal arithmetic
-          const newLimitAmount = (existingCredit.limitAmount as any).add
-            ? (existingCredit.limitAmount as any).add(existing.requestedAmount as any)
-            : new Prisma.Decimal(String(existingCredit.limitAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+      if (existingCredit && (existingCredit.availableAmount as any).gt?.(0)) {
+        // Merge requested amount into existing credit limit using Decimal arithmetic
+        const newLimitAmount = (existingCredit.limitAmount as any).add
+          ? (existingCredit.limitAmount as any).add(existing.requestedAmount as any)
+          : new Prisma.Decimal(String(existingCredit.limitAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
 
-          const newAvailableAmount = (existingCredit.availableAmount as any).add
-            ? (existingCredit.availableAmount as any).add(existing.requestedAmount as any)
-            : new Prisma.Decimal(String(existingCredit.availableAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+        const newAvailableAmount = (existingCredit.availableAmount as any).add
+          ? (existingCredit.availableAmount as any).add(existing.requestedAmount as any)
+          : new Prisma.Decimal(String(existingCredit.availableAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
 
-          // Determine expiry date: choose the later date between existing credit and temporary request, if both present
-          const newExpiryDate = existing.expiryDate && existingCredit.expiryDate
-            ? (existing.expiryDate > existingCredit.expiryDate ? existing.expiryDate : existingCredit.expiryDate)
-            : existing.expiryDate ?? existingCredit.expiryDate;
+        // Determine expiry date: choose the later date between existing credit and temporary request, if both present
+        const newExpiryDate = existing.expiryDate && existingCredit.expiryDate
+          ? (existing.expiryDate > existingCredit.expiryDate ? existing.expiryDate : existingCredit.expiryDate)
+          : existing.expiryDate ?? existingCredit.expiryDate;
 
-          creditLimit = await tx.creditLimit.update({
-            where: { id: existingCredit.id },
-            data: {
-              limitAmount: newLimitAmount,
-              availableAmount: newAvailableAmount,
-              expiryDate: newExpiryDate,
-              notes: `${existingCredit.notes ?? ""}\nMerged temporary credit: +${String(existing.requestedAmount)}`,
-            },
-          });
-        } else {
-          // Create permanent credit limit
-          creditLimit = await tx.creditLimit.create({
-            data: {
-              customerId: existing.customerId,
-              limitAmount: existing.requestedAmount,
-              usedAmount: 0,
-              availableAmount: existing.requestedAmount,
-              effectiveDate: now,
-              expiryDate: existing.expiryDate,
-              notes: `Temporary credit limit approved. Original notes: ${existing.notes || 'N/A'}`,
-              status: "ACTIVE",
-              approvedBy: session.user.id,
-              approvedAt: now,
-              createdById: existing.requestedById || session.user.id,
-            },
-          });
-        }
-
-        // Update temporary credit limit status
-        const updatedTemp = await tx.temporaryCreditLimit.update({
-          where: { id: params.temporaryCreditLimitId },
+        creditLimit = await tx.creditLimit.update({
+          where: { id: existingCredit.id },
           data: {
-            status: "APPROVED",
-            approvedById: session.user.id,
-            approvedAt: now,
-          },
-          include: {
-            customer: true,
-            requestedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            approvedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
+            limitAmount: newLimitAmount,
+            availableAmount: newAvailableAmount,
+            expiryDate: newExpiryDate,
+            temporaryCreditAmount: existing.requestedAmount,
+            temporaryCreditExpiryDate: existing.expiryDate,
+            notes: `${existingCredit.notes ?? ""}\nMerged temporary credit: +${String(existing.requestedAmount)}`,
           },
         });
+      } else {
+        // Create permanent credit limit
+        creditLimit = await tx.creditLimit.create({
+          data: {
+            customerId: existing.customerId,
+            limitAmount: existing.requestedAmount,
+            usedAmount: 0,
+            availableAmount: existing.requestedAmount,
+            effectiveDate: now,
+            expiryDate: existing.expiryDate,
+            temporaryCreditAmount: existing.requestedAmount,
+            temporaryCreditExpiryDate: existing.expiryDate,
+            notes: `Temporary credit limit approved. Original notes: ${existing.notes || 'N/A'}`,
+            status: "ACTIVE",
+            approvedBy: session.user.id,
+            approvedAt: now,
+            createdById: existing.requestedById || session.user.id,
+          },
+        });
+      }
 
-        return { temporaryCreditLimit: updatedTemp, creditLimit };
+      // Update temporary credit limit status
+      const updatedTemp = await tx.temporaryCreditLimit.update({
+        where: { id: params.temporaryCreditLimitId },
+        data: {
+          status: "APPROVED",
+          approvedById: session.user.id,
+          approvedAt: now,
+          appliedToCreditLimitId: creditLimit.id,
+        },
+        include: {
+          customer: true,
+          requestedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          approvedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return { temporaryCreditLimit: updatedTemp, creditLimit };
     });
 
     return NextResponse.json(result);

@@ -80,4 +80,42 @@ crm/
 ├── next.config.mjs           # ไฟล์ตั้งค่า Next.js
 └── tsconfig.json             # ไฟล์ตั้งค่า TypeScript
 
+## คำสั่ง Prisma
+
+```bash
+# Push schema changes to database
+npx prisma db push
+
+# Seed database with initial data
+npm run seed
+
+# Generate Prisma Client
+npx prisma generate
+```
+
+## Features
+
+### Temporary Credit Expiry Flow (Real-time)
+
+ระบบตรวจสอบและลบวงเงินชั่วคราวที่หมดอายุออกจากวงเงินเครดิตคงเหลือโดยอัตโนมัติ
+
+**การทำงาน:**
+- Background service รันทุก 5 นาที เพื่อตรวจสอบวงเงินที่หมดอายุ
+- เมื่อพบวงเงินที่หมดอายุ จะลดวงเงินออกจาก CreditLimit อัตโนมัติ
+- สามารถ trigger ด้วยตนเองผ่าน API
+
+**API Endpoints:**
+- `GET /api/temporary-credit-limits/expire` - ดูรายการวงเงินที่หมดอายุ
+- `POST /api/temporary-credit-limits/expire` - ลบวงเงินที่หมดอายุทันที
+- `POST /api/temporary-credit-limits/expire/trigger` - Trigger การตรวจสอบทันที
+
+**ทดสอบ:**
+```bash
+npx tsx scripts/test-temporary-credit-expiry.ts
+```
+
+**เอกสารเพิ่มเติม:** [docs/TEMPORARY_CREDIT_EXPIRY_FLOW.md](docs/TEMPORARY_CREDIT_EXPIRY_FLOW.md)
+
+---
+
 คุยกับฉันเป็นภาษาไทย
