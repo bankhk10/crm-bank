@@ -495,15 +495,15 @@ export function ProductForm({
             value={formData.usedForPlants.length > 0 ? "selected" : ""}
             disabled={loading}
           >
-            <SelectTrigger className={`${inputTextClass} ${formData.usedForPlants.length > 0 ? 'h-auto min-h-[44px] py-2' : ''}`}>
-              <div className="flex flex-wrap gap-1.5 w-full">
+            <SelectTrigger className={`${inputTextClass} !h-auto min-h-[44px] py-2 items-start`}>
+              <div className="flex flex-wrap gap-1.5 w-full items-center">
                 {formData.usedForPlants.length > 0 ? (
                   formData.usedForPlants.map((plantValue) => {
                     const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
                     return (
                       <div
                         key={plantValue}
-                        className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium"
+                        className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                         }}
