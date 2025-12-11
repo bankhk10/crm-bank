@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import fs from "fs";
-import path from "path";
+import cloudinary from "@/lib/cloudinary";
 
 const resourcePath = "/api/customers";
 
@@ -22,22 +21,12 @@ export async function POST(request: Request, { params }: { params: any }) {
 
     try {
         const formData = await request.formData();
-        // const coverIndexRaw = formData.get("coverIndex"); // Not supporting cover index for now unless requested
-
-        // We can support cover index if needed, but the requirement was just "upload images"
-        // Let's support it if we want to be consistent, but schema only has 'order'.
-        // Use simple ordering.
-
         const files = formData.getAll("images") as File[];
 
         if (!files || files.length === 0) {
             return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
 
-        const uploadDir = path.join(process.cwd(), "public", "uploads", "customers", customerId);
-        await fs.promises.mkdir(uploadDir, { recursive: true });
-
-        // create file records
         const created: Array<{ id: string; url: string; filename: string }> = [];
 
         for (let i = 0; i < files.length; i++) {
@@ -45,26 +34,34 @@ export async function POST(request: Request, { params }: { params: any }) {
             const arrayBuffer = await file.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             const originalName = file.name || `file-${Date.now()}`;
-            const ext = path.extname(originalName) || ".jpg";
-            const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}${ext}`;
-            const filepath = path.join(uploadDir, filename);
-            await fs.promises.writeFile(filepath, buffer);
 
-            const url = `/uploads/customers/${customerId}/${filename}`;
+            // Upload to Cloudinary
+            const uploadResult: any = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder: `crm-bank/customers/${customerId}`,
+                        resource_type: "auto",
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                uploadStream.end(buffer);
+            });
 
+            // Save to DB
             const rec = await (db as any).customerImage.create({
                 data: {
                     customerId,
-                    url,
-                    filename: originalName,
-                    order: i, // simple append
+                    url: uploadResult.secure_url,
+                    filename: originalName, // Store original name for display
+                    order: i,
                 },
             });
 
-            created.push({ id: rec.id, url, filename: originalName });
+            created.push({ id: rec.id, url: uploadResult.secure_url, filename: originalName });
         }
-
-        // Reorder based on creation if needed, but append is fine.
 
         const result = await (db as any).customerImage.findMany({
             where: { customerId },
@@ -73,7 +70,7 @@ export async function POST(request: Request, { params }: { params: any }) {
 
         return NextResponse.json({ images: result });
     } catch (err) {
-        console.error(err);
+        console.error("Cloudinary upload error:", err);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
 }
@@ -92,11 +89,10 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     // Check update permission
     const hasUpdatePermission =
         session.user.permissions?.["customer.update"]?.allow ||
-        session.user.permissions?.["customer.update.dealer"]?.allow; // Check generic or specific
+        session.user.permissions?.["customer.update.dealer"]?.allow;
 
     if (!hasUpdatePermission) {
-        // strict check? isAuthorized handles generic resource path.
-        // Use consistent pattern if possible.
+        // Fallback or specific checks could be added here
     }
 
     try {
@@ -113,16 +109,34 @@ export async function DELETE(request: Request, { params }: { params: any }) {
             where: { id: { in: imageIds }, customerId },
         });
 
-        // delete files from disk
+        // Delete from Cloudinary
         for (const r of recs) {
             try {
-                const rel = String(r.url).replace(/^\//, "");
-                const filepath = path.join(process.cwd(), "public", rel);
-                if (fs.existsSync(filepath)) {
-                    await fs.promises.unlink(filepath);
+                // Extract public_id from URL
+                // Example: https://res.cloudinary.com/cloudname/image/upload/v1234/crm-bank/customers/123/filename.jpg
+                // We need: crm-bank/customers/123/filename (no extension)
+                const urlParts = r.url.split('/');
+                const versionIndex = urlParts.findIndex((part: string) => part.startsWith('v') && !isNaN(Number(part.substring(1))));
+
+                if (versionIndex !== -1) {
+                    const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+                    const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove extension
+
+                    await cloudinary.uploader.destroy(publicId);
+                } else {
+                    // Try to guess if version is missing or structured differently
+                    // Sometimes Cloudinary URLs don't have version if not transformed?
+                    // But usually upload returns versioned url.
+                    // Fallback: look for 'crm-bank' folder start?
+                    const folderIndex = urlParts.indexOf('crm-bank');
+                    if (folderIndex !== -1) {
+                        const publicIdWithExt = urlParts.slice(folderIndex).join('/');
+                        const publicId = publicIdWithExt.replace(/\.[^/.]+$/, "");
+                        await cloudinary.uploader.destroy(publicId);
+                    }
                 }
             } catch (err) {
-                console.error("Failed to unlink file for image", r.id, err);
+                console.error("Failed to delete from Cloudinary", r.id, err);
             }
         }
 
