@@ -41,6 +41,10 @@ export async function POST(request: Request, { params }: { params: any }) {
                     {
                         folder: `crm-bank/customers/${customerId}`,
                         resource_type: "auto",
+                        transformation: [
+                            { width: 1280, crop: "limit" }, // Resize if larger than 1280px
+                            { quality: "auto:good" } // Reduce quality to efficient level (roughly equivalent to 80-90%)
+                        ]
                     },
                     (error, result) => {
                         if (error) reject(error);
