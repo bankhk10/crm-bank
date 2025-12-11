@@ -150,7 +150,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       <div className="w-full">
         <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
-          ตำบล
+          ตำบล/แขวง
         </Label>
         <Select
           value={subdistrict ?? ""}
@@ -174,7 +174,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         </Select>
       </div>
 
-      <div className="w-full"> 
+      <div className="w-full">
         <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
           รหัสไปรษณีย์
         </Label>

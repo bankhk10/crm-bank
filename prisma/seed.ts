@@ -15,6 +15,103 @@ async function main() {
   await prisma.company.deleteMany();
   await prisma.user.deleteMany();
 
+  // Create companies
+  await prisma.company.createMany({
+    data: [
+      {
+        shortName: 'IC',
+        name: 'บริษัท อินเตอร์ คร็อพ จำกัด',
+        addressLine: '22 ICG Building ถ.พระรามที่ 6',
+        email: 'info@intercrop.co.th',
+        phone: '0-2271-1001',
+        taxId: '0105531048113',
+        province: 'กรุงเทพมหานคร',
+        district: 'เขตพญาไท',
+        subdistrict: 'พญาไท',
+        postalCode: '10400',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'AI',
+        name: 'บริษัท แอ็กโฟรีแพ็กซ์อินดัสตรีส์ จำกัด',
+        addressLine: '828 หมู่ 4 นิคมอุตสาหกรรมบางปู ซ.13B',
+        email: 'info@agforepax.co.th',
+        phone: '02-709-3525',
+        taxId: '0115537008016',
+        province: 'สมุทรปราการ',
+        district: 'เมืองสมุทรปราการ',
+        subdistrict: 'แพรกษา',
+        postalCode: '10280',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'UP',
+        name: 'บริษัท ยูนิพรีมา จำกัด',
+        addressLine: '831 หมู่ 4 นิคมอุตสาหกรรมบางปู ซ.13B ',
+        email: 'info@uniprema.co.th',
+        phone: '02-709-6841',
+        taxId: '0105547144354',
+        province: 'สมุทรปราการ',
+        district: 'เมืองสมุทรปราการ',
+        subdistrict: 'แพรกษา',
+        postalCode: '10280',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'AM',
+        name: 'บริษัท เอแม็กซ์ อินเตอร์ จำกัด',
+        addressLine: '22 ICG Building ถ.พระรามที่ 6',
+        email: 'info@amax-inter.co.th',
+        phone: '0',
+        taxId: '0105554109810',
+        province: 'กรุงเทพมหานคร',
+        district: 'เขตพญาไท',
+        subdistrict: 'พญาไท',
+        postalCode: '10400',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'BF',
+        name: 'บริษัท บีแฟค อินเตอร์ จำกัด',
+        addressLine: '22 ICG Building ถ.พระรามที่ 6',
+        email: 'info@bfac-inter.co.th',
+        phone: '0',
+        taxId: '0105554109879',
+        province: 'กรุงเทพมหานคร',
+        district: 'เขตพญาไท',
+        subdistrict: 'พญาไท',
+        postalCode: '10400',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'CP',
+        name: 'บริษัท ซีเพช อินเตอร์ จำกัด',
+        addressLine: '22 ICG Building ถ.พระรามที่ 6',
+        email: 'info@cpech-inter.co.th',
+        phone: '0',
+        taxId: '0105554109828',
+        province: 'กรุงเทพมหานคร',
+        district: 'เขตพญาไท',
+        subdistrict: 'พญาไท',
+        postalCode: '10400',
+        status: 'ACTIVE',
+      },
+      {
+        shortName: 'CS',
+        name: 'บริษัท คร็อพ ซายน์ จำกัด',
+        addressLine: '22 ICG Building ถ.พระรามที่ 6',
+        email: 'cs@cropsciences.co.th',
+        phone: '02-618-4522',
+        taxId: '0105542089762',
+        province: 'กรุงเทพมหานคร',
+        district: 'เขตพญาไท',
+        subdistrict: 'พญาไท',
+        postalCode: '10400',
+        status: 'ACTIVE',
+      },
+    ],
+  });
+
   const [sales, cs, ops] = await Promise.all([
     prisma.department.create({
       data: {
@@ -159,7 +256,7 @@ async function main() {
         menuPath: "/dashboard/salesReport",
       },
     }),
-    
+
     prisma.permission.create({
       data: {
         key: "menu.employees",
