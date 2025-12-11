@@ -193,7 +193,8 @@ export default function EditCustomerPage() {
         return { success: false, issues: json?.issues, error: json?.error };
       }
 
-      return { success: true };
+      const json = await res.json();
+      return { success: true, data: json };
     } catch (e: any) {
       return { success: false, error: String(e) };
     } finally {
@@ -238,11 +239,11 @@ export default function EditCustomerPage() {
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
-                    if (result.success) router.push(`/customers`);
                     return result;
                   }}
                   onCancel={() => router.push(`/customers`)}
                   submitLabel="บันทึก"
+                  onSuccess={() => router.push(`/customers`)}
                 />
               )}
 
@@ -251,11 +252,11 @@ export default function EditCustomerPage() {
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
-                    if (result.success) router.push(`/customers`);
                     return result;
                   }}
                   onCancel={() => router.push(`/customers`)}
                   submitLabel="บันทึก"
+                  onSuccess={() => router.push(`/customers`)}
                 />
               )}
 
@@ -264,11 +265,11 @@ export default function EditCustomerPage() {
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
-                    if (result.success) router.push(`/customers`);
                     return result;
                   }}
                   onCancel={() => router.push(`/customers`)}
                   submitLabel="บันทึก"
+                  onSuccess={() => router.push(`/customers`)}
                 />
               )}
 
@@ -277,11 +278,11 @@ export default function EditCustomerPage() {
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
-                    if (result.success) router.push(`/customers`);
                     return result;
                   }}
                   onCancel={() => router.push(`/customers`)}
                   submitLabel="บันทึก"
+                  onSuccess={() => router.push(`/customers`)}
                 />
               )}
 
@@ -291,11 +292,11 @@ export default function EditCustomerPage() {
                   initial={payload}
                   onSubmit={async (body) => {
                     const result = await handleUpdate(body);
-                    if (result.success) router.push(`/customers`);
                     return result;
                   }}
                   onCancel={() => router.push(`/customers`)}
                   submitLabel="บันทึก"
+                  onSuccess={() => router.push(`/customers`)}
                 />
               )}
             </div>

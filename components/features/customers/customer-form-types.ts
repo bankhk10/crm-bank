@@ -35,4 +35,5 @@ export interface CustomerFormProps {
   onSubmit: (payload: CustomerPayload) => Promise<SubmitResult>;
   onCancel?: () => void;
   submitLabel?: string;
+  onSuccess?: () => void;
 }

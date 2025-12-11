@@ -35,6 +35,7 @@ export default function CustomerFormSubdealer({
   onSubmit,
   onCancel,
   submitLabel = "เพิ่มลูกค้า",
+  onSuccess,
 }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<any>({
@@ -170,9 +171,8 @@ export default function CustomerFormSubdealer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${
-        values.firstName ?? ""
-      } ${values.lastName ?? ""}`.trim(),
+      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
+        } ${values.lastName ?? ""}`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.notes ?? "",
@@ -212,6 +212,8 @@ export default function CustomerFormSubdealer({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+      } else {
+        onSuccess?.();
       }
     } catch (err: any) {
       setError(String(err));
@@ -225,7 +227,7 @@ export default function CustomerFormSubdealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+        (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -495,7 +497,7 @@ export default function CustomerFormSubdealer({
           <Input
             value={calculatedAge()}
             disabled={true}
-            onChange={() => {}}
+            onChange={() => { }}
             className={inputTextClass}
           />
         </div>

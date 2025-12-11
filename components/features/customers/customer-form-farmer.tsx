@@ -45,6 +45,7 @@ export default function CustomerFormFarmer({
   onSubmit,
   onCancel,
   submitLabel = "เพิ่มลูกค้า",
+  onSuccess,
 }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<any>({
@@ -166,9 +167,8 @@ export default function CustomerFormFarmer({
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "FARMER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${
-        values.firstName ?? ""
-      } ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
+        } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -180,9 +180,8 @@ export default function CustomerFormFarmer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${
-        values.lastName ?? ""
-      }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
+        }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -211,6 +210,8 @@ export default function CustomerFormFarmer({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+      } else {
+        onSuccess?.();
       }
     } catch (err: any) {
       setError(String(err));
@@ -224,7 +225,7 @@ export default function CustomerFormFarmer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+        (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -367,7 +368,7 @@ export default function CustomerFormFarmer({
           <Input
             value={calculatedAge()}
             disabled={true}
-            onChange={() => {}}
+            onChange={() => { }}
             className={inputTextClass}
           />
         </div>

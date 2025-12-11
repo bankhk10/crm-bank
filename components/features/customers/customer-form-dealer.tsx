@@ -33,6 +33,7 @@ export default function CustomerFormDealer({
   onSubmit,
   onCancel,
   submitLabel = "บันทึก",
+  onSuccess,
 }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<any>({
@@ -220,6 +221,24 @@ export default function CustomerFormDealer({
     });
   };
 
+  const deleteImages = (
+    customerId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/customers/${customerId}/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to delete images"));
+        })
+        .catch(reject);
+    });
+  };
+
   function handleChange(key: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const v = (e.target as HTMLInputElement).value;
@@ -290,20 +309,38 @@ export default function CustomerFormDealer({
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
       } else {
-        // Upload images
-        const createdCustomer = res.data?.customer;
-        if (createdCustomer?.id && images.length > 0) {
-          const filesToUpload = images.filter((i) => i instanceof File) as File[];
-          if (filesToUpload.length > 0) {
-            try {
-              setUploadProgress(0);
-              await uploadImages(createdCustomer.id, filesToUpload);
-            } catch (err) {
-              console.error("Image upload failed", err);
+        // Handle images (delete removed, upload new)
+        const targetCustomerId = res.data?.customer?.id || values.id;
+
+        if (targetCustomerId) {
+          try {
+            // 1. Helper to find removed images
+            const initialImages = (initial.images || []) as any[];
+            const currentImageIds = images.map((img) => img.id).filter(Boolean);
+            const removedImageIds = initialImages
+              .map((img) => img.id)
+              .filter((id) => !currentImageIds.includes(id));
+
+            // 2. Delete removed images
+            if (removedImageIds.length > 0) {
+              await deleteImages(targetCustomerId, removedImageIds);
             }
+
+            // 3. Upload new images
+            if (images.length > 0) {
+              const filesToUpload = images.filter((i) => i instanceof File) as File[];
+              if (filesToUpload.length > 0) {
+                setUploadProgress(0);
+                await uploadImages(targetCustomerId, filesToUpload);
+              }
+            }
+          } catch (err) {
+            console.error("Image operation failed", err);
+            // We don't block success navigation if image op fails, but we log it
           }
         }
-        // Navigation is handled by parent component
+        // Navigation is handled by onSuccess callback
+        onSuccess?.();
       }
     } catch (err: any) {
       setError(String(err));
