@@ -159,6 +159,10 @@ export default function EditCustomerPage() {
             regularShops: (src as any).regularShops ?? "",
             serviceTypes: (src as any).serviceTypes ?? "",
             usedBrands: (src as any).usedBrands ?? "",
+            images: ((src as any).images ?? []).map((img: any) => ({
+              ...img,
+              name: img.filename,
+            })),
           }));
         }
       } catch (e: any) {

@@ -86,6 +86,9 @@ export async function GET(request: Request, context: any) {
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
       },
+      images: {
+        orderBy: { order: "asc" },
+      },
     },
   });
 
@@ -114,7 +117,7 @@ export async function PUT(request: Request, context: any) {
 
   const body = await request.json().catch(() => null);
   const normalizedBody = body && typeof body === "object" ? { ...(body as Record<string, unknown>) } : body;
-  
+
   if (normalizedBody && typeof normalizedBody === "object") {
     if (typeof (normalizedBody as any).postalCode === "number") {
       (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
@@ -128,7 +131,7 @@ export async function PUT(request: Request, context: any) {
   }
 
   const parsed = customerUpdateSchema.safeParse(normalizedBody);
-  
+
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
