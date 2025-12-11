@@ -26,6 +26,102 @@ export interface FileUploadProps {
   onSetCover?: (index: number) => void;
 }
 
+const ImagePreviewItem = ({
+  file,
+  index,
+  isCover,
+  disabled,
+  onSetCover,
+  onRemove,
+  onPreview,
+}: {
+  file: File | ExistingImage;
+  index: number;
+  isCover: boolean;
+  disabled: boolean;
+  onSetCover?: (index: number) => void;
+  onRemove: (index: number) => void;
+  onPreview: (url: string) => void;
+}) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    let url: string | null = null;
+    if (file instanceof File) {
+      url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(file.url);
+    }
+
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [file]);
+
+  if (!previewUrl) return null;
+
+  const isFile = file instanceof File;
+
+  return (
+    <div
+      className={`relative group w-32 h-32 shrink-0 bg-white p-1 rounded-md border-2 transition-all ${isCover ? "border-yellow-400 shadow-sm" : "border-gray-200"
+        }`}
+    >
+      <div
+        className="w-full h-full relative cursor-pointer overflow-hidden rounded-sm"
+        onClick={() => onPreview(previewUrl)}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={previewUrl}
+          alt={isFile ? file.name : (file as ExistingImage).name || "image"}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        />
+
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => {
+                const newIndex = isCover ? null : index;
+                if (newIndex !== null) onSetCover?.(newIndex);
+              }}
+              className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${isCover
+                  ? "bg-yellow-400 text-white"
+                  : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
+                }`}
+              title={isCover ? "ยกเลิกหน้าปก" : "ตั้งเป็นหน้าปก"}
+              disabled={disabled}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="p-1.5 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-red-500 transition-colors"
+              title="ลบรูปภาพ"
+              disabled={disabled}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="absolute bottom-1 right-1 text-white/80">
+            <ZoomIn className="w-3 h-3" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const FileUpload: React.FC<FileUploadProps> = ({
   label,
   value = [],
@@ -159,23 +255,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     });
   };
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    handleFiles(e.dataTransfer.files);
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFiles(e.target.files);
   };
@@ -224,73 +303,22 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {/* Gallery Layout */}
       <div className="flex flex-wrap gap-4">
         {/* Existing Images */}
-        {value.map((file, index) => {
-          const isFile = file instanceof File;
-          const preview = isFile
-            ? URL.createObjectURL(file)
-            : (file as ExistingImage).url;
-
-          const isCover = coverIndex === index;
-
-          return (
-            <div
-              key={index}
-              className={`relative group w-32 h-32 shrink-0 bg-white p-1 rounded-md border-2 transition-all ${isCover ? "border-yellow-400 shadow-sm" : "border-gray-200"
-                }`}
-            >
-              <div
-                className="w-full h-full relative cursor-pointer overflow-hidden rounded-sm"
-                onClick={() => setPreviewImage(preview)}
-              >
-                {/* Image */}
-                <img
-                  src={preview}
-                  alt={isFile ? file.name : (file as ExistingImage).name || "image"}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  onLoad={() => {
-                    if (isFile) URL.revokeObjectURL(preview as string);
-                  }}
-                />
-
-                {/* Hover Overlay with Actions */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newIndex = isCover ? null : index;
-                        setCoverIndex(newIndex);
-                        if (newIndex !== null) onSetCover?.(newIndex);
-                      }}
-                      className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${isCover
-                          ? "bg-yellow-400 text-white"
-                          : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
-                        }`}
-                      title={isCover ? "ยกเลิกหน้าปก" : "ตั้งเป็นหน้าปก"}
-                      disabled={disabled}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="p-1.5 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-red-500 transition-colors"
-                      title="ลบรูปภาพ"
-                      disabled={disabled}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-1 right-1 text-white/80">
-                    <ZoomIn className="w-3 h-3" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {value.map((file, index) => (
+          <ImagePreviewItem
+            key={index}
+            file={file}
+            index={index}
+            isCover={coverIndex === index}
+            disabled={disabled}
+            onSetCover={(idx) => {
+              const newIndex = idx === coverIndex ? null : idx;
+              setCoverIndex(newIndex === coverIndex ? null : idx);
+              onSetCover?.(idx);
+            }}
+            onRemove={removeFile}
+            onPreview={setPreviewImage}
+          />
+        ))}
 
         {/* Upload Button Tile */}
         {value.length < maxFiles && !disabled && (
@@ -318,11 +346,15 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       />
 
       {/* Lightbox Dialog */}
-      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+      <Dialog
+        open={!!previewImage}
+        onOpenChange={(open) => !open && setPreviewImage(null)}
+      >
         <DialogContent className="max-w-4xl w-full p-0 bg-transparent border-none shadow-none text-white flex flex-col items-center justify-center">
           <DialogTitle className="sr-only">Image Preview</DialogTitle>
           <div className="relative w-auto h-[80vh] flex items-center justify-center">
             {previewImage && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewImage}
                 alt="Full preview"
