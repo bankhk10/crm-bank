@@ -319,6 +319,7 @@ model Customer {
   updatedAt             DateTime       @updatedAt
   deletedAt             DateTime?
 
+  images                  CustomerImage[]
   creditLimits            CreditLimit[]
   temporaryCreditLimits   TemporaryCreditLimit[]
   parentDealer            Customer?     @relation("ParentDealer", fields: [parentDealerId], references: [id], onDelete: SetNull)
@@ -408,6 +409,17 @@ model Product {
   freeItems             ProductFreeItem[]
   stockLots             ProductStockLot[]
   saleItems             SaleItem[]    @relation("SaleItemProduct")
+}
+
+model CustomerImage {
+  id          String   @id @default(cuid())
+  customerId  String
+  url         String
+  filename    String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model ProductImage {

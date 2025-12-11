@@ -19,6 +19,7 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
+import { FileUpload } from "@/components/custom/file-upload";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -69,6 +70,7 @@ export default function CustomerFormDealer({
     shippingSubdistrict: (initial as any).shippingSubdistrict ?? "",
     shippingPostalCode: (initial as any).shippingPostalCode ?? "",
     status: initial.status ?? "ACTIVE",
+    images: initial.images || [],
   });
 
   const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
@@ -80,6 +82,9 @@ export default function CustomerFormDealer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  const [images, setImages] = useState<any[]>(initial.images || []);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   // get next sequential customerCode from backend (format C00001)
   const fetchNextCustomerCode = async () => {
@@ -180,6 +185,41 @@ export default function CustomerFormDealer({
     });
   };
 
+  const uploadImages = (
+    customerId: string,
+    files: File[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const form = new FormData();
+      files.forEach((f) => form.append("images", f));
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `/api/customers/${customerId}/images`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const json = JSON.parse(xhr.responseText || "{}");
+            resolve(json);
+          } catch (err) {
+            resolve({});
+          }
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.send(form);
+    });
+  };
+
   function handleChange(key: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const v = (e.target as HTMLInputElement).value;
@@ -249,11 +289,28 @@ export default function CustomerFormDealer({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+      } else {
+        // Upload images
+        const createdCustomer = res.data?.customer;
+        if (createdCustomer?.id && images.length > 0) {
+          const filesToUpload = images.filter((i) => i instanceof File) as File[];
+          if (filesToUpload.length > 0) {
+            try {
+              setUploadProgress(0);
+              await uploadImages(createdCustomer.id, filesToUpload);
+            } catch (err) {
+              console.error("Image upload failed", err);
+            }
+          }
+        }
+        router.push("/customers");
+        router.refresh();
       }
     } catch (err: any) {
       setError(String(err));
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -542,6 +599,29 @@ export default function CustomerFormDealer({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        รูปภาพร้านค้า
+      </h3>
+      <div className="md:col-span-2 mt-6">
+        <FileUpload
+          label="อัพโหลดรูปภาพร้านค้า (สูงสุด 5 รูป)"
+          value={images}
+          onChange={setImages}
+          maxFiles={5}
+          maxSizeMB={5}
+          disabled={loading}
+        />
+        {uploadProgress !== null && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+            <p className="text-xs text-center mt-1">กำลังอัพโหลด: {uploadProgress}%</p>
+          </div>
+        )}
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลผู้ติดต่อ
       </h3>
 
@@ -801,26 +881,21 @@ export default function CustomerFormDealer({
                 businessNotes: rnd.businessNotes ?? p.businessNotes,
                 relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
               }));
-              setFieldErrors({});
             }}
           >
-            กรอกข้อมูลแบบสุ่ม
+            สุ่มข้อมูล
           </Button>
+
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
             type="button"
-            onClick={() => {
-              try {
-                if (onCancel) onCancel();
-              } catch (e) {
-                /* ignore */
-              }
-              router.push("/customers");
-            }}
+            onClick={onCancel ?? (() => router.back())}
+            disabled={loading}
           >
             ยกเลิก
           </Button>
+
           <Button
             size="lg"
             className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"

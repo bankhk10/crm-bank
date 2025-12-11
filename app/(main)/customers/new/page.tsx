@@ -65,7 +65,7 @@ export default function NewCustomerPage() {
         return { success: false, issues: json?.issues, error: json?.error };
       }
 
-      return { success: true };
+      return { success: true, data: await res.json() };
     } catch (e: any) {
       return { success: false, error: String(e) };
     }

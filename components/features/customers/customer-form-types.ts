@@ -25,6 +25,7 @@ export type SubmitResult = {
   success: boolean;
   issues?: Record<string, string[]>;
   error?: string;
+  data?: any;
 };
 
 export interface CustomerFormProps {
