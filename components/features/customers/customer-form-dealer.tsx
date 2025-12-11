@@ -599,29 +599,6 @@ export default function CustomerFormDealer({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        รูปภาพร้านค้า
-      </h3>
-      <div className="md:col-span-2 mt-6">
-        <FileUpload
-          label="อัพโหลดรูปภาพร้านค้า (สูงสุด 5 รูป)"
-          value={images}
-          onChange={setImages}
-          maxFiles={5}
-          maxSizeMB={5}
-          disabled={loading}
-        />
-        {uploadProgress !== null && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
-            <p className="text-xs text-center mt-1">กำลังอัพโหลด: {uploadProgress}%</p>
-          </div>
-        )}
-      </div>
-
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลผู้ติดต่อ
       </h3>
 
@@ -842,6 +819,30 @@ export default function CustomerFormDealer({
           className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
           rows={3}
         />
+      </div>
+
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        รูปภาพร้านค้า
+      </h3>
+      <div className="md:col-span-2 mt-6">
+        <FileUpload
+          label="อัพโหลดรูปภาพร้านค้า (สูงสุด 5 รูป)"
+          value={images}
+          onChange={setImages}
+          maxFiles={5}
+          maxSizeMB={5}
+          disabled={loading}
+        />
+        {uploadProgress !== null && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+            <p className="text-xs text-center mt-1">กำลังอัพโหลด: {uploadProgress}%</p>
+          </div>
+        )}
       </div>
 
       <div className="md:col-span-2 pt-6 border-t my-2">
