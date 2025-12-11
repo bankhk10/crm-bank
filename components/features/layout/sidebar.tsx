@@ -59,12 +59,6 @@ export const navigationItems: SidebarNavItem[] = [
 
     icon: <DollarSign className="h-4 w-4" />,
   },
-  // {
-  //   href: "/sales-forecasts",
-  //   label: "ประมาณการยอดขาย",
-  //   permissionKey: "menu.sales_forecasts",
-  //   icon: <ShoppingCart className="h-4 w-4" />,
-  // },
   {
     href: "/employee",
     label: "พนักงาน",
