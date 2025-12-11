@@ -19,6 +19,7 @@ export type CustomerPayload = {
   contactEmail?: string;
   notes?: string;
   birthDate?: string;
+  images?: any[];
 };
 
 export type SubmitResult = {

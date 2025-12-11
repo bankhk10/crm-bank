@@ -303,8 +303,7 @@ export default function CustomerFormDealer({
             }
           }
         }
-        router.push("/customers");
-        router.refresh();
+        // Navigation is handled by parent component
       }
     } catch (err: any) {
       setError(String(err));
@@ -333,8 +332,8 @@ export default function CustomerFormDealer({
         (position) => {
           setValues((prev: any) => ({
             ...prev,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
+            latitude: String(position.coords.latitude),
+            longitude: String(position.coords.longitude),
           }));
         },
         (error) => {
