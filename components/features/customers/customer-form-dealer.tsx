@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MapPin } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -220,9 +221,8 @@ export default function CustomerFormDealer({
       shippingSubdistrict: values.shippingSubdistrict ?? "",
       shippingPostalCode: values.shippingPostalCode ?? "",
       status: values.status ?? "ACTIVE",
-      contactPerson: `${values.firstName ?? ""} ${
-        values.lastName ?? ""
-      }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
+        }`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.businessNotes ?? "",
@@ -262,13 +262,35 @@ export default function CustomerFormDealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+        (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
       return "";
     }
   }
+
+  const getCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setValues((prev: any) => ({
+            ...prev,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }));
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert(
+            "ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง"
+          );
+        }
+      );
+    } else {
+      alert("เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง");
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -356,7 +378,19 @@ export default function CustomerFormDealer({
         </div>
 
         <div>
-          <Label className={labelTextClass}>latitude (ละติจูด)</Label>
+          <div className="flex items-center gap-2">
+            <Label className={labelTextClass}>latitude (ละติจูด)</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-6 text-[10px] px-2 gap-1 mt-2"
+              onClick={getCurrentLocation}
+            >
+              <MapPin className="w-3 h-3" />
+              ดึงพิกัด (Longdo)
+            </Button>
+          </div>
           <Input
             type="number"
             value={values.latitude}
@@ -596,7 +630,7 @@ export default function CustomerFormDealer({
           <Input
             value={calculatedAge()}
             disabled={true}
-            onChange={() => {}}
+            onChange={() => { }}
             className={inputTextClass}
           />
         </div>
