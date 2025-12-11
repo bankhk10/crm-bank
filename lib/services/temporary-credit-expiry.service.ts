@@ -140,7 +140,6 @@ export class TemporaryCreditExpiryService {
                                 availableAmount: newAvailableAmount,
                                 temporaryCreditAmount: 0,
                                 temporaryCreditExpiryDate: null,
-                                notes: `${creditLimit.notes ?? ""}\nReverted temporary credit: -${String(tempCredit.requestedAmount)} (expired on ${tempCredit.expiryDate.toISOString()})`,
                             },
                         });
 

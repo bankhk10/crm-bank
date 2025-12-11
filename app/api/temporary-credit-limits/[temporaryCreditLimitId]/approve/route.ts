@@ -91,7 +91,6 @@ export async function POST(request: Request, context: any) {
             expiryDate: newExpiryDate,
             temporaryCreditAmount: existing.requestedAmount,
             temporaryCreditExpiryDate: existing.expiryDate,
-            notes: `${existingCredit.notes ?? ""}\nMerged temporary credit: +${String(existing.requestedAmount)}`,
           },
         });
       } else {
