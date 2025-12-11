@@ -696,8 +696,8 @@ export default function CustomerFormDealer({
         ข้อมูลเพิ่มเติม
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <div>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+        {/* <div>
           <Label className={labelTextClass}>ร้านหลัก (ถ้ามี)</Label>
           <Select
             value={values.parentDealer ?? ""}
@@ -724,7 +724,7 @@ export default function CustomerFormDealer({
               </SelectGroup>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         <div>
           <Label className={labelTextClass}>พนักงานที่รับผิดชอบ</Label>
