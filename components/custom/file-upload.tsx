@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, X, FileImage } from "lucide-react";
+import { Upload, X, FileImage, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export interface ExistingImage {
   id?: string;
@@ -41,6 +42,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [coverIndex, setCoverIndex] = useState<number | null>(
     value.length > 0 ? 0 : null
   );
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const hasError = !!error;
 
   const handleFiles = (files: FileList | null) => {
@@ -190,160 +192,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="mb-4">
-      {/* Header Label + Upload Button + Counter */}
-      <div className="flex items-center justify-start mb-2">
+      {/* Header Label */}
+      <div className="flex items-center justify-between mb-3">
         <label className="text-lg font-semibold text-gray-800">{label}</label>
-      </div>
-      <div className="flex items-center gap-2 mt-4 mb-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            openFileDialog();
-          }}
-          disabled={disabled}
-          className="border-blue-600 text-blue-600 hover:bg-blue-50 flex items-center gap-2 rounded-full px-4 py-1.5"
-        >
-          <Upload className="w-4 h-4" />
-          เลือกรูปภาพ
-        </Button>
-
-        <span className="text-xs bg-gray-100 px-2.5 py-1 rounded-full text-gray-600">
+        <span className="text-xs text-gray-500">
           {value.length}/{maxFiles} รูป
         </span>
       </div>
 
-      <p className="text-xs text-gray-500 mb-4">
-        อนุญาตเฉพาะไฟล์: JPG, PNG, WebP, AVIF, SVG ขนาดไม่เกิน {maxSizeMB}
-        MB/ไฟล์
-      </p>
-
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept={accept}
-        onChange={handleChange}
-        disabled={disabled}
-        className="hidden"
-      />
-
-      {/* Preview uploaded files */}
-      {value.length > 0 && (
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {value.map((file, index) => {
-            const isFile = file instanceof File;
-            const isImage = isFile ? file.type.startsWith("image/") : true;
-            const preview = isFile
-              ? URL.createObjectURL(file)
-              : (file as ExistingImage).url;
-
-            return (
-              <div
-                key={index}
-                className="relative rounded-lg overflow-hidden bg-white shadow-sm border"
-              >
-                <div className="relative group">
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt={
-                        isFile
-                          ? file.name
-                          : (file as ExistingImage).name || "image"
-                      }
-                      className="w-full h-36 object-cover transition-transform duration-200 group-hover:scale-105"
-                      onLoad={() => {
-                        if (isFile) URL.revokeObjectURL(preview as string);
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-36 flex items-center justify-center bg-gray-100">
-                      <FileImage className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-start justify-end p-2">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCoverIndex(index);
-                          onSetCover?.(index);
-                        }}
-                        className={`inline-flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm hover:bg-white/20 ${coverIndex === index ? "ring-2 ring-yellow-400" : ""
-                          }`}
-                        title="ตั้งภาพเป็นหน้าปก"
-                        disabled={disabled}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z"
-                          />
-                        </svg>
-                        <span className="ml-1">ปก</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFile(index);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-red-600/80 px-2 py-1 text-xs text-white hover:bg-red-600"
-                        title="ลบ"
-                        disabled={disabled}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-2 text-xs text-gray-600 truncate">
-                    <div className="font-medium text-sm text-gray-800 truncate">
-                      {isFile
-                        ? (file as File).name
-                        : (file as ExistingImage).name ||
-                        (file as ExistingImage).url.split("/").pop()}
-                    </div>
-                    <div className="text-xxs text-gray-500 mt-1">
-                      {isFile
-                        ? `${((file as File).size / 1024 / 1024).toFixed(2)} MB`
-                        : (file as ExistingImage).size
-                          ? `${(
-                            (file as ExistingImage).size! /
-                            1024 /
-                            1024
-                          ).toFixed(2)} MB`
-                          : ""}
-                      {coverIndex === index && (
-                        <span className="ml-2 inline-block rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5 text-[10px]">
-                          หน้าปก
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
       {hasError && (
         <div
-          className="mt-2 flex items-center rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          className="mb-4 flex items-center rounded-lg bg-red-50 p-3 text-sm text-red-700"
           role="alert"
         >
           <svg
@@ -361,6 +220,124 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <span className="ml-2">{error}</span>
         </div>
       )}
+
+      {/* Gallery Layout */}
+      <div className="flex flex-wrap gap-4">
+        {/* Existing Images */}
+        {value.map((file, index) => {
+          const isFile = file instanceof File;
+          const preview = isFile
+            ? URL.createObjectURL(file)
+            : (file as ExistingImage).url;
+
+          const isCover = coverIndex === index;
+
+          return (
+            <div
+              key={index}
+              className={`relative group w-32 h-32 shrink-0 bg-white p-1 rounded-md border-2 transition-all ${isCover ? "border-yellow-400 shadow-sm" : "border-gray-200"
+                }`}
+            >
+              <div
+                className="w-full h-full relative cursor-pointer overflow-hidden rounded-sm"
+                onClick={() => setPreviewImage(preview)}
+              >
+                {/* Image */}
+                <img
+                  src={preview}
+                  alt={isFile ? file.name : (file as ExistingImage).name || "image"}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  onLoad={() => {
+                    if (isFile) URL.revokeObjectURL(preview as string);
+                  }}
+                />
+
+                {/* Hover Overlay with Actions */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newIndex = isCover ? null : index;
+                        setCoverIndex(newIndex);
+                        if (newIndex !== null) onSetCover?.(newIndex);
+                      }}
+                      className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${isCover
+                          ? "bg-yellow-400 text-white"
+                          : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
+                        }`}
+                      title={isCover ? "ยกเลิกหน้าปก" : "ตั้งเป็นหน้าปก"}
+                      disabled={disabled}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="p-1.5 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-red-500 transition-colors"
+                      title="ลบรูปภาพ"
+                      disabled={disabled}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-1 right-1 text-white/80">
+                    <ZoomIn className="w-3 h-3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Upload Button Tile */}
+        {value.length < maxFiles && !disabled && (
+          <button
+            type="button"
+            onClick={openFileDialog}
+            className="w-32 h-32 shrink-0 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-md text-gray-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition-all group"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+              <Upload className="w-4 h-4" />
+            </div>
+            <span className="text-xs font-medium">Upload</span>
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={accept}
+        onChange={handleChange}
+        disabled={disabled}
+        className="hidden"
+      />
+
+      {/* Lightbox Dialog */}
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-transparent border-none shadow-none text-white flex flex-col items-center justify-center">
+          <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          <div className="relative w-auto h-[80vh] flex items-center justify-center">
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Full preview"
+                className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
+              />
+            )}
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute -top-12 right-0 md:bg-white/10 md:hover:bg-white/20 text-white rounded-full p-2 transition-colors focus:outline-none"
+            >
+              <X className="w-8 h-8" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
