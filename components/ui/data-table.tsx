@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
                           <TableHead
                             key={header.id}
                             style={style}
-                            className={cn("whitespace-nowrap bg-slate-50 text-base font-semibold text-slate-700", headerAlignClass)}
+                            className={cn("whitespace-nowrap bg-slate-50 text-base font-semibold text-slate-700 h-14", headerAlignClass)}
                           >
                             {header.isPlaceholder ? null : (
                               header.column.getCanSort() ? (
