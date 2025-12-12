@@ -541,7 +541,7 @@ function CustomersToolbar(
                   onCustomerTypeFilterChange?.(v === ALL_VALUE ? "" : v)
                 }
               >
-                <SelectTrigger className="mt-1 text-base h-11">
+                <SelectTrigger className="mt-1 text-base w-full">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
@@ -567,7 +567,7 @@ function CustomersToolbar(
                   onStatusFilterChange?.(v === ALL_STATUS ? "" : v)
                 }
               >
-                <SelectTrigger className="mt-1 text-base h-11">
+                <SelectTrigger className="mt-1 text-base !h-11 w-full">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
