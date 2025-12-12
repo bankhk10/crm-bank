@@ -89,6 +89,20 @@ export async function GET(request: Request, context: any) {
       images: {
         orderBy: { order: "asc" },
       },
+      responsibleEmployee: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+      parentDealer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 

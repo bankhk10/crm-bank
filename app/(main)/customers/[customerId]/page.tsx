@@ -5,14 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2,
   AlertTriangle,
   Pencil,
-  Trash2,
   ArrowLeft,
   User,
   MapPin,
@@ -21,11 +20,15 @@ import {
   Building,
   Calendar,
   FileText,
-  CreditCard,
-  Truck
+  Truck,
+  Star,
+  UserCheck,
+  ImageIcon,
+  Navigation
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 
 type Customer = {
   id: string;
@@ -59,12 +62,20 @@ type Customer = {
   contactEmail?: string | null;
   notes?: string | null;
   createdAt?: string | null;
+  // New fields
+  latitude?: string | null;
+  longitude?: string | null;
+  relationshipScore?: number | null;
+  birthDate?: string | null;
+  responsibleEmployee?: { id: string; firstName: string; lastName: string; email: string } | null;
+  parentDealer?: { id: string; name: string } | null;
+  images?: Array<{ id: string; url: string; name?: string }>;
 };
 
 const statusMap: Record<string, { label: string; className: string }> = {
-  ACTIVE: { label: "ใช้งาน", className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" },
+  ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200" },
   INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200" },
-  SUSPENDED: { label: "ระงับ", className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" },
+  SUSPENDED: { label: "ระงับ", className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" },
 };
 
 const customerTypeMap: Record<string, string> = {
@@ -83,14 +94,12 @@ interface DetailItemProps {
 }
 
 const DetailItem: React.FC<DetailItemProps> = ({ label, value, icon: Icon, className, fullWidth }) => (
-  <div className={`p-4 rounded-lg border bg-card text-card-foreground shadow-sm ${fullWidth ? "col-span-full" : ""} ${className}`}>
-    <div className="flex items-center gap-2 mb-2">
-      {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
-      <p className="text-sm font-medium text-muted-foreground">
-        {label}
-      </p>
+  <div className={`flex flex-col gap-1 ${fullWidth ? "col-span-full" : ""} ${className}`}>
+    <div className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
+      {Icon && <Icon className="h-3.5 w-3.5" />}
+      {label}
     </div>
-    <div className="text-base font-semibold text-foreground break-words pl-6">
+    <div className="text-base text-gray-900 font-medium break-words pl-5">
       {value}
     </div>
   </div>
@@ -104,33 +113,39 @@ const AddressBlock: React.FC<{
   district?: string | null;
   province?: string | null;
   postalCode?: string | null;
-}> = ({ title, icon: Icon, addressLine, subdistrict, district, province, postalCode }) => {
+  variant?: "blue" | "orange" | "purple";
+}> = ({ title, icon: Icon, addressLine, subdistrict, district, province, postalCode, variant = "blue" }) => {
   const hasAddress = addressLine || subdistrict || district || province || postalCode;
 
+  const colors = {
+    blue: "bg-blue-50/50 border-blue-100 text-blue-900",
+    orange: "bg-orange-50/50 border-orange-100 text-orange-900",
+    purple: "bg-purple-50/50 border-purple-100 text-purple-900",
+  };
+
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Icon className="h-4 w-4 text-primary" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className={`p-4 rounded-xl border ${colors[variant]} h-full transition-shadow hover:shadow-sm`}>
+      <h3 className="font-semibold flex items-center gap-2 mb-3">
+        <div className={`p-1.5 rounded-lg bg-white/60 shadow-sm`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        {title}
+      </h3>
+      <div className="pl-9 space-y-1 text-sm/relaxed">
         {hasAddress ? (
-          <div className="space-y-1 text-sm">
-            {addressLine && <p className="font-medium">{addressLine}</p>}
-            <p className="text-muted-foreground">
-              {[subdistrict, district, province]
+          <>
+            {addressLine && <div className="font-medium">{addressLine}</div>}
+            <div className="text-gray-600">
+              {[subdistrict, district, province, postalCode]
                 .filter(Boolean)
                 .join(" / ")}
-            </p>
-            {postalCode && <p className="text-muted-foreground">{postalCode}</p>}
-          </div>
+            </div>
+          </>
         ) : (
-          <p className="text-sm text-muted-foreground italic">ไม่มีข้อมูลที่อยู่</p>
+          <div className="text-gray-400 italic">ไม่มีข้อมูลที่อยู่</div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
@@ -168,7 +183,7 @@ export default function CustomerDetailPage() {
   if (!canView) {
     return (
       <div className="flex h-[50vh] items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
+        <Alert variant="destructive" className="max-w-md shadow-lg">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
           <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลลูกค้านี้</AlertDescription>
@@ -179,15 +194,16 @@ export default function CustomerDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-10 w-48 rounded-lg" />
+          <Skeleton className="h-10 w-32 rounded-lg" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-[200px] lg:col-span-2" />
-          <Skeleton className="h-[200px]" />
-          <Skeleton className="h-[300px] lg:col-span-3" />
+        <Skeleton className="h-[200px] w-full rounded-2xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-[300px] rounded-2xl" />
+          <Skeleton className="h-[300px] rounded-2xl" />
+          <Skeleton className="h-[300px] rounded-2xl" />
         </div>
       </div>
     );
@@ -196,7 +212,7 @@ export default function CustomerDetailPage() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-6">
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="shadow-lg">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>ข้อผิดพลาด</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
@@ -207,13 +223,15 @@ export default function CustomerDetailPage() {
 
   if (!customer) {
     return (
-      <div className="flex h-[50vh] flex-col items-center justify-center gap-4 text-center">
-        <div className="rounded-full bg-muted p-4">
-          <User className="h-8 w-8 text-muted-foreground" />
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-6 text-center">
+        <div className="rounded-full bg-gray-100 p-8 shadow-inner">
+          <User className="h-12 w-12 text-gray-400" />
         </div>
-        <h2 className="text-xl font-semibold">ไม่พบข้อมูลลูกค้า</h2>
-        <p className="text-muted-foreground">รหัสลูกค้า: {customerId}</p>
-        <Button variant="outline" onClick={() => router.back()}>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-gray-900">ไม่พบข้อมูลลูกค้า</h2>
+          <p className="text-gray-500">รหัสลูกค้า: {customerId}</p>
+        </div>
+        <Button variant="outline" className="rounded-full px-8" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           กลับ
         </Button>
@@ -222,149 +240,309 @@ export default function CustomerDetailPage() {
   }
 
   const statusInfo = customer.status ? statusMap[customer.status.toUpperCase()] : null;
+  const age = customer.birthDate
+    ? Math.floor((Date.now() - new Date(customer.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    : null;
+
+  const relationshipLevel = !customer.relationshipScore
+    ? "ไม่ระบุ"
+    : customer.relationshipScore === 1
+      ? "แย่"
+      : customer.relationshipScore === 2
+        ? "ปานกลาง"
+        : customer.relationshipScore === 3
+          ? "ดี"
+          : "-";
+
+  const relationshipColor = !customer.relationshipScore
+    ? "text-gray-400"
+    : customer.relationshipScore === 1
+      ? "text-red-500"
+      : customer.relationshipScore === 2
+        ? "text-amber-500"
+        : "text-emerald-500";
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
 
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Button variant="ghost" size="sm" className="-ml-2 h-8 text-muted-foreground" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              ลูกค้าทั้งหมด
+      {/* Top Navigation */}
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" className="rounded-full pl-2 pr-4 hover:bg-gray-100 text-gray-600" onClick={() => router.back()}>
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          ย้อนกลับ
+        </Button>
+      </div>
+
+      {/* Hero Header Section */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-blue-900 text-white shadow-2xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl pointer-events-none" />
+
+        <div className="relative p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md px-3 py-1">
+                {customerTypeMap[customer.customerType] || customer.customerType}
+              </Badge>
+              {statusInfo && (
+                <Badge variant="outline" className={`${statusInfo.className} bg-white/90 border-0`}>
+                  {statusInfo.label}
+                </Badge>
+              )}
+            </div>
+
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white drop-shadow-sm">
+              {customer.name}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-blue-100 text-sm md:text-base">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/10 p-1.5 rounded-lg"><Building className="h-4 w-4" /></div>
+                {customer.customerCode}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-white/10 p-1.5 rounded-lg"><MapPin className="h-4 w-4" /></div>
+                {customer.province || "ไม่ระบุจังหวัด"}
+              </div>
+              {customer.responsibleEmployee && (
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/10 p-1.5 rounded-lg"><UserCheck className="h-4 w-4" /></div>
+                  <span className="opacity-80">ผู้ดูแล:</span>
+                  <span className="font-medium text-white">{customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            {customer.latitude && customer.longitude && (
+              <Button
+                variant="secondary"
+                className="bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm shadow-sm"
+                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`, '_blank')}
+              >
+                <Navigation className="mr-2 h-4 w-4" />
+                เปิดแผนที่
+              </Button>
+            )}
+            <Button className="bg-white text-blue-900 hover:bg-blue-50 border-0 shadow-lg font-semibold" asChild>
+              <Link href={`./${customerId}/edit`}>
+                <Pencil className="mr-2 h-4 w-4" />
+                แก้ไขข้อมูล
+              </Link>
             </Button>
           </div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{customer.name}</h1>
-            {statusInfo ? (
-              <Badge variant="outline" className={statusInfo.className}>
-                {statusInfo.label}
-              </Badge>
-            ) : (
-              <Badge variant="secondary">{customer.status ?? "-"}</Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-            <Building className="h-3 w-3" /> {customer.customerCode}
-            <span className="text-gray-300">•</span>
-            <span className="font-medium text-foreground">
-              {customerTypeMap[customer.customerType] || customer.customerType}
-            </span>
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`./${customerId}/edit`}> {/* Relative path to edit */}
-              <Pencil className="mr-2 h-4 w-4" />
-              แก้ไขข้อมูล
-            </Link>
-          </Button>
-          {/* Add Delete button logic here if needed, consistent with permissions */}
         </div>
       </div>
 
-      <Separator />
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Info & Contact */}
+        <div className="xl:col-span-8 space-y-8">
 
-        {/* Left Column: Key Details */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                ข้อมูลทั่วไป
+          {/* Section: Company Info */}
+          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                <Building className="h-5 w-5 text-indigo-500" />
+                ข้อมูลบริษัท
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem label="คำนำหน้า" value={customer.prefix || "-"} icon={User} />
-              <DetailItem label="ชื่อ-นามสกุล" value={`${customer.firstName || ""} ${customer.lastName || ""}`.trim() || "-"} icon={User} />
-              <DetailItem label="อีเมล" value={customer.email || "-"} icon={Mail} />
-              <DetailItem label="เบอร์โทรศัพท์" value={customer.phone || "-"} icon={Phone} />
-              <DetailItem label="เลขผู้เสียภาษี" value={customer.taxId || "-"} icon={FileText} className="sm:col-span-2" />
+            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <DetailItem label="ชื่อบริษัท / ร้านค้า" value={customer.name} icon={Building} className="col-span-full" />
+              <DetailItem label="เลขผู้เสียภาษี" value={customer.taxId || "-"} icon={FileText} />
+              <DetailItem label="เบอร์โทรศัพท์ (องค์กร)" value={customer.phone ? <a href={`tel:${customer.phone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.phone}</a> : "-"} icon={Phone} />
+              <DetailItem label="อีเมล (องค์กร)" value={customer.email ? <a href={`mailto:${customer.email}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.email}</a> : "-"} icon={Mail} />
+              <DetailItem
+                label="ความสัมพันธ์"
+                value={
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold ${relationshipColor}`}>{relationshipLevel}</span>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${customer.relationshipScore && customer.relationshipScore >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                }
+                icon={Star}
+              />
+              {customer.parentDealer && (
+                <DetailItem label="ร้านค้าหลัก (Parent Dealer)" value={customer.parentDealer.name} icon={Building} />
+              )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                ผู้ติดต่อ
+          {/* Section: Contact Person */}
+          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                <User className="h-5 w-5 text-indigo-500" />
+                ข้อมูลผู้ติดต่อ
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem label="ชื่อผู้ติดต่อ" value={customer.contactPerson || "-"} icon={User} />
-              <DetailItem label="เบอร์โทรศัพท์" value={customer.contactPhone || "-"} icon={Phone} />
-              <DetailItem label="อีเมล" value={customer.contactEmail || "-"} icon={Mail} className="sm:col-span-2" />
+            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <DetailItem label="ชื่อ-นามสกุล" value={[customer.prefix, customer.firstName, customer.lastName].filter(Boolean).join(" ") || "-"} icon={User} className="col-span-full" />
+              <DetailItem label="เบอร์โทรศัพท์ (ส่วนตัว)" value={customer.contactPhone ? <a href={`tel:${customer.contactPhone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.contactPhone}</a> : "-"} icon={Phone} />
+              <DetailItem label="อีเมล (ส่วนตัว)" value={customer.contactEmail ? <a href={`mailto:${customer.contactEmail}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.contactEmail}</a> : "-"} icon={Mail} />
+              <DetailItem
+                label="วันเกิด / อายุ"
+                value={customer.birthDate
+                  ? `${new Date(customer.birthDate).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} ${age !== null ? `(${age} ปี)` : ""}`
+                  : "-"
+                }
+                icon={Calendar}
+              />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
+          {/* Section: Addresses */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-indigo-500" />
+                ที่อยู่และการจัดส่ง
+              </h3>
+            </div>
+
+            <div className="h-full">
+              <AddressBlock
+                title="ที่อยู่บริษัท"
+                icon={Building}
+                addressLine={customer.addressLine}
+                subdistrict={customer.subdistrict}
+                district={customer.district}
+                province={customer.province}
+                postalCode={customer.postalCode}
+                variant="blue"
+              />
+            </div>
+
+            <div className="h-full">
+              <AddressBlock
+                title="ที่อยู่วางบิล"
+                icon={FileText}
+                addressLine={customer.billingAddressLine}
+                subdistrict={customer.billingSubdistrict}
+                district={customer.billingDistrict}
+                province={customer.billingProvince}
+                postalCode={customer.billingPostalCode}
+                variant="purple"
+              />
+            </div>
+
+            <div className="h-full md:col-span-2">
+              <AddressBlock
+                title="ที่อยู่จัดส่ง"
+                icon={Truck}
+                addressLine={customer.shippingAddressLine}
+                subdistrict={customer.shippingSubdistrict}
+                district={customer.shippingDistrict}
+                province={customer.shippingProvince}
+                postalCode={customer.shippingPostalCode}
+                variant="orange"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Images & Meta */}
+        <div className="xl:col-span-4 space-y-8">
+
+          {/* Images Gallery */}
+          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden text-center sm:text-left">
+            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
+              <CardTitle className="text-lg font-semibold flex items-center justify-between text-gray-800">
+                <span className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5 text-indigo-500" />
+                  รูปภาพร้านค้า
+                </span>
+                <span className="text-xs font-normal text-muted-foreground bg-gray-200 px-2 py-0.5 rounded-full">
+                  {customer.images?.length || 0} รูป
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {customer.images && customer.images.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {customer.images.map((img) => (
+                    <Dialog key={img.id}>
+                      <DialogTrigger asChild>
+                        <div className="relative group aspect-square rounded-xl overflow-hidden cursor-zoom-in border bg-gray-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.url}
+                            alt={img.name || "Customer Image"}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center">
+                        <DialogTitle className="sr-only">Image Preview</DialogTitle>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={img.url}
+                          alt={img.name || "Full Preview"}
+                          className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain bg-white"
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                  <ImageIcon className="h-10 w-10 mb-2 opacity-50" />
+                  <p className="text-sm">ไม่มีรูปภาพ</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
+            <CardHeader className="bg-amber-50/50 border-b border-amber-100 pb-4">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-amber-900">
+                <FileText className="h-5 w-5 text-amber-600" />
                 หมายเหตุ
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="p-4 bg-muted/50 rounded-lg text-sm leading-relaxed whitespace-pre-wrap">
-                {customer.notes || "ไม่มีหมายเหตุ"}
-              </div>
+            <CardContent className="p-6">
+              {customer.notes ? (
+                <div className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap bg-amber-50/30 p-4 rounded-xl border border-amber-100/50">
+                  {customer.notes}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-400 italic text-sm">ไม่มีบันทึกข้อความ</div>
+              )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Right Column: Addresses & Meta */}
-        <div className="space-y-6">
-          {/* Addresses */}
-          <div className="space-y-4">
-            <AddressBlock
-              title="ที่อยู่จดทะเบียน"
-              icon={MapPin}
-              addressLine={customer.addressLine}
-              subdistrict={customer.subdistrict}
-              district={customer.district}
-              province={customer.province}
-              postalCode={customer.postalCode}
-            />
-            <AddressBlock
-              title="ที่อยู่วางบิล"
-              icon={FileText}
-              addressLine={customer.billingAddressLine}
-              subdistrict={customer.billingSubdistrict}
-              district={customer.billingDistrict}
-              province={customer.billingProvince}
-              postalCode={customer.billingPostalCode}
-            />
-            <AddressBlock
-              title="ที่อยู่จัดส่ง"
-              icon={Truck}
-              addressLine={customer.shippingAddressLine}
-              subdistrict={customer.shippingSubdistrict}
-              district={customer.shippingDistrict}
-              province={customer.shippingProvince}
-              postalCode={customer.shippingPostalCode}
-            />
+          {/* System Info */}
+          <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 space-y-2 border border-gray-100">
+            <div className="flex justify-between">
+              <span>รหัสอ้างอิง:</span>
+              <span className="font-mono">{customer.id}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>สร้างเมื่อ:</span>
+              <span>
+                {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("th-TH", {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : "-"}
+              </span>
+            </div>
           </div>
-
-          {/* Metadata */}
-          <Card className="bg-muted/30">
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">สร้างเมื่อ</span>
-                <span className="font-medium">
-                  {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("th-TH", {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  }) : "-"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
-
       </div>
     </div>
   );
