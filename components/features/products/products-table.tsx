@@ -7,7 +7,7 @@ import { Eye, Edit, Trash2, Settings } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import Tooltip from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -206,64 +206,84 @@ export function ProductsTable({
         return (
           <div className="flex items-center justify-end gap-2 px-2">
             {canView && (
-              <Tooltip content={`ดู ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-                  aria-label={`ดู ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}`}>
-                    <Eye className="size-4 text-blue-600" />
-                  </Link>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="outline"
+                    className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                    aria-label={`ดู ${product.name}`}
+                  >
+                    <Link href={`/products/${product.id}`}>
+                      <Eye className="size-4 text-blue-600" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  ดู {product.name}
+                </TooltipContent>
               </Tooltip>
             )}
 
             {canUpdate && (
-              <Tooltip content={`แก้ไข ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                  aria-label={`แก้ไข ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}/edit`}>
-                    <Edit className="size-4 text-purple-600" />
-                  </Link>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="outline"
+                    className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                    aria-label={`แก้ไข ${product.name}`}
+                  >
+                    <Link href={`/products/${product.id}/edit`}>
+                      <Edit className="size-4 text-purple-600" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  แก้ไข {product.name}
+                </TooltipContent>
               </Tooltip>
             )}
 
             {canManage && (
-              <Tooltip content={`จัดการ ${product.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
-                  aria-label={`จัดการ ${product.name}`}
-                >
-                  <Link href={`/products/${product.id}/manage`}>
-                    <Settings className="size-4 text-green-600" />
-                  </Link>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="outline"
+                    className="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
+                    aria-label={`จัดการ ${product.name}`}
+                  >
+                    <Link href={`/products/${product.id}/manage`}>
+                      <Settings className="size-4 text-green-600" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  จัดการ {product.name}
+                </TooltipContent>
               </Tooltip>
             )}
 
             {canDelete && (
-              <Tooltip content={`ลบ ${product.name}`} side="top">
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                  onClick={() => openDeleteConfirm(product)}
-                  aria-label={`ลบ ${product.name}`}
-                >
-                  <Trash2 className="size-4 text-red-600" />
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="icon-sm"
+                    className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                    onClick={() => openDeleteConfirm(product)}
+                    aria-label={`ลบ ${product.name}`}
+                  >
+                    <Trash2 className="size-4 text-red-600" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  ลบ {product.name}
+                </TooltipContent>
               </Tooltip>
             )}
           </div>

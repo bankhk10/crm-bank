@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import Tooltip from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -176,9 +176,8 @@ function useCustomerColumns(
               className="p-1 rounded hover:bg-slate-100"
             >
               <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  row.getIsExpanded() ? "rotate-180" : "rotate-0"
-                }`}
+                className={`h-4 w-4 transition-transform ${row.getIsExpanded() ? "rotate-180" : "rotate-0"
+                  }`}
               />
             </button>
           );
@@ -277,45 +276,60 @@ function useCustomerColumns(
           const customer = row.original;
           return (
             <div className="flex items-center justify-end gap-2">
-              <Tooltip content={`ดู ${customer.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-                  aria-label={`ดู ${customer.name}`}
-                >
-                  <Link href={`/customers/${customer.id}`}>
-                    <Eye className="size-4 text-blue-600" />
-                  </Link>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="outline"
+                    className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                    aria-label={`ดู ${customer.name}`}
+                  >
+                    <Link href={`/customers/${customer.id}`}>
+                      <Eye className="size-4 text-blue-600" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  ดู {customer.name}
+                </TooltipContent>
               </Tooltip>
 
-              <Tooltip content={`แก้ไข ${customer.name}`} side="top">
-                <Button
-                  asChild
-                  size="icon-sm"
-                  variant="outline"
-                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                  aria-label={`แก้ไข ${customer.name}`}
-                >
-                  <Link href={`/customers/${customer.id}/edit`}>
-                    <Edit className="size-4 text-purple-600" />
-                  </Link>
-                </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    asChild
+                    size="icon-sm"
+                    variant="outline"
+                    className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                    aria-label={`แก้ไข ${customer.name}`}
+                  >
+                    <Link href={`/customers/${customer.id}/edit`}>
+                      <Edit className="size-4 text-purple-600" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  แก้ไข {customer.name}
+                </TooltipContent>
               </Tooltip>
 
               {canDelete && (
-                <Tooltip content={`ลบ ${customer.name}`} side="top">
-                  <Button
-                    variant="destructive"
-                    size="icon-sm"
-                    className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                    onClick={() => onDeleteRequest(customer)}
-                    aria-label={`ลบ ${customer.name}`}
-                  >
-                    <Trash2 className="size-4 text-red-600" />
-                  </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="icon-sm"
+                      className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                      onClick={() => onDeleteRequest(customer)}
+                      aria-label={`ลบ ${customer.name}`}
+                    >
+                      <Trash2 className="size-4 text-red-600" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    ลบ {customer.name}
+                  </TooltipContent>
                 </Tooltip>
               )}
             </div>

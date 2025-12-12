@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2 } from "lucide-react";
-import Tooltip from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -100,45 +100,60 @@ export default function CompanyCard({
 
       <div className="mt-4 flex items-center justify-end gap-2">
         <div className="flex items-center gap-2">
-          <Tooltip content={`ดู ${name}`} side="top">
-            <Button
-              asChild
-              size="icon-sm"
-              variant="outline"
-              className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-              aria-label={`ดู ${name}`}
-            >
-              <Link href={`/companies/${id}`}>
-                <Eye className="size-4 text-blue-600" />
-              </Link>
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                size="icon-sm"
+                variant="outline"
+                className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                aria-label={`ดู ${name}`}
+              >
+                <Link href={`/companies/${id}`}>
+                  <Eye className="size-4 text-blue-600" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              ดู {name}
+            </TooltipContent>
           </Tooltip>
 
-          <Tooltip content={`แก้ไข ${name}`} side="top">
-            <Button
-              asChild
-              size="icon-sm"
-              variant="outline"
-              className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-              aria-label={`แก้ไข ${name}`}
-            >
-              <Link href={`/companies/${id}/edit`}>
-                <Edit className="size-4 text-purple-600" />
-              </Link>
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                size="icon-sm"
+                variant="outline"
+                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                aria-label={`แก้ไข ${name}`}
+              >
+                <Link href={`/companies/${id}/edit`}>
+                  <Edit className="size-4 text-purple-600" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              แก้ไข {name}
+            </TooltipContent>
           </Tooltip>
 
           {onDelete ? (
-            <Tooltip content={`ลบ ${name}`} side="top">
-              <Button
-                variant="destructive"
-                size="icon-sm"
-                className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                onClick={() => onDelete(id)}
-                aria-label={`ลบ ${name}`}
-              >
-                <Trash2 className="size-4 text-red-600" />
-              </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="icon-sm"
+                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                  onClick={() => onDelete(id)}
+                  aria-label={`ลบ ${name}`}
+                >
+                  <Trash2 className="size-4 text-red-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                ลบ {name}
+              </TooltipContent>
             </Tooltip>
           ) : null}
         </div>
