@@ -13,6 +13,9 @@ import {
   AlertTriangle,
   Pencil,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  X,
   User,
   MapPin,
   Phone,
@@ -158,6 +161,34 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  const handleNextImage = () => {
+    if (selectedImageIndex === null || !customer?.images) return;
+    setSelectedImageIndex((prev) =>
+      prev === null ? null : (prev + 1) % customer.images!.length
+    );
+  };
+
+  const handlePrevImage = () => {
+    if (selectedImageIndex === null || !customer?.images) return;
+    setSelectedImageIndex((prev) =>
+      prev === null
+        ? null
+        : (prev - 1 + customer.images!.length) % customer.images!.length
+    );
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImageIndex === null) return;
+      if (e.key === "ArrowRight") handleNextImage();
+      if (e.key === "ArrowLeft") handlePrevImage();
+      if (e.key === "Escape") setSelectedImageIndex(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex]);
 
   useEffect(() => {
     let mounted = true;
@@ -468,33 +499,87 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardContent className="p-6">
               {customer.images && customer.images.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {customer.images.map((img) => (
-                    <Dialog key={img.id}>
-                      <DialogTrigger asChild>
-                        <div className="relative group aspect-square rounded-xl overflow-hidden cursor-zoom-in border bg-gray-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={img.url}
-                            alt={img.name || "Customer Image"}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center">
-                        <DialogTitle className="sr-only">Image Preview</DialogTitle>
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    {customer.images.map((img, index) => (
+                      <div
+                        key={img.id}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className="relative group aspect-square rounded-xl overflow-hidden cursor-zoom-in border bg-gray-100"
+                      >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={img.url}
-                          alt={img.name || "Full Preview"}
-                          className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain bg-white"
+                          alt={img.name || "Customer Image"}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
                         />
-                      </DialogContent>
-                    </Dialog>
-                  ))}
-                </div>
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <Dialog
+                    open={selectedImageIndex !== null}
+                    onOpenChange={(open) => !open && setSelectedImageIndex(null)}
+                  >
+                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center outline-none">
+                      <DialogTitle className="sr-only">Image Preview</DialogTitle>
+
+                      {selectedImageIndex !== null && customer.images && (
+                        <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16">
+                          {/* Close Button */}
+                          <button
+                            onClick={() => setSelectedImageIndex(null)}
+                            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors backdrop-blur-sm"
+                          >
+                            <X className="h-6 w-6" />
+                          </button>
+
+                          {/* Navigation Buttons */}
+                          {customer.images.length > 1 && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePrevImage();
+                                }}
+                                className="absolute left-2 md:left-4 z-50 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all backdrop-blur-sm border border-white/10 group"
+                              >
+                                <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
+                              </button>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleNextImage();
+                                }}
+                                className="absolute right-2 md:right-4 z-50 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all backdrop-blur-sm border border-white/10 group"
+                              >
+                                <ChevronRight className="h-6 w-6 group-hover:translate-x-0.5 transition-transform" />
+                              </button>
+                            </>
+                          )}
+
+                          {/* Main Image */}
+                          <div className="relative max-w-full max-h-full flex flex-col items-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={customer.images[selectedImageIndex].url}
+                              alt={customer.images[selectedImageIndex].name || "Full Preview"}
+                              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+                            />
+
+                            {/* Image Counter Badge */}
+                            <div className="mt-4 px-4 py-1.5 rounded-full bg-black/50 backdrop-blur-md text-white/90 text-sm font-medium">
+                              {selectedImageIndex + 1} / {customer.images.length}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                   <ImageIcon className="h-10 w-10 mb-2 opacity-50" />
