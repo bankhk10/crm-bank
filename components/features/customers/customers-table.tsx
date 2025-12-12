@@ -921,11 +921,6 @@ export function CustomersTable(props: CustomersTableProps) {
           emptyState={{
             title: "ยังไม่มีลูกค้า",
             description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างลูกค้าใหม่",
-            action: canCreate ? (
-              <Link href="/customers/new">
-                <Button size="sm">สร้างลูกค้าใหม่</Button>
-              </Link>
-            ) : undefined,
           }}
           className="w-full"
           renderSubComponent={({ row }) => {
