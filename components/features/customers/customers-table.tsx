@@ -217,7 +217,11 @@ function useCustomerColumns(
           maxWidth: 130,
           align: "left",
         },
-        cell: ({ row }) => row.original.customerCode ?? "-",
+        cell: ({ row }) => (
+          <div className="truncate" title={row.original.customerCode ?? "-"}>
+            {row.original.customerCode ?? "-"}
+          </div>
+        ),
       },
       {
         accessorKey: "name",
@@ -229,7 +233,11 @@ function useCustomerColumns(
           maxWidth: 250,
           align: "left",
         },
-        cell: ({ row }) => row.original.name ?? "-",
+        cell: ({ row }) => (
+          <div className="truncate" title={row.original.name ?? "-"}>
+            {row.original.name ?? "-"}
+          </div>
+        ),
       },
 
       {
@@ -242,7 +250,11 @@ function useCustomerColumns(
           maxWidth: 160,
           align: "left",
         },
-        cell: ({ row }) => row.original.email ?? "-",
+        cell: ({ row }) => (
+          <div className="truncate" title={row.original.email ?? "-"}>
+            {row.original.email ?? "-"}
+          </div>
+        ),
       },
       {
         accessorKey: "phone",
@@ -254,7 +266,11 @@ function useCustomerColumns(
           maxWidth: 120,
           align: "left",
         },
-        cell: ({ row }) => row.original.phone ?? "-",
+        cell: ({ row }) => (
+          <div className="truncate" title={row.original.phone ?? "-"}>
+            {row.original.phone ?? "-"}
+          </div>
+        ),
       },
       {
         accessorKey: "customerType",
