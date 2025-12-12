@@ -614,7 +614,7 @@ function CustomersToolbar(
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <span className="inline-flex items-center gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    เพิ่ม DEALER
+                    DEALER
                   </span>
                 </Button>
               </Link>
@@ -623,7 +623,7 @@ function CustomersToolbar(
                 <Button className="bg-emerald-600 hover:bg-emerald-700">
                   <span className="inline-flex items-center gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    เพิ่ม SUBDEALER
+                    SUBDEALER
                   </span>
                 </Button>
               </Link>
@@ -632,7 +632,7 @@ function CustomersToolbar(
                 <Button className="bg-amber-600 hover:bg-amber-700">
                   <span className="inline-flex items-center gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    เพิ่ม FARMER
+                    FARMER
                   </span>
                 </Button>
               </Link>
@@ -641,7 +641,7 @@ function CustomersToolbar(
                 <Button className="bg-purple-600 hover:bg-purple-700">
                   <span className="inline-flex items-center gap-2">
                     <PlusCircle className="h-4 w-4" />
-                    เพิ่ม BROKER
+                    BROKER
                   </span>
                 </Button>
               </Link>
