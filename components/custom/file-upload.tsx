@@ -277,10 +277,15 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   return (
     <div className="mb-4">
       {/* Header Label */}
-      <div className="flex items-center justify-between mb-3">
-        <label className="text-lg font-semibold text-gray-800">{label}</label>
-        <span className="text-xs text-gray-500">
-          {value.length}/{maxFiles} รูป
+      <div className="flex flex-col mb-3">
+        <div className="flex items-center justify-between">
+          <label className="text-lg font-semibold text-gray-800">{label}</label>
+          <span className="text-xs text-gray-500">
+            {value.length}/{maxFiles} รูป
+          </span>
+        </div>
+        <span className="text-xs text-gray-500 mt-1">
+          รองรับไฟล์ {accept.split(",").join(", ")}
         </span>
       </div>
 
