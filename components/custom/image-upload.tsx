@@ -12,7 +12,7 @@ export interface ExistingImage {
   size?: number;
 }
 
-export interface FileUploadProps {
+export interface ImageUploadProps {
   label: string;
   // value can be newly selected File objects or existing uploaded images
   value: Array<File | ExistingImage>;
@@ -122,7 +122,7 @@ const ImagePreviewItem = ({
   );
 };
 
-export const FileUpload: React.FC<FileUploadProps> = ({
+export const ImageUpload: React.FC<ImageUploadProps> = ({
   label,
   value = [],
   onChange,
@@ -384,4 +384,4 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   );
 };
 
-export default FileUpload;
+export default ImageUpload;

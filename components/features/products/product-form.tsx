@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileUpload } from "@/components/custom/file-upload";
+import { ImageUpload } from "@/components/custom/image-upload";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -677,7 +677,7 @@ export function ProductForm({
         </div>
 
         <div className="md:col-span-2">
-          <FileUpload
+          <ImageUpload
             label="อัพโหลดรูปภาพสินค้า"
             value={formData.images || []}
             onChange={(files) =>

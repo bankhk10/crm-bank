@@ -19,7 +19,7 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
-import { FileUpload } from "@/components/custom/file-upload";
+import { ImageUpload } from "@/components/custom/image-upload";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -862,7 +862,7 @@ export default function CustomerFormDealer({
         รูปภาพร้านค้า
       </h3>
       <div className="md:col-span-2 mt-6">
-        <FileUpload
+        <ImageUpload
           label="อัพโหลดรูปภาพร้านค้า (สูงสุด 5 รูป)"
           value={images}
           onChange={setImages}
