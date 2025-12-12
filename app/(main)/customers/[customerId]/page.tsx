@@ -27,7 +27,10 @@ import {
   Star,
   UserCheck,
   ImageIcon,
-  Navigation
+  Navigation,
+  Sparkles,
+  Award,
+  TrendingUp
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,7 +68,6 @@ type Customer = {
   contactEmail?: string | null;
   notes?: string | null;
   createdAt?: string | null;
-  // New fields
   latitude?: string | null;
   longitude?: string | null;
   relationshipScore?: number | null;
@@ -75,17 +77,29 @@ type Customer = {
   images?: Array<{ id: string; url: string; name?: string }>;
 };
 
-const statusMap: Record<string, { label: string; className: string }> = {
-  ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200" },
-  INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200" },
-  SUSPENDED: { label: "ระงับ", className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" },
+const statusMap: Record<string, { label: string; className: string; gradient: string }> = {
+  ACTIVE: { 
+    label: "ใช้งาน", 
+    className: "bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg shadow-emerald-500/30",
+    gradient: "from-emerald-500/20 to-green-500/20"
+  },
+  INACTIVE: { 
+    label: "ไม่ได้ใช้งาน", 
+    className: "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0 shadow-lg shadow-gray-500/20",
+    gradient: "from-gray-400/20 to-gray-500/20"
+  },
+  SUSPENDED: { 
+    label: "ระงับ", 
+    className: "bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-lg shadow-red-500/30",
+    gradient: "from-red-500/20 to-rose-500/20"
+  },
 };
 
-const customerTypeMap: Record<string, string> = {
-  DEALER: "ตัวแทนจำหน่าย",
-  SUBDEALER: "ตัวแทนจำหน่ายย่อย",
-  FARMER: "เกษตรกร",
-  BROKER: "นายหน้า",
+const customerTypeMap: Record<string, { label: string; icon: string; gradient: string }> = {
+  DEALER: { label: "ตัวแทนจำหน่าย", icon: "🏪", gradient: "from-blue-500 to-indigo-600" },
+  SUBDEALER: { label: "ตัวแทนจำหน่ายย่อย", icon: "🏬", gradient: "from-purple-500 to-pink-600" },
+  FARMER: { label: "เกษตรกร", icon: "🌾", gradient: "from-green-500 to-emerald-600" },
+  BROKER: { label: "นายหน้า", icon: "💼", gradient: "from-orange-500 to-amber-600" },
 };
 
 interface DetailItemProps {
@@ -97,12 +111,12 @@ interface DetailItemProps {
 }
 
 const DetailItem: React.FC<DetailItemProps> = ({ label, value, icon: Icon, className, fullWidth }) => (
-  <div className={`flex flex-col gap-1 ${fullWidth ? "col-span-full" : ""} ${className}`}>
-    <div className="flex items-center gap-1.5 text-sm text-muted-foreground font-medium">
-      {Icon && <Icon className="h-3.5 w-3.5" />}
+  <div className={`group flex flex-col gap-2 ${fullWidth ? "col-span-full" : ""} ${className}`}>
+    <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      {Icon && <Icon className="h-3.5 w-3.5 text-indigo-500 group-hover:text-indigo-600 transition-colors" />}
       {label}
     </div>
-    <div className="text-base text-gray-900 font-medium break-words pl-5">
+    <div className="text-base text-gray-900 font-medium break-words pl-5 group-hover:text-gray-700 transition-colors">
       {value}
     </div>
   </div>
@@ -121,31 +135,51 @@ const AddressBlock: React.FC<{
   const hasAddress = addressLine || subdistrict || district || province || postalCode;
 
   const colors = {
-    blue: "bg-blue-50/50 border-blue-100 text-blue-900",
-    orange: "bg-orange-50/50 border-orange-100 text-orange-900",
-    purple: "bg-purple-50/50 border-purple-100 text-purple-900",
+    blue: {
+      bg: "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50",
+      border: "border-blue-200/60",
+      icon: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30",
+      text: "text-blue-900"
+    },
+    orange: {
+      bg: "bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50",
+      border: "border-orange-200/60",
+      icon: "bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/30",
+      text: "text-orange-900"
+    },
+    purple: {
+      bg: "bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50",
+      border: "border-purple-200/60",
+      icon: "bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30",
+      text: "text-purple-900"
+    },
   };
 
+  const style = colors[variant];
+
   return (
-    <div className={`p-4 rounded-xl border ${colors[variant]} h-full transition-shadow hover:shadow-sm`}>
-      <h3 className="font-semibold flex items-center gap-2 mb-3">
-        <div className={`p-1.5 rounded-lg bg-white/60 shadow-sm`}>
+    <div className={`${style.bg} ${style.border} p-5 rounded-2xl border-2 h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1`}>
+      <h3 className={`font-bold flex items-center gap-3 mb-4 ${style.text}`}>
+        <div className={`p-2 rounded-xl ${style.icon}`}>
           <Icon className="h-4 w-4" />
         </div>
         {title}
       </h3>
-      <div className="pl-9 space-y-1 text-sm/relaxed">
+      <div className="pl-11 space-y-2 text-sm/relaxed">
         {hasAddress ? (
           <>
-            {addressLine && <div className="font-medium">{addressLine}</div>}
-            <div className="text-gray-600">
+            {addressLine && <div className="font-semibold text-gray-800">{addressLine}</div>}
+            <div className="text-gray-600 font-medium">
               {[subdistrict, district, province, postalCode]
                 .filter(Boolean)
-                .join(" / ")}
+                .join(" • ")}
             </div>
           </>
         ) : (
-          <div className="text-gray-400 italic">ไม่มีข้อมูลที่อยู่</div>
+          <div className="text-gray-400 italic flex items-center gap-2">
+            <span className="text-xl">📭</span>
+            ไม่มีข้อมูลที่อยู่
+          </div>
         )}
       </div>
     </div>
@@ -214,9 +248,9 @@ export default function CustomerDetailPage() {
   if (!canView) {
     return (
       <div className="flex h-[50vh] items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md shadow-lg">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
+        <Alert variant="destructive" className="max-w-md shadow-2xl border-red-200">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="text-lg">การเข้าถึงถูกปฏิเสธ</AlertTitle>
           <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลลูกค้านี้</AlertDescription>
         </Alert>
       </div>
@@ -227,14 +261,14 @@ export default function CustomerDetailPage() {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
         <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-48 rounded-lg" />
-          <Skeleton className="h-10 w-32 rounded-lg" />
+          <Skeleton className="h-12 w-56 rounded-xl" />
+          <Skeleton className="h-12 w-36 rounded-xl" />
         </div>
-        <Skeleton className="h-[200px] w-full rounded-2xl" />
+        <Skeleton className="h-[240px] w-full rounded-3xl" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-[300px] rounded-2xl" />
-          <Skeleton className="h-[300px] rounded-2xl" />
-          <Skeleton className="h-[300px] rounded-2xl" />
+          <Skeleton className="h-[320px] rounded-3xl" />
+          <Skeleton className="h-[320px] rounded-3xl" />
+          <Skeleton className="h-[320px] rounded-3xl" />
         </div>
       </div>
     );
@@ -243,9 +277,9 @@ export default function CustomerDetailPage() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-6">
-        <Alert variant="destructive" className="shadow-lg">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>ข้อผิดพลาด</AlertTitle>
+        <Alert variant="destructive" className="shadow-2xl border-red-200">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="text-lg">ข้อผิดพลาด</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -254,23 +288,33 @@ export default function CustomerDetailPage() {
 
   if (!customer) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-6 text-center">
-        <div className="rounded-full bg-gray-100 p-8 shadow-inner">
-          <User className="h-12 w-12 text-gray-400" />
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-8 text-center">
+        <div className="relative">
+          <div className="absolute inset-0 animate-ping rounded-full bg-indigo-400/20"></div>
+          <div className="relative rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 p-10 shadow-2xl">
+            <User className="h-16 w-16 text-indigo-500" />
+          </div>
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900">ไม่พบข้อมูลลูกค้า</h2>
-          <p className="text-gray-500">รหัสลูกค้า: {customerId}</p>
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            ไม่พบข้อมูลลูกค้า
+          </h2>
+          <p className="text-gray-500 text-lg">รหัสลูกค้า: <span className="font-mono font-semibold">{customerId}</span></p>
         </div>
-        <Button variant="outline" className="rounded-full px-8" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          กลับ
+        <Button 
+          variant="outline" 
+          className="rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all hover:scale-105" 
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="mr-2 h-5 w-5" />
+          ย้อนกลับ
         </Button>
       </div>
     );
   }
 
   const statusInfo = customer.status ? statusMap[customer.status.toUpperCase()] : null;
+  const customerTypeInfo = customerTypeMap[customer.customerType];
   const age = customer.birthDate
     ? Math.floor((Date.now() - new Date(customer.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
     : null;
@@ -294,52 +338,50 @@ export default function CustomerDetailPage() {
         : "text-emerald-500";
 
   return (
-    <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+    <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      {/* Enhanced Hero Header Section */}
+      <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white shadow-2xl">
+        {/* Animated Background Elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl animate-pulse pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl animate-pulse delay-700 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-400/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse delay-1000 pointer-events-none" />
 
-      {/* Top Navigation */}
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" className="rounded-full pl-2 pr-4 hover:bg-gray-100 text-gray-600" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5 mr-1" />
-          ย้อนกลับ
-        </Button>
-      </div>
-
-      {/* Hero Header Section */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-blue-900 text-white shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl pointer-events-none" />
-
-        <div className="relative p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-4 max-w-2xl">
+        <div className="relative p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+          <div className="space-y-5 max-w-3xl flex-1">
             <div className="flex flex-wrap items-center gap-3">
-              <Badge className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md px-3 py-1">
-                {customerTypeMap[customer.customerType] || customer.customerType}
-              </Badge>
+              {customerTypeInfo && (
+                <Badge className={`bg-gradient-to-r ${customerTypeInfo.gradient} text-white border-0 backdrop-blur-md px-4 py-1.5 shadow-lg text-sm font-semibold`}>
+                  <span className="mr-1.5">{customerTypeInfo.icon}</span>
+                  {customerTypeInfo.label}
+                </Badge>
+              )}
               {statusInfo && (
-                <Badge variant="outline" className={`${statusInfo.className} bg-white/90 border-0`}>
+                <Badge className={`${statusInfo.className} px-4 py-1.5 text-sm font-semibold`}>
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
                   {statusInfo.label}
                 </Badge>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white drop-shadow-sm">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white drop-shadow-lg">
               {customer.name}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-blue-100 text-sm md:text-base">
-              <div className="flex items-center gap-2">
-                <div className="bg-white/10 p-1.5 rounded-lg"><Building className="h-4 w-4" /></div>
-                {customer.customerCode}
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-white/90 text-base">
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+                <Building className="h-4 w-4" />
+                <span className="font-semibold">{customer.customerCode}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-white/10 p-1.5 rounded-lg"><MapPin className="h-4 w-4" /></div>
-                {customer.province || "ไม่ระบุจังหวัด"}
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+                <MapPin className="h-4 w-4" />
+                <span className="font-medium">{customer.province || "ไม่ระบุจังหวัด"}</span>
               </div>
               {customer.responsibleEmployee && (
-                <div className="flex items-center gap-2">
-                  <div className="bg-white/10 p-1.5 rounded-lg"><UserCheck className="h-4 w-4" /></div>
-                  <span className="opacity-80">ผู้ดูแล:</span>
-                  <span className="font-medium text-white">{customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}</span>
+                <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+                  <UserCheck className="h-4 w-4" />
+                  <span className="font-medium">
+                    {customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}
+                  </span>
                 </div>
               )}
             </div>
@@ -348,20 +390,14 @@ export default function CustomerDetailPage() {
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             {customer.latitude && customer.longitude && (
               <Button
-                variant="secondary"
-                className="bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-sm shadow-sm"
+                size="lg"
+                className="bg-white text-indigo-600 hover:bg-white/90 border-0 shadow-2xl font-semibold px-6 py-6 rounded-2xl transition-all hover:scale-105"
                 onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`, '_blank')}
               >
-                <Navigation className="mr-2 h-4 w-4" />
+                <Navigation className="mr-2 h-5 w-5" />
                 เปิดแผนที่
               </Button>
             )}
-            <Button className="bg-white text-blue-900 hover:bg-blue-50 border-0 shadow-lg font-semibold" asChild>
-              <Link href={`./${customerId}/edit`}>
-                <Pencil className="mr-2 h-4 w-4" />
-                แก้ไขข้อมูล
-              </Link>
-            </Button>
           </div>
         </div>
       </div>
@@ -373,57 +409,120 @@ export default function CustomerDetailPage() {
         <div className="xl:col-span-8 space-y-8">
 
           {/* Section: Company Info */}
-          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
-                <Building className="h-5 w-5 text-indigo-500" />
+          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 pb-5">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+                  <Building className="h-6 w-6" />
+                </div>
                 ข้อมูลบริษัท
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
               <DetailItem label="ชื่อบริษัท / ร้านค้า" value={customer.name} icon={Building} className="col-span-full" />
               <DetailItem label="เลขผู้เสียภาษี" value={customer.taxId || "-"} icon={FileText} />
-              <DetailItem label="เบอร์โทรศัพท์ (องค์กร)" value={customer.phone ? <a href={`tel:${customer.phone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.phone}</a> : "-"} icon={Phone} />
-              <DetailItem label="อีเมล (องค์กร)" value={customer.email ? <a href={`mailto:${customer.email}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.email}</a> : "-"} icon={Mail} />
+              <DetailItem 
+                label="เบอร์โทรศัพท์ (องค์กร)" 
+                value={customer.phone ? (
+                  <a href={`tel:${customer.phone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
+                    {customer.phone}
+                    <Phone className="h-3.5 w-3.5" />
+                  </a>
+                ) : "-"} 
+                icon={Phone} 
+              />
+              <DetailItem 
+                label="อีเมล (องค์กร)" 
+                value={customer.email ? (
+                  <a href={`mailto:${customer.email}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
+                    {customer.email}
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                ) : "-"} 
+                icon={Mail} 
+              />
               <DetailItem
                 label="ความสัมพันธ์"
                 value={
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold ${relationshipColor}`}>{relationshipLevel}</span>
-                    <div className="flex gap-0.5">
+                  <div className="flex items-center gap-3">
+                    <span className={`font-bold text-lg ${relationshipColor}`}>{relationshipLevel}</span>
+                    <div className="flex gap-1">
                       {[1, 2, 3].map((star) => (
                         <Star
                           key={star}
-                          className={`h-4 w-4 ${customer.relationshipScore && customer.relationshipScore >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-200"}`}
+                          className={`h-5 w-5 transition-all ${customer.relationshipScore && customer.relationshipScore >= star ? "fill-yellow-400 text-yellow-400 scale-110" : "text-gray-300"}`}
                         />
                       ))}
                     </div>
                   </div>
                 }
-                icon={Star}
+                icon={Award}
               />
               {customer.parentDealer && (
-                <DetailItem label="ร้านค้าหลัก (Parent Dealer)" value={customer.parentDealer.name} icon={Building} />
+                <DetailItem 
+                  label="ร้านค้าหลัก (Parent Dealer)" 
+                  value={
+                    <span className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-semibold">
+                      <TrendingUp className="h-4 w-4" />
+                      {customer.parentDealer.name}
+                    </span>
+                  } 
+                  icon={Building} 
+                />
               )}
             </CardContent>
           </Card>
 
           {/* Section: Contact Person */}
-          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-gray-800">
-                <User className="h-5 w-5 text-indigo-500" />
+          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 pb-5">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
+                  <User className="h-6 w-6" />
+                </div>
                 ข้อมูลผู้ติดต่อ
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <DetailItem label="ชื่อ-นามสกุล" value={[customer.prefix, customer.firstName, customer.lastName].filter(Boolean).join(" ") || "-"} icon={User} className="col-span-full" />
-              <DetailItem label="เบอร์โทรศัพท์ (ส่วนตัว)" value={customer.contactPhone ? <a href={`tel:${customer.contactPhone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.contactPhone}</a> : "-"} icon={Phone} />
-              <DetailItem label="อีเมล (ส่วนตัว)" value={customer.contactEmail ? <a href={`mailto:${customer.contactEmail}`} className="hover:text-indigo-600 underline-offset-4 hover:underline">{customer.contactEmail}</a> : "-"} icon={Mail} />
+            <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+              <DetailItem 
+                label="ชื่อ-นามสกุล" 
+                value={
+                  <span className="text-lg font-semibold text-gray-900">
+                    {[customer.prefix, customer.firstName, customer.lastName].filter(Boolean).join(" ") || "-"}
+                  </span>
+                } 
+                icon={User} 
+                className="col-span-full" 
+              />
+              <DetailItem 
+                label="เบอร์โทรศัพท์ (ส่วนตัว)" 
+                value={customer.contactPhone ? (
+                  <a href={`tel:${customer.contactPhone}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
+                    {customer.contactPhone}
+                    <Phone className="h-3.5 w-3.5" />
+                  </a>
+                ) : "-"} 
+                icon={Phone} 
+              />
+              <DetailItem 
+                label="อีเมล (ส่วนตัว)" 
+                value={customer.contactEmail ? (
+                  <a href={`mailto:${customer.contactEmail}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
+                    {customer.contactEmail}
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                ) : "-"} 
+                icon={Mail} 
+              />
               <DetailItem
                 label="วันเกิด / อายุ"
                 value={customer.birthDate
-                  ? `${new Date(customer.birthDate).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} ${age !== null ? `(${age} ปี)` : ""}`
+                  ? (
+                    <span className="inline-flex items-center gap-2 bg-pink-50 text-pink-700 px-3 py-1 rounded-lg font-semibold">
+                      🎂 {new Date(customer.birthDate).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} 
+                      {age !== null && <span className="text-pink-600">({age} ปี)</span>}
+                    </span>
+                  )
                   : "-"
                 }
                 icon={Calendar}
@@ -432,51 +531,55 @@ export default function CustomerDetailPage() {
           </Card>
 
           {/* Section: Addresses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-indigo-500" />
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+                  <MapPin className="h-6 w-6" />
+                </div>
                 ที่อยู่และการจัดส่ง
               </h3>
             </div>
 
-            <div className="h-full">
-              <AddressBlock
-                title="ที่อยู่บริษัท"
-                icon={Building}
-                addressLine={customer.addressLine}
-                subdistrict={customer.subdistrict}
-                district={customer.district}
-                province={customer.province}
-                postalCode={customer.postalCode}
-                variant="blue"
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-full">
+                <AddressBlock
+                  title="ที่อยู่บริษัท"
+                  icon={Building}
+                  addressLine={customer.addressLine}
+                  subdistrict={customer.subdistrict}
+                  district={customer.district}
+                  province={customer.province}
+                  postalCode={customer.postalCode}
+                  variant="blue"
+                />
+              </div>
 
-            <div className="h-full">
-              <AddressBlock
-                title="ที่อยู่วางบิล"
-                icon={FileText}
-                addressLine={customer.billingAddressLine}
-                subdistrict={customer.billingSubdistrict}
-                district={customer.billingDistrict}
-                province={customer.billingProvince}
-                postalCode={customer.billingPostalCode}
-                variant="purple"
-              />
-            </div>
+              <div className="h-full">
+                <AddressBlock
+                  title="ที่อยู่วางบิล"
+                  icon={FileText}
+                  addressLine={customer.billingAddressLine}
+                  subdistrict={customer.billingSubdistrict}
+                  district={customer.billingDistrict}
+                  province={customer.billingProvince}
+                  postalCode={customer.billingPostalCode}
+                  variant="purple"
+                />
+              </div>
 
-            <div className="h-full md:col-span-2">
-              <AddressBlock
-                title="ที่อยู่จัดส่ง"
-                icon={Truck}
-                addressLine={customer.shippingAddressLine}
-                subdistrict={customer.shippingSubdistrict}
-                district={customer.shippingDistrict}
-                province={customer.shippingProvince}
-                postalCode={customer.shippingPostalCode}
-                variant="orange"
-              />
+              <div className="h-full md:col-span-2">
+                <AddressBlock
+                  title="ที่อยู่จัดส่ง"
+                  icon={Truck}
+                  addressLine={customer.shippingAddressLine}
+                  subdistrict={customer.shippingSubdistrict}
+                  district={customer.shippingDistrict}
+                  province={customer.shippingProvince}
+                  postalCode={customer.shippingPostalCode}
+                  variant="orange"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -485,36 +588,42 @@ export default function CustomerDetailPage() {
         <div className="xl:col-span-4 space-y-8">
 
           {/* Images Gallery */}
-          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden text-center sm:text-left">
-            <CardHeader className="bg-gray-50/50 border-b border-gray-100 pb-4">
-              <CardTitle className="text-lg font-semibold flex items-center justify-between text-gray-800">
-                <span className="flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5 text-indigo-500" />
+          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 border-b border-gray-200 pb-5">
+              <CardTitle className="text-xl font-bold flex items-center justify-between text-gray-800">
+                <span className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg">
+                    <ImageIcon className="h-5 w-5" />
+                  </div>
                   รูปภาพร้านค้า
                 </span>
-                <span className="text-xs font-normal text-muted-foreground bg-gray-200 px-2 py-0.5 rounded-full">
+                <Badge className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-3 py-1 text-xs font-bold shadow-lg">
                   {customer.images?.length || 0} รูป
-                </span>
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {customer.images && customer.images.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-4">
                     {customer.images.map((img, index) => (
                       <div
                         key={img.id}
                         onClick={() => setSelectedImageIndex(index)}
-                        className="relative group aspect-square rounded-xl overflow-hidden cursor-zoom-in border bg-gray-100"
+                        className="relative group aspect-square rounded-2xl overflow-hidden cursor-zoom-in border-2 border-gray-200 bg-gray-100 hover:border-indigo-400 transition-all duration-300 hover:shadow-2xl hover:scale-[1.05]"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={img.url}
                           alt={img.name || "Customer Image"}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-125"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute bottom-3 left-3 right-3 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          คลิกเพื่อดูขนาดเต็ม
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -523,7 +632,7 @@ export default function CustomerDetailPage() {
                     open={selectedImageIndex !== null}
                     onOpenChange={(open) => !open && setSelectedImageIndex(null)}
                   >
-                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
+                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-black/95 backdrop-blur-xl border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
                       <DialogTitle className="sr-only">Image Preview</DialogTitle>
 
                       {selectedImageIndex !== null && customer.images && (
@@ -531,7 +640,7 @@ export default function CustomerDetailPage() {
                           {/* Close Button */}
                           <button
                             onClick={() => setSelectedImageIndex(null)}
-                            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors backdrop-blur-sm"
+                            className="absolute top-6 right-6 z-50 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 hover:scale-110"
                           >
                             <X className="h-6 w-6" />
                           </button>
@@ -544,9 +653,9 @@ export default function CustomerDetailPage() {
                                   e.stopPropagation();
                                   handlePrevImage();
                                 }}
-                                className="absolute left-2 md:left-4 z-50 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all backdrop-blur-sm border border-white/10 group"
+                                className="absolute left-4 md:left-8 z-50 p-4 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 group hover:scale-110"
                               >
-                                <ChevronLeft className="h-6 w-6 group-hover:-translate-x-0.5 transition-transform" />
+                                <ChevronLeft className="h-7 w-7 group-hover:-translate-x-1 transition-transform" />
                               </button>
 
                               <button
@@ -554,9 +663,9 @@ export default function CustomerDetailPage() {
                                   e.stopPropagation();
                                   handleNextImage();
                                 }}
-                                className="absolute right-2 md:right-4 z-50 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all backdrop-blur-sm border border-white/10 group"
+                                className="absolute right-4 md:right-8 z-50 p-4 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 group hover:scale-110"
                               >
-                                <ChevronRight className="h-6 w-6 group-hover:translate-x-0.5 transition-transform" />
+                                <ChevronRight className="h-7 w-7 group-hover:translate-x-1 transition-transform" />
                               </button>
                             </>
                           )}
@@ -567,11 +676,11 @@ export default function CustomerDetailPage() {
                             <img
                               src={customer.images[selectedImageIndex].url}
                               alt={customer.images[selectedImageIndex].name || "Full Preview"}
-                              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+                              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
                             />
 
                             {/* Image Counter Badge */}
-                            <div className="mt-4 px-4 py-1.5 rounded-full bg-black/50 backdrop-blur-md text-white/90 text-sm font-medium">
+                            <div className="mt-6 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-white text-base font-bold border border-white/20 shadow-2xl">
                               {selectedImageIndex + 1} / {customer.images.length}
                             </div>
                           </div>
@@ -581,42 +690,53 @@ export default function CustomerDetailPage() {
                   </Dialog>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center py-10 text-gray-300 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                  <ImageIcon className="h-10 w-10 mb-2 opacity-50" />
-                  <p className="text-sm">ไม่มีรูปภาพ</p>
+                <div className="flex flex-col items-center justify-center py-12 text-gray-300 border-2 border-dashed border-gray-300 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100">
+                  <ImageIcon className="h-12 w-12 mb-3 opacity-40" />
+                  <p className="text-sm font-medium text-gray-400">ไม่มีรูปภาพ</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Notes */}
-          <Card className="border-0 shadow-md ring-1 ring-gray-100 overflow-hidden">
-            <CardHeader className="bg-amber-50/50 border-b border-amber-100 pb-4">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2 text-amber-900">
-                <FileText className="h-5 w-5 text-amber-600" />
+          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-100 pb-5">
+              <CardTitle className="text-xl font-bold flex items-center gap-3 text-amber-900">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg">
+                  <FileText className="h-5 w-5" />
+                </div>
                 หมายเหตุ
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {customer.notes ? (
-                <div className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap bg-amber-50/30 p-4 rounded-xl border border-amber-100/50">
+                <div className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap bg-gradient-to-br from-amber-50/50 to-yellow-50/50 p-5 rounded-2xl border-2 border-amber-200/60 font-medium">
                   {customer.notes}
                 </div>
               ) : (
-                <div className="text-center py-6 text-gray-400 italic text-sm">ไม่มีบันทึกข้อความ</div>
+                <div className="text-center py-8 text-gray-400 italic text-sm flex flex-col items-center gap-3">
+                  <span className="text-3xl">📝</span>
+                  ไม่มีบันทึกข้อความ
+                </div>
               )}
             </CardContent>
           </Card>
 
           {/* System Info */}
-          <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 space-y-2 border border-gray-100">
-            <div className="flex justify-between">
-              <span>รหัสอ้างอิง:</span>
-              <span className="font-mono">{customer.id}</span>
+          <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 text-sm text-gray-600 space-y-4 border-2 border-gray-200 shadow-lg">
+            <h4 className="font-bold text-gray-800 flex items-center gap-2 text-base mb-4">
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-gray-500 to-slate-600 text-white">
+                <FileText className="h-4 w-4" />
+              </div>
+              ข้อมูลระบบ
+            </h4>
+            <div className="flex justify-between items-center py-2 border-b border-gray-200">
+              <span className="text-gray-500 font-medium">รหัสอ้างอิง:</span>
+              <span className="font-mono font-bold text-gray-800 bg-gray-200 px-3 py-1 rounded-lg">{customer.id}</span>
             </div>
-            <div className="flex justify-between">
-              <span>สร้างเมื่อ:</span>
-              <span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-500 font-medium">สร้างเมื่อ:</span>
+              <span className="font-semibold text-gray-800">
                 {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("th-TH", {
                   year: 'numeric',
                   month: 'long',
@@ -628,6 +748,19 @@ export default function CustomerDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Back Navigation */}
+      <div className="flex items-center gap-3 pt-4">
+        <Button 
+          variant="outline" 
+          size="lg"
+          className="rounded-2xl pl-4 pr-6 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-700 border-2 hover:border-indigo-300 transition-all hover:scale-105 shadow-lg hover:shadow-xl font-semibold" 
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          ย้อนกลับ
+        </Button>
       </div>
     </div>
   );
