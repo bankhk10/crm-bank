@@ -72,10 +72,62 @@ export async function POST(request: Request, { params }: { params: any }) {
             orderBy: { order: "asc" }
         });
 
-        return NextResponse.json({ images: result });
+        return NextResponse.json({ images: result, created });
     } catch (err) {
         console.error("Cloudinary upload error:", err);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    }
+}
+
+export async function PUT(request: Request, { params }: { params: any }) {
+    const session = await auth();
+
+    if (!session?.user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!isAuthorized(resourcePath, session.user.permissions)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Check update permission
+    const hasUpdatePermission =
+        session.user.permissions?.["customer.update"]?.allow ||
+        session.user.permissions?.["customer.update.dealer"]?.allow;
+
+    if (!hasUpdatePermission) {
+        // Fallback checks
+    }
+
+    try {
+        const { customerId } = await params;
+        const body = await request.json();
+        const { imageIds } = body;
+
+        if (!Array.isArray(imageIds)) {
+            return NextResponse.json({ error: "Invalid imageIds" }, { status: 400 });
+        }
+
+        // Update order for each image
+        await (db as any).$transaction(
+            imageIds.map((id: string, index: number) =>
+                (db as any).customerImage.update({
+                    where: { id, customerId },
+                    data: { order: index },
+                })
+            )
+        );
+
+        const result = await (db as any).customerImage.findMany({
+            where: { customerId },
+            orderBy: { order: "asc" }
+        });
+
+        return NextResponse.json({ success: true, images: result });
+
+    } catch (err) {
+        console.error("Reorder failed", err);
+        return NextResponse.json({ error: "Reorder failed" }, { status: 500 });
     }
 }
 

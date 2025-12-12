@@ -239,6 +239,24 @@ export default function CustomerFormDealer({
     });
   };
 
+  const reorderImages = (
+    customerId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/customers/${customerId}/images`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to reorder images"));
+        })
+        .catch(reject);
+    });
+  };
+
   function handleChange(key: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const v = (e.target as HTMLInputElement).value;
@@ -309,12 +327,12 @@ export default function CustomerFormDealer({
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
       } else {
-        // Handle images (delete removed, upload new)
+        // Handle images (delete removed, upload new, reorder)
         const targetCustomerId = res.data?.customer?.id || values.id;
 
         if (targetCustomerId) {
           try {
-            // 1. Helper to find removed images
+            // 1. Identify removed images
             const initialImages = (initial.images || []) as any[];
             const currentImageIds = images.map((img) => img.id).filter(Boolean);
             const removedImageIds = initialImages
@@ -326,14 +344,33 @@ export default function CustomerFormDealer({
               await deleteImages(targetCustomerId, removedImageIds);
             }
 
-            // 3. Upload new images
-            if (images.length > 0) {
-              const filesToUpload = images.filter((i) => i instanceof File) as File[];
-              if (filesToUpload.length > 0) {
-                setUploadProgress(0);
-                await uploadImages(targetCustomerId, filesToUpload);
+            // 3. Upload new images and collect all IDs in order
+            let uploadedImages: any[] = [];
+            const filesToUpload = images.filter((i) => i instanceof File) as File[];
+
+            if (filesToUpload.length > 0) {
+              setUploadProgress(0);
+              const uploadRes = await uploadImages(targetCustomerId, filesToUpload);
+              if (uploadRes.created) {
+                uploadedImages = uploadRes.created;
               }
             }
+
+            // 4. Construct final ordered ID list
+            let uploadIndex = 0;
+            const finalOrderedIds = images.map((img) => {
+              if (img instanceof File) {
+                const newImg = uploadedImages[uploadIndex++];
+                return newImg?.id;
+              }
+              return img.id;
+            }).filter(Boolean);
+
+            // 5. Update order
+            if (finalOrderedIds.length > 0) {
+              await reorderImages(targetCustomerId, finalOrderedIds);
+            }
+
           } catch (err) {
             console.error("Image operation failed", err);
             // We don't block success navigation if image op fails, but we log it
