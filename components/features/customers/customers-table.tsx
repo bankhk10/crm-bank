@@ -518,14 +518,14 @@ function CustomersToolbar(
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-2">
-          <label className="text-base font-medium mx-2">ค้นหาลูกค้า</label>
+          <label className="text-base font-medium mx-2">ค้นหา</label>
           <Input
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") onSearchSubmit?.();
             }}
-            placeholder="ค้นหารหัส, ชื่อ, อีเมล, โทรศัพท์"
+            placeholder="รหัสลูกค้า, ชื่อ, อีเมล, โทรศัพท์"
             className="mt-1 w-full mt-2"
           />
         </div>
