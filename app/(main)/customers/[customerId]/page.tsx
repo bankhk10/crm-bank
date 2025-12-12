@@ -632,7 +632,7 @@ export default function CustomerDetailPage() {
                     open={selectedImageIndex !== null}
                     onOpenChange={(open) => !open && setSelectedImageIndex(null)}
                   >
-                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-black/95 backdrop-blur-xl border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
+                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-black/20 backdrop-blur-md border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
                       <DialogTitle className="sr-only">Image Preview</DialogTitle>
 
                       {selectedImageIndex !== null && customer.images && (
@@ -676,7 +676,7 @@ export default function CustomerDetailPage() {
                             <img
                               src={customer.images[selectedImageIndex].url}
                               alt={customer.images[selectedImageIndex].name || "Full Preview"}
-                              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
+                              className="max-w-full max-h-[85vh] object-contain animate-in zoom-in-95 duration-300"
                             />
 
                             {/* Image Counter Badge */}
