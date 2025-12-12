@@ -1,35 +1,21 @@
-import { forwardRef } from "react";
-import type { InputHTMLAttributes, WheelEventHandler } from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react"
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
+import { cn } from "@/lib/utils"
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type = "text", readOnly, disabled, onWheel, ...props }, ref) => {
-    const handleWheel: WheelEventHandler<HTMLInputElement> = (e) => {
-      if (type === "number") {
-        // blur to avoid changing the numeric value via mouse wheel
-        e.currentTarget.blur();
-      }
-      if (onWheel) onWheel(e as any);
-    };
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <input
+      type={type}
+      data-slot="input"
+      className={cn(
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
-    return (
-      <input
-        ref={ref}
-        type={type}
-        readOnly={readOnly}
-        disabled={disabled}
-        onWheel={handleWheel}
-        className={cn(
-          "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2",
-          readOnly || disabled ? "bg-gray-100" : "bg-white",
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
-
-Input.displayName = "Input";
+export { Input }

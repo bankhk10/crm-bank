@@ -1,45 +1,61 @@
 "use client"
 
 import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
-type Side = "top" | "right" | "bottom" | "left"
+import { cn } from "@/lib/utils"
 
-export function Tooltip({
-  children,
-  content,
-  side = "top",
-}: {
-  children: React.ReactNode
-  content: React.ReactNode
-  side?: Side
-}) {
-  const posClass = React.useMemo(() => {
-    switch (side) {
-      case "top":
-        return "-top-2 left-1/2 -translate-x-1/2 translate-y-[-100%] mb-2"
-      case "bottom":
-        return "top-full left-1/2 -translate-x-1/2 mt-2"
-      case "left":
-        return "left-0 top-1/2 -translate-x-full -translate-y-1/2 mr-2"
-      case "right":
-        return "left-full top-1/2 translate-x-2 -translate-y-1/2"
-    }
-  }, [side])
-
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
-    <div className="relative inline-block">
-      <div className="group inline-flex items-center">{children}</div>
-
-      <div
-        role="tooltip"
-        className={`pointer-events-none absolute z-50 ${posClass} hidden group-hover:block group-focus:block`}
-      >
-        <div className="whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow-md">
-          {content}
-        </div>
-      </div>
-    </div>
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
   )
 }
 
-export default Tooltip
+function Tooltip({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  return (
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
+}
+
+function TooltipTrigger({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+}
+
+function TooltipContent({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  )
+}
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
