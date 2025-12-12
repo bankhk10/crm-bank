@@ -131,14 +131,38 @@ function CustomerStatusBadge({
   );
 }
 
+const customerTypeStyle: Record<string, { label: string; className: string }> = {
+  DEALER: {
+    label: "ตัวแทนจำหน่าย",
+    className: "rounded-full bg-blue-100 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-50",
+  },
+  SUBDEALER: {
+    label: "ตัวแทนจำหน่ายย่อย",
+    className: "rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-50",
+  },
+  FARMER: {
+    label: "เกษตรกร",
+    className: "rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-50",
+  },
+  BROKER: {
+    label: "นายหน้า",
+    className: "rounded-full bg-purple-100 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-50",
+  },
+};
+
 function CustomerTypeBadge({ type }: { type?: string }) {
-  const label = customerTypeMap[type ?? ""] || "ไม่ระบุ";
+  const key = (type || "").toUpperCase();
+  const info = customerTypeStyle[key] ?? {
+    label: "ไม่ระบุ",
+    className: "rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+  };
+
   return (
     <Badge
       variant="outline"
-      className="rounded-full border-slate-200 bg-slate-50 text-slate-700"
+      className={cn("border-0", info.className)}
     >
-      {label}
+      {info.label}
     </Badge>
   );
 }
@@ -237,12 +261,12 @@ function useCustomerColumns(
         header: "ประเภท",
         meta: {
           headerAlign: "left",
-          minWidth: 130,
-          width: 130,
-          maxWidth: 130,
+          minWidth: 150,
+          width: 150,
+          maxWidth: 150,
           align: "left",
         },
-        cell: ({ row }) => row.original.customerType ?? "-",
+        cell: ({ row }) => <CustomerTypeBadge type={row.original.customerType} />,
       },
       {
         accessorKey: "status",
@@ -546,10 +570,10 @@ function CustomersToolbar(
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_VALUE}>ทั้งหมด</SelectItem>
-                  <SelectItem value="DEALER">DEALER</SelectItem>
-                  <SelectItem value="SUBDEALER">SUBDEALER</SelectItem>
-                  <SelectItem value="FARMER">FARMER</SelectItem>
-                  <SelectItem value="BROKER">BROKER</SelectItem>
+                  <SelectItem value="DEALER">ตัวแทนจำหน่าย</SelectItem>
+                  <SelectItem value="SUBDEALER">ตัวแทนจำหน่ายย่อย</SelectItem>
+                  <SelectItem value="FARMER">เกษตรกร</SelectItem>
+                  <SelectItem value="BROKER">นายหน้า</SelectItem>
                 </SelectContent>
               </Select>
             );
