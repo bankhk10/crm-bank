@@ -34,6 +34,9 @@ const ImagePreviewItem = ({
   onSetCover,
   onRemove,
   onPreview,
+  onDragStart,
+  onDragOver,
+  onDrop,
 }: {
   file: File | ExistingImage;
   index: number;
@@ -42,6 +45,9 @@ const ImagePreviewItem = ({
   onSetCover?: (index: number) => void;
   onRemove: (index: number) => void;
   onPreview: (url: string) => void;
+  onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragOver: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDrop: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -65,11 +71,15 @@ const ImagePreviewItem = ({
 
   return (
     <div
-      className={`relative group w-32 h-32 shrink-0 bg-white p-1 rounded-md border-2 transition-all ${isCover ? "border-yellow-400 shadow-sm" : "border-gray-200"
+      className={`relative group w-32 h-32 shrink-0 bg-white p-1 rounded-md border-2 transition-all cursor-move ${isCover ? "border-yellow-400 shadow-sm" : "border-gray-200"
         }`}
+      draggable={!disabled}
+      onDragStart={(e) => onDragStart(e, index)}
+      onDragOver={(e) => onDragOver(e, index)}
+      onDrop={(e) => onDrop(e, index)}
     >
       <div
-        className="w-full h-full relative cursor-pointer overflow-hidden rounded-sm"
+        className="w-full h-full relative overflow-hidden rounded-sm"
         onClick={() => onPreview(previewUrl)}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -79,43 +89,23 @@ const ImagePreviewItem = ({
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
 
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => {
-                const newIndex = isCover ? null : index;
-                if (newIndex !== null) onSetCover?.(newIndex);
-              }}
-              className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${isCover
-                ? "bg-yellow-400 text-white"
-                : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
-                }`}
-              title={isCover ? "ยกเลิกหน้าปก" : "ตั้งเป็นหน้าปก"}
-              disabled={disabled}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => onRemove(index)}
-              className="p-1.5 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-red-500 transition-colors"
-              title="ลบรูปภาพ"
-              disabled={disabled}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="absolute bottom-1 right-1 text-white/80">
-            <ZoomIn className="w-3 h-3" />
-          </div>
+        {/* Delete Button - Always visible on top right */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(index);
+          }}
+          className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white shadow-md hover:bg-red-600 transition-colors z-10"
+          title="ลบรูปภาพ"
+          disabled={disabled}
+        >
+          <X className="w-3 h-3" />
+        </button>
+
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 pointer-events-none">
+          {/* Center Zoom Icon (functional via parent click) */}
+          <ZoomIn className="w-6 h-6 text-white/80" />
         </div>
       </div>
     </div>
@@ -139,6 +129,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     value.length > 0 ? 0 : null
   );
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const hasError = !!error;
 
   const handleFiles = (files: FileList | null) => {
@@ -274,6 +265,30 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     inputRef.current?.click();
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Set a transparent drag image or custom if needed, but default is usually fine
+    // e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault(); // Necessary for onDrop to fire
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newFiles = [...value];
+    const [draggedItem] = newFiles.splice(draggedIndex, 1);
+    newFiles.splice(dropIndex, 0, draggedItem);
+
+    onChange(newFiles);
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="mb-4">
       {/* Header Label */}
@@ -327,6 +342,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             }}
             onRemove={removeFile}
             onPreview={setPreviewImage}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
           />
         ))}
 
@@ -373,7 +391,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             )}
             <button
               onClick={() => setPreviewImage(null)}
-              className="absolute -top-12 right-0 md:bg-white/10 md:hover:bg-white/20 text-white rounded-full p-2 transition-colors focus:outline-none"
+              className="absolute -top-12 right-0 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-colors focus:outline-none shadow-lg"
             >
               <X className="w-8 h-8" />
             </button>
