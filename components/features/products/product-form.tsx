@@ -693,7 +693,7 @@ export function ProductForm({
                       : null,
               }))
             }
-            accept="image/jpeg,image/png"
+
             maxFiles={5}
             maxSizeMB={2}
             disabled={loading}

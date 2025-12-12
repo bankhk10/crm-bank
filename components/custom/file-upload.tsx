@@ -88,8 +88,8 @@ const ImagePreviewItem = ({
                 if (newIndex !== null) onSetCover?.(newIndex);
               }}
               className={`p-1.5 rounded-full backdrop-blur-md transition-colors ${isCover
-                  ? "bg-yellow-400 text-white"
-                  : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
+                ? "bg-yellow-400 text-white"
+                : "bg-white/20 text-white hover:bg-yellow-400 hover:border-transparent"
                 }`}
               title={isCover ? "ยกเลิกหน้าปก" : "ตั้งเป็นหน้าปก"}
               disabled={disabled}
@@ -126,7 +126,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   label,
   value = [],
   onChange,
-  accept = "image/jpeg,image/png,image/webp,image/avif,image/svg+xml",
+  accept = ".jpg,.jpeg,.png,.webp,.heic,.heif",
   maxFiles = 5,
   maxSizeMB = 2,
   error,
@@ -157,9 +157,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     // Validate each file
     newFiles.forEach((file) => {
       // Check file type
-      const acceptedTypes = accept.split(",").map((t) => t.trim());
-      const fileType = file.type;
+      const acceptedTypes = accept.split(",").map((t) => t.trim().toLowerCase());
+      const fileType = file.type.toLowerCase();
+      const fileName = file.name.toLowerCase();
+
       const isValidType = acceptedTypes.some((type) => {
+        if (type.startsWith(".")) {
+          return fileName.endsWith(type);
+        }
         if (type.endsWith("/*")) {
           const baseType = type.split("/")[0];
           return fileType.startsWith(baseType + "/");
