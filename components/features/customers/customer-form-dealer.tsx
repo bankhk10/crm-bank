@@ -25,7 +25,7 @@ type Props = Omit<CustomerFormProps, "customerType">;
 
 type Option = { id: string; label: string };
 
-const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
+const labelTextClass = "text-base font-medium mx-2";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormDealer({
@@ -423,7 +423,7 @@ export default function CustomerFormDealer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
       </h3>
@@ -514,7 +514,7 @@ export default function CustomerFormDealer({
               type="button"
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] px-2 gap-1 mt-2"
+              className="h-6 text-[10px] px-2 gap-1"
               onClick={getCurrentLocation}
             >
               <MapPin className="w-3 h-3" />
