@@ -523,7 +523,7 @@ export default function CustomerDetailPage() {
                     open={selectedImageIndex !== null}
                     onOpenChange={(open) => !open && setSelectedImageIndex(null)}
                   >
-                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center outline-none">
+                    <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-transparent border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
                       <DialogTitle className="sr-only">Image Preview</DialogTitle>
 
                       {selectedImageIndex !== null && customer.images && (
