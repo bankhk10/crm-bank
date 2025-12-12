@@ -518,7 +518,7 @@ function CustomersToolbar(
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-2">
-          <label className="text-sm font-medium mx-2">ค้นหาลูกค้า</label>
+          <label className="text-base font-medium mx-2">ค้นหาลูกค้า</label>
           <Input
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
@@ -526,12 +526,12 @@ function CustomersToolbar(
               if (event.key === "Enter") onSearchSubmit?.();
             }}
             placeholder="ค้นหารหัส, ชื่อ, อีเมล, โทรศัพท์"
-            className="mt-1 w-full"
+            className="mt-1 w-full mt-2"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium mx-2">ประเภทลูกค้า</label>
+          <label className="text-base font-medium mx-2">ประเภทลูกค้า</label>
           {(() => {
             const ALL_VALUE = "__ALL__";
             return (
@@ -541,7 +541,7 @@ function CustomersToolbar(
                   onCustomerTypeFilterChange?.(v === ALL_VALUE ? "" : v)
                 }
               >
-                <SelectTrigger className="mt-1 text-base w-full">
+                <SelectTrigger className="mt-1 text-base w-full mt-2">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
@@ -557,7 +557,7 @@ function CustomersToolbar(
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium mx-2">สถานะ</label>
+          <label className="text-base font-medium mx-2">สถานะ</label>
           {(() => {
             const ALL_STATUS = "__ALL_STATUS__";
             return (
@@ -567,7 +567,7 @@ function CustomersToolbar(
                   onStatusFilterChange?.(v === ALL_STATUS ? "" : v)
                 }
               >
-                <SelectTrigger className="mt-1 text-base !h-11 w-full">
+                <SelectTrigger className="mt-1 text-base w-full mt-2">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
@@ -690,11 +690,6 @@ function CustomersCards(
         <p className="mb-4 text-sm text-slate-600">
           ลองปรับการค้นหาหรือเพิ่มลูกค้าใหม่
         </p>
-        {canCreate ? (
-          <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
-            <Link href="/customers/new">สร้างลูกค้าใหม่</Link>
-          </Button>
-        ) : null}
       </Card>
     );
   }
