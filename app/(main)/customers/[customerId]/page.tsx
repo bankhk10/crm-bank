@@ -196,12 +196,18 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const handleNextImage = () => {
     if (selectedImageIndex === null || !customer?.images) return;
     setSelectedImageIndex((prev) =>
       prev === null ? null : (prev + 1) % customer.images!.length
     );
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
   };
 
   const handlePrevImage = () => {
@@ -211,6 +217,8 @@ export default function CustomerDetailPage() {
         ? null
         : (prev - 1 + customer.images!.length) % customer.images!.length
     );
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
   };
 
   useEffect(() => {
@@ -223,6 +231,46 @@ export default function CustomerDetailPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedImageIndex]);
+
+  // Reset zoom and pan when dialog closes
+  useEffect(() => {
+    if (selectedImageIndex === null) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    }
+  }, [selectedImageIndex]);
+
+  // Zoom and Pan Handlers
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    setZoom((prev) => Math.min(Math.max(1, prev + delta), 5));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      setPan({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleDoubleClick = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -668,13 +716,39 @@ export default function CustomerDetailPage() {
                           )}
 
                           {/* Main Image */}
-                          <div className="relative max-w-full max-h-full flex flex-col items-center">
+                          <div
+                            className="relative max-w-full max-h-full flex flex-col items-center overflow-hidden"
+                            onWheel={handleWheel}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                            onDoubleClick={handleDoubleClick}
+                            style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={customer.images[selectedImageIndex].url}
                               alt={customer.images[selectedImageIndex].name || "Full Preview"}
-                              className="max-w-full max-h-[85vh] object-contain animate-in zoom-in-95 duration-300"
+                              className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
+                              style={{
+                                transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                                transformOrigin: 'center center',
+                              }}
+                              draggable={false}
                             />
+
+                            {/* Zoom Level Indicator */}
+                            {zoom > 1 && (
+                              <div className="absolute top-6 left-6 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md text-white text-sm font-bold border border-white/20 shadow-2xl">
+                                🔍 {Math.round(zoom * 100)}%
+                              </div>
+                            )}
+
+                            {/* Instructions Overlay */}
+                            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-2xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                              🖱️ ล้อเมาส์เพื่อซูม • ลากเพื่อเลื่อน • ดับเบิลคลิกเพื่อรีเซ็ต
+                            </div>
 
                             {/* Image Counter Badge */}
                             <div className="mt-6 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-white text-base font-bold border border-white/20 shadow-2xl">
