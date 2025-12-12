@@ -426,7 +426,6 @@ export default function CustomerDetailPage() {
                 value={customer.phone ? (
                   <a href={`tel:${customer.phone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.phone}
-                    <Phone className="h-3.5 w-3.5" />
                   </a>
                 ) : "-"}
                 icon={Phone}
@@ -436,7 +435,6 @@ export default function CustomerDetailPage() {
                 value={customer.email ? (
                   <a href={`mailto:${customer.email}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.email}
-                    <Mail className="h-3.5 w-3.5" />
                   </a>
                 ) : "-"}
                 icon={Mail}
@@ -487,7 +485,7 @@ export default function CustomerDetailPage() {
               <DetailItem
                 label="ชื่อ-นามสกุล"
                 value={
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-gray-900">
                     {[customer.prefix, customer.firstName, customer.lastName].filter(Boolean).join(" ") || "-"}
                   </span>
                 }
@@ -499,7 +497,6 @@ export default function CustomerDetailPage() {
                 value={customer.contactPhone ? (
                   <a href={`tel:${customer.contactPhone}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.contactPhone}
-                    <Phone className="h-3.5 w-3.5" />
                   </a>
                 ) : "-"}
                 icon={Phone}
@@ -509,7 +506,6 @@ export default function CustomerDetailPage() {
                 value={customer.contactEmail ? (
                   <a href={`mailto:${customer.contactEmail}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.contactEmail}
-                    <Mail className="h-3.5 w-3.5" />
                   </a>
                 ) : "-"}
                 icon={Mail}
@@ -531,57 +527,58 @@ export default function CustomerDetailPage() {
           </Card>
 
           {/* Section: Addresses */}
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200 pb-5">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
                   <MapPin className="h-6 w-6" />
                 </div>
                 ที่อยู่และการจัดส่ง
-              </h3>
-            </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-full md:col-span-2">
+                  <AddressBlock
+                    title="ที่อยู่บริษัท"
+                    icon={Building}
+                    addressLine={customer.addressLine}
+                    subdistrict={customer.subdistrict}
+                    district={customer.district}
+                    province={customer.province}
+                    postalCode={customer.postalCode}
+                    variant="blue"
+                  />
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="h-full">
-                <AddressBlock
-                  title="ที่อยู่บริษัท"
-                  icon={Building}
-                  addressLine={customer.addressLine}
-                  subdistrict={customer.subdistrict}
-                  district={customer.district}
-                  province={customer.province}
-                  postalCode={customer.postalCode}
-                  variant="blue"
-                />
-              </div>
+                <div className="h-full">
+                  <AddressBlock
+                    title="ที่อยู่วางบิล"
+                    icon={FileText}
+                    addressLine={customer.billingAddressLine}
+                    subdistrict={customer.billingSubdistrict}
+                    district={customer.billingDistrict}
+                    province={customer.billingProvince}
+                    postalCode={customer.billingPostalCode}
+                    variant="purple"
+                  />
+                </div>
 
-              <div className="h-full">
-                <AddressBlock
-                  title="ที่อยู่วางบิล"
-                  icon={FileText}
-                  addressLine={customer.billingAddressLine}
-                  subdistrict={customer.billingSubdistrict}
-                  district={customer.billingDistrict}
-                  province={customer.billingProvince}
-                  postalCode={customer.billingPostalCode}
-                  variant="purple"
-                />
+                <div className="h-full">
+                  <AddressBlock
+                    title="ที่อยู่จัดส่ง"
+                    icon={Truck}
+                    addressLine={customer.shippingAddressLine}
+                    subdistrict={customer.shippingSubdistrict}
+                    district={customer.shippingDistrict}
+                    province={customer.shippingProvince}
+                    postalCode={customer.shippingPostalCode}
+                    variant="orange"
+                  />
+                </div>
               </div>
-
-              <div className="h-full md:col-span-2">
-                <AddressBlock
-                  title="ที่อยู่จัดส่ง"
-                  icon={Truck}
-                  addressLine={customer.shippingAddressLine}
-                  subdistrict={customer.shippingSubdistrict}
-                  district={customer.shippingDistrict}
-                  province={customer.shippingProvince}
-                  postalCode={customer.shippingPostalCode}
-                  variant="orange"
-                />
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column: Images & Meta */}
@@ -721,32 +718,6 @@ export default function CustomerDetailPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* System Info */}
-          <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 text-sm text-gray-600 space-y-4 border-2 border-gray-200 shadow-lg">
-            <h4 className="font-bold text-gray-800 flex items-center gap-2 text-base mb-4">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-gray-500 to-slate-600 text-white">
-                <FileText className="h-4 w-4" />
-              </div>
-              ข้อมูลระบบ
-            </h4>
-            <div className="flex justify-between items-center py-2 border-b border-gray-200">
-              <span className="text-gray-500 font-medium">รหัสอ้างอิง:</span>
-              <span className="font-mono font-bold text-gray-800 bg-gray-200 px-3 py-1 rounded-lg">{customer.id}</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-gray-500 font-medium">สร้างเมื่อ:</span>
-              <span className="font-semibold text-gray-800">
-                {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("th-TH", {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) : "-"}
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
