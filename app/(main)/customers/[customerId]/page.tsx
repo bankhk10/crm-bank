@@ -96,10 +96,10 @@ const statusMap: Record<string, { label: string; className: string; gradient: st
 };
 
 const customerTypeMap: Record<string, { label: string; icon: string; gradient: string }> = {
-  DEALER: { label: "ตัวแทนจำหน่าย", icon: "🏪", gradient: "from-blue-500 to-indigo-600" },
-  SUBDEALER: { label: "ตัวแทนจำหน่ายย่อย", icon: "🏬", gradient: "from-purple-500 to-pink-600" },
-  FARMER: { label: "เกษตรกร", icon: "🌾", gradient: "from-green-500 to-emerald-600" },
-  BROKER: { label: "นายหน้า", icon: "💼", gradient: "from-orange-500 to-amber-600" },
+  DEALER: { label: "DEALER", icon: "🏪", gradient: "from-blue-500 to-indigo-600" },
+  SUBDEALER: { label: "SUBDEALER", icon: "🏬", gradient: "from-purple-500 to-pink-600" },
+  FARMER: { label: "FARMER", icon: "🌾", gradient: "from-green-500 to-emerald-600" },
+  BROKER: { label: "BROKER", icon: "💼", gradient: "from-orange-500 to-amber-600" },
 };
 
 interface DetailItemProps {
