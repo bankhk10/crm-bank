@@ -78,18 +78,18 @@ type Customer = {
 };
 
 const statusMap: Record<string, { label: string; className: string; gradient: string }> = {
-  ACTIVE: { 
-    label: "ใช้งาน", 
+  ACTIVE: {
+    label: "ใช้งาน",
     className: "bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 shadow-lg shadow-emerald-500/30",
     gradient: "from-emerald-500/20 to-green-500/20"
   },
-  INACTIVE: { 
-    label: "ไม่ได้ใช้งาน", 
+  INACTIVE: {
+    label: "ไม่ได้ใช้งาน",
     className: "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0 shadow-lg shadow-gray-500/20",
     gradient: "from-gray-400/20 to-gray-500/20"
   },
-  SUSPENDED: { 
-    label: "ระงับ", 
+  SUSPENDED: {
+    label: "ระงับ",
     className: "bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 shadow-lg shadow-red-500/30",
     gradient: "from-red-500/20 to-rose-500/20"
   },
@@ -301,9 +301,9 @@ export default function CustomerDetailPage() {
           </h2>
           <p className="text-gray-500 text-lg">รหัสลูกค้า: <span className="font-mono font-semibold">{customerId}</span></p>
         </div>
-        <Button 
-          variant="outline" 
-          className="rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all hover:scale-105" 
+        <Button
+          variant="outline"
+          className="rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all hover:scale-105"
           onClick={() => router.back()}
         >
           <ArrowLeft className="mr-2 h-5 w-5" />
@@ -409,8 +409,8 @@ export default function CustomerDetailPage() {
         <div className="xl:col-span-8 space-y-8">
 
           {/* Section: Company Info */}
-          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 pb-5">
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 pb-5">
               <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
                   <Building className="h-6 w-6" />
@@ -421,25 +421,25 @@ export default function CustomerDetailPage() {
             <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
               <DetailItem label="ชื่อบริษัท / ร้านค้า" value={customer.name} icon={Building} className="col-span-full" />
               <DetailItem label="เลขผู้เสียภาษี" value={customer.taxId || "-"} icon={FileText} />
-              <DetailItem 
-                label="เบอร์โทรศัพท์ (องค์กร)" 
+              <DetailItem
+                label="เบอร์โทรศัพท์ (องค์กร)"
                 value={customer.phone ? (
                   <a href={`tel:${customer.phone}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.phone}
                     <Phone className="h-3.5 w-3.5" />
                   </a>
-                ) : "-"} 
-                icon={Phone} 
+                ) : "-"}
+                icon={Phone}
               />
-              <DetailItem 
-                label="อีเมล (องค์กร)" 
+              <DetailItem
+                label="อีเมล (องค์กร)"
                 value={customer.email ? (
                   <a href={`mailto:${customer.email}`} className="hover:text-indigo-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.email}
                     <Mail className="h-3.5 w-3.5" />
                   </a>
-                ) : "-"} 
-                icon={Mail} 
+                ) : "-"}
+                icon={Mail}
               />
               <DetailItem
                 label="ความสัมพันธ์"
@@ -459,23 +459,23 @@ export default function CustomerDetailPage() {
                 icon={Award}
               />
               {customer.parentDealer && (
-                <DetailItem 
-                  label="ร้านค้าหลัก (Parent Dealer)" 
+                <DetailItem
+                  label="ร้านค้าหลัก (Parent Dealer)"
                   value={
                     <span className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-semibold">
                       <TrendingUp className="h-4 w-4" />
                       {customer.parentDealer.name}
                     </span>
-                  } 
-                  icon={Building} 
+                  }
+                  icon={Building}
                 />
               )}
             </CardContent>
           </Card>
 
           {/* Section: Contact Person */}
-          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 pb-5">
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 pb-5">
               <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
                   <User className="h-6 w-6" />
@@ -484,42 +484,42 @@ export default function CustomerDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-              <DetailItem 
-                label="ชื่อ-นามสกุล" 
+              <DetailItem
+                label="ชื่อ-นามสกุล"
                 value={
                   <span className="text-lg font-semibold text-gray-900">
                     {[customer.prefix, customer.firstName, customer.lastName].filter(Boolean).join(" ") || "-"}
                   </span>
-                } 
-                icon={User} 
-                className="col-span-full" 
+                }
+                icon={User}
+                className="col-span-full"
               />
-              <DetailItem 
-                label="เบอร์โทรศัพท์ (ส่วนตัว)" 
+              <DetailItem
+                label="เบอร์โทรศัพท์ (ส่วนตัว)"
                 value={customer.contactPhone ? (
                   <a href={`tel:${customer.contactPhone}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.contactPhone}
                     <Phone className="h-3.5 w-3.5" />
                   </a>
-                ) : "-"} 
-                icon={Phone} 
+                ) : "-"}
+                icon={Phone}
               />
-              <DetailItem 
-                label="อีเมล (ส่วนตัว)" 
+              <DetailItem
+                label="อีเมล (ส่วนตัว)"
                 value={customer.contactEmail ? (
                   <a href={`mailto:${customer.contactEmail}`} className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2">
                     {customer.contactEmail}
                     <Mail className="h-3.5 w-3.5" />
                   </a>
-                ) : "-"} 
-                icon={Mail} 
+                ) : "-"}
+                icon={Mail}
               />
               <DetailItem
                 label="วันเกิด / อายุ"
                 value={customer.birthDate
                   ? (
                     <span className="inline-flex items-center gap-2 bg-pink-50 text-pink-700 px-3 py-1 rounded-lg font-semibold">
-                      🎂 {new Date(customer.birthDate).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} 
+                      🎂 {new Date(customer.birthDate).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })}
                       {age !== null && <span className="text-pink-600">({age} ปี)</span>}
                     </span>
                   )
@@ -588,8 +588,8 @@ export default function CustomerDetailPage() {
         <div className="xl:col-span-4 space-y-8">
 
           {/* Images Gallery */}
-          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 border-b border-gray-200 pb-5">
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-gray-200 pb-5">
               <CardTitle className="text-xl font-bold flex items-center justify-between text-gray-800">
                 <span className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg">
@@ -699,8 +699,8 @@ export default function CustomerDetailPage() {
           </Card>
 
           {/* Notes */}
-          <Card className="border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-100 pb-5">
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-100 pb-5">
               <CardTitle className="text-xl font-bold flex items-center gap-3 text-amber-900">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg">
                   <FileText className="h-5 w-5" />
@@ -752,10 +752,10 @@ export default function CustomerDetailPage() {
 
       {/* Back Navigation */}
       <div className="flex items-center gap-3 pt-4">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="lg"
-          className="rounded-2xl pl-4 pr-6 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-700 border-2 hover:border-indigo-300 transition-all hover:scale-105 shadow-lg hover:shadow-xl font-semibold" 
+          className="rounded-2xl pl-4 pr-6 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-700 border-2 hover:border-indigo-300 transition-all hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
