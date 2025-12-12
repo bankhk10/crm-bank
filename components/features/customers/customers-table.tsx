@@ -236,11 +236,11 @@ function useCustomerColumns(
         accessorKey: "customerType",
         header: "ประเภท",
         meta: {
-          headerAlign: "center",
+          headerAlign: "left",
           minWidth: 130,
           width: 130,
           maxWidth: 130,
-          align: "center",
+          align: "left",
         },
         cell: ({ row }) => row.original.customerType ?? "-",
       },
@@ -248,11 +248,11 @@ function useCustomerColumns(
         accessorKey: "status",
         header: "สถานะ",
         meta: {
-          headerAlign: "center",
-          minWidth: 120,
-          width: 120,
-          maxWidth: 120,
-          align: "center",
+          headerAlign: "left",
+          minWidth: 100,
+          width: 100,
+          maxWidth: 100,
+          align: "left",
         },
         cell: ({ row }) => {
           const s = (row.original.status || "").toString().toUpperCase();
@@ -264,18 +264,18 @@ function useCustomerColumns(
 
       {
         id: "actions",
-        header: "",
+        header: "จัดการ",
         meta: {
-          headerAlign: "right",
+          headerAlign: "center",
           minWidth: 120,
           width: 140,
           maxWidth: 180,
-          align: "right",
+          align: "center",
         },
         cell: ({ row }) => {
           const customer = row.original;
           return (
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
