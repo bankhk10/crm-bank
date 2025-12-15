@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/custom/FormInput";
 import { FormSelect } from "@/components/custom/FormSelect";
 import { ArrowLeft, Plus, Trash2, Banknote } from "lucide-react";
+import DatePicker from "@/components/custom/DatePicker";
 import Link from "next/link";
 import type { Product, ProductManagementFormData } from "@/types/product";
 import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/types/product";
@@ -537,6 +538,14 @@ export default function ProductManagementPage() {
                   </div>
                 )}
 
+                {!lot.id && (
+                  <div className="md:col-span-7 mb-2">
+                    <p className="text-base font-semibold text-blue-600">
+                      Lot #{index + 1}
+                    </p>
+                  </div>
+                )}
+
                 <FormInput
                   label="จำนวนที่เพิ่ม"
                   type="number"
@@ -548,45 +557,19 @@ export default function ProductManagementPage() {
                   disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
-                <div>
-                  <label className="text-base font-medium mx-2">วันที่นำเข้า</label>
-                  <input
-                    type="date"
-                    className="mt-1 h-11 text-base w-full rounded-md border border-input bg-background px-3 py-2"
-                    value={
-                      lot.importDate instanceof Date
-                        ? lot.importDate.toISOString().split("T")[0]
-                        : lot.importDate
-                    }
-                    onChange={(e) =>
-                      updateStockLot(index, "importDate", e.target.value)
-                    }
-                    disabled={saving || !!(lot.id && lot.isUsed)}
-                  />
-                </div>
+                <DatePicker
+                  label="วันที่นำเข้า"
+                  value={lot.importDate}
+                  onChange={(v) => updateStockLot(index, "importDate", v || "")}
+                  disabled={saving || !!(lot.id && lot.isUsed)}
+                />
 
-                <div>
-                  <label className="text-base font-medium mx-2">วันหมดอายุ</label>
-                  <input
-                    type="date"
-                    className="mt-1 h-11 text-base w-full rounded-md border border-input bg-background px-3 py-2"
-                    value={
-                      lot.expiryDate
-                        ? lot.expiryDate instanceof Date
-                          ? lot.expiryDate.toISOString().split("T")[0]
-                          : lot.expiryDate
-                        : ""
-                    }
-                    onChange={(e) =>
-                      updateStockLot(
-                        index,
-                        "expiryDate",
-                        e.target.value || undefined
-                      )
-                    }
-                    disabled={saving || !!(lot.id && lot.isUsed)}
-                  />
-                </div>
+                <DatePicker
+                  label="วันหมดอายุ"
+                  value={lot.expiryDate || undefined}
+                  onChange={(v) => updateStockLot(index, "expiryDate", v || undefined)}
+                  disabled={saving || !!(lot.id && lot.isUsed)}
+                />
 
                 <FormSelect
                   label="สถานที่จัดเก็บ"
