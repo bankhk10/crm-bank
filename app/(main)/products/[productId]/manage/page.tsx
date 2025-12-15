@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/custom/FormInput";
 import { FormSelect } from "@/components/custom/FormSelect";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Banknote } from "lucide-react";
 import Link from "next/link";
 import type { Product, ProductManagementFormData } from "@/types/product";
 import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/types/product";
@@ -301,6 +301,7 @@ export default function ProductManagementPage() {
                 }))
               }
               onWheel={(e) => e.currentTarget.blur()}
+              leftIcon={<Banknote className="h-5 w-5" />}
               disabled={saving}
             />
             <FormInput
@@ -316,6 +317,7 @@ export default function ProductManagementPage() {
                 }))
               }
               onWheel={(e) => e.currentTarget.blur()}
+              leftIcon={<Banknote className="h-5 w-5" />}
               disabled={saving}
             />
           </div>

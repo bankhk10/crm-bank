@@ -20,6 +20,8 @@ interface FormInputProps {
     labelClassName?: string;
     containerClassName?: string;
     onWheel?: (e: React.WheelEvent<HTMLInputElement>) => void;
+    leftIcon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
@@ -40,21 +42,57 @@ export function FormInput({
     labelClassName,
     containerClassName,
     onWheel,
+    leftIcon,
+    rightIcon,
 }: FormInputProps) {
+    const hasIcon = leftIcon || rightIcon;
+
     return (
         <div className={cn(containerClassName)}>
             <Label className={cn(defaultLabelClass, labelClassName)}>{label}</Label>
-            <Input
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                required={required}
-                disabled={disabled}
-                readOnly={readOnly}
-                className={cn(defaultInputClass, inputClassName, className)}
-                onWheel={onWheel}
-            />
+            {hasIcon ? (
+                <div className="relative mt-1">
+                    {leftIcon && (
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                            {leftIcon}
+                        </div>
+                    )}
+                    <Input
+                        type={type}
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        required={required}
+                        disabled={disabled}
+                        readOnly={readOnly}
+                        className={cn(
+                            "h-11 text-base placeholder:text-gray-500",
+                            leftIcon && "pl-10",
+                            rightIcon && "pr-10",
+                            inputClassName,
+                            className
+                        )}
+                        onWheel={onWheel}
+                    />
+                    {rightIcon && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                            {rightIcon}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <Input
+                    type={type}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    required={required}
+                    disabled={disabled}
+                    readOnly={readOnly}
+                    className={cn(defaultInputClass, inputClassName, className)}
+                    onWheel={onWheel}
+                />
+            )}
             {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
         </div>
     );
