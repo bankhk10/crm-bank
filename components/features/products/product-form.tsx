@@ -13,16 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MultiSelect } from "@/components/custom/multi-select";
 import {
   UNIT_OPTIONS,
   PRODUCT_GROUP_OPTIONS,
@@ -94,7 +85,6 @@ export function ProductForm({
   }, [initialData]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [plantSearchQuery, setPlantSearchQuery] = useState("");
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -414,136 +404,20 @@ export function ProductForm({
           disabled={loading}
         />
 
-        <div>
-          <FormSelect
-            label="ใช้กับพืช"
-            value={formData.usedForPlants.length > 0 ? "selected" : ""}
-            onChange={() => { }}
-            options={[]}
-            disabled={loading}
-            triggerClassName="!h-auto min-h-[44px] py-2 items-start"
-          >
-            <Select
-              value={formData.usedForPlants.length > 0 ? "selected" : ""}
-              disabled={loading}
-            >
-              <SelectTrigger className="mt-1 h-auto min-h-[44px] py-2 items-start text-base w-full">
-                <div className="flex flex-wrap gap-1.5 w-full items-center">
-                  {formData.usedForPlants.length > 0 ? (
-                    formData.usedForPlants.map((plantValue) => {
-                      const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
-                      return (
-                        <div
-                          key={plantValue}
-                          className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <span>{plant ? plant.label : plantValue}</span>
-                          <span
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (!loading) {
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  usedForPlants: prev.usedForPlants.filter((v) => v !== plantValue),
-                                }));
-                              }
-                            }}
-                            className="hover:bg-green-200 rounded-full p-0.5 transition-colors cursor-pointer"
-                          >
-                            ×
-                          </span>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <span className="text-gray-500">คลิกเพื่อเลือกพืช</span>
-                  )}
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <div className="sticky top-0 bg-white z-10 pb-2">
-                    <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
-
-                    <div className="px-2 pb-2">
-                      <Input
-                        placeholder="ค้นหาพืช..."
-                        value={plantSearchQuery}
-                        onChange={(e) => setPlantSearchQuery(e.target.value)}
-                        className="h-8 text-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </div>
-
-                    {formData.usedForPlants.length > 0 && (
-                      <div className="px-2">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setFormData((prev) => ({
-                              ...prev,
-                              usedForPlants: [],
-                            }));
-                          }}
-                          className="text-xs text-red-600 hover:text-red-700 hover:underline"
-                        >
-                          ลบทั้งหมด ({formData.usedForPlants.length})
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="max-h-60 overflow-y-auto">
-                    {PLANT_OPTIONS.filter((opt) =>
-                      opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
-                    ).map((opt) => {
-                      const isSelected = formData.usedForPlants.includes(opt.value);
-                      return (
-                        <div
-                          key={opt.value}
-                          className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const newValues = isSelected
-                              ? formData.usedForPlants.filter((v) => v !== opt.value)
-                              : [...formData.usedForPlants, opt.value];
-                            setFormData((prev) => ({
-                              ...prev,
-                              usedForPlants: newValues,
-                            }));
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => { }}
-                            className="w-4 h-4 cursor-pointer"
-                          />
-                          <span className="text-sm">{opt.label}</span>
-                        </div>
-                      );
-                    })}
-
-                    {PLANT_OPTIONS.filter((opt) =>
-                      opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
-                    ).length === 0 && (
-                        <div className="px-2 py-4 text-center text-sm text-gray-500">
-                          ไม่พบผลลัพธ์
-                        </div>
-                      )}
-                  </div>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </FormSelect>
-        </div>
+        <MultiSelect
+          label="ใช้กับพืช"
+          options={PLANT_OPTIONS}
+          value={formData.usedForPlants}
+          onChange={(values) =>
+            setFormData((prev) => ({
+              ...prev,
+              usedForPlants: values as string[],
+            }))
+          }
+          placeholder="เลือกพืช"
+          disabled={loading}
+          searchable={true}
+        />
 
         <FormSelect
           label="สถานะสินค้า"
