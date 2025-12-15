@@ -341,7 +341,7 @@ export default function ProductManagementPage() {
             {formData.freeItems.map((item, index) => (
               <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
+                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
               >
                 <FormInput
                   label="จำนวนที่ซื้อ"
@@ -386,14 +386,14 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <div className="flex items-end">
+                <div className="flex justify-end mt-8">
                   <Button
                     type="button"
                     variant="destructive"
                     size="sm"
                     onClick={() => removeFreeItem(index)}
                     disabled={saving}
-                    className="w-full"
+                    className="px-3"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -427,7 +427,7 @@ export default function ProductManagementPage() {
             {formData.promotionItems.map((item, index) => (
               <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
+                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
               >
                 <FormInput
                   label="ชื่อสินค้า"
@@ -475,14 +475,14 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <div className="flex items-end">
+                <div className="flex justify-end mt-8">
                   <Button
                     type="button"
                     variant="destructive"
                     size="sm"
                     onClick={() => removePromotionItem(index)}
                     disabled={saving}
-                    className="w-full"
+                    className="px-3"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
