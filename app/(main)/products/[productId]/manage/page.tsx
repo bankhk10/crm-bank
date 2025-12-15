@@ -300,6 +300,7 @@ export default function ProductManagementPage() {
                   price: e.target.value ? Number(e.target.value) : undefined,
                 }))
               }
+              onWheel={(e) => e.currentTarget.blur()}
               disabled={saving}
             />
             <FormInput
@@ -314,6 +315,7 @@ export default function ProductManagementPage() {
                     : undefined,
                 }))
               }
+              onWheel={(e) => e.currentTarget.blur()}
               disabled={saving}
             />
           </div>
@@ -346,6 +348,7 @@ export default function ProductManagementPage() {
                   onChange={(e) =>
                     updateFreeItem(index, "purchaseQty", Number(e.target.value))
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving}
                 />
                 <FormInput
@@ -355,6 +358,7 @@ export default function ProductManagementPage() {
                   onChange={(e) =>
                     updateFreeItem(index, "freeQty", Number(e.target.value))
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving}
                 />
                 <FormInput
@@ -368,6 +372,7 @@ export default function ProductManagementPage() {
                       e.target.value ? Number(e.target.value) : undefined
                     )
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving}
                 />
                 <FormInput
@@ -442,6 +447,7 @@ export default function ProductManagementPage() {
                       Number(e.target.value)
                     )
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving}
                 />
                 <FormInput
@@ -455,6 +461,7 @@ export default function ProductManagementPage() {
                       e.target.value ? Number(e.target.value) : undefined
                     )
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving}
                 />
                 <FormInput
@@ -535,6 +542,7 @@ export default function ProductManagementPage() {
                   onChange={(e) =>
                     updateStockLot(index, "quantity", Number(e.target.value))
                   }
+                  onWheel={(e) => e.currentTarget.blur()}
                   disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
