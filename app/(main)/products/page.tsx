@@ -198,8 +198,8 @@ export default function ProductsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          {/* Mobile toolbar */}
-          <div className="block md:hidden mb-4">
+          {/* Mobile toolbar - hidden since ProductsTable has its own responsive toolbar */}
+          <div className="hidden">
             <div className="bg-white p-3 rounded-xl shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <Input
@@ -250,8 +250,8 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* Desktop: show table */}
-          <div className="hidden md:block">
+          {/* ProductsTable - responsive for all screen sizes */}
+          <div>
             <ProductsTable
               data={products}
               loading={loading}
@@ -265,15 +265,7 @@ export default function ProductsPage() {
               onSearchChange={(value) =>
                 setFilterDraft((prev) => ({ ...prev, query: value }))
               }
-              isTyping={isTyping}
               onSearchSubmit={handleSearchSubmit}
-              dateRange={filterDraft.dateRange}
-              onDateRangeChange={(range) =>
-                setFilterDraft((prev) => ({
-                  ...prev,
-                  dateRange: range ?? undefined,
-                }))
-              }
               pagination={{
                 page,
                 perPage,

@@ -446,11 +446,11 @@ function ProductsCards({
                 </div>
 
                 <div className="space-y-2 text-sm text-slate-700">
-                  <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                    <span className="text-slate-600">กลุ่มสินค้า:</span>
-                    <span className="font-medium">{product.productGroup || "-"}</span>
+                  <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                    <Package className="h-4 w-4 text-slate-400" />
+                    <span className="line-clamp-1">{product.productGroup || "-"}</span>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <span className="text-slate-600">ราคา:</span>
                     <span className="font-medium">
                       {product.price == null
@@ -460,19 +460,20 @@ function ProductsCards({
                         })}`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
-                      <div className="text-xs text-blue-600">ทั้งหมด</div>
-                      <div className="font-semibold text-blue-700">{totalStock.toLocaleString()}</div>
-                    </div>
-                    <div className="rounded-lg bg-orange-50 px-3 py-2 text-center">
-                      <div className="text-xs text-orange-600">จอง</div>
-                      <div className="font-semibold text-orange-700">{reserved.toLocaleString()}</div>
-                    </div>
-                    <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center">
-                      <div className="text-xs text-emerald-600">คงเหลือ</div>
-                      <div className="font-semibold text-emerald-700">{available.toLocaleString()}</div>
-                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
+                    <div className="text-xs text-blue-600">ทั้งหมด</div>
+                    <div className="font-semibold text-blue-700">{totalStock.toLocaleString()}</div>
+                  </div>
+                  <div className="rounded-lg bg-orange-50 px-3 py-2 text-center">
+                    <div className="text-xs text-orange-600">จอง</div>
+                    <div className="font-semibold text-orange-700">{reserved.toLocaleString()}</div>
+                  </div>
+                  <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center">
+                    <div className="text-xs text-emerald-600">คงเหลือ</div>
+                    <div className="font-semibold text-emerald-700">{available.toLocaleString()}</div>
                   </div>
                 </div>
 
