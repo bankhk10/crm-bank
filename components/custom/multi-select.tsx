@@ -96,7 +96,7 @@ export function MultiSelect({
                     role="combobox"
                     aria-expanded={isPopoverOpen}
                     className={cn(
-                        "w-full justify-between min-h-[44px] h-auto mt-1",
+                        "w-full justify-between min-h-[44px] h-auto mt-1 text-base",
                         selectedValues.length > 0 ? "h-auto" : "h-11",
                         className
                     )}
