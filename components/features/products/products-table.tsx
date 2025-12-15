@@ -161,13 +161,14 @@ function useProductColumns(
       {
         accessorKey: "name",
         header: "ชื่อสินค้า",
-        meta: { headerAlign: "left", minWidth: 180, width: 250, maxWidth: 250, align: "left" },
+        meta: { headerAlign: "left", minWidth: 180, width: 180, maxWidth: 180, align: "left" },
         cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
       },
       {
         accessorKey: "productGroup",
         header: "กลุ่มสินค้า",
-        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+        enableSorting: false,
+        meta: { headerAlign: "left", minWidth: 100, width: 100, maxWidth: 100, align: "left" },
         cell: ({ row }) => <TruncatedCell value={row.original.productGroup ?? "-"} />,
       },
       {
@@ -210,7 +211,8 @@ function useProductColumns(
       {
         accessorKey: "reserved",
         header: "จอง",
-        meta: { headerAlign: "left", minWidth: 80, width: 80, maxWidth: 80, align: "left" },
+        enableSorting: false,
+        meta: { headerAlign: "left", minWidth: 70, width: 70, maxWidth: 70, align: "left" },
         cell: ({ row }) => {
           const reserved = row.original.reserved ?? 0;
           return <div className="text-sm">{reserved.toLocaleString()}</div>;
@@ -219,7 +221,19 @@ function useProductColumns(
       {
         id: "availableStock",
         header: "คงเหลือ",
-        meta: { headerAlign: "center", minWidth: 80, width: 80, maxWidth: 80, align: "center" },
+        accessorFn: (row) => {
+          const totalStock =
+            row.stockQuantity ??
+            (row.stockLots
+              ? row.stockLots.reduce(
+                (s, lot) => s + (lot.quantity || 0),
+                0
+              )
+              : 0);
+          const reserved = row.reserved ?? 0;
+          return Math.max(0, totalStock - reserved);
+        },
+        meta: { headerAlign: "left", minWidth: 110, width: 110, maxWidth: 110, align: "left" },
         cell: ({ row }) => {
           const totalStock =
             row.original.stockQuantity ??
@@ -237,6 +251,7 @@ function useProductColumns(
       {
         accessorKey: "status",
         header: "สถานะ",
+        enableSorting: false,
         meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
         cell: ({ row }) => {
           const status = row.original.status?.toUpperCase();
@@ -246,6 +261,7 @@ function useProductColumns(
       {
         id: "actions",
         header: "จัดการ",
+        enableSorting: false,
         meta: { headerAlign: "center", minWidth: 150, width: 150, maxWidth: 150, align: "center" },
         cell: ({ row }) => {
           const product = row.original;
