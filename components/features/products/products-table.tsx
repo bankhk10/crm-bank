@@ -331,7 +331,7 @@ function ProductsToolbar({
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.()}
-            placeholder="รหัสสินค้า, ชื่อสินค้า, กลุ่มสินค้า"
+            placeholder="รหัสสินค้า, ชื่อสินค้า"
             className="mt-2 w-full"
           />
         </div>
