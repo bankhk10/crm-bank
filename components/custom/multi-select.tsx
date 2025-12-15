@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { X, Check } from "lucide-react";
+import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -161,17 +161,54 @@ export function MultiSelect({
                                     <CommandItem
                                         key={option.value}
                                         onSelect={() => handleToggle(option.value)}
-                                        className="cursor-pointer"
+                                        className="cursor-pointer group"
                                     >
-                                        <div
-                                            className={cn(
-                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                                isSelected
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "opacity-50 [&_svg]:invisible"
-                                            )}
-                                        >
-                                            <Check className="h-4 w-4" />
+                                        <div className="relative mr-3 inline-block">
+                                            <div className={cn(
+                                                "relative w-5 h-5 transition-transform duration-200 ease-out",
+                                                "group-hover:scale-105 group-active:scale-95"
+                                            )}>
+                                                {/* Background */}
+                                                <div className={cn(
+                                                    "absolute inset-0 rounded-lg border-2 transition-all duration-200 ease-out",
+                                                    isSelected
+                                                        ? "bg-green-600 border-green-600"
+                                                        : "bg-white border-green-200"
+                                                )}>
+                                                </div>
+
+                                                {/* Checkmark SVG with animation */}
+                                                <svg
+                                                    className={cn(
+                                                        "absolute inset-0 m-auto w-[80%] h-[80%] text-white transition-all duration-200 ease-out",
+                                                        isSelected ? "scale-100 opacity-100" : "scale-0 opacity-0"
+                                                    )}
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="3"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <polyline
+                                                        points="20 6 9 17 4 12"
+                                                        className={cn(
+                                                            "transition-all duration-300 ease-out",
+                                                            isSelected
+                                                                ? "[stroke-dasharray:40] [stroke-dashoffset:0]"
+                                                                : "[stroke-dasharray:40] [stroke-dashoffset:40]"
+                                                        )}
+                                                        style={{
+                                                            transitionDelay: isSelected ? '100ms' : '0ms'
+                                                        }}
+                                                    />
+                                                </svg>
+
+                                                {/* Focus ring effect */}
+                                                {isSelected && (
+                                                    <div className="absolute inset-0 rounded-lg bg-green-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10 scale-110"></div>
+                                                )}
+                                            </div>
                                         </div>
                                         {option.icon && (
                                             <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
