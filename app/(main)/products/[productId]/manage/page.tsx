@@ -7,7 +7,8 @@ import { useParams, useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { FloatingLabelInput } from "@/components/custom/FloatingLabelInputFixed";
+import { FormInput } from "@/components/custom/FormInput";
+import { FormSelect } from "@/components/custom/FormSelect";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import type { Product, ProductManagementFormData } from "@/types/product";
@@ -190,6 +191,7 @@ export default function ProductManagementPage() {
       stockLots: [
         ...prev.stockLots,
         {
+          lotNumber: "",
           quantity: 1,
           importDate: new Date().toISOString().split("T")[0],
           expiryDate: undefined,
@@ -288,7 +290,7 @@ export default function ProductManagementPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FloatingLabelInput
+            <FormInput
               label="ราคาสินค้า (บาท)"
               type="number"
               value={formData.price || ""}
@@ -300,7 +302,7 @@ export default function ProductManagementPage() {
               }
               disabled={saving}
             />
-            <FloatingLabelInput
+            <FormInput
               label="งบส่งเสริมการขาย (บาท)"
               type="number"
               value={formData.promotionBudget || ""}
@@ -337,7 +339,7 @@ export default function ProductManagementPage() {
                 key={index}
                 className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
               >
-                <FloatingLabelInput
+                <FormInput
                   label="จำนวนที่ซื้อ"
                   type="number"
                   value={item.purchaseQty}
@@ -346,7 +348,7 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="จำนวนของแถม"
                   type="number"
                   value={item.freeQty}
@@ -355,7 +357,7 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="ราคาสุทธิ"
                   type="number"
                   value={item.netPrice || ""}
@@ -368,10 +370,10 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="หมายเหตุ"
                   type="text"
-                  value={item.notes}
+                  value={item.notes || ""}
                   onChange={(e) =>
                     updateFreeItem(index, "notes", e.target.value)
                   }
@@ -420,7 +422,7 @@ export default function ProductManagementPage() {
                 key={index}
                 className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg"
               >
-                <FloatingLabelInput
+                <FormInput
                   label="ชื่อสินค้า"
                   type="text"
                   value={item.name}
@@ -429,7 +431,7 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="จำนวนคงเหลือ"
                   type="number"
                   value={item.quantity}
@@ -442,7 +444,7 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="ราคา"
                   type="number"
                   value={item.price || ""}
@@ -455,10 +457,10 @@ export default function ProductManagementPage() {
                   }
                   disabled={saving}
                 />
-                <FloatingLabelInput
+                <FormInput
                   label="หมายเหตุ"
                   type="text"
-                  value={item.notes}
+                  value={item.notes || ""}
                   onChange={(e) =>
                     updatePromotionItem(index, "notes", e.target.value)
                   }
@@ -526,70 +528,74 @@ export default function ProductManagementPage() {
                   </div>
                 )}
 
-                <FloatingLabelInput
+                <FormInput
                   label="จำนวนที่เพิ่ม"
                   type="number"
                   value={lot.quantity}
                   onChange={(e) =>
                     updateStockLot(index, "quantity", Number(e.target.value))
                   }
-                  disabled={saving || (lot.id && lot.isUsed)}
+                  disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
-                <FloatingLabelInput
-                  label="วันที่นำเข้า"
-                  type="date"
-                  value={
-                    lot.importDate instanceof Date
-                      ? lot.importDate.toISOString().split("T")[0]
-                      : lot.importDate
-                  }
-                  onChange={(e) =>
-                    updateStockLot(index, "importDate", e.target.value)
-                  }
-                  disabled={saving || (lot.id && lot.isUsed)}
-                />
+                <div>
+                  <label className="text-base font-medium mx-2">วันที่นำเข้า</label>
+                  <input
+                    type="date"
+                    className="mt-1 h-11 text-base w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={
+                      lot.importDate instanceof Date
+                        ? lot.importDate.toISOString().split("T")[0]
+                        : lot.importDate
+                    }
+                    onChange={(e) =>
+                      updateStockLot(index, "importDate", e.target.value)
+                    }
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+                </div>
 
-                <FloatingLabelInput
-                  label="วันหมดอายุ"
-                  type="date"
-                  value={
-                    lot.expiryDate
-                      ? lot.expiryDate instanceof Date
-                        ? lot.expiryDate.toISOString().split("T")[0]
-                        : lot.expiryDate
-                      : ""
-                  }
-                  onChange={(e) =>
-                    updateStockLot(
-                      index,
-                      "expiryDate",
-                      e.target.value || undefined
-                    )
-                  }
-                  disabled={saving || (lot.id && lot.isUsed)}
-                />
+                <div>
+                  <label className="text-base font-medium mx-2">วันหมดอายุ</label>
+                  <input
+                    type="date"
+                    className="mt-1 h-11 text-base w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={
+                      lot.expiryDate
+                        ? lot.expiryDate instanceof Date
+                          ? lot.expiryDate.toISOString().split("T")[0]
+                          : lot.expiryDate
+                        : ""
+                    }
+                    onChange={(e) =>
+                      updateStockLot(
+                        index,
+                        "expiryDate",
+                        e.target.value || undefined
+                      )
+                    }
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+                </div>
 
-                <FloatingLabelInput
+                <FormSelect
                   label="สถานที่จัดเก็บ"
-                  type="select"
                   options={storageOptions}
                   value={lot.storageLocation || ""}
-                  onChange={(e) =>
-                    updateStockLot(index, "storageLocation", e.target.value)
+                  onChange={(value) =>
+                    updateStockLot(index, "storageLocation", value)
                   }
-                  disabled={saving || (lot.id && lot.isUsed)}
-                  searchable
+                  disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
-                <FloatingLabelInput
+                <FormInput
                   label="หมายเหตุ"
                   type="text"
-                  value={lot.notes}
+                  value={lot.notes || ""}
                   onChange={(e) =>
                     updateStockLot(index, "notes", e.target.value)
                   }
-                  disabled={saving || (lot.id && lot.isUsed)}
+                  disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
                 <div className="flex items-end md:col-span-2">
@@ -598,7 +604,7 @@ export default function ProductManagementPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => removeStockLot(index)}
-                    disabled={saving || (lot.id && lot.isUsed)}
+                    disabled={saving || !!(lot.id && lot.isUsed)}
                     className="w-full"
                   >
                     <Trash2 className="h-4 w-4 mr-2" /> ลบ
