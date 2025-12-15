@@ -111,7 +111,7 @@ export default function NewCustomerPage() {
                     if (result.success) router.push("/customers");
                     return result;
                   }}
-                  onCancel={() => setSelectedType(null)}
+                  onCancel={() => router.push("/customers")}
                   submitLabel="บันทึก"
                 />
               )}
@@ -123,7 +123,7 @@ export default function NewCustomerPage() {
                     if (result.success) router.push("/customers");
                     return result;
                   }}
-                  onCancel={() => setSelectedType(null)}
+                  onCancel={() => router.push("/customers")}
                   submitLabel="บันทึก"
                 />
               )}
@@ -135,7 +135,7 @@ export default function NewCustomerPage() {
                     if (result.success) router.push("/customers");
                     return result;
                   }}
-                  onCancel={() => setSelectedType(null)}
+                  onCancel={() => router.push("/customers")}
                   submitLabel="บันทึก"
                 />
               )}
@@ -147,7 +147,7 @@ export default function NewCustomerPage() {
                     if (result.success) router.push("/customers");
                     return result;
                   }}
-                  onCancel={() => setSelectedType(null)}
+                  onCancel={() => router.push("/customers")}
                   submitLabel="บันทึก"
                 />
               )}
