@@ -522,7 +522,7 @@ export default function ProductManagementPage() {
             {formData.stockLots.map((lot, index) => (
               <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
+                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
               >
                 {lot.id && (
                   <div className="md:col-span-7">
