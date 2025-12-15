@@ -522,7 +522,7 @@ export default function ProductManagementPage() {
             {formData.stockLots.map((lot, index) => (
               <div
                 key={index}
-                className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg"
+                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
               >
                 {lot.id && (
                   <div className="md:col-span-7">
@@ -608,16 +608,16 @@ export default function ProductManagementPage() {
                   disabled={saving || !!(lot.id && lot.isUsed)}
                 />
 
-                <div className="flex items-end md:col-span-2">
+                <div className="flex justify-end mt-8">
                   <Button
                     type="button"
                     variant="destructive"
                     size="sm"
                     onClick={() => removeStockLot(index)}
                     disabled={saving || !!(lot.id && lot.isUsed)}
-                    className="w-full"
+                    className="px-3"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" /> ลบ
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
