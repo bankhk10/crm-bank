@@ -681,7 +681,7 @@ export default function CustomerDetailPage() {
                       <DialogTitle className="sr-only">Image Preview</DialogTitle>
 
                       {selectedImageIndex !== null && customer.images && (
-                        <div className="relative w-full h-full flex items-center justify-center px-14 md:px-24">
+                        <div className="relative w-full h-full flex items-center justify-center px-full">
                           {/* Close Button */}
                           <button
                             onClick={() => setSelectedImageIndex(null)}
