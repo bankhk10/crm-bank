@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type AddressValue = {
   province?: string;
@@ -46,10 +39,11 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     value?.postalCode
   );
 
-  // Popover states
-  const [openProvince, setOpenProvince] = useState(false);
-  const [openDistrict, setOpenDistrict] = useState(false);
-  const [openSubdistrict, setOpenSubdistrict] = useState(false);
+  // Store latest onChange callback
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // โหลดข้อมูลจังหวัด
   useEffect(() => {
@@ -88,183 +82,150 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     return d ? d.subdistricts : [];
   }, [district, districts]);
 
-  // อัพเดทค่า postalCode อัตโนมัติ เมื่อเลือกที่อยู่ หรือเมื่อข้อมูลจังหวัดถูกโหลด
+  // Track previous value to detect external changes
+  const prevValueRef = useRef(value);
+
+  // sync ค่าเมื่อ parent ส่งมาครั้งแรก หรือเมื่อมีการเปลี่ยนแปลงจาก parent
+  useEffect(() => {
+    if (!value) return;
+
+    // Ignore if parent sends all empty/undefined (this happens during re-renders)
+    const allEmpty = !value.province && !value.district && !value.subdistrict && !value.postalCode;
+    if (allEmpty) {
+      return;
+    }
+
+    // Only update if value actually changed from parent (not from our own onChange call)
+    const valueChanged =
+      value.province !== prevValueRef.current?.province ||
+      value.district !== prevValueRef.current?.district ||
+      value.subdistrict !== prevValueRef.current?.subdistrict ||
+      value.postalCode !== prevValueRef.current?.postalCode;
+
+    if (valueChanged) {
+      // Only update if the new value is defined
+      if (value.province !== undefined) setProvince(value.province);
+      if (value.district !== undefined) setDistrict(value.district);
+      if (value.subdistrict !== undefined) setSubdistrict(value.subdistrict);
+      if (value.postalCode !== undefined) setPostalCode(value.postalCode);
+
+      prevValueRef.current = value;
+    }
+  }, [value]);
+
+  // อัพเดทค่า postalCode อัตโนมัติ และแจ้ง parent เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
     const p = provinces.find((pp: any) => pp.name === province);
     const d = p?.districts?.find((dd: any) => dd.name === district);
     const s = d?.subdistricts?.find((ss: any) => ss.name === subdistrict);
-    setPostalCode(s?.postalCode);
+    const newPostalCode = s?.postalCode;
 
-    if (onChange) {
-      onChange({ province, district, subdistrict, postalCode: s?.postalCode });
+    // Update postal code if it changed
+    if (newPostalCode !== postalCode) {
+      setPostalCode(newPostalCode);
     }
-  }, [province, district, subdistrict, provinces]);
 
-  // sync ค่าเมื่อ parent ส่งมา
-  useEffect(() => {
-    if (!value) return;
-    if (value.province !== undefined) setProvince(value.province);
-    if (value.district !== undefined) setDistrict(value.district);
-    if (value.subdistrict !== undefined) setSubdistrict(value.subdistrict);
-    if (value.postalCode !== undefined) setPostalCode(value.postalCode);
-  }, [value]);
+    // Notify parent of changes
+    const newValue = { province, district, subdistrict, postalCode: newPostalCode };
+
+    // Only call onChange if the value actually changed
+    const hasChanged =
+      newValue.province !== prevValueRef.current?.province ||
+      newValue.district !== prevValueRef.current?.district ||
+      newValue.subdistrict !== prevValueRef.current?.subdistrict ||
+      newValue.postalCode !== prevValueRef.current?.postalCode;
+
+    if (hasChanged && onChangeRef.current) {
+      prevValueRef.current = newValue;
+      onChangeRef.current(newValue);
+    }
+  }, [province, district, subdistrict, provinces, postalCode]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       {/* จังหวัด */}
       <div className="w-full">
-        <Label className={labelTextClass}>
-          จังหวัด
-        </Label>
-        <Popover open={openProvince} onOpenChange={setOpenProvince}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openProvince}
-              className={`w-full justify-between font-normal ${inputTextClass}`}
-            >
-              {province || "เลือกจังหวัด"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
-            <Command>
-              <CommandInput placeholder="ค้นหาจังหวัด..." />
-              <CommandList>
-                <CommandEmpty>ไม่พบจังหวัด</CommandEmpty>
-                <CommandGroup>
-                  {provinces.map((p: any) => (
-                    <CommandItem
-                      key={p.id}
-                      value={p.name}
-                      onSelect={(currentValue) => {
-                        setProvince(currentValue === province ? undefined : currentValue);
-                        setDistrict(undefined);
-                        setSubdistrict(undefined);
-                        setOpenProvince(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          province === p.name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {p.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Label className={labelTextClass}>จังหวัด</Label>
+        <Select
+          value={province || ""}
+          onValueChange={(v) => {
+            setProvince(v || undefined);
+            setDistrict(undefined);
+            setSubdistrict(undefined);
+          }}
+        >
+          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
+            <SelectValue placeholder="เลือกจังหวัด" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>จังหวัด</SelectLabel>
+              {provinces.map((p: any) => (
+                <SelectItem key={p.id} value={p.name}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* อำเภอ/เขต */}
       <div className="w-full">
-        <Label className={labelTextClass}>
-          อำเภอ/เขต
-        </Label>
-        <Popover open={openDistrict} onOpenChange={setOpenDistrict}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openDistrict}
-              disabled={!province}
-              className={`w-full justify-between font-normal ${inputTextClass}`}
-            >
-              {district || (province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน")}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
-            <Command>
-              <CommandInput placeholder="ค้นหาอำเภอ/เขต..." />
-              <CommandList>
-                <CommandEmpty>ไม่พบอำเภอ/เขต</CommandEmpty>
-                <CommandGroup>
-                  {districts.map((d: any) => (
-                    <CommandItem
-                      key={d.id}
-                      value={d.name}
-                      onSelect={(currentValue) => {
-                        setDistrict(currentValue === district ? undefined : currentValue);
-                        setSubdistrict(undefined);
-                        setOpenDistrict(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          district === d.name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {d.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Label className={labelTextClass}>อำเภอ/เขต</Label>
+        <Select
+          value={district || ""}
+          onValueChange={(v) => {
+            setDistrict(v || undefined);
+            setSubdistrict(undefined);
+          }}
+          disabled={!province}
+        >
+          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
+            <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>อำเภอ/เขต</SelectLabel>
+              {districts.map((d: any) => (
+                <SelectItem key={d.id} value={d.name}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* ตำบล/แขวง */}
       <div className="w-full">
-        <Label className={labelTextClass}>
-          ตำบล/แขวง
-        </Label>
-        <Popover open={openSubdistrict} onOpenChange={setOpenSubdistrict}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openSubdistrict}
-              disabled={!district}
-              className={`w-full justify-between font-normal ${inputTextClass}`}
-            >
-              {subdistrict || (district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน")}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
-            <Command>
-              <CommandInput placeholder="ค้นหาตำบล/แขวง..." />
-              <CommandList>
-                <CommandEmpty>ไม่พบตำบล/แขวง</CommandEmpty>
-                <CommandGroup>
-                  {subdistricts.map((s: any) => (
-                    <CommandItem
-                      key={s.id}
-                      value={s.name}
-                      onSelect={(currentValue) => {
-                        setSubdistrict(currentValue === subdistrict ? undefined : currentValue);
-                        setOpenSubdistrict(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          subdistrict === s.name ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {s.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Label className={labelTextClass}>ตำบล/แขวง</Label>
+        <Select
+          value={subdistrict || ""}
+          onValueChange={(v) => {
+            setSubdistrict(v || undefined);
+          }}
+          disabled={!district}
+        >
+          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
+            <SelectValue placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>ตำบล/แขวง</SelectLabel>
+              {subdistricts.map((s: any) => (
+                <SelectItem key={s.id} value={s.name}>
+                  {s.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* รหัสไปรษณีย์ */}
       <div className="w-full">
-        <Label className={labelTextClass}>
-          รหัสไปรษณีย์
-        </Label>
+        <Label className={labelTextClass}>รหัสไปรษณีย์</Label>
         <Input
           value={postalCode ?? ""}
           readOnly
