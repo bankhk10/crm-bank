@@ -404,20 +404,23 @@ export function ProductForm({
           disabled={loading}
         />
 
-        <MultiSelect
-          label="ใช้กับพืช"
-          options={PLANT_OPTIONS}
-          value={formData.usedForPlants}
-          onChange={(values) =>
-            setFormData((prev) => ({
-              ...prev,
-              usedForPlants: values as string[],
-            }))
-          }
-          placeholder="เลือกพืช"
-          disabled={loading}
-          searchable={true}
-        />
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">ใช้กับพืช</label>
+          <MultiSelect
+            options={PLANT_OPTIONS}
+            onValueChange={(values: string[]) =>
+              setFormData((prev) => ({
+                ...prev,
+                usedForPlants: values,
+              }))
+            }
+            defaultValue={formData.usedForPlants}
+            placeholder="เลือกพืช"
+            disabled={loading}
+            searchable={true}
+            hideSelectAll={false}
+          />
+        </div>
 
         <FormSelect
           label="สถานะสินค้า"

@@ -1,233 +1,213 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import * as React from "react";
+import { X, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export interface MultiSelectOption {
-  value: string | number;
-  label: string;
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
 }
 
-export interface MultiSelectProps {
-  label: string;
-  options: MultiSelectOption[];
-  value: (string | number)[];
-  onChange: (value: (string | number)[]) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  error?: string;
-  searchable?: boolean;
-  roundedClass?: string;
-}
-
-export const MultiSelect: React.FC<MultiSelectProps> = ({
-  label,
-  options,
-  value = [],
-  onChange,
-  placeholder = "",
-  disabled = false,
-  error,
-  searchable = true,
-  roundedClass = "rounded-lg",
-}) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const handleDoc = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) setOpen(false);
+interface MultiSelectProps {
+    options: MultiSelectOption[];
+    onValueChange: (value: string[]) => void;
+    defaultValue?: string[];
+    placeholder?: string;
+    searchable?: boolean;
+    hideSelectAll?: boolean;
+    emptyIndicator?: React.ReactNode;
+    className?: string;
+    disabled?: boolean;
+    animationConfig?: {
+        badgeAnimation?: "fade" | "scale" | "slide";
+        popoverAnimation?: "fade" | "scale" | "slide";
     };
-    document.addEventListener("mousedown", handleDoc);
-    return () => document.removeEventListener("mousedown", handleDoc);
-  }, []);
+}
 
-  const filteredOptions = query
-    ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
-    : options;
+export function MultiSelect({
+    options,
+    onValueChange,
+    defaultValue = [],
+    placeholder = "Select options",
+    searchable = true,
+    hideSelectAll = false,
+    emptyIndicator,
+    className,
+    disabled = false,
+    animationConfig = {
+        badgeAnimation: "fade",
+        popoverAnimation: "scale",
+    },
+}: MultiSelectProps) {
+    const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+    const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 
-  const selectedOptions = options.filter((opt) =>
-    value.includes(opt.value)
-  );
+    const handleUnselect = (value: string) => {
+        const newSelectedValues = selectedValues.filter((v) => v !== value);
+        setSelectedValues(newSelectedValues);
+        onValueChange(newSelectedValues);
+    };
 
-  const toggleOption = (optValue: string | number) => {
-    if (value.includes(optValue)) {
-      onChange(value.filter((v) => v !== optValue));
-    } else {
-      onChange([...value, optValue]);
-    }
-  };
+    const handleToggle = (value: string) => {
+        const newSelectedValues = selectedValues.includes(value)
+            ? selectedValues.filter((v) => v !== value)
+            : [...selectedValues, value];
+        setSelectedValues(newSelectedValues);
+        onValueChange(newSelectedValues);
+    };
 
-  const removeOption = (optValue: string | number) => {
-    onChange(value.filter((v) => v !== optValue));
-  };
+    const handleClearAll = () => {
+        setSelectedValues([]);
+        onValueChange([]);
+    };
 
-  const hasError = !!error;
-  const valuePresent = value.length > 0;
+    const handleClose = () => {
+        setIsPopoverOpen(false);
+    };
 
-  const baseInputClasses = [
-    "peer block w-full min-h-[50px] px-5 py-3 text-lg bg-white",
-    "border text-gray-900",
-    roundedClass,
-    "outline-none focus:outline-none focus:ring-0 focus-visible:ring-0",
-    hasError
-      ? "border-red-500 focus:border-red-500"
-      : "border-gray-300 focus:border-blue-500",
-  ].join(" ");
+    const badgeAnimationClass = {
+        fade: "animate-in fade-in-0",
+        scale: "animate-in zoom-in-95",
+        slide: "animate-in slide-in-from-left-2",
+    }[animationConfig.badgeAnimation || "fade"];
 
-  const baseLabelShared = [
-    "absolute px-1 bg-white transition-all duration-200 ease-in-out pointer-events-none z-10",
-    "left-[15px]",
-  ];
-
-  const labelClasses = valuePresent
-    ? ["top-[-10px]", "text-[13px]"]
-    : ["top-[15px]", "text-[15px]"];
-
-  const colorLabelClasses = hasError
-    ? "text-red-500"
-    : "text-gray-600 peer-focus:text-blue-500";
-
-  const labelClassName = [
-    ...baseLabelShared,
-    ...labelClasses,
-    colorLabelClasses,
-  ].join(" ");
-
-  return (
-    <div className="mb-2">
-      <div className="relative w-full" ref={containerRef}>
-        <div
-          className={`${baseInputClasses} ${
-            disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-          } relative flex flex-wrap gap-2 items-center`}
-          onClick={() => !disabled && setOpen((o) => !o)}
-        >
-          {selectedOptions.length > 0 ? (
-            selectedOptions.map((opt) => (
-              <span
-                key={opt.value}
-                className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm"
-              >
-                {opt.label}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeOption(opt.value);
-                  }}
-                  className="hover:bg-blue-200 rounded-full p-0.5"
+    return (
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isPopoverOpen}
+                    className={cn(
+                        "w-full justify-between min-h-[44px] h-auto mt-1",
+                        selectedValues.length > 0 ? "h-auto" : "h-11",
+                        className
+                    )}
+                    disabled={disabled}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            ))
-          ) : (
-            <span className="text-muted-foreground text-base">
-              {placeholder}
-            </span>
-          )}
+                    <div className="flex gap-1 flex-wrap">
+                        {selectedValues.length > 0 ? (
+                            selectedValues.map((value) => {
+                                const option = options.find((o) => o.value === value);
+                                const IconComponent = option?.icon;
+                                return (
+                                    <Badge
+                                        key={value}
+                                        variant="secondary"
+                                        className={cn("mr-1 mb-1", badgeAnimationClass)}
+                                    >
+                                        {IconComponent && (
+                                            <IconComponent className="h-4 w-4 mr-2" />
+                                        )}
+                                        {option?.label}
+                                        <span
+                                            className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    handleUnselect(value);
+                                                }
+                                            }}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                            }}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleUnselect(value);
+                                            }}
+                                        >
+                                            <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                        </span>
+                                    </Badge>
+                                );
+                            })
+                        ) : (
+                            <span className="text-muted-foreground">{placeholder}</span>
+                        )}
+                    </div>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                    {searchable && (
+                        <CommandInput placeholder="Search..." className="h-9" />
+                    )}
+                    <CommandList>
+                        <CommandEmpty>
+                            {emptyIndicator || "ไม่พบข้อมูล"}
+                        </CommandEmpty>
+                        <CommandGroup>
+                            {options.map((option) => {
+                                const isSelected = selectedValues.includes(option.value);
+                                return (
+                                    <CommandItem
+                                        key={option.value}
+                                        onSelect={() => handleToggle(option.value)}
+                                        className="cursor-pointer"
+                                    >
+                                        <div
+                                            className={cn(
+                                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                isSelected
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "opacity-50 [&_svg]:invisible"
+                                            )}
+                                        >
+                                            <Check className="h-4 w-4" />
+                                        </div>
+                                        {option.icon && (
+                                            <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        )}
+                                        <span>{option.label}</span>
+                                    </CommandItem>
+                                );
+                            })}
+                        </CommandGroup>
+                    </CommandList>
 
-          <span
-            className={`absolute right-4 top-1/2 z-10 -translate-y-1/2 ${
-              hasError ? "text-red-500" : "text-gray-500"
-            }`}
-          >
-            <svg
-              className={`h-5 w-5 transform transition-transform duration-150 ${
-                open ? "rotate-180" : "rotate-0"
-              }`}
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </span>
-        </div>
-
-        <label className={labelClassName}>{label}</label>
-
-        {open && (
-          <div className="absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-hidden rounded-lg bg-white border border-gray-200 shadow-lg text-sm focus:outline-none focus:ring-0">
-            {searchable && (
-              <div className="p-2">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="ค้นหา..."
-                  className="w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-0"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            )}
-
-            <ul className="max-h-52 overflow-auto py-1 focus:outline-none focus:ring-0">
-              {filteredOptions.length ? (
-                filteredOptions.map((opt) => {
-                  const isSelected = value.includes(opt.value);
-                  return (
-                    <li
-                      key={String(opt.value)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleOption(opt.value);
-                      }}
-                      className={`cursor-pointer px-4 py-2 flex items-center gap-2 ${
-                        isSelected
-                          ? "bg-blue-50 text-blue-700"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {}}
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
-                      {opt.label}
-                    </li>
-                  );
-                })
-              ) : (
-                <li className="px-4 py-2 text-gray-500">ไม่พบรายการ</li>
-              )}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {hasError && (
-        <div
-          className="mt-2 flex items-center rounded-lg bg-red-50 p-3 text-sm text-red-700"
-          role="alert"
-        >
-          <svg
-            className="h-5 w-5 shrink-0 text-red-600"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-5a1 1 0 112 0v2a1 1 0 11-2 0v-2zm1-8a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="ml-2">{error}</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MultiSelect;
+                    {/* Clear and Close buttons at bottom */}
+                    <div className="flex border-t">
+                        <Button
+                            variant="ghost"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleClearAll();
+                            }}
+                            className="flex-1 rounded-none border-r"
+                        >
+                            ลบทั้งหมด
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleClose();
+                            }}
+                            className="flex-1 rounded-none"
+                        >
+                            ตกลง
+                        </Button>
+                    </div>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+}
