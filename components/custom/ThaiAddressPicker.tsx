@@ -32,6 +32,9 @@ type Props = {
   onChange?: (next: AddressValue) => void;
 };
 
+const labelTextClass = "text-base font-medium mx-2";
+const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
+
 export default function ThaiAddressPicker({ value, onChange }: Props) {
   const [provinces, setProvinces] = useState<any[]>([]);
   const [province, setProvince] = useState<string | undefined>(value?.province);
@@ -110,7 +113,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     <div className="flex flex-col sm:flex-row gap-2">
       {/* จังหวัด */}
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+        <Label className={labelTextClass}>
           จังหวัด
         </Label>
         <Popover open={openProvince} onOpenChange={setOpenProvince}>
@@ -119,7 +122,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
               variant="outline"
               role="combobox"
               aria-expanded={openProvince}
-              className="w-full justify-between mt-1 text-base h-11"
+              className={`w-full justify-between font-normal ${inputTextClass}`}
             >
               {province || "เลือกจังหวัด"}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -160,7 +163,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       {/* อำเภอ/เขต */}
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+        <Label className={labelTextClass}>
           อำเภอ/เขต
         </Label>
         <Popover open={openDistrict} onOpenChange={setOpenDistrict}>
@@ -170,7 +173,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
               role="combobox"
               aria-expanded={openDistrict}
               disabled={!province}
-              className="w-full justify-between mt-1 text-base h-11"
+              className={`w-full justify-between font-normal ${inputTextClass}`}
             >
               {district || (province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน")}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -210,7 +213,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       {/* ตำบล/แขวง */}
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+        <Label className={labelTextClass}>
           ตำบล/แขวง
         </Label>
         <Popover open={openSubdistrict} onOpenChange={setOpenSubdistrict}>
@@ -220,7 +223,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
               role="combobox"
               aria-expanded={openSubdistrict}
               disabled={!district}
-              className="w-full justify-between mt-1 text-base h-11"
+              className={`w-full justify-between font-normal ${inputTextClass}`}
             >
               {subdistrict || (district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน")}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -259,14 +262,14 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
 
       {/* รหัสไปรษณีย์ */}
       <div className="w-full">
-        <Label className="mx-2 mt-2 text-sm font-bold text-gray-900">
+        <Label className={labelTextClass}>
           รหัสไปรษณีย์
         </Label>
         <Input
           value={postalCode ?? ""}
           readOnly
           disabled
-          className="mt-1 text-base !h-11"
+          className={inputTextClass}
         />
       </div>
     </div>
