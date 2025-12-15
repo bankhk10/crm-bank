@@ -78,16 +78,6 @@ export default function EditProductPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/products"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          กลับไปหน้ารายการสินค้า
-        </Link>
-      </div>
-
       <Card>
         <div className="p-6">
           <div className="text-center">
