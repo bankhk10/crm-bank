@@ -389,12 +389,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
               />
             )}
-            <button
+            {/* <button
               onClick={() => setPreviewImage(null)}
-              className="absolute -top-12 right-0 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-colors focus:outline-none shadow-lg"
+              className="absolute top-4 right-0 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition-colors focus:outline-none shadow-lg"
             >
               <X className="w-8 h-8" />
-            </button>
+            </button> */}
           </div>
         </DialogContent>
       </Dialog>
