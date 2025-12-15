@@ -5,25 +5,18 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
 import { ImageUpload } from "@/components/custom/image-upload";
+import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
-type Option = { id: string; label: string };
+type Option = { value: string; label: string };
 
 const labelTextClass = "text-base font-medium mx-2";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
@@ -135,11 +128,11 @@ export default function CustomerFormDealer({
         ]);
 
         const comps = (cRes.customers || []).map((c: any) => ({
-          id: c.id,
+          value: c.id,
           label: c.name,
         }));
         const emps = (eRes.employees || []).map((e: any) => ({
-          id: e.id,
+          value: e.id,
           label: e.name,
         }));
         setDealerOptions(comps);
@@ -161,12 +154,12 @@ export default function CustomerFormDealer({
     }
 
     if (values.parentDealer) {
-      const found = dealerOptions.find((d) => d.id === values.parentDealer);
+      const found = dealerOptions.find((d) => d.value === values.parentDealer);
       if (found) setParentDealerLabel(found.label);
     }
     if (values.responsibleEmployeeId) {
       const found = employeeOptions.find(
-        (d) => d.id === values.responsibleEmployeeId
+        (d) => d.value === values.responsibleEmployeeId
       );
       if (found) setResponsibleEmployeeLabel(found.label);
     }
@@ -428,87 +421,66 @@ export default function CustomerFormDealer({
         ข้อมูลบริษัท
       </h3>
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <div>
-          <Label className={labelTextClass}>รหัสลูกค้า</Label>
-          <Input
-            value={values.customerCode}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, customerCode: e.target.value }));
-              clearFieldError("customerCode");
-            }}
-            readOnly
-            disabled
-            className={inputTextClass}
-          />
-          {fieldErrors.customerCode?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.customerCode[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="รหัสลูกค้า"
+          value={values.customerCode}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, customerCode: e.target.value }));
+            clearFieldError("customerCode");
+          }}
+          readOnly
+          disabled
+          error={fieldErrors.customerCode?.[0]}
+        />
 
-        <div className="md:col-span-2">
-          <Label className={labelTextClass}>ชื่อร้านค้า</Label>
-          <Input
-            value={values.companyName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, companyName: e.target.value }));
-              clearFieldError("name");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.name?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
-          )}
-        </div>
+        <FormInput
+          label="ชื่อร้านค้า"
+          value={values.companyName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, companyName: e.target.value }));
+            clearFieldError("name");
+          }}
+          required
+          error={fieldErrors.name?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-        <div>
-          <Label className={labelTextClass}>เลขประจำตัวผู้เสียภาษี</Label>
-          <Input
-            value={values.taxId}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, taxId: e.target.value }));
-              clearFieldError("taxId");
-            }}
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="เลขประจำตัวผู้เสียภาษี"
+          value={values.taxId}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, taxId: e.target.value }));
+            clearFieldError("taxId");
+          }}
+        />
       </div>
 
+
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-        <div>
-          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บริษัท)</Label>
-          <Input
-            type="number"
-            value={values.phone}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, phone: e.target.value }));
-              clearFieldError("phone");
-            }}
-            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            required
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>E-mail (บริษัท)</Label>
-          <Input
-            type="email"
-            value={values.email}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, email: e.target.value }));
-              clearFieldError("email");
-            }}
-            className={inputTextClass}
-          />
-          {fieldErrors.email?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
-          )}
-        </div>
+        <FormInput
+          label="เบอร์โทรศัพท์ (บริษัท)"
+          type="number"
+          value={values.phone}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, phone: e.target.value }));
+            clearFieldError("phone");
+          }}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          required
+        />
+        <FormInput
+          label="E-mail (บริษัท)"
+          type="email"
+          value={values.email}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, email: e.target.value }));
+            clearFieldError("email");
+          }}
+          error={fieldErrors.email?.[0]}
+        />
 
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-8">
             <Label className={labelTextClass}>latitude (ละติจูด)</Label>
             <Button
               type="button"
@@ -518,7 +490,7 @@ export default function CustomerFormDealer({
               onClick={getCurrentLocation}
             >
               <MapPin className="w-3 h-3" />
-              ดึงพิกัด (Longdo)
+              ดึงพิกัดปัจจุบัน
             </Button>
           </div>
           <Input
@@ -532,34 +504,27 @@ export default function CustomerFormDealer({
           />
         </div>
 
-        <div>
-          <Label className={labelTextClass}>longitude (ลองจิจูด)</Label>
-          <Input
-            type="number"
-            value={values.longitude}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, longitude: e.target.value }))
-            }
-            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.addressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
-            clearFieldError("addressLine");
-          }}
-          className={inputTextClass}
+        <FormInput
+          label="longitude (ลองจิจูด)"
+          type="number"
+          value={values.longitude}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, longitude: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
       </div>
+
+      <FormInput
+        label="ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)"
+        placeholder="123/45 หมู่ 6"
+        value={values.addressLine}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, addressLine: e.target.value }));
+          clearFieldError("addressLine");
+        }}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
       <div className="md:col-span-2">
         <ThaiAddressPicker
@@ -583,23 +548,19 @@ export default function CustomerFormDealer({
         ที่อยู่วางบิล
       </h3>
 
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่วางบิล (บ้านเลขที่ หมู่ ซอย ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.billingAddressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({
-              ...p,
-              billingAddressLine: e.target.value,
-            }));
-            clearFieldError("billingAddressLine");
-          }}
-          className={inputTextClass}
-        />
-      </div>
+      <FormInput
+        label="ที่อยู่วางบิล (บ้านเลขที่ หมู่ ซอย ถนน)"
+        placeholder="123/45 หมู่ 6"
+        value={values.billingAddressLine}
+        onChange={(e) => {
+          setValues((p: any) => ({
+            ...p,
+            billingAddressLine: e.target.value,
+          }));
+          clearFieldError("billingAddressLine");
+        }}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
       <div className="md:col-span-2">
         <ThaiAddressPicker
@@ -629,23 +590,20 @@ export default function CustomerFormDealer({
         ที่อยู่จัดส่ง
       </h3>
 
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.shippingAddressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({
-              ...p,
-              shippingAddressLine: e.target.value,
-            }));
-            clearFieldError("shippingAddressLine");
-          }}
-          className={inputTextClass}
-        />
-      </div>
+
+      <FormInput
+        label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
+        placeholder="123/45 หมู่ 6"
+        value={values.shippingAddressLine}
+        onChange={(e) => {
+          setValues((p: any) => ({
+            ...p,
+            shippingAddressLine: e.target.value,
+          }));
+          clearFieldError("shippingAddressLine");
+        }}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
       <div className="md:col-span-2">
         <ThaiAddressPicker
@@ -676,77 +634,58 @@ export default function CustomerFormDealer({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        <div>
-          <Label className={labelTextClass}>คำนำหน้า</Label>
-          <Select
-            value={values.prefix}
-            onValueChange={(v) => setValues((p: any) => ({ ...p, prefix: v }))}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกคำนำหน้า" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>คำนำหน้า</SelectLabel>
-                <SelectItem value="นาย">นาย</SelectItem>
-                <SelectItem value="นาง">นาง</SelectItem>
-                <SelectItem value="นางสาว">นางสาว</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <FormSelect
+          label="คำนำหน้า"
+          value={values.prefix}
+          onChange={(v) => setValues((p: any) => ({ ...p, prefix: v }))}
+          options={[
+            { value: "นาย", label: "นาย" },
+            { value: "นาง", label: "นาง" },
+            { value: "นางสาว", label: "นางสาว" },
+          ]}
+          placeholder="เลือกคำนำหน้า"
+          groupLabel="คำนำหน้า"
+        />
 
-        <div>
-          <Label className={labelTextClass}>ชื่อ</Label>
-          <Input
-            value={values.firstName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, firstName: e.target.value }));
-              clearFieldError("firstName");
-            }}
-            required
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="ชื่อ"
+          value={values.firstName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, firstName: e.target.value }));
+            clearFieldError("firstName");
+          }}
+          required
+        />
 
-        <div>
-          <Label className={labelTextClass}>นามสกุล</Label>
-          <Input
-            value={values.lastName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, lastName: e.target.value }));
-              clearFieldError("lastName");
-            }}
-            required
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="นามสกุล"
+          value={values.lastName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, lastName: e.target.value }));
+            clearFieldError("lastName");
+          }}
+          required
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-        <div>
-          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล)</Label>
-          <Input
-            value={values.contactPhone}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
-              clearFieldError("contactPhone");
-            }}
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>E-mail (บุคคล)</Label>
-          <Input
-            type="email"
-            value={values.contactEmail}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
-              clearFieldError("contactEmail");
-            }}
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="เบอร์โทรศัพท์ (บุคคล)"
+          value={values.contactPhone}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
+            clearFieldError("contactPhone");
+          }}
+        />
+        <FormInput
+          label="E-mail (บุคคล)"
+          type="email"
+          value={values.contactEmail}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
+            clearFieldError("contactEmail");
+          }}
+        />
         <div className="mt-2">
           <DatePicker
             label="วันเกิด"
@@ -755,15 +694,12 @@ export default function CustomerFormDealer({
             placeholder=""
           />
         </div>
-        <div>
-          <Label className={labelTextClass}>อายุ</Label>
-          <Input
-            value={calculatedAge()}
-            disabled={true}
-            onChange={() => { }}
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="อายุ"
+          value={calculatedAge()}
+          disabled={true}
+          onChange={() => { }}
+        />
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
@@ -800,99 +736,67 @@ export default function CustomerFormDealer({
           </Select>
         </div> */}
 
-        <div>
-          <Label className={labelTextClass}>พนักงานที่รับผิดชอบ</Label>
-          <Select
-            value={values.responsibleEmployeeId ?? ""}
-            onValueChange={(v) => {
-              setValues((p: any) => ({
-                ...p,
-                responsibleEmployeeId: v || null,
-              }));
-              const found = employeeOptions.find((d) => d.id === v);
-              setResponsibleEmployeeLabel(found ? found.label : "");
-              clearFieldError("responsibleEmployeeId");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกพนักงาน" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>พนักงาน</SelectLabel>
-                {employeeOptions.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>คะแนนความสัมพันธ์</Label>
-          <Select
-            value={String(values.relationshipScore ?? "")}
-            onValueChange={(v) =>
-              setValues((p: any) => ({
-                ...p,
-                relationshipScore: v ? Number(v) : null,
-              }))
-            }
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกคะแนน" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>คะแนน</SelectLabel>
-                <SelectItem value="1">แย่</SelectItem>
-                <SelectItem value="2">ปานกลาง</SelectItem>
-                <SelectItem value="3">ดี</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label className={labelTextClass}>สถานะ</Label>
-          <Select
-            value={values.status ?? "ACTIVE"}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, status: v }));
-              clearFieldError("status");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกสถานะ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>สถานะ</SelectLabel>
-                <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
-                <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
-                <SelectItem value="SUSPENDED">ระงับ</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fieldErrors.status?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.status[0]}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <Label className={`${labelTextClass} mb-2`}>หมายเหตุ</Label>
-        <textarea
-          value={values.businessNotes}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
-            clearFieldError("notes");
+        <FormSelect
+          label="พนักงานที่รับผิดชอบ"
+          value={values.responsibleEmployeeId ?? ""}
+          onChange={(v) => {
+            setValues((p: any) => ({
+              ...p,
+              responsibleEmployeeId: v || null,
+            }));
+            const found = employeeOptions.find((d) => d.value === v);
+            setResponsibleEmployeeLabel(found ? found.label : "");
+            clearFieldError("responsibleEmployeeId");
           }}
-          className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
-          rows={3}
+          options={employeeOptions}
+          placeholder="เลือกพนักงาน"
+          groupLabel="พนักงาน"
+        />
+
+        <FormSelect
+          label="คะแนนความสัมพันธ์"
+          value={String(values.relationshipScore ?? "")}
+          onChange={(v) =>
+            setValues((p: any) => ({
+              ...p,
+              relationshipScore: v ? Number(v) : null,
+            }))
+          }
+          options={[
+            { value: "1", label: "แย่" },
+            { value: "2", label: "ปานกลาง" },
+            { value: "3", label: "ดี" },
+          ]}
+          placeholder="เลือกคะแนน"
+          groupLabel="คะแนน"
+        />
+        <FormSelect
+          label="สถานะ"
+          value={values.status ?? "ACTIVE"}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, status: v }));
+            clearFieldError("status");
+          }}
+          options={[
+            { value: "ACTIVE", label: "ใช้งาน" },
+            { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
+            { value: "SUSPENDED", label: "ระงับ" },
+          ]}
+          placeholder="เลือกสถานะ"
+          groupLabel="สถานะ"
+          error={fieldErrors.status?.[0]}
         />
       </div>
+
+      <FormTextarea
+        label="หมายเหตุ"
+        value={values.businessNotes}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
+          clearFieldError("notes");
+        }}
+        rows={3}
+      />
 
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
