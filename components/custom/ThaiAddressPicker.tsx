@@ -157,7 +157,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
             <SelectValue placeholder="เลือกจังหวัด" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px]">
             <SelectGroup>
               <SelectLabel>จังหวัด</SelectLabel>
               {provinces.map((p: any) => (
@@ -184,7 +184,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
             <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px]">
             <SelectGroup>
               <SelectLabel>อำเภอ/เขต</SelectLabel>
               {districts.map((d: any) => (
@@ -210,7 +210,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
             <SelectValue placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[300px]">
             <SelectGroup>
               <SelectLabel>ตำบล/แขวง</SelectLabel>
               {subdistricts.map((s: any) => (
