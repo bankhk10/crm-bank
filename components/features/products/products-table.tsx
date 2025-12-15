@@ -167,13 +167,13 @@ function useProductColumns(
       {
         accessorKey: "productGroup",
         header: "กลุ่มสินค้า",
-        meta: { headerAlign: "left", minWidth: 140, width: 160, maxWidth: 160, align: "left" },
+        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
         cell: ({ row }) => <TruncatedCell value={row.original.productGroup ?? "-"} />,
       },
       {
         accessorKey: "price",
         header: "ราคา",
-        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+        meta: { headerAlign: "left", minWidth: 100, width: 100, maxWidth: 100, align: "left" },
         cell: ({ row }) => {
           const price = row.original.price;
           return (
@@ -194,7 +194,7 @@ function useProductColumns(
       {
         accessorKey: "stockQuantity",
         header: "ทั้งหมด",
-        meta: { headerAlign: "center", minWidth: 80, width: 80, maxWidth: 80, align: "center" },
+        meta: { headerAlign: "left", minWidth: 110, width: 110, maxWidth: 110, align: "left" },
         cell: ({ row }) => {
           const totalStock =
             row.original.stockQuantity ??
@@ -210,7 +210,7 @@ function useProductColumns(
       {
         accessorKey: "reserved",
         header: "จอง",
-        meta: { headerAlign: "center", minWidth: 80, width: 80, maxWidth: 80, align: "center" },
+        meta: { headerAlign: "left", minWidth: 80, width: 80, maxWidth: 80, align: "left" },
         cell: ({ row }) => {
           const reserved = row.original.reserved ?? 0;
           return <div className="text-sm">{reserved.toLocaleString()}</div>;
@@ -246,7 +246,7 @@ function useProductColumns(
       {
         id: "actions",
         header: "จัดการ",
-        meta: { headerAlign: "center", minWidth: 160, width: 180, maxWidth: 200, align: "center" },
+        meta: { headerAlign: "center", minWidth: 150, width: 150, maxWidth: 150, align: "center" },
         cell: ({ row }) => {
           const product = row.original;
           return (
