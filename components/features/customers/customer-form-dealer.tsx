@@ -633,7 +633,7 @@ export default function CustomerFormDealer({
         ข้อมูลผู้ติดต่อ
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
         <FormSelect
           label="คำนำหน้า"
           value={values.prefix}
@@ -655,6 +655,7 @@ export default function CustomerFormDealer({
             clearFieldError("firstName");
           }}
           required
+          containerClassName="md:col-span-2"
         />
 
         <FormInput
@@ -665,6 +666,7 @@ export default function CustomerFormDealer({
             clearFieldError("lastName");
           }}
           required
+          containerClassName="md:col-span-2"
         />
       </div>
 
