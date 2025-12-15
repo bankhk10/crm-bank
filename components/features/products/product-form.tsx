@@ -289,8 +289,8 @@ export function ProductForm({
       )}
 
       {success && (
-        <Dialog open={true}>
-          <DialogContent>
+        <Dialog open={true} onOpenChange={(open) => !open && setSuccess(false)}>
+          <DialogContent showCloseButton={false}>
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-green-600" />
               <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
