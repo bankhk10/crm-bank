@@ -86,11 +86,11 @@ export interface ProductFormData {
   images?: Array<
     | File
     | {
-        id?: string;
-        url: string;
-        name?: string;
-        size?: number;
-      }
+      id?: string;
+      url: string;
+      name?: string;
+      size?: number;
+    }
   >;
   /** index in `images` that should be treated as the cover (0-based) */
   coverIndex?: number | null;
@@ -172,7 +172,6 @@ export const PLANT_OPTIONS = [
 ];
 
 export const STORAGE_LOCATION_OPTIONS = [
-  { value: "คลังสินค้า A", label: "คลังสินค้า A" },
-  { value: "คลังสินค้า B", label: "คลังสินค้า B" },
-  { value: "คลังสินค้า C", label: "คลังสินค้า C" },
+  { value: "คลังบางเลน A", label: "คลังบางเลน A" },
+  { value: "คลังบางเลน B", label: "คลังบางเลน B" },
 ];
