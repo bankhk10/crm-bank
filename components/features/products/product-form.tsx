@@ -2,8 +2,18 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { ImageUpload } from "@/components/custom/image-upload";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -13,17 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageUpload } from "@/components/custom/image-upload";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
 import {
   UNIT_OPTIONS,
   PRODUCT_GROUP_OPTIONS,
@@ -33,9 +32,6 @@ import {
   type ProductFormData,
 } from "@/types/product";
 import generateRandomProduct from "@/lib/random-fill/product";
-
-const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
-const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -87,7 +83,6 @@ export function ProductForm({
     coverIndex: (initialData as any)?.coverIndex ?? null,
   });
 
-  // track existing image ids that were present when the form mounted
   const originalExistingIdsRef = useRef<string[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
@@ -100,7 +95,6 @@ export function ProductForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [plantSearchQuery, setPlantSearchQuery] = useState("");
-  // sampleImageUrls removed: random fill will NOT upload or set images
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -176,7 +170,6 @@ export function ProductForm({
 
         const data = await res.json();
 
-        // If editing and there are removed existing images, delete them first
         if (isEdit && removedImageIds.length > 0) {
           const delRes = await fetch(`/api/products/${productId}/images`, {
             method: "DELETE",
@@ -190,7 +183,6 @@ export function ProductForm({
           }
         }
 
-        // If there are new File objects to upload, do that now with progress
         if (formData.images && formData.images.length > 0) {
           try {
             const filesToUpload = (formData.images as any[]).filter(
@@ -214,9 +206,7 @@ export function ProductForm({
           }
         }
 
-        // clear removed ids after successful deletion
         setRemovedImageIds([]);
-
         setSuccess(true);
 
         setTimeout(() => {
@@ -232,8 +222,6 @@ export function ProductForm({
     }
   };
 
-  // Fill form fields with generated random product data. Intentionally
-  // do NOT generate/upload images — user will choose images manually.
   const handleRandomFill = async () => {
     const payload = generateRandomProduct();
     setFormData((prev) => ({
@@ -253,11 +241,9 @@ export function ProductForm({
     }));
   };
 
-  // 📌 อัปเดตฟิลด์ และเคลียร์ error อัตโนมัติ
   const updateField = (field: keyof ProductFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // เคลียร์ error เมื่อเริ่มพิมพ์
     setErrors((prev) => {
       if (!prev[field]) return prev;
       const newErr = { ...prev };
@@ -329,352 +315,278 @@ export function ProductForm({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
-        <div>
-          <Label className={labelTextClass}>รหัสสินค้า *</Label>
-          <Input
-            value={formData.productCode}
-            onChange={(e) => updateField("productCode", e.target.value)}
-            required
-            className={inputTextClass}
-          />
-          {errors.productCode && (
-            <p className="text-xs text-red-600 mt-1">{errors.productCode}</p>
-          )}
-        </div>
+        <FormInput
+          label="รหัสสินค้า"
+          value={formData.productCode}
+          onChange={(e) => updateField("productCode", e.target.value)}
+          required
+          error={errors.productCode}
+        />
+
+        <FormInput
+          label="ชื่อการค้า"
+          value={formData.name}
+          onChange={(e) => updateField("name", e.target.value)}
+          required
+          error={errors.name}
+        />
+
+        <FormInput
+          label="ชื่อสามัญ"
+          value={formData.commonName}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              commonName: e.target.value,
+            }))
+          }
+          disabled={loading}
+        />
+
+        <FormSelect
+          label="หน่วยนับ"
+          value={formData.unit}
+          onChange={(v) =>
+            setFormData((prev) => ({
+              ...prev,
+              unit: v,
+            }))
+          }
+          options={UNIT_OPTIONS}
+          placeholder="เลือกหน่วยนับ"
+          groupLabel="หน่วยนับ"
+          disabled={loading}
+        />
+
+        <FormSelect
+          label="กลุ่มสินค้า"
+          value={formData.productGroup}
+          onChange={(v) =>
+            setFormData((prev) => ({
+              ...prev,
+              productGroup: v,
+            }))
+          }
+          options={PRODUCT_GROUP_OPTIONS}
+          placeholder="เลือกกลุ่มสินค้า"
+          groupLabel="กลุ่มสินค้า"
+          disabled={loading}
+        />
+
+        <FormSelect
+          label="แบรนด์สินค้า"
+          value={formData.brand}
+          onChange={(v) =>
+            setFormData((prev) => ({
+              ...prev,
+              brand: v,
+            }))
+          }
+          options={BRAND_OPTIONS}
+          placeholder="เลือกแบรนด์"
+          groupLabel="แบรนด์"
+          disabled={loading}
+        />
+
+        <FormInput
+          label="ขนาดบรรจุ"
+          value={formData.packageSize}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              packageSize: e.target.value,
+            }))
+          }
+          disabled={loading}
+        />
+
+        <FormInput
+          label="ขนาดบรรจุต่อลัง"
+          type="number"
+          value={formData.packageSizePerBox}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              packageSizePerBox: e.target.value,
+            }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          disabled={loading}
+        />
 
         <div>
-          <Label className={labelTextClass}>ชื่อการค้า *</Label>
-          <Input
-            value={formData.name}
-            onChange={(e) => updateField("name", e.target.value)}
-            required
-            className={inputTextClass}
-          />
-          {errors.name && (
-            <p className="text-xs text-red-600 mt-1">{errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>ชื่อสามัญ</Label>
-          <Input
-            value={formData.commonName}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                commonName: e.target.value,
-              }))
-            }
-            disabled={loading}
-            className={inputTextClass}
-          />
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>หน่วยนับ</Label>
-          <Select
-            value={formData.unit}
-            onValueChange={(v) =>
-              setFormData((prev) => ({
-                ...prev,
-                unit: v,
-              }))
-            }
-            disabled={loading}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกหน่วยนับ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>หน่วยนับ</SelectLabel>
-                {UNIT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>กลุ่มสินค้า</Label>
-          <Select
-            value={formData.productGroup}
-            onValueChange={(v) =>
-              setFormData((prev) => ({
-                ...prev,
-                productGroup: v,
-              }))
-            }
-            disabled={loading}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกกลุ่มสินค้า" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>กลุ่มสินค้า</SelectLabel>
-                {PRODUCT_GROUP_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>แบรนด์สินค้า</Label>
-          <Select
-            value={formData.brand}
-            onValueChange={(v) =>
-              setFormData((prev) => ({
-                ...prev,
-                brand: v,
-              }))
-            }
-            disabled={loading}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกแบรนด์" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>แบรนด์</SelectLabel>
-                {BRAND_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>ขนาดบรรจุ</Label>
-          <Input
-            value={formData.packageSize}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                packageSize: e.target.value,
-              }))
-            }
-            disabled={loading}
-            className={inputTextClass}
-          />
-        </div>
-
-        <div>
-          <Label className={labelTextClass}>ขนาดบรรจุต่อลัง</Label>
-          <Input
-            type="number"
-            inputMode="numeric"
-            min={0}
-            step={1}
-            value={formData.packageSizePerBox}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                packageSizePerBox: e.target.value,
-              }))
-            }
-            disabled={loading}
-            className={inputTextClass}
-          />
-        </div>
-
-
-        <div>
-          <Label className={labelTextClass}>ใช้กับพืช</Label>
-
-          <Select
+          <FormSelect
+            label="ใช้กับพืช"
             value={formData.usedForPlants.length > 0 ? "selected" : ""}
+            onChange={() => { }}
+            options={[]}
             disabled={loading}
+            triggerClassName="!h-auto min-h-[44px] py-2 items-start"
           >
-            <SelectTrigger className={`${inputTextClass} !h-auto min-h-[44px] py-2 items-start`}>
-              <div className="flex flex-wrap gap-1.5 w-full items-center">
-                {formData.usedForPlants.length > 0 ? (
-                  formData.usedForPlants.map((plantValue) => {
-                    const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
-                    return (
-                      <div
-                        key={plantValue}
-                        className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <span>{plant ? plant.label : plantValue}</span>
-                        <span
+            <Select
+              value={formData.usedForPlants.length > 0 ? "selected" : ""}
+              disabled={loading}
+            >
+              <SelectTrigger className="mt-1 h-auto min-h-[44px] py-2 items-start text-base w-full">
+                <div className="flex flex-wrap gap-1.5 w-full items-center">
+                  {formData.usedForPlants.length > 0 ? (
+                    formData.usedForPlants.map((plantValue) => {
+                      const plant = PLANT_OPTIONS.find((p) => p.value === plantValue);
+                      return (
+                        <div
+                          key={plantValue}
+                          className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-sm font-medium shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <span>{plant ? plant.label : plantValue}</span>
+                          <span
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!loading) {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  usedForPlants: prev.usedForPlants.filter((v) => v !== plantValue),
+                                }));
+                              }
+                            }}
+                            className="hover:bg-green-200 rounded-full p-0.5 transition-colors cursor-pointer"
+                          >
+                            ×
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <span className="text-gray-500">คลิกเพื่อเลือกพืช</span>
+                  )}
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <div className="sticky top-0 bg-white z-10 pb-2">
+                    <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
+
+                    <div className="px-2 pb-2">
+                      <Input
+                        placeholder="ค้นหาพืช..."
+                        value={plantSearchQuery}
+                        onChange={(e) => setPlantSearchQuery(e.target.value)}
+                        className="h-8 text-sm"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+
+                    {formData.usedForPlants.length > 0 && (
+                      <div className="px-2">
+                        <button
+                          type="button"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (!loading) {
-                              setFormData((prev) => ({
-                                ...prev,
-                                usedForPlants: prev.usedForPlants.filter((v) => v !== plantValue),
-                              }));
-                            }
+                            setFormData((prev) => ({
+                              ...prev,
+                              usedForPlants: [],
+                            }));
                           }}
-                          className="hover:bg-green-200 rounded-full p-0.5 transition-colors cursor-pointer"
+                          className="text-xs text-red-600 hover:text-red-700 hover:underline"
                         >
-                        </span>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <span className="text-gray-500">คลิกเพื่อเลือกพืช</span>
-                )}
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <div className="sticky top-0 bg-white z-10 pb-2">
-                  <SelectLabel>พืช (เลือกได้หลายรายการ)</SelectLabel>
-
-                  {/* Search input */}
-                  <div className="px-2 pb-2">
-                    <Input
-                      placeholder="ค้นหาพืช..."
-                      value={plantSearchQuery}
-                      onChange={(e) => setPlantSearchQuery(e.target.value)}
-                      className="h-8 text-sm"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
-
-                  {/* Clear all button */}
-                  {formData.usedForPlants.length > 0 && (
-                    <div className="px-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setFormData((prev) => ({
-                            ...prev,
-                            usedForPlants: [],
-                          }));
-                        }}
-                        className="text-xs text-red-600 hover:text-red-700 hover:underline"
-                      >
-                        ลบทั้งหมด ({formData.usedForPlants.length})
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Filtered options */}
-                <div className="max-h-60 overflow-y-auto">
-                  {PLANT_OPTIONS.filter((opt) =>
-                    opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
-                  ).map((opt) => {
-                    const isSelected = formData.usedForPlants.includes(opt.value);
-                    return (
-                      <div
-                        key={opt.value}
-                        className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const newValues = isSelected
-                            ? formData.usedForPlants.filter((v) => v !== opt.value)
-                            : [...formData.usedForPlants, opt.value];
-                          setFormData((prev) => ({
-                            ...prev,
-                            usedForPlants: newValues,
-                          }));
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => { }}
-                          className="w-4 h-4 cursor-pointer"
-                        />
-                        <span className="text-sm">{opt.label}</span>
-                      </div>
-                    );
-                  })}
-
-                  {/* No results message */}
-                  {PLANT_OPTIONS.filter((opt) =>
-                    opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
-                  ).length === 0 && (
-                      <div className="px-2 py-4 text-center text-sm text-gray-500">
-                        ไม่พบผลลัพธ์
+                          ลบทั้งหมด ({formData.usedForPlants.length})
+                        </button>
                       </div>
                     )}
-                </div>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto">
+                    {PLANT_OPTIONS.filter((opt) =>
+                      opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
+                    ).map((opt) => {
+                      const isSelected = formData.usedForPlants.includes(opt.value);
+                      return (
+                        <div
+                          key={opt.value}
+                          className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const newValues = isSelected
+                              ? formData.usedForPlants.filter((v) => v !== opt.value)
+                              : [...formData.usedForPlants, opt.value];
+                            setFormData((prev) => ({
+                              ...prev,
+                              usedForPlants: newValues,
+                            }));
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => { }}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                          <span className="text-sm">{opt.label}</span>
+                        </div>
+                      );
+                    })}
+
+                    {PLANT_OPTIONS.filter((opt) =>
+                      opt.label.toLowerCase().includes(plantSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                        <div className="px-2 py-4 text-center text-sm text-gray-500">
+                          ไม่พบผลลัพธ์
+                        </div>
+                      )}
+                  </div>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </FormSelect>
         </div>
 
-        <div>
-          <Label className={labelTextClass}>สถานะสินค้า</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(v) =>
-              setFormData((prev) => ({
-                ...prev,
-                status: v as "ACTIVE" | "INACTIVE",
-              }))
-            }
-            disabled={loading}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกสถานะ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>สถานะ</SelectLabel>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <FormSelect
+          label="สถานะสินค้า"
+          value={formData.status}
+          onChange={(v) =>
+            setFormData((prev) => ({
+              ...prev,
+              status: v as "ACTIVE" | "INACTIVE",
+            }))
+          }
+          options={STATUS_OPTIONS}
+          placeholder="เลือกสถานะ"
+          groupLabel="สถานะ"
+          disabled={loading}
+        />
 
-        <div className="md:col-span-2">
-          <Label className={`${labelTextClass} mb-2`}>จุดขายสินค้า</Label>
-          <textarea
-            value={formData.salesPoint}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                salesPoint: e.target.value,
-              }))
-            }
-            disabled={loading}
-            rows={3}
-            className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
-          />
-        </div>
+        <FormTextarea
+          label="จุดขายสินค้า"
+          value={formData.salesPoint}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              salesPoint: e.target.value,
+            }))
+          }
+          disabled={loading}
+          rows={3}
+          containerClassName="md:col-span-2"
+        />
 
-        <div className="md:col-span-2">
-          <Label className={`${labelTextClass} mb-2`}>คุณสมบัติ</Label>
-          <textarea
-            value={formData.properties}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                properties: e.target.value,
-              }))
-            }
-            disabled={loading}
-            rows={3}
-            className="w-full border rounded-xl px-3 py-2 text-base text-gray-900 placeholder:text-gray-400"
-          />
-        </div>
+        <FormTextarea
+          label="คุณสมบัติ"
+          value={formData.properties}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              properties: e.target.value,
+            }))
+          }
+          disabled={loading}
+          rows={3}
+          containerClassName="md:col-span-2"
+        />
 
         <div className="md:col-span-2">
           <ImageUpload
@@ -684,7 +596,6 @@ export function ProductForm({
               setFormData((prev) => ({
                 ...prev,
                 images: files,
-                // if cover not set, default to first image
                 coverIndex:
                   prev.coverIndex !== undefined && prev.coverIndex !== null
                     ? prev.coverIndex
@@ -693,7 +604,6 @@ export function ProductForm({
                       : null,
               }))
             }
-
             maxFiles={5}
             maxSizeMB={2}
             disabled={loading}
@@ -704,8 +614,6 @@ export function ProductForm({
               }))
             }
           />
-
-          {/* random-fill no longer uploads or shows sample images */}
         </div>
       </div>
 
