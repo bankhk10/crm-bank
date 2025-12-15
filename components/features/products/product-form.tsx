@@ -293,7 +293,7 @@ export function ProductForm({
           <DialogContent>
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-              <DialogTitle>บันทึกข้อมูลสำเร็จ</DialogTitle>
+              <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
               <DialogDescription>กำลังนำทางกลับไปหน้ารายการสินค้า...</DialogDescription>
             </div>
           </DialogContent>
