@@ -2,17 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -22,10 +11,11 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomFarmer from "@/lib/random-fill/farmer";
+import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
-type Option = { id: string; label: string };
+type Option = { value: string; label: string };
 
 type FarmPlot = {
   latitude?: string;
@@ -36,9 +26,6 @@ type FarmPlot = {
   soilType?: string;
   waterSource?: string;
 };
-
-const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
-const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormFarmer({
   initial = {},
@@ -121,7 +108,7 @@ export default function CustomerFormFarmer({
           .then((r) => r.json())
           .catch(() => ({ employees: [] }));
         const emps = (res.employees || []).map((e: any) => ({
-          id: e.id,
+          value: e.id,
           label: e.name,
         }));
         setEmployeeOptions(emps);
@@ -239,120 +226,81 @@ export default function CustomerFormFarmer({
         ข้อมูลบุคคล
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <div>
-          <Label className={labelTextClass}>รหัสลูกค้า</Label>
-          <Input
-            value={values.customerCode}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, customerCode: e.target.value }));
-              clearFieldError("customerCode");
-            }}
-            readOnly
-            disabled
-            className={inputTextClass}
-          />
-          {fieldErrors.customerCode?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.customerCode[0]}
-            </p>
-          )}
-        </div>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+        <FormInput
+          label="รหัสลูกค้า"
+          value={values.customerCode}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, customerCode: e.target.value }));
+            clearFieldError("customerCode");
+          }}
+          readOnly
+          disabled
+          error={fieldErrors.customerCode?.[0]}
+        />
 
-        <div>
-          <Label className={labelTextClass}>คำนำหน้า *</Label>
-          <Select
-            value={values.prefix}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, prefix: v }));
-              clearFieldError("prefix");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกคำนำหน้า" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>คำนำหน้า</SelectLabel>
-                <SelectItem value="นาย">นาย</SelectItem>
-                <SelectItem value="นาง">นาง</SelectItem>
-                <SelectItem value="นางสาว">นางสาว</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fieldErrors.prefix?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>
-          )}
-        </div>
+        <FormSelect
+          label="คำนำหน้า *"
+          value={values.prefix}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, prefix: v }));
+            clearFieldError("prefix");
+          }}
+          options={[
+            { value: "นาย", label: "นาย" },
+            { value: "นาง", label: "นาง" },
+            { value: "นางสาว", label: "นางสาว" },
+          ]}
+          placeholder="เลือกคำนำหน้า"
+          groupLabel="คำนำหน้า"
+          error={fieldErrors.prefix?.[0]}
+        />
 
-        <div>
-          <Label className={labelTextClass}>ชื่อ *</Label>
-          <Input
-            value={values.firstName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, firstName: e.target.value }));
-              clearFieldError("firstName");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.firstName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.firstName[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="ชื่อ *"
+          value={values.firstName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, firstName: e.target.value }));
+            clearFieldError("firstName");
+          }}
+          required
+          error={fieldErrors.firstName?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-        <div>
-          <Label className={labelTextClass}>นามสกุล *</Label>
-          <Input
-            value={values.lastName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, lastName: e.target.value }));
-              clearFieldError("lastName");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.lastName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.lastName[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="นามสกุล *"
+          value={values.lastName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, lastName: e.target.value }));
+            clearFieldError("lastName");
+          }}
+          required
+          error={fieldErrors.lastName?.[0]}
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-        <div>
-          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล) *</Label>
-          <Input
-            value={values.phone}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, phone: e.target.value }));
-              clearFieldError("phone");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.phone?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
-          )}
-        </div>
-        <div>
-          <Label className={labelTextClass}>E-mail (บุคคล)</Label>
-          <Input
-            type="email"
-            value={values.email}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, email: e.target.value }));
-              clearFieldError("email");
-            }}
-            className={inputTextClass}
-          />
-          {fieldErrors.email?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
-          )}
-        </div>
+        <FormInput
+          label="เบอร์โทรศัพท์ (บุคคล) *"
+          value={values.phone}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, phone: e.target.value }));
+            clearFieldError("phone");
+          }}
+          required
+          error={fieldErrors.phone?.[0]}
+        />
+        <FormInput
+          label="E-mail (บุคคล)"
+          type="email"
+          value={values.email}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, email: e.target.value }));
+            clearFieldError("email");
+          }}
+          error={fieldErrors.email?.[0]}
+        />
 
         <div className="mt-2">
           <DatePicker
@@ -363,31 +311,24 @@ export default function CustomerFormFarmer({
           />
         </div>
 
-        <div>
-          <Label className={labelTextClass}>อายุ</Label>
-          <Input
-            value={calculatedAge()}
-            disabled={true}
-            onChange={() => { }}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.addressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
-            clearFieldError("addressLine");
-          }}
-          className={inputTextClass}
+        <FormInput
+          label="อายุ"
+          value={calculatedAge()}
+          disabled={true}
+          onChange={() => { }}
         />
       </div>
+
+      <FormInput
+        label="ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)"
+        placeholder="123/45 หมู่ 6"
+        value={values.addressLine}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, addressLine: e.target.value }));
+          clearFieldError("addressLine");
+        }}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
       <div className="md:col-span-2">
         <ThaiAddressPicker
@@ -430,87 +371,67 @@ export default function CustomerFormFarmer({
             </div>
           </div>
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-            <div>
-              <Label className={labelTextClass}>Latitude</Label>
-              <Input
-                type="number"
-                value={plot.latitude ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "latitude", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
-            <div>
-              <Label className={labelTextClass}>Longitude</Label>
-              <Input
-                type="number"
-                value={plot.longitude ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "longitude", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
-            <div>
-              <Label className={labelTextClass}>
-                ขนาดพื้นที่เพาะปลูก (ไร่)
-              </Label>
-              <Input
-                type="number"
-                value={plot.areaRai ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "areaRai", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
+            <FormInput
+              label="Latitude"
+              type="number"
+              value={plot.latitude ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "latitude", e.target.value)
+              }
+              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            />
+            <FormInput
+              label="Longitude"
+              type="number"
+              value={plot.longitude ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "longitude", e.target.value)
+              }
+              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            />
+            <FormInput
+              label="ขนาดพื้นที่เพาะปลูก (ไร่)"
+              type="number"
+              value={plot.areaRai ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "areaRai", e.target.value)
+              }
+              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            />
           </div>
 
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-            <div>
-              <Label className={labelTextClass}>ชนิดพืช</Label>
-              <Input
-                value={plot.cropType ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "cropType", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
-            <div>
-              <Label className={labelTextClass}>สายพันธุ์</Label>
-              <Input
-                value={plot.variety ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "variety", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
+            <FormInput
+              label="ชนิดพืช"
+              value={plot.cropType ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "cropType", e.target.value)
+              }
+            />
+            <FormInput
+              label="สายพันธุ์"
+              value={plot.variety ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "variety", e.target.value)
+              }
+            />
           </div>
 
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-            <div>
-              <Label className={labelTextClass}>ประเภทของดิน</Label>
-              <Input
-                value={plot.soilType ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "soilType", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
-            <div>
-              <Label className={labelTextClass}>แหล่งน้ำ</Label>
-              <Input
-                value={plot.waterSource ?? ""}
-                onChange={(e) =>
-                  handlePlotChange(idx, "waterSource", e.target.value)
-                }
-                className={inputTextClass}
-              />
-            </div>
+            <FormInput
+              label="ประเภทของดิน"
+              value={plot.soilType ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "soilType", e.target.value)
+              }
+            />
+            <FormInput
+              label="แหล่งน้ำ"
+              value={plot.waterSource ?? ""}
+              onChange={(e) =>
+                handlePlotChange(idx, "waterSource", e.target.value)
+              }
+            />
           </div>
         </div>
       ))}
@@ -546,44 +467,28 @@ export default function CustomerFormFarmer({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>พนักงานที่รับผิดชอบ</Label>
-          <Select
-            value={values.responsibleEmployeeId ?? ""}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, responsibleEmployeeId: v || "" }));
-              clearFieldError("responsibleEmployeeId");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกพนักงาน" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>พนักงาน</SelectLabel>
-                {employeeOptions.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label className={`${labelTextClass} mb-2`}>หมายเหตุ</Label>
-        <textarea
-          value={values.notes}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, notes: e.target.value }));
-            clearFieldError("notes");
+        <FormSelect
+          label="พนักงานที่รับผิดชอบ"
+          value={values.responsibleEmployeeId ?? ""}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, responsibleEmployeeId: v || "" }));
+            clearFieldError("responsibleEmployeeId");
           }}
-          className="w-full border rounded-xl px-3 py-2 text-base text-gray-700 placeholder:text-gray-400"
-          rows={3}
+          options={employeeOptions}
+          placeholder="เลือกพนักงาน"
+          groupLabel="พนักงาน"
         />
       </div>
+
+      <FormTextarea
+        label="หมายเหตุ"
+        value={values.notes}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, notes: e.target.value }));
+          clearFieldError("notes");
+        }}
+        rows={3}
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
