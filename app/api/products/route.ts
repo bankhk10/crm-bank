@@ -41,6 +41,7 @@ export async function GET(request: Request) {
     Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
   );
   const q = (url.searchParams.get("q") || "").trim();
+  const status = (url.searchParams.get("status") || "").trim().toUpperCase();
   const fromParam = url.searchParams.get("from");
   const toParam = url.searchParams.get("to");
 
@@ -61,6 +62,10 @@ export async function GET(request: Request) {
       { productCode: { contains: q, mode: "insensitive" } },
       { commonName: { contains: q, mode: "insensitive" } },
     ];
+  }
+
+  if (status && (status === "ACTIVE" || status === "INACTIVE")) {
+    where.status = status;
   }
 
   if (fromDate || toDate) {

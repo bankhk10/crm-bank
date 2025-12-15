@@ -29,12 +29,14 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<{
     query: string;
+    status: string;
     dateRange?: DateRange;
-  }>({ query: "", dateRange: undefined });
+  }>({ query: "", status: "", dateRange: undefined });
   const [appliedFilters, setAppliedFilters] = useState<{
     query: string;
+    status: string;
     dateRange?: DateRange;
-  }>({ query: "", dateRange: undefined });
+  }>({ query: "", status: "", dateRange: undefined });
   const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(
     null
   );
@@ -55,6 +57,7 @@ export default function ProductsPage() {
     const delay = 400;
     const next = {
       query: filterDraft.query,
+      status: filterDraft.status,
       dateRange: filterDraft.dateRange,
     };
 
@@ -62,6 +65,7 @@ export default function ProductsPage() {
       r?.from?.toISOString() + "|" + r?.to?.toISOString();
     if (
       next.query === appliedFilters.query &&
+      next.status === appliedFilters.status &&
       rangeKey(next.dateRange) === rangeKey(appliedFilters.dateRange)
     ) {
       return;
@@ -72,18 +76,20 @@ export default function ProductsPage() {
       setPage(1);
     }, delay);
     return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.dateRange, total, appliedFilters.query]);
+  }, [filterDraft.query, filterDraft.status, filterDraft.dateRange, total, appliedFilters.query, appliedFilters.status]);
 
   const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
 
   const isTyping =
     filterDraft.query !== appliedFilters.query ||
+    filterDraft.status !== appliedFilters.status ||
     mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange);
 
   const handleSearchSubmit = () => {
     setAppliedFilters({
       query: filterDraft.query,
+      status: filterDraft.status,
       dateRange: filterDraft.dateRange,
     });
     setPage(1);
@@ -101,6 +107,8 @@ export default function ProductsPage() {
         params.set("perPage", String(perPage));
         if (appliedFilters.query.trim())
           params.set("q", appliedFilters.query.trim());
+        if (appliedFilters.status.trim())
+          params.set("status", appliedFilters.status.trim());
         if (appliedFilters.dateRange?.from)
           params.set("from", appliedFilters.dateRange.from.toISOString());
         if (appliedFilters.dateRange?.to)
@@ -239,7 +247,7 @@ export default function ProductsPage() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      setFilterDraft({ query: "", dateRange: undefined });
+                      setFilterDraft({ query: "", status: "", dateRange: undefined });
                       handleSearchSubmit();
                     }}
                   >
@@ -266,6 +274,10 @@ export default function ProductsPage() {
                 setFilterDraft((prev) => ({ ...prev, query: value }))
               }
               onSearchSubmit={handleSearchSubmit}
+              statusFilter={filterDraft.status}
+              onStatusFilterChange={(value) =>
+                setFilterDraft((prev) => ({ ...prev, status: value }))
+              }
               pagination={{
                 page,
                 perPage,

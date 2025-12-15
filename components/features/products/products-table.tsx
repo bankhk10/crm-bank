@@ -59,10 +59,14 @@ export interface ProductsTableProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit?: () => void;
+  statusFilter?: string;
+  onStatusFilterChange?: (status: string) => void;
   pagination: ProductsPagination;
 }
 
 // Constants
+const ALL_STATUS_VALUE = "__ALL_STATUS__";
+
 const statusStyle: Record<string, { label: string; className: string; dot: string }> = {
   ACTIVE: {
     label: "ใช้งาน",
@@ -314,18 +318,22 @@ function ProductsToolbar({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  statusFilter,
+  onStatusFilterChange,
 }: Pick<
   ProductsTableProps,
   | "canCreate"
   | "searchValue"
   | "onSearchChange"
   | "onSearchSubmit"
+  | "statusFilter"
+  | "onStatusFilterChange"
 >) {
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Search Input */}
-        <div className="space-y-2 lg:col-span-2">
+        <div className="space-y-2">
           <label className="text-base font-medium mx-2">ค้นหา</label>
           <Input
             value={searchValue}
@@ -336,25 +344,48 @@ function ProductsToolbar({
           />
         </div>
 
+        {/* Status Filter */}
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">สถานะ</label>
+          <Select
+            value={statusFilter || ALL_STATUS_VALUE}
+            onValueChange={(v) => onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)}
+          >
+            <SelectTrigger className="mt-2 text-base w-full">
+              <SelectValue placeholder="ทั้งหมด" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+              {Object.entries(statusStyle).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Create Button */}
-        <div className="space-y-2 lg:flex lg:items-end">
-          {canCreate ? (
-            <Link href="/products/new" className="w-full">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+        <div className="grid gap-4 lg:items-end mt-4">
+          <div className="flex flex-wrap gap-2 items-center lg:justify-end">
+            {canCreate ? (
+              <Link href="/products/new">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <span className="inline-flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    สร้างสินค้าใหม่
+                  </span>
+                </Button>
+              </Link>
+            ) : (
+              <Button className="w-full lg:w-auto" variant="outline" disabled>
                 <span className="inline-flex items-center gap-2">
                   <PlusCircle className="h-4 w-4" />
                   สร้างสินค้าใหม่
                 </span>
               </Button>
-            </Link>
-          ) : (
-            <Button className="w-full" variant="outline" disabled>
-              <span className="inline-flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                สร้างสินค้าใหม่
-              </span>
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -580,6 +611,8 @@ export function ProductsTable(props: ProductsTableProps) {
     searchValue,
     onSearchChange,
     onSearchSubmit,
+    statusFilter,
+    onStatusFilterChange,
     pagination,
   } = props;
 
@@ -590,6 +623,8 @@ export function ProductsTable(props: ProductsTableProps) {
     searchValue,
     onSearchChange,
     onSearchSubmit,
+    statusFilter,
+    onStatusFilterChange,
   };
 
   return (
