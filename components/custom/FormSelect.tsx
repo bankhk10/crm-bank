@@ -35,7 +35,7 @@ interface FormSelectProps {
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
-const defaultTriggerClass = "mt-1 h-11 text-base";
+const defaultTriggerClass = "mt-1 h-11 text-base w-full";
 
 export function FormSelect({
     label,
