@@ -2,17 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -22,13 +11,11 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomBroker from "@/lib/random-fill/broker";
+import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
-type Option = { id: string; label: string };
-
-const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
-const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
+type Option = { value: string; label: string };
 
 export default function CustomerFormBroker({
   initial = {},
@@ -112,7 +99,7 @@ export default function CustomerFormBroker({
           .then((r) => r.json())
           .catch(() => ({ employees: [] }));
         const emps = (res.employees || []).map((e: any) => ({
-          id: e.id,
+          value: e.id,
           label: e.name,
         }));
         setEmployeeOptions(emps);
@@ -217,120 +204,81 @@ export default function CustomerFormBroker({
         ข้อมูลบุคคล
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <div>
-          <Label className={labelTextClass}>รหัสลูกค้า</Label>
-          <Input
-            value={values.customerCode}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, customerCode: e.target.value }));
-              clearFieldError("customerCode");
-            }}
-            readOnly
-            disabled
-            className={inputTextClass}
-          />
-          {fieldErrors.customerCode?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.customerCode[0]}
-            </p>
-          )}
-        </div>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+        <FormInput
+          label="รหัสลูกค้า"
+          value={values.customerCode}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, customerCode: e.target.value }));
+            clearFieldError("customerCode");
+          }}
+          readOnly
+          disabled
+          error={fieldErrors.customerCode?.[0]}
+        />
 
-        <div>
-          <Label className={labelTextClass}>คำนำหน้า *</Label>
-          <Select
-            value={values.prefix}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, prefix: v }));
-              clearFieldError("prefix");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกคำนำหน้า" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>คำนำหน้า</SelectLabel>
-                <SelectItem value="นาย">นาย</SelectItem>
-                <SelectItem value="นาง">นาง</SelectItem>
-                <SelectItem value="นางสาว">นางสาว</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fieldErrors.prefix?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.prefix[0]}</p>
-          )}
-        </div>
+        <FormSelect
+          label="คำนำหน้า *"
+          value={values.prefix}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, prefix: v }));
+            clearFieldError("prefix");
+          }}
+          options={[
+            { value: "นาย", label: "นาย" },
+            { value: "นาง", label: "นาง" },
+            { value: "นางสาว", label: "นางสาว" },
+          ]}
+          placeholder="เลือกคำนำหน้า"
+          groupLabel="คำนำหน้า"
+          error={fieldErrors.prefix?.[0]}
+        />
 
-        <div>
-          <Label className={labelTextClass}>ชื่อ *</Label>
-          <Input
-            value={values.firstName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, firstName: e.target.value }));
-              clearFieldError("firstName");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.firstName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.firstName[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="ชื่อ *"
+          value={values.firstName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, firstName: e.target.value }));
+            clearFieldError("firstName");
+          }}
+          required
+          error={fieldErrors.firstName?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-        <div>
-          <Label className={labelTextClass}>นามสกุล *</Label>
-          <Input
-            value={values.lastName}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, lastName: e.target.value }));
-              clearFieldError("lastName");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.lastName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.lastName[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="นามสกุล *"
+          value={values.lastName}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, lastName: e.target.value }));
+            clearFieldError("lastName");
+          }}
+          required
+          error={fieldErrors.lastName?.[0]}
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-        <div>
-          <Label className={labelTextClass}>เบอร์โทรศัพท์ (บุคคล) *</Label>
-          <Input
-            value={values.phone}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, phone: e.target.value }));
-              clearFieldError("phone");
-            }}
-            required
-            className={inputTextClass}
-          />
-          {fieldErrors.phone?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
-          )}
-        </div>
-        <div>
-          <Label className={labelTextClass}>E-mail (บุคคล)</Label>
-          <Input
-            type="email"
-            value={values.email}
-            onChange={(e) => {
-              setValues((p: any) => ({ ...p, email: e.target.value }));
-              clearFieldError("email");
-            }}
-            className={inputTextClass}
-          />
-          {fieldErrors.email?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
-          )}
-        </div>
+        <FormInput
+          label="เบอร์โทรศัพท์ (บุคคล) *"
+          value={values.phone}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, phone: e.target.value }));
+            clearFieldError("phone");
+          }}
+          required
+          error={fieldErrors.phone?.[0]}
+        />
+        <FormInput
+          label="E-mail (บุคคล)"
+          type="email"
+          value={values.email}
+          onChange={(e) => {
+            setValues((p: any) => ({ ...p, email: e.target.value }));
+            clearFieldError("email");
+          }}
+          error={fieldErrors.email?.[0]}
+        />
 
         <div className="mt-2">
           <DatePicker
@@ -341,31 +289,24 @@ export default function CustomerFormBroker({
           />
         </div>
 
-        <div>
-          <Label className={labelTextClass}>อายุ</Label>
-          <Input
-            value={calculatedAge()}
-            disabled={true}
-            onChange={() => { }}
-            className={inputTextClass}
-          />
-        </div>
-      </div>
-
-      <div className="md:col-span-2 mt-6">
-        <Label className={labelTextClass}>
-          ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)
-        </Label>
-        <Input
-          placeholder="123/45 หมู่ 6"
-          value={values.addressLine}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, addressLine: e.target.value }));
-            clearFieldError("addressLine");
-          }}
-          className={inputTextClass}
+        <FormInput
+          label="อายุ"
+          value={calculatedAge()}
+          disabled={true}
+          onChange={() => { }}
         />
       </div>
+
+      <FormInput
+        label="ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)"
+        placeholder="123/45 หมู่ 6"
+        value={values.addressLine}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, addressLine: e.target.value }));
+          clearFieldError("addressLine");
+        }}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
       <div className="md:col-span-2">
         <ThaiAddressPicker
@@ -390,147 +331,117 @@ export default function CustomerFormBroker({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        <div>
-          <Label className={labelTextClass}>พืชหลัก (Crop Types)</Label>
-          <Input
-            value={values.cropTypes}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, cropTypes: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ปริมาณผลผลิตปัจจุบัน</Label>
-          <Input
-            value={values.currentYield}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, currentYield: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>จำนวนเกษตรกรในเครือ</Label>
-          <Input
-            type="number"
-            value={values.farmerCount}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, farmerCount: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="พืชหลัก (Crop Types)"
+          value={values.cropTypes}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, cropTypes: e.target.value }))
+          }
+        />
+        <FormInput
+          label="ปริมาณผลผลิตปัจจุบัน"
+          value={values.currentYield}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, currentYield: e.target.value }))
+          }
+        />
+        <FormInput
+          label="จำนวนเกษตรกรในเครือ"
+          type="number"
+          value={values.farmerCount}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, farmerCount: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>จำนวนแปลง</Label>
-          <Input
-            type="number"
-            value={values.plotCount}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, plotCount: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ขนาดพื้นที่รวม (ไร่)</Label>
-          <Input
-            type="number"
-            value={values.totalAreaRai}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, totalAreaRai: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>รอบปลูกต่อปี</Label>
-          <Input
-            type="number"
-            value={values.harvestPerYear}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, harvestPerYear: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="จำนวนแปลง"
+          type="number"
+          value={values.plotCount}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, plotCount: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="ขนาดพื้นที่รวม (ไร่)"
+          type="number"
+          value={values.totalAreaRai}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, totalAreaRai: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="รอบปลูกต่อปี"
+          type="number"
+          value={values.harvestPerYear}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, harvestPerYear: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>เครดิตให้เกษตรกร (วัน)</Label>
-          <Input
-            type="number"
-            value={values.creditDays}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, creditDays: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>มูลค่าสารเคมี/รอบ (บาท)</Label>
-          <Input
-            type="number"
-            value={values.chemicalValuePerCycle}
-            onChange={(e) =>
-              setValues((p: any) => ({
-                ...p,
-                chemicalValuePerCycle: e.target.value,
-              }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ปริมาณสารเคมี/รอบ</Label>
-          <Input
-            value={values.chemicalQtyPerCycle}
-            onChange={(e) =>
-              setValues((p: any) => ({
-                ...p,
-                chemicalQtyPerCycle: e.target.value,
-              }))
-            }
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="เครดิตให้เกษตรกร (วัน)"
+          type="number"
+          value={values.creditDays}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, creditDays: e.target.value }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="มูลค่าสารเคมี/รอบ (บาท)"
+          type="number"
+          value={values.chemicalValuePerCycle}
+          onChange={(e) =>
+            setValues((p: any) => ({
+              ...p,
+              chemicalValuePerCycle: e.target.value,
+            }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="ปริมาณสารเคมี/รอบ"
+          value={values.chemicalQtyPerCycle}
+          onChange={(e) =>
+            setValues((p: any) => ({
+              ...p,
+              chemicalQtyPerCycle: e.target.value,
+            }))
+          }
+        />
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>ร้านค้าประจำ</Label>
-          <Input
-            value={values.regularShops}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, regularShops: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ประเภทบริการที่ให้</Label>
-          <Input
-            value={values.serviceTypes}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, serviceTypes: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
-        <div>
-          <Label className={labelTextClass}>ยี่ห้อที่ใช้</Label>
-          <Input
-            value={values.usedBrands}
-            onChange={(e) =>
-              setValues((p: any) => ({ ...p, usedBrands: e.target.value }))
-            }
-            className={inputTextClass}
-          />
-        </div>
+        <FormInput
+          label="ร้านค้าประจำ"
+          value={values.regularShops}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, regularShops: e.target.value }))
+          }
+        />
+        <FormInput
+          label="ประเภทบริการที่ให้"
+          value={values.serviceTypes}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, serviceTypes: e.target.value }))
+          }
+        />
+        <FormInput
+          label="ยี่ห้อที่ใช้"
+          value={values.usedBrands}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, usedBrands: e.target.value }))
+          }
+        />
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
@@ -538,44 +449,28 @@ export default function CustomerFormBroker({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-        <div>
-          <Label className={labelTextClass}>พนักงานที่รับผิดชอบ</Label>
-          <Select
-            value={values.responsibleEmployeeId ?? ""}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, responsibleEmployeeId: v || "" }));
-              clearFieldError("responsibleEmployeeId");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกพนักงาน" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>พนักงาน</SelectLabel>
-                {employeeOptions.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label className={`${labelTextClass} mb-2`}>หมายเหตุ</Label>
-        <textarea
-          value={values.notes}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, notes: e.target.value }));
-            clearFieldError("notes");
+        <FormSelect
+          label="พนักงานที่รับผิดชอบ"
+          value={values.responsibleEmployeeId ?? ""}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, responsibleEmployeeId: v || "" }));
+            clearFieldError("responsibleEmployeeId");
           }}
-          className="w-full border rounded-xl px-3 py-2 text-base text-gray-700 placeholder:text-gray-400"
-          rows={3}
+          options={employeeOptions}
+          placeholder="เลือกพนักงาน"
+          groupLabel="พนักงาน"
         />
       </div>
+
+      <FormTextarea
+        label="หมายเหตุ"
+        value={values.notes}
+        onChange={(e) => {
+          setValues((p: any) => ({ ...p, notes: e.target.value }));
+          clearFieldError("notes");
+        }}
+        rows={3}
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
