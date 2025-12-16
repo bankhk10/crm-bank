@@ -35,7 +35,15 @@ import {
   Target,
   Sprout,
   Wallet,
-  Flower
+  Flower,
+  Users,
+  LayoutGrid,
+  Clock,
+  FlaskConical,
+  Store,
+  Briefcase,
+  Tag,
+  Tractor
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,6 +105,19 @@ type Customer = {
     soilType?: string;
     waterSource?: string;
   }>;
+  // Broker fields
+  cropTypes?: string | null;
+  currentYield?: string | null;
+  farmerCount?: string | null;
+  plotCount?: string | null;
+  totalAreaRai?: string | null;
+  harvestPerYear?: string | null;
+  creditDays?: string | null;
+  chemicalValuePerCycle?: string | null;
+  chemicalQtyPerCycle?: string | null;
+  regularShops?: string | null;
+  serviceTypes?: string | null;
+  usedBrands?: string | null;
 };
 
 const statusMap: Record<string, { label: string; className: string; gradient: string }> = {
@@ -650,6 +671,63 @@ export default function CustomerDetailPage() {
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section: Broker Info */}
+          {customer.customerType === 'BROKER' && (
+            <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="pt-6 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200 pb-5">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-lg">
+                    <Briefcase className="h-6 w-6" />
+                  </div>
+                  ข้อมูลเครือข่าย (Broker)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Network Scale */}
+                  <div className="space-y-6">
+                    <h4 className="font-bold text-lg text-gray-700 border-l-4 border-orange-500 pl-3">ขนาดเครือข่าย</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <DetailItem label="จำนวนเกษตรกร" value={customer.farmerCount ? `${customer.farmerCount} ราย` : "-"} icon={Users} />
+                      <DetailItem label="จำนวนแปลง" value={customer.plotCount ? `${customer.plotCount} แปลง` : "-"} icon={LayoutGrid} />
+                      <DetailItem label="พื้นที่รวม" value={customer.totalAreaRai ? `${customer.totalAreaRai} ไร่` : "-"} icon={MapPin} />
+                      <DetailItem label="รอบปลูก/ปี" value={customer.harvestPerYear ? `${customer.harvestPerYear} รอบ` : "-"} icon={Calendar} />
+                    </div>
+                  </div>
+
+                  {/* Production Info */}
+                  <div className="space-y-6">
+                    <h4 className="font-bold text-lg text-gray-700 border-l-4 border-orange-500 pl-3">ข้อมูลการผลิต</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      <DetailItem label="พืชหลัก" value={customer.cropTypes || "-"} icon={Sprout} />
+                      <DetailItem label="ผลผลิตปัจจุบัน" value={customer.currentYield || "-"} icon={Tractor} />
+                    </div>
+                  </div>
+
+                  {/* Commercial Info */}
+                  <div className="space-y-6">
+                    <h4 className="font-bold text-lg text-gray-700 border-l-4 border-orange-500 pl-3">ข้อมูลเชิงพาณิชย์</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <DetailItem label="เครดิต (วัน)" value={customer.creditDays || "-"} icon={Clock} />
+                      <DetailItem label="มูลค่าเคมี/รอบ" value={customer.chemicalValuePerCycle ? `${Number(customer.chemicalValuePerCycle).toLocaleString()} บาท` : "-"} icon={Wallet} />
+                      <DetailItem label="ปริมาณเคมี/รอบ" value={customer.chemicalQtyPerCycle || "-"} icon={FlaskConical} />
+                      <DetailItem label="ร้านค้าประจำ" value={customer.regularShops || "-"} icon={Store} />
+                    </div>
+                  </div>
+
+                  {/* Service & Brands */}
+                  <div className="space-y-6">
+                    <h4 className="font-bold text-lg text-gray-700 border-l-4 border-orange-500 pl-3">บริการและสินค้า</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      <DetailItem label="บริการที่ให้" value={customer.serviceTypes || "-"} icon={Briefcase} />
+                      <DetailItem label="ยี่ห้อที่ใช้" value={customer.usedBrands || "-"} icon={Tag} />
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
