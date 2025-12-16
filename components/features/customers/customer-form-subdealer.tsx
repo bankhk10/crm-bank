@@ -353,7 +353,7 @@ export default function CustomerFormSubdealer({
             type="button"
             variant="outline"
             size="icon"
-            className="mb-0.5 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+            className="mb-1 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
             onClick={getCurrentLocation}
             title="ดึงพิกัดปัจจุบัน"
           >
