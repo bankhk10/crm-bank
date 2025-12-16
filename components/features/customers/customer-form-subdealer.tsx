@@ -12,6 +12,7 @@ import {
 } from "./customer-form-types";
 import generateRandomSubdealer from "@/lib/random-fill/subdealer";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import { MultiSelect } from "@/components/custom/multi-select";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -49,8 +50,8 @@ export default function CustomerFormSubdealer({
     mainCompetitor: (initial as any).mainCompetitor ?? "",
     areaCrops: (initial as any).areaCrops ?? "",
     averageMonthlyPurchase: (initial as any).averageMonthlyPurchase ?? "",
-    mainProductSold: (initial as any).mainProductSold ?? "",
-    brandsSold: (initial as any).brandsSold ?? "",
+    mainProductSold: (initial as any).mainProductSold ?? [],
+    brandsSold: (initial as any).brandsSold ?? [],
     areaType: (initial as any).areaType ?? "",
     responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? "",
     relationshipScore: (initial as any).relationshipScore ?? null,
@@ -59,6 +60,8 @@ export default function CustomerFormSubdealer({
 
   const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<Option[]>([]);
+  const [productGroupOptions, setProductGroupOptions] = useState<Option[]>([]);
+  const [brandOptions, setBrandOptions] = useState<Option[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,13 +103,19 @@ export default function CustomerFormSubdealer({
   useEffect(() => {
     async function fetchOptions() {
       try {
-        const [cRes, eRes] = await Promise.all([
+        const [cRes, eRes, pgRes, bRes] = await Promise.all([
           fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
             .then((r) => r.json())
             .catch(() => ({ customers: [] })),
           fetch(`/api/employee`)
             .then((r) => r.json())
             .catch(() => ({ employees: [] })),
+          fetch(`/api/products/product-groups`)
+            .then((r) => r.json())
+            .catch(() => ({ productGroups: [] })),
+          fetch(`/api/products/brands`)
+            .then((r) => r.json())
+            .catch(() => ({ brands: [] })),
         ]);
 
         const comps = (cRes.customers || []).map((c: any) => ({
@@ -117,8 +126,18 @@ export default function CustomerFormSubdealer({
           value: e.id,
           label: e.name,
         }));
+        const productGroups = (pgRes.productGroups || []).map((pg: string) => ({
+          value: pg,
+          label: pg,
+        }));
+        const brands = (bRes.brands || []).map((b: string) => ({
+          value: b,
+          label: b,
+        }));
         setDealerOptions(comps);
         setEmployeeOptions(emps);
+        setProductGroupOptions(productGroups);
+        setBrandOptions(brands);
       } catch (err) {
         // ignore
       }
@@ -453,7 +472,7 @@ export default function CustomerFormSubdealer({
         />
       </div>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
         <FormInput
           label="ยอดสั่งซื้อเฉลี่ย/เดือน"
           type="number"
@@ -466,22 +485,38 @@ export default function CustomerFormSubdealer({
           }
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
+      </div>
 
-        <FormInput
-          label="สินค้าหลักที่ขาย"
-          value={values.mainProductSold}
-          onChange={(e) =>
-            setValues((p: any) => ({ ...p, mainProductSold: e.target.value }))
-          }
-        />
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">สินค้าหลักที่ขาย</label>
+          <MultiSelect
+            options={productGroupOptions}
+            onValueChange={(v: string[]) => {
+              setValues((p: any) => ({ ...p, mainProductSold: v }));
+              clearFieldError("mainProductSold");
+            }}
+            defaultValue={values.mainProductSold}
+            placeholder="เลือกสินค้า"
+            searchable={true}
+            hideSelectAll={false}
+          />
+        </div>
 
-        <FormInput
-          label="แบรนด์ที่จำหน่าย"
-          value={values.brandsSold}
-          onChange={(e) =>
-            setValues((p: any) => ({ ...p, brandsSold: e.target.value }))
-          }
-        />
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">แบรนด์ที่จำหน่าย</label>
+          <MultiSelect
+            options={brandOptions}
+            onValueChange={(v: string[]) => {
+              setValues((p: any) => ({ ...p, brandsSold: v }));
+              clearFieldError("brandsSold");
+            }}
+            defaultValue={values.brandsSold}
+            placeholder="เลือกแบรนด์"
+            searchable={true}
+            hideSelectAll={false}
+          />
+        </div>
       </div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">

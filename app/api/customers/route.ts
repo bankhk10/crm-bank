@@ -49,8 +49,8 @@ const customerSchema = z.object({
   mainCompetitor: z.string().optional(),
   areaCrops: z.string().optional(),
   averageMonthlyPurchase: z.string().optional(),
-  mainProductSold: z.string().optional(),
-  brandsSold: z.string().optional(),
+  mainProductSold: z.array(z.string()).optional(),
+  brandsSold: z.array(z.string()).optional(),
   areaType: z.string().optional(),
   // FARMER specific fields
   farmPlots: z.any().optional(),
@@ -206,7 +206,7 @@ export async function POST(request: Request) {
         userId: session.user.id,
         issues: parsed.error.flatten().fieldErrors,
       });
-    } catch (logErr) {}
+    } catch (logErr) { }
 
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
@@ -285,13 +285,13 @@ export async function POST(request: Request) {
         customerId: customer.id,
         customerCode: customer.customerCode,
       });
-    } catch (logErr) {}
+    } catch (logErr) { }
 
     return NextResponse.json({ customer }, { status: 201 });
   } catch (err) {
     try {
       console.error(`[api/customers] Error creating customer`, { error: err });
-    } catch (logErr) {}
+    } catch (logErr) { }
 
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       const target = (err.meta && (err.meta as any).target) || [];

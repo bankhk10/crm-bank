@@ -293,8 +293,8 @@ model Customer {
   mainCompetitor        String?
   areaCrops             String?
   averageMonthlyPurchase String?
-  mainProductSold       String?
-  brandsSold            String?
+  mainProductSold       String[]
+  brandsSold            String[]
   areaType              String?
   
   // FARMER specific fields - stored as JSON

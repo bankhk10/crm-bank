@@ -47,8 +47,8 @@ const customerUpdateSchema = z.object({
   mainCompetitor: z.string().optional(),
   areaCrops: z.string().optional(),
   averageMonthlyPurchase: z.string().optional(),
-  mainProductSold: z.string().optional(),
-  brandsSold: z.string().optional(),
+  mainProductSold: z.array(z.string()).optional(),
+  brandsSold: z.array(z.string()).optional(),
   areaType: z.string().optional(),
   // FARMER specific fields
   farmPlots: z.any().optional(),
