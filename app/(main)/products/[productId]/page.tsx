@@ -29,6 +29,9 @@ import {
   FileText,
   DollarSign,
   TrendingUp,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/types/product";
@@ -47,6 +50,11 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!productId) return;
@@ -88,6 +96,77 @@ export default function ProductDetailPage() {
       setDeleting(false);
       setDeleteDialogOpen(false);
     }
+  };
+
+  const handleNextImage = () => {
+    if (selectedImageIndex === null || !product?.images) return;
+    setSelectedImageIndex((prev) =>
+      prev === null ? null : (prev + 1) % product.images!.length
+    );
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handlePrevImage = () => {
+    if (selectedImageIndex === null || !product?.images) return;
+    setSelectedImageIndex((prev) =>
+      prev === null
+        ? null
+        : (prev - 1 + product.images!.length) % product.images!.length
+    );
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImageIndex === null) return;
+      if (e.key === "ArrowRight") handleNextImage();
+      if (e.key === "ArrowLeft") handlePrevImage();
+      if (e.key === "Escape") setSelectedImageIndex(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex]);
+
+  // Reset zoom and pan when dialog closes
+  useEffect(() => {
+    if (selectedImageIndex === null) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    }
+  }, [selectedImageIndex]);
+
+  // Zoom and Pan Handlers
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    setZoom((prev) => Math.min(Math.max(1, prev + delta), 5));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      setPan({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleDoubleClick = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
   };
 
   if (permissionLoading || loading) {
@@ -183,16 +262,26 @@ export default function ProductDetailPage() {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {product.images.map((image) => (
+                  {product.images.map((image, index) => (
                     <div
                       key={image.id}
-                      className="group relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl"
+                      className="group relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl cursor-pointer"
+                      onClick={() => {
+                        setSelectedImageIndex(index);
+                        setZoom(1);
+                        setPan({ x: 0, y: 0 });
+                      }}
                     >
                       <img
                         src={image.url}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                        <div className="text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          คลิกเพื่อดูขนาดเต็ม
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -365,6 +454,95 @@ export default function ProductDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Image Viewer Dialog */}
+      {selectedImageIndex !== null && product?.images && (
+        <Dialog
+          open={selectedImageIndex !== null}
+          onOpenChange={(open) => !open && setSelectedImageIndex(null)}
+        >
+          <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 bg-black/20 backdrop-blur-md border-none shadow-none flex items-center justify-center outline-none [&>button]:hidden">
+            <DialogTitle className="sr-only">Image Preview</DialogTitle>
+
+            {selectedImageIndex !== null && product.images && (
+              <div className="relative w-full h-full flex items-center justify-center px-full">
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedImageIndex(null)}
+                  className="absolute top-6 right-6 z-50 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 hover:scale-110"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+
+                {/* Navigation Buttons */}
+                {product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrevImage();
+                      }}
+                      className="absolute left-4 md:left-8 z-50 p-4 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 group hover:scale-110"
+                    >
+                      <ChevronLeft className="h-7 w-7 group-hover:-translate-x-1 transition-transform" />
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextImage();
+                      }}
+                      className="absolute right-4 md:right-8 z-50 p-4 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md border border-white/20 group hover:scale-110"
+                    >
+                      <ChevronRight className="h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </>
+                )}
+
+                {/* Main Image */}
+                <div
+                  className="relative max-w-full max-h-full flex flex-col items-center overflow-hidden"
+                  onWheel={handleWheel}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                  onDoubleClick={handleDoubleClick}
+                  style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+                >
+                  <img
+                    src={product.images[selectedImageIndex].url}
+                    alt={product.name}
+                    className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
+                    style={{
+                      transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+                      transformOrigin: 'center center',
+                    }}
+                    draggable={false}
+                  />
+
+                  {/* Zoom Level Indicator */}
+                  {zoom > 1 && (
+                    <div className="absolute top-6 left-6 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md text-white text-sm font-bold border border-white/20 shadow-2xl">
+                      🔍 {Math.round(zoom * 100)}%
+                    </div>
+                  )}
+
+                  {/* Instructions Overlay */}
+                  <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-2xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    🖱️ ล้อเมาส์เพื่อซูม • ลากเพื่อเลื่อน • ดับเบิลคลิกเพื่อรีเซ็ต
+                  </div>
+
+                  {/* Image Counter Badge */}
+                  <div className="mt-6 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-white text-base font-bold border border-white/20 shadow-2xl">
+                    {selectedImageIndex + 1} / {product.images.length}
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
