@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Copy, Info, Shuffle } from "lucide-react";
+import { Plus, Trash2, Copy, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,12 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
-import { Textarea } from "@/components/custom/Textarea";
+import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -143,7 +142,7 @@ export function SaleForm({
   isEdit = false,
   onCancel,
 }: SaleFormProps) {
-  const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
+  const labelTextClass = "text-base font-medium mx-2";
   const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
   const router = useRouter();
@@ -352,82 +351,6 @@ export function SaleForm({
     setShippingThaiAddress(billingThaiAddress);
   };
 
-  // Random fill form for testing/demo — try server API first, fallback to client-side
-  const handleRandomFill = async () => {
-    try {
-      const res = await fetch("/api/random-fill/sale");
-      if (res.ok) {
-        const data = await res.json();
-        const s: any = data.sale;
-        if (s) {
-          setCustomerId(s.customerId || "");
-          setEmployeeId(s.employeeId || "");
-          setPaymentTerm(s.paymentTerm || "PREPAID");
-          setCreditDays(s.creditDays || 0);
-          setCreditDueDate(s.creditDueDate || "");
-          setUsePromotionalCredit(!!s.usePromotionalCredit);
-          setPromotionalCreditUsed(s.promotionalCreditUsed || 0);
-          setSaleDate(s.saleDate || new Date().toISOString().split("T")[0]);
-          setDeliveryDate(s.deliveryDate || "");
-          setBillingAddress(s.billingAddress || "");
-          setShippingAddress(s.shippingAddress || "");
-          setItems(s.items || []);
-          setShippingCost(s.shippingCost || 0);
-          setOtherCosts(s.otherCosts || 0);
-          setOtherCostsDescription(s.otherCostsDescription || "");
-          setNotes(s.notes || "");
-          setBillingStreet(s.billingAddress || "");
-          setShippingStreet(s.shippingAddress || "");
-          return;
-        }
-      }
-    } catch (e) {
-      // API not available or failed — fallback to local generator below
-      console.warn(
-        "random-fill API failed, falling back to client generator",
-        e
-      );
-    }
-
-    // Client-side fallback (uses helper) — move demo data out of component
-    if (
-      customers.length === 0 ||
-      employees.length === 0 ||
-      products.length === 0
-    ) {
-      alert("ไม่พบข้อมูลลูกค้า/พนักงาน/สินค้า เพียงพอสำหรับการสุ่ม");
-      return;
-    }
-
-    try {
-      const { generateRandomSaleClient } = await import(
-        "@/lib/random-fill/sale-client"
-      );
-      const s = generateRandomSaleClient(customers, employees, products);
-
-      setCustomerId(s.customerId || "");
-      setEmployeeId(s.employeeId || "");
-      setPaymentTerm(s.paymentTerm || "PREPAID");
-      setCreditDays(s.creditDays || 0);
-      setCreditDueDate(s.creditDueDate || "");
-      setUsePromotionalCredit(!!s.usePromotionalCredit);
-      setPromotionalCreditUsed(s.promotionalCreditUsed || 0);
-      setSaleDate(s.saleDate || new Date().toISOString().split("T")[0]);
-      setDeliveryDate(s.deliveryDate || "");
-      setBillingAddress(s.billingAddress || "");
-      setShippingAddress(s.shippingAddress || "");
-      setItems(s.items || []);
-      setShippingCost(s.shippingCost || 0);
-      setOtherCosts(s.otherCosts || 0);
-      setOtherCostsDescription(s.otherCostsDescription || "");
-      setNotes(s.notes || "");
-      setBillingStreet(s.billingAddress || "");
-      setShippingStreet(s.shippingAddress || "");
-    } catch (err) {
-      console.warn("Failed to load client generator", err);
-    }
-  };
-
   // Validate and submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -561,7 +484,7 @@ export function SaleForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {errors.length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -586,556 +509,386 @@ export function SaleForm({
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>ข้อมูลลูกค้าและพนักงาน</span>
-            {/* <Button
-              type="button"
-              onClick={handleRandomFill}
-              size="sm"
-              className="ml-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl"
-            >
-              <Shuffle className="h-4 w-4 mr-2" />
-              สุ่มข้อมูล
-            </Button> */}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className={labelTextClass}>ลูกค้า *</Label>
-              <Select
-                value={customerId}
-                onValueChange={(val) => setCustomerId(val)}
-              >
-                <SelectTrigger className={inputTextClass}>
-                  <SelectValue placeholder="เลือกลูกค้า" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>ลูกค้า</SelectLabel>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} ({customer.customerCode})
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลลูกค้าและพนักงาน
+      </h3>
 
-            <div>
-              <Label className={labelTextClass}>พนักงานขาย *</Label>
-              <Select
-                value={employeeId}
-                onValueChange={(val) => setEmployeeId(val)}
-              >
-                <SelectTrigger className={inputTextClass}>
-                  <SelectValue placeholder="เลือกพนักงานขาย" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>พนักงานขาย</SelectLabel>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+        <FormSelect
+          label="ลูกค้า *"
+          value={customerId}
+          onChange={(val) => setCustomerId(val)}
+          options={customers.map((customer) => ({
+            value: customer.id,
+            label: `${customer.name} (${customer.customerCode})`,
+          }))}
+          placeholder="เลือกลูกค้า"
+          groupLabel="ลูกค้า"
+        />
 
-          {selectedCustomer &&
-            (() => {
-              const creditLimit = selectedCustomer.creditLimits?.[0];
-              const availableAmount = creditLimit?.availableAmount
-                ? Number(creditLimit.availableAmount)
-                : 0;
-              const promoAmount = creditLimit?.promoAmount
-                ? Number(creditLimit.promoAmount)
-                : 0;
+        <FormSelect
+          label="พนักงานขาย *"
+          value={employeeId}
+          onChange={(val) => setEmployeeId(val)}
+          options={employees.map((employee) => ({
+            value: employee.id,
+            label: employee.name,
+          }))}
+          placeholder="เลือกพนักงานขาย"
+          groupLabel="พนักงานขาย"
+        />
+      </div>
 
-              return (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className={labelTextClass}>วงเงินเครดิตคงเหลือ</Label>
-                      <Input
-                        type="number"
-                        value={availableAmount}
-                        disabled
-                        readOnly
-                        className={`${inputTextClass} bg-gray-100`}
-                      />
-                    </div>
+      {selectedCustomer &&
+        (() => {
+          const creditLimit = selectedCustomer.creditLimits?.[0];
+          const availableAmount = creditLimit?.availableAmount
+            ? Number(creditLimit.availableAmount)
+            : 0;
+          const promoAmount = creditLimit?.promoAmount
+            ? Number(creditLimit.promoAmount)
+            : 0;
 
-                    <div>
-                      <Label className={labelTextClass}>วงเงินส่งเสริมการขายคงเหลือ</Label>
-                      <Input
-                        type="number"
-                        value={promoAmount}
-                        disabled
-                        readOnly
-                        className={`${inputTextClass} bg-gray-100`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3 p-4 dark:bg-blue-950 rounded-lg border">
-                      <Checkbox
-                        id="use-promo-credit"
-                        checked={usePromotionalCredit}
-                        onCheckedChange={(checked) => {
-                          setUsePromotionalCredit(!!checked);
-                          if (!checked) {
-                            setPromotionalCreditUsed(0);
-                          }
-                        }}
-                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                      />
-
-                      <label
-                        htmlFor="use-promo-credit"
-                        className="text-sm font-medium cursor-pointer select-none"
-                      >
-                        ใช้วงเงินส่งเสริมการขาย
-                      </label>
-
-                      {usePromotionalCredit && promoAmount > 0 && (
-                        <div
-                          className={`flex items-center px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 ${promotionalCreditUsed > promoAmount
-                            ? "border-red-500"
-                            : "border-gray-300"
-                            }`}
-                        >
-                          <input
-                            type="number"
-                            value={promotionalCreditUsed || ""}
-                            onChange={(
-                              e: React.ChangeEvent<HTMLInputElement>
-                            ) => {
-                              const value = e.target.value;
-
-                              // ป้องกัน 0 นำหน้า
-                              if (value === "" || value === "0") {
-                                setPromotionalCreditUsed(0);
-                              } else {
-                                const numValue = Number(value);
-                                setPromotionalCreditUsed(numValue);
-                              }
-                            }}
-                            min={0}
-                            max={promoAmount}
-                            step="0.01"
-                            className="w-36 bg-transparent outline-none text-right"
-                          />
-
-                          <span className="ml-2 text-gray-500 text-sm">฿</span>
-                        </div>
-                      )}
-
-                      {usePromotionalCredit && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-auto bg-green-300/20 text-green-700 border-green-600"
-                        >
-                          เปิดใช้งาน
-                        </Badge>
-                      )}
-                    </div>
-
-                    {usePromotionalCredit &&
-                      promoAmount > 0 &&
-                      promotionalCreditUsed > promoAmount && (
-                        <Alert variant="destructive" className="mt-1">
-                          <AlertDescription className="text-sm">
-                            ⚠️ จำนวนเงินที่ใช้เกินวงเงินส่งเสริมการขายคงเหลือ
-                            (คงเหลือ: ฿{promoAmount.toLocaleString()})
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                  </div>
-                </>
-              );
-            })()}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>เงื่อนไขการชำระเงินและวันที่</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label className={labelTextClass}>เงื่อนไขการชำระเงิน *</Label>
-              <Select
-                value={paymentTerm}
-                onValueChange={(val: any) => setPaymentTerm(val)}
-              >
-                <SelectTrigger className={inputTextClass}>
-                  <SelectValue placeholder="เลือกเงื่อนไข" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>เงื่อนไข</SelectLabel>
-                    <SelectItem value="PREPAID">โอนเงินก่อน</SelectItem>
-                    <SelectItem value="CREDIT">ส่งของก่อน</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="mt-2">
-              <DatePicker
-                label="วันที่ขาย *"
-                value={saleDate}
-                onChange={(val) => setSaleDate(val || "")}
-                placeholder=""
-              />
-            </div>
-
-            <div className="mt-2">
-              <DatePicker
-                label="วันที่จัดส่ง"
-                value={deliveryDate}
-                onChange={(val) => setDeliveryDate(val || "")}
-                placeholder=""
-              />
-            </div>
-          </div>
-
-          {paymentTerm === "CREDIT" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className={labelTextClass}>เครดิต (วัน)</Label>
-                <Input
+          return (
+            <>
+              <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+                <FormInput
+                  label="วงเงินเครดิตคงเหลือ"
                   type="number"
-                  value={creditDays}
-                  onChange={(e) => setCreditDays(Number(e.target.value))}
-                  className={inputTextClass}
+                  value={String(availableAmount)}
+                  onChange={() => { }}
+                  disabled
+                  readOnly
                 />
-              </div>
-              <div className="mt-2">
-                <DatePicker
-                  label="ครบกำหนดชำระ"
-                  value={creditDueDate}
-                  onChange={(val) => setCreditDueDate(val || "")}
-                  placeholder=""
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>ที่อยู่</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium mx-2">ที่อยู่วางบิล</h4>
-            <div className="mt-4 flex flex-col gap-3">
-              <div>
-                <Label className={labelTextClass}>ที่อยู่ / เลขที่ / ถนน</Label>
-                <Input
-                  value={billingStreet}
-                  onChange={(e) => setBillingStreet(e.target.value)}
-                  className={inputTextClass}
+                <FormInput
+                  label="วงเงินส่งเสริมการขายคงเหลือ"
+                  type="number"
+                  value={String(promoAmount)}
+                  onChange={() => { }}
+                  disabled
+                  readOnly
                 />
               </div>
-              <ThaiAddressPicker
-                value={billingThaiAddress}
-                onChange={setBillingThaiAddress}
-              />
-            </div>
+            </>
+          );
+        })()}
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        เงื่อนไขการชำระเงินและวันที่
+      </h3>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+        <FormSelect
+          label="เงื่อนไขการชำระเงิน *"
+          value={paymentTerm}
+          onChange={(val: any) => setPaymentTerm(val)}
+          options={[
+            { value: "PREPAID", label: "โอนเงินก่อน" },
+            { value: "CREDIT", label: "ส่งของก่อน" },
+          ]}
+          placeholder="เลือกเงื่อนไข"
+          groupLabel="เงื่อนไข"
+        />
+
+        <div>
+          <DatePicker
+            label="วันที่ขาย *"
+            value={saleDate}
+            onChange={(val) => setSaleDate(val || "")}
+            placeholder=""
+          />
+        </div>
+
+        <div>
+          <DatePicker
+            label="วันที่จัดส่ง"
+            value={deliveryDate}
+            onChange={(val) => setDeliveryDate(val || "")}
+            placeholder=""
+          />
+        </div>
+      </div>
+
+      {paymentTerm === "CREDIT" && (
+        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+          <FormInput
+            label="เครดิต (วัน)"
+            type="number"
+            value={String(creditDays)}
+            onChange={(e) => setCreditDays(Number(e.target.value))}
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          />
+          <div>
+            <DatePicker
+              label="ครบกำหนดชำระ"
+              value={creditDueDate}
+              onChange={(val) => setCreditDueDate(val || "")}
+              placeholder=""
+            />
           </div>
+        </div>
+      )}
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium mx-2">ที่อยู่จัดส่ง</h4>
-              <Button
-                type="button"
-                onClick={handleCopyAddress}
-                size="sm"
-                className="ml-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                คัดลอกที่อยู่วางบิล
-              </Button>
-            </div>
-            <div className="mt-4 flex flex-col gap-3">
-              <div>
-                <Label className={labelTextClass}>ที่อยู่ / เลขที่ / ถนน</Label>
-                <Input
-                  value={shippingStreet}
-                  onChange={(e) => setBillingStreet(e.target.value)}
-                  className={inputTextClass}
-                />
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่วางบิล
+      </h3>
+
+      <FormInput
+        label="ที่อยู่ / เลขที่ / ถนน"
+        value={billingStreet}
+        onChange={(e) => setBillingStreet(e.target.value)}
+        containerClassName="mt-6"
+      />
+
+      <ThaiAddressPicker
+        value={billingThaiAddress}
+        onChange={setBillingThaiAddress}
+      />
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่จัดส่ง
+      </h3>
+
+      <div className="flex items-center justify-end mb-4">
+        <Button
+          type="button"
+          onClick={handleCopyAddress}
+          size="sm"
+          className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          คัดลอกที่อยู่วางบิล
+        </Button>
+      </div>
+
+      <FormInput
+        label="ที่อยู่ / เลขที่ / ถนน"
+        value={shippingStreet}
+        onChange={(e) => setShippingStreet(e.target.value)}
+      />
+
+      <ThaiAddressPicker
+        value={shippingThaiAddress}
+        onChange={setShippingThaiAddress}
+      />
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6 flex items-center justify-between">
+        <span>รายการสินค้า</span>
+        <Button
+          type="button"
+          onClick={handleAddItem}
+          size="sm"
+          className="bg-green-700 hover:bg-green-800 text-white rounded-xl"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          เพิ่มรายการ
+        </Button>
+      </h3>
+
+      <div className="space-y-4 mt-6">
+        {items.map((item, index) => {
+          const product = products.find((p) => p.id === item.productId);
+          return (
+            <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">รายการที่ {index + 1}</h4>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveItem(index)}
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </Button>
               </div>
-              <ThaiAddressPicker
-                value={shippingThaiAddress}
-                onChange={setShippingThaiAddress}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>รายการสินค้า</span>
-            <Button
-              type="button"
-              onClick={handleAddItem}
-              size="sm"
-              className="bg-green-700 hover:bg-green-800 text-white rounded-xl"
-            >
-              <Plus className="h-4 w-2" />
-              เพิ่มรายการ
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {items.map((item, index) => {
-              const product = products.find((p) => p.id === item.productId);
-              return (
-                <div key={index} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">รายการที่ {index + 1}</h4>
+              <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+                {/* Product Select */}
+                <div className="md:col-span-2">
+                  <FormSelect
+                    label="สินค้า"
+                    value={item.productId}
+                    onChange={(val) => handleUpdateItem(index, "productId", val)}
+                    options={products.map((product) => ({
+                      value: product.id,
+                      label: `${product.name} - ${product.productCode}`,
+                    }))}
+                    placeholder="เลือกสินค้า"
+                    groupLabel="สินค้า"
+                  />
+                </div>
+
+                {/* Stock Quantity */}
+                {product && (
+                  <div className="flex items-end justify-between">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => handleRemoveItem(index)}
+                      onClick={() => setSelectedProductDetail(product)}
                     >
-                      <Trash2 className="h-4 w-4 text-red-600" />
+                      <Info className="h-4 w-4 mr-2" />
+                      รายละเอียด
                     </Button>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* Product Select */}
-                    <div className="md:col-span-2">
-                      <Label className={labelTextClass}>สินค้า</Label>
-                      <Select
-                        value={item.productId}
-                        onValueChange={(val) =>
-                          handleUpdateItem(index, "productId", val)
-                        }
-                      >
-                        <SelectTrigger className={inputTextClass}>
-                          <SelectValue placeholder="เลือกสินค้า" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>สินค้า</SelectLabel>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                {product.name} - {product.productCode}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Stock Quantity */}
-                    {product && (
-                      <div className="flex items-start justify-between mt-7">
-                        <div className="mt-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedProductDetail(product)}
-                          >
-                            <Info className="h-4 w-4 mr-2" />
-                            รายละเอียด
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label className={labelTextClass}>จำนวน</Label>
-                      <Input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleUpdateItem(
-                            index,
-                            "quantity",
-                            Number(e.target.value)
-                          )
-                        }
-                        className={inputTextClass}
-                      />
-                    </div>
-                    <div>
-                      <Label className={labelTextClass}>ราคาต่อหน่วย</Label>
-                      <Input
-                        type="number"
-                        value={item.unitPrice}
-                        onChange={(e) =>
-                          handleUpdateItem(
-                            index,
-                            "unitPrice",
-                            Number(e.target.value)
-                          )
-                        }
-                        className={inputTextClass}
-                      />
-                    </div>
-                    <div>
-                      <Label className={labelTextClass}>รวม</Label>
-                      <Input
-                        type="number"
-                        value={item.quantity * item.unitPrice}
-                        disabled
-                        readOnly
-                        className={`${inputTextClass} bg-gray-100`}
-                      />
-                    </div>
-
-                    {product && (
-                      <div className="mx-4 mt-4">
-                        <label className="text-sm text-gray-500 block mb-1">
-                          คงเหลือ
-                        </label>
-                        <Badge variant="outline">
-                          {product.stockQuantity || 0} {product.unit || ""}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-
-                  {item.priceModified && (
-                    <Alert className="bg-yellow-100 border-yellow-300">
-                      <AlertDescription className="text-sm">
-                        ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿
-                        {item.originalPrice.toLocaleString()}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>ค่าใช้จ่ายและหมายเหตุ</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className={labelTextClass}>ค่าขนส่ง</Label>
-              <Input
-                type="number"
-                value={shippingCost}
-                onChange={(e) => setShippingCost(Number(e.target.value))}
-                className={inputTextClass}
-              />
-            </div>
-            <div>
-              <Label className={labelTextClass}>ค่าใช้จ่ายอื่นๆ</Label>
-              <Input
-                type="number"
-                value={otherCosts}
-                onChange={(e) => setOtherCosts(Number(e.target.value))}
-                className={inputTextClass}
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            {otherCosts > 0 && (
-              <div>
-                <Label className={labelTextClass}>รายละเอียดค่าใช้จ่ายอื่นๆ</Label>
-                <Input
-                  value={otherCostsDescription}
-                  onChange={(e) => setOtherCostsDescription(e.target.value)}
-                  className={inputTextClass}
-                />
+                )}
               </div>
-            )}
-          </div>
 
-          <Textarea
-            label="หมายเหตุ"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
-        </CardContent>
-      </Card>
+              <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+                <FormInput
+                  label="จำนวน"
+                  type="number"
+                  value={String(item.quantity)}
+                  onChange={(e) =>
+                    handleUpdateItem(
+                      index,
+                      "quantity",
+                      Number(e.target.value)
+                    )
+                  }
+                  onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                />
+                <FormInput
+                  label="ราคาต่อหน่วย"
+                  type="number"
+                  value={String(item.unitPrice)}
+                  onChange={(e) =>
+                    handleUpdateItem(
+                      index,
+                      "unitPrice",
+                      Number(e.target.value)
+                    )
+                  }
+                  onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                />
+                <FormInput
+                  label="รวม"
+                  type="number"
+                  value={String(item.quantity * item.unitPrice)}
+                  onChange={() => { }}
+                  disabled
+                  readOnly
+                  containerClassName="bg-gray-100"
+                />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>สรุปยอดรวม</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between">
-            <span>รวมเป็นเงิน:</span>
-            <span className="font-medium">
-              ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>ค่าขนส่ง:</span>
-            <span>
-              ฿
-              {shippingCost.toLocaleString("th-TH", {
-                minimumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>ค่าใช้จ่ายอื่นๆ:</span>
-            <span>
-              ฿
-              {otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-          <div className="border-t pt-2 flex justify-between text-xl font-bold">
-            <span>ยอดเงินสุทธิ:</span>
-            <span className="text-blue-600">
-              ฿{total.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+                {product && (
+                  <div className="mx-4 mt-4">
+                    <label className="text-sm text-gray-500 block mb-1">
+                      คงเหลือ
+                    </label>
+                    <Badge variant="outline">
+                      {product.stockQuantity || 0} {product.unit || ""}
+                    </Badge>
+                  </div>
+                )}
+              </div>
 
-      <div className="flex gap-4 justify-center mt-8">
-        <Button
-          size="lg"
-          className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-          type="button"
-          onClick={onCancel ?? (() => router.back())}
-          disabled={loading}
-        >
-          ยกเลิก
-        </Button>
+              {item.priceModified && (
+                <Alert className="bg-yellow-100 border-yellow-300">
+                  <AlertDescription className="text-sm">
+                    ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿
+                    {item.originalPrice.toLocaleString()}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-        <Button
-          size="lg"
-          className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? "กำลังบันทึก..." : "บันทึก"}
-        </Button>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ค่าใช้จ่ายและหมายเหตุ
+      </h3>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+        <FormInput
+          label="ค่าขนส่ง"
+          type="number"
+          value={String(shippingCost)}
+          onChange={(e) => setShippingCost(Number(e.target.value))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+        <FormInput
+          label="ค่าใช้จ่ายอื่นๆ"
+          type="number"
+          value={String(otherCosts)}
+          onChange={(e) => setOtherCosts(Number(e.target.value))}
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+      </div>
+
+      {otherCosts > 0 && (
+        <FormInput
+          label="รายละเอียดค่าใช้จ่ายอื่นๆ"
+          value={otherCostsDescription}
+          onChange={(e) => setOtherCostsDescription(e.target.value)}
+        />
+      )}
+
+      <FormTextarea
+        label="หมายเหตุ"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={3}
+      />
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        สรุปยอดรวม
+      </h3>
+
+      <div className="space-y-2 mt-6">
+        <div className="flex justify-between">
+          <span>รวมเป็นเงิน:</span>
+          <span className="font-medium">
+            ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>ค่าขนส่ง:</span>
+          <span>
+            ฿
+            {shippingCost.toLocaleString("th-TH", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>ค่าใช้จ่ายอื่นๆ:</span>
+          <span>
+            ฿
+            {otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div className="border-t pt-2 flex justify-between text-xl font-bold">
+          <span>ยอดเงินสุทธิ:</span>
+          <span className="text-blue-600">
+            ฿{total.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+      </div>
+
+      <div className="md:col-span-2 pt-6 border-t my-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            type="button"
+            onClick={onCancel ?? (() => router.back())}
+            disabled={loading}
+          >
+            ยกเลิก
+          </Button>
+
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "กำลังบันทึก..." : "บันทึก"}
+          </Button>
+        </div>
       </div>
 
       {/* Product Detail Modal */}
@@ -1152,17 +905,6 @@ export function SaleForm({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
-            {/* Stock Quantity */}
-            <div className="border-b pb-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-lg">งบส่งเสริมการขาย</h4>
-                <Badge variant="outline" className="text-lg px-4 py-2">
-                  {selectedProductDetail?.promotionBudget || 0} บาท
-                  {/* {selectedProductDetail?.unit || "หน่วย"} */}
-                </Badge>
-              </div>
-            </div>
-
             {/* Free Items */}
             <div>
               <h4 className="font-medium text-lg mb-3">รายการของแถม</h4>
