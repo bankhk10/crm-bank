@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Copy, Info } from "lucide-react";
+import { Plus, Trash2, Copy, Info, MapPin, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
-import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +36,11 @@ interface Customer {
   customerType: string;
   billingAddress?: string;
   shippingAddress?: string;
+  shippingAddressLine?: string;
+  shippingProvince?: string;
+  shippingDistrict?: string;
+  shippingSubdistrict?: string;
+  shippingPostalCode?: string;
   creditLimits?: Array<{
     id: string;
     limitAmount: number;
@@ -183,7 +187,6 @@ export function SaleForm({
   );
   // Initialize state with parsed address
   const [parsedBilling] = useState(() => parseAddress(initialData?.billingAddress || ""));
-  const [parsedShipping] = useState(() => parseAddress(initialData?.shippingAddress || ""));
 
   const [billingAddress, setBillingAddress] = useState(
     initialData?.billingAddress || ""
@@ -193,8 +196,6 @@ export function SaleForm({
   const [shippingAddress, setShippingAddress] = useState(
     initialData?.shippingAddress || ""
   );
-  const [shippingStreet, setShippingStreet] = useState(parsedShipping.street);
-  const [shippingThaiAddress, setShippingThaiAddress] = useState(parsedShipping.thaiAddress);
   const [items, setItems] = useState<SaleItemFormData[]>(
     initialData?.items || []
   );
@@ -249,11 +250,15 @@ export function SaleForm({
         setBillingStreet(parsedBill.street);
         setBillingThaiAddress(parsedBill.thaiAddress);
 
-        setShippingAddress(customer.shippingAddress || "");
-
-        const parsedShip = parseAddress(customer.shippingAddress || "");
-        setShippingStreet(parsedShip.street);
-        setShippingThaiAddress(parsedShip.thaiAddress);
+        // Build shipping address from structured fields
+        const shippingParts = [
+          customer.shippingAddressLine,
+          customer.shippingSubdistrict ? `ตำบล${customer.shippingSubdistrict}` : "",
+          customer.shippingDistrict ? `อำเภอ${customer.shippingDistrict}` : "",
+          customer.shippingProvince ? `จังหวัด${customer.shippingProvince}` : "",
+          customer.shippingPostalCode || "",
+        ].filter(Boolean);
+        setShippingAddress(shippingParts.join(" "));
       }
     }
   }, [customerId, customers, isEdit, initialData?.customerId]);
@@ -276,25 +281,7 @@ export function SaleForm({
     }
   }, [billingStreet, billingThaiAddress]);
 
-  // Combine shipping address parts into full address
-  useEffect(() => {
-    const parts = [
-      shippingStreet,
-      shippingThaiAddress.subdistrict
-        ? `ตำบล${shippingThaiAddress.subdistrict}`
-        : "",
-      shippingThaiAddress.district
-        ? `อำเภอ${shippingThaiAddress.district}`
-        : "",
-      shippingThaiAddress.province
-        ? `จังหวัด${shippingThaiAddress.province}`
-        : "",
-      shippingThaiAddress.postalCode || "",
-    ].filter(Boolean);
-    if (parts.length > 0) {
-      setShippingAddress(parts.join(" "));
-    }
-  }, [shippingStreet, shippingThaiAddress]);
+
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -349,11 +336,7 @@ export function SaleForm({
     setItems(newItems);
   };
 
-  // Copy billing address to shipping address
-  const handleCopyAddress = () => {
-    setShippingStreet(billingStreet);
-    setShippingThaiAddress(billingThaiAddress);
-  };
+
 
   // Validate and submit
   const handleSubmit = async (e: React.FormEvent) => {
@@ -639,17 +622,156 @@ export function SaleForm({
         ที่อยู่จัดส่ง
       </h3>
 
-      <FormInput
-        label="ที่อยู่ / เลขที่ / ถนน"
-        value={shippingStreet}
-        onChange={(e) => setShippingStreet(e.target.value)}
-        containerClassName="mt-6"
-      />
+      {/* Modern Shipping Address Display */}
+      <div className="mt-6">
+        {selectedCustomer ? (
+          <>
+            {selectedCustomer.shippingAddressLine ||
+              selectedCustomer.shippingProvince ||
+              selectedCustomer.shippingDistrict ||
+              selectedCustomer.shippingSubdistrict ||
+              selectedCustomer.shippingPostalCode ? (
+              <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 shadow-sm transition-all hover:shadow-md">
+                {/* Decorative Elements */}
+                <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl"></div>
+                <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-gradient-to-br from-purple-400/10 to-pink-400/10 blur-2xl"></div>
 
-      <ThaiAddressPicker
-        value={shippingThaiAddress}
-        onChange={setShippingThaiAddress}
-      />
+                {/* Content */}
+                <div className="relative">
+                  {/* Header */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+                      <MapPin className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800">
+                        ที่อยู่จัดส่งสินค้า
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {selectedCustomer.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Address Details */}
+                  <div className="space-y-3 rounded-xl bg-white/60 p-4 backdrop-blur-sm">
+                    {selectedCustomer.shippingAddressLine && (
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                          <Home className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            ที่อยู่ / เลขที่ / ถนน
+                          </p>
+                          <p className="mt-1 text-base font-medium text-gray-800">
+                            {selectedCustomer.shippingAddressLine}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {selectedCustomer.shippingSubdistrict && (
+                        <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-3">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            ตำบล/แขวง
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                            {selectedCustomer.shippingSubdistrict}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedCustomer.shippingDistrict && (
+                        <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-3">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            อำเภอ/เขต
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                            {selectedCustomer.shippingDistrict}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedCustomer.shippingProvince && (
+                        <div className="rounded-lg bg-gradient-to-br from-pink-50 to-orange-50 p-3">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            จังหวัด
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                            {selectedCustomer.shippingProvince}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedCustomer.shippingPostalCode && (
+                        <div className="rounded-lg bg-gradient-to-br from-orange-50 to-yellow-50 p-3">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            รหัสไปรษณีย์
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-gray-800">
+                            {selectedCustomer.shippingPostalCode}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Full Address Summary */}
+                    <div className="mt-4 border-t border-gray-200 pt-4">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                        ที่อยู่เต็ม
+                      </p>
+                      <p className="text-sm leading-relaxed text-gray-700">
+                        {[
+                          selectedCustomer.shippingAddressLine,
+                          selectedCustomer.shippingSubdistrict
+                            ? `ตำบล${selectedCustomer.shippingSubdistrict}`
+                            : "",
+                          selectedCustomer.shippingDistrict
+                            ? `อำเภอ${selectedCustomer.shippingDistrict}`
+                            : "",
+                          selectedCustomer.shippingProvince
+                            ? `จังหวัด${selectedCustomer.shippingProvince}`
+                            : "",
+                          selectedCustomer.shippingPostalCode || "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
+                  <MapPin className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-base font-medium text-gray-600">
+                  ไม่พบข้อมูลที่อยู่จัดส่ง
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  ลูกค้ารายนี้ยังไม่มีข้อมูลที่อยู่จัดส่งในระบบ
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
+              <MapPin className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-base font-medium text-gray-600">
+              กรุณาเลือกลูกค้า
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              เลือกลูกค้าเพื่อแสดงข้อมูลที่อยู่จัดส่ง
+            </p>
+          </div>
+        )}
+      </div>
+
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6 flex items-center justify-between">
         <span>รายการสินค้า</span>
