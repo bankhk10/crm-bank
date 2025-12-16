@@ -476,7 +476,7 @@ export default function CustomerFormSubdealer({
         />
 
         <FormInput
-          label="ยี่ห้อที่จำหน่าย"
+          label="แบรนด์ที่จำหน่าย"
           value={values.brandsSold}
           onChange={(e) =>
             setValues((p: any) => ({ ...p, brandsSold: e.target.value }))
