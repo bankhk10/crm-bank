@@ -102,14 +102,18 @@ export default function ProductManagementPage() {
     setSuccess(false);
 
     try {
+      console.log('Submitting form data:', formData);
+
       const res = await fetch(`/api/products/${productId}/manage`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+      console.log('Response:', data);
+
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "เกิดข้อผิดพลาด");
       }
 
@@ -119,6 +123,7 @@ export default function ProductManagementPage() {
         router.refresh();
       }, 1500);
     } catch (err) {
+      console.error('Submit error:', err);
       setError((err as Error).message);
     } finally {
       setSaving(false);

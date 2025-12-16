@@ -179,13 +179,47 @@ export async function PATCH(
           where: { productId },
         });
 
-        // Generate next lot number
+        const stockLotsToKeep = parsed.data.stockLots
+          .filter((item) => item.id)
+          .map((item) => item.id!);
+
+        // Delete removed stock lots (only if not used)
+        const lotsToDelete = existingLots.filter(
+          (lot) => !stockLotsToKeep.includes(lot.id) && !lot.isUsed
+        );
+
+        if (lotsToDelete.length > 0) {
+          await tx.productStockLot.deleteMany({
+            where: {
+              id: { in: lotsToDelete.map((lot) => lot.id) },
+            },
+          });
+        }
+
+        // Generate next lot number for new lots
         const lotCount = existingLots.length;
+        let newLotIndex = 0;
 
         for (const item of parsed.data.stockLots) {
-          if (!item.id) {
+          if (item.id) {
+            // Update existing lot (only if not used)
+            const existingLot = existingLots.find((lot) => lot.id === item.id);
+            if (existingLot && !existingLot.isUsed) {
+              await tx.productStockLot.update({
+                where: { id: item.id },
+                data: {
+                  quantity: item.quantity,
+                  importDate: new Date(item.importDate),
+                  expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+                  storageLocation: item.storageLocation,
+                  notes: item.notes,
+                },
+              });
+            }
+          } else {
             // Create new lot with auto-generated lot number
-            const newLotNumber = `Lot.${lotCount + parsed.data.stockLots.indexOf(item) + 1}`;
+            const newLotNumber = `LOT-${String(lotCount + newLotIndex + 1).padStart(3, '0')}`;
+            newLotIndex++;
             await tx.productStockLot.create({
               data: {
                 productId,
