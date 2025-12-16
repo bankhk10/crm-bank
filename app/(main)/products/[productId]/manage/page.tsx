@@ -102,8 +102,6 @@ export default function ProductManagementPage() {
     setSuccess(false);
 
     try {
-      console.log('Submitting form data:', formData);
-
       const res = await fetch(`/api/products/${productId}/manage`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -111,8 +109,6 @@ export default function ProductManagementPage() {
       });
 
       const data = await res.json();
-      console.log('Response:', data);
-
       if (!res.ok) {
         throw new Error(data.error || "เกิดข้อผิดพลาด");
       }
@@ -619,17 +615,23 @@ export default function ProductManagementPage() {
           </div>
         </div>
         {/* Buttons */}
-        <div className="flex justify-end gap-4 pt-4 border-t">
+        <div className="flex justify-center gap-4 pt-4 border-t">
           <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
             type="button"
-            variant="outline"
             onClick={() => router.back()}
             disabled={saving}
           >
             ยกเลิก
           </Button>
 
-          <Button type="submit" disabled={saving}>
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={saving}
+          >
             {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
           </Button>
         </div>
