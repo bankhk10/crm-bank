@@ -170,7 +170,7 @@ export default function Sidebar({
                     setOpenKey((k) => (k === item.href ? null : item.href))
                   }
                   className={
-                    "group flex w-full items-center gap-2 rounded-lg px-4 py-3 text-left transition " +
+                    "group flex w-full items-center gap-2 rounded-lg px-4 py-2 text-left transition " +
                     (activeParent
                       ? "bg-[#991b1b] rounded-xl font-semibold text-white"
                       : "hover:bg-[#991b1b]")
@@ -193,7 +193,7 @@ export default function Sidebar({
                           key={child.href}
                           href={child.href}
                           className={
-                            "flex items-center justify-between rounded px-4 py-3 transition " +
+                            "flex items-center justify-between rounded px-4 py-2 transition " +
                             (childActive
                               ? "font-semibold text-white"
                               : "text-white/80")
