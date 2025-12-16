@@ -107,8 +107,8 @@ export type SubdealerRandomPayload = {
   mainCompetitor?: string;
   areaCrops?: string;
   averageMonthlyPurchase?: string;
-  mainProductSold?: string;
-  brandsSold?: string;
+  mainProductSold?: string[];
+  brandsSold?: string[];
   areaType?: string;
   relationshipScore?: number;
   notes?: string;
@@ -177,11 +177,9 @@ export function generateRandomSubdealer(
     .filter((v, i, a) => a.indexOf(v) === i)
     .join(", ");
   const mainProductSold = [rand(productsList), rand(productsList)]
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .join(", ");
+    .filter((v, i, a) => a.indexOf(v) === i);
   const brandsSold = [rand(brandsList), rand(brandsList)]
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .join(", ");
+    .filter((v, i, a) => a.indexOf(v) === i);
 
   const payload: SubdealerRandomPayload = {
     companyName,
