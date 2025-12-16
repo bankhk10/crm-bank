@@ -128,11 +128,12 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen from-slate-50 to-blue-50">
       {/* Hero Header Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Back Button */}
+      {/* <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white"> */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Product Header */}
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
           <Link
             href="/products"
             className="inline-flex items-center text-blue-100 hover:text-white mb-6 transition-colors group"
@@ -141,7 +142,6 @@ export default function ProductDetailPage() {
             กลับไปหน้ารายการสินค้า
           </Link>
 
-          {/* Product Header */}
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -169,7 +169,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
@@ -205,7 +204,7 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Basic Information Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="p-6 border-b border-gray-100 bg-blue-200">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <FileText className="h-6 w-6 text-blue-600" />
                   ข้อมูลพื้นฐาน
@@ -223,7 +222,7 @@ export default function ProductDetailPage() {
 
             {/* Package Information Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="p-6 border-b border-gray-100 bg-purple-200">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <Box className="h-6 w-6 text-purple-600" />
                   ข้อมูลบรรจุภัณฑ์
@@ -262,7 +261,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {product.salesPoint && (
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <div className="p-6 border-b border-gray-100 bg-amber-100">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                       <Target className="h-6 w-6 text-amber-600" />
                       จุดขายสินค้า
@@ -278,7 +277,7 @@ export default function ProductDetailPage() {
 
               {product.properties && (
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-teal-50 to-cyan-50">
+                  <div className="p-6 border-b border-gray-100 bg-teal-100">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                       <FileText className="h-6 w-6 text-teal-600" />
                       คุณสมบัติ
@@ -297,7 +296,7 @@ export default function ProductDetailPage() {
           {/* Pricing Information */}
           {(product.price || product.promotionBudget) && (
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-50 to-green-50">
+              <div className="p-6 border-b border-gray-100 bg-emerald-100">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <DollarSign className="h-6 w-6 text-emerald-600" />
                   ข้อมูลราคา
