@@ -30,7 +30,11 @@ import {
   Navigation,
   Sparkles,
   Award,
-  TrendingUp
+  TrendingUp,
+  ShoppingBag,
+  Target,
+  Sprout,
+  Wallet
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,6 +79,13 @@ type Customer = {
   responsibleEmployee?: { id: string; firstName: string; lastName: string; email: string } | null;
   parentDealer?: { id: string; name: string } | null;
   images?: Array<{ id: string; url: string; name?: string }>;
+  receiveFromDealer?: string | null;
+  mainCompetitor?: string | null;
+  areaCrops?: string | null;
+  averageMonthlyPurchase?: string | null;
+  mainProductSold?: string[] | null;
+  brandsSold?: string[] | null;
+  areaType?: string | null;
 };
 
 const statusMap: Record<string, { label: string; className: string; gradient: string }> = {
@@ -518,6 +529,69 @@ export default function CustomerDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Section: Sub-Dealer Info */}
+          {customer.customerType === 'SUBDEALER' && (
+            <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="pt-6 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200 pb-5">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-lg">
+                    <ShoppingBag className="h-6 w-6" />
+                  </div>
+                  ข้อมูลการขาย (Sub-Dealer)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                {customer.receiveFromDealer && (
+                  <DetailItem
+                    label="รับของจาก Dealer"
+                    value={
+                      customer.parentDealer && customer.parentDealer.id === customer.receiveFromDealer
+                        ? customer.parentDealer.name
+                        : customer.receiveFromDealer
+                    }
+                    icon={Building}
+                  />
+                )}
+                <DetailItem label="คู่แข่งหลัก" value={customer.mainCompetitor || "-"} icon={Target} />
+                <DetailItem label="พืชในพื้นที่" value={customer.areaCrops || "-"} icon={Sprout} />
+                <DetailItem
+                  label="ยอดสั่งซื้อเฉลี่ย/เดือน"
+                  value={customer.averageMonthlyPurchase ? `${Number(customer.averageMonthlyPurchase).toLocaleString()} บาท` : "-"}
+                  icon={Wallet}
+                />
+                <DetailItem
+                  label="สินค้าหลักที่ขาย"
+                  value={customer.mainProductSold && customer.mainProductSold.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {customer.mainProductSold.map((item, i) => (
+                        <span key={i} className="px-2.5 py-1 rounded-md bg-orange-100 text-orange-700 text-sm font-medium">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  ) : "-"}
+                  icon={ShoppingBag}
+                  fullWidth
+                />
+                <DetailItem
+                  label="แบรนด์ที่จำหน่าย"
+                  value={customer.brandsSold && customer.brandsSold.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {customer.brandsSold.map((item, i) => (
+                        <span key={i} className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-sm font-medium">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  ) : "-"}
+                  icon={Award}
+                  fullWidth
+                />
+                <DetailItem label="ประเภทพื้นที่" value={customer.areaType || "-"} icon={MapPin} />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Section: Contact Person */}
           <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
