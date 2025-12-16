@@ -198,7 +198,7 @@ function TemporaryCreditLimitToolbar({
         <div className="space-y-2">
           <label className="text-base font-medium mx-2">ค้นหา</label>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
             <Input
               value={searchValue ?? ""}
               onChange={(e) => onSearchChange?.(e.target.value)}
@@ -217,7 +217,7 @@ function TemporaryCreditLimitToolbar({
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-white",
+                  "w-full justify-start text-left font-normal bg-white mt-2",
                   !dateRange && "text-muted-foreground"
                 )}
               >
@@ -510,7 +510,7 @@ function useColumns(
         header: "รหัสลูกค้า",
         cell: (info) => (
           <div className="truncate" title={info.getValue() as string}>
-            {info.getValue() || "-"}
+            {(info.getValue() as string) || "-"}
           </div>
         ),
         meta: { minWidth: 100, width: 120, align: "left" },
@@ -520,7 +520,7 @@ function useColumns(
         header: "ชื่อลูกค้า",
         cell: (info) => (
           <div className="truncate" title={info.getValue() as string}>
-            {info.getValue() || "-"}
+            {(info.getValue() as string) || "-"}
           </div>
         ),
         meta: { minWidth: 180, width: 220, align: "left" },
@@ -562,7 +562,7 @@ function useColumns(
         header: "ผู้ขอ",
         cell: (info) => (
           <div className="truncate" title={info.getValue() as string}>
-            {info.getValue() || "-"}
+            {(info.getValue() as string) || "-"}
           </div>
         ),
         meta: { minWidth: 120, width: 140, align: "center" },
