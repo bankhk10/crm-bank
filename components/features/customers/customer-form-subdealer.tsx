@@ -13,6 +13,7 @@ import {
 import generateRandomSubdealer from "@/lib/random-fill/subdealer";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 import { MultiSelect } from "@/components/custom/multi-select";
+import { LocateFixed } from "lucide-react";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -241,6 +242,27 @@ export default function CustomerFormSubdealer({
     }
   }
 
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setValues((prev: any) => ({
+          ...prev,
+          latitude: position.coords.latitude.toFixed(6),
+          longitude: position.coords.longitude.toFixed(6),
+        }));
+      },
+      (error) => {
+        console.error("Error getting location", error);
+        alert("Unable to retrieve your location");
+      }
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
@@ -305,25 +327,39 @@ export default function CustomerFormSubdealer({
           error={fieldErrors.email?.[0]}
         />
 
-        <FormInput
-          label="latitude (ละติจูด)"
-          type="number"
-          value={values.latitude}
-          onChange={(e) =>
-            setValues((p: any) => ({ ...p, latitude: e.target.value }))
-          }
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-        />
+        <div className="md:col-span-2 flex items-end gap-2">
+          <FormInput
+            label="latitude (ละติจูด)"
+            type="number"
+            value={values.latitude}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, latitude: e.target.value }))
+            }
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            containerClassName="flex-1"
+          />
 
-        <FormInput
-          label="longitude (ลองจิจูด)"
-          type="number"
-          value={values.longitude}
-          onChange={(e) =>
-            setValues((p: any) => ({ ...p, longitude: e.target.value }))
-          }
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-        />
+          <FormInput
+            label="longitude (ลองจิจูด)"
+            type="number"
+            value={values.longitude}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, longitude: e.target.value }))
+            }
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            containerClassName="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="mb-0.5 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+            onClick={getCurrentLocation}
+            title="ดึงพิกัดปัจจุบัน"
+          >
+            <LocateFixed className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <FormInput
