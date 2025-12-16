@@ -442,7 +442,7 @@ export default function CustomerFormSubdealer({
         ข้อมูลเพิ่มเติม (Sub-Dealer)
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <FormSelect
           label="รับของจาก Dealer"
           value={values.receiveFromDealer ?? ""}
@@ -470,9 +470,6 @@ export default function CustomerFormSubdealer({
             setValues((p: any) => ({ ...p, areaCrops: e.target.value }))
           }
         />
-      </div>
-
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
         <FormInput
           label="ยอดสั่งซื้อเฉลี่ย/เดือน"
           type="number"
