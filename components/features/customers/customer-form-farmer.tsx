@@ -12,6 +12,7 @@ import {
 } from "./customer-form-types";
 import generateRandomFarmer from "@/lib/random-fill/farmer";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import { LocateFixed } from "lucide-react";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -220,6 +221,24 @@ export default function CustomerFormFarmer({
     }
   }
 
+  const getPlotLocation = (index: number) => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        handlePlotChange(index, "latitude", position.coords.latitude.toFixed(6));
+        handlePlotChange(index, "longitude", position.coords.longitude.toFixed(6));
+      },
+      (error) => {
+        console.error("Error getting location", error);
+        alert("Unable to retrieve your location");
+      }
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
@@ -371,24 +390,38 @@ export default function CustomerFormFarmer({
             </div>
           </div>
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
-            <FormInput
-              label="Latitude"
-              type="number"
-              value={plot.latitude ?? ""}
-              onChange={(e) =>
-                handlePlotChange(idx, "latitude", e.target.value)
-              }
-              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            />
-            <FormInput
-              label="Longitude"
-              type="number"
-              value={plot.longitude ?? ""}
-              onChange={(e) =>
-                handlePlotChange(idx, "longitude", e.target.value)
-              }
-              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            />
+            <div className="md:col-span-2 flex items-end gap-2">
+              <FormInput
+                label="Latitude"
+                type="number"
+                value={plot.latitude ?? ""}
+                onChange={(e) =>
+                  handlePlotChange(idx, "latitude", e.target.value)
+                }
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                containerClassName="flex-1"
+              />
+              <FormInput
+                label="Longitude"
+                type="number"
+                value={plot.longitude ?? ""}
+                onChange={(e) =>
+                  handlePlotChange(idx, "longitude", e.target.value)
+                }
+                onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                containerClassName="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="mb-1 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+                onClick={() => getPlotLocation(idx)}
+                title="ดึงพิกัดปัจจุบัน"
+              >
+                <LocateFixed className="h-4 w-4" />
+              </Button>
+            </div>
             <FormInput
               label="ขนาดพื้นที่เพาะปลูก (ไร่)"
               type="number"
