@@ -496,7 +496,6 @@ export default function CustomerFormSubdealer({
             defaultValue={values.mainProductSold}
             placeholder="เลือกสินค้า"
             searchable={true}
-            hideSelectAll={false}
           />
         </div>
 
@@ -511,7 +510,6 @@ export default function CustomerFormSubdealer({
             defaultValue={values.brandsSold}
             placeholder="เลือกแบรนด์"
             searchable={true}
-            hideSelectAll={false}
           />
         </div>
       </div>
