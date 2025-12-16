@@ -217,7 +217,7 @@ function TemporaryCreditLimitToolbar({
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-white mt-2",
+                  "w-full justify-start text-left font-normal bg-white mt-1 h-11",
                   !dateRange && "text-muted-foreground"
                 )}
               >
