@@ -422,7 +422,7 @@ export default function CustomerFormSubdealer({
           }}
           error={fieldErrors.contactEmail?.[0]}
         />
-        <div className="mt-2">
+        <div>
           <DatePicker
             label="วันเกิด"
             value={values.birthDate}
