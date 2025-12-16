@@ -240,7 +240,7 @@ export default function CustomerFormFarmer({
         />
 
         <FormSelect
-          label="คำนำหน้า *"
+          label="คำนำหน้า"
           value={values.prefix}
           onChange={(v) => {
             setValues((p: any) => ({ ...p, prefix: v }));
@@ -302,7 +302,7 @@ export default function CustomerFormFarmer({
           error={fieldErrors.email?.[0]}
         />
 
-        <div className="mt-2">
+        <div>
           <DatePicker
             label="วันเกิด"
             value={values.birthDate}
