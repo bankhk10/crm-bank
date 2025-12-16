@@ -5,6 +5,14 @@ import { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/types/temporary-credit-limit";
@@ -21,7 +29,9 @@ import {
   Banknote,
   Clock,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react";
 
 const getStatusConfig = (status: TemporaryCreditStatus) => {
@@ -65,6 +75,13 @@ export default function ApproveTemporaryCreditLimitPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
+  // Dialog states
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [successType, setSuccessType] = useState<"approve" | "reject">("approve");
+
   useEffect(() => {
     (async () => {
       try {
@@ -84,9 +101,12 @@ export default function ApproveTemporaryCreditLimitPage() {
     })();
   }, [id]);
 
-  const handleApprove = async () => {
-    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติคำขอนี้?")) return;
+  const handleApproveClick = () => {
+    setShowApproveDialog(true);
+  };
 
+  const handleApproveConfirm = async () => {
+    setShowApproveDialog(false);
     setSubmitting(true);
     setError(null);
 
@@ -102,8 +122,9 @@ export default function ApproveTemporaryCreditLimitPage() {
         throw new Error(json?.error || "Failed to approve");
       }
 
-      alert("อนุมัติสำเร็จ");
-      router.push("/temporary-credit-limits");
+      setSuccessType("approve");
+      setSuccessMessage("อนุมัติคำขอสำเร็จ");
+      setShowSuccessDialog(true);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
@@ -111,14 +132,16 @@ export default function ApproveTemporaryCreditLimitPage() {
     }
   };
 
-  const handleReject = async () => {
+  const handleRejectClick = () => {
     if (!rejectionReason.trim()) {
-      alert("กรุณาระบุเหตุผลที่ไม่อนุมัติ");
+      setError("กรุณาระบุเหตุผลที่ไม่อนุมัติ");
       return;
     }
+    setShowRejectDialog(true);
+  };
 
-    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการปฏิเสธคำขอนี้?")) return;
-
+  const handleRejectConfirm = async () => {
+    setShowRejectDialog(false);
     setSubmitting(true);
     setError(null);
 
@@ -134,13 +157,19 @@ export default function ApproveTemporaryCreditLimitPage() {
         throw new Error(json?.error || "Failed to reject");
       }
 
-      alert("ปฏิเสธสำเร็จ");
-      router.push("/temporary-credit-limits");
+      setSuccessType("reject");
+      setSuccessMessage("ปฏิเสธคำขอสำเร็จ");
+      setShowSuccessDialog(true);
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessDialog(false);
+    router.push("/temporary-credit-limits");
   };
 
   if (loading) {
@@ -337,7 +366,7 @@ export default function ApproveTemporaryCreditLimitPage() {
                     <Button
                       size="lg"
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex-1"
-                      onClick={handleApprove}
+                      onClick={handleApproveClick}
                       disabled={submitting}
                     >
                       <CheckCircle className="h-5 w-5 mr-2" />
@@ -372,7 +401,7 @@ export default function ApproveTemporaryCreditLimitPage() {
                       <Button
                         size="lg"
                         className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex-1"
-                        onClick={handleReject}
+                        onClick={handleRejectClick}
                         disabled={submitting || !rejectionReason.trim()}
                       >
                         <XCircle className="h-5 w-5 mr-2" />
@@ -408,6 +437,116 @@ export default function ApproveTemporaryCreditLimitPage() {
           )}
         </div>
       </div>
+
+      {/* Approve Confirmation Dialog */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100">
+              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            </div>
+            <DialogTitle className="text-center text-2xl font-bold">
+              ยืนยันการอนุมัติ
+            </DialogTitle>
+            <DialogDescription className="text-center text-base pt-2">
+              คุณแน่ใจหรือไม่ว่าต้องการอนุมัติคำขอนี้?
+              <br />
+              <span className="text-gray-900 font-semibold mt-2 inline-block">
+                จำนวนเงิน: {data && formatCurrency(Number(data.requestedAmount))}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowApproveDialog(false)}
+              className="w-full sm:w-32"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              onClick={handleApproveConfirm}
+              className="w-full sm:w-32 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+            >
+              ยืนยัน
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Confirmation Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-rose-100">
+              <AlertTriangle className="h-10 w-10 text-red-600" />
+            </div>
+            <DialogTitle className="text-center text-2xl font-bold text-red-900">
+              ยืนยันการปฏิเสธ
+            </DialogTitle>
+            <DialogDescription className="text-center text-base pt-2">
+              คุณแน่ใจหรือไม่ว่าต้องการปฏิเสธคำขอนี้?
+              <br />
+              <span className="text-gray-900 font-semibold mt-2 inline-block">
+                เหตุผล: {rejectionReason}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowRejectDialog(false)}
+              className="w-full sm:w-32"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              onClick={handleRejectConfirm}
+              className="w-full sm:w-32 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white"
+            >
+              ยืนยัน
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className={`mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full animate-bounce ${successType === "approve"
+                ? "bg-gradient-to-br from-green-100 to-emerald-100"
+                : "bg-gradient-to-br from-orange-100 to-amber-100"
+              }`}>
+              {successType === "approve" ? (
+                <CheckCircle2 className="h-12 w-12 text-green-600" />
+              ) : (
+                <XCircle className="h-12 w-12 text-orange-600" />
+              )}
+            </div>
+            <DialogTitle className="text-center text-2xl font-bold">
+              {successMessage}
+            </DialogTitle>
+            <DialogDescription className="text-center text-base pt-2">
+              {successType === "approve"
+                ? "คำขอได้รับการอนุมัติเรียบร้อยแล้ว"
+                : "คำขอได้รับการปฏิเสธเรียบร้อยแล้ว"
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center mt-6">
+            <Button
+              onClick={handleSuccessClose}
+              className={`w-full sm:w-40 ${successType === "approve"
+                  ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  : "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
+                } text-white`}
+            >
+              ตกลง
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
