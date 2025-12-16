@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -394,25 +394,24 @@ export default function CustomerFormDealer({
   }
 
   const getCurrentLocation = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setValues((prev: any) => ({
-            ...prev,
-            latitude: String(position.coords.latitude),
-            longitude: String(position.coords.longitude),
-          }));
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert(
-            "ไม่สามารถเข้าถึงตำแหน่งปัจจุบันได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงตำแหน่ง"
-          );
-        }
-      );
-    } else {
-      alert("เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง");
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setValues((prev: any) => ({
+          ...prev,
+          latitude: position.coords.latitude.toFixed(6),
+          longitude: position.coords.longitude.toFixed(6),
+        }));
+      },
+      (error) => {
+        console.error("Error getting location", error);
+        alert("Unable to retrieve your location");
+      }
+    );
   };
 
   return (
@@ -479,40 +478,39 @@ export default function CustomerFormDealer({
           error={fieldErrors.email?.[0]}
         />
 
-        <div>
-          <div className="flex items-center gap-8">
-            <Label className={labelTextClass}>latitude (ละติจูด)</Label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-6 text-[10px] px-2 gap-1"
-              onClick={getCurrentLocation}
-            >
-              <MapPin className="w-3 h-3" />
-              ดึงพิกัดปัจจุบัน
-            </Button>
-          </div>
-          <Input
+        <div className="md:col-span-2 flex items-end gap-2">
+          <FormInput
+            label="latitude (ละติจูด)"
             type="number"
             value={values.latitude}
             onChange={(e) =>
               setValues((p: any) => ({ ...p, latitude: e.target.value }))
             }
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            className={inputTextClass}
+            containerClassName="flex-1"
           />
-        </div>
 
-        <FormInput
-          label="longitude (ลองจิจูด)"
-          type="number"
-          value={values.longitude}
-          onChange={(e) =>
-            setValues((p: any) => ({ ...p, longitude: e.target.value }))
-          }
-          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-        />
+          <FormInput
+            label="longitude (ลองจิจูด)"
+            type="number"
+            value={values.longitude}
+            onChange={(e) =>
+              setValues((p: any) => ({ ...p, longitude: e.target.value }))
+            }
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            containerClassName="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="mb-1 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
+            onClick={getCurrentLocation}
+            title="ดึงพิกัดปัจจุบัน"
+          >
+            <LocateFixed className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <FormInput
