@@ -180,6 +180,16 @@ export async function POST(request: Request) {
     console.error("❌ Error creating temporary credit limit:", err);
 
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+      const target = err.meta?.modelName as string | undefined; // Sometimes comes as modelName, sometimes parsing message is needed
+      const message = err.message;
+
+      if (message.includes("TemporaryCreditLimit_requestedById_fkey")) {
+        return NextResponse.json(
+          { error: "Invalid User (Requester) ID. Please try logging in again." },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Customer not found" },
         { status: 400 }
