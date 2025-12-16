@@ -32,6 +32,7 @@ interface ProductFormProps {
     success: boolean;
     issues?: Record<string, string[]>;
     error?: string;
+    data?: any;
   }>;
   onCancel?: () => void;
   hideBorder?: boolean;
@@ -70,10 +71,10 @@ export function ProductForm({
     usedForPlants: initialData?.usedForPlants || [],
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
-    images: initialData?.images || [],
     coverIndex: (initialData as any)?.coverIndex ?? null,
   });
 
+  const [images, setImages] = useState<any[]>(initialData?.images || []);
   const originalExistingIdsRef = useRef<string[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
@@ -140,6 +141,56 @@ export function ProductForm({
             "Server error"
           );
         } else {
+          // Handle images (delete removed, upload new, reorder)
+          const targetProductId = result.data?.product?.id || productId;
+
+          if (targetProductId) {
+            try {
+              // 1. Identify removed images
+              const initialImages = (initialData?.images || []) as any[];
+              const currentImageIds = images.map((img) => img.id).filter(Boolean);
+              const removedImageIds = initialImages
+                .map((img) => img.id)
+                .filter((id) => !currentImageIds.includes(id));
+
+              // 2. Delete removed images
+              if (removedImageIds.length > 0) {
+                await deleteImages(targetProductId, removedImageIds);
+              }
+
+              // 3. Upload new images and collect all IDs in order
+              let uploadedImages: any[] = [];
+              const filesToUpload = images.filter((i) => i instanceof File) as File[];
+
+              if (filesToUpload.length > 0) {
+                setUploadProgress(0);
+                const uploadRes = await uploadImages(targetProductId, filesToUpload);
+                if (uploadRes.created) {
+                  uploadedImages = uploadRes.created;
+                }
+              }
+
+              // 4. Construct final ordered ID list
+              let uploadIndex = 0;
+              const finalOrderedIds = images.map((img) => {
+                if (img instanceof File) {
+                  const newImg = uploadedImages[uploadIndex++];
+                  return newImg?.id;
+                }
+                return img.id;
+              }).filter(Boolean);
+
+              // 5. Update order
+              if (finalOrderedIds.length > 0) {
+                await reorderImages(targetProductId, finalOrderedIds);
+              }
+
+            } catch (err) {
+              console.error("Image operation failed", err);
+              // We don't block success navigation if image op fails, but we log it
+            }
+          }
+
           setSuccess(true);
           setTimeout(() => {
             router.push("/products");
@@ -159,36 +210,52 @@ export function ProductForm({
         }
 
         const data = await res.json();
+        const targetProductId = data.product.id;
 
-        if (isEdit && removedImageIds.length > 0) {
-          const delRes = await fetch(`/api/products/${productId}/images`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ imageIds: removedImageIds }),
-          });
-
-          if (!delRes.ok) {
-            const d = await delRes.json().catch(() => ({}));
-            throw new Error(d.error || "ลบรูปภาพล้มเหลว");
-          }
-        }
-
-        if (formData.images && formData.images.length > 0) {
+        // Handle images (delete removed, upload new, reorder)
+        if (targetProductId) {
           try {
-            const filesToUpload = (formData.images as any[]).filter(
-              (i) => i instanceof File
-            ) as File[];
+            // 1. Identify removed images
+            const initialImages = (initialData?.images || []) as any[];
+            const currentImageIds = images.map((img) => img.id).filter(Boolean);
+            const removedImageIds = initialImages
+              .map((img) => img.id)
+              .filter((id) => !currentImageIds.includes(id));
+
+            // 2. Delete removed images
+            if (removedImageIds.length > 0) {
+              await deleteImages(targetProductId, removedImageIds);
+            }
+
+            // 3. Upload new images and collect all IDs in order
+            let uploadedImages: any[] = [];
+            const filesToUpload = images.filter((i) => i instanceof File) as File[];
+
             if (filesToUpload.length > 0) {
               setUploadProgress(0);
-              await uploadImages(
-                data.product.id,
-                filesToUpload,
-                formData.coverIndex ?? undefined
-              );
-              setUploadProgress(null);
+              const uploadRes = await uploadImages(targetProductId, filesToUpload);
+              if (uploadRes.created) {
+                uploadedImages = uploadRes.created;
+              }
             }
+
+            // 4. Construct final ordered ID list
+            let uploadIndex = 0;
+            const finalOrderedIds = images.map((img) => {
+              if (img instanceof File) {
+                const newImg = uploadedImages[uploadIndex++];
+                return newImg?.id;
+              }
+              return img.id;
+            }).filter(Boolean);
+
+            // 5. Update order
+            if (finalOrderedIds.length > 0) {
+              await reorderImages(targetProductId, finalOrderedIds);
+            }
+
           } catch (err) {
-            console.error(err);
+            console.error("Image operation failed", err);
             setError("อัพโหลดรูปภาพล้มเหลว");
             setUploadProgress(null);
             setLoading(false);
@@ -209,6 +276,7 @@ export function ProductForm({
       setError(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -244,14 +312,11 @@ export function ProductForm({
 
   const uploadImages = (
     productId: string,
-    files: File[],
-    coverIndex?: number
+    files: File[]
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       const form = new FormData();
       files.forEach((f) => form.append("images", f));
-      if (typeof coverIndex === "number")
-        form.append("coverIndex", String(coverIndex));
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", `/api/products/${productId}/images`);
@@ -277,6 +342,42 @@ export function ProductForm({
 
       xhr.onerror = () => reject(new Error("Network error"));
       xhr.send(form);
+    });
+  };
+
+  const deleteImages = (
+    productId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/products/${productId}/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to delete images"));
+        })
+        .catch(reject);
+    });
+  };
+
+  const reorderImages = (
+    productId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/products/${productId}/images`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to reorder images"));
+        })
+        .catch(reject);
     });
   };
 
@@ -323,7 +424,7 @@ export function ProductForm({
 
         <FormInput
           label="ชื่อสามัญ"
-          value={formData.commonName}
+          value={formData.commonName || ""}
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -335,7 +436,7 @@ export function ProductForm({
 
         <FormSelect
           label="หน่วยนับ"
-          value={formData.unit}
+          value={formData.unit || ""}
           onChange={(v) =>
             setFormData((prev) => ({
               ...prev,
@@ -350,7 +451,7 @@ export function ProductForm({
 
         <FormSelect
           label="กลุ่มสินค้า"
-          value={formData.productGroup}
+          value={formData.productGroup || ""}
           onChange={(v) =>
             setFormData((prev) => ({
               ...prev,
@@ -365,7 +466,7 @@ export function ProductForm({
 
         <FormSelect
           label="แบรนด์สินค้า"
-          value={formData.brand}
+          value={formData.brand || ""}
           onChange={(v) =>
             setFormData((prev) => ({
               ...prev,
@@ -380,7 +481,7 @@ export function ProductForm({
 
         <FormInput
           label="ขนาดบรรจุ"
-          value={formData.packageSize}
+          value={formData.packageSize || ""}
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -393,7 +494,7 @@ export function ProductForm({
         <FormInput
           label="ขนาดบรรจุต่อลัง"
           type="number"
-          value={formData.packageSizePerBox}
+          value={formData.packageSizePerBox || ""}
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -439,7 +540,7 @@ export function ProductForm({
 
         <FormTextarea
           label="จุดขายสินค้า"
-          value={formData.salesPoint}
+          value={formData.salesPoint || ""}
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -453,7 +554,7 @@ export function ProductForm({
 
         <FormTextarea
           label="คุณสมบัติ"
-          value={formData.properties}
+          value={formData.properties || ""}
           onChange={(e) =>
             setFormData((prev) => ({
               ...prev,
@@ -468,19 +569,8 @@ export function ProductForm({
         <div className="md:col-span-2">
           <ImageUpload
             label="อัพโหลดรูปภาพสินค้า"
-            value={formData.images || []}
-            onChange={(files) =>
-              setFormData((prev) => ({
-                ...prev,
-                images: files,
-                coverIndex:
-                  prev.coverIndex !== undefined && prev.coverIndex !== null
-                    ? prev.coverIndex
-                    : files.length > 0
-                      ? 0
-                      : null,
-              }))
-            }
+            value={images}
+            onChange={setImages}
             maxFiles={5}
             maxSizeMB={2}
             disabled={loading}

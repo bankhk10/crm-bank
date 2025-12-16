@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import fs from "fs";
-import path from "path";
+import cloudinary from "@/lib/cloudinary";
 
 const resourcePath = "/api/products";
 
@@ -22,19 +21,12 @@ export async function POST(request: Request, { params }: { params: any }) {
 
   try {
     const formData = await request.formData();
-    const coverIndexRaw = formData.get("coverIndex");
-    const coverIndex = coverIndexRaw ? parseInt(String(coverIndexRaw), 10) : undefined;
-
     const files = formData.getAll("images") as File[];
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "products", productId);
-    await fs.promises.mkdir(uploadDir, { recursive: true });
-
-    // create file records
     const created: Array<{ id: string; url: string; filename: string }> = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -42,59 +34,47 @@ export async function POST(request: Request, { params }: { params: any }) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const originalName = file.name || `file-${Date.now()}`;
-      const ext = path.extname(originalName) || ".jpg";
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}${ext}`;
-      const filepath = path.join(uploadDir, filename);
-      await fs.promises.writeFile(filepath, buffer);
 
-      const url = `/uploads/products/${productId}/${filename}`;
+      // Upload to Cloudinary
+      const uploadResult: any = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: `crm-bank/products/${productId}`,
+            resource_type: "auto",
+            transformation: [
+              { width: 1280, crop: "limit" }, // Resize if larger than 1280px
+              { quality: "auto:good" } // Reduce quality to efficient level (roughly equivalent to 80-90%)
+            ]
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
 
-      // temporary order set to 0; we'll reorder later
+      // Save to DB
       const rec = await (db as any).productImage.create({
         data: {
           productId,
-          url,
-          filename: originalName,
-          order: 0,
+          url: uploadResult.secure_url,
+          filename: originalName, // Store original name for display
+          order: i,
         },
       });
 
-      created.push({ id: rec.id, url, filename: originalName });
+      created.push({ id: rec.id, url: uploadResult.secure_url, filename: originalName });
     }
 
-    // Recompute ordering. We'll place the chosen cover (if provided and valid)
-    // first (order = 0), then other images in the existing order.
-
-    const allImages = await (db as any).productImage.findMany({
+    const result = await (db as any).productImage.findMany({
       where: { productId },
-      orderBy: { order: "asc" },
+      orderBy: { order: "asc" }
     });
 
-    let orderedIds: string[] = [];
-
-    if (typeof coverIndex === "number" && coverIndex >= 0 && coverIndex < created.length) {
-      const coverId = created[coverIndex].id;
-      orderedIds.push(coverId);
-      for (const img of allImages) {
-        if (img.id !== coverId) orderedIds.push(img.id);
-      }
-    } else {
-      // no chosen cover among uploaded files — keep existing order + appended created
-      orderedIds = allImages.map((i: any) => i.id);
-    }
-
-    // write orders sequentially
-    await Promise.all(
-      orderedIds.map((id, idx) =>
-        (db as any).productImage.update({ where: { id }, data: { order: idx } })
-      )
-    );
-
-    const result = await (db as any).productImage.findMany({ where: { productId }, orderBy: { order: "asc" } });
-
-    return NextResponse.json({ images: result });
+    return NextResponse.json({ images: result, created });
   } catch (err) {
-    console.error(err);
+    console.error("Cloudinary upload error:", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
@@ -131,17 +111,34 @@ export async function DELETE(request: Request, { params }: { params: any }) {
       where: { id: { in: imageIds }, productId },
     });
 
-    // delete files from disk
+    // Delete from Cloudinary
     for (const r of recs) {
       try {
-        // r.url is like '/uploads/products/{productId}/{storedFilename}'
-        const rel = String(r.url).replace(/^\//, "");
-        const filepath = path.join(process.cwd(), "public", rel);
-        if (fs.existsSync(filepath)) {
-          await fs.promises.unlink(filepath);
+        // Extract public_id from URL
+        // Example: https://res.cloudinary.com/cloudname/image/upload/v1234/crm-bank/products/123/filename.jpg
+        // We need: crm-bank/products/123/filename (no extension)
+        const urlParts = r.url.split('/');
+        const versionIndex = urlParts.findIndex((part: string) => part.startsWith('v') && !isNaN(Number(part.substring(1))));
+
+        if (versionIndex !== -1) {
+          const publicIdWithExt = urlParts.slice(versionIndex + 1).join('/');
+          const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove extension
+
+          await cloudinary.uploader.destroy(publicId);
+        } else {
+          // Try to guess if version is missing or structured differently
+          // Sometimes Cloudinary URLs don't have version if not transformed?
+          // But usually upload returns versioned url.
+          // Fallback: look for 'crm-bank' folder start?
+          const folderIndex = urlParts.indexOf('crm-bank');
+          if (folderIndex !== -1) {
+            const publicIdWithExt = urlParts.slice(folderIndex).join('/');
+            const publicId = publicIdWithExt.replace(/\.[^/.]+$/, "");
+            await cloudinary.uploader.destroy(publicId);
+          }
         }
       } catch (err) {
-        console.error("Failed to unlink file for image", r.id, err);
+        console.error("Failed to delete from Cloudinary", r.id, err);
       }
     }
 
@@ -149,12 +146,6 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     await (db as any).productImage.deleteMany({
       where: { id: { in: imageIds }, productId },
     });
-
-    // reorder remaining images
-    const remaining = await (db as any).productImage.findMany({ where: { productId }, orderBy: { order: 'asc' } });
-    await Promise.all(
-      remaining.map((img: any, idx: number) => (db as any).productImage.update({ where: { id: img.id }, data: { order: idx } }))
-    );
 
     const result = await (db as any).productImage.findMany({ where: { productId }, orderBy: { order: 'asc' } });
 
@@ -165,4 +156,49 @@ export async function DELETE(request: Request, { params }: { params: any }) {
   }
 }
 
+export async function PUT(request: Request, { params }: { params: any }) {
+  const session = await auth();
 
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAuthorized(resourcePath, session.user.permissions)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (!session.user.permissions?.["product.update"]?.allow) {
+    return NextResponse.json(
+      { error: "Forbidden - missing product.update" },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const { productId } = await params;
+    const body = await request.json().catch(() => ({}));
+    const imageIds: string[] = Array.isArray(body.imageIds) ? body.imageIds : [];
+
+    if (imageIds.length === 0) {
+      return NextResponse.json({ error: "No imageIds provided" }, { status: 400 });
+    }
+
+    // Update order for each image
+    for (let i = 0; i < imageIds.length; i++) {
+      await (db as any).productImage.updateMany({
+        where: { id: imageIds[i], productId },
+        data: { order: i },
+      });
+    }
+
+    const result = await (db as any).productImage.findMany({
+      where: { productId },
+      orderBy: { order: "asc" },
+    });
+
+    return NextResponse.json({ success: true, images: result });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Reorder failed" }, { status: 500 });
+  }
+}
