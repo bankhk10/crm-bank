@@ -509,6 +509,7 @@ model Sale {
   
   // Dates
   saleDate              DateTime
+  requestedDeliveryDate DateTime?  // วันที่ต้องการของ
   deliveryDate          DateTime?
   actualDeliveryDate    DateTime?
   deliveryUpdateCount   Int         @default(0)

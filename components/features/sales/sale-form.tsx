@@ -174,6 +174,9 @@ export function SaleForm({
   const [saleDate, setSaleDate] = useState(
     initialData?.saleDate || new Date().toISOString().split("T")[0]
   );
+  const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
+    (initialData as any)?.requestedDeliveryDate || ""
+  );
   const [deliveryDate, setDeliveryDate] = useState(
     initialData?.deliveryDate || ""
   );
@@ -467,6 +470,7 @@ export function SaleForm({
           ? promotionalCreditUsed
           : undefined,
         saleDate,
+        requestedDeliveryDate: requestedDeliveryDate || undefined,
         deliveryDate: deliveryDate || undefined,
         billingAddress,
         shippingAddress,
@@ -590,7 +594,14 @@ export function SaleForm({
           placeholder="เลือกเงื่อนไข"
           groupLabel="เงื่อนไข"
         />
-
+        <div>
+          <DatePicker
+            label="วันที่ต้องการของ"
+            value={requestedDeliveryDate}
+            onChange={(val) => setRequestedDeliveryDate(val || "")}
+            placeholder=""
+          />
+        </div>
         <div>
           <DatePicker
             label="วันที่ขาย *"
@@ -600,14 +611,6 @@ export function SaleForm({
           />
         </div>
 
-        <div>
-          <DatePicker
-            label="วันที่จัดส่ง"
-            value={deliveryDate}
-            onChange={(val) => setDeliveryDate(val || "")}
-            placeholder=""
-          />
-        </div>
       </div>
 
       {paymentTerm === "CREDIT" && (

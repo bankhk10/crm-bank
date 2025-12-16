@@ -49,6 +49,7 @@ export interface SaleFormData {
   usePromotionalCredit: boolean;
   promotionalCreditUsed?: number;
   saleDate: string;
+  requestedDeliveryDate?: string;
   deliveryDate?: string;
   billingAddress?: string;
   shippingAddress?: string;

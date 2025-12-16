@@ -271,6 +271,7 @@ export async function POST(request: NextRequest) {
           ? new Prisma.Decimal(body.promotionalCreditUsed)
           : null,
         saleDate: new Date(body.saleDate),
+        requestedDeliveryDate: body.requestedDeliveryDate ? new Date(body.requestedDeliveryDate) : null,
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
