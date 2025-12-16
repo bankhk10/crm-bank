@@ -4,14 +4,13 @@ import Image from "next/image";
 import { useCallback, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import FloatingLabelInput from "@/components/custom/LoginInput";
-import { Eye } from 'lucide-react';
+
 
 interface LoginFormProps {
   callbackUrl?: string | null;
@@ -149,11 +148,11 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                     aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                     className="text-gray-600 transition-all duration-200 hover:text-gray-800"
                   >
-                    
-                    <FontAwesomeIcon
-                      icon={showPassword ? faEyeSlash : faEye}
-                      className="text-xl px-3"
-                    />
+                    {showPassword ? (
+                      <EyeOff className="w-6 h-6 mx-3 mt-1" />
+                    ) : (
+                      <Eye className="w-6 h-6 mx-3 mt-1" />
+                    )}
                   </button>
                 }
               />
