@@ -280,7 +280,7 @@ export default function CustomerFormBroker({
           error={fieldErrors.email?.[0]}
         />
 
-        <div className="mt-2">
+        <div>
           <DatePicker
             label="วันเกิด"
             value={values.birthDate}
@@ -332,7 +332,7 @@ export default function CustomerFormBroker({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <FormInput
-          label="พืชหลัก (Crop Types)"
+          label="พืชหลัก"
           value={values.cropTypes}
           onChange={(e) =>
             setValues((p: any) => ({ ...p, cropTypes: e.target.value }))
@@ -448,7 +448,7 @@ export default function CustomerFormBroker({
         ข้อมูลอื่นๆ
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <FormSelect
           label="พนักงานที่รับผิดชอบ"
           value={values.responsibleEmployeeId ?? ""}
