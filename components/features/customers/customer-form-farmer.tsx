@@ -466,7 +466,7 @@ export default function CustomerFormFarmer({
         ข้อมูลอื่นๆ
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
         <FormSelect
           label="พนักงานที่รับผิดชอบ"
           value={values.responsibleEmployeeId ?? ""}
