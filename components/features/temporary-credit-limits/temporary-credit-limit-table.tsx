@@ -535,7 +535,7 @@ function useColumns(
             currency: "THB",
           }).format(value);
         },
-        meta: { minWidth: 120, width: 140, align: "right" },
+        meta: { minWidth: 120, width: 140, align: "left" },
       },
       {
         accessorKey: "expiryDate",
@@ -546,7 +546,7 @@ function useColumns(
           const date = typeof value === "string" ? new Date(value) : value;
           return format(date, "dd MMM yyyy", { locale: th });
         },
-        meta: { minWidth: 120, width: 120, align: "center" },
+        meta: { minWidth: 120, width: 120, align: "left" },
       },
       {
         accessorKey: "status",
