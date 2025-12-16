@@ -275,19 +275,19 @@ function useCustomerColumns(
               <ActionButton
                 href={`/customers/${customer.id}`}
                 icon={Eye}
-                label={`ดู ${customer.name}`}
+                label="ดู"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
               <ActionButton
                 href={`/customers/${customer.id}/edit`}
                 icon={Edit}
-                label={`แก้ไข ${customer.name}`}
+                label="แก้ไข"
                 colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
               />
               {canDelete && (
                 <ActionButton
                   icon={Trash2}
-                  label={`ลบ ${customer.name}`}
+                  label="ลบ"
                   colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
                   onClick={() => onDeleteRequest(customer)}
                 />
