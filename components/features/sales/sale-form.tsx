@@ -34,6 +34,7 @@ interface Customer {
   id: string;
   name: string;
   customerCode: string;
+  customerType: string;
   billingAddress?: string;
   shippingAddress?: string;
   creditLimits?: Array<{
@@ -218,7 +219,7 @@ export function SaleForm({
   // Load customers, employees, products
   useEffect(() => {
     Promise.all([
-      fetch("/api/customers").then((r) => r.json()),
+      fetch("/api/customers?type=DEALER").then((r) => r.json()),
       fetch("/api/employee").then((r) => r.json()),
       fetch("/api/products").then((r) => r.json()),
     ])
