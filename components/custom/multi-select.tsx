@@ -31,7 +31,6 @@ interface MultiSelectProps {
     defaultValue?: string[];
     placeholder?: string;
     searchable?: boolean;
-    hideSelectAll?: boolean;
     emptyIndicator?: React.ReactNode;
     className?: string;
     disabled?: boolean;
@@ -47,7 +46,6 @@ export function MultiSelect({
     defaultValue = [],
     placeholder = "Select options",
     searchable = true,
-    hideSelectAll = false,
     emptyIndicator,
     className,
     disabled = false,
@@ -173,7 +171,7 @@ export function MultiSelect({
                                                     "absolute inset-0 rounded-lg border-2 transition-all duration-200 ease-out",
                                                     isSelected
                                                         ? "bg-green-600 border-green-600"
-                                                        : "bg-white border-green-200"
+                                                        : "bg-white border-green-600"
                                                 )}>
                                                 </div>
 
