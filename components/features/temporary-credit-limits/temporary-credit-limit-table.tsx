@@ -197,7 +197,7 @@ function TemporaryCreditLimitToolbar({
         {/* Search */}
         <div className="space-y-2">
           <label className="text-base font-medium mx-2">ค้นหา</label>
-          <div className="relative">
+          <div className="relative mt-1">
             <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
             <Input
               value={searchValue ?? ""}
