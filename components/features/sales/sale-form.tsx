@@ -633,42 +633,16 @@ export function SaleForm({
         </div>
       )}
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่วางบิล
-      </h3>
-
-      <FormInput
-        label="ที่อยู่ / เลขที่ / ถนน"
-        value={billingStreet}
-        onChange={(e) => setBillingStreet(e.target.value)}
-        containerClassName="mt-6"
-      />
-
-      <ThaiAddressPicker
-        value={billingThaiAddress}
-        onChange={setBillingThaiAddress}
-      />
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ที่อยู่จัดส่ง
       </h3>
 
-      <div className="flex items-center justify-end mb-4">
-        <Button
-          type="button"
-          onClick={handleCopyAddress}
-          size="sm"
-          className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl"
-        >
-          <Copy className="h-4 w-4 mr-2" />
-          คัดลอกที่อยู่วางบิล
-        </Button>
-      </div>
-
       <FormInput
         label="ที่อยู่ / เลขที่ / ถนน"
         value={shippingStreet}
         onChange={(e) => setShippingStreet(e.target.value)}
+        containerClassName="mt-6"
       />
 
       <ThaiAddressPicker
