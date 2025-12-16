@@ -255,7 +255,7 @@ function TemporaryCreditLimitToolbar({
         <div className="flex flex-wrap gap-2 items-center lg:justify-end">
           {canCreate ? (
             <Link href="/temporary-credit-limits/new">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                 <span className="inline-flex items-center gap-2">
                   <PlusCircle className="h-4 w-4" />
                   สร้างคำขอใหม่
