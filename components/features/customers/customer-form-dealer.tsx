@@ -688,7 +688,7 @@ export default function CustomerFormDealer({
             clearFieldError("contactEmail");
           }}
         />
-        <div className="mt-2">
+        <div>
           <DatePicker
             label="วันเกิด"
             value={values.birthDate}
