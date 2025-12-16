@@ -166,45 +166,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              {canManage && (
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Link href={`/products/${productId}/manage`}>
-                    <Settings className="h-5 w-5 mr-2" />
-                    จัดการสินค้า
-                  </Link>
-                </Button>
-              )}
-              {canUpdate && (
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Link href={`/products/${productId}/edit`}>
-                    <Edit className="h-5 w-5 mr-2" />
-                    แก้ไข
-                  </Link>
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Trash2 className="h-5 w-5 mr-2" />
-                  ลบ
-                </Button>
-              )}
-            </div>
           </div>
         </div>
       </div>
