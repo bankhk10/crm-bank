@@ -8,18 +8,48 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/types/temporary-credit-limit";
-import { ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  CreditCard,
+  User,
+  Calendar,
+  DollarSign,
+  FileText,
+  Banknote,
+  Clock,
+  AlertCircle,
+  ShieldCheck
+} from "lucide-react";
 
-const getStatusBadge = (status: TemporaryCreditStatus) => {
+const getStatusConfig = (status: TemporaryCreditStatus) => {
   switch (status) {
     case "PENDING":
-      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">รออนุมัติ</Badge>;
+      return {
+        badge: <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 px-4 py-1.5 text-sm font-semibold">รออนุมัติ</Badge>,
+        icon: <Clock className="h-5 w-5 text-yellow-600" />,
+        gradient: "from-yellow-500 via-amber-500 to-orange-500"
+      };
     case "APPROVED":
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">อนุมัติแล้ว</Badge>;
+      return {
+        badge: <Badge className="bg-green-100 text-green-800 border-green-300 px-4 py-1.5 text-sm font-semibold">อนุมัติแล้ว</Badge>,
+        icon: <CheckCircle className="h-5 w-5 text-green-600" />,
+        gradient: "from-green-500 via-emerald-500 to-teal-500"
+      };
     case "REJECTED":
-      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">ไม่อนุมัติ</Badge>;
+      return {
+        badge: <Badge className="bg-red-100 text-red-800 border-red-300 px-4 py-1.5 text-sm font-semibold">ไม่อนุมัติ</Badge>,
+        icon: <XCircle className="h-5 w-5 text-red-600" />,
+        gradient: "from-red-500 via-rose-500 to-pink-500"
+      };
     default:
-      return <Badge variant="outline">{status}</Badge>;
+      return {
+        badge: <Badge variant="outline">{status}</Badge>,
+        icon: <AlertCircle className="h-5 w-5 text-gray-600" />,
+        gradient: "from-gray-500 via-slate-500 to-gray-600"
+      };
   }
 };
 
@@ -115,8 +145,11 @@ export default function ApproveTemporaryCreditLimitPage() {
 
   if (loading) {
     return (
-      <div className="bg-white shadow-sm sm:rounded-lg p-6">
-        <div className="text-center py-8">กำลังโหลดข้อมูล...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+        </div>
       </div>
     );
   }
@@ -155,149 +188,246 @@ export default function ApproveTemporaryCreditLimitPage() {
   };
 
   const isPending = data.status === "PENDING";
+  const statusConfig = getStatusConfig(data.status);
 
   return (
-    <section className="space-y-6">
-      <div className="flex items-center gap-4 mb-4">
-        <Button
-          variant="outline"
-          onClick={() => router.push("/temporary-credit-limits")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          กลับ
-        </Button>
+    <div className="min-h-screen">
+      {/* Hero Header Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Card */}
+        <div className={`bg-gradient-to-br ${statusConfig.gradient} text-white rounded-3xl shadow-xl border border-white/20 p-6 sm:p-8`}>
+          <Link
+            href="/temporary-credit-limits"
+            className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            กลับไปหน้ารายการวงเงินเครดิตชั่วคราว
+          </Link>
+
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <ShieldCheck className="h-8 w-8" />
+                <h1 className="text-3xl lg:text-4xl font-bold">อนุมัติ/ปฏิเสธคำขอ</h1>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  {statusConfig.icon}
+                  {statusConfig.badge}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-      <div className="bg-white shadow-sm sm:rounded-lg">
-        <div className="p-6">
-          <div className="border-b pb-4 mb-6">
-            <h5 className="font-semibold text-3xl">
-              อนุมัติ/ปฏิเสธคำขอวงเงินเครดิตชั่วคราว
-            </h5>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <div>
-              <label className="block text-sm font-medium text-gray-500">สถานะ</label>
-              <div className="mt-1">{getStatusBadge(data.status)}</div>
+          {/* Amount Card - Featured */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-emerald-200 to-emerald-200">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Banknote className="h-6 w-6 text-emerald-600" />
+                จำนวนเงินที่ขอ
+              </h2>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">รหัสลูกค้า</label>
-              <p className="mt-1 text-gray-900">{data.customer.customerCode}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">ชื่อลูกค้า</label>
-              <p className="mt-1 text-gray-900">{data.customer.name}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">จำนวนเงินที่ขอ</label>
-              <p className="mt-1 text-gray-900 font-semibold text-lg">
-                {formatCurrency(Number(data.requestedAmount))}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">วันหมดอายุ</label>
-              <p className="mt-1 text-gray-900">{formatDateOnly(data.expiryDate)}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">ผู้ขอ</label>
-              <p className="mt-1 text-gray-900">{data.requestedBy?.name || "-"}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-500">วันที่ขอ</label>
-              <p className="mt-1 text-gray-900">{formatDate(data.requestedAt)}</p>
-            </div>
-
-            {data.notes && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-500">หมายเหตุ</label>
-                <p className="mt-1 text-gray-900 bg-gray-50 p-3 rounded">{data.notes}</p>
+            <div className="p-8">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-8 border border-emerald-200 text-center">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-3 bg-emerald-600 rounded-lg">
+                    <DollarSign className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <p className="text-5xl font-bold text-emerald-900">
+                  {formatCurrency(Number(data.requestedAmount))}
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
-          {isPending && (
-            <div className="border-t pt-6">
-              <h6 className="font-semibold text-xl mb-4">การอนุมัติ</h6>
+          {/* Information Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Customer Information Card */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-100 to-indigo-100">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <User className="h-6 w-6 text-blue-600" />
+                  ข้อมูลลูกค้า
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <DetailItem
+                  icon={<User className="h-5 w-5" />}
+                  label="รหัสลูกค้า"
+                  value={data.customer.customerCode}
+                />
+                <DetailItem
+                  icon={<User className="h-5 w-5" />}
+                  label="ชื่อลูกค้า"
+                  value={data.customer.name}
+                />
+              </div>
+            </div>
 
-              {!showRejectForm ? (
-                <div className="flex gap-4">
-                  <Button
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                    onClick={handleApprove}
-                    disabled={submitting}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    อนุมัติ
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setShowRejectForm(true)}
-                    disabled={submitting}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    ไม่อนุมัติ
-                  </Button>
+            {/* Request Details Card */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-100 to-pink-100">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-purple-600" />
+                  รายละเอียดคำขอ
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <DetailItem
+                  icon={<Calendar className="h-5 w-5" />}
+                  label="วันหมดอายุ"
+                  value={formatDateOnly(data.expiryDate)}
+                />
+                <DetailItem
+                  icon={<User className="h-5 w-5" />}
+                  label="ผู้ขอ"
+                  value={data.requestedBy?.name || "-"}
+                />
+                <DetailItem
+                  icon={<Calendar className="h-5 w-5" />}
+                  label="วันที่ขอ"
+                  value={formatDate(data.requestedAt)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Notes Card - Conditional */}
+          {data.notes && (
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-gray-50">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-slate-600" />
+                  หมายเหตุ
+                </h2>
+              </div>
+              <div className="p-6">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{data.notes}</p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      เหตุผลที่ไม่อนุมัติ <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      rows={4}
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      placeholder="กรุณาระบุเหตุผล..."
-                    />
-                  </div>
-                  <div className="flex gap-4">
-                    <Button
-                      variant="destructive"
-                      onClick={handleReject}
-                      disabled={submitting || !rejectionReason.trim()}
-                    >
-                      ยืนยันปฏิเสธ
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowRejectForm(false);
-                        setRejectionReason("");
-                      }}
-                      disabled={submitting}
-                    >
-                      ยกเลิก
-                    </Button>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           )}
 
+          {/* Approval Actions Card */}
+          {isPending && (
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-100 to-purple-100">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <ShieldCheck className="h-6 w-6 text-indigo-600" />
+                  การอนุมัติ
+                </h2>
+              </div>
+              <div className="p-6">
+                {!showRejectForm ? (
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex-1"
+                      onClick={handleApprove}
+                      disabled={submitting}
+                    >
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      {submitting ? "กำลังดำเนินการ..." : "อนุมัติคำขอ"}
+                    </Button>
+                    <Button
+                      size="lg"
+                      className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex-1"
+                      onClick={() => setShowRejectForm(true)}
+                      disabled={submitting}
+                    >
+                      <XCircle className="h-5 w-5 mr-2" />
+                      ไม่อนุมัติคำขอ
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+                      <label className="block text-base font-semibold text-red-900 mb-3">
+                        เหตุผลที่ไม่อนุมัติ <span className="text-red-600">*</span>
+                      </label>
+                      <textarea
+                        className="w-full px-4 py-3 border-2 border-red-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-gray-900 placeholder-gray-400"
+                        rows={5}
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="กรุณาระบุเหตุผลที่ไม่อนุมัติคำขอนี้..."
+                        disabled={submitting}
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button
+                        size="lg"
+                        className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 flex-1"
+                        onClick={handleReject}
+                        disabled={submitting || !rejectionReason.trim()}
+                      >
+                        <XCircle className="h-5 w-5 mr-2" />
+                        {submitting ? "กำลังดำเนินการ..." : "ยืนยันปฏิเสธ"}
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="border-2 hover:bg-gray-50 flex-1"
+                        onClick={() => {
+                          setShowRejectForm(false);
+                          setRejectionReason("");
+                        }}
+                        disabled={submitting}
+                      >
+                        ยกเลิก
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Already Processed Alert */}
           {!isPending && (
-            <Alert>
-              <AlertDescription>
+            <Alert className="border-2 border-blue-200 bg-blue-50">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+              <AlertDescription className="text-blue-900 font-medium">
                 คำขอนี้ได้รับการดำเนินการแล้ว
               </AlertDescription>
             </Alert>
           )}
         </div>
       </div>
-    </section>
+    </div>
+  );
+}
+
+function DetailItem({
+  icon,
+  label,
+  value,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+      {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
+      <div className="flex-1 min-w-0">
+        <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
+        <dd className="text-base text-gray-900 font-medium break-words">{value || "-"}</dd>
+      </div>
+    </div>
   );
 }
