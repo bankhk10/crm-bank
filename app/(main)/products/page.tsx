@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import Link from "next/link";
+import { Package } from "lucide-react";
 
 export default function ProductsPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.products");
@@ -206,6 +207,16 @@ export default function ProductsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <Package className="w-9 h-9 text-blue-600" />
+
+              <h1 className="text-3xl font-bold tracking-tight">
+                ข้อมูลสินค้า
+              </h1>
+            </div>
+          </div>
+
           {/* Mobile toolbar - hidden since ProductsTable has its own responsive toolbar */}
           <div className="hidden">
             <div className="bg-white p-3 rounded-xl shadow-sm space-y-3">
