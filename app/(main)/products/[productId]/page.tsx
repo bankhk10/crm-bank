@@ -105,85 +105,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/products"
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          กลับไปหน้ารายการสินค้า
-        </Link>
-
-        <div className="flex gap-2">
-          {canManage && (
-            <Button
-              asChild
-              variant="outline"
-              className="text-green-600 border-green-200 hover:bg-green-50"
-            >
-              <Link href={`/products/${productId}/manage`}>
-                <Settings className="h-4 w-4 mr-2" />
-                จัดการสินค้า
-              </Link>
-            </Button>
-          )}
-          {canUpdate && (
-            <Button
-              asChild
-              variant="outline"
-              className="text-purple-600 border-purple-200 hover:bg-purple-50"
-            >
-              <Link href={`/products/${productId}/edit`}>
-                <Edit className="h-4 w-4 mr-2" />
-                แก้ไข
-              </Link>
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              variant="destructive"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              ลบ
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Delete Dialog */}
-      {deleteDialogOpen && (
-        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
-          <div
-            className="bg-black/50 absolute inset-0"
-            onClick={() => setDeleteDialogOpen(false)}
-          />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-lg p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">ยืนยันการลบ</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              คุณต้องการลบสินค้า <strong>{product.name}</strong> ใช่หรือไม่?
-              การกระทำนี้ไม่สามารถย้อนกลับได้
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(false)}
-                disabled={deleting}
-              >
-                ยกเลิก
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleting}
-              >
-                {deleting ? "กำลังลบ..." : "ลบสินค้า"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
@@ -231,11 +152,10 @@ export default function ProductDetailPage() {
               label="สถานะสินค้า"
               value={
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                    product.status === "ACTIVE"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${product.status === "ACTIVE"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-gray-100 text-gray-800"
+                    }`}
                 >
                   {product.status === "ACTIVE" ? "ใช้งาน" : "ไม่ใช้งาน"}
                 </span>
