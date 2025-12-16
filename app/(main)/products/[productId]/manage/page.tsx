@@ -7,9 +7,15 @@ import { useParams, useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { FormInput } from "@/components/custom/FormInput";
 import { FormSelect } from "@/components/custom/FormSelect";
-import { ArrowLeft, Plus, Trash2, Banknote } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Banknote, Loader2 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import Link from "next/link";
 import type { Product, ProductManagementFormData } from "@/types/product";
@@ -115,7 +121,7 @@ export default function ProductManagementPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push(`/products/${productId}`);
+        router.push(`/products`);
         router.refresh();
       }, 1500);
     } catch (err) {
@@ -280,362 +286,376 @@ export default function ProductManagementPage() {
    * ---------------------------------------------------- */
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
-      {/* Page Title */}
-      <div className=" bg-white border rounded-xl shadow-sm p-8 space-y-8">
-        <h1 className="text-center text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
-        <p className="text-muted-foreground text-center">{product.name}</p>
+    <>
+      {success && (
+        <Dialog open={true} onOpenChange={(open) => !open && setSuccess(false)}>
+          <DialogContent showCloseButton={false}>
+            <div className="flex flex-col items-center justify-center py-8 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+              <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
+              <DialogDescription>กำลังนำทางกลับไปหน้ารายการสินค้า...</DialogDescription>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
-        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-          <h2 className="text-xl font-semibold text-foreground">
-            จัดการราคาสินค้า
-          </h2>
+      <form onSubmit={handleSubmit} className="space-y-10">
+        {/* Page Title */}
+        <div className=" bg-white border rounded-xl shadow-sm p-8 space-y-8">
+          <h1 className="text-center text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
+          <p className="text-muted-foreground text-center">{product.name}</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormInput
-              label="ราคาสินค้า (บาท)"
-              type="number"
-              value={formData.price || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  price: e.target.value ? Number(e.target.value) : undefined,
-                }))
-              }
-              onWheel={(e) => e.currentTarget.blur()}
-              leftIcon={<Banknote className="h-5 w-5" />}
-              disabled={saving}
-            />
-            <FormInput
-              label="งบส่งเสริมการขาย (บาท)"
-              type="number"
-              value={formData.promotionBudget || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  promotionBudget: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                }))
-              }
-              onWheel={(e) => e.currentTarget.blur()}
-              leftIcon={<Banknote className="h-5 w-5" />}
-              disabled={saving}
-            />
+          <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+            <h2 className="text-xl font-semibold text-foreground">
+              จัดการราคาสินค้า
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                label="ราคาสินค้า (บาท)"
+                type="number"
+                value={formData.price || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    price: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+                onWheel={(e) => e.currentTarget.blur()}
+                leftIcon={<Banknote className="h-5 w-5" />}
+                disabled={saving}
+              />
+              <FormInput
+                label="งบส่งเสริมการขาย (บาท)"
+                type="number"
+                value={formData.promotionBudget || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    promotionBudget: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
+                }
+                onWheel={(e) => e.currentTarget.blur()}
+                leftIcon={<Banknote className="h-5 w-5" />}
+                disabled={saving}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">รายการของแถม</h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addFreeItem}
-              disabled={saving}
-            >
-              <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการของแถม
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {formData.freeItems.map((item, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
+          <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">รายการของแถม</h2>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addFreeItem}
+                disabled={saving}
               >
-                <FormInput
-                  label="จำนวนที่ซื้อ"
-                  type="number"
-                  value={item.purchaseQty}
-                  onChange={(e) =>
-                    updateFreeItem(index, "purchaseQty", Number(e.target.value))
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving}
-                />
-                <FormInput
-                  label="จำนวนของแถม"
-                  type="number"
-                  value={item.freeQty}
-                  onChange={(e) =>
-                    updateFreeItem(index, "freeQty", Number(e.target.value))
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving}
-                />
-                <FormInput
-                  label="ราคาสุทธิ"
-                  type="number"
-                  value={item.netPrice || ""}
-                  onChange={(e) =>
-                    updateFreeItem(
-                      index,
-                      "netPrice",
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving}
-                />
-                <FormInput
-                  label="หมายเหตุ"
-                  type="text"
-                  value={item.notes || ""}
-                  onChange={(e) =>
-                    updateFreeItem(index, "notes", e.target.value)
-                  }
-                  disabled={saving}
-                />
-                <div className="flex justify-end mt-8">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeFreeItem(index)}
-                    disabled={saving}
-                    className="px-3"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {formData.freeItems.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">
-                ยังไม่มีรายการของแถม
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">รายการส่งเสริมการขาย</h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addPromotionItem}
-              disabled={saving}
-            >
-              <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการส่งเสริมการขาย
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {formData.promotionItems.map((item, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
-              >
-                <FormInput
-                  label="ชื่อสินค้า"
-                  type="text"
-                  value={item.name}
-                  onChange={(e) =>
-                    updatePromotionItem(index, "name", e.target.value)
-                  }
-                  disabled={saving}
-                />
-                <FormInput
-                  label="จำนวนคงเหลือ"
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) =>
-                    updatePromotionItem(
-                      index,
-                      "quantity",
-                      Number(e.target.value)
-                    )
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving}
-                />
-                <FormInput
-                  label="ราคา"
-                  type="number"
-                  value={item.price || ""}
-                  onChange={(e) =>
-                    updatePromotionItem(
-                      index,
-                      "price",
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving}
-                />
-                <FormInput
-                  label="หมายเหตุ"
-                  type="text"
-                  value={item.notes || ""}
-                  onChange={(e) =>
-                    updatePromotionItem(index, "notes", e.target.value)
-                  }
-                  disabled={saving}
-                />
-                <div className="flex justify-end mt-8">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removePromotionItem(index)}
-                    disabled={saving}
-                    className="px-3"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {formData.promotionItems.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">
-                ยังไม่มีรายการส่งเสริมการขาย
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">จัดการสต็อกสินค้า</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                ผลรวมจำนวนคงเหลือ: {getTotalStock()} หน่วย
-              </p>
+                <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการของแถม
+              </Button>
             </div>
 
+            <div className="space-y-4">
+              {formData.freeItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
+                >
+                  <FormInput
+                    label="จำนวนที่ซื้อ"
+                    type="number"
+                    value={item.purchaseQty}
+                    onChange={(e) =>
+                      updateFreeItem(index, "purchaseQty", Number(e.target.value))
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="จำนวนของแถม"
+                    type="number"
+                    value={item.freeQty}
+                    onChange={(e) =>
+                      updateFreeItem(index, "freeQty", Number(e.target.value))
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="ราคาสุทธิ"
+                    type="number"
+                    value={item.netPrice || ""}
+                    onChange={(e) =>
+                      updateFreeItem(
+                        index,
+                        "netPrice",
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="หมายเหตุ"
+                    type="text"
+                    value={item.notes || ""}
+                    onChange={(e) =>
+                      updateFreeItem(index, "notes", e.target.value)
+                    }
+                    disabled={saving}
+                  />
+                  <div className="flex justify-end mt-8">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeFreeItem(index)}
+                      disabled={saving}
+                      className="px-3"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {formData.freeItems.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  ยังไม่มีรายการของแถม
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">รายการส่งเสริมการขาย</h2>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addPromotionItem}
+                disabled={saving}
+              >
+                <Plus className="h-4 w-4 mr-2" /> เพิ่มรายการส่งเสริมการขาย
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {formData.promotionItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
+                >
+                  <FormInput
+                    label="ชื่อสินค้า"
+                    type="text"
+                    value={item.name}
+                    onChange={(e) =>
+                      updatePromotionItem(index, "name", e.target.value)
+                    }
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="จำนวนคงเหลือ"
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      updatePromotionItem(
+                        index,
+                        "quantity",
+                        Number(e.target.value)
+                      )
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="ราคา"
+                    type="number"
+                    value={item.price || ""}
+                    onChange={(e) =>
+                      updatePromotionItem(
+                        index,
+                        "price",
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving}
+                  />
+                  <FormInput
+                    label="หมายเหตุ"
+                    type="text"
+                    value={item.notes || ""}
+                    onChange={(e) =>
+                      updatePromotionItem(index, "notes", e.target.value)
+                    }
+                    disabled={saving}
+                  />
+                  <div className="flex justify-end mt-8">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removePromotionItem(index)}
+                      disabled={saving}
+                      className="px-3"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {formData.promotionItems.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  ยังไม่มีรายการส่งเสริมการขาย
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">จัดการสต็อกสินค้า</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  ผลรวมจำนวนคงเหลือ: {getTotalStock()} หน่วย
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addStockLot}
+                disabled={saving}
+              >
+                <Plus className="h-4 w-4 mr-2" /> เพิ่มสต็อกสินค้า
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {formData.stockLots.map((lot, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
+                >
+                  {lot.id && (
+                    <div className="md:col-span-7">
+                      <p className="text-sm font-medium text-foreground">
+                        {lot.lotNumber}
+                        {lot.isUsed && (
+                          <span className="ml-2 text-xs text-red-600">
+                            (ถูกใช้งานแล้ว)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  {!lot.id && (
+                    <div className="md:col-span-7 mb-2">
+                      <p className="text-base font-semibold text-blue-600">
+                        Lot #{index + 1}
+                      </p>
+                    </div>
+                  )}
+
+                  <FormInput
+                    label="จำนวนที่เพิ่ม"
+                    type="number"
+                    value={lot.quantity}
+                    onChange={(e) =>
+                      updateStockLot(index, "quantity", Number(e.target.value))
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+
+                  <DatePicker
+                    label="วันที่นำเข้า"
+                    value={lot.importDate}
+                    onChange={(v) => updateStockLot(index, "importDate", v || "")}
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+
+                  <DatePicker
+                    label="วันหมดอายุ"
+                    value={lot.expiryDate || undefined}
+                    onChange={(v) => updateStockLot(index, "expiryDate", v || undefined)}
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+
+                  <FormSelect
+                    label="สถานที่จัดเก็บ"
+                    options={storageOptions}
+                    value={lot.storageLocation || ""}
+                    onChange={(value) =>
+                      updateStockLot(index, "storageLocation", value)
+                    }
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+
+                  <FormInput
+                    label="หมายเหตุ"
+                    type="text"
+                    value={lot.notes || ""}
+                    onChange={(e) =>
+                      updateStockLot(index, "notes", e.target.value)
+                    }
+                    disabled={saving || !!(lot.id && lot.isUsed)}
+                  />
+
+                  <div className="flex justify-end mt-8">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeStockLot(index)}
+                      disabled={saving || !!(lot.id && lot.isUsed)}
+                      className="px-3"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {formData.stockLots.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">
+                  ยังไม่มีสต็อกสินค้า
+                </p>
+              )}
+            </div>
+          </div>
+          {/* Buttons */}
+          <div className="flex justify-center gap-4 pt-4 border-t">
             <Button
+              size="lg"
+              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
               type="button"
-              variant="outline"
-              size="sm"
-              onClick={addStockLot}
+              onClick={() => router.back()}
               disabled={saving}
             >
-              <Plus className="h-4 w-4 mr-2" /> เพิ่มสต็อกสินค้า
+              ยกเลิก
+            </Button>
+
+            <Button
+              size="lg"
+              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+              type="submit"
+              disabled={saving}
+            >
+              {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
             </Button>
           </div>
-
-          <div className="space-y-4">
-            {formData.stockLots.map((lot, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] gap-4 p-4 border rounded-lg"
-              >
-                {lot.id && (
-                  <div className="md:col-span-7">
-                    <p className="text-sm font-medium text-foreground">
-                      {lot.lotNumber}
-                      {lot.isUsed && (
-                        <span className="ml-2 text-xs text-red-600">
-                          (ถูกใช้งานแล้ว)
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {!lot.id && (
-                  <div className="md:col-span-7 mb-2">
-                    <p className="text-base font-semibold text-blue-600">
-                      Lot #{index + 1}
-                    </p>
-                  </div>
-                )}
-
-                <FormInput
-                  label="จำนวนที่เพิ่ม"
-                  type="number"
-                  value={lot.quantity}
-                  onChange={(e) =>
-                    updateStockLot(index, "quantity", Number(e.target.value))
-                  }
-                  onWheel={(e) => e.currentTarget.blur()}
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                />
-
-                <DatePicker
-                  label="วันที่นำเข้า"
-                  value={lot.importDate}
-                  onChange={(v) => updateStockLot(index, "importDate", v || "")}
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                />
-
-                <DatePicker
-                  label="วันหมดอายุ"
-                  value={lot.expiryDate || undefined}
-                  onChange={(v) => updateStockLot(index, "expiryDate", v || undefined)}
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                />
-
-                <FormSelect
-                  label="สถานที่จัดเก็บ"
-                  options={storageOptions}
-                  value={lot.storageLocation || ""}
-                  onChange={(value) =>
-                    updateStockLot(index, "storageLocation", value)
-                  }
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                />
-
-                <FormInput
-                  label="หมายเหตุ"
-                  type="text"
-                  value={lot.notes || ""}
-                  onChange={(e) =>
-                    updateStockLot(index, "notes", e.target.value)
-                  }
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                />
-
-                <div className="flex justify-end mt-8">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeStockLot(index)}
-                    disabled={saving || !!(lot.id && lot.isUsed)}
-                    className="px-3"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {formData.stockLots.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">
-                ยังไม่มีสต็อกสินค้า
-              </p>
-            )}
-          </div>
         </div>
-        {/* Buttons */}
-        <div className="flex justify-center gap-4 pt-4 border-t">
-          <Button
-            size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-            type="button"
-            onClick={() => router.back()}
-            disabled={saving}
-          >
-            ยกเลิก
-          </Button>
-
-          <Button
-            size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-            type="submit"
-            disabled={saving}
-          >
-            {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-          </Button>
-        </div>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }
