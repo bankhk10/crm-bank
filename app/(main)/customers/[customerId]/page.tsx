@@ -34,7 +34,8 @@ import {
   ShoppingBag,
   Target,
   Sprout,
-  Wallet
+  Wallet,
+  Flower
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,6 +87,16 @@ type Customer = {
   mainProductSold?: string[] | null;
   brandsSold?: string[] | null;
   areaType?: string | null;
+  // Farmer fields
+  farmPlots?: Array<{
+    latitude?: string;
+    longitude?: string;
+    areaRai?: string;
+    cropType?: string;
+    variety?: string;
+    soilType?: string;
+    waterSource?: string;
+  }>;
 };
 
 const statusMap: Record<string, { label: string; className: string; gradient: string }> = {
@@ -589,6 +600,56 @@ export default function CustomerDetailPage() {
                   fullWidth
                 />
                 <DetailItem label="ประเภทพื้นที่" value={customer.areaType || "-"} icon={MapPin} />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section: Farmer Info (Farm Plots) */}
+          {customer.customerType === 'FARMER' && customer.farmPlots && customer.farmPlots.length > 0 && (
+            <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="pt-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 pb-5">
+                <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
+                    <Sprout className="h-6 w-6" />
+                  </div>
+                  ข้อมูลแปลงเกษตร ({customer.farmPlots.length} แปลง)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                {customer.farmPlots.map((plot, index) => (
+                  <div key={index} className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+                    <h4 className="font-bold text-lg text-green-800 mb-4 flex items-center gap-2">
+                      <span className="bg-green-100 text-green-700 w-8 h-8 flex items-center justify-center rounded-lg text-sm">
+                        {index + 1}
+                      </span>
+                      รายละเอียดแปลง
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+                      <DetailItem label="ชนิดพืช" value={plot.cropType || "-"} icon={Sprout} />
+                      <DetailItem label="สายพันธุ์" value={plot.variety || "-"} icon={Flower} />
+                      <DetailItem label="ขนาดพื้นที่ (ไร่)" value={plot.areaRai || "-"} icon={MapPin} />
+                      <DetailItem label="ประเภทดิน" value={plot.soilType || "-"} icon={MapPin} />
+                      <DetailItem label="แหล่งน้ำ" value={plot.waterSource || "-"} icon={Target} />
+                      <DetailItem
+                        label="พิกัด"
+                        value={
+                          plot.latitude && plot.longitude ? (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${plot.latitude},${plot.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700 underline flex items-center gap-1"
+                            >
+                              <Navigation className="w-3 h-3" />
+                              {plot.latitude}, {plot.longitude}
+                            </a>
+                          ) : "-"
+                        }
+                        icon={Navigation}
+                      />
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}
