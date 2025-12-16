@@ -440,7 +440,7 @@ export default function ApproveTemporaryCreditLimitPage() {
 
       {/* Approve Confirmation Dialog */}
       <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100">
               <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -476,7 +476,7 @@ export default function ApproveTemporaryCreditLimitPage() {
 
       {/* Reject Confirmation Dialog */}
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-rose-100">
               <AlertTriangle className="h-10 w-10 text-red-600" />
@@ -512,11 +512,11 @@ export default function ApproveTemporaryCreditLimitPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
           <DialogHeader>
             <div className={`mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full animate-bounce ${successType === "approve"
-                ? "bg-gradient-to-br from-green-100 to-emerald-100"
-                : "bg-gradient-to-br from-orange-100 to-amber-100"
+              ? "bg-gradient-to-br from-green-100 to-emerald-100"
+              : "bg-gradient-to-br from-orange-100 to-amber-100"
               }`}>
               {successType === "approve" ? (
                 <CheckCircle2 className="h-12 w-12 text-green-600" />
@@ -538,8 +538,8 @@ export default function ApproveTemporaryCreditLimitPage() {
             <Button
               onClick={handleSuccessClose}
               className={`w-full sm:w-40 ${successType === "approve"
-                  ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  : "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
+                ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                : "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700"
                 } text-white`}
             >
               ตกลง
