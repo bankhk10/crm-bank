@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -37,7 +38,10 @@ export default function SalesPage() {
   const [appliedFilters, setAppliedFilters] = useState<{ query: string }>({
     query: "",
   });
-  const [deleteCandidate, setDeleteCandidate] = useState<SaleRecord | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [deleteCandidate, setDeleteCandidate] = useState<SaleRecord | null>(
+    null
+  );
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -86,6 +90,12 @@ export default function SalesPage() {
         if (appliedFilters.query) {
           params.set("search", appliedFilters.query);
         }
+        if (dateRange?.from) {
+          params.set("dateFrom", dateRange.from.toISOString());
+        }
+        if (dateRange?.to) {
+          params.set("dateTo", dateRange.to.toISOString());
+        }
 
         const res = await fetch(`/api/sales?${params.toString()}`, {
           signal: controller.signal,
@@ -113,7 +123,7 @@ export default function SalesPage() {
       mounted = false;
       controller.abort();
     };
-  }, [page, perPage, appliedFilters]);
+  }, [page, perPage, appliedFilters, dateRange]);
 
   const handleDelete = async () => {
     if (!deleteCandidate) return;
@@ -155,9 +165,7 @@ export default function SalesPage() {
     return (
       <div className="container mx-auto py-8">
         <Alert variant="destructive">
-          <AlertDescription>
-            คุณไม่มีสิทธิ์เข้าถึงหน้านี้
-          </AlertDescription>
+          <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้านี้</AlertDescription>
         </Alert>
       </div>
     );
@@ -167,9 +175,7 @@ export default function SalesPage() {
     <div className="container mx-auto py-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">รายการขาย</h1>
-        <p className="text-gray-500 mt-2">
-          จัดการรายการขายสินค้าทั้งหมด
-        </p>
+        <p className="text-gray-500 mt-2">จัดการรายการขายสินค้าทั้งหมด</p>
       </div>
 
       {error && (
@@ -188,6 +194,8 @@ export default function SalesPage() {
         onSearchChange={(value) => setFilterDraft({ query: value })}
         isTyping={isTyping}
         onSearchSubmit={handleSearchSubmit}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
         onPageChange={setPage}
         onPerPageChange={setPerPage}
         onDelete={setDeleteCandidate}
@@ -197,7 +205,10 @@ export default function SalesPage() {
         canApprove={canApprove}
       />
 
-      <Dialog open={!!deleteCandidate} onOpenChange={() => setDeleteCandidate(null)}>
+      <Dialog
+        open={!!deleteCandidate}
+        onOpenChange={() => setDeleteCandidate(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>ยืนยันการลบรายการขาย</DialogTitle>

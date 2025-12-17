@@ -1,29 +1,54 @@
 "use client";
 
-import React from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Eye, Pencil, Trash2, CheckCircle, XCircle } from "lucide-react";
+import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-
-import type { SaleWithRelations } from "@/types/sales";
-import { SaleStatusLabels, PaymentTermLabels, getSaleStatusColor } from "@/types/sales";
-import { CustomTable } from "@/components/custom/custom-table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ColumnDef } from "@tanstack/react-table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  PlusCircle,
+  Calendar as CalendarIcon,
+  Search,
+} from "lucide-react";
+import { DateRange } from "react-day-picker";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import CustomTable from "@/components/custom/custom-table";
+
+import type { SaleWithRelations, SaleStatus } from "@/types/sales";
+import { SaleStatusLabels, PaymentTermLabels } from "@/types/sales";
 
 export type SaleRecord = SaleWithRelations;
 
-interface SalesTableProps {
+export interface SalesTableProps {
   sales: SaleRecord[];
   total: number;
   page: number;
@@ -33,6 +58,8 @@ interface SalesTableProps {
   onSearchChange?: (value: string) => void;
   isTyping?: boolean;
   onSearchSubmit?: () => void;
+  dateRange?: DateRange;
+  onDateRangeChange?: (range: DateRange | undefined) => void;
   onPageChange?: (page: number) => void;
   onPerPageChange?: (perPage: number) => void;
   onDelete?: (sale: SaleRecord) => void;
@@ -42,180 +69,744 @@ interface SalesTableProps {
   canApprove?: boolean;
 }
 
-export function SalesTable({
-  sales,
-  total,
-  page,
-  perPage,
-  loading,
-  searchValue,
-  onSearchChange,
-  isTyping,
-  onSearchSubmit,
-  onPageChange,
-  onPerPageChange,
-  onDelete,
-  canCreate = false,
-  canEdit = false,
-  canDelete = false,
-  canApprove = false,
-}: SalesTableProps) {
-  const columns: ColumnDef<SaleRecord>[] = [
-    {
-      accessorKey: "saleNumber",
-      header: "เลขที่ใบขาย",
-      cell: ({ row }) => (
-        <Link
-          href={`/sales/${row.original.id}`}
-          className="font-medium text-blue-600 hover:underline"
-        >
-          {row.original.saleNumber}
-        </Link>
-      ),
-    },
-    {
-      accessorKey: "customer",
-      header: "ลูกค้า",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.customer.name}</div>
-          <div className="text-xs text-gray-500">
-            {row.original.customer.customerCode}
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "employee",
-      header: "พนักงานขาย",
-      cell: ({ row }) => row.original.employee.name,
-    },
-    {
-      accessorKey: "saleDate",
-      header: "วันที่ขาย",
-      cell: ({ row }) =>
-        format(new Date(row.original.saleDate), "dd MMM yyyy", { locale: th }),
-    },
-    {
-      accessorKey: "totalAmount",
-      header: "ยอดรวม",
-      cell: ({ row }) => (
-        <div className=" font-medium">
-          ฿{Number(row.original.totalAmount).toLocaleString("th-TH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "paymentTerm",
-      header: "เงื่อนไขชำระ",
-      cell: ({ row }) => (
-        <Badge variant="outline">
-          {PaymentTermLabels[row.original.paymentTerm]}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "สถานะ",
-      cell: ({ row }) => (
-        <Badge className={getSaleStatusColor(row.original.status)}>
-          {SaleStatusLabels[row.original.status]}
-        </Badge>
-      ),
-    },
-    {
-      id: "actions",
-      header: "จัดการ",
-      cell: ({ row }) => {
-        const sale = row.original;
-        const canEditThis = canEdit && sale.status === "PENDING";
-        const canApproveThis = canApprove && sale.status === "PENDING";
+// --- Constants & Styles ---
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">เปิดเมนู</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>การจัดการ</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/sales/${sale.id}`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  ดูรายละเอียด
-                </Link>
-              </DropdownMenuItem>
-              {canEditThis && (
-                <DropdownMenuItem asChild>
-                  <Link href={`/sales/${sale.id}/edit`}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    แก้ไข
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {canApproveThis && (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/sales/${sale.id}/approve`}>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      อนุมัติ
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/sales/${sale.id}/approve`}>
-                      <XCircle className="mr-2 h-4 w-4" />
-                      ไม่อนุมัติ
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-              {canDelete && sale.status === "PENDING" && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => onDelete?.(sale)}
-                    className="text-red-600"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    ลบ
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
+const statusStyle: Record<
+  SaleStatus,
+  { label: string; className: string; dot: string }
+> = {
+  PENDING: {
+    label: "รออนุมัติ",
+    className:
+      "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-50",
+    dot: "bg-yellow-500",
+  },
+  APPROVED: {
+    label: "อนุมัติแล้ว",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
+    dot: "bg-emerald-500",
+  },
+  REJECTED: {
+    label: "ไม่อนุมัติ",
+    className:
+      "bg-red-50 text-red-700 ring-1 ring-red-100 dark:bg-red-900/30 dark:text-red-50",
+    dot: "bg-red-500",
+  },
+  AWAITING_PAYMENT: {
+    label: "รอชำระเงิน",
+    className:
+      "bg-blue-50 text-blue-700 ring-1 ring-blue-100 dark:bg-blue-900/30 dark:text-blue-50",
+    dot: "bg-blue-500",
+  },
+  PAID: {
+    label: "ชำระเงินแล้ว",
+    className:
+      "bg-teal-50 text-teal-700 ring-1 ring-teal-100 dark:bg-teal-900/30 dark:text-teal-50",
+    dot: "bg-teal-500",
+  },
+  AWAITING_DELIVERY: {
+    label: "รอจัดส่ง",
+    className:
+      "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-50",
+    dot: "bg-indigo-500",
+  },
+  DELIVERED: {
+    label: "จัดส่งแล้ว",
+    className:
+      "bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-900/30 dark:text-purple-50",
+    dot: "bg-purple-500",
+  },
+  EXPIRED: {
+    label: "หมดอายุ",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    dot: "bg-slate-400",
+  },
+  COMPLETED: {
+    label: "เสร็จสิ้น",
+    className:
+      "bg-green-50 text-green-700 ring-1 ring-green-100 dark:bg-green-900/30 dark:text-green-50",
+    dot: "bg-green-500",
+  },
+  CANCELLED: {
+    label: "ยกเลิก",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    dot: "bg-slate-400",
+  },
+};
+
+const DEFAULT_BADGE_STYLE = {
+  label: "ไม่ระบุ",
+  className:
+    "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+  dot: "bg-slate-400",
+};
+
+// --- Helper Components ---
+
+function StatusBadge({
+  status,
+  className,
+}: {
+  status?: string;
+  className?: string;
+}) {
+  const key = (status || "").toUpperCase() as SaleStatus;
+  const info = statusStyle[key] ?? {
+    ...DEFAULT_BADGE_STYLE,
+    label: SaleStatusLabels[key] || key || "ไม่ระบุ",
+  };
 
   return (
-    <CustomTable
-      columns={columns}
-      data={sales}
-      loading={loading}
-      canCreate={canCreate}
-      createHref="/sales/new"
-      searchValue={searchValue}
-      onSearchChange={onSearchChange}
-      isTyping={isTyping}
-      onSearchSubmit={onSearchSubmit}
-      pagination={{
-        page,
-        perPage,
-        total,
-        onPageChange: onPageChange || (() => { }),
-        onPerPageChange: onPerPageChange || (() => { }),
-      }}
-      emptyState={{
-        title: "ไม่พบข้อมูลรายการขาย",
-        description: "เริ่มต้นสร้างรายการขายใหม่ได้เลย",
-      }}
-    />
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+        info.className,
+        className
+      )}
+    >
+      <span
+        className={cn("h-2 w-2 rounded-full", info.dot)}
+        aria-hidden="true"
+      />
+      {info.label}
+    </span>
+  );
+}
+
+function ActionButton({
+  href,
+  icon: Icon,
+  label,
+  colorClass,
+  onClick,
+}: {
+  href?: string;
+  icon: React.ElementType;
+  label: string;
+  colorClass: string;
+  onClick?: () => void;
+}) {
+  const button = (
+    <Button
+      asChild={!!href}
+      size="icon-sm"
+      variant={onClick ? "destructive" : "outline"}
+      className={colorClass}
+      onClick={onClick}
+      aria-label={label}
+    >
+      {href ? (
+        <Link href={href}>
+          <Icon className="size-4" />
+        </Link>
+      ) : (
+        <Icon className="size-4" />
+      )}
+    </Button>
+  );
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent side="top">{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+// --- Toolbar ---
+
+function SalesToolbar({
+  searchValue,
+  onSearchChange,
+  onSearchSubmit,
+  dateRange,
+  onDateRangeChange,
+  canCreate,
+}: Pick<
+  SalesTableProps,
+  | "searchValue"
+  | "onSearchChange"
+  | "onSearchSubmit"
+  | "dateRange"
+  | "onDateRangeChange"
+  | "canCreate"
+>) {
+  return (
+    <div className="rounded-md border bg-background/60 p-4 grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Search */}
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">ค้นหา</label>
+          <div className="relative mt-1">
+            <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={searchValue ?? ""}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.()}
+              placeholder="เลขที่ใบขาย, ชื่อลูกค้า"
+              className="pl-9 w-full bg-white"
+            />
+          </div>
+        </div>
+
+        {/* Date Range Picker */}
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">ช่วงวันที่</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal bg-white mt-1 h-11",
+                  !dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
+                      {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
+                    </>
+                  ) : (
+                    format(dateRange.from, "dd/MM/yyyy", { locale: th })
+                  )
+                ) : (
+                  <span>เลือกช่วงวันที่</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={onDateRangeChange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      {/* Create Button */}
+      <div className="grid gap-4 lg:items-end mt-4">
+        <div className="flex flex-wrap gap-2 items-center lg:justify-end">
+          {canCreate ? (
+            <Link href="/sales/new">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <span className="inline-flex items-center gap-2">
+                  <PlusCircle className="h-4 w-4" />
+                  สร้างรายการขายใหม่
+                </span>
+              </Button>
+            </Link>
+          ) : (
+            <Button className="w-full lg:w-auto" variant="outline" disabled>
+              <span className="inline-flex items-center gap-2">
+                <PlusCircle className="h-4 w-4" />
+                สร้างรายการขายใหม่
+              </span>
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Cards (Mobile View) ---
+
+function SalesCards({
+  data,
+  loading,
+  canApprove,
+  canEdit,
+  canDelete,
+  onDelete,
+  pagination,
+}: Pick<
+  SalesTableProps,
+  "loading" | "canApprove" | "canEdit" | "canDelete" | "onDelete"
+> & {
+  data: SaleRecord[];
+  pagination: {
+    page: number;
+    perPage: number;
+    total: number;
+    onPageChange: (p: number) => void;
+    onPerPageChange: (n: number) => void;
+    perPageOptions?: number[];
+  };
+}) {
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <Card
+            key={`loading-${idx}`}
+            className="h-full border border-slate-200/80 shadow-sm"
+          >
+            <div className="h-1 w-full bg-slate-100" />
+            <div className="space-y-3 p-4">
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
+        <div className="mb-2 text-base font-semibold text-slate-900">
+          ไม่พบข้อมูล
+        </div>
+        <p className="text-sm text-slate-600">
+          ลองปรับการค้นหาหรือสร้างรายการขายใหม่
+        </p>
+      </Card>
+    );
+  }
+
+  const {
+    page,
+    perPage,
+    total,
+    onPageChange,
+    onPerPageChange,
+    perPageOptions,
+  } = pagination;
+
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const startDisplay = (page - 1) * perPage + 1;
+  const endDisplay = Math.min((page - 1) * perPage + data.length, total);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {data.map((item) => {
+          const isPending = item.status === "PENDING";
+          const isApproved = item.status === "APPROVED";
+          const amount = new Intl.NumberFormat("th-TH", {
+            style: "currency",
+            currency: "THB",
+          }).format(Number(item.totalAmount));
+
+          return (
+            <Card
+              key={item.id}
+              className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div
+                className={cn(
+                  "absolute inset-x-0 top-0 h-1",
+                  isPending
+                    ? "bg-yellow-400"
+                    : isApproved
+                    ? "bg-emerald-500"
+                    : "bg-red-500"
+                )}
+              />
+              <div className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col">
+                    <div className="text-base font-semibold text-slate-900">
+                      {item.saleNumber || "-"}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {item.customer?.name || "-"}
+                    </div>
+                  </div>
+                  <StatusBadge status={item.status} />
+                </div>
+
+                <div className="flex items-baseline justify-between py-1">
+                  <span className="text-sm text-slate-600">ยอดรวม</span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {amount}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-sm text-slate-600">
+                  <div className="flex justify-between">
+                    <span>วันที่ขาย:</span>
+                    <span className="font-medium">
+                      {item.saleDate
+                        ? format(new Date(item.saleDate), "dd MMM yyyy", {
+                            locale: th,
+                          })
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>พนักงานขาย:</span>
+                    <span>{item.employee?.name || "-"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>เงื่อนไขชำระ:</span>
+                    <span>
+                      <Badge variant="outline" className="text-xs">
+                        {PaymentTermLabels[item.paymentTerm]}
+                      </Badge>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t mt-2">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-100 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Link href={`/sales/${item.id}`}>
+                      <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
+                    </Link>
+                  </Button>
+
+                  {canApprove && isPending && (
+                    <>
+                      <Button
+                        asChild
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Link href={`/sales/${item.id}/approve`}>
+                          <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="border-red-100 text-red-700 hover:bg-red-50"
+                      >
+                        <Link href={`/sales/${item.id}/approve`}>
+                          <XCircle className="mr-2 h-4 w-4" /> ไม่อนุมัติ
+                        </Link>
+                      </Button>
+                    </>
+                  )}
+
+                  {canEdit && isPending && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="border-purple-100 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Link href={`/sales/${item.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                      </Link>
+                    </Button>
+                  )}
+                  {canDelete && isPending && onDelete && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="bg-red-50 text-red-700 hover:bg-red-100"
+                      onClick={() => onDelete(item)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> ลบ
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Pagination (Mobile) */}
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white/80 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs font-medium text-slate-600">
+          แสดง {startDisplay}-{endDisplay} จาก {total}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+          {perPageOptions && perPageOptions.length > 0 && (
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => onPerPageChange(Number(v))}
+            >
+              <SelectTrigger className="h-9 w-[70px] text-sm">
+                <SelectValue placeholder="ต่อหน้า" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {perPageOptions.map((opt) => (
+                  <SelectItem key={opt} value={String(opt)}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          <div className="inline-flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-slate-700"
+              disabled={page <= 1}
+              onClick={() => onPageChange(Math.max(1, page - 1))}
+            >
+              ก่อนหน้า
+            </Button>
+            <span className="text-xs text-slate-500">
+              หน้า {page} / {totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-slate-700"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            >
+              ถัดไป
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Columns Hook for Table ---
+
+function useColumns(
+  canEdit: boolean,
+  canDelete: boolean,
+  canApprove: boolean,
+  onDelete?: (sale: SaleRecord) => void
+) {
+  return React.useMemo<ColumnDef<SaleRecord>[]>(() => {
+    return [
+      {
+        accessorKey: "saleNumber",
+        header: "เลขที่ใบขาย",
+        cell: (info) => (
+          <div className="truncate" title={info.getValue() as string}>
+            {(info.getValue() as string) || "-"}
+          </div>
+        ),
+        meta: { minWidth: 120, width: 140, align: "left" },
+      },
+      {
+        accessorKey: "customer.customerCode",
+        header: "รหัสลูกค้า",
+        cell: (info) => (
+          <div className="truncate" title={info.getValue() as string}>
+            {(info.getValue() as string) || "-"}
+          </div>
+        ),
+        meta: { minWidth: 100, width: 120, align: "left" },
+      },
+      {
+        accessorKey: "customer.name",
+        header: "ชื่อลูกค้า",
+        cell: (info) => (
+          <div className="truncate" title={info.getValue() as string}>
+            {(info.getValue() as string) || "-"}
+          </div>
+        ),
+        meta: { minWidth: 180, width: 220, align: "left" },
+      },
+      {
+        accessorKey: "employee.name",
+        header: "พนักงานขาย",
+        cell: (info) => (
+          <div className="truncate" title={info.getValue() as string}>
+            {(info.getValue() as string) || "-"}
+          </div>
+        ),
+        meta: { minWidth: 120, width: 140, align: "left" },
+      },
+      {
+        accessorKey: "saleDate",
+        header: "วันที่ขาย",
+        cell: (info) => {
+          const value = info.getValue() as Date | string;
+          if (!value) return "-";
+          const date = typeof value === "string" ? new Date(value) : value;
+          return format(date, "dd MMM yyyy", { locale: th });
+        },
+        meta: { minWidth: 120, width: 120, align: "left" },
+      },
+      {
+        accessorKey: "totalAmount",
+        header: "ยอดรวม",
+        cell: (info) => {
+          const value = info.getValue() as number;
+          return new Intl.NumberFormat("th-TH", {
+            style: "currency",
+            currency: "THB",
+          }).format(value);
+        },
+        meta: { minWidth: 120, width: 140, align: "left" },
+      },
+      {
+        accessorKey: "paymentTerm",
+        header: "เงื่อนไขชำระ",
+        cell: (info) => {
+          const value = info.getValue() as string;
+          return (
+            <Badge variant="outline" className="text-xs">
+              {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
+                value}
+            </Badge>
+          );
+        },
+        meta: { minWidth: 100, width: 120, align: "center" },
+      },
+      {
+        accessorKey: "status",
+        header: "สถานะ",
+        cell: (info) => {
+          const status = info.getValue() as SaleStatus;
+          return <StatusBadge status={status} />;
+        },
+        meta: { minWidth: 100, width: 120, align: "center" },
+      },
+      {
+        id: "actions",
+        header: "จัดการ",
+        cell: ({ row }) => {
+          const item = row.original;
+          const isPending = item.status === "PENDING";
+
+          return (
+            <div className="flex items-center justify-center gap-2">
+              <ActionButton
+                href={`/sales/${item.id}`}
+                icon={Eye}
+                label="ดูรายละเอียด"
+                colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+              />
+
+              {canApprove && isPending && (
+                <>
+                  <ActionButton
+                    href={`/sales/${item.id}/approve`}
+                    icon={CheckCircle}
+                    label="อนุมัติ"
+                    colorClass="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
+                  />
+                  <ActionButton
+                    href={`/sales/${item.id}/approve`}
+                    icon={XCircle}
+                    label="ไม่อนุมัติ"
+                    colorClass="text-red-600 border-red-100 hover:bg-red-50 rounded-md"
+                  />
+                </>
+              )}
+
+              {canEdit && isPending && (
+                <ActionButton
+                  href={`/sales/${item.id}/edit`}
+                  icon={Edit}
+                  label="แก้ไข"
+                  colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                />
+              )}
+
+              {canDelete && isPending && onDelete && (
+                <ActionButton
+                  icon={Trash2}
+                  label="ลบ"
+                  colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                  onClick={() => onDelete(item)}
+                />
+              )}
+            </div>
+          );
+        },
+        meta: { minWidth: 180, width: 200, align: "center" },
+      },
+    ];
+  }, [canEdit, canDelete, canApprove, onDelete]);
+}
+
+// --- Main Component ---
+
+export function SalesTable(props: SalesTableProps) {
+  const {
+    sales,
+    total,
+    page,
+    perPage,
+    loading,
+    searchValue,
+    onSearchChange,
+    onSearchSubmit,
+    dateRange,
+    onDateRangeChange,
+    onPageChange,
+    onPerPageChange,
+    onDelete,
+    canCreate = false,
+    canEdit = false,
+    canDelete = false,
+    canApprove = false,
+  } = props;
+
+  const columns = useColumns(canEdit, canDelete, canApprove, onDelete);
+
+  const toolbarProps = {
+    searchValue,
+    onSearchChange,
+    onSearchSubmit,
+    dateRange,
+    onDateRangeChange,
+    canCreate,
+  };
+
+  const pagination = {
+    page,
+    perPage,
+    total,
+    onPageChange: onPageChange || (() => {}),
+    onPerPageChange: onPerPageChange || (() => {}),
+    perPageOptions: [10, 20, 50],
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Mobile & Tablet: card layout */}
+      <div className="xl:hidden space-y-4">
+        <SalesToolbar {...toolbarProps} />
+        <SalesCards
+          data={sales}
+          loading={loading}
+          canApprove={canApprove}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          onDelete={onDelete}
+          pagination={pagination}
+        />
+      </div>
+
+      {/* Desktop & up: table layout */}
+      <div className="hidden xl:block">
+        <CustomTable
+          columns={columns}
+          data={sales}
+          loading={loading}
+          pagination={pagination}
+          toolbar={<SalesToolbar {...toolbarProps} />}
+          emptyState={{
+            title: "ไม่พบข้อมูลรายการขาย",
+            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
+          }}
+          className="w-full"
+        />
+      </div>
+    </div>
   );
 }
