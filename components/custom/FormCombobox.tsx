@@ -88,12 +88,13 @@ export function FormCombobox({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[--radix-popover-trigger-width] p-0"
+          className="p-0"
           align="start"
+          style={{ width: "var(--radix-popover-trigger-width)" }}
         >
           <Command>
-            <CommandInput placeholder={searchPlaceholder} />
-            <CommandList>
+            <CommandInput placeholder={searchPlaceholder} className="h-11" />
+            <CommandList className="max-h-[300px]">
               <CommandEmpty>{emptyText}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
