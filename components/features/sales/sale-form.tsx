@@ -18,6 +18,7 @@ import DatePicker from "@/components/custom/DatePicker";
 import {
   FormInput,
   FormSelect,
+  FormCombobox,
   FormTextarea,
 } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
@@ -515,7 +516,7 @@ export function SaleForm({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
-        <FormSelect
+        <FormCombobox
           label="ลูกค้า *"
           value={customerId}
           onChange={(val) => setCustomerId(val)}
@@ -524,7 +525,8 @@ export function SaleForm({
             label: `${customer.name} (${customer.customerCode})`,
           }))}
           placeholder="เลือกลูกค้า"
-          groupLabel="ลูกค้า"
+          searchPlaceholder="ค้นหาลูกค้า..."
+          emptyText="ไม่พบลูกค้า"
         />
 
         <FormSelect
@@ -956,7 +958,9 @@ export function SaleForm({
         <DialogContent className="flex max-h-[min(600px,80vh)] flex-col gap-0 p-0 sm:max-w-2xl">
           <DialogHeader className="contents space-y-0 text-left">
             <ScrollArea className="flex max-h-full flex-col overflow-hidden">
-              <DialogTitle className="px-6 pt-6 text-xl font-semibold">รายละเอียดสินค้า</DialogTitle>
+              <DialogTitle className="px-6 pt-6 text-xl font-semibold">
+                รายละเอียดสินค้า
+              </DialogTitle>
               <DialogDescription asChild>
                 <div className="p-6">
                   <p className="text-sm text-muted-foreground mb-4">
