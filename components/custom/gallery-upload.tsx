@@ -115,7 +115,7 @@ export default function GalleryUpload({
                 <img
                   src={fileItem.preview}
                   alt={fileItem.file.name}
-                  className="h-full w-full rounded-lg border object-cover transition-transform group-hover:scale-105"
+                  className="h-full w-full rounded-lg border object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center rounded-lg border bg-muted">
@@ -123,8 +123,8 @@ export default function GalleryUpload({
                 </div>
               )}
 
-              {/* Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+              {/* Action Buttons - Always Visible */}
+              <div className="absolute top-2 right-2 flex gap-1">
                 {/* View Button */}
                 {fileItem.preview && (
                   <Button
@@ -133,8 +133,9 @@ export default function GalleryUpload({
                     variant="secondary"
                     size="icon-sm"
                     disabled={disabled}
+                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md"
                   >
-                    <ZoomInIcon className="opacity-100/80" />
+                    <ZoomInIcon className="h-4 w-4" />
                   </Button>
                 )}
 
@@ -145,19 +146,10 @@ export default function GalleryUpload({
                   variant="destructive"
                   size="icon-sm"
                   disabled={disabled}
+                  className="h-7 w-7 shadow-md"
                 >
-                  <XIcon className="opacity-100/80" />
+                  <XIcon className="h-4 w-4" />
                 </Button>
-              </div>
-
-              {/* File Info */}
-              <div className="absolute bottom-0 left-0 right-0 rounded-b-lg bg-black/70 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                <p className="truncate text-xs font-medium">
-                  {fileItem.file.name}
-                </p>
-                <p className="text-xs text-gray-300">
-                  {formatBytes(fileItem.file.size)}
-                </p>
               </div>
             </div>
           ))}
