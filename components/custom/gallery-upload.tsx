@@ -167,10 +167,8 @@ export default function GalleryUpload({
       {/* Upload Area - Below Images */}
       <div
         className={cn(
-          "mt-4 relative rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer inline-block",
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-gray-300 hover:border-gray-400",
+          "mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gray-900 hover:bg-gray-800 text-white transition-colors cursor-pointer shadow-lg",
+          isDragging && "bg-primary hover:bg-primary/90",
           disabled && "opacity-50 pointer-events-none"
         )}
         onDragEnter={handleDragEnter}
@@ -180,14 +178,8 @@ export default function GalleryUpload({
         onClick={openFileDialog}
       >
         <input {...getInputProps()} className="sr-only" disabled={disabled} />
-
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center justify-center">
-            <Upload className="h-8 w-8 text-gray-400" />
-          </div>
-
-          <div className="text-sm text-gray-600">Upload</div>
-        </div>
+        <Upload className="h-5 w-5" />
+        <span className="font-medium">เลือกรูป</span>
       </div>
 
       {/* Error Messages */}
