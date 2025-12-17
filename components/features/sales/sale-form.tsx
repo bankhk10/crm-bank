@@ -792,7 +792,7 @@ export function SaleForm({
 
                 {/* Stock Quantity */}
                 {product && (
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between mb-2">
                     <Button
                       type="button"
                       variant="outline"
