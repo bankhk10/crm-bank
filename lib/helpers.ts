@@ -89,50 +89,50 @@ export const getInitials = (
 };
 
 /**
- * Formats a date as a readable string in "Month Day, Year" format.
+ * Formats a date as a readable string in Thai format.
  *
  * @param input - A date string or timestamp to format.
- * @returns A string formatted as "Month Day, Year".
+ * @returns A string formatted in Thai locale with Buddhist Era.
  */
 export function formatDate(input: Date | string | number): string {
   const date = new Date(input);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
     month: "long",
     day: "numeric",
-    year: "numeric",
   });
 }
 
 /**
- * Formats a date and time as a readable string in "Month Day, Year, Hour:Minute AM/PM" format.
+ * Formats a date and time as a readable string in Thai format.
  *
  * @param input - A date string or timestamp to format.
- * @returns A string formatted as "Month Day, Year, Hour:Minute AM/PM".
+ * @returns A string formatted in Thai locale with Buddhist Era and 24-hour time.
  */
 export function formatDateTime(input: Date | string | number): string {
   const date = new Date(input);
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString("th-TH", {
+    year: "numeric",
     month: "long",
     day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
 }
 
 /**
- * Formats a number as a currency string.
+ * Formats a number as a currency string in Thai Baht.
  *
  * @param amount - The numeric value to format as currency.
- * @param currency - The currency code (e.g., "USD", "EUR"). Defaults to "USD".
- * @param locale - The locale for formatting (e.g., "en-US"). Defaults to "en-US".
+ * @param currency - The currency code (e.g., "THB", "USD"). Defaults to "THB".
+ * @param locale - The locale for formatting (e.g., "th-TH"). Defaults to "th-TH".
  * @returns A string formatted as currency.
  */
 export function formatCurrency(
   amount: number,
-  currency: string = "USD",
-  locale: string = "en-US"
+  currency: string = "THB",
+  locale: string = "th-TH"
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
