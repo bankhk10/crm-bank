@@ -956,7 +956,7 @@ export function SaleForm({
         <DialogContent className="flex max-h-[min(600px,80vh)] flex-col gap-0 p-0 sm:max-w-2xl">
           <DialogHeader className="contents space-y-0 text-left">
             <ScrollArea className="flex max-h-full flex-col overflow-hidden">
-              <DialogTitle className="px-6 pt-6">รายละเอียดสินค้า</DialogTitle>
+              <DialogTitle className="px-6 pt-6 text-xl font-semibold">รายละเอียดสินค้า</DialogTitle>
               <DialogDescription asChild>
                 <div className="p-6">
                   <p className="text-sm text-muted-foreground mb-4">
