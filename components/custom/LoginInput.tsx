@@ -199,7 +199,9 @@ export const FloatingLabelInput: React.FC<FloatingLabelInputProps> = ({
     (props as any).name ||
     `input-${label.replace(/\s+/g, "-")}`;
   const hasError = !!error;
-  const isDisabled = Boolean((props as any).disabled || (props as any).readOnly);
+  const isDisabled = Boolean(
+    (props as any).disabled || (props as any).readOnly
+  );
 
   const effectiveRounded = roundedClass || "rounded-lg";
 
