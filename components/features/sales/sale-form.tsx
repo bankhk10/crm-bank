@@ -15,7 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +104,8 @@ function parseAddress(address: string) {
   } = {};
 
   // 1. Extract Postal Code (5 digits at end or alone)
-  const postalMatch = street.match(/\s+(\d{5})\s*$/) || street.match(/(\d{5})\s*$/);
+  const postalMatch =
+    street.match(/\s+(\d{5})\s*$/) || street.match(/(\d{5})\s*$/);
   if (postalMatch) {
     thaiAddress.postalCode = postalMatch[1];
     street = street.replace(postalMatch[0], "");
@@ -186,13 +191,17 @@ export function SaleForm({
     initialData?.deliveryDate || ""
   );
   // Initialize state with parsed address
-  const [parsedBilling] = useState(() => parseAddress(initialData?.billingAddress || ""));
+  const [parsedBilling] = useState(() =>
+    parseAddress(initialData?.billingAddress || "")
+  );
 
   const [billingAddress, setBillingAddress] = useState(
     initialData?.billingAddress || ""
   );
   const [billingStreet, setBillingStreet] = useState(parsedBilling.street);
-  const [billingThaiAddress, setBillingThaiAddress] = useState(parsedBilling.thaiAddress);
+  const [billingThaiAddress, setBillingThaiAddress] = useState(
+    parsedBilling.thaiAddress
+  );
   const [shippingAddress, setShippingAddress] = useState(
     initialData?.shippingAddress || ""
   );
@@ -253,9 +262,13 @@ export function SaleForm({
         // Build shipping address from structured fields
         const shippingParts = [
           customer.shippingAddressLine,
-          customer.shippingSubdistrict ? `ตำบล${customer.shippingSubdistrict}` : "",
+          customer.shippingSubdistrict
+            ? `ตำบล${customer.shippingSubdistrict}`
+            : "",
           customer.shippingDistrict ? `อำเภอ${customer.shippingDistrict}` : "",
-          customer.shippingProvince ? `จังหวัด${customer.shippingProvince}` : "",
+          customer.shippingProvince
+            ? `จังหวัด${customer.shippingProvince}`
+            : "",
           customer.shippingPostalCode || "",
         ].filter(Boolean);
         setShippingAddress(shippingParts.join(" "));
@@ -280,8 +293,6 @@ export function SaleForm({
       setBillingAddress(parts.join(" "));
     }
   }, [billingStreet, billingThaiAddress]);
-
-
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -336,8 +347,6 @@ export function SaleForm({
     setItems(newItems);
   };
 
-
-
   // Validate and submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -379,7 +388,8 @@ export function SaleForm({
       // Check price modification
       if (item.priceModified) {
         newWarnings.push(
-          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${item.originalPrice
+          `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${
+            item.originalPrice
           } เป็น ${item.unitPrice}`
         );
       }
@@ -544,7 +554,7 @@ export function SaleForm({
                   label="วงเงินเครดิตคงเหลือ"
                   type="number"
                   value={String(availableAmount)}
-                  onChange={() => { }}
+                  onChange={() => {}}
                   disabled
                   readOnly
                 />
@@ -553,7 +563,7 @@ export function SaleForm({
                   label="วงเงินส่งเสริมการขายคงเหลือ"
                   type="number"
                   value={String(promoAmount)}
-                  onChange={() => { }}
+                  onChange={() => {}}
                   disabled
                   readOnly
                 />
@@ -594,7 +604,6 @@ export function SaleForm({
             placeholder=""
           />
         </div>
-
       </div>
 
       {paymentTerm === "CREDIT" && (
@@ -617,7 +626,6 @@ export function SaleForm({
         </div>
       )}
 
-
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ที่อยู่จัดส่ง
       </h3>
@@ -627,10 +635,10 @@ export function SaleForm({
         {selectedCustomer ? (
           <>
             {selectedCustomer.shippingAddressLine ||
-              selectedCustomer.shippingProvince ||
-              selectedCustomer.shippingDistrict ||
-              selectedCustomer.shippingSubdistrict ||
-              selectedCustomer.shippingPostalCode ? (
+            selectedCustomer.shippingProvince ||
+            selectedCustomer.shippingDistrict ||
+            selectedCustomer.shippingSubdistrict ||
+            selectedCustomer.shippingPostalCode ? (
               <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 shadow-sm transition-all hover:shadow-md">
                 {/* Decorative Elements */}
                 <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl"></div>
@@ -723,21 +731,30 @@ export function SaleForm({
                         ที่อยู่เต็ม
                       </p>
                       <p className="text-sm leading-relaxed text-gray-700">
-                        {[
-                          selectedCustomer.shippingAddressLine,
-                          selectedCustomer.shippingSubdistrict
-                            ? `ตำบล${selectedCustomer.shippingSubdistrict}`
-                            : "",
-                          selectedCustomer.shippingDistrict
-                            ? `อำเภอ${selectedCustomer.shippingDistrict}`
-                            : "",
-                          selectedCustomer.shippingProvince
-                            ? `จังหวัด${selectedCustomer.shippingProvince}`
-                            : "",
-                          selectedCustomer.shippingPostalCode || "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
+                        {(() => {
+                          const isBangkok =
+                            selectedCustomer.shippingProvince ===
+                            "กรุงเทพมหานคร";
+                          return [
+                            selectedCustomer.shippingAddressLine,
+                            selectedCustomer.shippingSubdistrict
+                              ? `${isBangkok ? "แขวง" : "ตำบล"}${
+                                  selectedCustomer.shippingSubdistrict
+                                }`
+                              : "",
+                            selectedCustomer.shippingDistrict
+                              ? `${isBangkok ? "เขต" : "อำเภอ"}${
+                                  selectedCustomer.shippingDistrict
+                                }`
+                              : "",
+                            selectedCustomer.shippingProvince
+                              ? `จังหวัด${selectedCustomer.shippingProvince}`
+                              : "",
+                            selectedCustomer.shippingPostalCode || "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ");
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -771,7 +788,6 @@ export function SaleForm({
           </div>
         )}
       </div>
-
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6 flex items-center justify-between">
         <span>รายการสินค้า</span>
@@ -809,7 +825,9 @@ export function SaleForm({
                   <FormSelect
                     label="สินค้า"
                     value={item.productId}
-                    onChange={(val) => handleUpdateItem(index, "productId", val)}
+                    onChange={(val) =>
+                      handleUpdateItem(index, "productId", val)
+                    }
                     options={products.map((product) => ({
                       value: product.id,
                       label: `${product.name} - ${product.productCode}`,
@@ -841,11 +859,7 @@ export function SaleForm({
                   type="number"
                   value={String(item.quantity)}
                   onChange={(e) =>
-                    handleUpdateItem(
-                      index,
-                      "quantity",
-                      Number(e.target.value)
-                    )
+                    handleUpdateItem(index, "quantity", Number(e.target.value))
                   }
                   onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
                 />
@@ -854,11 +868,7 @@ export function SaleForm({
                   type="number"
                   value={String(item.unitPrice)}
                   onChange={(e) =>
-                    handleUpdateItem(
-                      index,
-                      "unitPrice",
-                      Number(e.target.value)
-                    )
+                    handleUpdateItem(index, "unitPrice", Number(e.target.value))
                   }
                   onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
                 />
@@ -866,7 +876,7 @@ export function SaleForm({
                   label="รวม"
                   type="number"
                   value={String(item.quantity * item.unitPrice)}
-                  onChange={() => { }}
+                  onChange={() => {}}
                   disabled
                   readOnly
                   containerClassName="bg-gray-100"
@@ -956,8 +966,7 @@ export function SaleForm({
         <div className="flex justify-between">
           <span>ค่าใช้จ่ายอื่นๆ:</span>
           <span>
-            ฿
-            {otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            ฿{otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
           </span>
         </div>
         <div className="border-t pt-2 flex justify-between text-xl font-bold">
@@ -1009,7 +1018,7 @@ export function SaleForm({
             <div>
               <h4 className="font-medium text-lg mb-3">รายการของแถม</h4>
               {selectedProductDetail?.freeItems &&
-                selectedProductDetail.freeItems.length > 0 ? (
+              selectedProductDetail.freeItems.length > 0 ? (
                 <div className="space-y-2">
                   {selectedProductDetail.freeItems.map((item, i) => (
                     <div
@@ -1048,7 +1057,7 @@ export function SaleForm({
             <div>
               <h4 className="font-medium text-lg mb-3">รายการส่งเสริมการขาย</h4>
               {selectedProductDetail?.promotionItems &&
-                selectedProductDetail.promotionItems.length > 0 ? (
+              selectedProductDetail.promotionItems.length > 0 ? (
                 <div className="space-y-2">
                   {selectedProductDetail.promotionItems.map((item, i) => (
                     <div
