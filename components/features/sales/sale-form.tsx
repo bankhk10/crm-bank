@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Copy, Info, MapPin, Home } from "lucide-react";
+import { Plus, Trash2, Copy, Info, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -630,7 +630,7 @@ export function SaleForm({
         ที่อยู่จัดส่ง
       </h3>
 
-      {/* Modern Shipping Address Display */}
+      {/* Shipping Address Display */}
       <div className="mt-6">
         {selectedCustomer ? (
           <>
@@ -639,62 +639,74 @@ export function SaleForm({
             selectedCustomer.shippingDistrict ||
             selectedCustomer.shippingSubdistrict ||
             selectedCustomer.shippingPostalCode ? (
-              <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6 shadow-sm transition-all hover:shadow-md">
-                {/* Decorative Elements */}
-                <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-400/10 to-purple-400/10 blur-2xl"></div>
-                <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-gradient-to-br from-purple-400/10 to-pink-400/10 blur-2xl"></div>
-
-                {/* Content */}
-                <div className="relative">
-                  {/* Address Details */}
-                  <div className="space-y-3 rounded-xl bg-white/60 p-4 backdrop-blur-sm">
-                    {/* Full Address Summary */}
-                    <div className="mt-4 border-t border-gray-200 pt-4">
-                      <Home className="h-4 w-4 text-blue-600" />
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                        ที่อยู่เต็ม
-                      </p>
-                      <p className="text-sm leading-relaxed text-gray-700">
-                        {(() => {
-                          const isBangkok =
-                            selectedCustomer.shippingProvince ===
-                            "กรุงเทพมหานคร";
-
-                          const cleanPrefix = (value?: string) =>
-                            value
-                              ?.replace(/^แขวง/, "")
-                              ?.replace(/^เขต/, "")
-                              ?.replace(/^ตำบล/, "")
-                              ?.replace(/^อำเภอ/, "")
-                              ?.trim();
-
-                          return [
-                            selectedCustomer.shippingAddressLine,
-                            selectedCustomer.shippingSubdistrict
-                              ? `${isBangkok ? "แขวง" : "ตำบล"}${cleanPrefix(
-                                  selectedCustomer.shippingSubdistrict
-                                )}`
-                              : "",
-                            selectedCustomer.shippingDistrict
-                              ? `${isBangkok ? "เขต" : "อำเภอ"}${cleanPrefix(
-                                  selectedCustomer.shippingDistrict
-                                )}`
-                              : "",
-                            selectedCustomer.shippingProvince
-                              ? `จังหวัด${cleanPrefix(
-                                  selectedCustomer.shippingProvince
-                                )}`
-                              : "",
-                            selectedCustomer.shippingPostalCode || "",
-                          ]
-                            .filter(Boolean)
-                            .join(" ");
-                        })()}
-                      </p>
-                    </div>
+              <>
+                {/* Address Components Grid */}
+                <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <FormInput
+                      label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
+                      value={selectedCustomer.shippingAddressLine || ""}
+                      onChange={() => {}}
+                      disabled
+                      readOnly
+                    />
                   </div>
+
+                  <FormInput
+                    label={
+                      selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
+                        ? "แขวง"
+                        : "ตำบล"
+                    }
+                    value={
+                      selectedCustomer.shippingSubdistrict
+                        ?.replace(/^แขวง/, "")
+                        ?.replace(/^ตำบล/, "")
+                        ?.trim() || ""
+                    }
+                    onChange={() => {}}
+                    disabled
+                    readOnly
+                  />
+
+                  <FormInput
+                    label={
+                      selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
+                        ? "เขต"
+                        : "อำเภอ"
+                    }
+                    value={
+                      selectedCustomer.shippingDistrict
+                        ?.replace(/^เขต/, "")
+                        ?.replace(/^อำเภอ/, "")
+                        ?.trim() || ""
+                    }
+                    onChange={() => {}}
+                    disabled
+                    readOnly
+                  />
+
+                  <FormInput
+                    label="จังหวัด"
+                    value={
+                      selectedCustomer.shippingProvince
+                        ?.replace(/^จังหวัด/, "")
+                        ?.trim() || ""
+                    }
+                    onChange={() => {}}
+                    disabled
+                    readOnly
+                  />
+
+                  <FormInput
+                    label="รหัสไปรษณีย์"
+                    value={selectedCustomer.shippingPostalCode || ""}
+                    onChange={() => {}}
+                    disabled
+                    readOnly
+                  />
                 </div>
-              </div>
+              </>
             ) : (
               <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
