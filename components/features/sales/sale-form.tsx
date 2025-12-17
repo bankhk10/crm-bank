@@ -741,10 +741,9 @@ export function SaleForm({
         <Button
           type="button"
           onClick={handleAddItem}
-          size="sm"
           className="bg-green-700 hover:bg-green-800 text-white rounded-xl"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4" />
           เพิ่มรายการ
         </Button>
       </h3>
@@ -826,7 +825,6 @@ export function SaleForm({
                   onChange={() => {}}
                   disabled
                   readOnly
-                  containerClassName="bg-gray-100"
                 />
 
                 {product && (
