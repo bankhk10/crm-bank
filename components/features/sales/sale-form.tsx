@@ -654,30 +654,6 @@ export function SaleForm({
         </div>
       </div>
 
-      {(paymentTerm === "CREDIT_90" ||
-        paymentTerm === "CASH_7" ||
-        paymentTerm === "CREDIT_OVER_90") && (
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-          <FormInput
-            label="เครดิต (วัน)"
-            type="number"
-            value={String(creditDays)}
-            onChange={(e) => setCreditDays(Number(e.target.value))}
-            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            disabled={paymentTerm === "CREDIT_90" || paymentTerm === "CASH_7"}
-            readOnly={paymentTerm === "CREDIT_90" || paymentTerm === "CASH_7"}
-          />
-          <div>
-            <DatePicker
-              label="ครบกำหนดชำระ"
-              value={creditDueDate}
-              onChange={(val) => setCreditDueDate(val || "")}
-              placeholder=""
-            />
-          </div>
-        </div>
-      )}
-
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         การจัดส่งและที่อยู่
       </h3>
