@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       (sum, item) => sum + item.quantity * item.unitPrice,
       0
     );
-    const total = subtotal + body.shippingCost + body.otherCosts;
+    const total = subtotal - body.shippingCost - body.otherCosts;
 
     // Check credit limit for CREDIT payment term
     if (body.paymentTerm === "CREDIT") {

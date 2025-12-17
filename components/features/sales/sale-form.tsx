@@ -309,7 +309,7 @@ export function SaleForm({
     (sum, item) => sum + item.quantity * item.unitPrice,
     0
   );
-  const total = subtotal + shippingCost + otherCosts;
+  const total = subtotal - shippingCost - otherCosts;
 
   // Add item
   const handleAddItem = () => {
@@ -968,19 +968,19 @@ export function SaleForm({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ค่าใช้จ่ายและหมายเหตุ
+        ส่วนลดและหมายเหตุ
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
         <FormInput
-          label="ค่าขนส่ง"
+          label="ส่วนลดค่าขนส่ง"
           type="number"
           value={String(shippingCost)}
           onChange={(e) => setShippingCost(Number(e.target.value))}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         <FormInput
-          label="ค่าใช้จ่ายอื่นๆ"
+          label="ส่วนลดหน้าบิล"
           type="number"
           value={String(otherCosts)}
           onChange={(e) => setOtherCosts(Number(e.target.value))}
@@ -990,7 +990,7 @@ export function SaleForm({
 
       {otherCosts > 0 && (
         <FormInput
-          label="รายละเอียดค่าใช้จ่ายอื่นๆ"
+          label="รายละเอียดส่วนลดหน้าบิล"
           value={otherCostsDescription}
           onChange={(e) => setOtherCostsDescription(e.target.value)}
         />
@@ -1014,21 +1014,26 @@ export function SaleForm({
             ฿{subtotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
           </span>
         </div>
-        <div className="flex justify-between">
-          <span>ค่าขนส่ง:</span>
-          <span>
-            ฿
-            {shippingCost.toLocaleString("th-TH", {
-              minimumFractionDigits: 2,
-            })}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span>ค่าใช้จ่ายอื่นๆ:</span>
-          <span>
-            ฿{otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-          </span>
-        </div>
+        {shippingCost > 0 && (
+          <div className="flex justify-between text-red-600">
+            <span>ส่วนลดค่าขนส่ง:</span>
+            <span>
+              -฿
+              {shippingCost.toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        )}
+        {otherCosts > 0 && (
+          <div className="flex justify-between text-red-600">
+            <span>ส่วนลดหน้าบิล:</span>
+            <span>
+              -฿
+              {otherCosts.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        )}
         <div className="border-t pt-2 flex justify-between text-xl font-bold">
           <span>ยอดเงินสุทธิ:</span>
           <span className="text-blue-600">
