@@ -529,7 +529,7 @@ export function SaleForm({
           emptyText="ไม่พบลูกค้า"
         />
 
-        <FormSelect
+        <FormCombobox
           label="พนักงานขาย *"
           value={employeeId}
           onChange={(val) => setEmployeeId(val)}
@@ -538,7 +538,8 @@ export function SaleForm({
             label: employee.name,
           }))}
           placeholder="เลือกพนักงานขาย"
-          groupLabel="พนักงานขาย"
+          searchPlaceholder="ค้นหาพนักงานขาย..."
+          emptyText="ไม่พบพนักงานขาย"
         />
       </div>
 
