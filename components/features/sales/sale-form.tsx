@@ -209,6 +209,9 @@ export function SaleForm({
   const [shippingAddress, setShippingAddress] = useState(
     initialData?.shippingAddress || ""
   );
+  const [useCustomShippingAddress, setUseCustomShippingAddress] =
+    useState(false);
+  const [customShippingAddress, setCustomShippingAddress] = useState("");
   const [items, setItems] = useState<SaleItemFormData[]>(
     initialData?.items || []
   );
@@ -471,7 +474,9 @@ export function SaleForm({
         requestedDeliveryDate: requestedDeliveryDate || undefined,
         deliveryDate: deliveryDate || undefined,
         billingAddress,
-        shippingAddress,
+        shippingAddress: useCustomShippingAddress
+          ? customShippingAddress
+          : shippingAddress,
         items,
         shippingCost,
         otherCosts,
@@ -640,91 +645,95 @@ export function SaleForm({
       <div className="mt-6">
         {selectedCustomer ? (
           <>
-            {selectedCustomer.shippingAddressLine ||
-            selectedCustomer.shippingProvince ||
-            selectedCustomer.shippingDistrict ||
-            selectedCustomer.shippingSubdistrict ||
-            selectedCustomer.shippingPostalCode ? (
+            {!useCustomShippingAddress && (
               <>
-                {/* Address Components Grid */}
-                <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <FormInput
-                      label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
-                      value={selectedCustomer.shippingAddressLine || ""}
-                      onChange={() => {}}
-                      disabled
-                      readOnly
-                    />
+                {selectedCustomer.shippingAddressLine ||
+                selectedCustomer.shippingProvince ||
+                selectedCustomer.shippingDistrict ||
+                selectedCustomer.shippingSubdistrict ||
+                selectedCustomer.shippingPostalCode ? (
+                  <>
+                    {/* Address Components Grid */}
+                    <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <FormInput
+                          label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
+                          value={selectedCustomer.shippingAddressLine || ""}
+                          onChange={() => {}}
+                          disabled
+                          readOnly
+                        />
+                      </div>
+
+                      <FormInput
+                        label={
+                          selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
+                            ? "แขวง"
+                            : "ตำบล"
+                        }
+                        value={
+                          selectedCustomer.shippingSubdistrict
+                            ?.replace(/^แขวง/, "")
+                            ?.replace(/^ตำบล/, "")
+                            ?.trim() || ""
+                        }
+                        onChange={() => {}}
+                        disabled
+                        readOnly
+                      />
+
+                      <FormInput
+                        label={
+                          selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
+                            ? "เขต"
+                            : "อำเภอ"
+                        }
+                        value={
+                          selectedCustomer.shippingDistrict
+                            ?.replace(/^เขต/, "")
+                            ?.replace(/^อำเภอ/, "")
+                            ?.trim() || ""
+                        }
+                        onChange={() => {}}
+                        disabled
+                        readOnly
+                      />
+
+                      <FormInput
+                        label="จังหวัด"
+                        value={
+                          selectedCustomer.shippingProvince
+                            ?.replace(/^จังหวัด/, "")
+                            ?.trim() || ""
+                        }
+                        onChange={() => {}}
+                        disabled
+                        readOnly
+                      />
+
+                      <FormInput
+                        label="รหัสไปรษณีย์"
+                        value={selectedCustomer.shippingPostalCode || ""}
+                        onChange={() => {}}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
+                      <MapPin className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-base font-medium text-gray-600">
+                      ไม่พบข้อมูลที่อยู่จัดส่ง
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      ลูกค้ารายนี้ยังไม่มีข้อมูลที่อยู่จัดส่งในระบบ
+                    </p>
                   </div>
-
-                  <FormInput
-                    label={
-                      selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
-                        ? "แขวง"
-                        : "ตำบล"
-                    }
-                    value={
-                      selectedCustomer.shippingSubdistrict
-                        ?.replace(/^แขวง/, "")
-                        ?.replace(/^ตำบล/, "")
-                        ?.trim() || ""
-                    }
-                    onChange={() => {}}
-                    disabled
-                    readOnly
-                  />
-
-                  <FormInput
-                    label={
-                      selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
-                        ? "เขต"
-                        : "อำเภอ"
-                    }
-                    value={
-                      selectedCustomer.shippingDistrict
-                        ?.replace(/^เขต/, "")
-                        ?.replace(/^อำเภอ/, "")
-                        ?.trim() || ""
-                    }
-                    onChange={() => {}}
-                    disabled
-                    readOnly
-                  />
-
-                  <FormInput
-                    label="จังหวัด"
-                    value={
-                      selectedCustomer.shippingProvince
-                        ?.replace(/^จังหวัด/, "")
-                        ?.trim() || ""
-                    }
-                    onChange={() => {}}
-                    disabled
-                    readOnly
-                  />
-
-                  <FormInput
-                    label="รหัสไปรษณีย์"
-                    value={selectedCustomer.shippingPostalCode || ""}
-                    onChange={() => {}}
-                    disabled
-                    readOnly
-                  />
-                </div>
+                )}
               </>
-            ) : (
-              <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
-                  <MapPin className="h-8 w-8 text-gray-400" />
-                </div>
-                <p className="text-base font-medium text-gray-600">
-                  ไม่พบข้อมูลที่อยู่จัดส่ง
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  ลูกค้ารายนี้ยังไม่มีข้อมูลที่อยู่จัดส่งในระบบ
-                </p>
-              </div>
             )}
           </>
         ) : (
@@ -738,6 +747,37 @@ export function SaleForm({
             <p className="mt-2 text-sm text-gray-500">
               เลือกลูกค้าเพื่อแสดงข้อมูลที่อยู่จัดส่ง
             </p>
+          </div>
+        )}
+
+        {/* Custom Shipping Address Option */}
+        {selectedCustomer && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="customShippingAddress"
+                checked={useCustomShippingAddress}
+                onCheckedChange={(checked) =>
+                  setUseCustomShippingAddress(checked as boolean)
+                }
+              />
+              <label
+                htmlFor="customShippingAddress"
+                className="text-base font-medium cursor-pointer"
+              >
+                ระบุที่อยู่จัดส่งสำหรับรายการขายนี้เท่านั้น
+              </label>
+            </div>
+
+            {useCustomShippingAddress && (
+              <FormTextarea
+                label="ที่อยู่จัดส่งสำหรับรายการนี้"
+                value={customShippingAddress}
+                onChange={(e) => setCustomShippingAddress(e.target.value)}
+                rows={4}
+                placeholder="กรอกที่อยู่จัดส่งสำหรับรายการขายนี้..."
+              />
+            )}
           </div>
         )}
       </div>
