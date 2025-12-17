@@ -774,7 +774,7 @@ export function SaleForm({
               <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
                 {/* Product Select */}
                 <div className="md:col-span-2">
-                  <FormSelect
+                  <FormCombobox
                     label="สินค้า"
                     value={item.productId}
                     onChange={(val) =>
@@ -785,7 +785,8 @@ export function SaleForm({
                       label: `${product.name} - ${product.productCode}`,
                     }))}
                     placeholder="เลือกสินค้า"
-                    groupLabel="สินค้า"
+                    searchPlaceholder="ค้นหาสินค้า..."
+                    emptyText="ไม่พบสินค้า"
                   />
                 </div>
 
