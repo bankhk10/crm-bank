@@ -86,12 +86,6 @@ export default function GalleryUpload({
             <h4 className="text-sm font-medium">
               แกลเลอรี ({files.length}/{maxFiles})
             </h4>
-            <div className="text-xs text-muted-foreground">
-              รวม:{" "}
-              {formatBytes(
-                files.reduce((acc, file) => acc + file.file.size, 0)
-              )}
-            </div>
           </div>
           <Button
             type="button"
