@@ -209,7 +209,7 @@ export const useFileUpload = (
         maxFiles !== Number.POSITIVE_INFINITY &&
         state.files.length + newFilesArray.length > maxFiles
       ) {
-        errors.push(`You can only upload a maximum of ${maxFiles} files.`);
+        errors.push(`อัพโหลดรูปภาพสูงสุด ${maxFiles} รูป`);
         onError?.(errors);
         setState((prev) => ({ ...prev, errors }));
         return;

@@ -30,7 +30,7 @@ interface GalleryUploadProps {
 }
 
 export default function GalleryUpload({
-  maxFiles = 10,
+  maxFiles = 5,
   maxSize = 5 * 1024 * 1024, // 5MB
   accept = "image/*",
   multiple = true,
@@ -72,7 +72,7 @@ export default function GalleryUpload({
       {/* Header */}
       <div className="mb-3">
         <h3 className="text-base font-semibold text-gray-800 mb-1">
-          อัพโหลดรูปภาพร้านค้า (สูงสุด {maxFiles} รูป)
+          อัพโหลดรูปภาพ (สูงสุด {maxFiles} รูป)
         </h3>
         <p className="text-sm text-gray-500">
           รองรับไฟล์ .jpg, .jpeg, .png, .webp, .heic, .heif
