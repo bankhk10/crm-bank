@@ -10,9 +10,13 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import generateRandomDealer from "@/lib/random-fill/dealer";
-import { ImageUpload } from "@/components/custom/image-upload";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
-
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -77,8 +81,19 @@ export default function CustomerFormDealer({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  const [images, setImages] = useState<any[]>(initial.images || []);
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  // Convert initial images to FileMetadata format for GalleryUpload
+  const convertToFileMetadata = (images: any[]): FileMetadata[] => {
+    return images.map((img) => ({
+      id: img.id,
+      name: img.name || `image-${img.id}`,
+      size: img.size || 0,
+      type: img.type || "image/jpeg",
+      url: img.url,
+    }));
+  };
 
   // get next sequential customerCode from backend (format C00001)
   const fetchNextCustomerCode = async () => {
@@ -179,10 +194,7 @@ export default function CustomerFormDealer({
     });
   };
 
-  const uploadImages = (
-    customerId: string,
-    files: File[]
-  ): Promise<any> => {
+  const uploadImages = (customerId: string, files: File[]): Promise<any> => {
     return new Promise((resolve, reject) => {
       const form = new FormData();
       files.forEach((f) => form.append("images", f));
@@ -291,8 +303,9 @@ export default function CustomerFormDealer({
       shippingSubdistrict: values.shippingSubdistrict ?? "",
       shippingPostalCode: values.shippingPostalCode ?? "",
       status: values.status ?? "ACTIVE",
-      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
-        }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${
+        values.lastName ?? ""
+      }`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.businessNotes ?? "",
@@ -327,7 +340,12 @@ export default function CustomerFormDealer({
           try {
             // 1. Identify removed images
             const initialImages = (initial.images || []) as any[];
-            const currentImageIds = images.map((img) => img.id).filter(Boolean);
+            const currentImageIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) return null;
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
             const removedImageIds = initialImages
               .map((img) => img.id)
               .filter((id) => !currentImageIds.includes(id));
@@ -339,11 +357,16 @@ export default function CustomerFormDealer({
 
             // 3. Upload new images and collect all IDs in order
             let uploadedImages: any[] = [];
-            const filesToUpload = images.filter((i) => i instanceof File) as File[];
+            const filesToUpload = uploadedFiles
+              .filter((item) => item.file instanceof File)
+              .map((item) => item.file as File);
 
             if (filesToUpload.length > 0) {
               setUploadProgress(0);
-              const uploadRes = await uploadImages(targetCustomerId, filesToUpload);
+              const uploadRes = await uploadImages(
+                targetCustomerId,
+                filesToUpload
+              );
               if (uploadRes.created) {
                 uploadedImages = uploadRes.created;
               }
@@ -351,19 +374,20 @@ export default function CustomerFormDealer({
 
             // 4. Construct final ordered ID list
             let uploadIndex = 0;
-            const finalOrderedIds = images.map((img) => {
-              if (img instanceof File) {
-                const newImg = uploadedImages[uploadIndex++];
-                return newImg?.id;
-              }
-              return img.id;
-            }).filter(Boolean);
+            const finalOrderedIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) {
+                  const newImg = uploadedImages[uploadIndex++];
+                  return newImg?.id;
+                }
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
 
             // 5. Update order
             if (finalOrderedIds.length > 0) {
               await reorderImages(targetCustomerId, finalOrderedIds);
             }
-
           } catch (err) {
             console.error("Image operation failed", err);
             // We don't block success navigation if image op fails, but we log it
@@ -385,7 +409,7 @@ export default function CustomerFormDealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-        (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -453,7 +477,6 @@ export default function CustomerFormDealer({
           }}
         />
       </div>
-
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
@@ -588,7 +611,6 @@ export default function CustomerFormDealer({
         ที่อยู่จัดส่ง
       </h3>
 
-
       <FormInput
         label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
         placeholder="123/45 หมู่ 6"
@@ -698,7 +720,7 @@ export default function CustomerFormDealer({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => { }}
+          onChange={() => {}}
         />
       </div>
 
@@ -798,18 +820,18 @@ export default function CustomerFormDealer({
         rows={3}
       />
 
-
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         รูปภาพร้านค้า
       </h3>
-      <div className="md:col-span-2 mt-6">
-        <ImageUpload
-          label="อัพโหลดรูปภาพร้านค้า (สูงสุด 5 รูป)"
-          value={images}
-          onChange={setImages}
+      <div className="md:col-span-2 mt-2 mx-2">
+        <GalleryUpload
           maxFiles={5}
-          maxSizeMB={5}
+          maxSize={5 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
           disabled={loading}
+          initialFiles={convertToFileMetadata(initial.images || [])}
+          onFilesChange={(files) => setUploadedFiles(files)}
         />
         {uploadProgress !== null && (
           <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -817,7 +839,9 @@ export default function CustomerFormDealer({
               className="bg-blue-600 h-2.5 rounded-full"
               style={{ width: `${uploadProgress}%` }}
             ></div>
-            <p className="text-xs text-center mt-1">กำลังอัพโหลด: {uploadProgress}%</p>
+            <p className="text-xs text-center mt-1">
+              กำลังอัพโหลด: {uploadProgress}%
+            </p>
           </div>
         )}
       </div>
@@ -841,16 +865,21 @@ export default function CustomerFormDealer({
                 district: rnd.district ?? p.district,
                 subdistrict: rnd.subdistrict ?? p.subdistrict,
                 postalCode: rnd.postalCode ?? p.postalCode,
-                billingAddressLine: rnd.billingAddressLine ?? p.billingAddressLine,
+                billingAddressLine:
+                  rnd.billingAddressLine ?? p.billingAddressLine,
                 billingProvince: rnd.billingProvince ?? p.billingProvince,
                 billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
-                billingSubdistrict: rnd.billingSubdistrict ?? p.billingSubdistrict,
+                billingSubdistrict:
+                  rnd.billingSubdistrict ?? p.billingSubdistrict,
                 billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
-                shippingAddressLine: rnd.shippingAddressLine ?? p.shippingAddressLine,
+                shippingAddressLine:
+                  rnd.shippingAddressLine ?? p.shippingAddressLine,
                 shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
                 shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
-                shippingSubdistrict: rnd.shippingSubdistrict ?? p.shippingSubdistrict,
-                shippingPostalCode: rnd.shippingPostalCode ?? p.shippingPostalCode,
+                shippingSubdistrict:
+                  rnd.shippingSubdistrict ?? p.shippingSubdistrict,
+                shippingPostalCode:
+                  rnd.shippingPostalCode ?? p.shippingPostalCode,
                 prefix: rnd.prefix ?? p.prefix,
                 firstName: rnd.firstName ?? p.firstName,
                 lastName: rnd.lastName ?? p.lastName,
