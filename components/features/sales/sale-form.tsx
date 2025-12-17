@@ -735,20 +735,31 @@ export function SaleForm({
                           const isBangkok =
                             selectedCustomer.shippingProvince ===
                             "กรุงเทพมหานคร";
+
+                          const cleanPrefix = (value?: string) =>
+                            value
+                              ?.replace(/^แขวง/, "")
+                              ?.replace(/^เขต/, "")
+                              ?.replace(/^ตำบล/, "")
+                              ?.replace(/^อำเภอ/, "")
+                              ?.trim();
+
                           return [
                             selectedCustomer.shippingAddressLine,
                             selectedCustomer.shippingSubdistrict
-                              ? `${isBangkok ? "แขวง" : "ตำบล"}${
+                              ? `${isBangkok ? "แขวง" : "ตำบล"}${cleanPrefix(
                                   selectedCustomer.shippingSubdistrict
-                                }`
+                                )}`
                               : "",
                             selectedCustomer.shippingDistrict
-                              ? `${isBangkok ? "เขต" : "อำเภอ"}${
+                              ? `${isBangkok ? "เขต" : "อำเภอ"}${cleanPrefix(
                                   selectedCustomer.shippingDistrict
-                                }`
+                                )}`
                               : "",
                             selectedCustomer.shippingProvince
-                              ? `จังหวัด${selectedCustomer.shippingProvince}`
+                              ? `จังหวัด${cleanPrefix(
+                                  selectedCustomer.shippingProvince
+                                )}`
                               : "",
                             selectedCustomer.shippingPostalCode || "",
                           ]
