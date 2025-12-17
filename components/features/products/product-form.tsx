@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ImageUpload } from "@/components/custom/image-upload";
+import GalleryUpload from "@/components/custom/gallery-upload";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -12,7 +12,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
 import { MultiSelect } from "@/components/custom/multi-select";
 import {
   UNIT_OPTIONS,
@@ -23,6 +27,7 @@ import {
   type ProductFormData,
 } from "@/types/product";
 import generateRandomProduct from "@/lib/random-fill/product";
+import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -74,7 +79,18 @@ export function ProductForm({
     coverIndex: (initialData as any)?.coverIndex ?? null,
   });
 
-  const [images, setImages] = useState<any[]>(initialData?.images || []);
+  // Convert initial images to FileMetadata format for GalleryUpload
+  const convertToFileMetadata = (images: any[]): FileMetadata[] => {
+    return images.map((img) => ({
+      id: img.id,
+      name: img.name || `image-${img.id}`,
+      size: img.size || 0,
+      type: img.type || "image/jpeg",
+      url: img.url,
+    }));
+  };
+
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const originalExistingIdsRef = useRef<string[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
@@ -137,8 +153,8 @@ export function ProductForm({
         if (!result.success) {
           setError(
             result.error ??
-            Object.values(result.issues ?? {})[0]?.[0] ??
-            "Server error"
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error"
           );
         } else {
           // Handle images (delete removed, upload new, reorder)
@@ -148,7 +164,12 @@ export function ProductForm({
             try {
               // 1. Identify removed images
               const initialImages = (initialData?.images || []) as any[];
-              const currentImageIds = images.map((img) => img.id).filter(Boolean);
+              const currentImageIds = uploadedFiles
+                .map((item) => {
+                  if (item.file instanceof File) return null;
+                  return (item.file as FileMetadata).id;
+                })
+                .filter(Boolean);
               const removedImageIds = initialImages
                 .map((img) => img.id)
                 .filter((id) => !currentImageIds.includes(id));
@@ -160,11 +181,16 @@ export function ProductForm({
 
               // 3. Upload new images and collect all IDs in order
               let uploadedImages: any[] = [];
-              const filesToUpload = images.filter((i) => i instanceof File) as File[];
+              const filesToUpload = uploadedFiles
+                .filter((item) => item.file instanceof File)
+                .map((item) => item.file as File);
 
               if (filesToUpload.length > 0) {
                 setUploadProgress(0);
-                const uploadRes = await uploadImages(targetProductId, filesToUpload);
+                const uploadRes = await uploadImages(
+                  targetProductId,
+                  filesToUpload
+                );
                 if (uploadRes.created) {
                   uploadedImages = uploadRes.created;
                 }
@@ -172,19 +198,20 @@ export function ProductForm({
 
               // 4. Construct final ordered ID list
               let uploadIndex = 0;
-              const finalOrderedIds = images.map((img) => {
-                if (img instanceof File) {
-                  const newImg = uploadedImages[uploadIndex++];
-                  return newImg?.id;
-                }
-                return img.id;
-              }).filter(Boolean);
+              const finalOrderedIds = uploadedFiles
+                .map((item) => {
+                  if (item.file instanceof File) {
+                    const newImg = uploadedImages[uploadIndex++];
+                    return newImg?.id;
+                  }
+                  return (item.file as FileMetadata).id;
+                })
+                .filter(Boolean);
 
               // 5. Update order
               if (finalOrderedIds.length > 0) {
                 await reorderImages(targetProductId, finalOrderedIds);
               }
-
             } catch (err) {
               console.error("Image operation failed", err);
               // We don't block success navigation if image op fails, but we log it
@@ -217,7 +244,12 @@ export function ProductForm({
           try {
             // 1. Identify removed images
             const initialImages = (initialData?.images || []) as any[];
-            const currentImageIds = images.map((img) => img.id).filter(Boolean);
+            const currentImageIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) return null;
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
             const removedImageIds = initialImages
               .map((img) => img.id)
               .filter((id) => !currentImageIds.includes(id));
@@ -229,11 +261,16 @@ export function ProductForm({
 
             // 3. Upload new images and collect all IDs in order
             let uploadedImages: any[] = [];
-            const filesToUpload = images.filter((i) => i instanceof File) as File[];
+            const filesToUpload = uploadedFiles
+              .filter((item) => item.file instanceof File)
+              .map((item) => item.file as File);
 
             if (filesToUpload.length > 0) {
               setUploadProgress(0);
-              const uploadRes = await uploadImages(targetProductId, filesToUpload);
+              const uploadRes = await uploadImages(
+                targetProductId,
+                filesToUpload
+              );
               if (uploadRes.created) {
                 uploadedImages = uploadRes.created;
               }
@@ -241,19 +278,20 @@ export function ProductForm({
 
             // 4. Construct final ordered ID list
             let uploadIndex = 0;
-            const finalOrderedIds = images.map((img) => {
-              if (img instanceof File) {
-                const newImg = uploadedImages[uploadIndex++];
-                return newImg?.id;
-              }
-              return img.id;
-            }).filter(Boolean);
+            const finalOrderedIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) {
+                  const newImg = uploadedImages[uploadIndex++];
+                  return newImg?.id;
+                }
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
 
             // 5. Update order
             if (finalOrderedIds.length > 0) {
               await reorderImages(targetProductId, finalOrderedIds);
             }
-
           } catch (err) {
             console.error("Image operation failed", err);
             setError("อัพโหลดรูปภาพล้มเหลว");
@@ -310,10 +348,7 @@ export function ProductForm({
     });
   };
 
-  const uploadImages = (
-    productId: string,
-    files: File[]
-  ): Promise<any> => {
+  const uploadImages = (productId: string, files: File[]): Promise<any> => {
     return new Promise((resolve, reject) => {
       const form = new FormData();
       files.forEach((f) => form.append("images", f));
@@ -395,7 +430,9 @@ export function ProductForm({
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-green-600" />
               <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
-              <DialogDescription>กำลังนำทางกลับไปหน้ารายการสินค้า...</DialogDescription>
+              <DialogDescription>
+                กำลังนำทางกลับไปหน้ารายการสินค้า...
+              </DialogDescription>
             </div>
           </DialogContent>
         </Dialog>
@@ -567,19 +604,14 @@ export function ProductForm({
         />
 
         <div className="md:col-span-2">
-          <ImageUpload
-            label="อัพโหลดรูปภาพสินค้า"
-            value={images}
-            onChange={setImages}
-            maxFiles={5}
-            maxSizeMB={2}
+          <GalleryUpload
+            maxFiles={10}
+            maxSize={5 * 1024 * 1024}
+            accept="image/*"
+            multiple={true}
             disabled={loading}
-            onSetCover={(index) =>
-              setFormData((prev) => ({
-                ...prev,
-                coverIndex: index,
-              }))
-            }
+            initialFiles={convertToFileMetadata(initialData?.images || [])}
+            onFilesChange={(files) => setUploadedFiles(files)}
           />
         </div>
       </div>
