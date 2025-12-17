@@ -69,53 +69,14 @@ export default function GalleryUpload({
 
   return (
     <div className={cn("w-full", className)}>
-      {/* Upload Area */}
-      <div
-        className={cn(
-          "relative rounded-lg border border-dashed p-8 text-center transition-colors",
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-muted-foreground/50",
-          disabled && "opacity-50 pointer-events-none"
-        )}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        <input {...getInputProps()} className="sr-only" disabled={disabled} />
-
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className={cn(
-              "flex h-16 w-16 items-center justify-center rounded-full",
-              isDragging ? "bg-primary/10" : "bg-muted"
-            )}
-          >
-            <ImageIcon
-              className={cn(
-                "h-5 w-5",
-                isDragging ? "text-primary" : "text-muted-foreground"
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">อัพโหลดรูปภาพ</h3>
-            <p className="text-sm text-muted-foreground">
-              ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์
-            </p>
-            <p className="text-xs text-muted-foreground">
-              PNG, JPG, GIF สูงสุด {formatBytes(maxSize)} ต่อไฟล์ (สูงสุด{" "}
-              {maxFiles} ไฟล์)
-            </p>
-          </div>
-
-          <Button type="button" onClick={openFileDialog} disabled={disabled}>
-            <Upload className="h-4 w-4" />
-            เลือกรูปภาพ
-          </Button>
-        </div>
+      {/* Header */}
+      <div className="mb-3">
+        <h3 className="text-base font-semibold text-gray-800 mb-1">
+          อัพโหลดรูปภาพร้านค้า (สูงสุด {maxFiles} รูป)
+        </h3>
+        <p className="text-sm text-gray-500">
+          รองรับไฟล์ .jpg, .jpeg, .png, .webp, .heic, .heif
+        </p>
       </div>
 
       {/* Gallery Stats */}
@@ -202,6 +163,32 @@ export default function GalleryUpload({
           ))}
         </div>
       )}
+
+      {/* Upload Area - Below Images */}
+      <div
+        className={cn(
+          "mt-4 relative rounded-lg border-2 border-dashed p-6 text-center transition-colors cursor-pointer inline-block",
+          isDragging
+            ? "border-primary bg-primary/5"
+            : "border-gray-300 hover:border-gray-400",
+          disabled && "opacity-50 pointer-events-none"
+        )}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onClick={openFileDialog}
+      >
+        <input {...getInputProps()} className="sr-only" disabled={disabled} />
+
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-center">
+            <Upload className="h-8 w-8 text-gray-400" />
+          </div>
+
+          <div className="text-sm text-gray-600">Upload</div>
+        </div>
+      </div>
 
       {/* Error Messages */}
       {errors.length > 0 && (
