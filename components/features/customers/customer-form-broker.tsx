@@ -11,7 +11,11 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomBroker from "@/lib/random-fill/broker";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -129,8 +133,9 @@ export default function CustomerFormBroker({
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "BROKER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
-        } ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${
+        values.firstName ?? ""
+      } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -142,8 +147,9 @@ export default function CustomerFormBroker({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
-        }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${
+        values.lastName ?? ""
+      }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -190,7 +196,7 @@ export default function CustomerFormBroker({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-        (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -293,7 +299,7 @@ export default function CustomerFormBroker({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => { }}
+          onChange={() => {}}
         />
       </div>
 
