@@ -646,87 +646,11 @@ export function SaleForm({
 
                 {/* Content */}
                 <div className="relative">
-                  {/* Header */}
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
-                      <MapPin className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-800">
-                        ที่อยู่จัดส่งสินค้า
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        {selectedCustomer.name}
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Address Details */}
                   <div className="space-y-3 rounded-xl bg-white/60 p-4 backdrop-blur-sm">
-                    {selectedCustomer.shippingAddressLine && (
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
-                          <Home className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            ที่อยู่ / เลขที่ / ถนน
-                          </p>
-                          <p className="mt-1 text-base font-medium text-gray-800">
-                            {selectedCustomer.shippingAddressLine}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid gap-3 md:grid-cols-2">
-                      {selectedCustomer.shippingSubdistrict && (
-                        <div className="rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-3">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            ตำบล/แขวง
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-gray-800">
-                            {selectedCustomer.shippingSubdistrict}
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedCustomer.shippingDistrict && (
-                        <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-3">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            อำเภอ/เขต
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-gray-800">
-                            {selectedCustomer.shippingDistrict}
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedCustomer.shippingProvince && (
-                        <div className="rounded-lg bg-gradient-to-br from-pink-50 to-orange-50 p-3">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            จังหวัด
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-gray-800">
-                            {selectedCustomer.shippingProvince}
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedCustomer.shippingPostalCode && (
-                        <div className="rounded-lg bg-gradient-to-br from-orange-50 to-yellow-50 p-3">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            รหัสไปรษณีย์
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-gray-800">
-                            {selectedCustomer.shippingPostalCode}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
                     {/* Full Address Summary */}
                     <div className="mt-4 border-t border-gray-200 pt-4">
+                      <Home className="h-4 w-4 text-blue-600" />
                       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
                         ที่อยู่เต็ม
                       </p>
