@@ -823,7 +823,7 @@ export default function CustomerFormDealer({
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         รูปภาพร้านค้า
       </h3>
-      <div className="md:col-span-2 mt-2 mx-2">
+      <div className="md:col-span-2 mt-6 mx-2">
         <GalleryUpload
           maxFiles={5}
           maxSize={5 * 1024 * 1024}
