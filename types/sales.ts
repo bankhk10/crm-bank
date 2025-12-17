@@ -51,6 +51,7 @@ export interface SaleFormData {
   saleDate: string;
   requestedDeliveryDate?: string;
   deliveryDate?: string;
+  deliveryMethod?: string;
   billingAddress?: string;
   shippingAddress?: string;
   items: SaleItemFormData[];

@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
       status: (searchParams.get("status") as SaleStatus) || undefined,
       customerId: searchParams.get("customerId") || undefined,
       employeeId: searchParams.get("employeeId") || undefined,
-      paymentTerm: (searchParams.get("paymentTerm") as PaymentTerm) || undefined,
+      paymentTerm:
+        (searchParams.get("paymentTerm") as PaymentTerm) || undefined,
       dateFrom: searchParams.get("dateFrom") || undefined,
       dateTo: searchParams.get("dateTo") || undefined,
       page: parseInt(searchParams.get("page") || "1"),
@@ -33,8 +34,14 @@ export async function GET(request: NextRequest) {
     if (filters.search) {
       where.OR = [
         { saleNumber: { contains: filters.search, mode: "insensitive" } },
-        { customer: { name: { contains: filters.search, mode: "insensitive" } } },
-        { customer: { customerCode: { contains: filters.search, mode: "insensitive" } } },
+        {
+          customer: { name: { contains: filters.search, mode: "insensitive" } },
+        },
+        {
+          customer: {
+            customerCode: { contains: filters.search, mode: "insensitive" },
+          },
+        },
       ];
     }
 
@@ -168,10 +175,7 @@ export async function POST(request: NextRequest) {
         creditLimits: {
           where: {
             status: "ACTIVE",
-            OR: [
-              { expiryDate: null },
-              { expiryDate: { gte: new Date() } },
-            ],
+            OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
           },
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -180,7 +184,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Customer not found" },
+        { status: 404 }
+      );
     }
 
     // Calculate totals
@@ -202,7 +209,8 @@ export async function POST(request: NextRequest) {
 
       const availableCredit = Number(creditLimit.availableAmount);
       const promotionalCredit = body.usePromotionalCredit
-        ? Number(creditLimit.promoAmount || 0) - Number(body.promotionalCreditUsed || 0)
+        ? Number(creditLimit.promoAmount || 0) -
+          Number(body.promotionalCreditUsed || 0)
         : 0;
 
       if (total > availableCredit + promotionalCredit) {
@@ -271,8 +279,11 @@ export async function POST(request: NextRequest) {
           ? new Prisma.Decimal(body.promotionalCreditUsed)
           : null,
         saleDate: new Date(body.saleDate),
-        requestedDeliveryDate: body.requestedDeliveryDate ? new Date(body.requestedDeliveryDate) : null,
+        requestedDeliveryDate: body.requestedDeliveryDate
+          ? new Date(body.requestedDeliveryDate)
+          : null,
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
+        deliveryMethod: body.deliveryMethod,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
         subtotalAmount: new Prisma.Decimal(subtotal),

@@ -212,6 +212,9 @@ export function SaleForm({
   const [useCustomShippingAddress, setUseCustomShippingAddress] =
     useState(false);
   const [customShippingAddress, setCustomShippingAddress] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState(
+    (initialData as any)?.deliveryMethod || "SALES_DELIVERY"
+  );
   const [items, setItems] = useState<SaleItemFormData[]>(
     initialData?.items || []
   );
@@ -477,6 +480,7 @@ export function SaleForm({
         shippingAddress: useCustomShippingAddress
           ? customShippingAddress
           : shippingAddress,
+        deliveryMethod,
         items,
         shippingCost,
         otherCosts,
@@ -638,8 +642,72 @@ export function SaleForm({
       )}
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่จัดส่ง
+        การจัดส่งและที่อยู่
       </h3>
+
+      {/* Delivery Method Selection */}
+      <div className="mt-6">
+        <Label className="text-base font-medium mx-2 mb-3 block">
+          วิธีการจัดส่ง *
+        </Label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div
+            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+              deliveryMethod === "SALES_DELIVERY"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
+            }`}
+            onClick={() => setDeliveryMethod("SALES_DELIVERY")}
+          >
+            <div className="flex items-start space-x-3">
+              <input
+                type="radio"
+                name="deliveryMethod"
+                value="SALES_DELIVERY"
+                checked={deliveryMethod === "SALES_DELIVERY"}
+                onChange={(e) => setDeliveryMethod(e.target.value)}
+                className="mt-1 h-4 w-4 text-blue-600"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-base">
+                  พนักงานขายจัดส่งสินค้า
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  พนักงานขายจะเป็นผู้จัดส่งสินค้าให้ถึงที่อยู่ลูกค้า
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+              deliveryMethod === "CUSTOMER_PICKUP"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
+            }`}
+            onClick={() => setDeliveryMethod("CUSTOMER_PICKUP")}
+          >
+            <div className="flex items-start space-x-3">
+              <input
+                type="radio"
+                name="deliveryMethod"
+                value="CUSTOMER_PICKUP"
+                checked={deliveryMethod === "CUSTOMER_PICKUP"}
+                onChange={(e) => setDeliveryMethod(e.target.value)}
+                className="mt-1 h-4 w-4 text-blue-600"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-base">
+                  ลูกค้ามารับสินค้าเอง
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  ลูกค้าจะมารับสินค้าด้วยตนเองที่สถานที่กำหนด
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Shipping Address Display */}
       <div className="mt-6">

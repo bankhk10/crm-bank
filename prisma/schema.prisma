@@ -513,6 +513,7 @@ model Sale {
   deliveryDate          DateTime?
   actualDeliveryDate    DateTime?
   deliveryUpdateCount   Int         @default(0)
+  deliveryMethod        String?     // SALES_DELIVERY or CUSTOMER_PICKUP
   
   // Addresses
   billingAddress        String?
