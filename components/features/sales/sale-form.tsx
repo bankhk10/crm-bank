@@ -36,6 +36,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { SaleFormData, SaleItemFormData } from "@/types/sales";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 interface Customer {
   id: string;
@@ -172,10 +173,10 @@ export function SaleForm({
   // Form state
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
   const [employeeId, setEmployeeId] = useState(initialData?.employeeId || "");
-  const [paymentTerm, setPaymentTerm] = useState<"PREPAID" | "CREDIT">(
-    initialData?.paymentTerm || "PREPAID"
-  );
-  const [creditDays, setCreditDays] = useState(initialData?.creditDays || 0);
+  const [paymentTerm, setPaymentTerm] = useState<
+    "CREDIT_90" | "CASH_7" | "PREPAID" | "CREDIT_OVER_90"
+  >(initialData?.paymentTerm || "CREDIT_90");
+  const [creditDays, setCreditDays] = useState(initialData?.creditDays || 90);
   const [creditDueDate, setCreditDueDate] = useState(
     initialData?.creditDueDate || ""
   );
@@ -231,6 +232,10 @@ export function SaleForm({
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
+
+  // Get current user for admin check
+  const currentUser = useCurrentUser();
+  const isAdmin = currentUser?.roles?.includes("admin") || false;
 
   // Product detail modal
   const [selectedProductDetail, setSelectedProductDetail] =
@@ -423,8 +428,12 @@ export function SaleForm({
       }
     }
 
-    // Check credit limit for CREDIT payment
-    if (paymentTerm === "CREDIT" && selectedCustomer) {
+    // Check credit limit for credit-based payment terms
+    const isCreditPayment =
+      paymentTerm === "CREDIT_90" ||
+      paymentTerm === "CASH_7" ||
+      paymentTerm === "CREDIT_OVER_90";
+    if (isCreditPayment && selectedCustomer) {
       const creditLimit = selectedCustomer.creditLimits?.[0];
       const availableCredit = creditLimit?.availableAmount
         ? Number(creditLimit.availableAmount)
@@ -444,7 +453,7 @@ export function SaleForm({
     }
 
     // Credit term validation
-    if (paymentTerm === "CREDIT") {
+    if (isCreditPayment) {
       if (!creditDays || creditDays <= 0) {
         newErrors.push("กรุณาระบุจำนวนวันเครดิต");
       }
@@ -467,8 +476,8 @@ export function SaleForm({
         customerId,
         employeeId,
         paymentTerm,
-        creditDays: paymentTerm === "CREDIT" ? creditDays : undefined,
-        creditDueDate: paymentTerm === "CREDIT" ? creditDueDate : undefined,
+        creditDays: isCreditPayment ? creditDays : undefined,
+        creditDueDate: isCreditPayment ? creditDueDate : undefined,
         usePromotionalCredit,
         promotionalCreditUsed: usePromotionalCredit
           ? promotionalCreditUsed
@@ -595,10 +604,34 @@ export function SaleForm({
         <FormSelect
           label="เงื่อนไขการชำระเงิน *"
           value={paymentTerm}
-          onChange={(val: any) => setPaymentTerm(val)}
+          onChange={(val: any) => {
+            setPaymentTerm(val);
+            // Auto-set credit days based on payment term
+            if (val === "CREDIT_90") {
+              setCreditDays(90);
+            } else if (val === "CASH_7") {
+              setCreditDays(7);
+            } else if (val === "PREPAID") {
+              setCreditDays(0);
+            } else if (val === "CREDIT_OVER_90") {
+              setCreditDays(91);
+            }
+          }}
           options={[
-            { value: "PREPAID", label: "โอนเงินก่อน" },
-            { value: "CREDIT", label: "ส่งของก่อน" },
+            { value: "CREDIT_90", label: "ส่งสินค้าก่อน (เครดิต 90 วัน)" },
+            { value: "CASH_7", label: "ชำระเงินสด (เครดิต 7 วัน)" },
+            {
+              value: "PREPAID",
+              label: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
+            },
+            ...(isAdmin
+              ? [
+                  {
+                    value: "CREDIT_OVER_90",
+                    label: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน) - Admin Only",
+                  },
+                ]
+              : []),
           ]}
           placeholder="เลือกเงื่อนไข"
           groupLabel="เงื่อนไข"
@@ -621,7 +654,9 @@ export function SaleForm({
         </div>
       </div>
 
-      {paymentTerm === "CREDIT" && (
+      {(paymentTerm === "CREDIT_90" ||
+        paymentTerm === "CASH_7" ||
+        paymentTerm === "CREDIT_OVER_90") && (
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
           <FormInput
             label="เครดิต (วัน)"
@@ -629,6 +664,8 @@ export function SaleForm({
             value={String(creditDays)}
             onChange={(e) => setCreditDays(Number(e.target.value))}
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            disabled={paymentTerm === "CREDIT_90" || paymentTerm === "CASH_7"}
+            readOnly={paymentTerm === "CREDIT_90" || paymentTerm === "CASH_7"}
           />
           <div>
             <DatePicker
