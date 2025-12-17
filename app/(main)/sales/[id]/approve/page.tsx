@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Textarea } from "@/components/custom/Textarea";
+import { FormTextarea } from "@/components/custom/FormTextarea";
 import {
   Dialog,
   DialogContent,
@@ -264,7 +264,8 @@ export default function ApproveSalePage({
               พบการเปลี่ยนแปลงราคา
             </CardTitle>
             <p className="text-sm text-orange-800">
-              กรุณาตรวจสอบรายการด้านล่างก่อนอนุมัติ ระบบตรวจพบการแก้ไขราคาจากค่ามาตรฐาน
+              กรุณาตรวจสอบรายการด้านล่างก่อนอนุมัติ
+              ระบบตรวจพบการแก้ไขราคาจากค่ามาตรฐาน
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -291,22 +292,35 @@ export default function ApproveSalePage({
                     <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
                       <span className="text-gray-500 text-xs">ราคาเดิม</span>
                       <p className="text-gray-700 font-semibold line-through">
-                        ฿{original.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                        ฿
+                        {original.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                     <div className="rounded-xl bg-orange-50 p-3 border border-orange-100">
-                      <span className="text-gray-500 text-xs">ราคาปัจจุบัน</span>
+                      <span className="text-gray-500 text-xs">
+                        ราคาปัจจุบัน
+                      </span>
                       <p className="text-orange-700 font-bold">
-                        ฿{modified.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                        ฿
+                        {modified.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
                       </p>
                     </div>
                     <div className="rounded-xl bg-white p-3 border border-orange-100">
                       <span className="text-gray-500 text-xs">ส่วนต่าง</span>
                       <p
-                        className={`font-bold ${diffPositive ? "text-green-600" : "text-red-600"}`}
+                        className={`font-bold ${
+                          diffPositive ? "text-green-600" : "text-red-600"
+                        }`}
                       >
                         {diffPositive ? "+" : ""}
-                        {diff.toLocaleString("th-TH", { minimumFractionDigits: 2 })} บาท
+                        {diff.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}{" "}
+                        บาท
                         <span className="text-xs block text-gray-500">
                           ({diffPercent.toFixed(2)}%)
                         </span>
@@ -398,10 +412,14 @@ export default function ApproveSalePage({
         {/* 📱 Mobile Card View */}
         <div className="block lg:hidden divide-y">
           {sale.items.map((item, i) => {
-            const originalUnitPrice = Number(item.originalPrice ?? item.unitPrice ?? 0);
+            const originalUnitPrice = Number(
+              item.originalPrice ?? item.unitPrice ?? 0
+            );
             const currentUnitPrice = Number(item.unitPrice ?? 0);
             const quantity = Number(item.quantity ?? 0);
-            const currentTotal = Number(item.totalPrice ?? currentUnitPrice * quantity);
+            const currentTotal = Number(
+              item.totalPrice ?? currentUnitPrice * quantity
+            );
             const originalTotal = originalUnitPrice * quantity;
             const priceChanged = Boolean(item.priceModified);
 
@@ -409,10 +427,14 @@ export default function ApproveSalePage({
               <div
                 key={item.id ?? i}
                 className={`p-4 transition-all ${
-                  priceChanged ? "bg-orange-50/70 border-l-4 border-orange-300" : ""
+                  priceChanged
+                    ? "bg-orange-50/70 border-l-4 border-orange-300"
+                    : ""
                 }`}
               >
-                <p className="font-semibold text-gray-900">{item.product.name}</p>
+                <p className="font-semibold text-gray-900">
+                  {item.product.name}
+                </p>
                 <p className="text-xs text-gray-500 mb-3">
                   {item.product.productCode}
                 </p>
@@ -426,7 +448,11 @@ export default function ApproveSalePage({
                   </div>
                   <div>
                     <span className="text-gray-500 text-xs">ราคา/หน่วย</span>
-                    <p className={`font-semibold ${priceChanged ? "text-orange-700" : ""}`}>
+                    <p
+                      className={`font-semibold ${
+                        priceChanged ? "text-orange-700" : ""
+                      }`}
+                    >
                       ฿
                       {currentUnitPrice.toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
@@ -435,7 +461,11 @@ export default function ApproveSalePage({
                   </div>
                   <div className="col-span-2 pt-1 border-t">
                     <p className="text-gray-500 text-xs">รวม</p>
-                    <p className={`text-base font-bold ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                    <p
+                      className={`text-base font-bold ${
+                        priceChanged ? "text-orange-700" : "text-blue-600"
+                      }`}
+                    >
                       ฿
                       {currentTotal.toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
@@ -571,10 +601,14 @@ export default function ApproveSalePage({
 
             <tbody className="divide-y">
               {sale.items.map((item, i) => {
-                const originalUnitPrice = Number(item.originalPrice ?? item.unitPrice ?? 0);
+                const originalUnitPrice = Number(
+                  item.originalPrice ?? item.unitPrice ?? 0
+                );
                 const currentUnitPrice = Number(item.unitPrice ?? 0);
                 const quantity = Number(item.quantity ?? 0);
-                const currentTotal = Number(item.totalPrice ?? currentUnitPrice * quantity);
+                const currentTotal = Number(
+                  item.totalPrice ?? currentUnitPrice * quantity
+                );
                 const originalTotal = originalUnitPrice * quantity;
                 const priceChanged = Boolean(item.priceModified);
 
@@ -606,7 +640,11 @@ export default function ApproveSalePage({
                     </td>
                     <td className="text-right p-4 align-middle">
                       <div className="flex flex-col items-end">
-                        <span className={`font-semibold ${priceChanged ? "text-orange-700" : ""}`}>
+                        <span
+                          className={`font-semibold ${
+                            priceChanged ? "text-orange-700" : ""
+                          }`}
+                        >
                           ฿
                           {currentUnitPrice.toLocaleString("th-TH", {
                             minimumFractionDigits: 2,
@@ -624,7 +662,11 @@ export default function ApproveSalePage({
                     </td>
                     <td className="text-right p-4 align-middle">
                       <div className="flex flex-col items-end">
-                        <span className={`font-bold ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                        <span
+                          className={`font-bold ${
+                            priceChanged ? "text-orange-700" : "text-blue-600"
+                          }`}
+                        >
                           ฿
                           {currentTotal.toLocaleString("th-TH", {
                             minimumFractionDigits: 2,
@@ -757,7 +799,7 @@ export default function ApproveSalePage({
             </DialogDescription>
           </DialogHeader>
 
-          <Textarea
+          <FormTextarea
             label="หมายเหตุ"
             value={approveNotes}
             onChange={(e) => setApproveNotes(e.target.value)}
@@ -786,7 +828,7 @@ export default function ApproveSalePage({
             </DialogTitle>
           </DialogHeader>
 
-          <Textarea
+          <FormTextarea
             label="เหตุผล (*)"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}

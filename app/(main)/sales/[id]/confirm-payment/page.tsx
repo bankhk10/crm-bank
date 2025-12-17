@@ -9,21 +9,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import DatePicker from "@/components/custom/DatePicker";
-import { Textarea } from "@/components/custom/Textarea";
+import { FormTextarea } from "@/components/custom/FormTextarea";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleWithRelations, PaymentConfirmationData } from "@/types/sales";
 import { use } from "react";
 
-export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ConfirmPaymentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
-  const { hasPermission, allowed, isLoading: permissionLoading } = usePermission("sale.confirm-payment");
+  const {
+    hasPermission,
+    allowed,
+    isLoading: permissionLoading,
+  } = usePermission("sale.confirm-payment");
 
   const [sale, setSale] = useState<SaleWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [paymentNotes, setPaymentNotes] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliveryNotes, setDeliveryNotes] = useState("");
@@ -39,7 +49,9 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
         setSale(data.sale);
         // Pre-fill delivery date if exists
         if (data.sale.deliveryDate) {
-          setDeliveryDate(new Date(data.sale.deliveryDate).toISOString().split("T")[0]);
+          setDeliveryDate(
+            new Date(data.sale.deliveryDate).toISOString().split("T")[0]
+          );
         }
         setLoading(false);
       })
@@ -51,7 +63,7 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!paymentDate) {
       setError("กรุณาระบุวันที่ชำระเงิน");
       return;
@@ -123,9 +135,14 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
     return (
       <div className="container mx-auto py-8">
         <Alert>
-          <AlertDescription>รายการขายนี้ไม่อยู่ในสถานะรอการชำระเงิน</AlertDescription>
+          <AlertDescription>
+            รายการขายนี้ไม่อยู่ในสถานะรอการชำระเงิน
+          </AlertDescription>
         </Alert>
-        <Button onClick={() => router.push(`/sales/${sale.id}`)} className="mt-4">
+        <Button
+          onClick={() => router.push(`/sales/${sale.id}`)}
+          className="mt-4"
+        >
           กลับไปดูรายละเอียด
         </Button>
       </div>
@@ -170,12 +187,15 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
             </div>
             <div>
               <span className="text-sm text-gray-500">วันที่ขาย:</span>
-              <p>{format(new Date(sale.saleDate), "dd MMM yyyy", { locale: th })}</p>
+              <p>
+                {format(new Date(sale.saleDate), "dd MMM yyyy", { locale: th })}
+              </p>
             </div>
             <div>
               <span className="text-sm text-gray-500">ยอดเงินสุทธิ:</span>
               <p className="text-xl font-bold text-blue-600">
-                ฿{Number(sale.totalAmount).toLocaleString("th-TH", {
+                ฿
+                {Number(sale.totalAmount).toLocaleString("th-TH", {
                   minimumFractionDigits: 2,
                 })}
               </p>
@@ -197,7 +217,7 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
               onChange={setPaymentDate}
             />
 
-            <Textarea
+            <FormTextarea
               label="หมายเหตุการชำระเงิน"
               value={paymentNotes}
               onChange={(e) => setPaymentNotes(e.target.value)}
@@ -219,7 +239,7 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
               placeholder="ระบุวันที่จัดส่งถ้าทราบ"
             />
 
-            <Textarea
+            <FormTextarea
               label="หมายเหตุการจัดส่งสินค้า"
               value={deliveryNotes}
               onChange={(e) => setDeliveryNotes(e.target.value)}
@@ -232,7 +252,10 @@ export default function ConfirmPaymentPage({ params }: { params: Promise<{ id: s
                 <strong>หมายเหตุ:</strong>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>หากระบุวันที่จัดส่งสินค้า สต็อกจะถูกหักทันที</li>
-                  <li>หากไม่ระบุวันที่จัดส่ง สต็อกจะถูกจองไว้จนกว่าจะมีการระบุวันที่จัดส่ง</li>
+                  <li>
+                    หากไม่ระบุวันที่จัดส่ง
+                    สต็อกจะถูกจองไว้จนกว่าจะมีการระบุวันที่จัดส่ง
+                  </li>
                 </ul>
               </AlertDescription>
             </Alert>
