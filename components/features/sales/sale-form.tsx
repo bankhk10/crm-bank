@@ -372,11 +372,11 @@ export function SaleForm({
       if (!item.productId) {
         newErrors.push(`รายการที่ ${index + 1}: กรุณาเลือกสินค้า`);
       }
-      if (item.quantity <= 0) {
-        newErrors.push(`รายการที่ ${index + 1}: กรุณาระบุจำนวนที่ถูกต้อง`);
+      if (item.quantity < 0) {
+        newErrors.push(`รายการที่ ${index + 1}: จำนวนต้องไม่ติดลบ`);
       }
-      if (item.unitPrice <= 0) {
-        newErrors.push(`รายการที่ ${index + 1}: กรุณาระบุราคาที่ถูกต้อง`);
+      if (item.unitPrice < 0) {
+        newErrors.push(`รายการที่ ${index + 1}: ราคาต้องไม่ติดลบ`);
       }
 
       // Check stock
