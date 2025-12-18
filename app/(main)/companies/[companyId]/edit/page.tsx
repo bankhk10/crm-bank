@@ -11,10 +11,15 @@ export default function EditCompanyPage() {
   const { companyId } = useParams() as { companyId: string };
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("company.edit");
-  const canEdit = !isLoading && (hasPermission("company.edit") || hasPermission("company.manage") || hasPermission("menu.companies"));
+  const canEdit =
+    !isLoading &&
+    (hasPermission("company.edit") ||
+      hasPermission("company.manage") ||
+      hasPermission("menu.companies"));
 
   const [payload, setPayload] = useState<any>({
     name: "",
+    companyCode: "",
     shortName: "",
     email: "",
     phone: "",
@@ -44,6 +49,7 @@ export default function EditCompanyPage() {
           setPayload((prev: any) => ({
             ...prev,
             name: src.name ?? "",
+            companyCode: src.companyCode ?? "",
             shortName: src.shortName ?? "",
             email: src.email ?? "",
             phone: src.phone ?? "",
@@ -106,14 +112,18 @@ export default function EditCompanyPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5 border-b pb-6">แก้ไขข้อมูลบริษัท</h5>
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+              แก้ไขข้อมูลบริษัท
+            </h5>
           </div>
 
           {(!canEdit || error) && (
             <div>
               {!canEdit && (
                 <Alert variant="destructive">
-                  <AlertDescription>คุณไม่มีสิทธิ์แก้ไขบริษัทนี้</AlertDescription>
+                  <AlertDescription>
+                    คุณไม่มีสิทธิ์แก้ไขบริษัทนี้
+                  </AlertDescription>
                 </Alert>
               )}
               {error && (

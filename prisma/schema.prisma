@@ -83,6 +83,7 @@ model User {
 model Company {
   id          String        @id @default(cuid())
   name        String
+  companyCode String?       @unique @map("company_code")
   shortName   String?       @map("short_name")
   email       String?       @unique
   phone       String?

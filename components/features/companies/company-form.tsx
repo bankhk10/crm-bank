@@ -19,6 +19,7 @@ import Can from "@/components/rbac/Can";
 
 type CompanyPayload = {
   name: string;
+  companyCode?: string;
   shortName?: string;
   email?: string;
   phone?: string;
@@ -52,6 +53,7 @@ export default function CompanyForm({
 }: Props) {
   const [payload, setPayload] = useState<CompanyPayload>({
     name: initial.name ?? "",
+    companyCode: initial.companyCode ?? "",
     shortName: initial.shortName ?? "",
     email: initial.email ?? "",
     phone: initial.phone ?? "",
@@ -106,6 +108,23 @@ export default function CompanyForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-1">
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+        <div>
+          <Label className="mx-2 mt-2 text-base">รหัสบริษัท</Label>
+          <Input
+            value={payload.companyCode}
+            onChange={(e) => {
+              setPayload((p) => ({ ...p, companyCode: e.target.value }));
+              clearFieldError("companyCode");
+            }}
+            className="mt-1 text-base h-11"
+          />
+          {fieldErrors.companyCode?.[0] && (
+            <p className="text-xs text-red-600 mt-1">
+              {fieldErrors.companyCode[0]}
+            </p>
+          )}
+        </div>
+
         <div>
           <Label className="mx-2 mt-2 text-base">ชื่อบริษัท</Label>
           <Input

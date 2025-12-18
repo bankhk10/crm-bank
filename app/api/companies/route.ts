@@ -10,6 +10,7 @@ const resourcePath = "/api/companies";
 
 const companySchema = z.object({
   name: z.string().min(2),
+  companyCode: z.string().optional(),
   shortName: z.string().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
@@ -19,7 +20,7 @@ const companySchema = z.object({
   district: z.string().optional(),
   subdistrict: z.string().optional(),
   postalCode: z.string().optional(),
-  status: z.enum([ "ACTIVE", "INACTIVE"]).optional(),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 });
 
 export async function GET(request: Request) {
@@ -35,7 +36,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
-  const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
+  const perPage = Math.min(
+    100,
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+  );
   const q = (url.searchParams.get("q") || "").trim();
   const fromParam = url.searchParams.get("from");
   const toParam = url.searchParams.get("to");
@@ -103,6 +107,7 @@ export async function POST(request: Request) {
   // sanitize keys in body to handle accidental whitespace or odd chars in keys
   const knownKeys = [
     "name",
+    "companyCode",
     "shortName",
     "email",
     "phone",
@@ -139,10 +144,15 @@ export async function POST(request: Request) {
   }
 
   // coerce postalCode to string if it's a number
-  if (normalizedBody.postalCode !== undefined && typeof normalizedBody.postalCode === "number") {
+  if (
+    normalizedBody.postalCode !== undefined &&
+    typeof normalizedBody.postalCode === "number"
+  ) {
     normalizedBody.postalCode = String(normalizedBody.postalCode);
   }
-  const parsed = companySchema.safeParse(Object.keys(normalizedBody).length ? normalizedBody : body);
+  const parsed = companySchema.safeParse(
+    Object.keys(normalizedBody).length ? normalizedBody : body
+  );
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -155,6 +165,7 @@ export async function POST(request: Request) {
     const company = await db.company.create({
       data: {
         name: parsed.data.name,
+        companyCode: parsed.data.companyCode,
         shortName: parsed.data.shortName,
         email: parsed.data.email,
         phone: parsed.data.phone,
@@ -170,7 +181,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ company }, { status: 201 });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
       // Unique constraint failed - provide a helpful message for client
       const target = (err.meta && (err.meta as any).target) || [];
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
