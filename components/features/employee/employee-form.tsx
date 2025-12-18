@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
@@ -46,21 +46,18 @@ interface EmployeeFormProps {
     issues?: Record<string, string[]>;
     error?: string;
   }>;
-  hideBorder?: boolean;
+
   onCancel?: () => void;
   registerRandomize?: (fn: () => void) => void;
 }
 
 type Option = { value: string; label: string };
 
-const labelTextClass = "mx-2 mt-2 text-sm font-bold text-gray-900";
-const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
-
 export default function EmployeeForm({
   employeeId,
   initial,
   onSubmit,
-  hideBorder,
+
   onCancel,
   registerRandomize,
 }: EmployeeFormProps) {
@@ -82,7 +79,6 @@ export default function EmployeeForm({
   const canEdit = !isLoading && allowed;
   const permissionHint =
     "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อจัดการข้อมูลพนักงาน";
-  const router = useRouter();
 
   const clearFieldError = useCallback((field: string) => {
     setFieldErrors((prev) => {
@@ -540,7 +536,12 @@ export default function EmployeeForm({
             />
           </div>
 
-          <FormInput label="อายุ" value={calculatedAge} disabled />
+          <FormInput
+            label="อายุ"
+            value={calculatedAge}
+            disabled
+            onChange={() => {}}
+          />
         </div>
 
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
@@ -628,49 +629,41 @@ export default function EmployeeForm({
             error={fieldErrors.email?.[0]}
           />
 
-          <div className="relative">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mx-2 text-gray-700">
-                {employeeId
-                  ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
-                  : "รหัสผ่าน"}
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    clearFieldError("password");
-                  }}
-                  disabled={!canEdit}
-                  placeholder={
-                    employeeId
-                      ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
-                      : "รหัสผ่านสำหรับเข้าสู่ระบบ"
-                  }
-                  className="flex h-11 w-full rounded-3xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 placeholder:text-gray-500 text-base pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900 top-1"
-                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-                {fieldErrors.password?.[0] && (
-                  <p className="text-xs text-red-600 mt-1 ml-2">
-                    {fieldErrors.password[0]}
-                  </p>
+          <FormInput
+            label={
+              employeeId
+                ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
+                : "รหัสผ่าน"
+            }
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              clearFieldError("password");
+            }}
+            placeholder={
+              employeeId
+                ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
+                : "รหัสผ่านสำหรับเข้าสู่ระบบ"
+            }
+            disabled={!canEdit}
+            error={fieldErrors.password?.[0]}
+            rightIcon={
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
+                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
                 )}
-              </div>
-            </div>
-          </div>
+              </button>
+            }
+            rightIconInteractive
+          />
 
           <FormSelect
             label="สิทธิ์การใช้งาน *"

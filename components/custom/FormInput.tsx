@@ -22,6 +22,7 @@ interface FormInputProps {
   onWheel?: (e: React.WheelEvent<HTMLInputElement>) => void;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  rightIconInteractive?: boolean;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
@@ -44,6 +45,7 @@ export function FormInput({
   onWheel,
   leftIcon,
   rightIcon,
+  rightIconInteractive = false,
 }: FormInputProps) {
   const hasIcon = leftIcon || rightIcon;
 
@@ -75,7 +77,12 @@ export function FormInput({
             onWheel={onWheel}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            <div
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground",
+                !rightIconInteractive && "pointer-events-none"
+              )}
+            >
               {rightIcon}
             </div>
           )}
