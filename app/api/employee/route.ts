@@ -11,7 +11,7 @@ const employeeSchema = z.object({
   email: z.string().email(),
   role: z.string().optional(),
   phone: z.string().optional(),
-  companyId: z.string().optional()
+  companyId: z.string().optional(),
 });
 
 export async function GET() {
@@ -31,17 +31,23 @@ export async function GET() {
       company: {
         select: {
           id: true,
-          name: true
-        }
+          name: true,
+        },
       },
       manager: {
         select: {
           id: true,
-          name: true
-        }
-      }
+          name: true,
+        },
+      },
+      position: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
   });
 
   return NextResponse.json({ employees });
@@ -71,8 +77,8 @@ export async function POST(request: Request) {
   const employee = await db.employee.create({
     data: {
       ...parsed.data,
-      managerId: session.user.id
-    }
+      managerId: session.user.id,
+    },
   });
 
   return NextResponse.json({ employee }, { status: 201 });
