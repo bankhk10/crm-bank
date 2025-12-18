@@ -17,7 +17,12 @@ export default function NewCustomerPage() {
   useEffect(() => {
     const t = searchParams?.get("type")?.toUpperCase();
     if (!t) return;
-    if (t === "DEALER" || t === "SUBDEALER" || t === "FARMER" || t === "BROKER") {
+    if (
+      t === "DEALER" ||
+      t === "SUBDEALER" ||
+      t === "FARMER" ||
+      t === "BROKER"
+    ) {
       setSelectedType(t as CustomerType);
     }
   }, [searchParams]);
@@ -84,7 +89,7 @@ export default function NewCustomerPage() {
         <div className="p-6">
           <div className="text-center">
             <h5 className="font-semibold text-3xl my-5 border-b pb-6">
-              สร้างลูกค้าใหม่
+              สร้าง{selectedType && `${typeLabels[selectedType]}`}
             </h5>
           </div>
 
