@@ -4,13 +4,12 @@ import Image from "next/image";
 import { useCallback, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import FloatingLabelInput from "@/components/custom/LoginInput";
-
 
 interface LoginFormProps {
   callbackUrl?: string | null;
@@ -182,6 +181,9 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
             </div>
           </form>
         </Card>
+        <div className="mt-8 text-center text-sm text-gray-500">
+          Copyright 2025 รุ่น 1.0.0
+        </div>
       </div>
     </main>
   );
