@@ -13,6 +13,7 @@ import CompanyCard from "@/components/features/companies/company-card";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 
 export default function CompaniesPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
@@ -201,6 +202,14 @@ export default function CompaniesPage() {
       {/* Main card: match employee new page background */}
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <Building2 className="w-9 h-9 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">
+                ข้อมูลบริษัท
+              </h1>
+            </div>
+          </div>
           {/* Empty state handled by DataTable */}
           {/* Mobile toolbar */}
           <div className="block md:hidden mb-4">
