@@ -2,20 +2,10 @@
 
 import React, { useState } from "react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  SelectGroup,
-  SelectLabel,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 import Can from "@/components/rbac/Can";
+import { FormInput, FormSelect } from "@/components/custom/form-components";
 
 type CompanyPayload = {
   name: string;
@@ -106,190 +96,167 @@ export default function CompanyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-1">
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-        <div>
-          <Label className="mx-2 mt-2 text-base">รหัสบริษัท</Label>
-          <Input
-            value={payload.companyCode}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, companyCode: e.target.value }));
-              clearFieldError("companyCode");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.companyCode?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.companyCode[0]}
-            </p>
-          )}
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* General Info Section */}
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลบริษัท
+      </h3>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
+        <FormInput
+          label="รหัสบริษัท"
+          value={payload.companyCode}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, companyCode: e.target.value }));
+            clearFieldError("companyCode");
+          }}
+          error={fieldErrors.companyCode?.[0]}
+        />
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">ชื่อบริษัท</Label>
-          <Input
-            value={payload.name}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, name: e.target.value }));
-              clearFieldError("name");
-            }}
-            required
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.name?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>
-          )}
-        </div>
+        <FormInput
+          label="ชื่อบริษัท"
+          value={payload.name}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, name: e.target.value }));
+            clearFieldError("name");
+          }}
+          required
+          error={fieldErrors.name?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">ชื่อย่อบริษัท</Label>
-          <Input
-            value={payload.shortName}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, shortName: e.target.value }));
-              clearFieldError("shortName");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.shortName?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.shortName[0]}
-            </p>
-          )}
-        </div>
+        <FormInput
+          label="ชื่อย่อบริษัท"
+          value={payload.shortName}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, shortName: e.target.value }));
+            clearFieldError("shortName");
+          }}
+          error={fieldErrors.shortName?.[0]}
+        />
+      </div>
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">อีเมล</Label>
-          <Input
-            type="email"
-            value={payload.email}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, email: e.target.value }));
-              clearFieldError("email");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.email?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
-          )}
-        </div>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+        <FormInput
+          label="เลขประจำตัวผู้เสียภาษี"
+          value={payload.taxId}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, taxId: e.target.value }));
+            clearFieldError("taxId");
+          }}
+          error={fieldErrors.taxId?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">โทรศัพท์</Label>
-          <Input
-            value={payload.phone}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, phone: e.target.value }));
-              clearFieldError("phone");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.phone?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
-          )}
-        </div>
+        <FormSelect
+          label="สถานะ"
+          value={payload.status ?? "ACTIVE"}
+          onChange={(v) => {
+            setPayload((p) => ({ ...p, status: v }));
+            clearFieldError("status");
+          }}
+          options={[
+            { value: "ACTIVE", label: "ใช้งาน" },
+            { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
+          ]}
+          placeholder="เลือกสถานะ"
+          groupLabel="สถานะ"
+          error={fieldErrors.status?.[0]}
+          containerClassName="md:col-span-2"
+        />
+      </div>
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">เลขประจำตัวผู้เสียภาษี</Label>
-          <Input
-            value={payload.taxId}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, taxId: e.target.value }));
-              clearFieldError("taxId");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.taxId?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.taxId[0]}</p>
-          )}
-        </div>
+      {/* Contact Info Section */}
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลการติดต่อ
+      </h3>
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+        <FormInput
+          label="เบอร์โทรศัพท์"
+          value={payload.phone}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, phone: e.target.value }));
+            clearFieldError("phone");
+          }}
+          error={fieldErrors.phone?.[0]}
+        />
 
-        <div>
-          <Label className="mx-2 mt-2 text-base">สถานะ</Label>
-          <Select
-            value={payload.status}
-            onValueChange={(v) => {
-              setPayload((p) => ({ ...p, status: v }));
-              clearFieldError("status");
-            }}
+        <FormInput
+          label="อีเมล"
+          type="email"
+          value={payload.email}
+          onChange={(e) => {
+            setPayload((p) => ({ ...p, email: e.target.value }));
+            clearFieldError("email");
+          }}
+          error={fieldErrors.email?.[0]}
+        />
+      </div>
+
+      {/* Address Section */}
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่
+      </h3>
+
+      <FormInput
+        label="ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)"
+        value={payload.addressLine}
+        onChange={(e) => {
+          setPayload((p) => ({ ...p, addressLine: e.target.value }));
+          clearFieldError("addressLine");
+        }}
+        error={fieldErrors.addressLine?.[0]}
+        containerClassName="mt-6"
+      />
+
+      <div className="md:col-span-2">
+        <ThaiAddressPicker
+          value={{
+            province: payload.province,
+            district: payload.district,
+            subdistrict: payload.subdistrict,
+            postalCode: payload.postalCode,
+          }}
+          onChange={(next) => {
+            setPayload((p) => ({ ...p, ...next }));
+            clearFieldError("province");
+            clearFieldError("district");
+            clearFieldError("subdistrict");
+            clearFieldError("postalCode");
+          }}
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="md:col-span-2 pt-6 border-t my-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            type="button"
+            onClick={onCancel}
           >
-            <SelectTrigger className="mt-1 text-base">
-              <SelectValue placeholder="เลือกสถานะ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>สถานะ</SelectLabel>
-                <SelectItem value="ACTIVE">ใช้งาน</SelectItem>
-                <SelectItem value="INACTIVE">ไม่ได้ใช้งาน</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fieldErrors.status?.[0] && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.status[0]}</p>
-          )}
-        </div>
-
-        <div className="md:col-span-2">
-          <Label className="mx-2 mt-2 text-base">ที่อยู่บริษัท</Label>
-          <Input
-            value={payload.addressLine}
-            onChange={(e) => {
-              setPayload((p) => ({ ...p, addressLine: e.target.value }));
-              clearFieldError("addressLine");
-            }}
-            className="mt-1 text-base h-11"
-          />
-          {fieldErrors.addressLine?.[0] && (
-            <p className="text-xs text-red-600 mt-1">
-              {fieldErrors.addressLine[0]}
-            </p>
-          )}
-        </div>
-        <div className="md:col-span-2">
-          <ThaiAddressPicker
-            value={{
-              province: payload.province,
-              district: payload.district,
-              subdistrict: payload.subdistrict,
-              postalCode: payload.postalCode,
-            }}
-            onChange={(next) => {
-              setPayload((p) => ({ ...p, ...next }));
-              clearFieldError("province");
-              clearFieldError("district");
-              clearFieldError("subdistrict");
-              clearFieldError("postalCode");
-            }}
-          />
-        </div>
-
-        <div className="md:col-span-2 pt-6 border-t my-2">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button
-              size="lg"
-              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-              type="button"
-              onClick={onCancel}
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              size="lg"
-              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "กำลังบันทึก..." : submitLabel}
-            </Button>
-          </div>
+            ยกเลิก
+          </Button>
+          <Button
+            size="lg"
+            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "กำลังบันทึก..." : submitLabel}
+          </Button>
         </div>
       </div>
+
+      {error && (
+        <div className="text-center text-red-600 text-sm mt-4">{error}</div>
+      )}
 
       <Can permission="randomize">
         <Button
           variant="secondary"
           size="lg"
-          className="w-40"
+          className="w-40 mt-4 mx-auto block"
           type="button"
           onClick={() => {
             setFieldErrors({});
