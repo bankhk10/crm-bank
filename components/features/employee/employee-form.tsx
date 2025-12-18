@@ -4,17 +4,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Eye, EyeOff } from "lucide-react";
@@ -26,7 +15,7 @@ import {
   responsibilityAreaOptions,
   statusOptions,
 } from "./employee-options";
-import { json } from "stream/consumers";
+import { FormInput, FormSelect } from "@/components/custom/form-components";
 
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
@@ -78,7 +67,6 @@ export default function EmployeeForm({
   const [values, setValues] = useState<EmployeeFormValues>({
     status: "ACTIVE",
   });
-
 
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState(false);
@@ -152,10 +140,10 @@ export default function EmployeeForm({
         addr?.postalCode != null
           ? String(addr.postalCode)
           : (initial as any).postalCode != null
-            ? String((initial as any).postalCode)
-            : (initial as any).zipCode != null
-              ? String((initial as any).zipCode)
-              : prev.postalCode,
+          ? String((initial as any).postalCode)
+          : (initial as any).zipCode != null
+          ? String((initial as any).zipCode)
+          : prev.postalCode,
       status: (initial as any).status ?? prev.status ?? "ACTIVE",
     }));
   }, [initial]);
@@ -226,20 +214,19 @@ export default function EmployeeForm({
   );
 
   const handleSelect = useCallback(
-    (key: keyof EmployeeFormValues) =>
-      (v: string) => {
-        // Don't update if trying to set empty string over existing value
-        // This prevents Select from clearing values during re-renders
-        setValues((prev) => {
-          // Skip update if new value is empty and previous value exists
-          if (v === "" && prev[key] && prev[key] !== "") {
-            return { ...prev }; // Return new object with same values
-          }
+    (key: keyof EmployeeFormValues) => (v: string) => {
+      // Don't update if trying to set empty string over existing value
+      // This prevents Select from clearing values during re-renders
+      setValues((prev) => {
+        // Skip update if new value is empty and previous value exists
+        if (v === "" && prev[key] && prev[key] !== "") {
+          return { ...prev }; // Return new object with same values
+        }
 
-          return { ...prev, [key]: v };
-        });
-        clearFieldError(String(key));
-      },
+        return { ...prev, [key]: v };
+      });
+      clearFieldError(String(key));
+    },
     [clearFieldError]
   );
 
@@ -263,7 +250,7 @@ export default function EmployeeForm({
         return String(
           Math.floor(
             (Date.now() - new Date(values.birthDate).getTime()) /
-            (1000 * 60 * 60 * 24 * 365.25)
+              (1000 * 60 * 60 * 24 * 365.25)
           )
         );
       } catch (e) {
@@ -302,7 +289,7 @@ export default function EmployeeForm({
     registerRandomize(handleRandomFill);
     return () => {
       try {
-        registerRandomize(() => { });
+        registerRandomize(() => {});
       } catch (e) {
         // ignore
       }
@@ -366,7 +353,10 @@ export default function EmployeeForm({
       postalCode: values.postalCode,
     };
     const hasAddress = Boolean(
-      address.province || address.district || address.subdistrict || address.postalCode
+      address.province ||
+        address.district ||
+        address.subdistrict ||
+        address.postalCode
     );
 
     const payload: any = {
@@ -383,8 +373,9 @@ export default function EmployeeForm({
         responsibilityArea: values.responsibilityArea,
         addressLine: values.addressLine,
         status: values.status ?? "ACTIVE",
-        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${values.lastName ?? ""
-          }`.trim(),
+        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${
+          values.lastName ?? ""
+        }`.trim(),
         email: emailVal || undefined,
         roleTitle: (values.roleDefinitionId && roleDefObj?.name) || undefined,
         ...(hasAddress ? { address } : {}),
@@ -412,8 +403,8 @@ export default function EmployeeForm({
         if (!result.success) {
           setError(
             result.error ??
-            Object.values(result.issues ?? {})[0]?.[0] ??
-            "Server error"
+              Object.values(result.issues ?? {})[0]?.[0] ??
+              "Server error"
           );
           setFieldErrors(result.issues ?? {});
         } else {
@@ -457,7 +448,7 @@ export default function EmployeeForm({
 
   return (
     <div className="bg-white sm:rounded-lg">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {(!canEdit || error || success) && (
           <div>
             {!canEdit && (
@@ -487,83 +478,56 @@ export default function EmployeeForm({
         </h3>
 
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
-          <div>
-            <Label className={labelTextClass}>คำนำหน้า</Label>
-            <Select
-              value={values.prefix ?? ""}
-              onValueChange={handleSelect("prefix")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกคำนำหน้า" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>คำนำหน้า</SelectLabel>
-                  {prefixOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="คำนำหน้า"
+            value={values.prefix ?? ""}
+            onChange={handleSelect("prefix")}
+            options={prefixOptions.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
+            placeholder="เลือกคำนำหน้า"
+            disabled={!canEdit}
+          />
 
-          <div className="md:col-span-2">
-            <Label className={labelTextClass}>ชื่อ</Label>
-            <Input
-              value={values.firstName ?? ""}
-              onChange={handleChange("firstName")}
-              disabled={!canEdit}
-              required
-              className={inputTextClass}
-            />
-            {fieldErrors.firstName?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.firstName[0]}</p>
-            )}
-          </div>
+          <FormInput
+            label="ชื่อ"
+            value={values.firstName ?? ""}
+            onChange={handleChange("firstName")}
+            disabled={!canEdit}
+            required
+            error={fieldErrors.firstName?.[0]}
+            containerClassName="md:col-span-2"
+          />
 
-          <div className="md:col-span-2">
-            <Label className={labelTextClass}>นามสกุล</Label>
-            <Input
-              value={values.lastName ?? ""}
-              onChange={handleChange("lastName")}
-              disabled={!canEdit}
-              required
-              className={inputTextClass}
-            />
-            {fieldErrors.lastName?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.lastName[0]}</p>
-            )}
-          </div>
+          <FormInput
+            label="นามสกุล"
+            value={values.lastName ?? ""}
+            onChange={handleChange("lastName")}
+            disabled={!canEdit}
+            required
+            error={fieldErrors.lastName?.[0]}
+            containerClassName="md:col-span-2"
+          />
         </div>
 
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-          <div>
-            <Label className={labelTextClass}>รหัสพนักงาน</Label>
-            <Input
-              value={values.employeeCode ?? ""}
-              onChange={handleChange("employeeCode")}
-              disabled={!canEdit}
-              className={inputTextClass}
-            />
-          </div>
+          <FormInput
+            label="รหัสพนักงาน"
+            value={values.employeeCode ?? ""}
+            onChange={handleChange("employeeCode")}
+            disabled={!canEdit}
+          />
 
-          <div>
-            <Label className={labelTextClass}>เบอร์โทรศัพท์</Label>
-            <Input
-              value={values.phone ?? ""}
-              onChange={handlePhoneChange}
-              disabled={!canEdit}
-              className={inputTextClass}
-            />
-            {fieldErrors.phone?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
-            )}
-          </div>
+          <FormInput
+            label="เบอร์โทรศัพท์"
+            value={values.phone ?? ""}
+            onChange={handlePhoneChange}
+            disabled={!canEdit}
+            error={fieldErrors.phone?.[0]}
+          />
 
-          <div className="mt-2">
+          <div className="mt-0">
             <DatePicker
               label="วันเกิด"
               value={values.birthDate}
@@ -576,114 +540,58 @@ export default function EmployeeForm({
             />
           </div>
 
-          <div>
-            <Label className={labelTextClass}>อายุ</Label>
-            <Input value={calculatedAge} disabled className={inputTextClass} />
-          </div>
+          <FormInput label="อายุ" value={calculatedAge} disabled />
         </div>
 
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-          <div>
-            <Label className={labelTextClass}>ตำแหน่งงาน</Label>
-            <Select
-              value={values.position ?? ""}
-              onValueChange={handleSelect("position")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกตำแหน่ง" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>ตำแหน่ง</SelectLabel>
-                  {positionOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="ตำแหน่งงาน"
+            value={values.position ?? ""}
+            onChange={handleSelect("position")}
+            options={positionOptions}
+            placeholder="เลือกตำแหน่ง"
+            disabled={!canEdit}
+          />
 
-          <div>
-            <Label className={labelTextClass}>แผนก</Label>
-            <Select
-              value={values.department ?? ""}
-              onValueChange={handleSelect("department")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกแผนก" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>แผนก</SelectLabel>
-                  {departmentOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="แผนก"
+            value={values.department ?? ""}
+            onChange={handleSelect("department")}
+            options={departmentOptions}
+            placeholder="เลือกแผนก"
+            disabled={!canEdit}
+          />
 
-          <div>
-            <Label className={labelTextClass}>สังกัดบริษัท</Label>
-            <Select
-              value={values.company ?? ""}
-              onValueChange={handleSelect("company")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกบริษัท" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>บริษัท</SelectLabel>
-                  {companyOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="สังกัดบริษัท"
+            value={values.company ?? ""}
+            onChange={handleSelect("company")}
+            options={companyOptions}
+            placeholder="เลือกบริษัท"
+            disabled={!canEdit}
+          />
 
-          <div>
-            <Label className={labelTextClass}>เขตที่รับผิดชอบ</Label>
-            <Select
-              value={values.responsibilityArea ?? ""}
-              onValueChange={handleSelect("responsibilityArea")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกเขต" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>เขต</SelectLabel>
-                  {responsibilityAreaOptions.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="เขตที่รับผิดชอบ"
+            value={values.responsibilityArea ?? ""}
+            onChange={handleSelect("responsibilityArea")}
+            options={responsibilityAreaOptions.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
+            placeholder="เลือกเขต"
+            disabled={!canEdit}
+          />
         </div>
 
-        <div className="md:col-span-2 mt-2">
-          <Label className={labelTextClass}>ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)</Label>
-          <Input
+        <div className="md:col-span-2 mt-6">
+          <FormInput
+            label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
             placeholder="123/45 หมู่ 6"
             value={values.addressLine ?? ""}
             onChange={handleChange("addressLine")}
             disabled={!canEdit}
-            className={inputTextClass}
+            containerClassName="w-full"
           />
         </div>
 
@@ -710,136 +618,103 @@ export default function EmployeeForm({
         </h3>
 
         <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
-          <div>
-            <Label className={labelTextClass}>อีเมลสำหรับเข้าสู่ระบบ</Label>
-            <Input
-              type="email"
-              value={values.email ?? ""}
-              onChange={handleChange("email")}
-              disabled={!canEdit}
-              required
-              className={inputTextClass}
-            />
-            {fieldErrors.email?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.email[0]}</p>
-            )}
-          </div>
+          <FormInput
+            label="อีเมลสำหรับเข้าสู่ระบบ"
+            type="email"
+            value={values.email ?? ""}
+            onChange={handleChange("email")}
+            disabled={!canEdit}
+            required
+            error={fieldErrors.email?.[0]}
+          />
 
-          <div>
-            <Label className={labelTextClass}>
-              {employeeId
-                ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
-                : "รหัสผ่าน"}
-            </Label>
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  clearFieldError("password");
-                }}
-                disabled={!canEdit}
-                placeholder={
-                  employeeId ? "เว้นว่างหากไม่ต้องการเปลี่ยน" : "รหัสผ่านสำหรับเข้าสู่ระบบ"
-                }
-                className={`${inputTextClass} pr-10`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="absolute inset-y-0 right-2 flex items-center text-gray-600 hover:text-gray-900"
-                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+          <div className="relative">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mx-2 text-gray-700">
+                {employeeId
+                  ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
+                  : "รหัสผ่าน"}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clearFieldError("password");
+                  }}
+                  disabled={!canEdit}
+                  placeholder={
+                    employeeId
+                      ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
+                      : "รหัสผ่านสำหรับเข้าสู่ระบบ"
+                  }
+                  className="flex h-11 w-full rounded-3xl border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 placeholder:text-gray-500 text-base pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900 top-1"
+                  aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+                {fieldErrors.password?.[0] && (
+                  <p className="text-xs text-red-600 mt-1 ml-2">
+                    {fieldErrors.password[0]}
+                  </p>
+                )}
+              </div>
             </div>
-            {fieldErrors.password?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.password[0]}</p>
-            )}
           </div>
 
-          <div>
-            <Label className={labelTextClass}>สิทธิ์การใช้งาน *</Label>
-            <Select
-              value={values.roleDefinitionId ?? ""}
-              onValueChange={handleSelect("roleDefinitionId")}
-              disabled={!canEdit || roles.length === 0}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกสิทธิ์การใช้งาน" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>สิทธิ์</SelectLabel>
-                  {roles.map((r: any) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {r.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {fieldErrors.roleDefinitionId?.[0] && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.roleDefinitionId[0]}</p>
-            )}
-          </div>
-                 <div>
-            <Label className={labelTextClass}>สถานะการทำงาน</Label>
-            <Select
-              value={values.status ?? "ACTIVE"}
-              onValueChange={handleSelect("status")}
-              disabled={!canEdit}
-            >
-              <SelectTrigger className={inputTextClass}>
-                <SelectValue placeholder="เลือกสถานะ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>สถานะ</SelectLabel>
-                  {statusOptions.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormSelect
+            label="สิทธิ์การใช้งาน *"
+            value={values.roleDefinitionId ?? ""}
+            onChange={handleSelect("roleDefinitionId")}
+            options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
+            placeholder="เลือกสิทธิ์การใช้งาน"
+            disabled={!canEdit || roles.length === 0}
+            error={fieldErrors.roleDefinitionId?.[0]}
+          />
+
+          <FormSelect
+            label="สถานะการทำงาน"
+            value={values.status ?? "ACTIVE"}
+            onChange={handleSelect("status")}
+            options={statusOptions.map((s) => ({
+              value: s.value,
+              label: s.label,
+            }))}
+            placeholder="เลือกสถานะ"
+            disabled={!canEdit}
+          />
         </div>
 
-        <div className={`md:col-span-2 pt-6 ${hideBorder ? "my-2" : "border-t my-2"}`}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="flex justify-end gap-4 mt-8">
+          {onCancel && (
             <Button
-              size="lg"
-              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
               type="button"
-              onClick={handleRandomFill}
-              disabled={!canEdit}
-              title={!canEdit ? permissionHint : undefined}
-            >
-              กรอกข้อมูลสุ่ม
-            </Button>
-            <Button
-              size="lg"
-              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-              type="button"
-              onClick={onCancel ?? (() => router.back())}
-              disabled={!canEdit}
-              title={!canEdit ? permissionHint : undefined}
+              variant="outline"
+              onClick={onCancel}
+              className="px-8 rounded-3xl h-11"
             >
               ยกเลิก
             </Button>
+          )}
+          {canEdit && (
             <Button
-              size="lg"
-              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
               type="submit"
-              disabled={!canEdit || loading}
-              title={!canEdit ? permissionHint : undefined}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-3xl px-8 h-11"
             >
               {loading ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
-          </div>
+          )}
         </div>
       </form>
     </div>
