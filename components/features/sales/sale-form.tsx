@@ -235,7 +235,10 @@ export function SaleForm({
 
   // Get current user for admin check
   const currentUser = useCurrentUser();
-  const isAdmin = currentUser?.roles?.includes("admin") || false;
+  const isAdmin =
+    currentUser?.roles?.includes("admin") ||
+    currentUser?.roles?.includes("administrator") ||
+    false;
 
   // Product detail modal
   const [selectedProductDetail, setSelectedProductDetail] =
@@ -628,7 +631,7 @@ export function SaleForm({
               ? [
                   {
                     value: "CREDIT_OVER_90",
-                    label: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน) - Admin Only",
+                    label: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
                   },
                 ]
               : []),
