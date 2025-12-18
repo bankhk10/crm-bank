@@ -129,7 +129,9 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`relative flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-[#b92626] text-white ${className ?? ""}`}
+      className={`relative flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-[#b92626] text-white ${
+        className ?? ""
+      }`}
     >
       {/* Mobile close button */}
       {onClose && (
@@ -231,6 +233,9 @@ export default function Sidebar({
           );
         })}
       </nav>
+      <footer className="mt-auto px-6 text-left text-sm text-white/80 pb-4">
+        <p>Copyright 2025 รุ่น 1.0.0</p>
+      </footer>
     </aside>
   );
 }
