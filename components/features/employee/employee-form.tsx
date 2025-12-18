@@ -49,6 +49,7 @@ interface EmployeeFormProps {
 
   onCancel?: () => void;
   registerRandomize?: (fn: () => void) => void;
+  hideBorder?: boolean;
 }
 
 type Option = { value: string; label: string };
