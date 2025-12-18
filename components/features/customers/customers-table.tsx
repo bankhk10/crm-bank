@@ -15,7 +15,11 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -71,54 +75,74 @@ export interface CustomersTableProps {
 const ALL_FILTER_VALUE = "__ALL__";
 const ALL_STATUS_VALUE = "__ALL_STATUS__";
 
-const statusStyle: Record<string, { label: string; className: string; dot: string }> = {
+const statusStyle: Record<
+  string,
+  { label: string; className: string; dot: string }
+> = {
   ACTIVE: {
     label: "ใช้งาน",
-    className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
     dot: "bg-emerald-500",
   },
   INACTIVE: {
     label: "ไม่ได้ใช้งาน",
-    className: "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
     dot: "bg-slate-400",
   },
   SUSPENDED: {
     label: "ระงับ",
-    className: "bg-orange-50 text-orange-700 ring-1 ring-orange-100 dark:bg-orange-900/30 dark:text-orange-50",
+    className:
+      "bg-orange-50 text-orange-700 ring-1 ring-orange-100 dark:bg-orange-900/30 dark:text-orange-50",
     dot: "bg-orange-500",
   },
 };
 
-const customerTypeStyle: Record<string, { label: string; className: string; buttonColor: string }> = {
+const customerTypeStyle: Record<
+  string,
+  { label: string; className: string; buttonColor: string }
+> = {
   DEALER: {
     label: "ตัวแทนจำหน่าย",
-    className: "rounded-full bg-blue-100 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-50",
+    className:
+      "rounded-full bg-blue-100 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-50",
     buttonColor: "bg-blue-600 hover:bg-blue-700",
   },
   SUBDEALER: {
     label: "ตัวแทนจำหน่ายย่อย",
-    className: "rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-50",
+    className:
+      "rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-50",
     buttonColor: "bg-emerald-600 hover:bg-emerald-700",
   },
   FARMER: {
     label: "เกษตรกร",
-    className: "rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-50",
+    className:
+      "rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-50",
     buttonColor: "bg-amber-600 hover:bg-amber-700",
   },
   BROKER: {
     label: "นายหน้า",
-    className: "rounded-full bg-purple-100 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-50",
+    className:
+      "rounded-full bg-purple-100 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-50",
     buttonColor: "bg-purple-600 hover:bg-purple-700",
   },
 };
 
 const DEFAULT_BADGE_STYLE = {
   label: "ไม่ระบุ",
-  className: "rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+  className:
+    "rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
 };
 
 // Badge Components
-function CustomerStatusBadge({ status, className }: { status?: string; className?: string }) {
+function CustomerStatusBadge({
+  status,
+  className,
+}: {
+  status?: string;
+  className?: string;
+}) {
   const key = (status || "").toUpperCase();
   const info = statusStyle[key] ?? {
     ...DEFAULT_BADGE_STYLE,
@@ -127,7 +151,13 @@ function CustomerStatusBadge({ status, className }: { status?: string; className
   };
 
   return (
-    <span className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium", info.className, className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+        info.className,
+        className
+      )}
+    >
       <span className={cn("h-2 w-2 rounded-full", info.dot)} aria-hidden />
       {info.label}
     </span>
@@ -205,10 +235,17 @@ function useCustomerColumns(
       {
         id: "expander",
         header: "",
-        meta: { width: 36, minWidth: 36, maxWidth: 36, align: "center", headerAlign: "center" },
+        meta: {
+          width: 36,
+          minWidth: 36,
+          maxWidth: 36,
+          align: "center",
+          headerAlign: "center",
+        },
         cell: ({ row }) => {
           const orig = row.original;
-          const hasChildren = !!data && data.some((d) => d.parentDealerId === orig.id);
+          const hasChildren =
+            !!data && data.some((d) => d.parentDealerId === orig.id);
           const showExpander = hasChildren || !!orig.parentDealerId;
 
           if (!showExpander) return <div className="p-1" />;
@@ -220,7 +257,12 @@ function useCustomerColumns(
               aria-label={row.getIsExpanded() ? "ย่อ" : "ขยาย"}
               className="p-1 rounded hover:bg-slate-100"
             >
-              <ChevronDown className={cn("h-4 w-4 transition-transform", row.getIsExpanded() ? "rotate-180" : "rotate-0")} />
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  row.getIsExpanded() ? "rotate-180" : "rotate-0"
+                )}
+              />
             </button>
           );
         },
@@ -228,46 +270,96 @@ function useCustomerColumns(
       {
         accessorKey: "customerCode",
         header: "รหัสลูกค้า",
-        meta: { headerAlign: "left", minWidth: 100, width: 130, maxWidth: 130, align: "left" },
-        cell: ({ row }) => <TruncatedCell value={row.original.customerCode ?? "-"} />,
+        meta: {
+          headerAlign: "left",
+          minWidth: 100,
+          width: 130,
+          maxWidth: 130,
+          align: "left",
+        },
+        cell: ({ row }) => (
+          <TruncatedCell value={row.original.customerCode ?? "-"} />
+        ),
       },
       {
         accessorKey: "name",
         header: "ชื่อลูกค้า",
-        meta: { headerAlign: "left", minWidth: 180, width: 250, maxWidth: 250, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 180,
+          width: 250,
+          maxWidth: 250,
+          align: "left",
+        },
         cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
       },
       {
         accessorKey: "email",
         header: "อีเมล",
-        meta: { headerAlign: "left", minWidth: 160, width: 160, maxWidth: 160, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 160,
+          width: 160,
+          maxWidth: 160,
+          align: "left",
+        },
         cell: ({ row }) => <TruncatedCell value={row.original.email ?? "-"} />,
       },
       {
         accessorKey: "phone",
         header: "โทรศัพท์",
-        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 120,
+          width: 120,
+          maxWidth: 120,
+          align: "left",
+        },
         cell: ({ row }) => <TruncatedCell value={row.original.phone ?? "-"} />,
       },
       {
         accessorKey: "customerType",
         header: "ประเภท",
-        meta: { headerAlign: "left", minWidth: 150, width: 150, maxWidth: 150, align: "left" },
-        cell: ({ row }) => <CustomerTypeBadge type={row.original.customerType} />,
+        meta: {
+          headerAlign: "left",
+          minWidth: 150,
+          width: 150,
+          maxWidth: 150,
+          align: "left",
+        },
+        cell: ({ row }) => (
+          <CustomerTypeBadge type={row.original.customerType} />
+        ),
       },
       {
         accessorKey: "status",
         header: "สถานะ",
-        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 120,
+          width: 120,
+          maxWidth: 120,
+          align: "left",
+        },
         cell: ({ row }) => {
           const status = row.original.status?.toUpperCase();
-          return status ? <CustomerStatusBadge status={status} className="text-sm" /> : "-";
+          return status ? (
+            <CustomerStatusBadge status={status} className="text-sm" />
+          ) : (
+            "-"
+          );
         },
       },
       {
         id: "actions",
         header: "จัดการ",
-        meta: { headerAlign: "center", minWidth: 120, width: 140, maxWidth: 180, align: "center" },
+        meta: {
+          headerAlign: "center",
+          minWidth: 120,
+          width: 140,
+          maxWidth: 180,
+          align: "center",
+        },
         cell: ({ row }) => {
           const customer = row.original;
           return (
@@ -323,10 +415,14 @@ function ParentDealerInfo({
       try {
         if (dealerId) {
           // Fetch sub-dealers (children)
-          const res = await fetch(`/api/customers?parentDealerId=${encodeURIComponent(dealerId)}`);
+          const res = await fetch(
+            `/api/customers?parentDealerId=${encodeURIComponent(dealerId)}`
+          );
           if (!res.ok) throw new Error("Failed to fetch sub-dealers");
           const json = await res.json();
-          const list = Array.isArray(json) ? json : json?.customers ?? json?.data ?? json?.items ?? [];
+          const list = Array.isArray(json)
+            ? json
+            : json?.customers ?? json?.data ?? json?.items ?? [];
           if (mounted) setChildren(list);
         } else if (parentDealerId) {
           // Fetch parent dealer
@@ -353,7 +449,10 @@ function ParentDealerInfo({
   }, [parentDealerId, dealerId]);
 
   if (loading) return <div className="text-sm">กำลังโหลดข้อมูล...</div>;
-  if (error) return <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>;
+  if (error)
+    return (
+      <div className="text-sm text-red-600">ไม่สามารถโหลดข้อมูล: {error}</div>
+    );
 
   // Show children when dealerId present (main dealer)
   if (dealerId) {
@@ -364,11 +463,18 @@ function ParentDealerInfo({
     return (
       <div className="space-y-3">
         {children.map((child) => (
-          <div key={child.id} className="flex items-center justify-between rounded-md border p-3 bg-white">
+          <div
+            key={child.id}
+            className="flex items-center justify-between rounded-md border p-3 bg-white"
+          >
             <div className="flex items-center gap-4">
               <div className="font-medium">{child.name ?? "-"}</div>
-              <div className="text-sm text-muted-foreground">{child.email ?? "-"}</div>
-              <div className="text-sm text-muted-foreground">{child.phone ?? "-"}</div>
+              <div className="text-sm text-muted-foreground">
+                {child.email ?? "-"}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {child.phone ?? "-"}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Link href={`/customers/${child.id}`}>
@@ -389,7 +495,8 @@ function ParentDealerInfo({
   }
 
   // Show parent dealer info
-  if (!parentDealerId) return <div className="text-sm">ไม่มีข้อมูลร้านหลัก</div>;
+  if (!parentDealerId)
+    return <div className="text-sm">ไม่มีข้อมูลร้านหลัก</div>;
   if (!parent) return <div className="text-sm">ไม่พบข้อมูลร้านหลัก</div>;
 
   return (
@@ -431,7 +538,9 @@ function CustomersToolbar({
   | "statusFilter"
   | "onStatusFilterChange"
 >) {
-  const customerTypes = Object.keys(customerTypeStyle) as Array<keyof typeof customerTypeStyle>;
+  const customerTypes = Object.keys(customerTypeStyle) as Array<
+    keyof typeof customerTypeStyle
+  >;
 
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
@@ -453,7 +562,9 @@ function CustomersToolbar({
           <label className="text-base font-medium mx-2">ประเภทลูกค้า</label>
           <Select
             value={customerTypeFilter || ALL_FILTER_VALUE}
-            onValueChange={(v) => onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)}
+            onValueChange={(v) =>
+              onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)
+            }
           >
             <SelectTrigger className="mt-2 text-base w-full">
               <SelectValue placeholder="ทั้งหมด" />
@@ -474,7 +585,9 @@ function CustomersToolbar({
           <label className="text-base font-medium mx-2">สถานะ</label>
           <Select
             value={statusFilter || ALL_STATUS_VALUE}
-            onValueChange={(v) => onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)}
+            onValueChange={(v) =>
+              onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+            }
           >
             <SelectTrigger className="mt-2 text-base w-full">
               <SelectValue placeholder="ทั้งหมด" />
@@ -501,7 +614,7 @@ function CustomersToolbar({
                   <Button className={customerTypeStyle[type].buttonColor}>
                     <span className="inline-flex items-center gap-2">
                       <PlusCircle className="h-4 w-4" />
-                      {type}
+                      {customerTypeStyle[type].label}
                     </span>
                   </Button>
                 </Link>
@@ -528,12 +641,18 @@ function CustomersCards({
   canDelete,
   onDeleteRequest,
   pagination,
-}: Pick<CustomersTableProps, "data" | "loading" | "canDelete" | "onDeleteRequest" | "pagination">) {
+}: Pick<
+  CustomersTableProps,
+  "data" | "loading" | "canDelete" | "onDeleteRequest" | "pagination"
+>) {
   if (loading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, idx) => (
-          <Card key={`loading-${idx}`} className="h-full border border-slate-200/80 shadow-sm">
+          <Card
+            key={`loading-${idx}`}
+            className="h-full border border-slate-200/80 shadow-sm"
+          >
             <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
             <div className="space-y-3 p-4">
               <div className="flex items-center gap-3">
@@ -559,13 +678,24 @@ function CustomersCards({
   if (!data || data.length === 0) {
     return (
       <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
-        <div className="mb-2 text-base font-semibold text-slate-900">ยังไม่มีลูกค้าในหน้านี้</div>
-        <p className="text-sm text-slate-600">ลองปรับการค้นหาหรือเพิ่มลูกค้าใหม่</p>
+        <div className="mb-2 text-base font-semibold text-slate-900">
+          ยังไม่มีลูกค้าในหน้านี้
+        </div>
+        <p className="text-sm text-slate-600">
+          ลองปรับการค้นหาหรือเพิ่มลูกค้าใหม่
+        </p>
       </Card>
     );
   }
 
-  const { page, perPage, total, onPageChange, onPerPageChange, perPageOptions } = pagination;
+  const {
+    page,
+    perPage,
+    total,
+    onPageChange,
+    onPerPageChange,
+    perPageOptions,
+  } = pagination;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const startDisplay = (page - 1) * perPage + 1;
   const endDisplay = (page - 1) * perPage + data.length;
@@ -586,8 +716,12 @@ function CustomersCards({
                     <UserRound className="h-5 w-5" />
                   </span>
                   <div>
-                    <div className="text-base font-semibold text-slate-900 line-clamp-1">{customer.name || "-"}</div>
-                    <div className="text-xs text-slate-500">{customer.customerCode || "-"}</div>
+                    <div className="text-base font-semibold text-slate-900 line-clamp-1">
+                      {customer.name || "-"}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {customer.customerCode || "-"}
+                    </div>
                   </div>
                 </div>
                 <CustomerStatusBadge status={customer.status} />
@@ -596,9 +730,13 @@ function CustomersCards({
               <div className="flex flex-wrap gap-2">
                 <CustomerTypeBadge type={customer.customerType} />
                 {customer.parentDealerId ? (
-                  <Badge className="rounded-full bg-purple-50 text-purple-700 ring-1 ring-purple-100">ร้านรอง</Badge>
+                  <Badge className="rounded-full bg-purple-50 text-purple-700 ring-1 ring-purple-100">
+                    ร้านรอง
+                  </Badge>
                 ) : (
-                  <Badge className="rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-100">ร้านหลัก</Badge>
+                  <Badge className="rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+                    ร้านหลัก
+                  </Badge>
                 )}
               </div>
 
@@ -614,12 +752,22 @@ function CustomersCards({
               </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
-                <Button asChild size="sm" variant="outline" className="border-blue-100 text-blue-700 hover:bg-blue-50">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-100 text-blue-700 hover:bg-blue-50"
+                >
                   <Link href={`/customers/${customer.id}`}>
                     <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline" className="border-indigo-100 text-indigo-700 hover:bg-indigo-50">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+                >
                   <Link href={`/customers/${customer.id}/edit`}>
                     <Edit className="mr-2 h-4 w-4" /> แก้ไข
                   </Link>
@@ -647,7 +795,10 @@ function CustomersCards({
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           {perPageOptions && perPageOptions.length > 0 && (
-            <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v))}>
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => onPerPageChange(Number(v))}
+            >
               <SelectTrigger className="h-9 w-[70px] text-sm">
                 <SelectValue placeholder="ต่อหน้า" />
               </SelectTrigger>
