@@ -317,19 +317,18 @@ function EmployeeToolbar({
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:flex lg:justify-between lg:items-center">
       <div className="relative w-full max-w-md">
-        <label className="sr-only">ค้นหาพนักงาน</label>
-        <Input
-          placeholder="ค้นหาชื่อ, อีเมล, รหัสพนักงาน..."
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 w-full"
-        />
-        <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-          <Search className="h-4 w-4 text-slate-400" />
-        </span>
+        <label className="text-base font-medium mx-2">ค้นหา</label>
+        <div className="relative mt-1">
+          <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="ค้นหาชื่อ, อีเมล, รหัสพนักงาน..."
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
       </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mt-6">
         {canCreate ? (
           <Link href="/employee/new" className="w-full lg:w-auto">
             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
