@@ -171,9 +171,9 @@ function useEmployeeColumns(
         header: "รหัสพนักงาน",
         meta: {
           headerAlign: "left",
-          minWidth: 100,
-          width: 130,
-          maxWidth: 130,
+          minWidth: 140,
+          width: 140,
+          maxWidth: 140,
           align: "left",
         },
         cell: ({ row }) => {
