@@ -15,10 +15,11 @@ import {
   PackageSearch,
   UserCog,
   DollarSign,
-  ShoppingCart,
+  Home,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
+import { getDefaultRouteForRoles } from "@/lib/rbac";
 
 interface SidebarChildItem {
   href: string;
@@ -56,7 +57,6 @@ export const navigationItems: SidebarNavItem[] = [
     href: "/sales",
     label: "การขาย",
     permissionKey: "menu.sales",
-
     icon: <DollarSign className="h-4 w-4" />,
   },
   {
@@ -92,22 +92,39 @@ export const navigationItems: SidebarNavItem[] = [
 
 interface SidebarProps {
   permissions: Record<string, SessionPermission>;
+  roles: string[];
   className?: string;
   onClose?: () => void;
 }
 
 export default function Sidebar({
   permissions,
+  roles,
   className,
   onClose,
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const items = useMemo(
-    () =>
-      navigationItems.filter((item) => permissions[item.permissionKey]?.allow),
-    [permissions]
-  );
+  const items = useMemo(() => {
+    const navs = navigationItems.filter(
+      (item) => permissions[item.permissionKey]?.allow
+    );
+
+    const dashboardHref = getDefaultRouteForRoles(roles);
+    const isDashboard =
+      roles.includes("administrator") || roles.includes("manager");
+    const dashboardLabel = isDashboard ? "แดชบอร์ด" : "หน้าแรก";
+    const DashboardIcon = isDashboard ? LayoutDashboard : Home;
+
+    const mainDashboardItem: SidebarNavItem = {
+      href: dashboardHref,
+      label: dashboardLabel,
+      permissionKey: "common.dashboard",
+      icon: <DashboardIcon className="h-4 w-4" />,
+    };
+
+    return [mainDashboardItem, ...navs];
+  }, [permissions, roles]);
   const [openKey, setOpenKey] = useState<string | null>(() => {
     const parent = items.find((item) =>
       item.children?.some((c) => pathname.startsWith(c.href))

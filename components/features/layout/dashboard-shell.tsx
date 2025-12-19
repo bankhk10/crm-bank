@@ -13,13 +13,22 @@ type DashboardShellProps = {
   permissions: Record<string, SessionPermission>;
 };
 
-export default function DashboardShell({ children, displayName, roles, permissions }: DashboardShellProps) {
+export default function DashboardShell({
+  children,
+  displayName,
+  roles,
+  permissions,
+}: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="fixed inset-0 flex min-h-screen bg-[#b92626]">
       {/* Desktop Sidebar */}
-      <Sidebar permissions={permissions} className="hidden md:block" />
+      <Sidebar
+        permissions={permissions}
+        roles={roles}
+        className="hidden md:block"
+      />
 
       <div className="flex flex-1 flex-col">
         <div className="bg-[#b92626] text-white shrink-0">
@@ -28,7 +37,7 @@ export default function DashboardShell({ children, displayName, roles, permissio
               id: "",
               name: displayName ?? null,
               email: null,
-              roles
+              roles,
             }}
             onMenuClick={() => setIsSidebarOpen(true)}
           />
@@ -61,6 +70,7 @@ export default function DashboardShell({ children, displayName, roles, permissio
           >
             <Sidebar
               permissions={permissions}
+              roles={roles}
               className="block md:hidden"
               onClose={() => setIsSidebarOpen(false)}
             />
