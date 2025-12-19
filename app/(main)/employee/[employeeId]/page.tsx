@@ -26,11 +26,19 @@ import {
   Trash2,
   AlertTriangle,
   BadgeCheck,
+  MapPin,
+  Calendar,
+  Layers,
+  Map,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Cake,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { cn } from "@/lib/utils";
 
-// Type definition
+// Type definition matches Prisma Employee model fields + relations
 type EmployeeDetail = {
   id: string;
   name?: string | null;
@@ -39,19 +47,42 @@ type EmployeeDetail = {
   phone?: string | null;
   company?: { id: string; name?: string | null } | null;
   manager?: { id: string; name?: string | null } | null;
+
+  // Extended fields
+  employeeCode?: string | null;
+  birthDate?: string | null; // JSON date string
+  addressLine?: string | null;
+  province?: string | null;
+  district?: string | null;
+  subdistrict?: string | null;
+  postalCode?: string | null;
+  responsibilityArea?: string | null;
+  status?: string | null;
+  positionTitle?: string | null;
+  departmentName?: string | null;
+  department?: { id: string; name?: string | null } | null; // Relation
+  roleTitle?: string | null;
+  createdAt?: string | null;
 };
 
 function DetailItem({
   icon,
   label,
   value,
+  fullWidth = false,
 }: {
   icon?: React.ReactNode;
   label: string;
   value: React.ReactNode;
+  fullWidth?: boolean;
 }) {
   return (
-    <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+    <div
+      className={cn(
+        "flex gap-3 py-3 border-b border-gray-100 last:border-0",
+        fullWidth && "col-span-full"
+      )}
+    >
       {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
       <div className="flex-1 min-w-0">
         <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
@@ -222,21 +253,28 @@ export default function EmployeeDetailPage() {
                 </h1>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-blue-100">
-                {employee.role && (
+                {employee.employeeCode && (
+                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                    <BadgeCheck className="h-4 w-4" />
+                    <span>{employee.employeeCode}</span>
+                  </div>
+                )}
+                {employee.positionTitle && (
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
                     <Briefcase className="h-4 w-4" />
-                    <span>{employee.role}</span>
+                    <span>{employee.positionTitle}</span>
                   </div>
                 )}
-                {employee.company && (
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    <span className="opacity-90">{employee.company.name}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 opacity-70 text-sm">
-                  <Hash className="h-3.5 w-3.5" />
-                  <span>ID: {employee.id.slice(0, 8)}...</span>
+                <div className="flex items-center gap-2 opacity-90">
+                  {employee.status === "ACTIVE" || !employee.status ? (
+                    <span className="flex items-center gap-1 text-green-300">
+                      <CheckCircle2 className="h-4 w-4" /> ใช้งาน
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-gray-400">
+                      <XCircle className="h-4 w-4" /> {employee.status}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -247,9 +285,9 @@ export default function EmployeeDetailPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* General Information Card */}
+          {/* Personal Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-blue-50">
+            <div className="p-6 border-b border-gray-100 bg-blue-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-600" />
                 ข้อมูลส่วนตัว
@@ -266,21 +304,30 @@ export default function EmployeeDetailPage() {
                 label="เบอร์โทรศัพท์"
                 value={employee.phone}
               />
+              <DetailItem
+                icon={<Cake className="h-5 w-5" />}
+                label="วันเกิด"
+                value={
+                  employee.birthDate
+                    ? new Date(employee.birthDate).toLocaleDateString("th-TH")
+                    : "-"
+                }
+              />
             </div>
           </div>
 
-          {/* Organization Information Card */}
+          {/* Work / Organization Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-purple-50">
+            <div className="p-6 border-b border-gray-100 bg-purple-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Building2 className="h-6 w-6 text-purple-600" />
-                ข้อมูลองค์กร
+                ข้อมูลการทำงาน
               </h2>
             </div>
             <div className="p-6">
               <DetailItem
                 icon={<Building2 className="h-5 w-5" />}
-                label="บริษัท / สาขา"
+                label="สังกัดบริษัท"
                 value={
                   employee.company ? (
                     <Link
@@ -295,14 +342,57 @@ export default function EmployeeDetailPage() {
                 }
               />
               <DetailItem
-                icon={<UserCheck className="h-5 w-5" />}
-                label="ผู้จัดการ"
-                value={employee.manager?.name}
+                icon={<Layers className="h-5 w-5" />}
+                label="แผนก"
+                value={employee.departmentName || employee.department?.name}
               />
               <DetailItem
                 icon={<Briefcase className="h-5 w-5" />}
                 label="ตำแหน่ง"
-                value={employee.role}
+                value={` ${employee.roleTitle || employee.role || "-"}`}
+              />
+              <DetailItem
+                icon={<Map className="h-5 w-5" />}
+                label="เขตความรับผิดชอบ"
+                value={employee.responsibilityArea}
+              />
+            </div>
+          </div>
+
+          {/* Address Information Card */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
+            <div className="p-6 border-b border-gray-100 bg-emerald-50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <MapPin className="h-6 w-6 text-emerald-600" />
+                ที่อยู่ติดต่อ
+              </h2>
+            </div>
+            <div className="p-6">
+              <DetailItem
+                icon={<MapPin className="h-5 w-5 mt-1" />}
+                label=""
+                fullWidth
+                value={
+                  employee.addressLine ||
+                  employee.subdistrict ||
+                  employee.district ||
+                  employee.province ||
+                  employee.postalCode ? (
+                    <span className="leading-relaxed">
+                      {employee.addressLine && `${employee.addressLine} `}
+                      {[
+                        employee.subdistrict && `ต.${employee.subdistrict}`,
+                        employee.district && `อ.${employee.district}`,
+                        employee.province && `จ.${employee.province}`,
+                        employee.postalCode && `${employee.postalCode}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    </span>
+                  ) : (
+                    "-"
+                  )
+                }
               />
             </div>
           </div>
