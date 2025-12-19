@@ -18,10 +18,10 @@ export const DEFAULT_AUTH_REDIRECT = "/dashboard/employee";
 
 const routeRules: RoutePermissionRule[] = [
   {
-    pattern: /^\/dashboard(\/aggregateReport|\/activityReport)?$/,
-    required: ["menu.dashboard"],
+    pattern: /^\/reports(\/aggregateReport|\/activityReport)?$/,
+    required: ["menu.reports"],
   },
-  { pattern: /^\/dashboard\/salesReport(\/.*)?$/, required: ["menu.sales"] },
+  { pattern: /^\/reports\/salesReport(\/.*)?$/, required: ["menu.sales"] },
   { pattern: /^\/dashboard\/products\/new$/, required: ["product.create"] },
   {
     pattern: /^\/dashboard\/products\/[^/]+\/edit$/,

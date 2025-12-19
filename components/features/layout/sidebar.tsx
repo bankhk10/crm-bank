@@ -37,14 +37,14 @@ interface SidebarNavItem {
 // Exported for reuse in mobile navbar drawer
 export const navigationItems: SidebarNavItem[] = [
   {
-    href: "/dashboard",
+    href: "/reports",
     label: "รายงาน",
-    permissionKey: "menu.dashboard",
+    permissionKey: "menu.reports",
     icon: <LayoutDashboard className="h-4 w-4" />,
     children: [
-      { href: "/dashboard/aggregateReport", label: "ภาพรวม" },
-      { href: "/dashboard/salesReport", label: "การขาย" },
-      { href: "/dashboard/activityReport", label: "กิจกรรม" },
+      { href: "/reports/aggregateReport", label: "ภาพรวม" },
+      { href: "/reports/salesReport", label: "การขาย" },
+      { href: "/reports/activityReport", label: "กิจกรรม" },
     ],
   },
   {

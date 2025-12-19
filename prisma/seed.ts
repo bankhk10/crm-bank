@@ -255,10 +255,10 @@ async function main() {
   const permissions = await prisma.$transaction([
     prisma.permission.create({
       data: {
-        key: "menu.dashboard",
-        name: "Dashboard menu",
+        key: "menu.reports",
+        name: "Reports menu",
         category: "MENU",
-        menuPath: "/dashboard",
+        menuPath: "/reports",
       },
     }),
     prisma.permission.create({
@@ -266,7 +266,7 @@ async function main() {
         key: "menu.sales",
         name: "Sales menu",
         category: "MENU",
-        menuPath: "/dashboard/salesReport",
+        menuPath: "/reports/salesReport",
       },
     }),
 
@@ -689,7 +689,7 @@ async function main() {
 
   await prisma.rolePermission.createMany({
     data: [
-      "menu.dashboard",
+      "menu.reports",
       "menu.sales",
       "menu.companies",
       "menu.customers",
@@ -733,7 +733,7 @@ async function main() {
 
   await prisma.rolePermission.createMany({
     data: [
-      "menu.dashboard",
+      "menu.reports",
       "menu.sales",
       "menu.products",
       "sale.create",
