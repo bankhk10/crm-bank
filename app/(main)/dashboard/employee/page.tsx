@@ -12,9 +12,9 @@ import {
   CheckCircle2,
   Circle,
   Clock,
-  FolderKanban,
-  MessageSquare,
   Bell,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,156 +22,171 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const myTasks = [
   {
     id: 1,
-    title: "Prepare Sales Presentation",
-    deadline: "Today",
+    title: "เตรียมการนำเสนอการขาย",
+    deadline: "วันนี้",
     status: "pending",
-    priority: "High",
+    priority: "สูง",
   },
   {
     id: 2,
-    title: "Follow up with Client X",
-    deadline: "Tomorrow",
+    title: "ติดตามลูกค้าบริษัท X",
+    deadline: "พรุ่งนี้",
     status: "pending",
-    priority: "Medium",
+    priority: "ปานกลาง",
   },
   {
     id: 3,
-    title: "Submit Expense Report",
-    deadline: "Dec 25",
+    title: "ส่งรายงานค่าใช้จ่าย",
+    deadline: "25 ธ.ค.",
     status: "done",
-    priority: "Low",
+    priority: "ต่ำ",
   },
   {
     id: 4,
-    title: "Review Q4 Goals",
-    deadline: "Dec 28",
+    title: "ทบทวนเป้าหมายไตรมาส 4",
+    deadline: "28 ธ.ค.",
     status: "pending",
-    priority: "High",
+    priority: "สูง",
   },
 ];
 
 const announcements = [
   {
-    title: "Annual Party Invitation",
-    date: "Dec 30",
-    content: "Join us for the annual celebration!",
+    title: "ขอเชิญร่วมงานปาร์ตี้ประจำปี",
+    date: "30 ธ.ค.",
+    content: "มาร่วมเฉลิมฉลองประจำปีกับเรา!",
   },
   {
-    title: "System Maintenance",
-    date: "Jan 05",
-    content: "Server will be down for 2 hours.",
+    title: "ปิดปรับปรุงระบบ",
+    date: "05 ม.ค.",
+    content: "เซิร์ฟเวอร์จะปิดให้บริการเป็นเวลา 2 ชั่วโมง",
   },
 ];
 
+const priorityStyle: Record<string, string> = {
+  สูง: "bg-red-100 text-red-700",
+  ปานกลาง: "bg-amber-100 text-amber-700",
+  ต่ำ: "bg-emerald-100 text-emerald-700",
+};
+
 export default function EmployeeDashboardPage() {
   return (
-    <div className="flex flex-col gap-6 p-8 bg-muted/10 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-8 space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Welcome back, User!
+          <h1 className="text-3xl font-semibold tracking-tight">
+            ยินดีต้อนรับกลับ 👋
           </h1>
-          <p className="text-muted-foreground">
-            Here is what's happening today.
+          <p className="text-muted-foreground mt-1">
+            นี่คือภาพรวมเกี่ยวกับงานของคุณในวันนี้
           </p>
-        </div>
-        <div className="flex gap-2">
-          <button className="p-2 rounded-full bg-background border hover:bg-muted relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full border-2 border-background" />
-          </button>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>My Tasks</CardTitle>
-            <CardDescription>You have 3 tasks pending</CardDescription>
+      {/* Main Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* My Tasks */}
+        <Card className="lg:col-span-2 shadow-md">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              งานของฉัน
+            </CardTitle>
+            <CardDescription>
+              คุณมีงานที่รอดำเนินการ{" "}
+              {myTasks.filter((t) => t.status !== "done").length} งาน
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {myTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    {task.status === "done" ? (
-                      <CheckCircle2 className="h-6 w-6 text-green-500" />
-                    ) : (
-                      <Circle className="h-6 w-6 text-muted-foreground" />
-                    )}
-                    <div className="space-y-1">
-                      <p
-                        className={`font-medium ${
-                          task.status === "done"
-                            ? "line-through text-muted-foreground"
-                            : ""
-                        }`}
-                      >
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {task.deadline}
-                      </div>
+
+          <CardContent className="space-y-3">
+            {myTasks.map((task) => (
+              <div
+                key={task.id}
+                className="group flex items-center justify-between rounded-xl border bg-card p-4 transition hover:shadow-md hover:-translate-y-[1px]"
+              >
+                <div className="flex items-start gap-4">
+                  {task.status === "done" ? (
+                    <CheckCircle2 className="h-6 w-6 text-emerald-500 mt-0.5" />
+                  ) : (
+                    <Circle className="h-6 w-6 text-muted-foreground mt-0.5" />
+                  )}
+
+                  <div>
+                    <p
+                      className={`font-medium leading-tight ${
+                        task.status === "done"
+                          ? "line-through text-muted-foreground"
+                          : ""
+                      }`}
+                    >
+                      {task.title}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {task.deadline}
                     </div>
                   </div>
-                  <Badge
-                    variant={
-                      task.priority === "High"
-                        ? "destructive"
-                        : task.priority === "Medium"
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {task.priority}
-                  </Badge>
                 </div>
-              ))}
-            </div>
+
+                <Badge
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    priorityStyle[task.priority]
+                  }`}
+                >
+                  {task.priority}
+                </Badge>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
-        <div className="flex flex-col gap-6">
-          <Card>
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Performance */}
+          <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Performance Goals</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                ประสิทธิภาพการทำงาน
+              </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Monthly Assessment</span>
+                <div className="flex justify-between text-sm font-medium">
+                  <span>การประเมินประจำเดือน</span>
                   <span className="text-muted-foreground">75%</span>
                 </div>
-                <Progress value={75} className="h-2" />
+                <Progress value={75} className="h-2 rounded-full" />
               </div>
+
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Project Completion</span>
+                <div className="flex justify-between text-sm font-medium">
+                  <span>ความสำเร็จของโครงการ</span>
                   <span className="text-muted-foreground">90%</span>
                 </div>
-                <Progress value={90} className="h-2" />
+                <Progress value={90} className="h-2 rounded-full" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="flex-1">
+          {/* Announcements */}
+          <Card className="shadow-md">
             <CardHeader>
-              <CardTitle>Announcements</CardTitle>
+              <CardTitle>ประกาศ</CardTitle>
             </CardHeader>
+
             <CardContent>
-              <ScrollArea className="h-[200px] pr-4">
+              <ScrollArea className="h-[220px] pr-4">
                 <div className="space-y-4">
                   {announcements.map((item, i) => (
                     <div
                       key={i}
-                      className="space-y-1 pb-4 mb-4 border-b last:border-0 last:pb-0"
+                      className="rounded-lg border p-3 hover:bg-muted/40 transition"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm">{item.title}</p>
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-sm font-medium">{item.title}</p>
                         <span className="text-xs text-muted-foreground">
                           {item.date}
                         </span>
