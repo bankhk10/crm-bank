@@ -473,7 +473,13 @@ export default function EmployeeForm({
         ข้อมูลส่วนตัว
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-6 mt-6">
+        <FormInput
+          label="รหัสพนักงาน"
+          value={values.employeeCode ?? ""}
+          onChange={handleChange("employeeCode")}
+          disabled={!canEdit}
+        />
         <FormSelect
           label="คำนำหน้า"
           value={values.prefix ?? ""}
@@ -507,7 +513,7 @@ export default function EmployeeForm({
         />
       </div>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
         <FormInput
           label="เบอร์โทรศัพท์"
           value={values.phone ?? ""}
@@ -573,13 +579,6 @@ export default function EmployeeForm({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <FormInput
-          label="รหัสพนักงาน"
-          value={values.employeeCode ?? ""}
-          onChange={handleChange("employeeCode")}
-          disabled={!canEdit}
-        />
-
         <FormSelect
           label="ตำแหน่งงาน"
           value={values.position ?? ""}
