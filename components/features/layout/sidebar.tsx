@@ -16,6 +16,7 @@ import {
   UserCog,
   DollarSign,
   Home,
+  FileChartPie,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
@@ -40,7 +41,7 @@ export const navigationItems: SidebarNavItem[] = [
     href: "/reports",
     label: "รายงาน",
     permissionKey: "menu.reports",
-    icon: <LayoutDashboard className="h-4 w-4" />,
+    icon: <FileChartPie className="h-4 w-4" />,
     children: [
       { href: "/reports/aggregateReport", label: "ภาพรวม" },
       { href: "/reports/salesReport", label: "การขาย" },
