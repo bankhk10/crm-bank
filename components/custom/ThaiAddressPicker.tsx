@@ -88,30 +88,15 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   // sync ค่าเมื่อ parent ส่งมาครั้งแรก หรือเมื่อมีการเปลี่ยนแปลงจาก parent
   useEffect(() => {
     if (!value) return;
+    if (provinces.length === 0) return; // ⭐ สำคัญมาก
 
-    // Ignore if parent sends all empty/undefined (this happens during re-renders)
-    const allEmpty = !value.province && !value.district && !value.subdistrict && !value.postalCode;
-    if (allEmpty) {
-      return;
-    }
+    if (value.province !== undefined) setProvince(value.province);
+    if (value.district !== undefined) setDistrict(value.district);
+    if (value.subdistrict !== undefined) setSubdistrict(value.subdistrict);
+    if (value.postalCode !== undefined) setPostalCode(value.postalCode);
 
-    // Only update if value actually changed from parent (not from our own onChange call)
-    const valueChanged =
-      value.province !== prevValueRef.current?.province ||
-      value.district !== prevValueRef.current?.district ||
-      value.subdistrict !== prevValueRef.current?.subdistrict ||
-      value.postalCode !== prevValueRef.current?.postalCode;
-
-    if (valueChanged) {
-      // Only update if the new value is defined
-      if (value.province !== undefined) setProvince(value.province);
-      if (value.district !== undefined) setDistrict(value.district);
-      if (value.subdistrict !== undefined) setSubdistrict(value.subdistrict);
-      if (value.postalCode !== undefined) setPostalCode(value.postalCode);
-
-      prevValueRef.current = value;
-    }
-  }, [value]);
+    prevValueRef.current = value;
+  }, [value, provinces]);
 
   // อัพเดทค่า postalCode อัตโนมัติ และแจ้ง parent เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
@@ -126,7 +111,12 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     }
 
     // Notify parent of changes
-    const newValue = { province, district, subdistrict, postalCode: newPostalCode };
+    const newValue = {
+      province,
+      district,
+      subdistrict,
+      postalCode: newPostalCode,
+    };
 
     // Only call onChange if the value actually changed
     const hasChanged =
@@ -150,8 +140,10 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           value={province || ""}
           onValueChange={(v) => {
             setProvince(v || undefined);
-            setDistrict(undefined);
-            setSubdistrict(undefined);
+            if (province !== prevValueRef.current?.province) {
+              setDistrict(undefined);
+              setSubdistrict(undefined);
+            }
           }}
         >
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
@@ -182,7 +174,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           disabled={!province}
         >
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
-            <SelectValue placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"} />
+            <SelectValue
+              placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"}
+            />
           </SelectTrigger>
           <SelectContent className="max-h-[300px]">
             <SelectGroup>
@@ -208,7 +202,9 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
           disabled={!district}
         >
           <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
-            <SelectValue placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"} />
+            <SelectValue
+              placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"}
+            />
           </SelectTrigger>
           <SelectContent className="max-h-[300px]">
             <SelectGroup>
