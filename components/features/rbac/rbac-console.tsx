@@ -666,6 +666,71 @@ export default function RBACConsole() {
     fetchSummary();
   };
 
+  const toggleGroupPermissions = async (category: string, allow: boolean) => {
+    if (!selectedRole || !summary) return;
+
+    const categoryPermIds = summary.permissions
+      .filter((p) => p.category === category)
+      .map((p) => p.id);
+
+    // Get current state of permissions
+    // We need to preserve permissions NOT in this category
+    const otherPermissions = selectedRole.permissions
+      .filter((rp) => !categoryPermIds.includes(rp.permissionId))
+      .map((rp) => ({
+        permissionId: rp.permissionId,
+        allow: rp.allow,
+        dataAccess: rp.dataAccess,
+      }));
+
+    // Create new state for permissions IN this category
+    const categoryPermissions = categoryPermIds.map((permId) => {
+      // preserve existing setting if available (mostly for dataAccess)
+      const existing = selectedRole.permissions.find(
+        (rp) => rp.permissionId === permId
+      );
+      return {
+        permissionId: permId,
+        allow: allow,
+        dataAccess: existing?.dataAccess ?? null,
+      };
+    });
+
+    const payload = [...otherPermissions, ...categoryPermissions];
+
+    const response = await fetch(
+      `/api/rbac/roles/${selectedRole.id}/permissions`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          permissions: payload,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      let msg = "ไม่สามารถอัปเดตสิทธิ์ทั้งหมดได้";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+        if (body?.issues) console.error("Validation issues:", body.issues);
+      } catch (e) {
+        console.error("Error parsing response:", e);
+      }
+      notify("error", msg);
+      return;
+    }
+
+    notify(
+      "success",
+      allow
+        ? `เปิดสิทธิ์ ${category} ทั้งหมดแล้ว`
+        : `ปิดสิทธิ์ ${category} ทั้งหมดแล้ว`
+    );
+    fetchSummary();
+  };
+
   const handleDeleteRole = async (roleId: string) => {
     if (
       !confirm(
@@ -1714,11 +1779,30 @@ export default function RBACConsole() {
                     (p) => p.category === category
                   );
                   if (permsInCategory.length === 0) return null;
+                  const areAllSelected = permsInCategory.every((p) => {
+                    const current = selectedRole.permissions.find(
+                      (entry) => entry.permissionId === p.id
+                    );
+                    return current?.allow;
+                  });
+
                   return (
                     <div key={category} className="space-y-4">
-                      <h3 className="font-bold text-sm text-primary uppercase tracking-wider border-b pb-2 mb-4 bg-slate-100/50 p-2 rounded-t-md">
-                        {category} PERMISSIONS ({permsInCategory.length})
-                      </h3>
+                      <div className="flex items-center justify-between border-b pb-2 mb-4 bg-slate-100/50 p-2 rounded-t-md">
+                        <h3 className="font-bold text-sm text-primary uppercase tracking-wider">
+                          {category} PERMISSIONS ({permsInCategory.length})
+                        </h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() =>
+                            toggleGroupPermissions(category, !areAllSelected)
+                          }
+                        >
+                          {areAllSelected ? "Deselect All" : "Select All"}
+                        </Button>
+                      </div>
                       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                         {permsInCategory.map((permission) => {
                           const current = selectedRole.permissions.find(

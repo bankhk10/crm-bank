@@ -73,16 +73,19 @@ export default function EmployeeDashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-8 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            ยินดีต้อนรับกลับ 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            นี่คือภาพรวมเกี่ยวกับงานของคุณในวันนี้
-          </p>
-        </div>
-      </div>
+ {/* Promotion Placeholder */}
+<Card className="border-2 border-dashed border-primary/40 bg-muted/20">
+  <CardContent className="flex h-[120px] items-center justify-center">
+    <div className="text-center">
+      <p className="text-lg font-semibold text-primary">
+        พื้นที่สำหรับโปรโมทสินค้าใหม่
+      </p>
+      <p className="text-sm text-muted-foreground mt-1">
+        (สามารถใส่แบนเนอร์ / ข้อความโปรโมชั่น / CTA ได้ในอนาคต)
+      </p>
+    </div>
+  </CardContent>
+</Card>
 
       {/* Main Grid */}
       <div className="grid gap-6 lg:grid-cols-3">
