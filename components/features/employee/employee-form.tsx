@@ -444,273 +444,291 @@ export default function EmployeeForm({
   }
 
   return (
-    <div className="bg-white sm:rounded-lg">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {(!canEdit || error || success) && (
-          <div>
-            {!canEdit && (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {(!canEdit || error || success) && (
+        <div>
+          {!canEdit && (
+            <Alert variant="destructive">
+              <AlertDescription>{permissionHint}</AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <div className="mt-3">
               <Alert variant="destructive">
-                <AlertDescription>{permissionHint}</AlertDescription>
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
-            )}
-            {error && (
-              <div className="mt-3">
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              </div>
-            )}
-            {success && (
-              <div className="mt-3">
-                <Alert>
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              </div>
-            )}
-          </div>
-        )}
-
-        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-          ข้อมูลพนักงาน
-        </h3>
-
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
-          <FormSelect
-            label="คำนำหน้า"
-            value={values.prefix ?? ""}
-            onChange={handleSelect("prefix")}
-            options={prefixOptions.map((o) => ({
-              value: o.value,
-              label: o.label,
-            }))}
-            placeholder="เลือกคำนำหน้า"
-            disabled={!canEdit}
-          />
-
-          <FormInput
-            label="ชื่อ"
-            value={values.firstName ?? ""}
-            onChange={handleChange("firstName")}
-            disabled={!canEdit}
-            required
-            error={fieldErrors.firstName?.[0]}
-            containerClassName="md:col-span-2"
-          />
-
-          <FormInput
-            label="นามสกุล"
-            value={values.lastName ?? ""}
-            onChange={handleChange("lastName")}
-            disabled={!canEdit}
-            required
-            error={fieldErrors.lastName?.[0]}
-            containerClassName="md:col-span-2"
-          />
+            </div>
+          )}
+          {success && (
+            <div className="mt-3">
+              <Alert>
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            </div>
+          )}
         </div>
+      )}
 
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-          <FormInput
-            label="รหัสพนักงาน"
-            value={values.employeeCode ?? ""}
-            onChange={handleChange("employeeCode")}
-            disabled={!canEdit}
-          />
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลส่วนตัว
+      </h3>
 
-          <FormInput
-            label="เบอร์โทรศัพท์"
-            value={values.phone ?? ""}
-            onChange={handlePhoneChange}
-            disabled={!canEdit}
-            error={fieldErrors.phone?.[0]}
-          />
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
+        <FormSelect
+          label="คำนำหน้า"
+          value={values.prefix ?? ""}
+          onChange={handleSelect("prefix")}
+          options={prefixOptions.map((o) => ({
+            value: o.value,
+            label: o.label,
+          }))}
+          placeholder="เลือกคำนำหน้า"
+          disabled={!canEdit}
+        />
 
-          <div className="mt-0">
-            <DatePicker
-              label="วันเกิด"
-              value={values.birthDate}
-              onChange={(v) => {
-                setValues((p) => ({ ...p, birthDate: v }));
-                clearFieldError("birthDate");
-              }}
-              disabled={!canEdit}
-              placeholder=""
-            />
-          </div>
+        <FormInput
+          label="ชื่อ"
+          value={values.firstName ?? ""}
+          onChange={handleChange("firstName")}
+          disabled={!canEdit}
+          required
+          error={fieldErrors.firstName?.[0]}
+          containerClassName="md:col-span-2"
+        />
 
-          <FormInput
-            label="อายุ"
-            value={calculatedAge}
-            disabled
-            onChange={() => {}}
-          />
-        </div>
+        <FormInput
+          label="นามสกุล"
+          value={values.lastName ?? ""}
+          onChange={handleChange("lastName")}
+          disabled={!canEdit}
+          required
+          error={fieldErrors.lastName?.[0]}
+          containerClassName="md:col-span-2"
+        />
+      </div>
 
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-          <FormSelect
-            label="ตำแหน่งงาน"
-            value={values.position ?? ""}
-            onChange={handleSelect("position")}
-            options={positionOptions}
-            placeholder="เลือกตำแหน่ง"
-            disabled={!canEdit}
-          />
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+        <FormInput
+          label="เบอร์โทรศัพท์"
+          value={values.phone ?? ""}
+          onChange={handlePhoneChange}
+          disabled={!canEdit}
+          error={fieldErrors.phone?.[0]}
+        />
 
-          <FormSelect
-            label="แผนก"
-            value={values.department ?? ""}
-            onChange={handleSelect("department")}
-            options={departmentOptions}
-            placeholder="เลือกแผนก"
-            disabled={!canEdit}
-          />
-
-          <FormSelect
-            label="สังกัดบริษัท"
-            value={values.company ?? ""}
-            onChange={handleSelect("company")}
-            options={companyOptions}
-            placeholder="เลือกบริษัท"
-            disabled={!canEdit}
-          />
-
-          <FormSelect
-            label="เขตที่รับผิดชอบ"
-            value={values.responsibilityArea ?? ""}
-            onChange={handleSelect("responsibilityArea")}
-            options={responsibilityAreaOptions.map((o) => ({
-              value: o.value,
-              label: o.label,
-            }))}
-            placeholder="เลือกเขต"
-            disabled={!canEdit}
-          />
-        </div>
-
-        <div className="md:col-span-2 mt-6">
-          <FormInput
-            label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
-            placeholder="123/45 หมู่ 6"
-            value={values.addressLine ?? ""}
-            onChange={handleChange("addressLine")}
-            disabled={!canEdit}
-            containerClassName="w-full"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <ThaiAddressPicker
-            value={{
-              province: values.province,
-              district: values.district,
-              subdistrict: values.subdistrict,
-              postalCode: values.postalCode,
+        <div className="mt-0">
+          <DatePicker
+            label="วันเกิด"
+            value={values.birthDate}
+            onChange={(v) => {
+              setValues((p) => ({ ...p, birthDate: v }));
+              clearFieldError("birthDate");
             }}
-            onChange={(next) => {
-              setValues((p) => ({ ...p, ...next }));
-              clearFieldError("province");
-              clearFieldError("district");
-              clearFieldError("subdistrict");
-              clearFieldError("postalCode");
-            }}
+            disabled={!canEdit}
+            placeholder=""
           />
         </div>
 
-        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-          ข้อมูลการเข้าสู่ระบบ
-        </h3>
+        <FormInput
+          label="อายุ"
+          value={calculatedAge}
+          disabled
+          onChange={() => {}}
+        />
+      </div>
 
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
-          <FormInput
-            label="อีเมลสำหรับเข้าสู่ระบบ"
-            type="email"
-            value={values.email ?? ""}
-            onChange={handleChange("email")}
-            disabled={!canEdit}
-            required
-            error={fieldErrors.email?.[0]}
-          />
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ที่อยู่
+      </h3>
 
-          <FormInput
-            label={
-              employeeId
-                ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)"
-                : "รหัสผ่าน"
-            }
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              clearFieldError("password");
-            }}
-            placeholder={
-              employeeId
-                ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
-                : "รหัสผ่านสำหรับเข้าสู่ระบบ"
-            }
-            disabled={!canEdit}
-            error={fieldErrors.password?.[0]}
-            rightIcon={
-              <button
-                type="button"
-                onClick={() => setShowPassword((s) => !s)}
-                className="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
-                aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
-              </button>
-            }
-            rightIconInteractive
-          />
+      <FormInput
+        label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+        placeholder="123/45 หมู่ 6"
+        value={values.addressLine ?? ""}
+        onChange={handleChange("addressLine")}
+        disabled={!canEdit}
+        containerClassName="md:col-span-2 mt-6"
+      />
 
-          <FormSelect
-            label="สิทธิ์การใช้งาน *"
-            value={values.roleDefinitionId ?? ""}
-            onChange={handleSelect("roleDefinitionId")}
-            options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
-            placeholder="เลือกสิทธิ์การใช้งาน"
-            disabled={!canEdit || roles.length === 0}
-            error={fieldErrors.roleDefinitionId?.[0]}
-          />
+      <div className="md:col-span-2">
+        <ThaiAddressPicker
+          value={{
+            province: values.province,
+            district: values.district,
+            subdistrict: values.subdistrict,
+            postalCode: values.postalCode,
+          }}
+          onChange={(next) => {
+            setValues((p) => ({ ...p, ...next }));
+            clearFieldError("province");
+            clearFieldError("district");
+            clearFieldError("subdistrict");
+            clearFieldError("postalCode");
+          }}
+        />
+      </div>
 
-          <FormSelect
-            label="สถานะการทำงาน"
-            value={values.status ?? "ACTIVE"}
-            onChange={handleSelect("status")}
-            options={statusOptions.map((s) => ({
-              value: s.value,
-              label: s.label,
-            }))}
-            placeholder="เลือกสถานะ"
-            disabled={!canEdit}
-          />
-        </div>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลการทำงาน
+      </h3>
 
-        <div className="flex justify-end gap-4 mt-8">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
+        <FormInput
+          label="รหัสพนักงาน"
+          value={values.employeeCode ?? ""}
+          onChange={handleChange("employeeCode")}
+          disabled={!canEdit}
+        />
+
+        <FormSelect
+          label="ตำแหน่งงาน"
+          value={values.position ?? ""}
+          onChange={handleSelect("position")}
+          options={positionOptions}
+          placeholder="เลือกตำแหน่ง"
+          disabled={!canEdit}
+        />
+
+        <FormSelect
+          label="แผนก"
+          value={values.department ?? ""}
+          onChange={handleSelect("department")}
+          options={departmentOptions}
+          placeholder="เลือกแผนก"
+          disabled={!canEdit}
+        />
+
+        <FormSelect
+          label="สังกัดบริษัท"
+          value={values.company ?? ""}
+          onChange={handleSelect("company")}
+          options={companyOptions}
+          placeholder="เลือกบริษัท"
+          disabled={!canEdit}
+        />
+
+        <FormSelect
+          label="เขตที่รับผิดชอบ"
+          value={values.responsibilityArea ?? ""}
+          onChange={handleSelect("responsibilityArea")}
+          options={responsibilityAreaOptions.map((o) => ({
+            value: o.value,
+            label: o.label,
+          }))}
+          placeholder="เลือกเขต"
+          disabled={!canEdit}
+        />
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        ข้อมูลการเข้าสู่ระบบ
+      </h3>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+        <FormInput
+          label="อีเมลสำหรับเข้าสู่ระบบ"
+          type="email"
+          value={values.email ?? ""}
+          onChange={handleChange("email")}
+          disabled={!canEdit}
+          required
+          error={fieldErrors.email?.[0]}
+        />
+
+        <FormInput
+          label={
+            employeeId ? "รหัสผ่าน (เว้นว่างหากไม่ต้องการเปลี่ยน)" : "รหัสผ่าน"
+          }
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clearFieldError("password");
+          }}
+          placeholder={
+            employeeId
+              ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
+              : "รหัสผ่านสำหรับเข้าสู่ระบบ"
+          }
+          disabled={!canEdit}
+          error={fieldErrors.password?.[0]}
+          rightIcon={
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
+              aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          }
+          rightIconInteractive
+        />
+
+        <FormSelect
+          label="สิทธิ์การใช้งาน *"
+          value={values.roleDefinitionId ?? ""}
+          onChange={handleSelect("roleDefinitionId")}
+          options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
+          placeholder="เลือกสิทธิ์การใช้งาน"
+          disabled={!canEdit || roles.length === 0}
+          error={fieldErrors.roleDefinitionId?.[0]}
+        />
+
+        <FormSelect
+          label="สถานะการทำงาน"
+          value={values.status ?? "ACTIVE"}
+          onChange={handleSelect("status")}
+          options={statusOptions.map((s) => ({
+            value: s.value,
+            label: s.label,
+          }))}
+          placeholder="เลือกสถานะ"
+          disabled={!canEdit}
+        />
+      </div>
+
+      <div className="md:col-span-2 pt-6 border-t my-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {canEdit && (
+            <Button
+              size="lg"
+              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+              type="button"
+              onClick={handleRandomFill}
+            >
+              สุ่มข้อมูล
+            </Button>
+          )}
+
           {onCancel && (
             <Button
+              size="lg"
+              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
               type="button"
-              variant="outline"
               onClick={onCancel}
-              className="px-8 rounded-3xl h-11"
+              disabled={loading}
             >
               ยกเลิก
             </Button>
           )}
+
           {canEdit && (
             <Button
+              size="lg"
+              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-3xl px-8 h-11"
             >
               {loading ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
           )}
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

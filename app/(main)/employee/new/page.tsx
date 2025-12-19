@@ -40,19 +40,6 @@ export default function NewEmployeePage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex justify-center mb-4">
-        <Can permission="randomize">
-          <button
-            type="button"
-            className="w-36 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl py-2"
-            onClick={() => randomizeFn && randomizeFn()}
-            disabled={!randomizeFn}
-            title={!randomizeFn ? "รอโหลดฟอร์มก่อนใช้งาน" : undefined}
-          >
-            สุ่มกรอก
-          </button>
-        </Can>
-      </div>
       {!canCreate ? (
         <Alert variant="destructive">
           <AlertDescription>{permissionHint}</AlertDescription>
@@ -77,7 +64,6 @@ export default function NewEmployeePage() {
 
           <EmployeeForm
             hideBorder
-            registerRandomize={(fn) => setRandomizeFn(() => fn)}
             onSubmit={async (body) => {
               const result = await handleCreate(body);
               if (result.success) router.push(`/employee`);
