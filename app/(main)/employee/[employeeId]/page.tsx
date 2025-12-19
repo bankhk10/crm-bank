@@ -4,13 +4,33 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, AlertTriangle, Pencil, ArrowLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  Phone,
+  Mail,
+  Building2,
+  Briefcase,
+  Hash,
+  FileText,
+  UserCheck,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  BadgeCheck,
+} from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
+import { cn } from "@/lib/utils";
 
+// Type definition
 type EmployeeDetail = {
   id: string;
   name?: string | null;
@@ -21,26 +41,41 @@ type EmployeeDetail = {
   manager?: { id: string; name?: string | null } | null;
 };
 
-const DetailItem: React.FC<{ label: string; value: React.ReactNode; className?: string }> = ({
+function DetailItem({
+  icon,
   label,
   value,
-  className,
-}) => (
-  <div className={className}>
-    <p className="text-xs font-medium uppercase text-muted-foreground tracking-wider mb-1">{label}</p>
-    <div className="text-base font-normal text-foreground wrap-break-word">{value}</div>
-  </div>
-);
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+      {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
+      <div className="flex-1 min-w-0">
+        <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
+        <dd className="text-base text-gray-900 font-medium break-words">
+          {value || "-"}
+        </dd>
+      </div>
+    </div>
+  );
+}
 
 export default function EmployeeDetailPage() {
   const { employeeId } = useParams() as { employeeId: string };
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("menu.employees");
   const canView = !isLoading && allowed;
+  const canEdit = hasPermission("employee.edit");
+  const canDelete = hasPermission("employee.delete");
 
   const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -63,96 +98,243 @@ export default function EmployeeDetailPage() {
     };
   }, [employeeId]);
 
+  const handleDelete = async () => {
+    if (!employee) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/employee/${employeeId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("ไม่สามารถลบข้อมูลพนักงานได้");
+      router.push("/employee");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || String(err));
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  if (isLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!canView) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="container max-w-4xl mx-auto p-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
-          <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลพนักงานนี้</AlertDescription>
+          <AlertDescription>
+            คุณไม่มีสิทธิ์เปิดดูข้อมูลพนักงานนี้
+          </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => router.push(`/employee`)}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <CardTitle>
-                {loading ? (
-                  <div className="h-6 w-40 bg-gray-200 rounded animate-pulse" />
-                ) : employee ? (
-                  <div className="text-lg font-semibold">{employee.name}</div>
-                ) : (
-                  <div className="text-lg font-semibold">ไม่พบข้อมูลพนักงาน</div>
-                )}
-              </CardTitle>
-            </div>
+  if (error) {
+    return (
+      <div className="container max-w-4xl mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>ข้อผิดพลาด</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-            <div className="flex items-center gap-2">
-              {!loading && employee && (
-                <Link href={`/employee/${employee.id}/edit`}>
-                  <Button size="sm">
-                    <Pencil className="h-4 w-4" /> แก้ไข
-                  </Button>
-                </Link>
+  if (!employee) {
+    return (
+      <div className="container max-w-4xl mx-auto p-6 text-center">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>ไม่พบข้อมูล</AlertTitle>
+          <AlertDescription>ไม่พบข้อมูลพนักงานที่คุณค้นหา</AlertDescription>
+        </Alert>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => router.push("/employee")}
+        >
+          กลับหน้ารายการ
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen from-slate-50 to-blue-50 bg-slate-50/50 pb-12">
+      {/* Hero Header Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+            <Link
+              href="/employee"
+              className="inline-flex items-center text-blue-100 hover:text-white mb-2 transition-colors group"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              กลับไปหน้ารายการพนักงาน
+            </Link>
+
+            <div className="flex gap-2 self-end lg:self-auto">
+              {/* Edit Button */}
+              <Link href={`/employee/${employeeId}/edit`}>
+                <Button
+                  variant="ghost"
+                  className="text-blue-100 hover:text-white hover:bg-white/10"
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  แก้ไข
+                </Button>
+              </Link>
+              {/* Delete Button */}
+              {canDelete && (
+                <Button
+                  variant="ghost"
+                  className="text-red-200 hover:text-red-100 hover:bg-red-500/20"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  ลบ
+                </Button>
               )}
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>ข้อผิดพลาดในการโหลดข้อมูล</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {loading ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="h-12 bg-gray-100 rounded animate-pulse" />
-                <div className="h-12 bg-gray-100 rounded animate-pulse" />
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-white/10 rounded-full backdrop-blur-sm">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-3xl lg:text-4xl font-bold">
+                  {employee.name}
+                </h1>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="h-12 w-3/4 bg-gray-100 rounded animate-pulse" />
-                <div className="h-12 w-1/2 bg-gray-100 rounded animate-pulse" />
+              <div className="flex flex-wrap items-center gap-4 text-blue-100">
+                {employee.role && (
+                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                    <Briefcase className="h-4 w-4" />
+                    <span>{employee.role}</span>
+                  </div>
+                )}
+                {employee.company && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    <span className="opacity-90">{employee.company.name}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 opacity-70 text-sm">
+                  <Hash className="h-3.5 w-3.5" />
+                  <span>ID: {employee.id.slice(0, 8)}...</span>
+                </div>
               </div>
-              <div className="h-16 bg-gray-100 rounded animate-pulse" />
-              <div className="h-12 w-1/3 bg-gray-100 rounded animate-pulse" />
             </div>
-          ) : employee ? (
-            <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem label="อีเมล" value={employee.email ?? "-"} />
-                <DetailItem label="โทรศัพท์" value={employee.phone ?? "-"} />
-                <DetailItem label="ตำแหน่ง / บทบาท" value={employee.role ?? "-"} />
-                <DetailItem label="บริษัท" value={employee.company ? <Link href={`/companies/${employee.company.id}`} className="underline">{employee.company.name}</Link> : "-"} />
-              </div>
+          </div>
+        </div>
+      </div>
 
-              <Separator />
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <DetailItem label="ผู้จัดการ" value={employee.manager?.name ?? "-"} />
-                <DetailItem label="ID" value={employee.id} />
-              </div>
-            </>
-          ) : (
-            <div className="py-8 text-center text-muted-foreground">
-              <AlertTriangle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-              <p>ไม่พบข้อมูลพนักงานที่ตรงกับ ID นี้</p>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* General Information Card */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div className="p-6 border-b border-gray-100 bg-blue-50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <FileText className="h-6 w-6 text-blue-600" />
+                ข้อมูลส่วนตัว
+              </h2>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="p-6">
+              <DetailItem
+                icon={<Mail className="h-5 w-5" />}
+                label="อีเมล"
+                value={employee.email}
+              />
+              <DetailItem
+                icon={<Phone className="h-5 w-5" />}
+                label="เบอร์โทรศัพท์"
+                value={employee.phone}
+              />
+            </div>
+          </div>
+
+          {/* Organization Information Card */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div className="p-6 border-b border-gray-100 bg-purple-50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Building2 className="h-6 w-6 text-purple-600" />
+                ข้อมูลองค์กร
+              </h2>
+            </div>
+            <div className="p-6">
+              <DetailItem
+                icon={<Building2 className="h-5 w-5" />}
+                label="บริษัท / สาขา"
+                value={
+                  employee.company ? (
+                    <Link
+                      href={`/companies/${employee.company.id}`}
+                      className="text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      {employee.company.name}
+                    </Link>
+                  ) : (
+                    "-"
+                  )
+                }
+              />
+              <DetailItem
+                icon={<UserCheck className="h-5 w-5" />}
+                label="ผู้จัดการ"
+                value={employee.manager?.name}
+              />
+              <DetailItem
+                icon={<Briefcase className="h-5 w-5" />}
+                label="ตำแหน่ง"
+                value={employee.role}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
+          <DialogDescription>
+            คุณต้องการลบพนักงาน <strong>{employee.name}</strong> ใช่หรือไม่?
+            การกระทำนี้ไม่สามารถย้อนกลับได้
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? "กำลังลบ..." : "ลบข้อมูล"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
