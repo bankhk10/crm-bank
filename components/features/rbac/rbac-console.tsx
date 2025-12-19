@@ -1694,8 +1694,8 @@ export default function RBACConsole() {
           open={Boolean(selectedRole)}
           onOpenChange={(open) => !open && setActiveRoleId(null)}
         >
-          <DialogContent className="max-h-[85vh] w-full max-w-4xl overflow-hidden flex flex-col p-0">
-            <DialogHeader className="px-6 py-4 border-b">
+          <DialogContent className="flex flex-col max-h-[90vh] h-[90vh] w-full max-w-5xl p-0 gap-0 overflow-hidden">
+            <DialogHeader className="px-6 py-4 border-b shrink-0 bg-white z-10">
               <DialogTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
                 Permission Settings:{" "}
@@ -1706,20 +1706,20 @@ export default function RBACConsole() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-              <div className="grid gap-6">
-                {/* Group Permissions by Category or anything if possible, for now just list */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+              <div className="grid gap-8">
+                {/* Group Permissions by Category */}
                 {["MENU", "ACTION", "DATA"].map((category) => {
                   const permsInCategory = sortedPermissions.filter(
                     (p) => p.category === category
                   );
                   if (permsInCategory.length === 0) return null;
                   return (
-                    <div key={category} className="space-y-3">
-                      <h3 className="font-semibold text-sm text-slate-500 uppercase tracking-wider">
-                        {category} PERMISSIONS
+                    <div key={category} className="space-y-4">
+                      <h3 className="font-bold text-sm text-primary uppercase tracking-wider border-b pb-2 mb-4 bg-slate-100/50 p-2 rounded-t-md">
+                        {category} PERMISSIONS ({permsInCategory.length})
                       </h3>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                         {permsInCategory.map((permission) => {
                           const current = selectedRole.permissions.find(
                             (entry) => entry.permissionId === permission.id
@@ -1728,22 +1728,26 @@ export default function RBACConsole() {
                           return (
                             <div
                               key={permission.id}
-                              className={`flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm transition-all ${
+                              className={`flex flex-col justify-between gap-3 rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all h-full ${
                                 isChecked
-                                  ? "ring-2 ring-primary/20 border-primary/50"
+                                  ? "ring-2 ring-primary/20 border-primary/50 bg-primary/5"
                                   : ""
                               }`}
                             >
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <p className="font-medium text-sm">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0 space-y-1">
+                                  <p className="font-medium text-sm text-pretty leading-snug break-words">
                                     {permission.name}
                                   </p>
-                                  <p className="text-xs text-muted-foreground font-mono mt-1">
+                                  <p
+                                    className="text-xs text-muted-foreground font-mono truncate text-pretty opacity-80"
+                                    title={permission.key}
+                                  >
                                     {permission.key}
                                   </p>
                                 </div>
                                 <Switch
+                                  className="shrink-0 mt-0.5"
                                   checked={isChecked}
                                   onCheckedChange={(checked) =>
                                     togglePermission(permission.id, checked)
@@ -1753,10 +1757,12 @@ export default function RBACConsole() {
 
                               {/* Conditionals for DATA Access */}
                               {isChecked && permission.category === "DATA" && (
-                                <div className="mt-2 pt-2 border-t">
-                                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">
-                                    Scope
-                                  </label>
+                                <div className="mt-auto pt-3 border-t border-primary/10">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-[10px] font-bold uppercase text-primary/70 tracking-tight">
+                                      Data Scope
+                                    </label>
+                                  </div>
                                   <Select
                                     value={current?.dataAccess ?? undefined}
                                     onValueChange={(value) =>
@@ -1767,7 +1773,7 @@ export default function RBACConsole() {
                                       )
                                     }
                                   >
-                                    <SelectTrigger className="h-8 text-xs">
+                                    <SelectTrigger className="h-8 text-xs bg-white/50 border-primary/20 focus:ring-primary/20">
                                       <SelectValue placeholder="Select Scope" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1794,8 +1800,10 @@ export default function RBACConsole() {
               </div>
             </div>
 
-            <div className="p-4 border-t bg-white flex justify-end">
-              <Button onClick={() => setActiveRoleId(null)}>ปิดหน้าต่าง</Button>
+            <div className="p-4 border-t bg-white shrink-0 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setActiveRoleId(null)}>
+                ปิดหน้าต่าง
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
