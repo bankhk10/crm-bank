@@ -10,18 +10,17 @@ const payloadSchema = z.object({
       z.object({
         permissionId: z.string(),
         allow: z.boolean(),
-        dataAccess: z.nativeEnum(DataAccessLevel).nullable().optional()
+        dataAccess: z.nativeEnum(DataAccessLevel).nullable().optional(),
       })
     )
-    .min(1)
+    .min(1),
 });
 
-interface RouteParams {
-  params: { roleId: string };
-}
-
 export async function PUT(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+  const params =
+    typeof context?.params?.then === "function"
+      ? await context.params
+      : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
@@ -30,9 +29,11 @@ export async function PUT(request: Request, context: any) {
   const body = await request.json().catch(() => null);
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
-
 
   const roleId = params?.roleId as string | undefined;
 
@@ -41,32 +42,71 @@ export async function PUT(request: Request, context: any) {
   }
 
   await db.$transaction(async (tx) => {
-    // soft-delete existing rolePermissions for this role
-    await tx.rolePermission.updateMany({ where: { roleId }, data: { deletedAt: new Date() } });
-    // create new rolePermissions
-    await tx.rolePermission.createMany({
-      data: parsed.data.permissions.map((item) => ({
-        roleId,
-        permissionId: item.permissionId,
-        allow: item.allow,
-        dataAccess: item.dataAccess ?? null
-      }))
+    // 1. Get all existing valid/invalid mappings for this role (to check for soft-deleted ones)
+    const existing = await tx.rolePermission.findMany({
+      where: { roleId },
     });
+
+    const inputPerms = parsed.data.permissions;
+    const inputPermissionIds = new Set(inputPerms.map((p) => p.permissionId));
+
+    // 2. Upsert (Update existing or Create new)
+    for (const item of inputPerms) {
+      const match = existing.find((e) => e.permissionId === item.permissionId);
+      if (match) {
+        // Update existing record (restore if deleted)
+        await tx.rolePermission.update({
+          where: { id: match.id },
+          data: {
+            allow: item.allow,
+            dataAccess: item.dataAccess ?? null,
+            deletedAt: null, // Restore
+          },
+        });
+      } else {
+        // Create new record
+        await tx.rolePermission.create({
+          data: {
+            roleId,
+            permissionId: item.permissionId,
+            allow: item.allow,
+            dataAccess: item.dataAccess ?? null,
+          },
+        });
+      }
+    }
+
+    // 3. Soft delete entries that are NOT in the input payload
+    // (This ensures the state matches the payload exactly)
+    const toDelete = existing.filter(
+      (e) => !inputPermissionIds.has(e.permissionId) && !e.deletedAt
+    );
+    if (toDelete.length > 0) {
+      await tx.rolePermission.updateMany({
+        where: { id: { in: toDelete.map((e) => e.id) } },
+        data: { deletedAt: new Date() },
+      });
+    }
   });
 
   const role = await db.role.findUnique({
     where: { id: roleId },
-    include: { permissions: { include: { permission: true } } }
+    include: { permissions: { include: { permission: true } } },
   });
 
   // filter out soft-deleted entries on the application side because `include` does not accept `where` in this context
   const cleaned = role
     ? {
         ...role,
-        permissions: role.permissions.filter((rp) => !rp.deletedAt).map((rp) => ({
-          ...rp,
-          permission: rp.permission && !(rp.permission as any).deletedAt ? rp.permission : null
-        }))
+        permissions: role.permissions
+          .filter((rp) => !rp.deletedAt)
+          .map((rp) => ({
+            ...rp,
+            permission:
+              rp.permission && !(rp.permission as any).deletedAt
+                ? rp.permission
+                : null,
+          })),
       }
     : role;
 

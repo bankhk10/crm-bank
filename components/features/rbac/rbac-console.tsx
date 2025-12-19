@@ -4,14 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type {
+import {
   Department,
   Permission,
   Position,
   Role,
   RolePermission,
   User,
-  UserPermissionOverride
+  UserPermissionOverride,
+  DataAccessLevel,
 } from "@prisma/client";
 import {
   Dialog,
@@ -21,38 +22,101 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { DataAccessLevel } from "@prisma/client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Shield,
+  Users,
+  Building2,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Settings,
+  ShieldCheck,
+  UserCog,
+} from "lucide-react";
 
 interface SummaryResponse {
   departments: Department[];
-  positions: (Position & { department: Department | null; defaultRole: Role | null })[];
-  roles: (Role & { permissions: (RolePermission & { permission: Permission })[]; _count?: { userRoles: number } })[];
+  positions: (Position & {
+    department: Department | null;
+    defaultRole: Role | null;
+  })[];
+  roles: (Role & {
+    permissions: (RolePermission & { permission: Permission })[];
+    _count?: { userRoles: number };
+  })[];
   permissions: Permission[];
   users: (User & {
     department: Department | null;
     position: Position | null;
     userRoles: { roleId: string; role: Role }[];
-    permissionOverrides?: (UserPermissionOverride & { permission: Permission })[];
+    permissionOverrides?: (UserPermissionOverride & {
+      permission: Permission;
+    })[];
   })[];
 }
 
 const roleSchema = z.object({
   name: z.string().min(3),
-  slug: z.string().min(3).regex(/^[a-z0-9_-]+$/),
-  description: z.string().optional()
+  slug: z
+    .string()
+    .min(3)
+    .regex(/^[a-z0-9_-]+$/),
+  description: z.string().optional(),
 });
 
 const permissionSchema = z.object({
@@ -62,24 +126,26 @@ const permissionSchema = z.object({
   resource: z.string().optional(),
   menuPath: z.string().optional(),
   action: z.string().optional(),
-  defaultDataAccess: z.enum(["VIEW_OWN", "VIEW_DEPARTMENT", "VIEW_ALL"]).optional()
+  defaultDataAccess: z
+    .enum(["VIEW_OWN", "VIEW_DEPARTMENT", "VIEW_ALL"])
+    .optional(),
 });
 
 const departmentSchema = z.object({
   name: z.string().min(2),
-  code: z.string().min(2)
+  code: z.string().min(2),
 });
 
 const positionSchema = z.object({
   name: z.string().min(2),
   level: z.number().min(1).max(10),
-  departmentId: z.string().optional()
+  departmentId: z.string().optional(),
 });
 
 const dataAccessOptions: { label: string; value: DataAccessLevel }[] = [
   { label: "เฉพาะฉัน", value: "VIEW_OWN" },
   { label: "แผนกเดียวกัน", value: "VIEW_DEPARTMENT" },
-  { label: "ทั้งหมด", value: "VIEW_ALL" }
+  { label: "ทั้งหมด", value: "VIEW_ALL" },
 ];
 
 const notify = (type: "success" | "error", message: string) => {
@@ -95,18 +161,27 @@ export default function RBACConsole() {
   const [isLoading, setIsLoading] = useState(true);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const [editingPermissionId, setEditingPermissionId] = useState<string | null>(null);
+  const [editingPermissionId, setEditingPermissionId] = useState<string | null>(
+    null
+  );
   const [deptDialogOpen, setDeptDialogOpen] = useState(false);
   const [posDialogOpen, setPosDialogOpen] = useState(false);
-  const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(null);
-  const [editingPositionId, setEditingPositionId] = useState<string | null>(null);
-  const [apiMessage, setApiMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(
+    null
+  );
+  const [editingPositionId, setEditingPositionId] = useState<string | null>(
+    null
+  );
+  const [apiMessage, setApiMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
   const roleForm = useForm<z.infer<typeof roleSchema>>({
     resolver: zodResolver(roleSchema),
-    defaultValues: { name: "", slug: "", description: "" }
+    defaultValues: { name: "", slug: "", description: "" },
   });
 
   const permissionForm = useForm<z.infer<typeof permissionSchema>>({
@@ -116,18 +191,18 @@ export default function RBACConsole() {
       key: "",
       category: "MENU",
       resource: "",
-      menuPath: ""
-    }
+      menuPath: "",
+    },
   });
 
   const departmentForm = useForm<z.infer<typeof departmentSchema>>({
     resolver: zodResolver(departmentSchema),
-    defaultValues: { name: "", code: "" }
+    defaultValues: { name: "", code: "" },
   });
 
   const positionForm = useForm<z.infer<typeof positionSchema>>({
     resolver: zodResolver(positionSchema),
-    defaultValues: { name: "", level: 1, departmentId: undefined }
+    defaultValues: { name: "", level: 1, departmentId: undefined },
   });
 
   const fetchSummary = useCallback(async () => {
@@ -161,7 +236,7 @@ export default function RBACConsole() {
         key: "",
         category: "MENU",
         resource: "",
-        menuPath: ""
+        menuPath: "",
       });
     }
   }, [permissionDialogOpen, editingPermissionId, permissionForm]);
@@ -231,7 +306,7 @@ export default function RBACConsole() {
     const response = await fetch("/api/rbac/roles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values)
+      body: JSON.stringify(values),
     });
 
     if (!response.ok) {
@@ -254,11 +329,14 @@ export default function RBACConsole() {
   const handleSavePermission = permissionForm.handleSubmit(async (values) => {
     if (editingPermissionId) {
       // Edit existing permission
-      const response = await fetch(`/api/rbac/permissions/${editingPermissionId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
-      });
+      const response = await fetch(
+        `/api/rbac/permissions/${editingPermissionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        }
+      );
 
       if (!response.ok) {
         let msg = "แก้ไข Permission ไม่สำเร็จ";
@@ -277,7 +355,7 @@ export default function RBACConsole() {
       const response = await fetch("/api/rbac/permissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
@@ -317,15 +395,22 @@ export default function RBACConsole() {
       category: permission.category as any,
       resource: permission.resource ?? "",
       menuPath: permission.menuPath ?? "",
-      defaultDataAccess: (permission.defaultDataAccess as any) ?? undefined
+      defaultDataAccess: (permission.defaultDataAccess as any) ?? undefined,
     });
     setPermissionDialogOpen(true);
   };
 
   const handleDeletePermission = async (permissionId: string) => {
-    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Permission นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    if (
+      !confirm(
+        "คุณแน่ใจหรือไม่ที่จะลบ Permission นี้? การกระทำนี้ไม่สามารถย้อนกลับได้"
+      )
+    )
+      return;
 
-    const response = await fetch(`/api/rbac/permissions/${permissionId}`, { method: "DELETE" });
+    const response = await fetch(`/api/rbac/permissions/${permissionId}`, {
+      method: "DELETE",
+    });
     if (!response.ok) {
       let msg = "ลบ Permission ไม่สำเร็จ";
       try {
@@ -343,11 +428,14 @@ export default function RBACConsole() {
   const handleCreateDepartment = departmentForm.handleSubmit(async (values) => {
     // If editingDepartmentId exists -> PATCH, otherwise POST
     if (editingDepartmentId) {
-      const response = await fetch(`/api/rbac/departments/${editingDepartmentId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
-      });
+      const response = await fetch(
+        `/api/rbac/departments/${editingDepartmentId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        }
+      );
 
       if (!response.ok) {
         let msg = "แก้ไข Department ไม่สำเร็จ";
@@ -370,7 +458,7 @@ export default function RBACConsole() {
     const response = await fetch("/api/rbac/departments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values)
+      body: JSON.stringify(values),
     });
 
     if (!response.ok) {
@@ -396,7 +484,7 @@ export default function RBACConsole() {
       const response = await fetch(`/api/rbac/positions/${editingPositionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
@@ -420,7 +508,7 @@ export default function RBACConsole() {
     const response = await fetch("/api/rbac/positions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values)
+      body: JSON.stringify(values),
     });
 
     if (!response.ok) {
@@ -440,15 +528,26 @@ export default function RBACConsole() {
     fetchSummary();
   });
 
-  const handleEditDepartment = (dept: { id: string; name: string; code: string }) => {
+  const handleEditDepartment = (dept: {
+    id: string;
+    name: string;
+    code: string;
+  }) => {
     setEditingDepartmentId(dept.id);
     departmentForm.reset({ name: dept.name, code: dept.code });
     setDeptDialogOpen(true);
   };
 
   const handleDeleteDepartment = async (departmentId: string) => {
-    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Department นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
-    const response = await fetch(`/api/rbac/departments/${departmentId}`, { method: "DELETE" });
+    if (
+      !confirm(
+        "คุณแน่ใจหรือไม่ที่จะลบ Department นี้? การกระทำนี้ไม่สามารถย้อนกลับได้"
+      )
+    )
+      return;
+    const response = await fetch(`/api/rbac/departments/${departmentId}`, {
+      method: "DELETE",
+    });
     if (!response.ok) {
       let msg = "ลบ Department ไม่สำเร็จ";
       try {
@@ -463,15 +562,31 @@ export default function RBACConsole() {
     fetchSummary();
   };
 
-  const handleEditPosition = (pos: { id: string; name: string; level: number; departmentId?: string | null }) => {
+  const handleEditPosition = (pos: {
+    id: string;
+    name: string;
+    level: number;
+    departmentId?: string | null;
+  }) => {
     setEditingPositionId(pos.id);
-    positionForm.reset({ name: pos.name, level: pos.level, departmentId: pos.departmentId ?? undefined });
+    positionForm.reset({
+      name: pos.name,
+      level: pos.level,
+      departmentId: pos.departmentId ?? undefined,
+    });
     setPosDialogOpen(true);
   };
 
   const handleDeletePosition = async (positionId: string) => {
-    if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Position นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
-    const response = await fetch(`/api/rbac/positions/${positionId}`, { method: "DELETE" });
+    if (
+      !confirm(
+        "คุณแน่ใจหรือไม่ที่จะลบ Position นี้? การกระทำนี้ไม่สามารถย้อนกลับได้"
+      )
+    )
+      return;
+    const response = await fetch(`/api/rbac/positions/${positionId}`, {
+      method: "DELETE",
+    });
     if (!response.ok) {
       let msg = "ลบ Position ไม่สำเร็จ";
       try {
@@ -486,11 +601,21 @@ export default function RBACConsole() {
     fetchSummary();
   };
 
-  const togglePermission = async (permissionId: string, allow: boolean, dataAccess?: DataAccessLevel | null) => {
+  const togglePermission = async (
+    permissionId: string,
+    allow: boolean,
+    dataAccess?: DataAccessLevel | null
+  ) => {
     if (!selectedRole) return;
-    const existing = selectedRole.permissions.find((entry) => entry.permissionId === permissionId);
-    const basePermission = existing?.permission ?? summary!.permissions.find((perm) => perm.id === permissionId)!;
-    const next = selectedRole.permissions.filter((entry) => entry.permissionId !== permissionId);
+    const existing = selectedRole.permissions.find(
+      (entry) => entry.permissionId === permissionId
+    );
+    const basePermission =
+      existing?.permission ??
+      summary!.permissions.find((perm) => perm.id === permissionId)!;
+    const next = selectedRole.permissions.filter(
+      (entry) => entry.permissionId !== permissionId
+    );
     next.push({
       ...(existing ?? {
         id: "",
@@ -500,29 +625,40 @@ export default function RBACConsole() {
         permissionId,
         allow: false,
         dataAccess: null,
-        permission: basePermission
+        permission: basePermission,
       }),
       permissionId,
       roleId: selectedRole.id,
       allow,
       dataAccess: dataAccess ?? existing?.dataAccess ?? null,
-      permission: basePermission
+      permission: basePermission,
     });
 
-    const response = await fetch(`/api/rbac/roles/${selectedRole.id}/permissions`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        permissions: next.map((entry) => ({
-          permissionId: entry.permissionId,
-          allow: entry.allow,
-          dataAccess: entry.dataAccess
-        }))
-      })
-    });
+    const response = await fetch(
+      `/api/rbac/roles/${selectedRole.id}/permissions`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          permissions: next.map((entry) => ({
+            permissionId: entry.permissionId,
+            allow: entry.allow,
+            dataAccess: entry.dataAccess,
+          })),
+        }),
+      }
+    );
 
     if (!response.ok) {
-      notify("error", "อัปเดตสิทธิ์ไม่สำเร็จ");
+      let msg = "อัปเดตสิทธิ์ไม่สำเร็จ";
+      try {
+        const body = await response.json();
+        if (body?.error) msg = body.error;
+        if (body?.issues) console.error(body.issues);
+      } catch (e) {
+        console.error("Error parsing response:", e);
+      }
+      notify("error", msg);
       return;
     }
 
@@ -531,10 +667,15 @@ export default function RBACConsole() {
   };
 
   const handleDeleteRole = async (roleId: string) => {
-    if (!confirm("คุณแน่ใจหรือไม่ว่าจะลบ Role นี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
+    if (
+      !confirm(
+        "คุณแน่ใจหรือไม่ว่าจะลบ Role นี้? การกระทำนี้ไม่สามารถย้อนกลับได้"
+      )
+    )
+      return;
 
     const response = await fetch(`/api/rbac/roles/${roleId}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
 
     if (!response.ok) {
@@ -554,7 +695,9 @@ export default function RBACConsole() {
 
   const handleUserRoleChange = async (roleId: string, checked: boolean) => {
     if (!selectedUser) return;
-    const roleIds = new Set(selectedUser.userRoles.map((entry) => entry.roleId));
+    const roleIds = new Set(
+      selectedUser.userRoles.map((entry) => entry.roleId)
+    );
     if (checked) {
       roleIds.add(roleId);
     } else {
@@ -564,7 +707,7 @@ export default function RBACConsole() {
     const response = await fetch(`/api/rbac/users/${selectedUser.id}/roles`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roleIds: Array.from(roleIds) })
+      body: JSON.stringify({ roleIds: Array.from(roleIds) }),
     });
 
     if (!response.ok) {
@@ -577,770 +720,1086 @@ export default function RBACConsole() {
   };
 
   if (isLoading) {
-    return <Card className="p-6">กำลังโหลดข้อมูล RBAC...</Card>;
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="animate-pulse text-muted-foreground">
+          กำลังโหลดข้อมูล RBAC...
+        </p>
+      </div>
+    );
   }
 
   if (!summary) {
-    return <Card className="p-6 text-red-600">ไม่สามารถโหลดข้อมูล RBAC ได้</Card>;
+    return (
+      <Card className="border-destructive/50 bg-destructive/10 p-6">
+        <div className="flex items-center gap-4 text-destructive">
+          <Shield className="h-8 w-8" />
+          <h2 className="text-lg font-semibold">
+            ไม่สามารถโหลดข้อมูล RBAC ได้
+          </h2>
+        </div>
+      </Card>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {apiMessage ? (
-        <Alert variant={apiMessage.type === "error" ? "destructive" : "default"}>
-          <AlertTitle>{apiMessage.type === "error" ? "ข้อผิดพลาด" : "สำเร็จ"}</AlertTitle>
-          <AlertDescription>
-            <p>{apiMessage.text}</p>
-          </AlertDescription>
-        </Alert>
-      ) : null}
-      <Card className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <h2 className="text-xl font-semibold">Role Management</h2>
-            <p className="text-sm text-slate-500">จัดการ Role และกำหนด Permission</p>
-          </div>
-          <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-            <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">เพิ่ม Role</Button>
-              </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>สร้าง Role</DialogTitle>
-                <DialogDescription>กำหนดชื่อและ slug เพื่อใช้อ้างอิง</DialogDescription>
-              </DialogHeader>
-              <Form {...roleForm}>
-                <form className="space-y-4" onSubmit={handleCreateRole}>
-                  <FormField
-                    control={roleForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ชื่อ Role</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Manager" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={roleForm.control}
-                    name="slug"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Slug</FormLabel>
-                        <FormControl>
-                          <Input placeholder="manager" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={roleForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>คำอธิบาย</FormLabel>
-                        <FormControl>
-                          <Input placeholder="สิทธิ์สำหรับหัวหน้าทีม" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="ghost" type="button">
-                        ยกเลิก
-                      </Button>
-                    </DialogClose>
-                    <Button type="submit">บันทึก</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+    <div className="min-h-screen space-y-8 pb-20">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-slate-900">
+            <ShieldCheck className="h-8 w-8 text-primary" />
+            RBAC Console
+          </h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            ศูนย์กลางการจัดการสิทธิ์การเข้าถึง (Access Control), บทบาทหน้าที่
+            (Roles) และโครงสร้างองค์กร (Organization)
+          </p>
         </div>
-        <div className="mt-6">
-          <div className="hidden md:block overflow-x-auto">
-            <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ชื่อ</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>สิทธิ์ทั้งหมด</TableHead>
-                <TableHead className="text-right">จัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedRoles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell>{role.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{role.slug}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.slice(0, 3).map((entry) => (
-                        <Badge key={entry.permissionId} variant="secondary">
-                          {entry.permission.key}
-                        </Badge>
-                      ))}
-                      {role.permissions.length > 3 && (
-                        <Badge variant="outline">+{role.permissions.length - 3}</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setActiveRoleId(role.id)}
-                        className="text-xs"
-                      >
-                        กำหนดสิทธิ์
-                      </Button>
-                      {/** Disable delete for protected roles or roles with assigned users */}
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleDeleteRole(role.id)}
-                        className="text-xs text-red-600"
-                        title={
-                          role.slug === "administrator"
-                            ? "ไม่สามารถลบ role พื้นฐานได้"
-                            : (role._count?.userRoles ?? 0) > 0
-                            ? "มีผู้ใช้ผูกอยู่ ไม่สามารถลบได้"
-                            : "ลบ Role"
-                        }
-                        disabled={role.slug === "administrator" || (role._count?.userRoles ?? 0) > 0}
-                      >
-                        ลบ
-                      </Button>
-                      {(role._count?.userRoles ?? 0) > 0 ? (
-                        <Badge variant="warning">ผู้ใช้ {role._count?.userRoles}</Badge>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            </Table>
-          </div>
+        {apiMessage && (
+          <Alert
+            variant={apiMessage.type === "error" ? "destructive" : "default"}
+            className="w-full md:w-auto md:min-w-[300px] animate-in slide-in-from-right-5 fade-in"
+          >
+            <AlertTitle>
+              {apiMessage.type === "error" ? "ข้อผิดพลาด" : "สำเร็จ"}
+            </AlertTitle>
+            <AlertDescription>{apiMessage.text}</AlertDescription>
+          </Alert>
+        )}
+      </div>
 
-          {/* Mobile: stacked cards */}
-          <div className="md:hidden space-y-3">
-            {sortedRoles.map((role) => (
-              <Card key={role.id} className="p-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium">{role.name}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Badge variant="outline">{role.slug}</Badge>
-                      {(role._count?.userRoles ?? 0) > 0 ? (
-                        <Badge variant="warning">ผู้ใช้ {role._count?.userRoles}</Badge>
-                      ) : null}
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {role.permissions.slice(0, 3).map((entry) => (
-                        <Badge key={entry.permissionId} variant="secondary">
-                          {entry.permission.key}
-                        </Badge>
-                      ))}
-                      {role.permissions.length > 3 && (
-                        <Badge variant="outline">+{role.permissions.length - 3}</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="ml-4 flex-shrink-0 w-36">
-                    <Button className="w-full mb-2" variant="secondary" onClick={() => setActiveRoleId(role.id)}>
-                      กำหนดสิทธิ์
-                    </Button>
-                    <Button
-                      className="w-full text-red-600"
-                      variant="ghost"
-                      onClick={() => handleDeleteRole(role.id)}
-                      disabled={role.slug === "administrator" || (role._count?.userRoles ?? 0) > 0}
-                    >
-                      ลบ
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+      <Tabs defaultValue="roles" className="space-y-6">
+        <div className="sticky top-0 z-10 -mx-4 bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:mx-0 md:px-0">
+          <TabsList className="grid w-full grid-cols-3 md:w-[500px]">
+            <TabsTrigger value="roles" className="gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Roles & Permissions</span>
+              <span className="sm:hidden">Roles</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="org" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Organization</span>
+              <span className="sm:hidden">Org</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
-        {selectedRole ? (
-          <Dialog open={Boolean(selectedRole)} onOpenChange={(open) => !open && setActiveRoleId(null)}>
-            <DialogContent className="max-w-3xl">
-              <DialogHeader>
-                <DialogTitle>Permission ของ {selectedRole.name}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {sortedPermissions.map((permission) => {
-                  const current = selectedRole.permissions.find((entry) => entry.permissionId === permission.id);
-                  const isChecked = current?.allow ?? false;
-                  return (
-                    <div key={permission.id} className="flex items-center justify-between border-b pb-3">
-                      <div>
-                        <p className="font-medium">{permission.name}</p>
-                        <p className="text-xs text-slate-500">{permission.key}</p>
+
+        {/* =========================================================================
+            TAB: ROLES & PERMISSIONS
+           ========================================================================= */}
+        <TabsContent value="roles" className="space-y-8">
+          {/* Roles Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">Roles</h2>
+                <p className="text-sm text-muted-foreground">
+                  บทบาทและกลุ่มสิทธิ์ในระบบ
+                </p>
+              </div>
+              <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 shadow-sm">
+                    <Plus className="h-4 w-4" />
+                    เพิ่ม Role
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>สร้าง Role ใหม่</DialogTitle>
+                    <DialogDescription>
+                      ตั้งชื่อและกำหนด Slug สำหรับใช้อ้างอิงในระบบ
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...roleForm}>
+                    <form className="space-y-4" onSubmit={handleCreateRole}>
+                      <FormField
+                        control={roleForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ชื่อ Role</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="เช่น: HR Manager"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={roleForm.control}
+                        name="slug"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Slug (System Name)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="เช่น: hr_manager"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={roleForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>คำอธิบาย</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="รายละเอียดหน้าที่ความรับผิดชอบ"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost" type="button">
+                            ยกเลิก
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">สร้าง Role</Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {sortedRoles.map((role) => (
+                <Card
+                  key={role.id}
+                  className="group relative overflow-hidden transition-all hover:shadow-md"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg font-bold">
+                          {role.name}
+                        </CardTitle>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {role.slug}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-4">
-                        {permission.category === "DATA" ? (
-                          <Select
-                            value={current?.dataAccess ?? undefined}
-                            onValueChange={(value) =>
-                              togglePermission(permission.id, true, value as DataAccessLevel)
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>จัดการ</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => setActiveRoleId(role.id)}
+                          >
+                            <Settings className="mr-2 h-4 w-4" /> กำหนดสิทธิ์
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteRole(role.id)}
+                            className="text-red-600 focus:text-red-600"
+                            disabled={
+                              role.slug === "administrator" ||
+                              (role._count?.userRoles ?? 0) > 0
                             }
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="เลือกระดับข้อมูล" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {dataAccessOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : null}
-                        <Switch
-                          checked={isChecked}
-                          onCheckedChange={(checked) => togglePermission(permission.id, checked)}
+                            <Trash2 className="mr-2 h-4 w-4" /> ลบ Role
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-3">
+                    <p className="line-clamp-2 text-sm text-muted-foreground min-h-[40px]">
+                      {role.description || "ไม่มีคำอธิบาย"}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Badge
+                        variant="secondary"
+                        className="bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      >
+                        {role.permissions.length} Permissions
+                      </Badge>
+                      {(role._count?.userRoles ?? 0) > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-50 text-amber-700"
+                        >
+                          {role._count?.userRoles} Users
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                  <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-primary/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          <div className="my-8 border-t" />
+
+          {/* Permissions Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Permissions
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  รายการสิทธิ์ทั้งหมดที่สามารถเรียกใช้ได้
+                </p>
+              </div>
+              <Dialog
+                open={permissionDialogOpen}
+                onOpenChange={setPermissionDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditingPermissionId(null);
+                      permissionForm.reset();
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> เพิ่ม Permission
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingPermissionId
+                        ? "แก้ไข Permission"
+                        : "สร้าง Permission"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <Form {...permissionForm}>
+                    <form className="space-y-4" onSubmit={handleSavePermission}>
+                      <FormField
+                        control={permissionForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ชื่อ Permission</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="เช่น: Create Product"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={permissionForm.control}
+                        name="key"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Key (Unique Identifier)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="เช่น: product.create"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={permissionForm.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>หมวดหมู่</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="เลือก..." />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="MENU">MENU</SelectItem>
+                                  <SelectItem value="ACTION">ACTION</SelectItem>
+                                  <SelectItem value="DATA">DATA</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={permissionForm.control}
+                          name="defaultDataAccess"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data Access</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="None" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {dataAccessOptions.map((option) => (
+                                    <SelectItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
                         />
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </DialogContent>
-          </Dialog>
-        ) : null}
-      </Card>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={permissionForm.control}
+                          name="resource"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Resource</FormLabel>
+                              <FormControl>
+                                <Input placeholder="products" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={permissionForm.control}
+                          name="menuPath"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Menu Path</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="/dashboard/..."
+                                  {...field}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost" type="button">
+                            ยกเลิก
+                          </Button>
+                        </DialogClose>
+                        <Button type="submit">บันทึก</Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-      <Card className="p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <h2 className="text-xl font-semibold">Permission Management</h2>
-            <p className="text-sm text-slate-500">เพิ่ม/ลบ Permission ที่ใช้ในระบบ</p>
-          </div>
-          <Dialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen}>
-            <DialogTrigger asChild>
-                <Button
-                  className="w-full sm:w-auto"
-                  variant="secondary"
-                  onClick={() => {
-                    // prepare for create
-                    setEditingPermissionId(null);
-                    permissionForm.reset();
-                  }}
-                >
-                  เพิ่ม Permission
-                </Button>
-              </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                <DialogTitle>{editingPermissionId ? "แก้ไข Permission" : "สร้าง Permission"}</DialogTitle>
-              </DialogHeader>
-              <Form {...permissionForm}>
-                <form className="space-y-4" onSubmit={handleSavePermission}>
-                  <FormField
-                    control={permissionForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ชื่อ</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Product Create" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={permissionForm.control}
-                    name="key"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Key</FormLabel>
-                        <FormControl>
-                          <Input placeholder="product.create" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={permissionForm.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ประเภท</FormLabel>
-                        <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="เลือกรายการ" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="MENU">MENU</SelectItem>
-                              <SelectItem value="ACTION">ACTION</SelectItem>
-                              <SelectItem value="DATA">DATA</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={permissionForm.control}
-                    name="resource"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Resource</FormLabel>
-                        <FormControl>
-                          <Input placeholder="product" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={permissionForm.control}
-                    name="menuPath"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Menu Path</FormLabel>
-                        <FormControl>
-                          <Input placeholder="/dashboard/products" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={permissionForm.control}
-                    name="defaultDataAccess"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data Access Default</FormLabel>
-                        <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="ไม่กำหนด" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {dataAccessOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="ghost" type="button">
-                        ยกเลิก
-                      </Button>
-                    </DialogClose>
-                    <Button type="submit">บันทึก</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {sortedPermissions.map((permission) => (
-            <Card key={permission.id} className="p-4 border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">{permission.name}</p>
-                  <p className="text-xs text-slate-500">{permission.key}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{permission.category}</Badge>
-                  <Button
-                    variant="ghost"
-                    className="text-xs"
-                    onClick={() => handleEditPermission(permission as any)}
-                  >
-                    แก้ไข
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-xs text-red-600"
-                    onClick={() => handleDeletePermission(permission.id)}
-                  >
-                    ลบ
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-3 text-sm text-slate-600">
-                {permission.resource ? <p>Resource: {permission.resource}</p> : null}
-                {permission.menuPath ? <p>Path: {permission.menuPath}</p> : null}
-                {permission.defaultDataAccess ? (
-                  <p>
-                    Data Access: {
-                      dataAccessOptions.find((option) => option.value === permission.defaultDataAccess)?.label
-                    }
-                  </p>
-                ) : null}
-              </div>
-            </Card>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">ผู้ใช้และ Role</h2>
-            <p className="text-sm text-slate-500">Mapping User ↔ Role และ Override เฉพาะบุคคล</p>
-          </div>
-        </div>
-        <div className="mt-6">
-          <div className="hidden md:block overflow-x-auto">
-            <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ชื่อ</TableHead>
-                <TableHead>อีเมล</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">จัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {summary.users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      {user.userRoles.map((entry) => (
-                        <Badge key={entry.role.id} variant="success">
-                          {entry.role.name}
-                        </Badge>
-                      ))}
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {sortedPermissions.map((permission) => (
+                <Card key={permission.id} className="border-slate-200 text-sm">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold">{permission.name}</span>
+                        <span className="font-mono text-xs text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded w-fit">
+                          {permission.key}
+                        </span>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                          >
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleEditPermission(permission as any)
+                            }
+                          >
+                            <Edit className="mr-2 h-3 w-3" /> แก้ไข
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() =>
+                              handleDeletePermission(permission.id)
+                            }
+                          >
+                            <Trash2 className="mr-2 h-3 w-3" /> ลบ
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Sheet open={activeUserId === user.id} onOpenChange={(open) => setActiveUserId(open ? user.id : null)}>
-                      <SheetTrigger asChild>
-                        <Button variant="secondary" className="text-xs">
-                          Manage Access
-                        </Button>
-                      </SheetTrigger>
-                      {selectedUser?.id === user.id ? (
-                        <SheetContent className="w-full max-w-xl overflow-y-auto">
-                          <SheetHeader>
-                            <SheetTitle>{user.name}</SheetTitle>
-                            <SheetDescription>{user.email}</SheetDescription>
-                          </SheetHeader>
-                          <div className="mt-6 space-y-6">
-                            <section>
-                              <h3 className="text-sm font-semibold">Roles</h3>
-                              <div className="mt-3 space-y-2">
-                                {sortedRoles.map((role) => (
-                                  <label key={role.id} className="flex items-center justify-between rounded border p-3">
-                                    <div>
-                                      <p className="font-medium">{role.name}</p>
-                                      <p className="text-xs text-slate-500">{role.slug}</p>
-                                    </div>
-                                    <Checkbox
-                                      checked={selectedUser.userRoles.some((entry) => entry.roleId === role.id)}
-                                      onCheckedChange={(checked) => handleUserRoleChange(role.id, Boolean(checked))}
-                                    />
-                                  </label>
-                                ))}
-                              </div>
-                            </section>
-                            <section>
-                              <h3 className="text-sm font-semibold">Permission Override</h3>
-                              <p className="text-xs text-slate-500">(ตัวอย่างการเปิดใช้งานเท่านั้น)</p>
-                              <div className="mt-2 rounded border p-3 text-sm text-slate-500">
-                                ใช้ API /users/[id]/overrides เพื่อกำหนด Allow/Deny เฉพาะบุคคล
-                              </div>
-                            </section>
-                          </div>
-                        </SheetContent>
-                      ) : null}
-                    </Sheet>
-                  </TableCell>
-                </TableRow>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">
+                          Category
+                        </span>
+                        <span>{permission.category}</span>
+                      </div>
+                      {permission.resource && (
+                        <div className="flex flex-col">
+                          <span className="text-[10px] uppercase font-bold text-slate-400">
+                            Resource
+                          </span>
+                          <span>{permission.resource}</span>
+                        </div>
+                      )}
+                      {permission.menuPath && (
+                        <div className="flex flex-col col-span-2">
+                          <span className="text-[10px] uppercase font-bold text-slate-400">
+                            Path
+                          </span>
+                          <span className="truncate">
+                            {permission.menuPath}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
               ))}
-            </TableBody>
-            </Table>
-          </div>
+            </div>
+          </section>
+        </TabsContent>
 
-          {/* Mobile: stacked user cards */}
-          <div className="md:hidden space-y-3">
-            {summary.users.map((user) => (
-              <Card key={user.id} className="p-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+        {/* =========================================================================
+            TAB: USERS
+           ========================================================================= */}
+        <TabsContent value="users">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Role Assignments</CardTitle>
+              <CardDescription>
+                จัดการบทบาท (Roles) ของผู้ใช้งานแต่ละคนในระบบ
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Mobile View */}
+              <div className="block md:hidden space-y-4">
+                {summary.users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="border rounded-lg p-4 space-y-3"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.email}
+                        </div>
+                      </div>
+                      <Sheet
+                        open={activeUserId === user.id}
+                        onOpenChange={(open) =>
+                          setActiveUserId(open ? user.id : null)
+                        }
+                      >
+                        <SheetTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8">
+                            <UserCog className="h-4 w-4" />
+                          </Button>
+                        </SheetTrigger>
+                        {/* Shared Sheet Content */}
+                        {selectedUser?.id === user.id && (
+                          <SheetContent className="w-full max-w-md overflow-y-auto">
+                            <SheetHeader>
+                              <SheetTitle>จัดการสิทธิ์: {user.name}</SheetTitle>
+                              <SheetDescription>{user.email}</SheetDescription>
+                            </SheetHeader>
+                            <div className="mt-6 space-y-6">
+                              <div className="space-y-4">
+                                <h3 className="font-medium flex items-center gap-2">
+                                  <Shield className="h-4 w-4" /> Roles
+                                </h3>
+                                {sortedRoles.map((role) => (
+                                  <div
+                                    key={role.id}
+                                    className="flex items-center justify-between rounded-md border p-3 shadow-sm"
+                                  >
+                                    <div>
+                                      <p className="font-medium text-sm">
+                                        {role.name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {role.slug}
+                                      </p>
+                                    </div>
+                                    <Switch
+                                      checked={selectedUser.userRoles.some(
+                                        (entry) => entry.roleId === role.id
+                                      )}
+                                      onCheckedChange={(checked) =>
+                                        handleUserRoleChange(
+                                          role.id,
+                                          Boolean(checked)
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </SheetContent>
+                        )}
+                      </Sheet>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.userRoles.length === 0 && (
+                        <span className="text-xs text-muted-foreground italic">
+                          ไม่มี Role
+                        </span>
+                      )}
                       {user.userRoles.map((entry) => (
-                        <Badge key={entry.roleId} variant="success">
+                        <Badge
+                          key={entry.role.id}
+                          variant="secondary"
+                          className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                        >
                           {entry.role.name}
                         </Badge>
                       ))}
                     </div>
                   </div>
-                  <div className="ml-4 flex-shrink-0 w-40">
-                    <Sheet open={activeUserId === user.id} onOpenChange={(open) => setActiveUserId(open ? user.id : null)}>
-                      <SheetTrigger asChild>
-                        <Button className="w-full" variant="secondary">Manage Access</Button>
-                      </SheetTrigger>
-                      {selectedUser?.id === user.id ? (
-                        <SheetContent className="w-full max-w-xl overflow-y-auto">
-                          <SheetHeader>
-                            <SheetTitle>{user.name}</SheetTitle>
-                            <SheetDescription>{user.email}</SheetDescription>
-                          </SheetHeader>
-                          <div className="mt-6 space-y-6">
-                            <section>
-                              <h3 className="text-sm font-semibold">Roles</h3>
-                              <div className="mt-3 space-y-2">
-                                {sortedRoles.map((role) => (
-                                  <label key={role.id} className="flex items-center justify-between rounded border p-3">
-                                    <div>
-                                      <p className="font-medium">{role.name}</p>
-                                      <p className="text-xs text-slate-500">{role.slug}</p>
-                                    </div>
-                                    <Checkbox
-                                      checked={selectedUser.userRoles.some((entry) => entry.roleId === role.id)}
-                                      onCheckedChange={(checked) => handleUserRoleChange(role.id, Boolean(checked))}
-                                    />
-                                  </label>
-                                ))}
-                              </div>
-                            </section>
-                            <section>
-                              <h3 className="text-sm font-semibold">Permission Override</h3>
-                              <p className="text-xs text-slate-500">(ตัวอย่างการเปิดใช้งานเท่านั้น)</p>
-                              <div className="mt-2 rounded border p-3 text-sm text-slate-500">
-                                ใช้ API /users/[id]/overrides เพื่อกำหนด Allow/Deny เฉพาะบุคคล
-                              </div>
-                            </section>
-                          </div>
-                        </SheetContent>
-                      ) : null}
-                    </Sheet>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </Card>
+                ))}
+              </div>
 
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold">Organization</h2>
-            <p className="text-sm text-slate-500">Department / Position Management</p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
-              <DialogTrigger asChild>
+              {/* Desktop View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Assigned Roles</TableHead>
+                      <TableHead className="text-right">Manage</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {summary.users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          {user.name}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-2">
+                            {user.userRoles.map((entry) => (
+                              <Badge
+                                key={entry.role.id}
+                                variant="outline"
+                                className="bg-emerald-50 text-emerald-700 border-emerald-100"
+                              >
+                                {entry.role.name}
+                              </Badge>
+                            ))}
+                            {user.userRoles.length === 0 && (
+                              <span className="text-muted-foreground text-xs italic">
+                                No roles
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Sheet
+                            open={activeUserId === user.id}
+                            onOpenChange={(open) =>
+                              setActiveUserId(open ? user.id : null)
+                            }
+                          >
+                            <SheetTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <UserCog className="h-4 w-4 mr-2" /> Manage
+                                Access
+                              </Button>
+                            </SheetTrigger>
+                            {selectedUser?.id === user.id && (
+                              <SheetContent className="w-[400px] overflow-y-auto">
+                                <SheetHeader>
+                                  <SheetTitle>
+                                    จัดการสิทธิ์: {user.name}
+                                  </SheetTitle>
+                                  <SheetDescription>
+                                    {user.email}
+                                  </SheetDescription>
+                                </SheetHeader>
+                                <div className="mt-8 space-y-6">
+                                  <div className="space-y-3">
+                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">
+                                      Roles Assignment
+                                    </h3>
+                                    <div className="space-y-2">
+                                      {sortedRoles.map((role) => {
+                                        const isAssigned =
+                                          selectedUser.userRoles.some(
+                                            (entry) => entry.roleId === role.id
+                                          );
+                                        return (
+                                          <div
+                                            key={role.id}
+                                            className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
+                                              isAssigned
+                                                ? "bg-primary/5 border-primary/20"
+                                                : "bg-transparent"
+                                            }`}
+                                          >
+                                            <div className="space-y-0.5">
+                                              <p className="font-medium text-sm">
+                                                {role.name}
+                                              </p>
+                                              <p className="text-xs text-muted-foreground">
+                                                {role.slug}
+                                              </p>
+                                            </div>
+                                            <Switch
+                                              checked={isAssigned}
+                                              onCheckedChange={(checked) =>
+                                                handleUserRoleChange(
+                                                  role.id,
+                                                  Boolean(checked)
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              </SheetContent>
+                            )}
+                          </Sheet>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* =========================================================================
+            TAB: ORGANIZATION
+           ========================================================================= */}
+        <TabsContent value="org" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Departments */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="space-y-1">
+                  <CardTitle>Departments</CardTitle>
+                  <CardDescription>แผนกในองค์กร</CardDescription>
+                </div>
+                <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
+                  <DialogTrigger asChild>
                     <Button
-                      className="w-full sm:w-auto"
-                      variant="secondary"
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         setEditingDepartmentId(null);
                         departmentForm.reset();
                       }}
                     >
-                      เพิ่มแผนก
+                      <Plus className="h-4 w-4 mr-2" /> เพิ่มแผนก
                     </Button>
                   </DialogTrigger>
-              <DialogContent className="space-y-3">
-                <DialogHeader>
-                  <DialogTitle>เพิ่ม Department</DialogTitle>
-                </DialogHeader>
-                <Form {...departmentForm}>
-                  <form className="space-y-3" onSubmit={handleCreateDepartment}>
-                    <FormField
-                      control={departmentForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ชื่อ Department</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Customer Success" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={departmentForm.control}
-                      name="code"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>โค้ด</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="CS" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="ghost" type="button">
-                          ยกเลิก
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingDepartmentId ? "แก้ไขแผนก" : "เพิ่มแผนกใหม่"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <Form {...departmentForm}>
+                      <form
+                        className="space-y-4"
+                        onSubmit={handleCreateDepartment}
+                      >
+                        <FormField
+                          control={departmentForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ชื่อแผนก</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="เช่น: Marketing"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={departmentForm.control}
+                          name="code"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>รหัสแผนก</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="เช่น: MKT" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter>
+                          <Button type="submit">บันทึก</Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {sortedDepartments.length === 0 && (
+                    <p className="text-sm text-center py-4 text-muted-foreground">
+                      ยังไม่มีข้อมูลแผนก
+                    </p>
+                  )}
+                  {sortedDepartments.map((dept) => (
+                    <div
+                      key={dept.id}
+                      className="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium">{dept.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {dept.code}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEditDepartment(dept as any)}
+                        >
+                          <Edit className="h-3.5 w-3.5 text-slate-500" />
                         </Button>
-                      </DialogClose>
-                      <Button type="submit">บันทึก Department</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteDepartment(dept.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-            <Dialog open={posDialogOpen} onOpenChange={setPosDialogOpen}>
-              <DialogTrigger asChild>
+            {/* Positions */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="space-y-1">
+                  <CardTitle>Positions</CardTitle>
+                  <CardDescription>ตำแหน่งงาน</CardDescription>
+                </div>
+                <Dialog open={posDialogOpen} onOpenChange={setPosDialogOpen}>
+                  <DialogTrigger asChild>
                     <Button
-                      className="w-full sm:w-auto"
-                      variant="secondary"
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         setEditingPositionId(null);
                         positionForm.reset();
                       }}
                     >
-                      เพิ่ม Position
+                      <Plus className="h-4 w-4 mr-2" /> เพิ่มตำแหน่ง
                     </Button>
                   </DialogTrigger>
-              <DialogContent className="space-y-3">
-                <DialogHeader>
-                  <DialogTitle>เพิ่ม Position</DialogTitle>
-                </DialogHeader>
-                <Form {...positionForm}>
-                  <form className="space-y-3" onSubmit={handleCreatePosition}>
-                    <FormField
-                      control={positionForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ชื่อตำแหน่ง</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Sales Rep" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={positionForm.control}
-                      name="level"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ระดับ</FormLabel>
-                          <FormControl>
-                            <Input type="number" min={1} max={10} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={positionForm.control}
-                      name="departmentId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Department</FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="เลือกแผนก" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sortedDepartments.map((dept) => (
-                                  <SelectItem key={dept.id} value={dept.id}>
-                                    {dept.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <DialogClose asChild>
-                        <Button variant="ghost" type="button">
-                          ยกเลิก
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingPositionId
+                          ? "แก้ไขตำแหน่ง"
+                          : "เพิ่มตำแหน่งใหม่"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <Form {...positionForm}>
+                      <form
+                        className="space-y-4"
+                        onSubmit={handleCreatePosition}
+                      >
+                        <FormField
+                          control={positionForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ชื่อตำแหน่ง</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="เช่น: Senior Developer"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={positionForm.control}
+                          name="level"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Level (1-10)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={10}
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(parseInt(e.target.value))
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={positionForm.control}
+                          name="departmentId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>สังกัดแผนก</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="เลือกแผนก" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {sortedDepartments.map((d) => (
+                                    <SelectItem key={d.id} value={d.id}>
+                                      {d.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter>
+                          <Button type="submit">บันทึก</Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                  {sortedPositions.length === 0 && (
+                    <p className="text-sm text-center py-4 text-muted-foreground">
+                      ยังไม่มีข้อมูลตำแหน่ง
+                    </p>
+                  )}
+                  {sortedPositions.map((pos) => (
+                    <div
+                      key={pos.id}
+                      className="flex items-center justify-between rounded-lg border p-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{pos.name}</p>
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] h-5 px-1.5 rounded-full"
+                          >
+                            L{pos.level}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {pos.department?.name || "ไม่ระบุแผนก"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEditPosition(pos as any)}
+                        >
+                          <Edit className="h-3.5 w-3.5 text-slate-500" />
                         </Button>
-                      </DialogClose>
-                      <Button type="submit">บันทึก Position</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeletePosition(pos.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Card className="p-4">
-            <h3 className="font-semibold">Departments</h3>
-              <div className="mt-3 space-y-2">
-              {sortedDepartments.map((dept) => (
-                <div key={dept.id} className="rounded border p-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{dept.name}</p>
-                      <p className="text-xs text-slate-500">{dept.code}</p>
+        </TabsContent>
+      </Tabs>
+
+      {/* GLOBAL DIALOG: PERMISSION MANAGEMENT FOR SPECIFIC ROLE */}
+      {selectedRole && (
+        <Dialog
+          open={Boolean(selectedRole)}
+          onOpenChange={(open) => !open && setActiveRoleId(null)}
+        >
+          <DialogContent className="max-h-[85vh] w-full max-w-4xl overflow-hidden flex flex-col p-0">
+            <DialogHeader className="px-6 py-4 border-b">
+              <DialogTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Permission Settings:{" "}
+                <span className="text-primary">{selectedRole.name}</span>
+              </DialogTitle>
+              <DialogDescription>
+                กำหนดสิทธิ์การเข้าถึงสำหรับ Role นี้
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+              <div className="grid gap-6">
+                {/* Group Permissions by Category or anything if possible, for now just list */}
+                {["MENU", "ACTION", "DATA"].map((category) => {
+                  const permsInCategory = sortedPermissions.filter(
+                    (p) => p.category === category
+                  );
+                  if (permsInCategory.length === 0) return null;
+                  return (
+                    <div key={category} className="space-y-3">
+                      <h3 className="font-semibold text-sm text-slate-500 uppercase tracking-wider">
+                        {category} PERMISSIONS
+                      </h3>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {permsInCategory.map((permission) => {
+                          const current = selectedRole.permissions.find(
+                            (entry) => entry.permissionId === permission.id
+                          );
+                          const isChecked = current?.allow ?? false;
+                          return (
+                            <div
+                              key={permission.id}
+                              className={`flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm transition-all ${
+                                isChecked
+                                  ? "ring-2 ring-primary/20 border-primary/50"
+                                  : ""
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {permission.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground font-mono mt-1">
+                                    {permission.key}
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) =>
+                                    togglePermission(permission.id, checked)
+                                  }
+                                />
+                              </div>
+
+                              {/* Conditionals for DATA Access */}
+                              {isChecked && permission.category === "DATA" && (
+                                <div className="mt-2 pt-2 border-t">
+                                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                                    Scope
+                                  </label>
+                                  <Select
+                                    value={current?.dataAccess ?? undefined}
+                                    onValueChange={(value) =>
+                                      togglePermission(
+                                        permission.id,
+                                        true,
+                                        value as DataAccessLevel
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs">
+                                      <SelectValue placeholder="Select Scope" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {dataAccessOptions.map((option) => (
+                                        <SelectItem
+                                          key={option.value}
+                                          value={option.value}
+                                          className="text-xs"
+                                        >
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" className="text-xs" onClick={() => handleEditDepartment(dept as any)}>
-                        แก้ไข
-                      </Button>
-                      <Button variant="ghost" className="text-xs text-red-600" onClick={() => handleDeleteDepartment(dept.id)}>
-                        ลบ
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </Card>
-          <Card className="p-4">
-            <h3 className="font-semibold">Positions</h3>
-            <div className="mt-3 space-y-2 max-h-72 overflow-y-auto pr-2">
-              {sortedPositions.map((pos) => (
-                <div key={pos.id} className="rounded border p-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {pos.name} <span className="text-xs text-slate-500">(L{pos.level})</span>
-                      </p>
-                      <p className="text-xs text-slate-500">{pos.department?.name ?? "-"}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" className="text-xs" onClick={() => handleEditPosition(pos as any)}>
-                        แก้ไข
-                      </Button>
-                      <Button variant="ghost" className="text-xs text-red-600" onClick={() => handleDeletePosition(pos.id)}>
-                        ลบ
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+
+            <div className="p-4 border-t bg-white flex justify-end">
+              <Button onClick={() => setActiveRoleId(null)}>ปิดหน้าต่าง</Button>
             </div>
-          </Card>
-        </div>
-      </Card>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
