@@ -216,30 +216,6 @@ export default function EmployeeDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               กลับไปหน้ารายการพนักงาน
             </Link>
-
-            <div className="flex gap-2 self-end lg:self-auto">
-              {/* Edit Button */}
-              <Link href={`/employee/${employeeId}/edit`}>
-                <Button
-                  variant="ghost"
-                  className="text-blue-100 hover:text-white hover:bg-white/10"
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  แก้ไข
-                </Button>
-              </Link>
-              {/* Delete Button */}
-              {canDelete && (
-                <Button
-                  variant="ghost"
-                  className="text-red-200 hover:text-red-100 hover:bg-red-500/20"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  ลบ
-                </Button>
-              )}
-            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
@@ -344,7 +320,7 @@ export default function EmployeeDetailPage() {
               <DetailItem
                 icon={<Layers className="h-5 w-5" />}
                 label="แผนก"
-                value={employee.departmentName || employee.department?.name}
+                value={employee.department?.name || "-"}
               />
               <DetailItem
                 icon={<Briefcase className="h-5 w-5" />}

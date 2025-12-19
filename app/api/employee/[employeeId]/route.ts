@@ -6,7 +6,12 @@ import { z } from "zod";
 
 const resourcePath = "/api/employee";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
+export async function GET(
+  _request: Request,
+  {
+    params,
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+) {
   const session = await auth();
 
   if (!session?.user) {
@@ -23,6 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ emp
     where: { id: employeeId },
     include: {
       company: { select: { id: true, name: true } },
+      department: { select: { id: true, name: true } },
       manager: { select: { id: true, name: true } },
       // include linked user and their active roles so callers (edit page) can
       // prefill login/role information
@@ -32,11 +38,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ emp
           email: true,
           userRoles: {
             where: { deletedAt: null },
-            include: { role: true }
-          }
-        }
-      }
-    }
+            include: { role: true },
+          },
+        },
+      },
+    },
   });
 
   if (!employee) {
@@ -46,7 +52,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ emp
   return NextResponse.json({ employee });
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
+export async function DELETE(
+  _request: Request,
+  {
+    params,
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+) {
   const session = await auth();
 
   if (!session?.user) {
@@ -60,14 +71,25 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { employeeId } = (await params) as { employeeId: string };
 
   try {
-    const updated = await db.employee.update({ where: { id: employeeId }, data: { deletedAt: new Date() } });
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ employee: updated });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Delete failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: err?.message ?? "Delete failed" },
+      { status: 400 }
+    );
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ employeeId: string }> | { employeeId: string } }) {
+export async function PUT(
+  request: Request,
+  {
+    params,
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+) {
   const session = await auth();
 
   if (!session?.user) {
@@ -129,12 +151,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
 
   const parseResult = employeeSchema.safeParse(body.employee);
   if (!parseResult.success) {
-    return NextResponse.json({ error: "Validation failed", details: parseResult.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Validation failed", details: parseResult.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const userParseResult = userSchema.safeParse(body.user);
   if (!userParseResult.success) {
-    return NextResponse.json({ error: "User validation failed", details: userParseResult.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "User validation failed",
+        details: userParseResult.error.flatten(),
+      },
+      { status: 400 }
+    );
   }
 
   try {
@@ -144,25 +175,39 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
     // Load existing employee (with linked user) first for comparison (email/role changes)
     const existingBefore = await db.employee.findUnique({
       where: { id: employeeId },
-      include: { user: { include: { userRoles: true } } }
+      include: { user: { include: { userRoles: true } } },
     });
 
-    const { companyId, departmentId, positionId, managerId, address, birthDate, ...other } = payload;
+    const {
+      companyId,
+      departmentId,
+      positionId,
+      managerId,
+      address,
+      birthDate,
+      ...other
+    } = payload;
 
     // Map address object (from client) into top-level prisma fields
     const addressFields: Record<string, any> = {};
     if (address && typeof address === "object") {
-      if (address.addressLine !== undefined) addressFields.addressLine = address.addressLine;
-      if (address.province !== undefined) addressFields.province = address.province;
-      if (address.district !== undefined) addressFields.district = address.district;
-      if (address.subdistrict !== undefined) addressFields.subdistrict = address.subdistrict;
-      if (address.postalCode !== undefined) addressFields.postalCode = String(address.postalCode);
+      if (address.addressLine !== undefined)
+        addressFields.addressLine = address.addressLine;
+      if (address.province !== undefined)
+        addressFields.province = address.province;
+      if (address.district !== undefined)
+        addressFields.district = address.district;
+      if (address.subdistrict !== undefined)
+        addressFields.subdistrict = address.subdistrict;
+      if (address.postalCode !== undefined)
+        addressFields.postalCode = String(address.postalCode);
     }
 
     // Helper to build relation connect/disconnect object
     const rel = (relName: string, id: unknown) => {
       if (id === null) return { [relName]: { disconnect: true } };
-      if (typeof id === "string" && id.length > 0) return { [relName]: { connect: { id } } };
+      if (typeof id === "string" && id.length > 0)
+        return { [relName]: { connect: { id } } };
       return {};
     };
 
@@ -176,14 +221,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
       ...rel("manager", managerId),
     };
 
-    const updated = await db.employee.update({ where: { id: employeeId }, data });
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data,
+    });
 
     // Update linked User if user payload provided
     if (userPayload && Object.keys(userPayload).length > 0) {
       // Find the linked user
       const existingEmployee = await db.employee.findUnique({
         where: { id: employeeId },
-        include: { user: true }
+        include: { user: true },
       });
 
       if (existingEmployee?.user) {
@@ -203,53 +251,81 @@ export async function PUT(request: Request, { params }: { params: Promise<{ empl
 
         // Update name from employee data
         if (payload.prefix || payload.firstName || payload.lastName) {
-          userUpdateData.name = `${payload.prefix ?? ""} ${payload.firstName ?? ""} ${payload.lastName ?? ""}`.trim();
+          userUpdateData.name = `${payload.prefix ?? ""} ${
+            payload.firstName ?? ""
+          } ${payload.lastName ?? ""}`.trim();
         }
 
         // Update user basic info
         if (Object.keys(userUpdateData).length > 0) {
           await db.user.update({
             where: { id: userId },
-            data: userUpdateData
+            data: userUpdateData,
           });
         }
 
         // Update role if provided
         if (userPayload.roleId) {
           // Fetch all role assignments for this user
-          const existingRoles = await db.userRole.findMany({ where: { userId } });
-          const activeRoles = existingRoles.filter(r => !r.deletedAt);
+          const existingRoles = await db.userRole.findMany({
+            where: { userId },
+          });
+          const activeRoles = existingRoles.filter((r) => !r.deletedAt);
 
           // If the desired role is already the only active role, skip
-          if (activeRoles.length === 1 && activeRoles[0].roleId === userPayload.roleId) {
+          if (
+            activeRoles.length === 1 &&
+            activeRoles[0].roleId === userPayload.roleId
+          ) {
             // no-op
           } else {
             // Soft delete all active roles except the desired one
             await db.userRole.updateMany({
-              where: { userId, roleId: { not: userPayload.roleId }, deletedAt: null },
-              data: { deletedAt: new Date() }
+              where: {
+                userId,
+                roleId: { not: userPayload.roleId },
+                deletedAt: null,
+              },
+              data: { deletedAt: new Date() },
             });
 
-            const target = existingRoles.find(r => r.roleId === userPayload.roleId);
+            const target = existingRoles.find(
+              (r) => r.roleId === userPayload.roleId
+            );
             if (target) {
               // Reactivate if previously soft-deleted
               if (target.deletedAt) {
-                await db.userRole.update({ where: { id: target.id }, data: { deletedAt: null } });
+                await db.userRole.update({
+                  where: { id: target.id },
+                  data: { deletedAt: null },
+                });
               }
             } else {
               // Create new assignment
-              await db.userRole.create({ data: { userId, roleId: userPayload.roleId } });
+              await db.userRole.create({
+                data: { userId, roleId: userPayload.roleId },
+              });
             }
           }
         }
       }
-    } else if (existingBefore?.user && payload.email && payload.email !== existingBefore.user.email) {
+    } else if (
+      existingBefore?.user &&
+      payload.email &&
+      payload.email !== existingBefore.user.email
+    ) {
       // Fallback: employee email changed but no explicit user payload passed; sync user email
-      await db.user.update({ where: { id: existingBefore.user.id }, data: { email: payload.email } });
+      await db.user.update({
+        where: { id: existingBefore.user.id },
+        data: { email: payload.email },
+      });
     }
 
     return NextResponse.json({ employee: updated });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Update failed" }, { status: 400 });
+    return NextResponse.json(
+      { error: err?.message ?? "Update failed" },
+      { status: 400 }
+    );
   }
 }
