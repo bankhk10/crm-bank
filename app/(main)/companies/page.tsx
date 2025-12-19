@@ -226,7 +226,7 @@ export default function CompaniesPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSearchSubmit();
                   }}
-                  placeholder="ค้นหาบริษัท หรือ ชื่อย่อ"
+                  placeholder="ชื่อบริษัท"
                   className="h-10 rounded-xl shadow-sm px-4"
                 />
               </div>

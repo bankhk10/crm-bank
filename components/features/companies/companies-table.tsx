@@ -133,7 +133,7 @@ function CompaniesToolbar({
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.()}
-            placeholder="ชื่อบริษัท, อีเมล, โทรศัพท์"
+            placeholder="ชื่อบริษัท"
             className="mt-2 w-full"
           />
         </div>
