@@ -137,22 +137,7 @@ function CompaniesToolbar({
             className="mt-2 w-full"
           />
         </div>
-
-        {/* Date Range Filter */}
-        <div className="space-y-2">
-          <label className="text-base font-medium mx-2">ช่วงวันที่</label>
-          <DateRangePicker
-            value={dateRange}
-            onChange={onDateRangeChange}
-            placeholder="เลือกช่วงวันที่สร้าง"
-            className="w-full mt-2"
-          />
-        </div>
-      </div>
-
-      {/* Create Button */}
-      <div className="grid gap-4 lg:items-end mt-2">
-        <div className="flex flex-wrap gap-2 items-center lg:justify-end">
+        <div className="flex flex-wrap gap-2 items-center lg:justify-end mt-4">
           {canCreate ? (
             <Link href="/companies/new">
               <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">

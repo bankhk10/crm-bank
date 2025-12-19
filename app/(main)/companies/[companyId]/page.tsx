@@ -192,30 +192,6 @@ export default function CompanyDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               กลับไปหน้ารายการบริษัท
             </Link>
-
-            <div className="flex gap-2 self-end lg:self-auto">
-              {/* Edit Button */}
-              <Link href={`/companies/${companyId}/edit`}>
-                <Button
-                  variant="ghost"
-                  className="text-blue-100 hover:text-white hover:bg-white/10"
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  แก้ไข
-                </Button>
-              </Link>
-              {/* Delete Button */}
-              {canDelete && (
-                <Button
-                  variant="ghost"
-                  className="text-red-200 hover:text-red-100 hover:bg-red-500/20"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  ลบ
-                </Button>
-              )}
-            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
@@ -229,8 +205,7 @@ export default function CompanyDetailPage() {
               <div className="flex flex-wrap items-center gap-4 text-blue-100">
                 {company.companyCode && (
                   <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4" />
-                    <span>รหัส: {company.companyCode}</span>
+                    <span>รหัสบริษัท: {company.companyCode}</span>
                   </div>
                 )}
                 {company.shortName && (
@@ -261,7 +236,7 @@ export default function CompanyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* General Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-blue-50">
+            <div className="p-6 border-b border-gray-100 bg-blue-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-600" />
                 ข้อมูลทั่วไป
@@ -293,7 +268,7 @@ export default function CompanyDetailPage() {
 
           {/* Contact Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-purple-50">
+            <div className="p-6 border-b border-gray-100 bg-purple-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Phone className="h-6 w-6 text-purple-600" />
                 ข้อมูลการติดต่อ
@@ -315,7 +290,7 @@ export default function CompanyDetailPage() {
 
           {/* Address Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-            <div className="p-6 border-b border-gray-100 bg-emerald-50">
+            <div className="p-6 border-b border-gray-100 bg-emerald-100">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <MapPin className="h-6 w-6 text-emerald-600" />
                 ที่อยู่
@@ -323,8 +298,8 @@ export default function CompanyDetailPage() {
             </div>
             <div className="p-6">
               <DetailItem
-                icon={<MapPin className="h-5 w-5" />}
-                label="ที่อยู่ลงทะเบียน"
+                icon={<MapPin className="h-5 w-5 mt-1" />}
+                label=""
                 value={
                   company.addressLine ||
                   company.subdistrict ||

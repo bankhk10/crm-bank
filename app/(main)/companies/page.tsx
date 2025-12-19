@@ -231,32 +231,10 @@ export default function CompaniesPage() {
                 />
               </div>
 
-              <DateRangePicker
-                value={filterDraft.dateRange}
-                onChange={(range) =>
-                  setFilterDraft((prev) => ({
-                    ...prev,
-                    dateRange: range ?? undefined,
-                  }))
-                }
-                placeholder="ช่วงวันที่"
-                className="w-full rounded-lg"
-              />
-
               <div className="flex gap-2">
                 <Link href="/companies/new" className="flex-1">
-                  <Button className="w-full">สร้างบริษัท</Button>
+                  <Button className="w-full bg-blue-600">สร้างบริษัท</Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setFilterDraft({ query: "", dateRange: undefined });
-                    handleSearchSubmit();
-                  }}
-                >
-                  รีเซ็ต
-                </Button>
               </div>
             </div>
           </div>
