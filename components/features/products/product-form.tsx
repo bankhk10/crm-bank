@@ -612,6 +612,8 @@ export function ProductForm({
             disabled={loading}
             initialFiles={convertToFileMetadata(initialData?.images || [])}
             onFilesChange={(files) => setUploadedFiles(files)}
+            // Enforce 1080x1080 size
+            targetSize={{ width: 1080, height: 1080 }}
           />
         </div>
       </div>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  formatBytes,
   useFileUpload,
   type FileMetadata,
   type FileWithPreview,
@@ -15,8 +14,18 @@ import {
   Upload,
   XIcon,
   ZoomInIcon,
+  CropIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Cropper, { type Area } from "react-easy-crop";
+import { getCroppedImg } from "@/lib/canvas-utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface GalleryUploadProps {
   maxFiles?: number;
@@ -27,6 +36,7 @@ interface GalleryUploadProps {
   onFilesChange?: (files: FileWithPreview[]) => void;
   initialFiles?: FileMetadata[];
   disabled?: boolean;
+  targetSize?: { width: number; height: number };
 }
 
 export default function GalleryUpload({
@@ -38,8 +48,16 @@ export default function GalleryUpload({
   onFilesChange,
   initialFiles = [],
   disabled = false,
+  targetSize,
 }: GalleryUploadProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [cropQueue, setCropQueue] = useState<FileWithPreview[]>([]);
+
+  const handleFilesAdded = (addedFiles: FileWithPreview[]) => {
+    if (targetSize) {
+      setCropQueue((prev) => [...prev, ...addedFiles]);
+    }
+  };
 
   const [
     { files, isDragging, errors },
@@ -52,6 +70,7 @@ export default function GalleryUpload({
       handleDrop,
       openFileDialog,
       getInputProps,
+      updateFile,
     },
   ] = useFileUpload({
     maxFiles,
@@ -60,7 +79,82 @@ export default function GalleryUpload({
     multiple,
     initialFiles,
     onFilesChange,
+    onFilesAdded: handleFilesAdded,
   });
+
+  // Cropping State
+  const [isCropOpen, setIsCropOpen] = useState(false);
+  const [cropFile, setCropFile] = useState<{
+    id: string;
+    url: string;
+    file: File | FileMetadata;
+  } | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  // Process Crop Queue
+  useEffect(() => {
+    if (cropQueue.length > 0 && !isCropOpen) {
+      const nextFile = cropQueue[0];
+      // Only process if it's an image
+      if (nextFile.file.type.startsWith("image/") && nextFile.preview) {
+        setCropFile({
+          id: nextFile.id,
+          url: nextFile.preview,
+          file: nextFile.file,
+        });
+        setIsCropOpen(true);
+        setZoom(1);
+        setCrop({ x: 0, y: 0 });
+      }
+      // Remove from queue
+      setCropQueue((prev) => prev.slice(1));
+    }
+  }, [cropQueue, isCropOpen]);
+
+  const onCropComplete = (croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleCropSave = async () => {
+    if (!cropFile || !croppedAreaPixels) return;
+    try {
+      const blob = await getCroppedImg(
+        cropFile.url,
+        croppedAreaPixels,
+        0,
+        { horizontal: false, vertical: false },
+        targetSize?.width,
+        targetSize?.height
+      );
+
+      const fileName =
+        cropFile.file instanceof File ? cropFile.file.name : cropFile.file.name;
+
+      const newFile = new File([blob], fileName, {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+
+      updateFile(cropFile.id, newFile);
+      setCropFile(null); // Clear first to mark as success
+      setIsCropOpen(false);
+      setZoom(1);
+    } catch (e) {
+      console.error("Crop error:", e);
+    }
+  };
+
+  const handleCropCancel = () => {
+    if (targetSize && cropFile) {
+      // If strict mode is enabled, cancelling removes the file
+      removeFile(cropFile.id);
+    }
+    setCropFile(null);
+    setIsCropOpen(false);
+    setZoom(1);
+  };
 
   const isImage = (file: File | FileMetadata) => {
     const type = file instanceof File ? file.type : file.type;
@@ -130,6 +224,29 @@ export default function GalleryUpload({
                     className="h-7 w-7 bg-white/90 hover:bg-white shadow-md"
                   >
                     <ZoomInIcon className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {/* Crop Button */}
+                {isImage(fileItem.file) && fileItem.preview && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setCropFile({
+                        id: fileItem.id,
+                        url: fileItem.preview!,
+                        file: fileItem.file,
+                      });
+                      setIsCropOpen(true);
+                      setZoom(1);
+                      setCrop({ x: 0, y: 0 });
+                    }}
+                    variant="secondary"
+                    size="icon-sm"
+                    disabled={disabled}
+                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md"
+                  >
+                    <CropIcon className="h-3 w-3" />
                   </Button>
                 )}
 
@@ -209,6 +326,56 @@ export default function GalleryUpload({
           </div>
         </div>
       )}
+
+      {/* Crop Modal */}
+      <Dialog
+        open={isCropOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCropCancel();
+          else setIsCropOpen(true);
+        }}
+      >
+        <DialogContent
+          className="max-w-3xl"
+          onInteractOutside={() => {
+            // Prevent accidental outside clicks if strictly forcing?
+            // User requested "If exceeded/cancelled -> cannot upload".
+            // So closing leads to deletion. That is fine.
+            // We don't need to prevent closing.
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              ตัดแต่งรูปภาพ{" "}
+              {targetSize ? `(${targetSize.width}x${targetSize.height})` : ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="relative h-[400px] w-full bg-slate-900 rounded-md overflow-hidden">
+            {cropFile && (
+              <Cropper
+                image={cropFile.url}
+                crop={crop}
+                zoom={zoom}
+                aspect={targetSize ? targetSize.width / targetSize.height : 1}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <div className="mr-auto text-sm text-gray-500 flex items-center">
+              ซูม: {((zoom - 1) * 100).toFixed(0)}%
+            </div>
+            <Button variant="outline" type="button" onClick={handleCropCancel}>
+              ยกเลิก
+            </Button>
+            <Button type="button" onClick={handleCropSave}>
+              บันทึก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

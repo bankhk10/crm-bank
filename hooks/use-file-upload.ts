@@ -53,6 +53,7 @@ export type FileUploadActions = {
   handleDrop: (e: DragEvent<HTMLElement>) => void;
   handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   openFileDialog: () => void;
+  updateFile: (id: string, newFile: File) => void;
   getInputProps: (
     props?: InputHTMLAttributes<HTMLInputElement>
   ) => InputHTMLAttributes<HTMLInputElement> & {
@@ -400,6 +401,37 @@ export const useFileUpload = (
     [accept, multiple, handleFileChange]
   );
 
+  const updateFile = useCallback((id: string, newFile: File) => {
+    setState((prev) => {
+      const fileIndex = prev.files.findIndex((f) => f.id === id);
+      if (fileIndex === -1) return prev;
+
+      const oldFile = prev.files[fileIndex];
+      // Revoke old preview if it exists and we are creating a new one
+      if (
+        oldFile.preview &&
+        oldFile.file instanceof File &&
+        oldFile.file.type.startsWith("image/")
+      ) {
+        URL.revokeObjectURL(oldFile.preview);
+      }
+
+      const updatedFileWithPreview: FileWithPreview = {
+        file: newFile,
+        id: id, // Keep the same ID to preserve position and reference
+        preview: URL.createObjectURL(newFile),
+      };
+
+      const newFiles = [...prev.files];
+      newFiles[fileIndex] = updatedFileWithPreview;
+
+      return {
+        ...prev,
+        files: newFiles,
+      };
+    });
+  }, []);
+
   return [
     state,
     {
@@ -414,6 +446,7 @@ export const useFileUpload = (
       handleFileChange,
       openFileDialog,
       getInputProps,
+      updateFile,
     },
   ];
 };
