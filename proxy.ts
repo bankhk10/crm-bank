@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import {
   DEFAULT_AUTH_REDIRECT,
@@ -7,10 +8,17 @@ import {
   isRoutePublic
 } from "@/lib/rbac";
 
-export default auth((req) => {
-  const { nextUrl, auth: session } = req;
+export async function proxy(request: NextRequest) {
+  const { nextUrl } = request;
   const pathname = nextUrl.pathname;
   const isPublic = isRoutePublic(pathname);
+
+  // Don't try to get session for API routes - they handle their own auth
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
+  const session = await auth();
 
   if (!session?.user && !isPublic) {
     const loginUrl = new URL("/login", nextUrl.origin);
@@ -32,7 +40,7 @@ export default auth((req) => {
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
