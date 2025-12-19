@@ -321,7 +321,7 @@ function EmployeeToolbar({
         <div className="relative mt-1">
           <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="ค้นหาชื่อ, อีเมล, รหัสพนักงาน..."
+            placeholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10 w-full"
