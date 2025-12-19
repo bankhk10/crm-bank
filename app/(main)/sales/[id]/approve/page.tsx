@@ -13,7 +13,6 @@ import {
   CreditCard,
   User,
   Calendar,
-  TrendingUp,
   TrendingDown,
   DollarSign,
   Truck,
@@ -22,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert } from "@/components/ui/alert";
 import { FormTextarea } from "@/components/custom/FormTextarea";
 import {
   Dialog,
@@ -347,7 +346,7 @@ export default function ApproveSalePage({
       )}
 
       {/* 💳 Credit Information — Glass Premium UI */}
-      {sale.paymentTerm === "CREDIT" && (
+      {sale.paymentTerm !== "PREPAID" && (
         <Card
           className={`backdrop-blur-lg rounded-2xl p-6 shadow-sm border-2 ${
             creditInfo.willExceedLimit
@@ -552,7 +551,7 @@ export default function ApproveSalePage({
               </span>
             </div>
 
-            {sale.otherCosts > 0 && (
+            {Number(sale.otherCosts) > 0 && (
               <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
                 <span className="text-sm text-gray-600">ค่าใช้จ่ายอื่นๆ</span>
                 <span className="text-base font-medium text-gray-700">
@@ -718,7 +717,7 @@ export default function ApproveSalePage({
                   })}
                 </td>
               </tr>
-              {sale.otherCosts > 0 && (
+              {Number(sale.otherCosts) > 0 && (
                 <tr className="bg-blue-50/40">
                   <td
                     colSpan={3}

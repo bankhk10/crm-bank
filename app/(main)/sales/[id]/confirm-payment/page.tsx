@@ -214,7 +214,7 @@ export default function ConfirmPaymentPage({
             <DatePicker
               label="วันที่ชำระเงิน *"
               value={paymentDate}
-              onChange={setPaymentDate}
+              onChange={(val) => setPaymentDate(val ?? "")}
             />
 
             <FormTextarea
@@ -235,7 +235,7 @@ export default function ConfirmPaymentPage({
             <DatePicker
               label="วันที่จัดส่งสินค้า"
               value={deliveryDate}
-              onChange={setDeliveryDate}
+              onChange={(val) => setDeliveryDate(val ?? "")}
               placeholder="ระบุวันที่จัดส่งถ้าทราบ"
             />
 

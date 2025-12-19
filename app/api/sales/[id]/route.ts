@@ -25,10 +25,7 @@ export async function GET(
             creditLimits: {
               where: {
                 status: "ACTIVE",
-                OR: [
-                  { expiryDate: null },
-                  { expiryDate: { gte: new Date() } },
-                ],
+                OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
               },
               orderBy: { createdAt: "desc" },
               take: 1,
@@ -113,7 +110,8 @@ export async function GET(
             ? Number(sale.promotionalCreditUsed)
             : undefined,
           promotionalCreditAvailable: creditLimit.promoAmount
-            ? Number(creditLimit.promoAmount) - Number(sale.promotionalCreditUsed || 0)
+            ? Number(creditLimit.promoAmount) -
+              Number(sale.promotionalCreditUsed || 0)
             : undefined,
           currentSaleAmount: Number(sale.totalAmount),
           willExceedLimit:
@@ -172,10 +170,7 @@ export async function PUT(
       existingSale.status === "AWAITING_DELIVERY";
 
     // Return credit limit if sale was approved and used credit
-    if (
-      needsReapproval &&
-      existingSale.paymentTerm === "CREDIT"
-    ) {
+    if (needsReapproval && existingSale.paymentTerm !== "PREPAID") {
       const creditLimit = await prisma.creditLimit.findFirst({
         where: {
           customerId: existingSale.customerId,
@@ -302,7 +297,7 @@ export async function DELETE(
 
     // Return credit limit if sale was approved and used credit
     if (
-      sale.paymentTerm === "CREDIT" &&
+      sale.paymentTerm !== "PREPAID" &&
       (sale.status === "APPROVED" ||
         sale.status === "AWAITING_PAYMENT" ||
         sale.status === "AWAITING_DELIVERY" ||

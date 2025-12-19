@@ -43,7 +43,7 @@ export async function POST(
     }
 
     // Check if customer has credit limit for credit sales
-    if (sale.paymentTerm === "CREDIT") {
+    if (sale.paymentTerm !== "PREPAID") {
       const creditLimit = await prisma.creditLimit.findFirst({
         where: {
           customerId: sale.customerId,

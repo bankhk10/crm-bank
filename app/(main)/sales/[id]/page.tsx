@@ -13,9 +13,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/types/sales";
-import { SaleStatusLabels, PaymentTermLabels, getSaleStatusColor } from "@/types/sales";
+import {
+  SaleStatusLabels,
+  PaymentTermLabels,
+  getSaleStatusColor,
+} from "@/types/sales";
 
-export default function SaleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function SaleDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const { hasPermission } = usePermission("menu.sales");
@@ -81,7 +89,9 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
               <Badge className={getSaleStatusColor(sale.status)}>
                 {SaleStatusLabels[sale.status]}
               </Badge>
-              <Badge variant="outline">{PaymentTermLabels[sale.paymentTerm]}</Badge>
+              <Badge variant="outline">
+                {PaymentTermLabels[sale.paymentTerm]}
+              </Badge>
             </div>
           </div>
         </div>
@@ -114,7 +124,8 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
             <ul className="list-disc pl-5 mt-2">
               {stockWarnings.map((w, i) => (
                 <li key={i}>
-                  {w.productName}: สต็อกไม่เพียงพอ (มี {w.available} ต้องการ {w.requested})
+                  {w.productName}: สต็อกไม่เพียงพอ (มี {w.available} ต้องการ{" "}
+                  {w.requested})
                 </li>
               ))}
             </ul>
@@ -129,8 +140,10 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
             <ul className="list-disc pl-5 mt-2">
               {priceWarnings.map((w, i) => (
                 <li key={i}>
-                  {w.productName}: ราคาถูกแก้ไขจาก ฿{w.originalPrice.toLocaleString()} เป็น ฿
-                  {w.modifiedPrice.toLocaleString()} ({w.percentageDiff > 0 ? "+" : ""}
+                  {w.productName}: ราคาถูกแก้ไขจาก ฿
+                  {w.originalPrice.toLocaleString()} เป็น ฿
+                  {w.modifiedPrice.toLocaleString()} (
+                  {w.percentageDiff > 0 ? "+" : ""}
                   {w.percentageDiff.toFixed(2)}%)
                 </li>
               ))}
@@ -200,15 +213,21 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           </div>
           <div>
             <span className="text-sm text-gray-500">วันที่ขาย:</span>
-            <p>{format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}</p>
+            <p>
+              {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
+            </p>
           </div>
           {sale.deliveryDate && (
             <div>
               <span className="text-sm text-gray-500">วันที่จัดส่ง:</span>
-              <p>{format(new Date(sale.deliveryDate), "dd MMMM yyyy", { locale: th })}</p>
+              <p>
+                {format(new Date(sale.deliveryDate), "dd MMMM yyyy", {
+                  locale: th,
+                })}
+              </p>
             </div>
           )}
-          {sale.paymentTerm === "CREDIT" && (
+          {sale.paymentTerm !== "PREPAID" && (
             <>
               <div>
                 <span className="text-sm text-gray-500">เครดิต:</span>
@@ -217,7 +236,11 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
               {sale.creditDueDate && (
                 <div>
                   <span className="text-sm text-gray-500">ครบกำหนดชำระ:</span>
-                  <p>{format(new Date(sale.creditDueDate), "dd MMMM yyyy", { locale: th })}</p>
+                  <p>
+                    {format(new Date(sale.creditDueDate), "dd MMMM yyyy", {
+                      locale: th,
+                    })}
+                  </p>
                 </div>
               )}
             </>
@@ -226,7 +249,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
       </Card>
 
       {/* Credit Info */}
-      {sale.paymentTerm === "CREDIT" && (
+      {sale.paymentTerm !== "PREPAID" && (
         <Card>
           <CardHeader>
             <CardTitle>ข้อมูลวงเงินเครดิต</CardTitle>
@@ -234,7 +257,9 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <span className="text-sm text-gray-500">วงเงินเครดิต:</span>
-              <p className="font-medium">฿{creditInfo.creditLimit.toLocaleString()}</p>
+              <p className="font-medium">
+                ฿{creditInfo.creditLimit.toLocaleString()}
+              </p>
             </div>
             <div>
               <span className="text-sm text-gray-500">ใช้ไปแล้ว:</span>
@@ -248,17 +273,25 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
             </div>
             <div>
               <span className="text-sm text-gray-500">ยอดขายนี้:</span>
-              <p className="font-medium">฿{creditInfo.currentSaleAmount.toLocaleString()}</p>
+              <p className="font-medium">
+                ฿{creditInfo.currentSaleAmount.toLocaleString()}
+              </p>
             </div>
             {sale.usePromotionalCredit && creditInfo.promotionalCredit && (
               <>
                 <div>
-                  <span className="text-sm text-gray-500">วงเงินส่งเสริมการขาย:</span>
+                  <span className="text-sm text-gray-500">
+                    วงเงินส่งเสริมการขาย:
+                  </span>
                   <p>฿{creditInfo.promotionalCredit.toLocaleString()}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">ใช้วงเงินส่งเสริม:</span>
-                  <p>฿{(creditInfo.promotionalCreditUsed || 0).toLocaleString()}</p>
+                  <span className="text-sm text-gray-500">
+                    ใช้วงเงินส่งเสริม:
+                  </span>
+                  <p>
+                    ฿{(creditInfo.promotionalCreditUsed || 0).toLocaleString()}
+                  </p>
                 </div>
               </>
             )}
@@ -313,7 +346,9 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                     <td className="py-3">
                       <div>
                         <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-500">{item.product.productCode}</p>
+                        <p className="text-sm text-gray-500">
+                          {item.product.productCode}
+                        </p>
                         {item.priceModified && (
                           <Badge variant="outline" className="mt-1 text-xs">
                             ราคาปรับ
@@ -325,12 +360,14 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
                       {item.quantity} {item.product.unit || ""}
                     </td>
                     <td className="text-right">
-                      ฿{Number(item.unitPrice).toLocaleString("th-TH", {
+                      ฿
+                      {Number(item.unitPrice).toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
                     <td className="text-right font-medium">
-                      ฿{Number(item.totalPrice).toLocaleString("th-TH", {
+                      ฿
+                      {Number(item.totalPrice).toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
@@ -351,7 +388,8 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex justify-between">
             <span>รวมเป็นเงิน:</span>
             <span>
-              ฿{Number(sale.subtotalAmount).toLocaleString("th-TH", {
+              ฿
+              {Number(sale.subtotalAmount).toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
               })}
             </span>
@@ -359,19 +397,23 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex justify-between">
             <span>ค่าขนส่ง:</span>
             <span>
-              ฿{Number(sale.shippingCost).toLocaleString("th-TH", {
+              ฿
+              {Number(sale.shippingCost).toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
               })}
             </span>
           </div>
-          {sale.otherCosts > 0 && (
+          {Number(sale.otherCosts) > 0 && (
             <div className="flex justify-between">
               <span>
                 ค่าใช้จ่ายอื่นๆ
-                {sale.otherCostsDescription && ` (${sale.otherCostsDescription})`}:
+                {sale.otherCostsDescription &&
+                  ` (${sale.otherCostsDescription})`}
+                :
               </span>
               <span>
-                ฿{Number(sale.otherCosts).toLocaleString("th-TH", {
+                ฿
+                {Number(sale.otherCosts).toLocaleString("th-TH", {
                   minimumFractionDigits: 2,
                 })}
               </span>
@@ -381,7 +423,8 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex justify-between text-xl font-bold">
             <span>ยอดเงินสุทธิ:</span>
             <span className="text-blue-600">
-              ฿{Number(sale.totalAmount).toLocaleString("th-TH", {
+              ฿
+              {Number(sale.totalAmount).toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
               })}
             </span>
@@ -426,7 +469,10 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
               <div>
                 <span className="text-sm text-gray-500">วันที่อนุมัติ:</span>
                 <p>
-                  {format(new Date(sale.approvedAt), "dd MMMM yyyy HH:mm", { locale: th })} น.
+                  {format(new Date(sale.approvedAt), "dd MMMM yyyy HH:mm", {
+                    locale: th,
+                  })}{" "}
+                  น.
                 </p>
               </div>
             )}
@@ -443,11 +489,17 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           <CardContent className="space-y-2">
             <div>
               <span className="text-sm text-gray-500">วันที่ชำระเงิน:</span>
-              <p>{format(new Date(sale.paymentDate), "dd MMMM yyyy", { locale: th })}</p>
+              <p>
+                {format(new Date(sale.paymentDate), "dd MMMM yyyy", {
+                  locale: th,
+                })}
+              </p>
             </div>
             {sale.paymentNotes && (
               <div>
-                <span className="text-sm text-gray-500">หมายเหตุการชำระเงิน:</span>
+                <span className="text-sm text-gray-500">
+                  หมายเหตุการชำระเงิน:
+                </span>
                 <p className="whitespace-pre-wrap">{sale.paymentNotes}</p>
               </div>
             )}
@@ -467,11 +519,21 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
           </div>
           <div>
             <span className="text-sm text-gray-500">วันที่สร้าง:</span>
-            <p>{format(new Date(sale.createdAt), "dd MMMM yyyy HH:mm", { locale: th })} น.</p>
+            <p>
+              {format(new Date(sale.createdAt), "dd MMMM yyyy HH:mm", {
+                locale: th,
+              })}{" "}
+              น.
+            </p>
           </div>
           <div>
             <span className="text-sm text-gray-500">แก้ไขล่าสุด:</span>
-            <p>{format(new Date(sale.updatedAt), "dd MMMM yyyy HH:mm", { locale: th })} น.</p>
+            <p>
+              {format(new Date(sale.updatedAt), "dd MMMM yyyy HH:mm", {
+                locale: th,
+              })}{" "}
+              น.
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -556,7 +556,6 @@ export function ProductForm({
             placeholder="เลือกพืช"
             disabled={loading}
             searchable={true}
-            hideSelectAll={false}
           />
         </div>
 

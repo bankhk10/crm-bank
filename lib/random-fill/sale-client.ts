@@ -1,5 +1,8 @@
 import type { SaleFormData, SaleItemFormData } from "@/types/sales";
-import { RANDOM_OTHER_COSTS_DESCRIPTION, RANDOM_NOTE } from "@/lib/random-fill/constants";
+import {
+  RANDOM_OTHER_COSTS_DESCRIPTION,
+  RANDOM_NOTE,
+} from "@/lib/random-fill/constants";
 
 function rand<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -22,7 +25,8 @@ export function generateRandomSaleClient(
   for (let i = 0; i < itemCount; i++) {
     const p = rand(products);
     const qty = Math.floor(Math.random() * 5) + 1;
-    const price = (p as any).price ?? Number((Math.random() * 1000 + 50).toFixed(2));
+    const price =
+      (p as any).price ?? Number((Math.random() * 1000 + 50).toFixed(2));
     items.push({
       productId: (p as any).id,
       quantity: qty,
@@ -32,12 +36,12 @@ export function generateRandomSaleClient(
     });
   }
 
-  const paymentTerm = Math.random() > 0.5 ? ("PREPAID" as any) : ("CREDIT" as any);
+  const paymentTerm = Math.random() > 0.5 ? "PREPAID" : "CREDIT_90";
   const saleDate = new Date().toISOString().split("T")[0];
 
   let creditDays: number | undefined = undefined;
   let creditDueDate: string | undefined = undefined;
-  if (paymentTerm === "CREDIT") {
+  if (paymentTerm !== "PREPAID") {
     const days = [7, 15, 30, 45][Math.floor(Math.random() * 4)];
     creditDays = days;
     const due = new Date();
@@ -45,7 +49,7 @@ export function generateRandomSaleClient(
     creditDueDate = due.toISOString().split("T")[0];
   }
 
-    const payload: SaleFormData = {
+  const payload: SaleFormData = {
     customerId: customer.id,
     employeeId: employee.id,
     paymentTerm: paymentTerm,

@@ -104,7 +104,7 @@ export default function CompanyForm({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <FormInput
           label="รหัสบริษัท"
-          value={payload.companyCode}
+          value={payload.companyCode ?? ""}
           onChange={(e) => {
             setPayload((p) => ({ ...p, companyCode: e.target.value }));
             clearFieldError("companyCode");
@@ -126,7 +126,7 @@ export default function CompanyForm({
 
         <FormInput
           label="ชื่อย่อบริษัท"
-          value={payload.shortName}
+          value={payload.shortName ?? ""}
           onChange={(e) => {
             setPayload((p) => ({ ...p, shortName: e.target.value }));
             clearFieldError("shortName");
@@ -138,7 +138,7 @@ export default function CompanyForm({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
           label="เลขประจำตัวผู้เสียภาษี"
-          value={payload.taxId}
+          value={payload.taxId ?? ""}
           onChange={(e) => {
             setPayload((p) => ({ ...p, taxId: e.target.value }));
             clearFieldError("taxId");
@@ -172,7 +172,7 @@ export default function CompanyForm({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
         <FormInput
           label="เบอร์โทรศัพท์"
-          value={payload.phone}
+          value={payload.phone ?? ""}
           onChange={(e) => {
             setPayload((p) => ({ ...p, phone: e.target.value }));
             clearFieldError("phone");
@@ -183,7 +183,7 @@ export default function CompanyForm({
         <FormInput
           label="อีเมล"
           type="email"
-          value={payload.email}
+          value={payload.email ?? ""}
           onChange={(e) => {
             setPayload((p) => ({ ...p, email: e.target.value }));
             clearFieldError("email");
@@ -199,7 +199,7 @@ export default function CompanyForm({
 
       <FormInput
         label="ที่อยู่บริษัท (บ้านเลขที่ หมู่ ซอย ถนน)"
-        value={payload.addressLine}
+        value={payload.addressLine ?? ""}
         onChange={(e) => {
           setPayload((p) => ({ ...p, addressLine: e.target.value }));
           clearFieldError("addressLine");

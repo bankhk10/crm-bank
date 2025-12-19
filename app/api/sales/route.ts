@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     const total = subtotal - body.shippingCost - body.otherCosts;
 
     // Check credit limit for CREDIT payment term
-    if (body.paymentTerm === "CREDIT") {
+    if (body.paymentTerm !== "PREPAID") {
       const creditLimit = customer.creditLimits[0];
       if (!creditLimit) {
         return NextResponse.json(

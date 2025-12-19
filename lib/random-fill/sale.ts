@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import type { SaleFormData, SaleItemFormData } from "@/types/sales";
-import { RANDOM_OTHER_COSTS_DESCRIPTION, RANDOM_NOTE } from "@/lib/random-fill/constants";
+import {
+  RANDOM_OTHER_COSTS_DESCRIPTION,
+  RANDOM_NOTE,
+} from "@/lib/random-fill/constants";
 
 function rand<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -12,9 +15,19 @@ function randNumber(min = 1, max = 10) {
 
 export async function generateRandomSaleFromDb(): Promise<SaleFormData> {
   // Try to pick some existing records from the database to create realistic payload
-  const customers = await db.customer.findMany({ take: 30, select: { id: true, billingAddress: true, shippingAddress: true } });
-  const employees = await db.employee.findMany({ take: 30, select: { id: true } });
-  const products = await db.product.findMany({ where: { status: "ACTIVE" }, take: 100, select: { id: true, price: true } });
+  const customers = await db.customer.findMany({
+    take: 30,
+    select: { id: true, billingAddressLine: true, shippingAddressLine: true },
+  });
+  const employees = await db.employee.findMany({
+    take: 30,
+    select: { id: true },
+  });
+  const products = await db.product.findMany({
+    where: { status: "ACTIVE" },
+    take: 100,
+    select: { id: true, price: true },
+  });
 
   if (!customers.length || !employees.length || !products.length) {
     throw new Error("Not enough data in database to generate sale");
@@ -38,11 +51,11 @@ export async function generateRandomSaleFromDb(): Promise<SaleFormData> {
     });
   }
 
-  const paymentTerm = Math.random() > 0.5 ? ("PREPAID" as any) : ("CREDIT" as any);
+  const paymentTerm = Math.random() > 0.5 ? "PREPAID" : "CREDIT_90";
   const saleDate = new Date().toISOString().split("T")[0];
   let creditDays: number | undefined = undefined;
   let creditDueDate: string | undefined = undefined;
-  if (paymentTerm === "CREDIT") {
+  if (paymentTerm !== "PREPAID") {
     creditDays = randNumber(7, 30);
     const d = new Date();
     d.setDate(d.getDate() + creditDays);
@@ -61,8 +74,8 @@ export async function generateRandomSaleFromDb(): Promise<SaleFormData> {
     usePromotionalCredit: false,
     saleDate,
     deliveryDate: saleDate,
-    billingAddress: customer.billingAddress ?? "",
-    shippingAddress: customer.shippingAddress ?? "",
+    billingAddress: customer.billingAddressLine ?? "",
+    shippingAddress: customer.shippingAddressLine ?? "",
     items,
     shippingCost,
     otherCosts,

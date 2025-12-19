@@ -11,7 +11,6 @@ import {
 } from "@/components/features/customers/customers-table";
 import { UserCog } from "lucide-react";
 
-
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
   const canCreate =
@@ -85,16 +84,6 @@ export default function CustomersPage() {
     total,
     appliedFilters.query,
   ]);
-
-  const mkRangeKey = (r?: DateRange) =>
-    r?.from?.toISOString() + "|" + r?.to?.toISOString();
-
-  const isTyping =
-    filterDraft.query !== appliedFilters.query ||
-    mkRangeKey(filterDraft.dateRange) !==
-      mkRangeKey(appliedFilters.dateRange) ||
-    filterDraft.customerType !== appliedFilters.customerType ||
-    filterDraft.status !== appliedFilters.status;
 
   const handleSearchSubmit = () => {
     setAppliedFilters({
@@ -237,15 +226,7 @@ export default function CustomersPage() {
             onSearchChange={(value) =>
               setFilterDraft((prev) => ({ ...prev, query: value }))
             }
-            isTyping={isTyping}
             onSearchSubmit={handleSearchSubmit}
-            dateRange={filterDraft.dateRange}
-            onDateRangeChange={(range) =>
-              setFilterDraft((prev) => ({
-                ...prev,
-                dateRange: range ?? undefined,
-              }))
-            }
             customerTypeFilter={filterDraft.customerType}
             onCustomerTypeFilterChange={(type) =>
               setFilterDraft((prev) => ({ ...prev, customerType: type }))
