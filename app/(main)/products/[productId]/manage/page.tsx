@@ -125,7 +125,7 @@ export default function ProductManagementPage() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error("Submit error:", err);
       setError((err as Error).message);
     } finally {
       setSaving(false);
@@ -293,7 +293,9 @@ export default function ProductManagementPage() {
             <div className="flex flex-col items-center justify-center py-8 gap-4">
               <Loader2 className="h-8 w-8 animate-spin text-green-600" />
               <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
-              <DialogDescription>กำลังนำทางกลับไปหน้ารายการสินค้า...</DialogDescription>
+              <DialogDescription>
+                กำลังนำทางกลับไปหน้ารายการสินค้า...
+              </DialogDescription>
             </div>
           </DialogContent>
         </Dialog>
@@ -302,7 +304,9 @@ export default function ProductManagementPage() {
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Page Title */}
         <div className=" bg-white border rounded-xl shadow-sm p-8 space-y-8">
-          <h1 className="text-center text-3xl font-bold tracking-tight">จัดการสินค้า</h1>
+          <h1 className="text-center text-3xl font-bold tracking-tight">
+            จัดการสินค้า
+          </h1>
           <p className="text-muted-foreground text-center">{product.name}</p>
 
           <div className="bg-white border rounded-xl shadow-sm p-8 space-y-8">
@@ -369,7 +373,11 @@ export default function ProductManagementPage() {
                     type="number"
                     value={item.purchaseQty}
                     onChange={(e) =>
-                      updateFreeItem(index, "purchaseQty", Number(e.target.value))
+                      updateFreeItem(
+                        index,
+                        "purchaseQty",
+                        Number(e.target.value)
+                      )
                     }
                     onWheel={(e) => e.currentTarget.blur()}
                     disabled={saving}
@@ -561,7 +569,7 @@ export default function ProductManagementPage() {
                   {!lot.id && (
                     <div className="md:col-span-7 mb-2">
                       <p className="text-base font-semibold text-blue-600">
-                        Lot #{index + 1}
+                        Lot-{index + 1}
                       </p>
                     </div>
                   )}
@@ -580,14 +588,18 @@ export default function ProductManagementPage() {
                   <DatePicker
                     label="วันที่นำเข้า"
                     value={lot.importDate}
-                    onChange={(v) => updateStockLot(index, "importDate", v || "")}
+                    onChange={(v) =>
+                      updateStockLot(index, "importDate", v || "")
+                    }
                     disabled={saving || !!(lot.id && lot.isUsed)}
                   />
 
                   <DatePicker
                     label="วันหมดอายุ"
                     value={lot.expiryDate || undefined}
-                    onChange={(v) => updateStockLot(index, "expiryDate", v || undefined)}
+                    onChange={(v) =>
+                      updateStockLot(index, "expiryDate", v || undefined)
+                    }
                     disabled={saving || !!(lot.id && lot.isUsed)}
                   />
 
