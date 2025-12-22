@@ -393,7 +393,7 @@ function generateSaleNumber(lastNumber?: string | null): string {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  const prefix = `SAL${year}${month}`;
+  const prefix = `SO${year}${month}`;
 
   if (!lastNumber || !lastNumber.startsWith(prefix)) {
     return `${prefix}0001`;
