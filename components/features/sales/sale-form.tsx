@@ -2,18 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Copy, Info, MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Plus, Trash2, Info, MapPin } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
 import {
   FormInput,
@@ -87,6 +77,16 @@ interface Product {
     netPrice?: number;
     notes?: string;
   }>;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  addressLine?: string;
+  province?: string;
+  district?: string;
+  subdistrict?: string;
+  postalCode?: string;
 }
 
 interface SaleFormProps {
@@ -169,10 +169,12 @@ export function SaleForm({
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   // Form state
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
   const [employeeId, setEmployeeId] = useState(initialData?.employeeId || "");
+  const [pickupCompanyId, setPickupCompanyId] = useState("");
   const [paymentTerm, setPaymentTerm] = useState<
     "CREDIT_90" | "CASH_7" | "PREPAID" | "CREDIT_OVER_90"
   >(initialData?.paymentTerm || "CREDIT_90");
@@ -244,17 +246,19 @@ export function SaleForm({
   const [selectedProductDetail, setSelectedProductDetail] =
     useState<Product | null>(null);
 
-  // Load customers, employees, products
+  // Load customers, employees, products, companies
   useEffect(() => {
     Promise.all([
       fetch("/api/customers?type=DEALER").then((r) => r.json()),
       fetch("/api/employee").then((r) => r.json()),
       fetch("/api/products").then((r) => r.json()),
+      fetch("/api/companies?perPage=100&status=ACTIVE").then((r) => r.json()),
     ])
-      .then(([customersData, employeesData, productsData]) => {
+      .then(([customersData, employeesData, productsData, companiesData]) => {
         setCustomers(customersData.customers || []);
         setEmployees(employeesData.employees || []);
         setProducts(productsData.products || []);
+        setCompanies(companiesData.companies || []);
       })
       .catch((err) => console.error("Error loading data:", err));
   }, []);
@@ -311,6 +315,43 @@ export function SaleForm({
       setBillingAddress(parts.join(" "));
     }
   }, [billingStreet, billingThaiAddress]);
+
+  // Handle Pickup Company Selection -> Update Shipping Address
+  useEffect(() => {
+    if (deliveryMethod === "CUSTOMER_PICKUP" && pickupCompanyId) {
+      const company = companies.find((c) => c.id === pickupCompanyId);
+      if (company) {
+        const parts = [
+          company.addressLine,
+          company.subdistrict ? `ตำบล${company.subdistrict}` : "",
+          company.district ? `อำเภอ${company.district}` : "",
+          company.province ? `จังหวัด${company.province}` : "",
+          company.postalCode,
+        ].filter(Boolean);
+        const fullAddress = parts.join(" ");
+        setShippingAddress(fullAddress);
+        setCustomShippingAddress(fullAddress); // Also set custom so it sticks if we use that logic
+        setUseCustomShippingAddress(true); // Force custom usage for pickup
+      }
+    } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
+      // Revert to customer logic if switching back
+      setUseCustomShippingAddress(false);
+      const shippingParts = [
+        selectedCustomer.shippingAddressLine,
+        selectedCustomer.shippingSubdistrict
+          ? `ตำบล${selectedCustomer.shippingSubdistrict}`
+          : "",
+        selectedCustomer.shippingDistrict
+          ? `อำเภอ${selectedCustomer.shippingDistrict}`
+          : "",
+        selectedCustomer.shippingProvince
+          ? `จังหวัด${selectedCustomer.shippingProvince}`
+          : "",
+        selectedCustomer.shippingPostalCode || "",
+      ].filter(Boolean);
+      setShippingAddress(shippingParts.join(" "));
+    }
+  }, [pickupCompanyId, deliveryMethod, companies, selectedCustomer]);
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -639,14 +680,16 @@ export function SaleForm({
           placeholder="เลือกเงื่อนไข"
           groupLabel="เงื่อนไข"
         />
-        <div>
-          <DatePicker
-            label="วันที่ต้องการของ"
-            value={requestedDeliveryDate}
-            onChange={(val) => setRequestedDeliveryDate(val || "")}
-            placeholder=""
-          />
-        </div>
+        {deliveryMethod !== "CUSTOMER_PICKUP" && (
+          <div>
+            <DatePicker
+              label="วันที่ต้องการของ"
+              value={requestedDeliveryDate}
+              onChange={(val) => setRequestedDeliveryDate(val || "")}
+              placeholder=""
+            />
+          </div>
+        )}
         <div>
           <DatePicker
             label="วันที่ขาย *"
@@ -727,7 +770,43 @@ export function SaleForm({
 
       {/* Shipping Address Display */}
       <div className="mt-6">
-        {selectedCustomer ? (
+        {deliveryMethod === "CUSTOMER_PICKUP" ? (
+          <div className="space-y-4 border rounded-xl p-4 bg-gray-50">
+            <h4 className="font-medium text-gray-900">
+              รายละเอียดการรับสินค้า
+            </h4>
+            <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+              <DatePicker
+                label="วันที่มารับสินค้า *"
+                value={requestedDeliveryDate}
+                onChange={(val) => setRequestedDeliveryDate(val || "")}
+                placeholder="เลือกวันที่มารับสินค้า"
+              />
+
+              <FormCombobox
+                label="สถานที่รับสินค้า (บริษัท/สาขา) *"
+                value={pickupCompanyId}
+                onChange={(val) => setPickupCompanyId(val)}
+                options={companies.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                }))}
+                placeholder="เลือกสถานที่รับสินค้า"
+                searchPlaceholder="ค้นหาสถานที่..."
+                emptyText="ไม่พบสถานที่"
+              />
+
+              <div className="md:col-span-2">
+                <Label className="text-base font-medium mx-2 mb-2 block">
+                  ที่อยู่สถานที่รับสินค้า
+                </Label>
+                <div className="p-3 bg-white border rounded-md min-h-[60px] text-gray-700">
+                  {shippingAddress || "-"}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : selectedCustomer ? (
           <>
             {!useCustomShippingAddress && (
               <>
