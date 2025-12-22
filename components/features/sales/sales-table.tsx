@@ -621,12 +621,7 @@ function useColumns(
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 120, width: 140, align: "left" },
       },
-      {
-        accessorKey: "customer.customerCode",
-        header: "รหัสลูกค้า",
-        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 100, width: 120, align: "left" },
-      },
+
       {
         accessorKey: "customer.name",
         header: "ชื่อลูกค้า",
