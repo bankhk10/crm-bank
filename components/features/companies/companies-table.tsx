@@ -364,7 +364,7 @@ function useCompanyColumns(
     () => [
       {
         accessorKey: "name",
-        header: "บริษัท",
+        header: "ชื่อบริษัท",
         meta: {
           headerAlign: "left",
           minWidth: 180,
@@ -372,9 +372,7 @@ function useCompanyColumns(
           maxWidth: 400,
           align: "left",
         },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.original.name ?? "-"}</div>
-        ),
+        cell: ({ row }) => <div>{row.original.name ?? "-"}</div>,
       },
       {
         accessorKey: "email",
@@ -431,7 +429,7 @@ function useCompanyColumns(
       },
       {
         id: "actions",
-        header: "",
+        header: "จัดการ",
         meta: {
           headerAlign: "right",
           minWidth: 120,
