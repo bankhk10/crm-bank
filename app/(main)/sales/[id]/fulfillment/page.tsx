@@ -121,7 +121,7 @@ export default function FulfillmentPage({
       // This often helps with "removeChild" race conditions during form submission -> navigation
       setTimeout(() => {
         router.push(`/sales/${id}`);
-      }, 100);
+      }, 500);
     } catch (err: any) {
       setError(err.message);
       setSubmitting(false);
@@ -294,17 +294,15 @@ export default function FulfillmentPage({
             disabled={submitting}
             className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
           >
-            {submitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                กำลังบันทึก...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                บันทึกข้อมูล
-              </>
-            )}
+            {/* Use Layout stability to prevent hydration/DOM mismatch errors */}
+            <div className={submitting ? "flex items-center" : "hidden"}>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              กำลังบันทึก...
+            </div>
+            <div className={!submitting ? "flex items-center" : "hidden"}>
+              <Save className="mr-2 h-4 w-4" />
+              บันทึกข้อมูล
+            </div>
           </Button>
         </div>
       </form>
