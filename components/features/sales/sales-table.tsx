@@ -10,7 +10,6 @@ import {
   Edit,
   Trash2,
   CheckCircle,
-  XCircle,
   PlusCircle,
   Calendar as CalendarIcon,
   Search,
@@ -69,6 +68,7 @@ export interface SalesTableProps {
   canEdit?: boolean;
   canDelete?: boolean;
   canApprove?: boolean;
+  currentUserId?: string;
 }
 
 // --- Constants & Styles ---
@@ -344,10 +344,16 @@ function SalesCards({
   canEdit,
   canDelete,
   onDelete,
+  currentUserId,
   pagination,
 }: Pick<
   SalesTableProps,
-  "loading" | "canApprove" | "canEdit" | "canDelete" | "onDelete"
+  | "loading"
+  | "canApprove"
+  | "canEdit"
+  | "canDelete"
+  | "onDelete"
+  | "currentUserId"
 > & {
   data: SaleRecord[];
   pagination: {
@@ -509,51 +515,44 @@ function SalesCards({
                   </Button>
 
                   {canApprove && isPending && (
-                    <>
-                      <Button
-                        asChild
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Link href={`/sales/${item.id}/approve`}>
-                          <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
-                        </Link>
-                      </Button>
+                    <Button
+                      asChild
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Link href={`/sales/${item.id}/approve`}>
+                        <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
+                      </Link>
+                    </Button>
+                  )}
+
+                  {(canEdit ||
+                    (currentUserId && item.createdById === currentUserId)) &&
+                    isPending && (
                       <Button
                         asChild
                         size="sm"
                         variant="outline"
-                        className="border-red-100 text-red-700 hover:bg-red-50"
+                        className="border-purple-100 text-purple-700 hover:bg-purple-50"
                       >
-                        <Link href={`/sales/${item.id}/approve`}>
-                          <XCircle className="mr-2 h-4 w-4" /> ปฏิเสธ
+                        <Link href={`/sales/${item.id}/edit`}>
+                          <Edit className="mr-2 h-4 w-4" /> แก้ไข
                         </Link>
                       </Button>
-                    </>
-                  )}
-
-                  {canEdit && isPending && (
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="outline"
-                      className="border-purple-100 text-purple-700 hover:bg-purple-50"
-                    >
-                      <Link href={`/sales/${item.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" /> แก้ไข
-                      </Link>
-                    </Button>
-                  )}
-                  {canDelete && isPending && onDelete && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="bg-red-50 text-red-700 hover:bg-red-100"
-                      onClick={() => onDelete(item)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> ลบ
-                    </Button>
-                  )}
+                    )}
+                  {(canDelete ||
+                    (currentUserId && item.createdById === currentUserId)) &&
+                    isPending &&
+                    onDelete && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="bg-red-50 text-red-700 hover:bg-red-100"
+                        onClick={() => onDelete(item)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> ลบ
+                      </Button>
+                    )}
                 </div>
               </div>
             </Card>
@@ -620,6 +619,7 @@ function useColumns(
   canEdit: boolean,
   canDelete: boolean,
   canApprove: boolean,
+  currentUserId: string | undefined,
   onDelete?: (sale: SaleRecord) => void
 ) {
   return React.useMemo<ColumnDef<SaleRecord>[]>(() => {
@@ -713,39 +713,38 @@ function useColumns(
                     label="อนุมัติ"
                     colorClass="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
                   />
-                  <ActionButton
-                    href={`/sales/${item.id}/approve`}
-                    icon={XCircle}
-                    label="ไม่อนุมัติ"
-                    colorClass="text-red-600 border-red-100 hover:bg-red-50 rounded-md"
-                  />
                 </>
               )}
 
-              {canEdit && isPending && (
-                <ActionButton
-                  href={`/sales/${item.id}/edit`}
-                  icon={Edit}
-                  label="แก้ไข"
-                  colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                />
-              )}
+              {(canEdit ||
+                (currentUserId && item.createdById === currentUserId)) &&
+                isPending && (
+                  <ActionButton
+                    href={`/sales/${item.id}/edit`}
+                    icon={Edit}
+                    label="แก้ไข"
+                    colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                  />
+                )}
 
-              {canDelete && isPending && onDelete && (
-                <ActionButton
-                  icon={Trash2}
-                  label="ลบ"
-                  colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                  onClick={() => onDelete(item)}
-                />
-              )}
+              {(canDelete ||
+                (currentUserId && item.createdById === currentUserId)) &&
+                isPending &&
+                onDelete && (
+                  <ActionButton
+                    icon={Trash2}
+                    label="ลบ"
+                    colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                    onClick={() => onDelete(item)}
+                  />
+                )}
             </div>
           );
         },
         meta: { minWidth: 180, width: 200, align: "center" },
       },
     ];
-  }, [canEdit, canDelete, canApprove, onDelete]);
+  }, [canEdit, canDelete, canApprove, currentUserId, onDelete]);
 }
 
 // --- Main Component ---
@@ -769,9 +768,16 @@ export function SalesTable(props: SalesTableProps) {
     canEdit = false,
     canDelete = false,
     canApprove = false,
+    currentUserId,
   } = props;
 
-  const columns = useColumns(canEdit, canDelete, canApprove, onDelete);
+  const columns = useColumns(
+    canEdit,
+    canDelete,
+    canApprove,
+    currentUserId,
+    onDelete
+  );
 
   const toolbarProps = {
     searchValue,
@@ -802,6 +808,7 @@ export function SalesTable(props: SalesTableProps) {
           canApprove={canApprove}
           canEdit={canEdit}
           canDelete={canDelete}
+          currentUserId={currentUserId}
           onDelete={onDelete}
           pagination={pagination}
         />

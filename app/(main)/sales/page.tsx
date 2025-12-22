@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
@@ -25,6 +26,7 @@ export default function SalesPage() {
   const canDelete = hasPermission("sale.delete");
   const canApprove = hasPermission("sale.approve");
   const canView = !isLoading && allowed;
+  const user = useCurrentUser();
 
   const [sales, setSales] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,6 +205,7 @@ export default function SalesPage() {
         canEdit={canEdit}
         canDelete={canDelete}
         canApprove={canApprove}
+        currentUserId={user?.id}
       />
 
       <Dialog
