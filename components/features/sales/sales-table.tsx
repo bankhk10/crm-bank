@@ -824,6 +824,8 @@ export function SalesTable(props: SalesTableProps) {
     canDelete = false,
     canApprove = false,
     currentUserId,
+    statusFilter,
+    onStatusFilterChange,
   } = props;
 
   const columns = useColumns(
@@ -838,6 +840,8 @@ export function SalesTable(props: SalesTableProps) {
     searchValue,
     onSearchChange,
     onSearchSubmit,
+    statusFilter,
+    onStatusFilterChange,
     dateRange,
     onDateRangeChange,
     canCreate,
