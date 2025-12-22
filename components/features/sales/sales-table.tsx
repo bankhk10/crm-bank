@@ -724,7 +724,10 @@ function useColumns(
         cell: (info) => {
           const value = info.getValue() as string;
           return (
-            <Badge variant="outline" className="text-xs">
+            <Badge
+              variant="outline"
+              className="text-xs bg-blue-100 text-blue-800"
+            >
               {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
                 value}
             </Badge>
