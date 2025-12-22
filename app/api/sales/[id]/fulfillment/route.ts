@@ -61,6 +61,14 @@ export async function POST(
       data: updateData,
     });
 
+    // Revalidate the sale detail page
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath(`/sales/${id}`);
+    } catch (e) {
+      console.error("Revalidate failed", e);
+    }
+
     return NextResponse.json({ sale: updatedSale });
   } catch (error) {
     console.error("Error updating fulfillment:", error);

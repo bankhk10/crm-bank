@@ -10,6 +10,7 @@ import {
   Truck,
   Save,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,8 +117,11 @@ export default function FulfillmentPage({
         throw new Error(errorData.error || "Failed to update fulfillment");
       }
 
-      router.push(`/sales/${id}`);
-      router.refresh();
+      // Small delay to allow UI to update safely before navigation
+      // This often helps with "removeChild" race conditions during form submission -> navigation
+      setTimeout(() => {
+        router.push(`/sales/${id}`);
+      }, 100);
     } catch (err: any) {
       setError(err.message);
       setSubmitting(false);
@@ -291,10 +295,14 @@ export default function FulfillmentPage({
             className="bg-blue-600 hover:bg-blue-700 min-w-[140px]"
           >
             {submitting ? (
-              "กำลังบันทึก..."
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                กำลังบันทึก...
+              </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> บันทึกข้อมูล
+                <Save className="mr-2 h-4 w-4" />
+                บันทึกข้อมูล
               </>
             )}
           </Button>
