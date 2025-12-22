@@ -46,7 +46,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (filters.status) {
-      where.status = filters.status;
+      const statusParam = searchParams.get("status");
+      if (statusParam && statusParam.includes(",")) {
+        where.status = { in: statusParam.split(",") as SaleStatus[] };
+      } else {
+        where.status = filters.status;
+      }
     }
 
     if (filters.customerId) {

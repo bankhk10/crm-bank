@@ -304,6 +304,14 @@ async function main() {
     }),
     prisma.permission.create({
       data: {
+        key: "menu.fulfillment",
+        name: "Fulfillment menu",
+        category: "MENU",
+        menuPath: "/fulfillment",
+      },
+    }),
+    prisma.permission.create({
+      data: {
         key: "menu.temporary_credit_limits",
         name: "Temporary Credit Limit menu",
         category: "MENU",
@@ -361,6 +369,15 @@ async function main() {
         category: "ACTION",
         resource: "sale",
         action: "confirm_payment",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.manage_fulfillment",
+        name: "Manage sale fulfillment",
+        category: "ACTION",
+        resource: "sale",
+        action: "manage_fulfillment",
       },
     }),
     prisma.permission.create({
@@ -694,12 +711,14 @@ async function main() {
       "menu.companies",
       "menu.customers",
       "menu.credit_limits",
+      "menu.fulfillment",
       "menu.products",
       "sale.create",
       "sale.edit",
       "sale.view",
       "sale.approve",
       "sale.confirm-payment",
+      "sale.manage_fulfillment",
       "product.create",
       "product.update",
       "product.delete",

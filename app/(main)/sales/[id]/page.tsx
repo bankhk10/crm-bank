@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { ArrowLeft, Edit, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Edit, CheckCircle, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,11 @@ export default function SaleDetailPage({
   const { sale, stockWarnings, priceWarnings, creditInfo } = data;
   const canEditThis = canEdit && sale.status === "PENDING";
   const canApproveThis = canApprove && sale.status === "PENDING";
+  const canManageFulfillment =
+    canEdit &&
+    sale.status !== "PENDING" &&
+    sale.status !== "REJECTED" &&
+    sale.status !== "CANCELLED";
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -110,6 +115,17 @@ export default function SaleDetailPage({
               <Button>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 พิจารณาอนุมัติ
+              </Button>
+            </Link>
+          )}
+          {canManageFulfillment && (
+            <Link href={`/sales/${sale.id}/fulfillment`}>
+              <Button
+                variant="outline"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <Truck className="h-4 w-4 mr-2" />
+                จัดการการจัดส่ง/ชำระ
               </Button>
             </Link>
           )}
