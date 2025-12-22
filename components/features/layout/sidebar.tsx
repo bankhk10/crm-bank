@@ -3,7 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useMemo, Fragment } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  Fragment,
+  isValidElement,
+  cloneElement,
+} from "react";
 import {
   X,
   ChevronDown,
@@ -184,9 +191,19 @@ export default function Sidebar({
       <Divider className="border-white/20 mb-2" />
       <nav className="space-y-1 px-2 pb-6 text-sm md:text-base mt-8">
         {items.map((item) => {
+          let isItemActive = isActive(item.href);
+
+          // Special handling: if we are in a fulfillment sub-route (even under sales),
+          // we want the Fulfillment menu to be active, not Sales.
+          if (pathname.includes("/fulfillment")) {
+            if (item.href === "/sales") isItemActive = false;
+            // Only set fulfillment active if it matches the item href exactly or logic dictates
+            if (item.href === "/fulfillment") isItemActive = true;
+          }
+
           const activeParent = item.children
-            ? item.children.some((c) => isActive(c.href)) || isActive(item.href)
-            : isActive(item.href);
+            ? item.children.some((c) => isActive(c.href)) || isItemActive
+            : isItemActive;
 
           if (item.children && item.children.length > 0) {
             const open = openKey === item.href;
@@ -204,7 +221,11 @@ export default function Sidebar({
                       : "hover:bg-[#991b1b]")
                   }
                 >
-                  <span className="text-white/90">{item.icon}</span>
+                  <span className="text-white/90">
+                    {item.icon && isValidElement(item.icon)
+                      ? cloneElement(item.icon as React.ReactElement)
+                      : item.icon}
+                  </span>
                   <span className="flex-1 pl-1">{item.label}</span>
                   {open ? (
                     <ChevronDown className="h-4 w-4" />
@@ -253,7 +274,11 @@ export default function Sidebar({
               }
               onClick={() => onClose?.()}
             >
-              <span className="text-white/90">{item.icon}</span>
+              <span className="text-white/90">
+                {item.icon && isValidElement(item.icon)
+                  ? cloneElement(item.icon as React.ReactElement)
+                  : item.icon}
+              </span>
               <span className="pl-1">{item.label}</span>
             </Link>
           );
