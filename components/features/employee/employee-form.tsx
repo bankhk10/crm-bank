@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import RandomFillButton from "@/components/custom/random-fill-button";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Eye, EyeOff } from "lucide-react";
@@ -694,14 +695,11 @@ export default function EmployeeForm({
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {canEdit && (
-            <Button
+            <RandomFillButton
               size="lg"
               className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-              type="button"
               onClick={handleRandomFill}
-            >
-              สุ่มข้อมูล
-            </Button>
+            />
           )}
 
           {onCancel && (

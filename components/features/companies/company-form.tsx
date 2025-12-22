@@ -5,6 +5,7 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 import Can from "@/components/rbac/Can";
+import RandomFillButton from "@/components/custom/random-fill-button";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 
 type CompanyPayload = {
@@ -253,20 +254,17 @@ export default function CompanyForm({
       )}
 
       <Can permission="randomize">
-        <Button
+        <RandomFillButton
           variant="secondary"
           size="lg"
           className="w-40 mt-4 mx-auto block"
-          type="button"
           onClick={() => {
             setFieldErrors({});
             setError(null);
             const random = generateRandomCompany();
             setPayload((p) => ({ ...p, ...random }));
           }}
-        >
-          สุ่มข้อมูล
-        </Button>
+        />
       </Can>
     </form>
   );

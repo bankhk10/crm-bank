@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import { Button } from "@/components/ui/button";
+import RandomFillButton from "@/components/custom/random-fill-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
@@ -43,7 +44,7 @@ interface ProductFormProps {
   hideBorder?: boolean;
   canEdit?: boolean;
   permissionHint?: string;
-  showRandomFill?: boolean;
+  permissionHint?: string;
 }
 
 export function ProductForm({
@@ -54,8 +55,8 @@ export function ProductForm({
   onCancel,
   hideBorder,
   canEdit = true,
+  canEdit = true,
   permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่",
-  showRandomFill = process.env.NEXT_PUBLIC_SHOW_RANDOM_FILL === "true",
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -633,17 +634,14 @@ export function ProductForm({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          {showRandomFill && (
-            <Button
-              size="lg"
-              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-              type="button"
-              onClick={handleRandomFill}
-              disabled={loading}
-            >
-              กรอกข้อมูลแบบสุ่ม
-            </Button>
-          )}
+          <RandomFillButton
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            onClick={handleRandomFill}
+            disabled={loading}
+          >
+            กรอกข้อมูลแบบสุ่ม
+          </RandomFillButton>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"

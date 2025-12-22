@@ -11,7 +11,12 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomFarmer from "@/lib/random-fill/farmer";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
+import RandomFillButton from "@/components/custom/random-fill-button";
 import { LocateFixed } from "lucide-react";
 
 type Props = Omit<CustomerFormProps, "customerType">;
@@ -155,8 +160,9 @@ export default function CustomerFormFarmer({
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "FARMER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
-        } ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${
+        values.firstName ?? ""
+      } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -168,8 +174,9 @@ export default function CustomerFormFarmer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
-        }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${
+        values.lastName ?? ""
+      }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -213,7 +220,7 @@ export default function CustomerFormFarmer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-        (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -229,8 +236,16 @@ export default function CustomerFormFarmer({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        handlePlotChange(index, "latitude", position.coords.latitude.toFixed(6));
-        handlePlotChange(index, "longitude", position.coords.longitude.toFixed(6));
+        handlePlotChange(
+          index,
+          "latitude",
+          position.coords.latitude.toFixed(6)
+        );
+        handlePlotChange(
+          index,
+          "longitude",
+          position.coords.longitude.toFixed(6)
+        );
       },
       (error) => {
         console.error("Error getting location", error);
@@ -334,7 +349,7 @@ export default function CustomerFormFarmer({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => { }}
+          onChange={() => {}}
         />
       </div>
 
@@ -426,9 +441,7 @@ export default function CustomerFormFarmer({
               label="ขนาดพื้นที่เพาะปลูก (ไร่)"
               type="number"
               value={plot.areaRai ?? ""}
-              onChange={(e) =>
-                handlePlotChange(idx, "areaRai", e.target.value)
-              }
+              onChange={(e) => handlePlotChange(idx, "areaRai", e.target.value)}
               onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
             />
           </div>
@@ -444,9 +457,7 @@ export default function CustomerFormFarmer({
             <FormInput
               label="สายพันธุ์"
               value={plot.variety ?? ""}
-              onChange={(e) =>
-                handlePlotChange(idx, "variety", e.target.value)
-              }
+              onChange={(e) => handlePlotChange(idx, "variety", e.target.value)}
             />
           </div>
 
@@ -527,10 +538,9 @@ export default function CustomerFormFarmer({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
+          <RandomFillButton
             size="lg"
             className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            type="button"
             onClick={() => {
               const rnd = generateRandomFarmer();
               setValues((p: any) => ({
@@ -553,7 +563,7 @@ export default function CustomerFormFarmer({
             }}
           >
             กรอกข้อมูลสุ่ม
-          </Button>
+          </RandomFillButton>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
