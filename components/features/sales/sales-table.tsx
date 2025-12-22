@@ -14,6 +14,8 @@ import {
   PlusCircle,
   Calendar as CalendarIcon,
   Search,
+  BadgeDollarSign,
+  Mail,
 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -145,6 +147,14 @@ const DEFAULT_BADGE_STYLE = {
 };
 
 // --- Helper Components ---
+
+function TruncatedCell({ value }: { value: string }) {
+  return (
+    <div className="truncate" title={value}>
+      {value}
+    </div>
+  );
+}
 
 function StatusBadge({
   status,
@@ -351,11 +361,21 @@ function SalesCards({
             key={`loading-${idx}`}
             className="h-full border border-slate-200/80 shadow-sm"
           >
-            <div className="h-1 w-full bg-slate-100" />
+            <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
             <div className="space-y-3 p-4">
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
               <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+              </div>
             </div>
           </Card>
         ))}
@@ -395,6 +415,8 @@ function SalesCards({
         {data.map((item) => {
           const isPending = item.status === "PENDING";
           const isApproved = item.status === "APPROVED";
+          const isRejected = item.status === "REJECTED";
+
           const amount = new Intl.NumberFormat("th-TH", {
             style: "currency",
             currency: "THB",
@@ -412,32 +434,41 @@ function SalesCards({
                     ? "bg-yellow-400"
                     : isApproved
                     ? "bg-emerald-500"
-                    : "bg-red-500"
+                    : isRejected
+                    ? "bg-red-500"
+                    : "bg-gray-400"
                 )}
               />
               <div className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex flex-col">
-                    <div className="text-base font-semibold text-slate-900">
-                      {item.saleNumber || "-"}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {item.customer?.name || "-"}
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                      <BadgeDollarSign className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <div className="text-base font-semibold text-slate-900">
+                        {item.customer?.name || "-"}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {item.saleNumber || "-"}
+                      </div>
                     </div>
                   </div>
                   <StatusBadge status={item.status} />
                 </div>
 
-                <div className="flex items-baseline justify-between py-1">
-                  <span className="text-sm text-slate-600">ยอดรวม</span>
-                  <span className="text-lg font-bold text-slate-800">
+                <div className="flex items-baseline justify-between py-1 border-t border-dashed pt-2">
+                  <div className="text-xs text-slate-500">ยอดรวมสุทธิ</div>
+                  <div className="text-lg font-bold text-slate-800">
                     {amount}
-                  </span>
+                  </div>
                 </div>
 
-                <div className="space-y-1 text-sm text-slate-600">
-                  <div className="flex justify-between">
-                    <span>วันที่ขาย:</span>
+                <div className="space-y-1 text-sm text-slate-700 bg-slate-50 rounded-lg p-2">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-slate-500 text-xs">
+                      <CalendarIcon className="h-3.5 w-3.5" /> วันที่
+                    </span>
                     <span className="font-medium">
                       {item.saleDate
                         ? format(new Date(item.saleDate), "dd MMM yyyy", {
@@ -446,21 +477,17 @@ function SalesCards({
                         : "-"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>พนักงานขาย:</span>
-                    <span>{item.employee?.name || "-"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>เงื่อนไขชำระ:</span>
-                    <span>
-                      <Badge variant="outline" className="text-xs">
-                        {PaymentTermLabels[item.paymentTerm]}
-                      </Badge>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="flex items-center gap-1.5 text-slate-500 text-xs">
+                      <Mail className="h-3.5 w-3.5" /> พนักงาน
+                    </span>
+                    <span className="truncate max-w-[150px]">
+                      {item.employee?.name || "-"}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-2 border-t mt-2">
+                <div className="flex flex-wrap gap-2 pt-1 mt-2">
                   <Button
                     asChild
                     size="sm"
@@ -468,7 +495,7 @@ function SalesCards({
                     className="border-blue-100 text-blue-700 hover:bg-blue-50"
                   >
                     <Link href={`/sales/${item.id}`}>
-                      <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
+                      <Eye className="mr-2 h-4 w-4" /> ดู
                     </Link>
                   </Button>
 
@@ -490,7 +517,7 @@ function SalesCards({
                         className="border-red-100 text-red-700 hover:bg-red-50"
                       >
                         <Link href={`/sales/${item.id}/approve`}>
-                          <XCircle className="mr-2 h-4 w-4" /> ไม่อนุมัติ
+                          <XCircle className="mr-2 h-4 w-4" /> ปฏิเสธ
                         </Link>
                       </Button>
                     </>
@@ -591,41 +618,25 @@ function useColumns(
       {
         accessorKey: "saleNumber",
         header: "เลขที่ใบขาย",
-        cell: (info) => (
-          <div className="truncate" title={info.getValue() as string}>
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
+        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 120, width: 140, align: "left" },
       },
       {
         accessorKey: "customer.customerCode",
         header: "รหัสลูกค้า",
-        cell: (info) => (
-          <div className="truncate" title={info.getValue() as string}>
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
+        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 100, width: 120, align: "left" },
       },
       {
         accessorKey: "customer.name",
         header: "ชื่อลูกค้า",
-        cell: (info) => (
-          <div className="truncate" title={info.getValue() as string}>
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
+        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 180, width: 220, align: "left" },
       },
       {
         accessorKey: "employee.name",
         header: "พนักงานขาย",
-        cell: (info) => (
-          <div className="truncate" title={info.getValue() as string}>
-            {(info.getValue() as string) || "-"}
-          </div>
-        ),
+        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 120, width: 140, align: "left" },
       },
       {
@@ -801,7 +812,7 @@ export function SalesTable(props: SalesTableProps) {
           pagination={pagination}
           toolbar={<SalesToolbar {...toolbarProps} />}
           emptyState={{
-            title: "ไม่พบข้อมูลรายการขาย",
+            title: "ยังไม่มีรายการขาย",
             description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
           }}
           className="w-full"
