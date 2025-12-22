@@ -144,13 +144,6 @@ export default function FulfillmentPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <ClipboardList className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">จัดการการจัดส่งและชำระเงิน</h1>
-        </div>
-      </div>
-
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

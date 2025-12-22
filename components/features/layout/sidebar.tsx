@@ -18,6 +18,7 @@ import {
   Home,
   FileChartPie,
   ClipboardList,
+  ClipboardPen,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
@@ -59,7 +60,7 @@ export const navigationItems: SidebarNavItem[] = [
     href: "/sales",
     label: "การขาย",
     permissionKey: "menu.sales",
-    icon: <DollarSign className="h-4 w-4" />,
+    icon: <ClipboardPen className="h-4 w-4" />,
   },
   {
     href: "/fulfillment",
