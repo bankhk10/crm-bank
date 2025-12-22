@@ -18,6 +18,7 @@ import {
   SalesTable,
   type SaleRecord,
 } from "@/components/features/sales/sales-table";
+import type { SaleStatus } from "@/types/sales";
 
 export default function SalesPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.sales");
@@ -41,6 +42,7 @@ export default function SalesPage() {
     query: "",
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [status, setStatus] = useState<SaleStatus | undefined>(undefined);
   const [deleteCandidate, setDeleteCandidate] = useState<SaleRecord | null>(
     null
   );
@@ -98,6 +100,9 @@ export default function SalesPage() {
         if (dateRange?.to) {
           params.set("dateTo", dateRange.to.toISOString());
         }
+        if (status) {
+          params.set("status", status);
+        }
 
         const res = await fetch(`/api/sales?${params.toString()}`, {
           signal: controller.signal,
@@ -125,7 +130,7 @@ export default function SalesPage() {
       mounted = false;
       controller.abort();
     };
-  }, [page, perPage, appliedFilters, dateRange]);
+  }, [page, perPage, appliedFilters, dateRange, status]);
 
   const handleDelete = async () => {
     if (!deleteCandidate) return;
@@ -193,6 +198,8 @@ export default function SalesPage() {
         onSearchSubmit={handleSearchSubmit}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
+        statusFilter={status}
+        onStatusFilterChange={setStatus}
         onPageChange={setPage}
         onPerPageChange={setPerPage}
         onDelete={setDeleteCandidate}

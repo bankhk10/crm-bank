@@ -59,6 +59,8 @@ export interface SalesTableProps {
   onSearchChange?: (value: string) => void;
   isTyping?: boolean;
   onSearchSubmit?: () => void;
+  statusFilter?: SaleStatus;
+  onStatusFilterChange?: (status: SaleStatus | undefined) => void;
   dateRange?: DateRange;
   onDateRangeChange?: (range: DateRange | undefined) => void;
   onPageChange?: (page: number) => void;
@@ -238,6 +240,8 @@ function SalesToolbar({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  statusFilter,
+  onStatusFilterChange,
   dateRange,
   onDateRangeChange,
   canCreate,
@@ -246,6 +250,8 @@ function SalesToolbar({
   | "searchValue"
   | "onSearchChange"
   | "onSearchSubmit"
+  | "statusFilter"
+  | "onStatusFilterChange"
   | "dateRange"
   | "onDateRangeChange"
   | "canCreate"
@@ -327,6 +333,31 @@ function SalesToolbar({
               </div>
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Status Filter */}
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">สถานะ</label>
+          <Select
+            value={statusFilter || "ALL"}
+            onValueChange={(value) =>
+              onStatusFilterChange?.(
+                value === "ALL" ? undefined : (value as SaleStatus)
+              )
+            }
+          >
+            <SelectTrigger className="w-full bg-white mt-1 h-11">
+              <SelectValue placeholder="ทุกสถานะ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">ทุกสถานะ</SelectItem>
+              {Object.entries(SaleStatusLabels).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
