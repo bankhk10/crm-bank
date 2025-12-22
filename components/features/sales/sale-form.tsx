@@ -174,7 +174,9 @@ export function SaleForm({
   // Form state
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
   const [employeeId, setEmployeeId] = useState(initialData?.employeeId || "");
-  const [pickupCompanyId, setPickupCompanyId] = useState("");
+  const [pickupCompanyId, setPickupCompanyId] = useState(
+    (initialData as any)?.pickupCompanyId || ""
+  );
   const [paymentTerm, setPaymentTerm] = useState<
     "CREDIT_90" | "CASH_7" | "PREPAID" | "CREDIT_OVER_90"
   >(initialData?.paymentTerm || "CREDIT_90");
@@ -182,14 +184,27 @@ export function SaleForm({
   const [creditDueDate, setCreditDueDate] = useState(
     initialData?.creditDueDate || ""
   );
+
+  const [saleDate, setSaleDate] = useState(
+    initialData?.saleDate || new Date().toISOString().split("T")[0]
+  );
+
+  // Automatically calculate creditDueDate when saleDate or creditDays changes
+  useEffect(() => {
+    if (saleDate && creditDays > 0) {
+      const date = new Date(saleDate);
+      date.setDate(date.getDate() + creditDays);
+      setCreditDueDate(date.toISOString().split("T")[0]);
+    } else {
+      setCreditDueDate("");
+    }
+  }, [saleDate, creditDays]);
+
   const [usePromotionalCredit, setUsePromotionalCredit] = useState(
     initialData?.usePromotionalCredit || false
   );
   const [promotionalCreditUsed, setPromotionalCreditUsed] = useState(
     initialData?.promotionalCreditUsed || 0
-  );
-  const [saleDate, setSaleDate] = useState(
-    initialData?.saleDate || new Date().toISOString().split("T")[0]
   );
   const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
     (initialData as any)?.requestedDeliveryDate || ""
@@ -318,20 +333,27 @@ export function SaleForm({
 
   // Handle Pickup Company Selection -> Update Shipping Address
   useEffect(() => {
-    if (deliveryMethod === "CUSTOMER_PICKUP" && pickupCompanyId) {
-      const company = companies.find((c) => c.id === pickupCompanyId);
-      if (company) {
-        const parts = [
-          company.addressLine,
-          company.subdistrict ? `ตำบล${company.subdistrict}` : "",
-          company.district ? `อำเภอ${company.district}` : "",
-          company.province ? `จังหวัด${company.province}` : "",
-          company.postalCode,
-        ].filter(Boolean);
-        const fullAddress = parts.join(" ");
-        setShippingAddress(fullAddress);
-        setCustomShippingAddress(fullAddress); // Also set custom so it sticks if we use that logic
-        setUseCustomShippingAddress(true); // Force custom usage for pickup
+    if (deliveryMethod === "CUSTOMER_PICKUP") {
+      if (pickupCompanyId) {
+        const company = companies.find((c) => c.id === pickupCompanyId);
+        if (company) {
+          const parts = [
+            company.addressLine,
+            company.subdistrict ? `ตำบล${company.subdistrict}` : "",
+            company.district ? `อำเภอ${company.district}` : "",
+            company.province ? `จังหวัด${company.province}` : "",
+            company.postalCode,
+          ].filter(Boolean);
+          const fullAddress = parts.join(" ");
+          setShippingAddress(fullAddress);
+          setCustomShippingAddress(fullAddress); // Also set custom so it sticks if we use that logic
+          setUseCustomShippingAddress(true); // Force custom usage for pickup
+        }
+      } else {
+        // Clear address if no company selected yet
+        setShippingAddress("");
+        setCustomShippingAddress("");
+        setUseCustomShippingAddress(true);
       }
     } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
       // Revert to customer logic if switching back
@@ -350,6 +372,9 @@ export function SaleForm({
         selectedCustomer.shippingPostalCode || "",
       ].filter(Boolean);
       setShippingAddress(shippingParts.join(" "));
+
+      // Clear pickup company if switching away from pickup
+      setPickupCompanyId("");
     }
   }, [pickupCompanyId, deliveryMethod, companies, selectedCustomer]);
 
@@ -421,6 +446,9 @@ export function SaleForm({
     if (items.length === 0)
       newErrors.push("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
     if (!saleDate) newErrors.push("กรุณาระบุวันที่ขาย");
+    if (deliveryMethod === "CUSTOMER_PICKUP" && !pickupCompanyId) {
+      newErrors.push("กรุณาเลือกสถานที่รับสินค้า");
+    }
 
     // Validate items
     items.forEach((item, index) => {
@@ -501,9 +529,6 @@ export function SaleForm({
       if (!creditDays || creditDays <= 0) {
         newErrors.push("กรุณาระบุจำนวนวันเครดิต");
       }
-      if (!creditDueDate) {
-        newErrors.push("กรุณาระบุวันครบกำหนดชำระ");
-      }
     }
 
     setErrors(newErrors);
@@ -534,6 +559,8 @@ export function SaleForm({
           ? customShippingAddress
           : shippingAddress,
         deliveryMethod,
+        pickupCompanyId:
+          deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
         items,
         shippingCost,
         otherCosts,
@@ -914,7 +941,7 @@ export function SaleForm({
         )}
 
         {/* Custom Shipping Address Option */}
-        {selectedCustomer && (
+        {selectedCustomer && deliveryMethod !== "CUSTOMER_PICKUP" && (
           <div className="mt-6 space-y-4">
             <div className="flex items-center space-x-2">
               <Checkbox

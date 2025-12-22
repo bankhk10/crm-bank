@@ -8,7 +8,11 @@ import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 import { Card } from "@/components/ui/card";
 
-export default function EditSalePage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditSalePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("sale.edit");
 
@@ -27,7 +31,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
       })
       .then((data) => {
         const sale = data.sale;
-        
+
         // Convert to form data format
         setInitialData({
           id: sale.id,
@@ -46,6 +50,11 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
           deliveryDate: sale.deliveryDate
             ? new Date(sale.deliveryDate).toISOString().split("T")[0]
             : "",
+          requestedDeliveryDate: sale.requestedDeliveryDate
+            ? new Date(sale.requestedDeliveryDate).toISOString().split("T")[0]
+            : "",
+          deliveryMethod: sale.deliveryMethod,
+          pickupCompanyId: sale.pickupCompanyId,
           billingAddress: sale.billingAddress || "",
           shippingAddress: sale.shippingAddress || "",
           items: sale.items.map((item: any) => ({
@@ -124,7 +133,7 @@ export default function EditSalePage({ params }: { params: Promise<{ id: string 
               แก้ไขบันทึกการขาย ( Sales note )
             </h5>
           </div>
-           <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
+          <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
         </div>
       </Card>
     </section>

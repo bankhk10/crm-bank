@@ -158,6 +158,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Verify user still exists in DB (handle stale sessions after DB reset)
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Session expired or invalid. Please sign in again." },
+        { status: 401 }
+      );
+    }
+
     const body: SaleFormData = await request.json();
 
     // Validate required fields
@@ -284,6 +296,7 @@ export async function POST(request: NextRequest) {
           : null,
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
         deliveryMethod: body.deliveryMethod,
+        pickupCompanyId: body.pickupCompanyId,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
         subtotalAmount: new Prisma.Decimal(subtotal),

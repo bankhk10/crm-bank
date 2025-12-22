@@ -98,7 +98,8 @@ model Company {
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
 
-  employees Employee[]
+  employees   Employee[]
+  pickupSales Sale[]     @relation("SalePickupCompany")
 }
 
 model Employee {
@@ -517,6 +518,8 @@ model Sale {
   actualDeliveryDate    DateTime?
   deliveryUpdateCount   Int         @default(0)
   deliveryMethod        String?     // SALES_DELIVERY or CUSTOMER_PICKUP
+  pickupCompanyId       String?
+  pickupCompany         Company?    @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
   
   // Addresses
   billingAddress        String?

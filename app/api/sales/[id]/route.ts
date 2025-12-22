@@ -215,7 +215,15 @@ export async function PUT(
         promotionalCreditUsed: body.promotionalCreditUsed
           ? new Prisma.Decimal(body.promotionalCreditUsed)
           : null,
+        deliveryMethod: body.deliveryMethod,
+        pickupCompanyId: body.pickupCompanyId,
+        // requestedDeliveryDate: body.requestedDeliveryDate
+        //   ? new Date(body.requestedDeliveryDate)
+        //   : null, // Keep existing if not provided or add to form
         saleDate: new Date(body.saleDate),
+        requestedDeliveryDate: body.requestedDeliveryDate
+          ? new Date(body.requestedDeliveryDate)
+          : null,
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
