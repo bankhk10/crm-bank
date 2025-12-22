@@ -6,10 +6,11 @@ import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  SalesTable,
+  FulfillmentTable,
   type SaleRecord,
-} from "@/components/features/sales/sales-table";
-import { useRouter } from "next/navigation";
+} from "@/components/features/fulfillment/fulfillment-table";
+
+import { ClipboardList } from "lucide-react";
 
 const FULFILLMENT_STATUSES = [
   "APPROVED",
@@ -20,9 +21,7 @@ const FULFILLMENT_STATUSES = [
 ];
 
 export default function FulfillmentPage() {
-  const router = useRouter();
-  const { hasPermission, allowed, isLoading } =
-    usePermission("menu.fulfillment");
+  const { allowed, isLoading } = usePermission("menu.fulfillment");
   const canView = !isLoading && allowed;
   const user = useCurrentUser();
 
@@ -146,7 +145,10 @@ export default function FulfillmentPage() {
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">จัดการการจัดส่งและชำระเงิน</h1>
+        <div className="flex items-center gap-2">
+          <ClipboardList className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">จัดการการจัดส่งและชำระเงิน</h1>
+        </div>
       </div>
 
       {error && (
@@ -155,7 +157,7 @@ export default function FulfillmentPage() {
         </Alert>
       )}
 
-      <SalesTable
+      <FulfillmentTable
         sales={sales}
         total={total}
         page={page}
@@ -169,10 +171,6 @@ export default function FulfillmentPage() {
         onDateRangeChange={setDateRange}
         onPageChange={setPage}
         onPerPageChange={setPerPage}
-        canCreate={false}
-        canEdit={false}
-        canDelete={false}
-        canApprove={false}
         currentUserId={user?.id}
       />
     </div>
