@@ -31,7 +31,7 @@ export default function SalesPage() {
   const [sales, setSales] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(12);
+  const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<{ query: string }>({

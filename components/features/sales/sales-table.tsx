@@ -794,7 +794,7 @@ export function SalesTable(props: SalesTableProps) {
     total,
     onPageChange: onPageChange || (() => {}),
     onPerPageChange: onPerPageChange || (() => {}),
-    perPageOptions: [10, 20, 50],
+    perPageOptions: [10, 20, 30, 50],
   };
 
   return (
