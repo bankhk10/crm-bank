@@ -175,11 +175,6 @@ export default function SalesPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">รายการขาย</h1>
-        <p className="text-gray-500 mt-2">จัดการรายการขายสินค้าทั้งหมด</p>
-      </div>
-
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

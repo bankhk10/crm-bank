@@ -798,36 +798,47 @@ export function SalesTable(props: SalesTableProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Mobile & Tablet: card layout */}
-      <div className="xl:hidden space-y-4">
-        <SalesToolbar {...toolbarProps} />
-        <SalesCards
-          data={sales}
-          loading={loading}
-          canApprove={canApprove}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          currentUserId={currentUserId}
-          onDelete={onDelete}
-          pagination={pagination}
-        />
-      </div>
+    <div className="bg-white shadow-sm sm:rounded-lg">
+      <div className="p-6">
+        <div className="flex justify-center mb-6">
+          <div className="flex items-center gap-3">
+            <BadgeDollarSign className="w-9 h-9 text-blue-600" />
+            <h1 className="text-3xl font-bold tracking-tight">ข้อมูลการขาย</h1>
+          </div>
+        </div>
 
-      {/* Desktop & up: table layout */}
-      <div className="hidden xl:block">
-        <CustomTable
-          columns={columns}
-          data={sales}
-          loading={loading}
-          pagination={pagination}
-          toolbar={<SalesToolbar {...toolbarProps} />}
-          emptyState={{
-            title: "ยังไม่มีรายการขาย",
-            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
-          }}
-          className="w-full"
-        />
+        <div className="space-y-6">
+          {/* Mobile & Tablet: card layout */}
+          <div className="xl:hidden space-y-4">
+            <SalesToolbar {...toolbarProps} />
+            <SalesCards
+              data={sales}
+              loading={loading}
+              canApprove={canApprove}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              currentUserId={currentUserId}
+              onDelete={onDelete}
+              pagination={pagination}
+            />
+          </div>
+
+          {/* Desktop & up: table layout */}
+          <div className="hidden xl:block">
+            <CustomTable
+              columns={columns}
+              data={sales}
+              loading={loading}
+              pagination={pagination}
+              toolbar={<SalesToolbar {...toolbarProps} />}
+              emptyState={{
+                title: "ยังไม่มีรายการขาย",
+                description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
+              }}
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
