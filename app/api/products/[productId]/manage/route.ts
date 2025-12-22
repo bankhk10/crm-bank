@@ -104,7 +104,9 @@ export async function PATCH(
         await tx.productFreeItem.deleteMany({
           where: {
             productId,
-            id: { notIn: freeItemsToKeep.length > 0 ? freeItemsToKeep : undefined },
+            id: {
+              notIn: freeItemsToKeep.length > 0 ? freeItemsToKeep : undefined,
+            },
           },
         });
 
@@ -143,7 +145,12 @@ export async function PATCH(
         await tx.productPromotionItem.deleteMany({
           where: {
             productId,
-            id: { notIn: promotionItemsToKeep.length > 0 ? promotionItemsToKeep : undefined },
+            id: {
+              notIn:
+                promotionItemsToKeep.length > 0
+                  ? promotionItemsToKeep
+                  : undefined,
+            },
           },
         });
 
@@ -210,7 +217,9 @@ export async function PATCH(
                 data: {
                   quantity: item.quantity,
                   importDate: new Date(item.importDate),
-                  expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+                  expiryDate: item.expiryDate
+                    ? new Date(item.expiryDate)
+                    : null,
                   storageLocation: item.storageLocation,
                   notes: item.notes,
                 },
@@ -218,7 +227,7 @@ export async function PATCH(
             }
           } else {
             // Create new lot with auto-generated lot number
-            const newLotNumber = `LOT-${String(lotCount + newLotIndex + 1).padStart(3, '0')}`;
+            const newLotNumber = `LOT-${String(lotCount + newLotIndex + 1)}`;
             newLotIndex++;
             await tx.productStockLot.create({
               data: {
