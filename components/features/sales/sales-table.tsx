@@ -250,6 +250,8 @@ function SalesToolbar({
   | "onDateRangeChange"
   | "canCreate"
 >) {
+  const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
       <div className="grid gap-4 lg:grid-cols-3">
@@ -271,7 +273,7 @@ function SalesToolbar({
         {/* Date Range Picker */}
         <div className="space-y-2">
           <label className="text-base font-medium mx-2">ช่วงวันที่</label>
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
@@ -304,6 +306,25 @@ function SalesToolbar({
                 onSelect={onDateRangeChange}
                 numberOfMonths={2}
               />
+              <div className="p-3 border-t border-border flex items-center justify-center gap-2 bg-slate-50/50">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    onDateRangeChange?.(undefined);
+                  }}
+                >
+                  ล้าง
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setIsCalendarOpen(false)}
+                >
+                  ตกลง
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
         </div>
