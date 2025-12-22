@@ -148,9 +148,15 @@ const DEFAULT_BADGE_STYLE = {
 
 // --- Helper Components ---
 
-function TruncatedCell({ value }: { value: string }) {
+function TruncatedCell({
+  value,
+  className,
+}: {
+  value: string;
+  className?: string;
+}) {
   return (
-    <div className="truncate" title={value}>
+    <div className={cn("truncate", className)} title={value}>
       {value}
     </div>
   );
@@ -441,15 +447,18 @@ function SalesCards({
               />
               <div className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
                       <BadgeDollarSign className="h-5 w-5" />
                     </span>
-                    <div>
-                      <div className="text-base font-semibold text-slate-900">
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className="text-base font-semibold text-slate-900 truncate"
+                        title={item.customer?.name}
+                      >
                         {item.customer?.name || "-"}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-500 truncate">
                         {item.saleNumber || "-"}
                       </div>
                     </div>
@@ -619,20 +628,20 @@ function useColumns(
         accessorKey: "saleNumber",
         header: "เลขที่ใบขาย",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 120, width: 140, align: "left" },
+        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
       },
 
       {
         accessorKey: "customer.name",
         header: "ชื่อลูกค้า",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 180, width: 220, align: "left" },
+        meta: { minWidth: 200, width: 200, maxWidth: 200, align: "left" },
       },
       {
         accessorKey: "employee.name",
         header: "พนักงานขาย",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 120, width: 140, align: "left" },
+        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
       },
       {
         accessorKey: "saleDate",
@@ -678,7 +687,7 @@ function useColumns(
           const status = info.getValue() as SaleStatus;
           return <StatusBadge status={status} />;
         },
-        meta: { minWidth: 100, width: 120, align: "center" },
+        meta: { minWidth: 100, width: 120, align: "left" },
       },
       {
         id: "actions",
