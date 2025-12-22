@@ -13,6 +13,9 @@ import {
   Mail,
   Truck,
   ClipboardList,
+  FileCog,
+  FilePenLine,
+  Pencil,
 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -606,7 +609,7 @@ function useFulfillmentColumns() {
             <div className="flex items-center justify-center gap-2">
               <ActionButton
                 href={`/sales/${item.id}/fulfillment`}
-                icon={Truck}
+                icon={Pencil}
                 label="จัดการการจัดส่ง/ชำระ"
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
