@@ -16,6 +16,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/custom/form-components";
+import RandomFillButton from "@/components/custom/random-fill-button";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -482,10 +483,9 @@ export default function CustomerFormBroker({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
+          <RandomFillButton
             size="lg"
             className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            type="button"
             onClick={() => {
               const rnd = generateRandomBroker();
               setValues((p: any) => ({
@@ -519,9 +519,7 @@ export default function CustomerFormBroker({
               }));
               setFieldErrors({});
             }}
-          >
-            กรอกข้อมูลสุ่ม
-          </Button>
+          />
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"

@@ -561,9 +561,7 @@ export default function CustomerFormFarmer({
               }));
               setFieldErrors({});
             }}
-          >
-            กรอกข้อมูลสุ่ม
-          </RandomFillButton>
+          />
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"

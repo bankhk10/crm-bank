@@ -44,7 +44,6 @@ interface ProductFormProps {
   hideBorder?: boolean;
   canEdit?: boolean;
   permissionHint?: string;
-  permissionHint?: string;
 }
 
 export function ProductForm({
@@ -54,7 +53,6 @@ export function ProductForm({
   onSubmit,
   onCancel,
   hideBorder,
-  canEdit = true,
   canEdit = true,
   permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่",
 }: ProductFormProps) {

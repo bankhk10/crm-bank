@@ -11,7 +11,12 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomSubdealer from "@/lib/random-fill/subdealer";
-import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import {
+  FormInput,
+  FormSelect,
+  FormTextarea,
+} from "@/components/custom/form-components";
+import RandomFillButton from "@/components/custom/random-fill-button";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { LocateFixed } from "lucide-react";
 
@@ -178,8 +183,9 @@ export default function CustomerFormSubdealer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
-        } ${values.lastName ?? ""}`.trim(),
+      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${
+        values.firstName ?? ""
+      } ${values.lastName ?? ""}`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
       notes: values.notes ?? "",
@@ -234,7 +240,7 @@ export default function CustomerFormSubdealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-        (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25)
       );
       return String(age);
     } catch (err) {
@@ -470,7 +476,7 @@ export default function CustomerFormSubdealer({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => { }}
+          onChange={() => {}}
         />
       </div>
 
@@ -604,10 +610,9 @@ export default function CustomerFormSubdealer({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button
+          <RandomFillButton
             size="lg"
             className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            type="button"
             onClick={() => {
               const rnd = generateRandomSubdealer();
               setValues((p: any) => ({
@@ -642,9 +647,7 @@ export default function CustomerFormSubdealer({
               }));
               setFieldErrors({});
             }}
-          >
-            กรอกข้อมูลสุ่ม
-          </Button>
+          />
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
