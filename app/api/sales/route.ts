@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
         where.saleDate.gte = new Date(filters.dateFrom);
       }
       if (filters.dateTo) {
-        where.saleDate.lte = new Date(filters.dateTo);
+        const dateTo = new Date(filters.dateTo);
+        dateTo.setDate(dateTo.getDate() + 1);
+        where.saleDate.lt = dateTo;
       }
     }
 
