@@ -17,7 +17,7 @@ import {
   DollarSign,
   Home,
   FileChartPie,
-  Truck,
+  ClipboardList,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
@@ -63,9 +63,9 @@ export const navigationItems: SidebarNavItem[] = [
   },
   {
     href: "/fulfillment",
-    label: "การจัดส่ง/ชำระ",
+    label: "จัดการคำสั่งซื้อ",
     permissionKey: "menu.fulfillment",
-    icon: <Truck className="h-4 w-4" />,
+    icon: <ClipboardList className="h-4 w-4" />,
   },
   {
     href: "/employee",

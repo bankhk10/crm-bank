@@ -125,7 +125,7 @@ export default function SaleDetailPage({
                 className="border-blue-200 text-blue-700 hover:bg-blue-50"
               >
                 <Truck className="h-4 w-4 mr-2" />
-                จัดการการจัดส่ง/ชำระ
+                สถานะการชำระและจัดส่ง
               </Button>
             </Link>
           )}
