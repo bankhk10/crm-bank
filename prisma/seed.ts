@@ -621,6 +621,60 @@ async function main() {
         defaultDataAccess: "VIEW_DEPARTMENT",
       },
     }),
+    // New Permissions
+    prisma.permission.create({
+      data: {
+        key: "menu.dashboard",
+        name: "Dashboard menu",
+        category: "MENU",
+        menuPath: "/dashboard",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "employee.view",
+        name: "View employee details",
+        category: "ACTION",
+        resource: "employee",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.delete",
+        name: "Delete sale",
+        category: "ACTION",
+        resource: "sale",
+        action: "delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.reject",
+        name: "Reject sale",
+        category: "ACTION",
+        resource: "sale",
+        action: "reject",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.approve",
+        name: "Approve credit limit",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "approve",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "creditlimit.reject",
+        name: "Reject credit limit",
+        category: "ACTION",
+        resource: "creditlimit",
+        action: "reject",
+      },
+    }),
   ]);
 
   const permissionMap = Object.fromEntries(
@@ -654,6 +708,143 @@ async function main() {
       },
     },
     include: { userRoles: true },
+  });
+
+  // --- Create Sales Representative and Manager Logic ---
+
+  // 1. Create Positions
+  const salesRepPosition = await prisma.position.create({
+    data: {
+      name: "Sales Representative",
+      level: 1,
+      departmentId: sales.id,
+    },
+  });
+
+  const salesManagerPosition = await prisma.position.create({
+    data: {
+      name: "Sales Manager",
+      level: 3,
+      isManagerial: true,
+      departmentId: sales.id,
+    },
+  });
+
+  // 2. Create Roles
+  const salesRepRole = await prisma.role.create({
+    data: {
+      name: "Sales Representative",
+      slug: "sales_rep",
+      description: "Sales Representative Role",
+    },
+  });
+
+  const salesManagerRole = await prisma.role.create({
+    data: {
+      name: "Sales Manager",
+      slug: "sales_manager",
+      description: "Sales Manager Role",
+    },
+  });
+
+  // 3. Assign Permissions
+  const p = (key: string) => permissionMap[key]?.id;
+
+  // Sales Rep Permissions
+  const salesRepConfig = [
+    { key: "menu.products", access: undefined },
+    { key: "product.view", access: "VIEW_ALL" },
+    { key: "menu.sales", access: undefined },
+    { key: "sale.create", access: "VIEW_OWN" },
+    { key: "sale.edit", access: "VIEW_OWN" },
+    { key: "sale.view", access: "VIEW_OWN" },
+    { key: "sale.delete", access: "VIEW_OWN" },
+    { key: "menu.customers", access: undefined },
+    { key: "customer.create.dealer", access: undefined },
+    { key: "customer.edit", access: "VIEW_OWN" },
+    { key: "customer.view", access: "VIEW_ALL" },
+    { key: "menu.credit_limits", access: undefined },
+    { key: "creditlimit.create", access: "VIEW_OWN" },
+    { key: "creditlimit.edit", access: "VIEW_OWN" },
+    { key: "creditlimit.view", access: "VIEW_OWN" },
+    { key: "creditlimit.delete", access: "VIEW_OWN" },
+  ];
+
+  await prisma.rolePermission.createMany({
+    data: salesRepConfig
+      .filter((item) => p(item.key))
+      .map((item) => ({
+        roleId: salesRepRole.id,
+        permissionId: p(item.key),
+        allow: true,
+        dataAccess: item.access as any,
+      })),
+  });
+
+  // Sales Manager Permissions
+  const salesManagerConfig = [
+    { key: "menu.dashboard", access: undefined },
+    { key: "menu.products", access: undefined },
+    { key: "product.view", access: "VIEW_ALL" },
+    { key: "menu.sales", access: undefined },
+    { key: "sale.create", access: "VIEW_OWN" },
+    { key: "sale.edit", access: "VIEW_OWN" },
+    { key: "sale.delete", access: "VIEW_OWN" },
+    { key: "sale.view", access: "VIEW_DEPARTMENT" },
+    { key: "sale.approve", access: "VIEW_DEPARTMENT" },
+    { key: "sale.reject", access: "VIEW_DEPARTMENT" },
+    { key: "menu.employees", access: undefined },
+    { key: "employee.view", access: "VIEW_DEPARTMENT" },
+    { key: "menu.customers", access: undefined },
+    { key: "customer.create.dealer", access: undefined },
+    { key: "customer.create.subdealer", access: undefined },
+    { key: "customer.create.farmer", access: undefined },
+    { key: "customer.create.broker", access: undefined },
+    { key: "customer.edit", access: "VIEW_ALL" },
+    { key: "customer.view", access: "VIEW_ALL" },
+    { key: "menu.credit_limits", access: undefined },
+    { key: "creditlimit.create", access: "VIEW_OWN" },
+    { key: "creditlimit.edit", access: "VIEW_OWN" },
+    { key: "creditlimit.delete", access: "VIEW_OWN" },
+    { key: "creditlimit.view", access: "VIEW_DEPARTMENT" },
+    { key: "creditlimit.approve", access: "VIEW_DEPARTMENT" },
+    { key: "creditlimit.reject", access: "VIEW_DEPARTMENT" },
+  ];
+
+  await prisma.rolePermission.createMany({
+    data: salesManagerConfig
+      .filter((item) => p(item.key))
+      .map((item) => ({
+        roleId: salesManagerRole.id,
+        permissionId: p(item.key),
+        allow: true,
+        dataAccess: item.access as any,
+      })),
+  });
+
+  // 4. Create Users (optional but good for testing)
+  const userPassword = await hash("123456", 12);
+
+  await prisma.user.create({
+    data: {
+      name: "Somchai Sales",
+      email: "sales@bank.com",
+      password: userPassword,
+      departmentId: sales.id,
+      positionId: salesRepPosition.id,
+      userRoles: { create: { roleId: salesRepRole.id } },
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      name: "Mana Manager",
+      email: "manager@bank.com",
+      password: userPassword,
+      departmentId: sales.id,
+      positionId: salesManagerPosition.id,
+      userRoles: { create: { roleId: salesManagerRole.id } },
+    },
   });
 }
 
