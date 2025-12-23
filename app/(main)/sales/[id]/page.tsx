@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Truck,
   AlertTriangle,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -113,29 +114,6 @@ export default function SaleDetailPage({
 
   return (
     <div className="container mx-auto py-6 sm:py-8 space-y-6 max-w-5xl">
-      {/* Action Header - Keep outside the invoice paper */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
-        <div className="space-y-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 text-slate-500 hover:text-slate-900"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            ย้อนกลับ
-          </Button>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              รายละเอียดการขาย
-            </h1>
-            <Badge className={getSaleStatusColor(sale.status)}>
-              {SaleStatusLabels[sale.status]}
-            </Badge>
-          </div>
-        </div>
-      </div>
-
       {/* Warnings */}
       <div className="space-y-3 print:hidden">
         {stockWarnings.length > 0 && (
@@ -192,7 +170,17 @@ export default function SaleDetailPage({
 
       {/* Invoice Paper Layout */}
       <Card className="shadow-lg border-slate-200 bg-white overflow-hidden print:shadow-none print:border-none">
-        <div className="p-8 space-y-8">
+        <div className="p-8 space-y-8 relative">
+          <div className="absolute top-8 right-8 print:hidden">
+            <Badge
+              className={`${getSaleStatusColor(
+                sale.status
+              )} border-none px-4 py-1.5 text-sm shadow-md backdrop-blur`}
+            >
+              {SaleStatusLabels[sale.status]}
+            </Badge>
+          </div>
+
           {/* Invoice Header Title */}
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-slate-800 uppercase tracking-wide">
@@ -438,6 +426,17 @@ export default function SaleDetailPage({
           </div>
         </div>
       </Card>
+
+      <div className="flex justify-center print:hidden">
+        <Button
+          variant="outline"
+          className="text-slate-500 hover:text-slate-900"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          ย้อนกลับ
+        </Button>
+      </div>
     </div>
   );
 }
