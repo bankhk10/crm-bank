@@ -26,6 +26,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { SaleFormData, SaleItemFormData } from "@/types/sales";
+import RandomFillButton from "@/components/custom/random-fill-button";
+import generateRandomSaleClient from "@/lib/random-fill/sale-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 interface Customer {
@@ -572,6 +574,31 @@ export function SaleForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRandomFill = () => {
+    if (!customers.length || !employees.length || !products.length) return;
+    const randomData = generateRandomSaleClient(customers, employees, products);
+
+    setCustomerId(randomData.customerId);
+    setEmployeeId(randomData.employeeId);
+    setPaymentTerm(randomData.paymentTerm as any);
+    if (randomData.creditDays) setCreditDays(randomData.creditDays);
+    if (randomData.creditDueDate) setCreditDueDate(randomData.creditDueDate);
+
+    setUsePromotionalCredit(randomData.usePromotionalCredit || false);
+    setPromotionalCreditUsed(randomData.promotionalCreditUsed || 0);
+
+    setSaleDate(randomData.saleDate);
+    if (randomData.deliveryDate) setDeliveryDate(randomData.deliveryDate);
+    if (randomData.requestedDeliveryDate)
+      setRequestedDeliveryDate(randomData.requestedDeliveryDate);
+
+    setItems(randomData.items);
+    setShippingCost(randomData.shippingCost || 0);
+    setOtherCosts(randomData.otherCosts || 0);
+    setOtherCostsDescription(randomData.otherCostsDescription || "");
+    setNotes(randomData.notes || "");
   };
 
   return (
@@ -1166,6 +1193,14 @@ export function SaleForm({
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <RandomFillButton
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            onClick={handleRandomFill}
+            disabled={loading}
+          >
+            กรอกข้อมูลแบบสุ่ม
+          </RandomFillButton>
           <Button
             size="lg"
             className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
