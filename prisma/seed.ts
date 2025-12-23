@@ -707,7 +707,7 @@ async function main() {
   // 1. Create Positions
   const salesRepPosition = await prisma.position.create({
     data: {
-      name: "Sales Representative",
+      name: "พนักงานขาย",
       level: 1,
       departmentId: sales.id,
     },
@@ -715,7 +715,7 @@ async function main() {
 
   const salesManagerPosition = await prisma.position.create({
     data: {
-      name: "Sales Manager",
+      name: "ผู้จัดการขาย",
       level: 3,
       isManagerial: true,
       departmentId: sales.id,
