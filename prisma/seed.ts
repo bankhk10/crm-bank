@@ -125,7 +125,7 @@ async function main() {
     ],
   });
 
-  const [sales, cs, ops] = await Promise.all([
+  const [sales] = await Promise.all([
     prisma.department.create({
       data: {
         name: "แผนกเทคโนโลยีสารสนเทศ",
@@ -170,45 +170,14 @@ async function main() {
     }),
   ]);
 
-  const [, , , , opsAnalyst] = await Promise.all([
-    prisma.position.create({
-      data: {
-        name: "Sales Manager",
-        level: 3,
-        isManagerial: true,
-        departmentId: sales.id,
-      },
-    }),
-    prisma.position.create({
-      data: {
-        name: "Sales Representative",
-        level: 1,
-        departmentId: sales.id,
-      },
-    }),
-    prisma.position.create({
-      data: {
-        name: "CS Lead",
-        level: 3,
-        isManagerial: true,
-        departmentId: cs.id,
-      },
-    }),
-    prisma.position.create({
-      data: {
-        name: "CS Agent",
-        level: 1,
-        departmentId: cs.id,
-      },
-    }),
-    prisma.position.create({
-      data: {
-        name: "Operations Analyst",
-        level: 2,
-        departmentId: ops.id,
-      },
-    }),
-  ]);
+  const adminPosition = await prisma.position.create({
+    data: {
+      name: "Admin",
+      level: 99,
+      isManagerial: true,
+      departmentId: sales.id,
+    },
+  });
 
   const adminRole = await prisma.role.create({
     data: {
@@ -678,8 +647,8 @@ async function main() {
       name: "Bank Admin",
       email: "b@b.com",
       password: adminPassword,
-      departmentId: ops.id,
-      positionId: opsAnalyst.id,
+      departmentId: sales.id,
+      positionId: adminPosition.id,
       userRoles: {
         create: { roleId: adminRole.id },
       },
