@@ -213,20 +213,39 @@ export default function SaleDetailPage({
                   {sale.customer.name}
                 </p>
                 <p>
-                  {[
-                    sale.customer.addressLine,
-                    sale.customer.subdistrict
-                      ? `ต.${sale.customer.subdistrict}`
-                      : "",
-                    sale.customer.district ? `อ.${sale.customer.district}` : "",
-                    sale.customer.province ? `จ.${sale.customer.province}` : "",
-                    sale.customer.postalCode,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                  {sale.billingAddress ||
+                    [
+                      sale.customer.billingAddressLine ||
+                        sale.customer.addressLine,
+                      sale.customer.billingSubdistrict ||
+                      sale.customer.subdistrict
+                        ? `ต.${
+                            sale.customer.billingSubdistrict ||
+                            sale.customer.subdistrict
+                          }`
+                        : "",
+                      sale.customer.billingDistrict || sale.customer.district
+                        ? `อ.${
+                            sale.customer.billingDistrict ||
+                            sale.customer.district
+                          }`
+                        : "",
+                      sale.customer.billingProvince || sale.customer.province
+                        ? `จ.${
+                            sale.customer.billingProvince ||
+                            sale.customer.province
+                          }`
+                        : "",
+                      sale.customer.billingPostalCode ||
+                        sale.customer.postalCode,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                 </p>
-                {sale.customer.taxId && <p>Tax ID: {sale.customer.taxId}</p>}
-                {sale.customer.phone && <p>Tel: {sale.customer.phone}</p>}
+                <p>
+                  {sale.customer.taxId && <p>Tax ID: {sale.customer.taxId}</p>}
+                  {sale.customer.phone && <p>Tel: {sale.customer.phone}</p>}
+                </p>
               </div>
             </div>
 

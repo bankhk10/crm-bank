@@ -16,6 +16,11 @@ export interface SaleWithRelations extends Sale {
     district?: string | null;
     province?: string | null;
     postalCode?: string | null;
+    billingAddressLine?: string | null;
+    billingSubdistrict?: string | null;
+    billingDistrict?: string | null;
+    billingProvince?: string | null;
+    billingPostalCode?: string | null;
   };
   employee: {
     id: string;
