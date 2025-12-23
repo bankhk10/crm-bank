@@ -10,22 +10,12 @@ import {
   Edit,
   CheckCircle,
   Truck,
-  User,
-  Building2,
-  Calendar,
-  CreditCard,
-  FileText,
   AlertTriangle,
-  Package,
-  MapPin,
-  DollarSign,
-  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/types/sales";
 import {
@@ -108,7 +98,7 @@ export default function SaleDetailPage({
     );
   }
 
-  const { sale, stockWarnings, priceWarnings, creditInfo } = data;
+  const { sale, stockWarnings, priceWarnings } = data;
   const canEditThis = canEdit && sale.status === "PENDING";
   const canApproveThis = canApprove && sale.status === "PENDING";
   const canManageFulfillment =
@@ -122,9 +112,9 @@ export default function SaleDetailPage({
   ).replace(/\s*\(.*?\)/, "");
 
   return (
-    <div className="container mx-auto py-6 sm:py-8 space-y-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="container mx-auto py-6 sm:py-8 space-y-6 max-w-5xl">
+      {/* Action Header - Keep outside the invoice paper */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div className="space-y-1">
           <Button
             variant="ghost"
@@ -133,22 +123,15 @@ export default function SaleDetailPage({
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            ย้อนกลับไปหน้ารายการ
+            ย้อนกลับ
           </Button>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              {sale.saleNumber}
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              รายละเอียดการขาย
             </h1>
             <Badge className={getSaleStatusColor(sale.status)}>
               {SaleStatusLabels[sale.status]}
             </Badge>
-          </div>
-          <div className="flex items-center text-sm text-slate-500 gap-2">
-            <Calendar className="h-4 w-4" />
-            <span>
-              วันที่ขาย:{" "}
-              {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
-            </span>
           </div>
         </div>
 
@@ -184,7 +167,7 @@ export default function SaleDetailPage({
       </div>
 
       {/* Warnings */}
-      <div className="space-y-3">
+      <div className="space-y-3 print:hidden">
         {stockWarnings.length > 0 && (
           <Alert variant="destructive" className="bg-red-50 border-red-200">
             <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -237,261 +220,29 @@ export default function SaleDetailPage({
         )}
       </div>
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Items, Addresses, Notes */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Items Section */}
-          <Card className="overflow-hidden shadow-sm border-slate-200">
-            <CardHeader className="bg-slate-50/50 pb-4">
-              <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg">รายการสินค้า</CardTitle>
+      {/* Invoice Paper Layout */}
+      <Card className="shadow-lg border-slate-200 bg-white overflow-hidden print:shadow-none print:border-none">
+        <div className="p-8 space-y-8">
+          {/* Invoice Header Title */}
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-bold text-slate-800 uppercase tracking-wide">
+              ใบบันทึกการขาย ( Sales note )
+            </h2>
+            <p className="text-slate-500 font-medium">{sale.saleNumber}</p>
+          </div>
+
+          {/* Top Grid Info Box */}
+          <div className="grid grid-cols-1 md:grid-cols-3 border border-slate-300 divide-y md:divide-y-0 md:divide-x divide-slate-300">
+            {/* Invoice To */}
+            <div className="flex flex-col">
+              <div className="bg-slate-100/80 px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-sm">
+                ที่อยู่วางบิล
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
-                    <tr>
-                      <th className="py-3 px-4 font-medium">สินค้า</th>
-                      <th className="py-3 px-4 text-right font-medium">
-                        จำนวน
-                      </th>
-                      <th className="py-3 px-4 text-right font-medium">
-                        ราคา/หน่วย
-                      </th>
-                      <th className="py-3 px-4 text-right font-medium">รวม</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {sale.items.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-slate-50/50 transition-colors"
-                      >
-                        <td className="py-4 px-4 align-top">
-                          <div className="space-y-0.5">
-                            <p className="font-medium text-slate-900">
-                              {item.product.name}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {item.product.productCode}
-                            </p>
-                            {item.priceModified && (
-                              <Badge
-                                variant="secondary"
-                                className="mt-1 text-[10px] h-5 px-1.5 font-normal bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                              >
-                                ราคาพิเศษ
-                              </Badge>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-right align-top text-slate-700 font-medium">
-                          {item.quantity} {item.product.unit || ""}
-                        </td>
-                        <td className="py-4 px-4 text-right align-top text-slate-600">
-                          ฿
-                          {Number(item.unitPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
-                        <td className="py-4 px-4 text-right align-top font-bold text-slate-900">
-                          ฿
-                          {Number(item.totalPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
-                      </tr>
-                    ))}
-                    {/* Summary Rows */}
-                    <tr className="border-t border-slate-100">
-                      <td
-                        colSpan={3}
-                        className="py-3 px-4 text-right font-medium text-slate-600"
-                      >
-                        รวมเป็นเงิน
-                      </td>
-                      <td className="py-3 px-4 text-right font-medium text-slate-900">
-                        ฿
-                        {Number(sale.subtotalAmount).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-3 px-4 text-right font-medium text-slate-600"
-                      >
-                        ค่าขนส่ง
-                      </td>
-                      <td className="py-3 px-4 text-right font-medium text-slate-900">
-                        ฿
-                        {Number(sale.shippingCost).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                    {Number(sale.otherCosts) > 0 && (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="py-3 px-4 text-right font-medium text-slate-600"
-                        >
-                          <span className="flex items-center justify-end gap-1">
-                            ค่าใช้จ่ายอื่นๆ
-                            {sale.otherCostsDescription && (
-                              <span title={sale.otherCostsDescription}>
-                                <Info className="h-3 w-3 text-slate-400" />
-                              </span>
-                            )}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right font-medium text-slate-900">
-                          ฿
-                          {Number(sale.otherCosts).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
-                      </tr>
-                    )}
-                    <tr className="bg-slate-50/50 border-t border-slate-200">
-                      <td
-                        colSpan={3}
-                        className="py-4 px-4 text-right font-bold text-slate-900 text-lg"
-                      >
-                        สุทธิ
-                      </td>
-                      <td className="py-4 px-4 text-right font-bold text-blue-600 text-lg">
-                        ฿
-                        {Number(sale.totalAmount).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card View */}
-              <div className="md:hidden divide-y divide-slate-100">
-                {sale.items.map((item) => (
-                  <div key={item.id} className="p-4 space-y-3">
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="space-y-1">
-                        <p className="font-medium text-slate-900">
-                          {item.product.name}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {item.product.productCode}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-slate-900">
-                          ฿
-                          {Number(item.totalPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center text-sm text-slate-600 bg-slate-50 rounded-lg p-2.5">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-slate-400">
-                          ราคา/หน่วย
-                        </span>
-                        <span>฿{Number(item.unitPrice).toLocaleString()}</span>
-                      </div>
-                      <div className="h-8 w-px bg-slate-200 mx-2" />
-                      <div className="flex flex-col items-end">
-                        <span className="text-xs text-slate-400">จำนวน</span>
-                        <span className="font-medium">
-                          {item.quantity} {item.product.unit}
-                        </span>
-                      </div>
-                    </div>
-
-                    {item.priceModified && (
-                      <div className="flex justify-start">
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] bg-yellow-50 text-yellow-700 border-yellow-100"
-                        >
-                          มีการปรับราคา
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Mobile Summary Section */}
-              <div className="md:hidden border-t border-slate-100 p-4 space-y-3 bg-slate-50/50">
-                <div className="flex justify-between text-sm text-slate-600">
-                  <span>รวมเป็นเงิน</span>
-                  <span>
-                    ฿
-                    {Number(sale.subtotalAmount).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm text-slate-600">
-                  <span>ค่าขนส่ง</span>
-                  <span>
-                    ฿
-                    {Number(sale.shippingCost).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-                {Number(sale.otherCosts) > 0 && (
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span className="flex items-center gap-1">
-                      ค่าใช้จ่ายอื่นๆ
-                      {sale.otherCostsDescription && (
-                        <span title={sale.otherCostsDescription}>
-                          <Info className="h-3 w-3 text-slate-400" />
-                        </span>
-                      )}
-                    </span>
-                    <span>
-                      ฿
-                      {Number(sale.otherCosts).toLocaleString("th-TH", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                )}
-                <Separator className="my-2" />
-                <div className="flex justify-between items-baseline">
-                  <span className="font-bold text-slate-900">สุทธิ</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ฿
-                    {Number(sale.totalAmount).toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Addresses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-sm border-slate-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <MapPin className="h-4 w-4" />
-                  <CardTitle className="text-base">ที่อยู่วางบิล</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+              <div className="p-4 text-sm text-slate-600 space-y-1 flex-1">
+                <p className="font-bold text-slate-900 text-base">
+                  {sale.customer.name}
+                </p>
+                <p>
                   {[
                     sale.customer.addressLine,
                     sale.customer.subdistrict
@@ -502,224 +253,198 @@ export default function SaleDetailPage({
                     sale.customer.postalCode,
                   ]
                     .filter(Boolean)
-                    .join(" ") || "-"}
+                    .join(" ")}
                 </p>
-              </CardContent>
-            </Card>
+                {sale.customer.taxId && <p>Tax ID: {sale.customer.taxId}</p>}
+                {sale.customer.phone && <p>Tel: {sale.customer.phone}</p>}
+              </div>
+            </div>
 
-            <Card className="shadow-sm border-slate-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <Truck className="h-4 w-4" />
-                  <CardTitle className="text-base">ที่อยู่จัดส่ง</CardTitle>
+            {/* Deliver To */}
+            <div className="flex flex-col">
+              <div className="bg-slate-100/80 px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-sm">
+                ที่อยู่จัดส่ง
+              </div>
+              <div className="p-4 text-sm text-slate-600 whitespace-pre-wrap flex-1">
+                {sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+              </div>
+            </div>
+
+            {/* Reference Info */}
+            <div className="flex flex-col">
+              <div className="bg-slate-100/80 px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-sm">
+                ข้อมูลอ้างอิง
+              </div>
+              <div className="divide-y divide-slate-200">
+                <div className="flex justify-between p-2 px-4 text-sm">
+                  <span className="text-slate-500">วันที่:</span>
+                  <span className="font-medium text-slate-900">
+                    {format(new Date(sale.saleDate), "dd/MM/yyyy", {
+                      locale: th,
+                    })}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                  {sale.shippingAddress || "-"}
-                </p>
-              </CardContent>
-            </Card>
+                <div className="flex justify-between p-2 px-4 text-sm">
+                  <span className="text-slate-500">เลขที่:</span>
+                  <span className="font-medium text-slate-900">
+                    {sale.saleNumber}
+                  </span>
+                </div>
+                <div className="flex justify-between p-2 px-4 text-sm">
+                  <span className="text-slate-500">เงื่อนไขการชำระเงิน:</span>
+                  <span className="font-medium text-slate-900">
+                    {paymentTermLabel}
+                  </span>
+                </div>
+                {sale.creditDueDate && (
+                  <div className="flex justify-between p-2 px-4 text-sm">
+                    <span className="text-slate-500">วันที่ครบกำหนด:</span>
+                    <span className="font-medium text-red-600">
+                      {format(new Date(sale.creditDueDate!), "dd/MM/yyyy", {
+                        locale: th,
+                      })}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between p-2 px-4 text-sm">
+                  <span className="text-slate-500">ผู้ขาย:</span>
+                  <span className="font-medium text-slate-900">
+                    {sale.employee.name}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Notes */}
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-slate-700">
-                <FileText className="h-4 w-4" />
-                <CardTitle className="text-base">หมายเหตุ</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {sale.notes || "-"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Product Table */}
+          <div className="border border-slate-300">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-100/80 text-slate-700 font-semibold border-b border-slate-300">
+                <tr>
+                  <th className="py-2 px-3 text-left border-r border-slate-300 w-32">
+                    รหัสสินค้า
+                  </th>
+                  <th className="py-2 px-3 text-left border-r border-slate-300">
+                    รายละเอียดสินค้า
+                  </th>
+                  <th className="py-2 px-3 text-right border-r border-slate-300 w-20">
+                    จำนวน
+                  </th>
+                  <th className="py-2 px-3 text-right border-r border-slate-300 w-32">
+                    ราคาต่อหน่วย
+                  </th>
+                  <th className="py-2 px-3 text-right w-32">รวม</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {sale.items.map((item) => (
+                  <tr key={item.id}>
+                    <td className="py-3 px-3 text-slate-600 border-r border-slate-300 align-top">
+                      {item.product.productCode}
+                    </td>
+                    <td className="py-3 px-3 text-slate-900 border-r border-slate-300 align-top">
+                      <div>{item.product.name}</div>
+                      {item.priceModified && (
+                        <span className="text-[10px] text-yellow-600 bg-yellow-50 px-1 rounded inline-block mt-1">
+                          *ราคาพิเศษ
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-3 text-right text-slate-900 border-r border-slate-300 align-top">
+                      {item.quantity}
+                    </td>
+                    <td className="py-3 px-3 text-right text-slate-900 border-r border-slate-300 align-top">
+                      {Number(item.unitPrice).toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="py-3 px-3 text-right text-slate-900 font-medium align-top">
+                      {Number(item.totalPrice).toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </td>
+                  </tr>
+                ))}
+                {/* Empty rows filler if needed, or just let it be dynamic */}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Right Column: Summary, Customer, Employee, etc. */}
-        <div className="space-y-6">
-          {/* Customer Card */}
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-slate-500" />
-                ข้อมูลลูกค้า
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="font-semibold text-slate-900 text-lg">
-                  {sale.customer.name}
-                </p>
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs font-normal">
-                      {sale.customer.customerCode}
-                    </Badge>
-                    {sale.customer.taxId && (
-                      <span className="text-xs text-slate-500">
-                        Tax ID: {sale.customer.taxId}
-                      </span>
-                    )}
-                  </div>
+          {/* Footer Section (Notes & Totals) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column: Notes & Signatures */}
+            <div className="space-y-6">
+              {sale.notes && (
+                <div className="border border-slate-300 rounded-sm p-3">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">
+                    หมายเหตุ
+                  </h4>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                    {sale.notes}
+                  </p>
                 </div>
-              </div>
-              <Separator />
-              <div className="space-y-2 text-sm text-slate-600">
-                {sale.customer.phone && (
-                  <div className="flex items-start gap-2">
-                    <span className="w-16 text-slate-400 shrink-0">โทร</span>
-                    <span>{sale.customer.phone}</span>
-                  </div>
-                )}
-                {sale.customer.email && (
-                  <div className="flex items-start gap-2">
-                    <span className="w-16 text-slate-400 shrink-0">อีเมล</span>
-                    <span className="truncate">{sale.customer.email}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
 
-          {/* Payment Info Card */}
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-slate-500" />
-                การชำระเงิน
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between items-center bg-slate-50 p-2 rounded">
-                <span className="text-slate-500">เงื่อนไข</span>
-                <span className="font-medium text-slate-900">
-                  {paymentTermLabel}
+            {/* Right Column: Totals */}
+            <div className="flex flex-col gap-2 max-w-sm ml-auto w-full">
+              <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
+                <span className="font-semibold text-slate-600 text-sm">
+                  รวมเป็นเงิน
+                </span>
+                <span className="font-bold text-slate-900">
+                  {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
                 </span>
               </div>
 
-              {sale.paymentTerm !== "PREPAID" && (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">เครดิต</span>
-                    <span>{sale.creditDays} วัน</span>
-                  </div>
-                  {sale.creditDueDate && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">ครบกำหนด</span>
-                      <span className="text-red-600 font-medium">
-                        {format(new Date(sale.creditDueDate), "dd MMM yyyy", {
-                          locale: th,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Credit Info */}
-          {sale.paymentTerm !== "PREPAID" && (
-            <Card className="shadow-sm border-slate-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-slate-500" />
-                  ข้อมูลวงเงินเครดิต
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-slate-500 block text-xs">
-                      วงเงินเครดิต
-                    </span>
-                    <span className="font-medium">
-                      ฿{creditInfo.creditLimit.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-xs">
-                      คงเหลือ
-                    </span>
-                    <span className="font-medium text-green-600">
-                      ฿{creditInfo.availableCredit.toLocaleString()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-xs">
-                      ใช้ไปแล้ว
-                    </span>
-                    <span>฿{creditInfo.usedCredit.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-xs">
-                      ยอดขายนี้
-                    </span>
-                    <span>
-                      ฿{creditInfo.currentSaleAmount.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                {sale.usePromotionalCredit && creditInfo.promotionalCredit && (
-                  <>
-                    <Separator />
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <span className="text-slate-500 block text-xs">
-                          วงเงินโปรโมชั่น
-                        </span>
-                        <span>
-                          ฿{creditInfo.promotionalCredit.toLocaleString()}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 block text-xs">
-                          ใช้โปรโมชั่น
-                        </span>
-                        <span>
-                          ฿
-                          {(
-                            creditInfo.promotionalCreditUsed || 0
-                          ).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Employee Card */}
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-4 w-4 text-slate-500" />
-                ผู้ดูแลการขาย
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                  <User className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">
-                    {sale.employee.name}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {sale.employee.employeeCode || "ไม่มีรหัสพนักงาน"}
-                  </p>
-                </div>
+              <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
+                <span className="font-semibold text-slate-600 text-sm">
+                  Shipping / ค่าขนส่ง
+                </span>
+                <span className="font-bold text-slate-900">
+                  {Number(sale.shippingCost).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
               </div>
-            </CardContent>
-          </Card>
+
+              {Number(sale.otherCosts) > 0 && (
+                <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
+                  <span className="font-semibold text-slate-600 text-sm">
+                    {sale.otherCostsDescription || "Other Costs"}
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {Number(sale.otherCosts).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
+
+              {/* VAT Row if applicable - placeholder logic as VAT isn't explicit in schema yet but implied in invoice */}
+              {/* <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
+                <span className="font-semibold text-slate-600 text-sm">
+                  Total VAT (7%)
+                </span>
+                <span className="font-bold text-slate-900">0.00</span>
+              </div> */}
+
+              <div className="flex justify-between items-center p-3 bg-slate-100 border border-slate-300 rounded-sm mt-2">
+                <span className="font-bold text-slate-800 text-base">
+                  รวมเป็นเงิน
+                </span>
+                <span className="font-bold text-blue-700 text-xl">
+                  {Number(sale.totalAmount).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
