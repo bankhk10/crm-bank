@@ -728,8 +728,10 @@ function useColumns(
               variant="outline"
               className="text-xs bg-blue-100 text-blue-800"
             >
-              {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
-                value}
+              {(
+                PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
+                value
+              ).replace(/\s*\(.*?\)/, "")}
             </Badge>
           );
         },
