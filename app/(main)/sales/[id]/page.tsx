@@ -388,23 +388,27 @@ export default function SaleDetailPage({
                 </span>
               </div>
 
-              <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
-                <span className="font-semibold text-slate-600 text-sm">
-                  Shipping / ค่าขนส่ง
-                </span>
-                <span className="font-bold text-slate-900">
-                  {Number(sale.shippingCost).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
+              {Number(sale.shippingCost) > 0 && (
+                <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
+                  <span className="font-semibold text-slate-600 text-sm">
+                    ส่วนค่าขนส่ง
+                  </span>
+                  <span className="font-bold text-red-500">
+                    -
+                    {Number(sale.shippingCost).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
 
               {Number(sale.otherCosts) > 0 && (
                 <div className="flex justify-between items-center p-2 border border-slate-300 rounded-sm">
                   <span className="font-semibold text-slate-600 text-sm">
-                    {sale.otherCostsDescription || "Other Costs"}
+                    ส่วนลดหน้าบิล
                   </span>
-                  <span className="font-bold text-slate-900">
+                  <span className="font-bold text-red-500">
+                    -
                     {Number(sale.otherCosts).toLocaleString("th-TH", {
                       minimumFractionDigits: 2,
                     })}
