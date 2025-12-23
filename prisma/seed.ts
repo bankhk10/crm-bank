@@ -725,17 +725,17 @@ async function main() {
   // 2. Create Roles
   const salesRepRole = await prisma.role.create({
     data: {
-      name: "Sales Representative",
-      slug: "sales_rep",
-      description: "Sales Representative Role",
+      name: "พนักงานขาย",
+      slug: "sales_employee",
+      description: "พนักงานขาย",
     },
   });
 
   const salesManagerRole = await prisma.role.create({
     data: {
-      name: "Sales Manager",
+      name: "ผู้จัดการขาย",
       slug: "sales_manager",
-      description: "Sales Manager Role",
+      description: "ผู้จัดการขาย",
     },
   });
 
