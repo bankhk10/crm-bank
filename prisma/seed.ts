@@ -170,86 +170,53 @@ async function main() {
     }),
   ]);
 
-  const [salesManager, salesRep, csLead, csAgent, opsAnalyst] =
-    await Promise.all([
-      prisma.position.create({
-        data: {
-          name: "Sales Manager",
-          level: 3,
-          isManagerial: true,
-          departmentId: sales.id,
-        },
-      }),
-      prisma.position.create({
-        data: {
-          name: "Sales Representative",
-          level: 1,
-          departmentId: sales.id,
-        },
-      }),
-      prisma.position.create({
-        data: {
-          name: "CS Lead",
-          level: 3,
-          isManagerial: true,
-          departmentId: cs.id,
-        },
-      }),
-      prisma.position.create({
-        data: {
-          name: "CS Agent",
-          level: 1,
-          departmentId: cs.id,
-        },
-      }),
-      prisma.position.create({
-        data: {
-          name: "Operations Analyst",
-          level: 2,
-          departmentId: ops.id,
-        },
-      }),
-    ]);
-
-  const roles = await prisma.$transaction([
-    prisma.role.create({
+  const [, , , , opsAnalyst] = await Promise.all([
+    prisma.position.create({
       data: {
-        name: "Administrator",
-        slug: "administrator",
-        description: "Full access to every module",
-        isSystem: true,
+        name: "Sales Manager",
+        level: 3,
+        isManagerial: true,
+        departmentId: sales.id,
       },
     }),
-    prisma.role.create({
-      data: {
-        name: "Manager",
-        slug: "manager",
-        description: "Department manager with approval capabilities",
-        isSystem: true,
-      },
-    }),
-    prisma.role.create({
+    prisma.position.create({
       data: {
         name: "Sales Representative",
-        slug: "sales_rep",
-        description: "Standard sales access",
+        level: 1,
+        departmentId: sales.id,
+      },
+    }),
+    prisma.position.create({
+      data: {
+        name: "CS Lead",
+        level: 3,
+        isManagerial: true,
+        departmentId: cs.id,
+      },
+    }),
+    prisma.position.create({
+      data: {
+        name: "CS Agent",
+        level: 1,
+        departmentId: cs.id,
+      },
+    }),
+    prisma.position.create({
+      data: {
+        name: "Operations Analyst",
+        level: 2,
+        departmentId: ops.id,
       },
     }),
   ]);
 
-  const [adminRole, managerRole, salesRole] = roles;
-
-  await prisma.position.update({
-    where: { id: salesManager.id },
-    data: { defaultRoleId: managerRole.id },
-  });
-  await prisma.position.update({
-    where: { id: salesRep.id },
-    data: { defaultRoleId: salesRole.id },
-  });
-  await prisma.position.update({
-    where: { id: csLead.id },
-    data: { defaultRoleId: managerRole.id },
+  const adminRole = await prisma.role.create({
+    data: {
+      name: "Administrator",
+      slug: "administrator",
+      description: "Full access to every module",
+      isSystem: true,
+    },
   });
 
   const permissions = await prisma.$transaction([
@@ -701,72 +668,6 @@ async function main() {
       roleId: adminRole.id,
       allow: true,
       dataAccess: "VIEW_ALL",
-    })),
-  });
-
-  await prisma.rolePermission.createMany({
-    data: [
-      "menu.reports",
-      "menu.sales",
-      "menu.companies",
-      "menu.customers",
-      "menu.credit_limits",
-      "menu.fulfillment",
-      "menu.products",
-      "sale.create",
-      "sale.edit",
-      "sale.view",
-      "sale.approve",
-      "sale.confirm-payment",
-      "sale.manage_fulfillment",
-      "product.create",
-      "product.update",
-      "product.delete",
-      "product.view",
-      "product.manage",
-      "company.create",
-      "company.edit",
-      "company.delete",
-      "customer.create.dealer",
-      "customer.create.subdealer",
-      "customer.create.farmer",
-      "customer.create.broker",
-      "customer.edit",
-      "customer.delete",
-      "customer.view",
-      "creditlimit.create",
-      "creditlimit.edit",
-      "creditlimit.delete",
-      "creditlimit.view",
-      "randomize",
-      "data.products",
-      "data.customers",
-      "data.creditlimits",
-    ].map((key) => ({
-      roleId: managerRole.id,
-      permissionId: permissionMap[key].id,
-      allow: true,
-      dataAccess: key.startsWith("data") ? "VIEW_DEPARTMENT" : null,
-    })),
-  });
-
-  await prisma.rolePermission.createMany({
-    data: [
-      "menu.reports",
-      "menu.sales",
-      "menu.products",
-      "sale.create",
-      "sale.edit",
-      "sale.view",
-      "product.create",
-      "product.update",
-      "product.view",
-      "data.products",
-    ].map((key) => ({
-      roleId: salesRole.id,
-      permissionId: permissionMap[key].id,
-      allow: true,
-      dataAccess: key.startsWith("data") ? "VIEW_OWN" : null,
     })),
   });
 
