@@ -21,7 +21,6 @@ import {
   ShieldCheck,
   PackageSearch,
   UserCog,
-  DollarSign,
   Home,
   FileChartPie,
   ClipboardList,
@@ -29,7 +28,11 @@ import {
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
-import { getDefaultRouteForRoles } from "@/lib/rbac";
+import {
+  getDefaultRouteForRoles,
+  isAdministrator,
+  isManager,
+} from "@/lib/rbac";
 
 interface SidebarChildItem {
   href: string;
@@ -127,8 +130,7 @@ export default function Sidebar({
     );
 
     const dashboardHref = getDefaultRouteForRoles(roles);
-    const isDashboard =
-      roles.includes("administrator") || roles.includes("manager");
+    const isDashboard = isAdministrator(roles) || isManager(roles);
     const dashboardLabel = isDashboard ? "แดชบอร์ด" : "หน้าแรก";
     const DashboardIcon = isDashboard ? LayoutDashboard : Home;
 

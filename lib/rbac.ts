@@ -124,11 +124,21 @@ export function isAuthorized(
   return rule.required.every((key) => permissionMap[key]?.allow);
 }
 
+// Helper to check for Administrator role type
+export function isAdministrator(roles: string[]): boolean {
+  return roles.some((role) => role === "administrator");
+}
+
+// Helper to check for Manager role type (e.g., sales_manager, manager)
+export function isManager(roles: string[]): boolean {
+  return roles.some((role) => role.toLowerCase().includes("manager"));
+}
+
 export function getDefaultRouteForRoles(roles: string[]): string {
-  if (roles.includes("administrator")) {
+  if (isAdministrator(roles)) {
     return "/dashboard/admin";
   }
-  if (roles.includes("manager")) {
+  if (isManager(roles)) {
     return "/dashboard/manager";
   }
   return DEFAULT_AUTH_REDIRECT;
