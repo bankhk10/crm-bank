@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -176,7 +177,7 @@ export default function RBACConsole() {
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [activeRoleId, setActiveRoleId] = useState<string | null>(null);
+
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
   const roleForm = useForm<z.infer<typeof roleSchema>>({
@@ -254,11 +255,6 @@ export default function RBACConsole() {
       positionForm.reset({ name: "", level: 1, departmentId: undefined });
     }
   }, [posDialogOpen, editingPositionId, positionForm]);
-
-  const selectedRole = useMemo(
-    () => summary?.roles.find((role) => role.id === activeRoleId) ?? null,
-    [summary, activeRoleId]
-  );
 
   const selectedUser = useMemo(
     () => summary?.users.find((user) => user.id === activeUserId) ?? null,
@@ -601,136 +597,6 @@ export default function RBACConsole() {
     fetchSummary();
   };
 
-  const togglePermission = async (
-    permissionId: string,
-    allow: boolean,
-    dataAccess?: DataAccessLevel | null
-  ) => {
-    if (!selectedRole) return;
-    const existing = selectedRole.permissions.find(
-      (entry) => entry.permissionId === permissionId
-    );
-    const basePermission =
-      existing?.permission ??
-      summary!.permissions.find((perm) => perm.id === permissionId)!;
-    const next = selectedRole.permissions.filter(
-      (entry) => entry.permissionId !== permissionId
-    );
-    next.push({
-      ...(existing ?? {
-        id: "",
-        createdAt: new Date(),
-        deletedAt: null,
-        roleId: selectedRole.id,
-        permissionId,
-        allow: false,
-        dataAccess: null,
-        permission: basePermission,
-      }),
-      permissionId,
-      roleId: selectedRole.id,
-      allow,
-      dataAccess: dataAccess ?? existing?.dataAccess ?? null,
-      permission: basePermission,
-    });
-
-    const response = await fetch(
-      `/api/rbac/roles/${selectedRole.id}/permissions`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          permissions: next.map((entry) => ({
-            permissionId: entry.permissionId,
-            allow: entry.allow,
-            dataAccess: entry.dataAccess,
-          })),
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      let msg = "อัปเดตสิทธิ์ไม่สำเร็จ";
-      try {
-        const body = await response.json();
-        if (body?.error) msg = body.error;
-        if (body?.issues) console.error(body.issues);
-      } catch (e) {
-        console.error("Error parsing response:", e);
-      }
-      notify("error", msg);
-      return;
-    }
-
-    notify("success", "บันทึกสิทธิ์เรียบร้อย");
-    fetchSummary();
-  };
-
-  const toggleGroupPermissions = async (category: string, allow: boolean) => {
-    if (!selectedRole || !summary) return;
-
-    const categoryPermIds = summary.permissions
-      .filter((p) => p.category === category)
-      .map((p) => p.id);
-
-    // Get current state of permissions
-    // We need to preserve permissions NOT in this category
-    const otherPermissions = selectedRole.permissions
-      .filter((rp) => !categoryPermIds.includes(rp.permissionId))
-      .map((rp) => ({
-        permissionId: rp.permissionId,
-        allow: rp.allow,
-        dataAccess: rp.dataAccess,
-      }));
-
-    // Create new state for permissions IN this category
-    const categoryPermissions = categoryPermIds.map((permId) => {
-      // preserve existing setting if available (mostly for dataAccess)
-      const existing = selectedRole.permissions.find(
-        (rp) => rp.permissionId === permId
-      );
-      return {
-        permissionId: permId,
-        allow: allow,
-        dataAccess: existing?.dataAccess ?? null,
-      };
-    });
-
-    const payload = [...otherPermissions, ...categoryPermissions];
-
-    const response = await fetch(
-      `/api/rbac/roles/${selectedRole.id}/permissions`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          permissions: payload,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      let msg = "ไม่สามารถอัปเดตสิทธิ์ทั้งหมดได้";
-      try {
-        const body = await response.json();
-        if (body?.error) msg = body.error;
-        if (body?.issues) console.error("Validation issues:", body.issues);
-      } catch (e) {
-        console.error("Error parsing response:", e);
-      }
-      notify("error", msg);
-      return;
-    }
-
-    notify(
-      "success",
-      allow
-        ? `เปิดสิทธิ์ ${category} ทั้งหมดแล้ว`
-        : `ปิดสิทธิ์ ${category} ทั้งหมดแล้ว`
-    );
-    fetchSummary();
-  };
-
   const handleDeleteRole = async (roleId: string) => {
     if (
       !confirm(
@@ -974,10 +840,10 @@ export default function RBACConsole() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>จัดการ</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => setActiveRoleId(role.id)}
-                          >
-                            <Settings className="mr-2 h-4 w-4" /> กำหนดสิทธิ์
+                          <DropdownMenuItem asChild>
+                            <Link href={`/rbac/${role.id}`}>
+                              <Settings className="mr-2 h-4 w-4" /> กำหนดสิทธิ์
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -1752,146 +1618,6 @@ export default function RBACConsole() {
           </div>
         </TabsContent>
       </Tabs>
-
-      {/* GLOBAL DIALOG: PERMISSION MANAGEMENT FOR SPECIFIC ROLE */}
-      {selectedRole && (
-        <Dialog
-          open={Boolean(selectedRole)}
-          onOpenChange={(open) => !open && setActiveRoleId(null)}
-        >
-          <DialogContent className="flex flex-col max-h-[90vh] h-[90vh] w-full max-w-5xl p-0 gap-0 overflow-hidden">
-            <DialogHeader className="px-6 py-4 border-b shrink-0 bg-white z-10">
-              <DialogTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Permission Settings:{" "}
-                <span className="text-primary">{selectedRole.name}</span>
-              </DialogTitle>
-              <DialogDescription>
-                กำหนดสิทธิ์การเข้าถึงสำหรับ Role นี้
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
-              <div className="grid gap-8">
-                {/* Group Permissions by Category */}
-                {["MENU", "ACTION", "DATA"].map((category) => {
-                  const permsInCategory = sortedPermissions.filter(
-                    (p) => p.category === category
-                  );
-                  if (permsInCategory.length === 0) return null;
-                  const areAllSelected = permsInCategory.every((p) => {
-                    const current = selectedRole.permissions.find(
-                      (entry) => entry.permissionId === p.id
-                    );
-                    return current?.allow;
-                  });
-
-                  return (
-                    <div key={category} className="space-y-4">
-                      <div className="flex items-center justify-between border-b pb-2 mb-4 bg-slate-100/50 p-2 rounded-t-md">
-                        <h3 className="font-bold text-sm text-primary uppercase tracking-wider">
-                          {category} PERMISSIONS ({permsInCategory.length})
-                        </h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
-                          onClick={() =>
-                            toggleGroupPermissions(category, !areAllSelected)
-                          }
-                        >
-                          {areAllSelected ? "Deselect All" : "Select All"}
-                        </Button>
-                      </div>
-                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                        {permsInCategory.map((permission) => {
-                          const current = selectedRole.permissions.find(
-                            (entry) => entry.permissionId === permission.id
-                          );
-                          const isChecked = current?.allow ?? false;
-                          return (
-                            <div
-                              key={permission.id}
-                              className={`flex flex-col justify-between gap-3 rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all h-full ${
-                                isChecked
-                                  ? "ring-2 ring-primary/20 border-primary/50 bg-primary/5"
-                                  : ""
-                              }`}
-                            >
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1 min-w-0 space-y-1">
-                                  <p className="font-medium text-sm text-pretty leading-snug break-words">
-                                    {permission.name}
-                                  </p>
-                                  <p
-                                    className="text-xs text-muted-foreground font-mono truncate text-pretty opacity-80"
-                                    title={permission.key}
-                                  >
-                                    {permission.key}
-                                  </p>
-                                </div>
-                                <Switch
-                                  className="shrink-0 mt-0.5"
-                                  checked={isChecked}
-                                  onCheckedChange={(checked) =>
-                                    togglePermission(permission.id, checked)
-                                  }
-                                />
-                              </div>
-
-                              {/* Conditionals for DATA Access */}
-                              {isChecked && permission.category === "DATA" && (
-                                <div className="mt-auto pt-3 border-t border-primary/10">
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <label className="text-[10px] font-bold uppercase text-primary/70 tracking-tight">
-                                      Data Scope
-                                    </label>
-                                  </div>
-                                  <Select
-                                    value={current?.dataAccess ?? undefined}
-                                    onValueChange={(value) =>
-                                      togglePermission(
-                                        permission.id,
-                                        true,
-                                        value as DataAccessLevel
-                                      )
-                                    }
-                                  >
-                                    <SelectTrigger className="h-8 text-xs bg-white/50 border-primary/20 focus:ring-primary/20">
-                                      <SelectValue placeholder="Select Scope" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {dataAccessOptions.map((option) => (
-                                        <SelectItem
-                                          key={option.value}
-                                          value={option.value}
-                                          className="text-xs"
-                                        >
-                                          {option.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="p-4 border-t bg-white shrink-0 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setActiveRoleId(null)}>
-                ปิดหน้าต่าง
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
