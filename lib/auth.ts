@@ -9,19 +9,19 @@ import { buildDataAccessByResource, buildPermissionMap } from "./rbac";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
   },
   providers: [
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
         const parsed = credentialsSchema.safeParse(credentials);
@@ -39,14 +39,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 role: {
                   include: {
                     permissions: {
-                      include: { permission: true }
-                    }
-                  }
-                }
-              }
+                      where: { deletedAt: null },
+                      include: { permission: true },
+                    },
+                  },
+                },
+              },
             },
-            permissionOverrides: { where: { deletedAt: null }, include: { permission: true } }
-          }
+            permissionOverrides: {
+              where: { deletedAt: null },
+              include: { permission: true },
+            },
+          },
         });
         if (!user) {
           return null;
@@ -56,8 +60,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!passwordMatches) {
           return null;
         }
-        const rolePermissions = user.userRoles.flatMap((userRole) => userRole.role.permissions);
-        const permissionMap = buildPermissionMap(rolePermissions, user.permissionOverrides);
+        const rolePermissions = user.userRoles.flatMap(
+          (userRole) => userRole.role.permissions
+        );
+        const permissionMap = buildPermissionMap(
+          rolePermissions,
+          user.permissionOverrides
+        );
         const dataAccessByResource = buildDataAccessByResource(permissionMap);
         const roles = user.userRoles.map((userRole) => userRole.role.slug);
 
@@ -69,7 +78,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           permissions: permissionMap,
           departmentId: user.departmentId,
           positionId: user.positionId,
-          dataAccessByResource
+          dataAccessByResource,
         } satisfies {
           id: string;
           name: string;
@@ -80,11 +89,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           positionId?: string | null;
           dataAccessByResource: Record<string, DataAccessLevel>;
         };
-      }
-    })
+      },
+    }),
   ],
   pages: {
-    signIn: "/login"
+    signIn: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -114,25 +123,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 include: {
                   role: {
                     include: {
-                      permissions: { include: { permission: true } }
-                    }
-                  }
-                }
+                      permissions: {
+                        where: { deletedAt: null },
+                        include: { permission: true },
+                      },
+                    },
+                  },
+                },
               },
-              permissionOverrides: { where: { deletedAt: null }, include: { permission: true } }
-            }
+              permissionOverrides: {
+                where: { deletedAt: null },
+                include: { permission: true },
+              },
+            },
           });
           if (fresh) {
-            const rolePermissions = fresh.userRoles.flatMap((ur) => ur.role.permissions);
-            const permissionMap = buildPermissionMap(rolePermissions, fresh.permissionOverrides);
-            const dataAccessByResource = buildDataAccessByResource(permissionMap);
+            const rolePermissions = fresh.userRoles.flatMap(
+              (ur) => ur.role.permissions
+            );
+            const permissionMap = buildPermissionMap(
+              rolePermissions,
+              fresh.permissionOverrides
+            );
+            const dataAccessByResource =
+              buildDataAccessByResource(permissionMap);
             token.roles = fresh.userRoles.map((ur) => ur.role.slug);
             token.permissions = permissionMap;
             token.departmentId = fresh.departmentId ?? null;
             token.positionId = fresh.positionId ?? null;
             token.dataAccessByResource = dataAccessByResource;
           }
-        } catch (e) {
+        } catch {
           // Silent fail: keep old token data
         }
       }
@@ -142,14 +163,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.sub ?? "";
         session.user.roles = (token.roles as string[]) ?? [];
-        session.user.permissions = (token.permissions as Record<string, SessionPermission>) ?? {};
-        session.user.departmentId = (token.departmentId as string | null) ?? null;
+        session.user.permissions =
+          (token.permissions as Record<string, SessionPermission>) ?? {};
+        session.user.departmentId =
+          (token.departmentId as string | null) ?? null;
         session.user.positionId = (token.positionId as string | null) ?? null;
         session.user.dataAccessByResource =
           (token.dataAccessByResource as Record<string, DataAccessLevel>) ?? {};
       }
 
       return session;
-    }
-  }
+    },
+  },
 });
