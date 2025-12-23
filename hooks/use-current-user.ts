@@ -19,6 +19,7 @@ export function useCurrentUser(): CurrentUser | null {
     departmentId: sessionUser.departmentId,
     positionId: sessionUser.positionId,
     permissions: sessionUser.permissions ?? {},
-    dataAccessByResource: sessionUser.dataAccessByResource ?? {}
+    dataAccessByResource: sessionUser.dataAccessByResource ?? {},
+    employeeId: sessionUser.employeeId,
   };
 }

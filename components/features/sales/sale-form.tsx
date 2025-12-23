@@ -280,6 +280,18 @@ export function SaleForm({
       .catch((err) => console.error("Error loading data:", err));
   }, []);
 
+  // Auto-fill employeeId for sales_employee users
+  useEffect(() => {
+    if (
+      !isEdit &&
+      !employeeId &&
+      currentUser?.roles?.includes("sales_employee") &&
+      currentUser?.employeeId
+    ) {
+      setEmployeeId(currentUser.employeeId);
+    }
+  }, [currentUser, isEdit, employeeId]);
+
   // Update customer info when customer changes
   useEffect(() => {
     if (customerId) {

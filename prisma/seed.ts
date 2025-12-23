@@ -760,6 +760,7 @@ async function main() {
     { key: "creditlimit.edit", access: "VIEW_OWN" },
     { key: "creditlimit.view", access: "VIEW_OWN" },
     { key: "creditlimit.delete", access: "VIEW_OWN" },
+    { key: "employee.view", access: "VIEW_ALL" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -814,10 +815,10 @@ async function main() {
       })),
   });
 
-  // 4. Create Users (optional but good for testing)
+  // 4. Create Users with Employee Profiles
   const userPassword = await hash("123456", 12);
 
-  await prisma.user.create({
+  const salesUser = await prisma.user.create({
     data: {
       name: "Somchai Sales",
       email: "sales@bank.com",
@@ -828,7 +829,22 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  // Create Employee profile for sales user
+  await prisma.employee.create({
+    data: {
+      name: "Somchai Sales",
+      firstName: "สมชาย",
+      lastName: "ขายดี",
+      email: "sales@bank.com",
+      employeeCode: "EMP001",
+      userId: salesUser.id,
+      departmentId: sales.id,
+      positionId: salesRepPosition.id,
+      status: "ACTIVE",
+    },
+  });
+
+  const managerUser = await prisma.user.create({
     data: {
       name: "Mana Manager",
       email: "manager@bank.com",
@@ -836,6 +852,21 @@ async function main() {
       departmentId: sales.id,
       positionId: salesManagerPosition.id,
       userRoles: { create: { roleId: salesManagerRole.id } },
+    },
+  });
+
+  // Create Employee profile for manager user
+  await prisma.employee.create({
+    data: {
+      name: "Mana Manager",
+      firstName: "มานะ",
+      lastName: "จัดการดี",
+      email: "manager@bank.com",
+      employeeCode: "EMP002",
+      userId: managerUser.id,
+      departmentId: sales.id,
+      positionId: salesManagerPosition.id,
+      status: "ACTIVE",
     },
   });
 }

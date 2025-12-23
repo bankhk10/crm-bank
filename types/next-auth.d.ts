@@ -20,12 +20,14 @@ declare module "next-auth" {
       departmentId?: string | null;
       positionId?: string | null;
       dataAccessByResource: Record<string, DataAccessLevel>;
+      employeeId?: string | null;
     } & DefaultSession["user"];
   }
 
   interface User {
     id: string;
     roles: string[];
+    employeeId?: string | null;
   }
 }
 
@@ -36,5 +38,6 @@ declare module "next-auth/jwt" {
     departmentId?: string | null;
     positionId?: string | null;
     dataAccessByResource?: Record<string, DataAccessLevel>;
+    employeeId?: string | null;
   }
 }

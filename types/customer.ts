@@ -10,4 +10,5 @@ export interface CurrentUser {
   positionId?: string | null;
   permissions: Record<string, SessionPermission>;
   dataAccessByResource: Record<string, DataAccessLevel>;
+  employeeId?: string | null;
 }

@@ -50,6 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               where: { deletedAt: null },
               include: { permission: true },
             },
+            employeeProfile: true,
           },
         });
         if (!user) {
@@ -79,6 +80,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           departmentId: user.departmentId,
           positionId: user.positionId,
           dataAccessByResource,
+          employeeId: user.employeeProfile?.id ?? null,
         } satisfies {
           id: string;
           name: string;
@@ -88,6 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           departmentId?: string | null;
           positionId?: string | null;
           dataAccessByResource: Record<string, DataAccessLevel>;
+          employeeId?: string | null;
         };
       },
     }),
@@ -105,12 +108,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           departmentId?: string | null;
           positionId?: string | null;
           dataAccessByResource?: Record<string, DataAccessLevel>;
+          employeeId?: string | null;
         };
         token.roles = enriched.roles;
         token.permissions = enriched.permissions;
         token.departmentId = enriched.departmentId ?? null;
         token.positionId = enriched.positionId ?? null;
         token.dataAccessByResource = enriched.dataAccessByResource ?? {};
+        token.employeeId = enriched.employeeId ?? null;
       } else if (token.sub) {
         // Subsequent session refresh: re-fetch roles/permissions to reflect any RBAC changes
         // Filter out soft-deleted roles & overrides
@@ -135,6 +140,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 where: { deletedAt: null },
                 include: { permission: true },
               },
+              employeeProfile: true,
             },
           });
           if (fresh) {
@@ -152,6 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.departmentId = fresh.departmentId ?? null;
             token.positionId = fresh.positionId ?? null;
             token.dataAccessByResource = dataAccessByResource;
+            token.employeeId = fresh.employeeProfile?.id ?? null;
           }
         } catch {
           // Silent fail: keep old token data
@@ -170,6 +177,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.positionId = (token.positionId as string | null) ?? null;
         session.user.dataAccessByResource =
           (token.dataAccessByResource as Record<string, DataAccessLevel>) ?? {};
+        session.user.employeeId = (token.employeeId as string | null) ?? null;
       }
 
       return session;
