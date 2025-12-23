@@ -137,7 +137,6 @@ export default function ManagerDashboardPage() {
                     fill="#8884d8"
                     fillOpacity={0.2}
                   />
-                  <Tooltip cursor={false} content={<></>} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
