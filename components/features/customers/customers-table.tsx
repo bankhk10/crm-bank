@@ -59,6 +59,10 @@ export interface CustomersTableProps {
   data: CustomerRecord[];
   loading?: boolean;
   canCreate: boolean;
+  canCreateDealer?: boolean;
+  canCreateSubdealer?: boolean;
+  canCreateFarmer?: boolean;
+  canCreateBroker?: boolean;
   canDelete: boolean;
   onDeleteRequest: (customer: CustomerRecord) => void;
   searchValue: string;
@@ -520,6 +524,10 @@ function ParentDealerInfo({
 // Toolbar Component
 function CustomersToolbar({
   canCreate,
+  canCreateDealer,
+  canCreateSubdealer,
+  canCreateFarmer,
+  canCreateBroker,
   searchValue,
   onSearchChange,
   onSearchSubmit,
@@ -530,6 +538,10 @@ function CustomersToolbar({
 }: Pick<
   CustomersTableProps,
   | "canCreate"
+  | "canCreateDealer"
+  | "canCreateSubdealer"
+  | "canCreateFarmer"
+  | "canCreateBroker"
   | "searchValue"
   | "onSearchChange"
   | "onSearchSubmit"
@@ -541,6 +553,16 @@ function CustomersToolbar({
   const customerTypes = Object.keys(customerTypeStyle) as Array<
     keyof typeof customerTypeStyle
   >;
+
+  // Map customer types to their permission flags
+  const typePermissions: Record<string, boolean> = {
+    DEALER: canCreateDealer ?? false,
+    SUBDEALER: canCreateSubdealer ?? false,
+    FARMER: canCreateFarmer ?? false,
+    BROKER: canCreateBroker ?? false,
+  };
+
+  const allowedTypes = customerTypes.filter((type) => typePermissions[type]);
 
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4">
@@ -607,9 +629,9 @@ function CustomersToolbar({
       {/* Create Buttons */}
       <div className="grid gap-4 lg:items-end mt-4">
         <div className="flex flex-wrap gap-2 items-center lg:justify-end">
-          {canCreate ? (
+          {canCreate && allowedTypes.length > 0 ? (
             <>
-              {customerTypes.map((type) => (
+              {allowedTypes.map((type) => (
                 <Link key={type} href={`/customers/new?type=${type}`}>
                   <Button className={customerTypeStyle[type].buttonColor}>
                     <span className="inline-flex items-center gap-2">
@@ -847,6 +869,10 @@ export function CustomersTable(props: CustomersTableProps) {
     data,
     loading,
     canCreate,
+    canCreateDealer,
+    canCreateSubdealer,
+    canCreateFarmer,
+    canCreateBroker,
     canDelete,
     onDeleteRequest,
     searchValue,
@@ -863,6 +889,10 @@ export function CustomersTable(props: CustomersTableProps) {
 
   const toolbarProps = {
     canCreate,
+    canCreateDealer,
+    canCreateSubdealer,
+    canCreateFarmer,
+    canCreateBroker,
     searchValue,
     onSearchChange,
     onSearchSubmit,

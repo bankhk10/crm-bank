@@ -13,11 +13,12 @@ import { UserCog } from "lucide-react";
 
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
+  const canCreateDealer = hasPermission("customer.create.dealer");
+  const canCreateSubdealer = hasPermission("customer.create.subdealer");
+  const canCreateFarmer = hasPermission("customer.create.farmer");
+  const canCreateBroker = hasPermission("customer.create.broker");
   const canCreate =
-    hasPermission("customer.create.dealer") ||
-    hasPermission("customer.create.subdealer") ||
-    hasPermission("customer.create.farmer") ||
-    hasPermission("customer.create.broker");
+    canCreateDealer || canCreateSubdealer || canCreateFarmer || canCreateBroker;
   const canView = !isLoading && allowed;
 
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
@@ -220,6 +221,10 @@ export default function CustomersPage() {
             data={customers}
             loading={loading}
             canCreate={canCreate}
+            canCreateDealer={canCreateDealer}
+            canCreateSubdealer={canCreateSubdealer}
+            canCreateFarmer={canCreateFarmer}
+            canCreateBroker={canCreateBroker}
             canDelete={hasPermission("customer.delete")}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
