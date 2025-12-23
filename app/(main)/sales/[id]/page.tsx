@@ -306,6 +306,72 @@ export default function SaleDetailPage({
                         </td>
                       </tr>
                     ))}
+                    {/* Summary Rows */}
+                    <tr className="border-t border-slate-100">
+                      <td
+                        colSpan={3}
+                        className="py-3 px-4 text-right font-medium text-slate-600"
+                      >
+                        รวมเป็นเงิน
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-900">
+                        ฿
+                        {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-3 px-4 text-right font-medium text-slate-600"
+                      >
+                        ค่าขนส่ง
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-slate-900">
+                        ฿
+                        {Number(sale.shippingCost).toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
+                    {Number(sale.otherCosts) > 0 && (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="py-3 px-4 text-right font-medium text-slate-600"
+                        >
+                          <span className="flex items-center justify-end gap-1">
+                            ค่าใช้จ่ายอื่นๆ
+                            {sale.otherCostsDescription && (
+                              <span title={sale.otherCostsDescription}>
+                                <Info className="h-3 w-3 text-slate-400" />
+                              </span>
+                            )}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right font-medium text-slate-900">
+                          ฿
+                          {Number(sale.otherCosts).toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="bg-slate-50/50 border-t border-slate-200">
+                      <td
+                        colSpan={3}
+                        className="py-4 px-4 text-right font-bold text-slate-900 text-lg"
+                      >
+                        สุทธิ
+                      </td>
+                      <td className="py-4 px-4 text-right font-bold text-blue-600 text-lg">
+                        ฿
+                        {Number(sale.totalAmount).toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -362,59 +428,55 @@ export default function SaleDetailPage({
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Summary Card */}
-          <Card className="shadow-md border-blue-100 bg-white">
-            <CardContent className="space-y-3 pt-6">
-              <div className="flex justify-between text-slate-600">
-                <span>รวมเป็นเงิน</span>
-                <span>
-                  ฿
-                  {Number(sale.subtotalAmount).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>ค่าขนส่ง</span>
-                <span>
-                  ฿
-                  {Number(sale.shippingCost).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              {Number(sale.otherCosts) > 0 && (
-                <div className="flex justify-between text-slate-600">
-                  <span className="flex items-center gap-1">
-                    ค่าใช้จ่ายอื่นๆ
-                    {sale.otherCostsDescription && (
-                      <span title={sale.otherCostsDescription}>
-                        <Info className="h-3 w-3 text-slate-400" />
-                      </span>
-                    )}
-                  </span>
+              {/* Mobile Summary Section */}
+              <div className="md:hidden border-t border-slate-100 p-4 space-y-3 bg-slate-50/50">
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>รวมเป็นเงิน</span>
                   <span>
                     ฿
-                    {Number(sale.otherCosts).toLocaleString("th-TH", {
+                    {Number(sale.subtotalAmount).toLocaleString("th-TH", {
                       minimumFractionDigits: 2,
                     })}
                   </span>
                 </div>
-              )}
-              <Separator className="my-3" />
-              <div className="flex justify-between items-baseline">
-                <span className="text-lg font-semibold text-slate-900">
-                  สุทธิ
-                </span>
-                <span className="text-2xl font-bold text-blue-600">
-                  ฿
-                  {Number(sale.totalAmount).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>ค่าขนส่ง</span>
+                  <span>
+                    ฿
+                    {Number(sale.shippingCost).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                {Number(sale.otherCosts) > 0 && (
+                  <div className="flex justify-between text-sm text-slate-600">
+                    <span className="flex items-center gap-1">
+                      ค่าใช้จ่ายอื่นๆ
+                      {sale.otherCostsDescription && (
+                        <span title={sale.otherCostsDescription}>
+                          <Info className="h-3 w-3 text-slate-400" />
+                        </span>
+                      )}
+                    </span>
+                    <span>
+                      ฿
+                      {Number(sale.otherCosts).toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                )}
+                <Separator className="my-2" />
+                <div className="flex justify-between items-baseline">
+                  <span className="font-bold text-slate-900">สุทธิ</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    ฿
+                    {Number(sale.totalAmount).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
