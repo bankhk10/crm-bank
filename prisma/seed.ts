@@ -770,11 +770,7 @@ async function main() {
     })),
   });
 
-  const [adminPassword, managerPassword, sellerPassword] = await Promise.all([
-    hash("b@b.com", 12),
-    hash("manager123", 12),
-    hash("seller123", 12),
-  ]);
+  const adminPassword = await hash("b@b.com", 12);
 
   const admin = await prisma.user.create({
     data: {
@@ -788,32 +784,6 @@ async function main() {
       },
     },
     include: { userRoles: true },
-  });
-
-  const manager = await prisma.user.create({
-    data: {
-      name: "Nok Manager",
-      email: "manager@move-crm.local",
-      password: managerPassword,
-      departmentId: sales.id,
-      positionId: salesManager.id,
-      userRoles: {
-        create: { roleId: managerRole.id },
-      },
-    },
-  });
-
-  const seller = await prisma.user.create({
-    data: {
-      name: "View Seller",
-      email: "seller@move-crm.local",
-      password: sellerPassword,
-      departmentId: sales.id,
-      positionId: salesRep.id,
-      userRoles: {
-        create: { roleId: salesRole.id },
-      },
-    },
   });
 }
 
