@@ -258,6 +258,8 @@ export function SaleForm({
     currentUser?.roles?.includes("admin") ||
     currentUser?.roles?.includes("administrator") ||
     false;
+  const isManager = currentUser?.roles?.includes("sales_manager") || false;
+  const canSelectOtherEmployees = isAdmin || isManager;
 
   // Product detail modal
   const [selectedProductDetail, setSelectedProductDetail] =
@@ -668,6 +670,7 @@ export function SaleForm({
           placeholder="เลือกพนักงานขาย"
           searchPlaceholder="ค้นหาพนักงานขาย..."
           emptyText="ไม่พบพนักงานขาย"
+          disabled={!canSelectOtherEmployees}
         />
       </div>
 
