@@ -367,12 +367,6 @@ export default function SaleDetailPage({
 
           {/* Summary Card */}
           <Card className="shadow-md border-blue-100 bg-white">
-            <CardHeader className="bg-blue-50/50 pb-4 border-b border-blue-50">
-              <CardTitle className="text-lg flex items-center gap-2 text-blue-900">
-                <DollarSign className="h-5 w-5" />
-                สรุปยอดรวม
-              </CardTitle>
-            </CardHeader>
             <CardContent className="space-y-3 pt-6">
               <div className="flex justify-between text-slate-600">
                 <span>รวมเป็นเงิน</span>
@@ -660,53 +654,6 @@ export default function SaleDetailPage({
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Meta Info */}
-          <Card className="shadow-sm border-slate-200 bg-slate-50/50">
-            <CardContent className="p-4 space-y-2 text-xs text-slate-500">
-              <div className="flex justify-between">
-                <span>สร้างเมื่อ</span>
-                <span>
-                  {format(new Date(sale.createdAt), "dd/MM/yyyy HH:mm", {
-                    locale: th,
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>สร้างโดย</span>
-                <span>{sale.createdBy.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>แก้ไขล่าสุด</span>
-                <span>
-                  {format(new Date(sale.updatedAt), "dd/MM/yyyy HH:mm", {
-                    locale: th,
-                  })}
-                </span>
-              </div>
-              {sale.approvedBy && (
-                <>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between text-green-700">
-                    <span>อนุมัติโดย</span>
-                    <span>{sale.approvedBy.name}</span>
-                  </div>
-                  <div className="flex justify-between text-green-700">
-                    <span>วันที่อนุมัติ</span>
-                    <span>
-                      {sale.approvedAt
-                        ? format(
-                            new Date(sale.approvedAt),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: th }
-                          )
-                        : "-"}
-                    </span>
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         </div>
