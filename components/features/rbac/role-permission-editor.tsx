@@ -49,19 +49,58 @@ export default function RolePermissionEditor({
   const [currentRole, setCurrentRole] = useState<RoleWithPermissions>(role);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sort permissions like in console
-  const sortedPermissions = [...allPermissions].sort((a, b) => {
-    // Newest first
-    const ta = new Date((a as any).createdAt).getTime();
-    const tb = new Date((b as any).createdAt).getTime();
-    return tb - ta;
+  // Helper to determine group name
+  const getPermissionGroup = (p: Permission) => {
+    let raw = "";
+    if (p.resource) {
+      raw = p.resource;
+    } else if (p.key.startsWith("menu.")) {
+      raw = p.key.split(".")[1] || "Other";
+    } else {
+      // Fallback for actions without resource (e.g. rbac.manage)
+      raw = p.key.split(".")[0];
+    }
+
+    // Normalize specific known keys to common Module Names
+    const lower = raw.toLowerCase();
+    if (lower.includes("sale")) return "Sales";
+    if (lower.includes("product")) return "Products";
+    if (lower.includes("customer")) return "Customers";
+    if (lower.includes("employee")) return "Employees";
+    if (lower.includes("company") || lower.includes("companies"))
+      return "Companies";
+    if (lower.includes("report")) return "Reports";
+    if (
+      lower.includes("rbac") ||
+      lower.includes("role") ||
+      lower.includes("permission")
+    )
+      return "System & RBAC";
+    if (lower.includes("fulfillment")) return "Fulfillment";
+    if (lower.includes("credit")) return "Credit Limits";
+
+    // Default capitalization
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
+  // Group permissions
+  const groupedPermissions = allPermissions.reduce((acc, p) => {
+    const group = getPermissionGroup(p);
+    if (!acc[group]) acc[group] = [];
+    acc[group].push(p);
+    return acc;
+  }, {} as Record<string, Permission[]>);
+
+  // Sort groups: System & RBAC last, otherwise alphabetical
+  const sortedGroupKeys = Object.keys(groupedPermissions).sort((a, b) => {
+    if (a === "System & RBAC") return 1;
+    if (b === "System & RBAC") return -1;
+    return a.localeCompare(b);
   });
 
   const notify = (type: "success" | "error", message: string) => {
     if (type === "error") {
-      alert(message); // Simple alert for now, or use toast if available
-    } else {
-      // toast.success(message)
+      alert(message); // Simple alert for now
     }
   };
 
@@ -70,185 +109,175 @@ export default function RolePermissionEditor({
     allow: boolean,
     dataAccess?: DataAccessLevel | null
   ) => {
-    // Optimistic update
-    const existingIndex = currentRole.permissions.findIndex(
-      (entry) => entry.permissionId === permissionId
-    );
-
+    // Optimistic update logic
     const basePermission = allPermissions.find((p) => p.id === permissionId)!;
-
-    let nextPermissions = [...currentRole.permissions];
-
-    if (existingIndex > -1) {
-      if (!allow && !dataAccess) {
-        // If untoggling, we might want to keep the record but set allow=false?
-        // The Logic in Console was: filter out, then push new state.
-        // Actually the logic in Console was:
-        // filter out existing entry for this permissionId
-        // push new entry
-        nextPermissions = nextPermissions.filter(
-          (p) => p.permissionId !== permissionId
-        );
-      } else {
-        // Update existing
-        nextPermissions[existingIndex] = {
-          ...nextPermissions[existingIndex],
-          allow,
-          dataAccess:
-            dataAccess ?? nextPermissions[existingIndex].dataAccess ?? null,
-        };
-      }
-    }
-
-    // If we filtered it out or it didn't exist, and we want to allow it (or set dataAccess)
-    // Wait, the console logic always pushed a new object after filtering.
-    // Let's replicate that logic exactly to be safe.
-
     const previousPermissions = currentRole.permissions;
-    const existing = previousPermissions.find(
+    const existingIndex = previousPermissions.findIndex(
       (p) => p.permissionId === permissionId
     );
 
-    const next = previousPermissions.filter(
-      (p) => p.permissionId !== permissionId
-    );
-    next.push({
-      ...(existing ?? {
-        id: "",
+    let nextPermissions = [...previousPermissions];
+
+    if (existingIndex > -1) {
+      // Update existing
+      nextPermissions[existingIndex] = {
+        ...nextPermissions[existingIndex],
+        allow,
+        dataAccess:
+          dataAccess ?? nextPermissions[existingIndex].dataAccess ?? null,
+      };
+      // If disabling, we could technically filter it out, but keeping it with allow=false is also fine for UI state
+      // However, to match previous logic of "clean state", let's replicate the filter-then-push or just update.
+      // The previous implementation used filter-then-push to ensure consistent object structure.
+      // Let's stick to update if exists for simplicity, but handle the case of "removing" if that was the intent.
+      // Actually, simplified: just set allow.
+    } else {
+      // Add new
+      nextPermissions.push({
+        id: "temp-" + permissionId,
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
         roleId: currentRole.id,
         permissionId,
-        allow: false,
-        dataAccess: null,
+        allow,
+        dataAccess: dataAccess ?? null,
         permission: basePermission,
-      }),
-      permissionId,
-      roleId: currentRole.id,
-      allow,
-      dataAccess: dataAccess ?? existing?.dataAccess ?? null,
-      permission: basePermission,
-    });
+      });
+    }
 
-    setCurrentRole({ ...currentRole, permissions: next });
+    // Clean up: if allow is false and no dataAccess, maybe removing it from list is cleaner for the API payload?
+    // But API payload expects list of changes.
+    // Let's simpler approach: Always maintain the list in state as "what is currently active/inactive".
+    // For the UI to show "checked", we need the entry to exist AND allow=true.
 
-    // API Call
+    // WAIT: The previous logic was explicitly removing it if !allow && !dataAccess.
+    // Let's refine:
+    if (!allow && !dataAccess) {
+      nextPermissions = nextPermissions.filter(
+        (p) => p.permissionId !== permissionId
+      );
+    } else if (existingIndex === -1 && (allow || dataAccess)) {
+      // (already pushed above)
+    }
+
+    // Update State
+    setCurrentRole({ ...currentRole, permissions: nextPermissions });
     setIsSaving(true);
+
     try {
+      // Prepare payload for JUST this permission change or all?
+      // The API accepts a list. Efficient to send just the changed one?
+      // Or send all? The API uses Upsert. Sending all is safer for "replace" logic but bulkier.
+      // The previous implementation sent ONLY the modified ones in a specific way,
+      // actually looking at the previous code: it rebuilt a payload list based on interaction.
+      // But `togglePermission` built a `next` list of ALL permissions and sent THAT?
+      // No, let's look at the toggle logic I replaced.
+      // It sent: `permissions: next.map(...)` which was the FULL list.
+      // That is safest to ensure full sync.
+
+      const payload = nextPermissions.map((entry) => ({
+        permissionId: entry.permissionId,
+        allow: entry.allow,
+        dataAccess: entry.dataAccess,
+      }));
+
       const response = await fetch(
         `/api/rbac/roles/${currentRole.id}/permissions`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            permissions: next.map((entry) => ({
-              permissionId: entry.permissionId,
-              allow: entry.allow,
-              dataAccess: entry.dataAccess,
-            })),
-          }),
+          body: JSON.stringify({ permissions: payload }),
         }
       );
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         notify("error", body.error || "Save failed");
-        setCurrentRole({ ...currentRole, permissions: previousPermissions }); // Revert
+        setCurrentRole({ ...currentRole, permissions: previousPermissions });
       } else {
         router.refresh();
       }
     } catch {
       notify("error", "Network error");
-      setCurrentRole({ ...currentRole, permissions: previousPermissions }); // Revert
+      setCurrentRole({ ...currentRole, permissions: previousPermissions });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const toggleGroupPermissions = async (category: string, allow: boolean) => {
-    const categoryPermIds = sortedPermissions
-      .filter((p) => p.category === category)
-      .map((p) => p.id);
+  const toggleGroupPermissions = async (
+    permsInGroup: Permission[],
+    allow: boolean
+  ) => {
+    const permIds = permsInGroup.map((p) => p.id);
 
-    const otherPermissions = currentRole.permissions
-      .filter((rp) => !categoryPermIds.includes(rp.permissionId))
-      .map((rp) => ({
-        permissionId: rp.permissionId,
-        allow: rp.allow,
-        dataAccess: rp.dataAccess,
-      }));
+    // Construct new permissions list
+    const currentPerms = [...currentRole.permissions];
+    const otherPerms = currentPerms.filter(
+      (p) => !permIds.includes(p.permissionId)
+    );
 
-    const categoryPermissions = categoryPermIds.map((permId) => {
-      const existing = currentRole.permissions.find(
-        (rp) => rp.permissionId === permId
-      );
+    const newGroupPerms = permIds.map((id) => {
+      const existing = currentPerms.find((p) => p.permissionId === id);
+      const base = allPermissions.find((p) => p.id === id)!;
       return {
-        permissionId: permId,
-        allow: allow,
-        dataAccess: existing?.dataAccess ?? null,
-      };
-    });
-
-    const payload = [...otherPermissions, ...categoryPermissions];
-
-    // We need to update local state too for UI to reflect immediately
-    // Ideally we reconstruct the full RolePermission objects.
-    const newContextPermissions = [
-      ...currentRole.permissions.filter(
-        (p) => !categoryPermIds.includes(p.permissionId)
-      ),
-    ];
-    categoryPermIds.forEach((permId) => {
-      const basePermission = allPermissions.find((p) => p.id === permId)!;
-      const existing = currentRole.permissions.find(
-        (p) => p.permissionId === permId
-      );
-      newContextPermissions.push({
         ...(existing ?? {
-          id: "temp-" + permId,
+          id: "temp-" + id,
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
           roleId: currentRole.id,
-          permissionId: permId,
+          permissionId: id,
           allow: false,
           dataAccess: null,
-          permission: basePermission,
+          permission: base,
         }),
-        permissionId: permId,
-        roleId: currentRole.id,
-        permission: basePermission,
-        allow,
+        permissionId: id,
+        allow: allow,
+        // Preserve data access if enable, or keep if disable?
         dataAccess: existing?.dataAccess ?? null,
-      });
+        permission: base,
+      };
     });
 
-    const previousRole = { ...currentRole };
-    setCurrentRole({ ...currentRole, permissions: newContextPermissions });
+    // Filter out strictly empty ones if allow=false?
+    // Actually keeping them with allow=false is fine, better for "Select All" logic retention.
+    // But to match togglePermission logic:
+    const finalGroupPerms = newGroupPerms.filter(
+      (p) => p.allow || p.dataAccess
+    );
+
+    const nextPermissions = [...otherPerms, ...finalGroupPerms];
+
+    setCurrentRole({ ...currentRole, permissions: nextPermissions });
     setIsSaving(true);
 
     try {
+      const payload = nextPermissions.map((p) => ({
+        permissionId: p.permissionId,
+        allow: p.allow,
+        dataAccess: p.dataAccess,
+      }));
+
       const response = await fetch(
         `/api/rbac/roles/${currentRole.id}/permissions`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            permissions: payload,
-          }),
+          body: JSON.stringify({ permissions: payload }),
         }
       );
 
       if (!response.ok) {
         notify("error", "Update failed");
-        setCurrentRole(previousRole);
+        setCurrentRole({ ...currentRole, permissions: currentPerms });
       } else {
         router.refresh();
       }
     } catch {
       notify("error", "Network error");
-      setCurrentRole(previousRole);
+      setCurrentRole({ ...currentRole, permissions: currentPerms });
     } finally {
       setIsSaving(false);
     }
@@ -276,128 +305,181 @@ export default function RolePermissionEditor({
         </div>
       </div>
 
-      <div className="grid gap-8 pb-12">
-        {["MENU", "ACTION", "DATA"].map((category) => {
-          const permsInCategory = sortedPermissions.filter(
-            (p) => p.category === category
-          );
-          if (permsInCategory.length === 0) return null;
+      <div className="grid gap-6 pb-12">
+        {sortedGroupKeys.map((groupName) => {
+          const groupPermissions = groupedPermissions[groupName];
 
-          const areAllSelected = permsInCategory.every((p) => {
-            const current = currentRole.permissions.find(
-              (entry) => entry.permissionId === p.id
+          // Further split into "Access (Menu)" and "Capabilities (Action/Data)"
+          const menuPermissions = groupPermissions.filter(
+            (p) => p.category === "MENU"
+          );
+          const actionPermissions = groupPermissions.filter(
+            (p) => p.category !== "MENU"
+          );
+
+          const areAllSelected = groupPermissions.every((p) => {
+            const existing = currentRole.permissions.find(
+              (ep) => ep.permissionId === p.id
             );
-            return current?.allow;
+            return existing?.allow;
           });
 
           return (
-            <div key={category} className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg font-bold tracking-tight">
-                      {category} PERMISSIONS
-                    </CardTitle>
-                    <CardDescription>
-                      Controls for {category.toLowerCase()} access
-                    </CardDescription>
-                  </div>
+            <Card
+              key={groupName}
+              className="overflow-hidden border-slate-200 shadow-sm"
+            >
+              <CardHeader className="bg-slate-50/50 border-b py-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-base font-bold text-slate-800">
+                  {groupName}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground mr-2">
+                    {groupPermissions.length} permissions
+                  </span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs text-primary hover:text-primary hover:bg-primary/10"
+                    className="h-7 text-xs"
                     onClick={() =>
-                      toggleGroupPermissions(category, !areAllSelected)
+                      toggleGroupPermissions(groupPermissions, !areAllSelected)
                     }
                     disabled={isSaving}
                   >
                     {areAllSelected ? "Deselect All" : "Select All"}
                   </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-                    {permsInCategory.map((permission) => {
-                      const current = currentRole.permissions.find(
-                        (entry) => entry.permissionId === permission.id
-                      );
-                      const isChecked = current?.allow ?? false;
-                      return (
-                        <div
-                          key={permission.id}
-                          className={`flex flex-col justify-between gap-3 rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all ${
-                            isChecked
-                              ? "ring-2 ring-primary/20 border-primary/50 bg-primary/5"
-                              : ""
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0 space-y-1">
-                              <p className="font-medium text-sm text-pretty leading-snug break-words">
-                                {permission.name}
-                              </p>
-                              <p
-                                className="text-xs text-muted-foreground font-mono truncate text-pretty opacity-80"
-                                title={permission.key}
-                              >
-                                {permission.key}
-                              </p>
-                            </div>
-                            <Switch
-                              className="shrink-0 mt-0.5"
-                              checked={isChecked}
-                              disabled={isSaving}
-                              onCheckedChange={(checked) =>
-                                togglePermission(permission.id, checked)
-                              }
-                            />
-                          </div>
-
-                          {/* Conditionals for DATA Access */}
-                          {isChecked && permission.category === "DATA" && (
-                            <div className="mt-4 pt-3 border-t border-primary/10">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-[10px] font-bold uppercase text-primary/70 tracking-tight">
-                                  Data Scope
-                                </label>
-                              </div>
-                              <Select
-                                value={current?.dataAccess ?? "VIEW_OWN"} // Default to VIEW_OWN if null but checked? Or handle null.
-                                disabled={isSaving}
-                                onValueChange={(value) =>
-                                  togglePermission(
-                                    permission.id,
-                                    true,
-                                    value as DataAccessLevel
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="h-8 text-xs bg-white/50 border-primary/20 focus:ring-primary/20">
-                                  <SelectValue placeholder="Select Scope" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {dataAccessOptions.map((option) => (
-                                    <SelectItem
-                                      key={option.value}
-                                      value={option.value}
-                                      className="text-xs"
-                                    >
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 grid gap-6">
+                {/* Menu Access Section */}
+                {menuPermissions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                      Menu Access
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {menuPermissions.map((p) => (
+                        <PermissionItem
+                          key={p.id}
+                          permission={p}
+                          role={currentRole}
+                          onToggle={togglePermission}
+                          disabled={isSaving}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+
+                {/* Divider if both exist */}
+                {menuPermissions.length > 0 && actionPermissions.length > 0 && (
+                  <div className="border-t border-slate-100" />
+                )}
+
+                {/* Actions Section */}
+                {actionPermissions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      Actions & Data
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {actionPermissions.map((p) => (
+                        <PermissionItem
+                          key={p.id}
+                          permission={p}
+                          role={currentRole}
+                          onToggle={togglePermission}
+                          disabled={isSaving}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// Sub-component for individual permission card
+function PermissionItem({
+  permission,
+  role,
+  onToggle,
+  disabled,
+}: {
+  permission: Permission;
+  role: RoleWithPermissions;
+  onToggle: (id: string, allow: boolean, da?: DataAccessLevel | null) => void;
+  disabled: boolean;
+}) {
+  const entry = role.permissions.find((p) => p.permissionId === permission.id);
+  const isChecked = entry?.allow ?? false;
+
+  return (
+    <div
+      className={`flex flex-col gap-3 rounded-lg border p-3 transition-all ${
+        isChecked
+          ? "border-primary/50 bg-primary/5"
+          : "bg-white hover:border-slate-300"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <p className="font-medium text-sm leading-tight text-slate-900">
+            {permission.name}
+          </p>
+          <p
+            className="text-[10px] text-muted-foreground font-mono truncate opacity-70"
+            title={permission.key}
+          >
+            {permission.key}
+          </p>
+        </div>
+        <Switch
+          className="shrink-0 scale-90"
+          checked={isChecked}
+          disabled={disabled}
+          onCheckedChange={(checked) => onToggle(permission.id, checked)}
+        />
+      </div>
+
+      {isChecked && permission.category === "DATA" && (
+        <div className="pt-2 mt-auto border-t border-primary/10">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold uppercase text-primary/70">
+              Data Scope
+            </label>
+          </div>
+          <Select
+            value={entry?.dataAccess ?? "VIEW_OWN"}
+            disabled={disabled}
+            onValueChange={(value) =>
+              onToggle(permission.id, true, value as DataAccessLevel)
+            }
+          >
+            <SelectTrigger className="h-7 text-[11px] bg-white/50 border-primary/20">
+              <SelectValue placeholder="Select Scope" />
+            </SelectTrigger>
+            <SelectContent>
+              {dataAccessOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="text-xs"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }
