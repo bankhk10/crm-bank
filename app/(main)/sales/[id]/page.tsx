@@ -365,65 +365,6 @@ export default function SaleDetailPage({
             </CardContent>
           </Card>
 
-          {/* Addresses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="shadow-sm border-slate-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <MapPin className="h-4 w-4" />
-                  <CardTitle className="text-base">ที่อยู่วางบิล</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                  {[
-                    sale.customer.addressLine,
-                    sale.customer.subdistrict
-                      ? `ต.${sale.customer.subdistrict}`
-                      : "",
-                    sale.customer.district ? `อ.${sale.customer.district}` : "",
-                    sale.customer.province ? `จ.${sale.customer.province}` : "",
-                    sale.customer.postalCode,
-                  ]
-                    .filter(Boolean)
-                    .join(" ") || "-"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-sm border-slate-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <Truck className="h-4 w-4" />
-                  <CardTitle className="text-base">ที่อยู่จัดส่ง</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                  {sale.shippingAddress || "-"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Notes */}
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-slate-700">
-                <FileText className="h-4 w-4" />
-                <CardTitle className="text-base">หมายเหตุ</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {sale.notes || "-"}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Summary, Customer, Employee, etc. */}
-        <div className="space-y-6">
           {/* Summary Card */}
           <Card className="shadow-md border-blue-100 bg-white">
             <CardHeader className="bg-blue-50/50 pb-4 border-b border-blue-50">
@@ -484,6 +425,65 @@ export default function SaleDetailPage({
             </CardContent>
           </Card>
 
+          {/* Addresses */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="shadow-sm border-slate-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <MapPin className="h-4 w-4" />
+                  <CardTitle className="text-base">ที่อยู่วางบิล</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  {[
+                    sale.customer.addressLine,
+                    sale.customer.subdistrict
+                      ? `ต.${sale.customer.subdistrict}`
+                      : "",
+                    sale.customer.district ? `อ.${sale.customer.district}` : "",
+                    sale.customer.province ? `จ.${sale.customer.province}` : "",
+                    sale.customer.postalCode,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || "-"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm border-slate-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Truck className="h-4 w-4" />
+                  <CardTitle className="text-base">ที่อยู่จัดส่ง</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  {sale.shippingAddress || "-"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Notes */}
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 text-slate-700">
+                <FileText className="h-4 w-4" />
+                <CardTitle className="text-base">หมายเหตุ</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                {sale.notes || "-"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Summary, Customer, Employee, etc. */}
+        <div className="space-y-6">
           {/* Customer Card */}
           <Card className="shadow-sm border-slate-200">
             <CardHeader className="pb-3">
