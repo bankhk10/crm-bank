@@ -134,36 +134,6 @@ export default function SaleDetailPage({
             </Badge>
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {canEditThis && (
-            <Link href={`/sales/${sale.id}/edit`}>
-              <Button variant="outline" className="shadow-sm">
-                <Edit className="h-4 w-4 mr-2" />
-                แก้ไข
-              </Button>
-            </Link>
-          )}
-          {canApproveThis && (
-            <Link href={`/sales/${sale.id}/approve`}>
-              <Button className="bg-green-600 hover:bg-green-700 text-white shadow-sm">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                พิจารณาอนุมัติ
-              </Button>
-            </Link>
-          )}
-          {canManageFulfillment && (
-            <Link href={`/sales/${sale.id}/fulfillment`}>
-              <Button
-                variant="outline"
-                className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 shadow-sm"
-              >
-                <Truck className="h-4 w-4 mr-2" />
-                จัดการสถานะและการจัดส่ง
-              </Button>
-            </Link>
-          )}
-        </div>
       </div>
 
       {/* Warnings */}
