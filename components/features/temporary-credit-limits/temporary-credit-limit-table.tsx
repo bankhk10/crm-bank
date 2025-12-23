@@ -68,7 +68,7 @@ export interface TemporaryCreditLimitTableProps {
   canEdit?: boolean;
   canDelete?: boolean;
   canApprove?: boolean;
-  onDelete?: (id: string) => void;
+  onDelete?: (item: TemporaryCreditLimitWithRelations) => void;
 }
 
 // --- Constants & Styles ---
@@ -112,7 +112,13 @@ const DEFAULT_BADGE_STYLE = {
 
 // --- Helper Components ---
 
-function StatusBadge({ status, className }: { status?: string; className?: string }) {
+function StatusBadge({
+  status,
+  className,
+}: {
+  status?: string;
+  className?: string;
+}) {
   const key = (status || "").toUpperCase() as TemporaryCreditStatus;
   const info = statusStyle[key] ?? {
     ...DEFAULT_BADGE_STYLE,
@@ -127,7 +133,10 @@ function StatusBadge({ status, className }: { status?: string; className?: strin
         className
       )}
     >
-      <span className={cn("h-2 w-2 rounded-full", info.dot)} aria-hidden="true" />
+      <span
+        className={cn("h-2 w-2 rounded-full", info.dot)}
+        aria-hidden="true"
+      />
       {info.label}
     </span>
   );
@@ -288,13 +297,22 @@ function TemporaryCreditLimitCards({
   pagination,
 }: Pick<
   TemporaryCreditLimitTableProps,
-  "data" | "loading" | "canApprove" | "canEdit" | "canDelete" | "onDelete" | "pagination"
+  | "data"
+  | "loading"
+  | "canApprove"
+  | "canEdit"
+  | "canDelete"
+  | "onDelete"
+  | "pagination"
 >) {
   if (loading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, idx) => (
-          <Card key={`loading-${idx}`} className="h-full border border-slate-200/80 shadow-sm">
+          <Card
+            key={`loading-${idx}`}
+            className="h-full border border-slate-200/80 shadow-sm"
+          >
             <div className="h-1 w-full bg-slate-100" />
             <div className="space-y-3 p-4">
               <Skeleton className="h-6 w-3/4" />
@@ -310,21 +328,31 @@ function TemporaryCreditLimitCards({
   if (!data || data.length === 0) {
     return (
       <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
-        <div className="mb-2 text-base font-semibold text-slate-900">ไม่พบข้อมูล</div>
-        <p className="text-sm text-slate-600">ลองปรับการค้นหาหรือสร้างคำขอใหม่</p>
+        <div className="mb-2 text-base font-semibold text-slate-900">
+          ไม่พบข้อมูล
+        </div>
+        <p className="text-sm text-slate-600">
+          ลองปรับการค้นหาหรือสร้างคำขอใหม่
+        </p>
       </Card>
     );
   }
 
-  const { page, perPage, total, onPageChange, onPerPageChange, perPageOptions } =
-    pagination || {
-      page: 1,
-      perPage: 10,
-      total: 0,
-      onPageChange: () => { },
-      onPerPageChange: () => { },
-      perPageOptions: [10, 20, 50],
-    };
+  const {
+    page,
+    perPage,
+    total,
+    onPageChange,
+    onPerPageChange,
+    perPageOptions,
+  } = pagination || {
+    page: 1,
+    perPage: 10,
+    total: 0,
+    onPageChange: () => {},
+    onPerPageChange: () => {},
+    perPageOptions: [10, 20, 50],
+  };
 
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const startDisplay = (page - 1) * perPage + 1;
@@ -352,8 +380,8 @@ function TemporaryCreditLimitCards({
                   isPending
                     ? "bg-yellow-400"
                     : isApproved
-                      ? "bg-emerald-500"
-                      : "bg-red-500"
+                    ? "bg-emerald-500"
+                    : "bg-red-500"
                 )}
               />
               <div className="p-4 space-y-3">
@@ -371,7 +399,9 @@ function TemporaryCreditLimitCards({
 
                 <div className="flex items-baseline justify-between py-1">
                   <span className="text-sm text-slate-600">จำนวนเงิน</span>
-                  <span className="text-lg font-bold text-slate-800">{amount}</span>
+                  <span className="text-lg font-bold text-slate-800">
+                    {amount}
+                  </span>
                 </div>
 
                 <div className="space-y-1 text-sm text-slate-600">
@@ -379,7 +409,9 @@ function TemporaryCreditLimitCards({
                     <span>วันหมดอายุ:</span>
                     <span className="font-medium">
                       {item.expiryDate
-                        ? format(new Date(item.expiryDate), "dd MMM yyyy", { locale: th })
+                        ? format(new Date(item.expiryDate), "dd MMM yyyy", {
+                            locale: th,
+                          })
                         : "-"}
                     </span>
                   </div>
@@ -407,7 +439,9 @@ function TemporaryCreditLimitCards({
                       size="sm"
                       className="bg-green-600 hover:bg-green-700 text-white"
                     >
-                      <Link href={`/temporary-credit-limits/${item.id}/approve`}>
+                      <Link
+                        href={`/temporary-credit-limits/${item.id}/approve`}
+                      >
                         <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
                       </Link>
                     </Button>
@@ -430,7 +464,7 @@ function TemporaryCreditLimitCards({
                       size="sm"
                       variant="destructive"
                       className="bg-red-50 text-red-700 hover:bg-red-100"
-                      onClick={() => onDelete(item.id)}
+                      onClick={() => onDelete(item)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" /> ลบ
                     </Button>
@@ -501,7 +535,7 @@ function useColumns(
   canEdit: boolean,
   canDelete: boolean,
   canApprove: boolean,
-  onDelete?: (id: string) => void
+  onDelete?: (item: TemporaryCreditLimitWithRelations) => void
 ) {
   return React.useMemo<ColumnDef<TemporaryCreditLimitWithRelations>[]>(() => {
     return [
@@ -607,7 +641,7 @@ function useColumns(
                   icon={Trash2}
                   label="ลบ"
                   colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => onDelete(item)}
                 />
               )}
             </div>
@@ -621,7 +655,9 @@ function useColumns(
 
 // --- Main Component ---
 
-export default function TemporaryCreditLimitTable(props: TemporaryCreditLimitTableProps) {
+export default function TemporaryCreditLimitTable(
+  props: TemporaryCreditLimitTableProps
+) {
   const {
     data,
     loading,
