@@ -10,6 +10,12 @@ export interface SaleWithRelations extends Sale {
     customerCode: string;
     phone?: string | null;
     email?: string | null;
+    taxId?: string | null;
+    addressLine?: string | null;
+    subdistrict?: string | null;
+    district?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
   };
   employee: {
     id: string;
