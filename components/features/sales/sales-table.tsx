@@ -735,7 +735,7 @@ function useColumns(
             </Badge>
           );
         },
-        meta: { minWidth: 100, width: 120, align: "center" },
+        meta: { minWidth: 120, width: 120, align: "left" },
       },
       {
         accessorKey: "status",
