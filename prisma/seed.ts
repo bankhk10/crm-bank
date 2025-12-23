@@ -755,11 +755,11 @@ async function main() {
     { key: "customer.create.dealer", access: undefined },
     { key: "customer.edit", access: "VIEW_OWN" },
     { key: "customer.view", access: "VIEW_ALL" },
-    { key: "menu.credit_limits", access: undefined },
-    { key: "creditlimit.create", access: "VIEW_OWN" },
-    { key: "creditlimit.edit", access: "VIEW_OWN" },
-    { key: "creditlimit.view", access: "VIEW_OWN" },
-    { key: "creditlimit.delete", access: "VIEW_OWN" },
+    { key: "menu.temporary_credit_limits", access: undefined },
+    { key: "temporary_creditlimit.create", access: "VIEW_OWN" },
+    { key: "temporary_creditlimit.edit", access: "VIEW_OWN" },
+    { key: "temporary_creditlimit.view", access: "VIEW_OWN" },
+    { key: "temporary_creditlimit.delete", access: "VIEW_OWN" },
     { key: "employee.view", access: "VIEW_ALL" },
   ];
 
