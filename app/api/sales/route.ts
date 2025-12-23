@@ -79,8 +79,39 @@ export async function GET(request: NextRequest) {
     }
 
     // Permission-based filtering
-    // TODO: Implement RBAC check to determine visibility
-    // For now, users can only see their own sales unless they're admins
+    const salesAccess = session.user.dataAccessByResource?.["sale"];
+    const isAdmin = session.user.roles.includes("administrator");
+
+    if (!isAdmin) {
+      switch (salesAccess) {
+        case "VIEW_OWN":
+          if (session.user.employeeId) {
+            where.employeeId = session.user.employeeId;
+          } else {
+            // Fallback for users without employee profile
+            where.createdById = session.user.id;
+          }
+          break;
+        case "VIEW_DEPARTMENT":
+          if (session.user.departmentId) {
+            where.employee = {
+              departmentId: session.user.departmentId,
+            };
+          }
+          break;
+        case "VIEW_ALL":
+          // No filter needed
+          break;
+        default:
+          // If no specific access level, default to viewing own (or restrict completely if stricter security is needed)
+          if (session.user.employeeId) {
+            where.employeeId = session.user.employeeId;
+          } else {
+            where.createdById = session.user.id;
+          }
+          break;
+      }
+    }
 
     const skip = ((filters.page || 1) - 1) * (filters.perPage || 10);
     const take = filters.perPage || 10;

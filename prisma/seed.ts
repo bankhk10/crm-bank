@@ -770,7 +770,10 @@ async function main() {
         roleId: salesRepRole.id,
         permissionId: p(item.key),
         allow: true,
-        dataAccess: item.access as any,
+        dataAccess:
+          item.access === "VIEW_OWN" && item.key === "sale.view"
+            ? "VIEW_ALL"
+            : (item.access as any),
       })),
   });
 
@@ -783,7 +786,7 @@ async function main() {
     { key: "sale.create", access: "VIEW_OWN" },
     { key: "sale.edit", access: "VIEW_OWN" },
     { key: "sale.delete", access: "VIEW_OWN" },
-    { key: "sale.view", access: "VIEW_DEPARTMENT" },
+    { key: "sale.view", access: "VIEW_ALL" },
     { key: "sale.approve", access: "VIEW_DEPARTMENT" },
     { key: "sale.reject", access: "VIEW_DEPARTMENT" },
     { key: "menu.employees", access: undefined },
