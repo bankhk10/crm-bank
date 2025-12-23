@@ -549,15 +549,7 @@ async function main() {
         action: "randomize",
       },
     }),
-    prisma.permission.create({
-      data: {
-        key: "product.reject",
-        name: "Reject product",
-        category: "ACTION",
-        resource: "product",
-        action: "reject",
-      },
-    }),
+
     prisma.permission.create({
       data: {
         key: "employee.manage",
