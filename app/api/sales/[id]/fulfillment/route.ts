@@ -38,18 +38,18 @@ export async function POST(
     }
 
     // 2. Delivery Date
-    if (deliveryDate) {
-      updateData.deliveryDate = new Date(deliveryDate);
+    if (deliveryDate !== undefined) {
+      updateData.deliveryDate = deliveryDate ? new Date(deliveryDate) : null;
     }
 
     // 3. Credit Due Date
-    if (creditDueDate) {
-      updateData.creditDueDate = new Date(creditDueDate);
+    if (creditDueDate !== undefined) {
+      updateData.creditDueDate = creditDueDate ? new Date(creditDueDate) : null;
     }
 
     // 4. Payment Date
-    if (paymentDate) {
-      updateData.paymentDate = new Date(paymentDate);
+    if (paymentDate !== undefined) {
+      updateData.paymentDate = paymentDate ? new Date(paymentDate) : null;
     }
 
     // 5. Notes
