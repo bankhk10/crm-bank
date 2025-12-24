@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { SaleStatus } from "@prisma/client";
+import {
+  confirmStockDeduction,
+  revertStockDeduction,
+} from "@/lib/stock-service";
 
 export async function POST(
   request: NextRequest,
@@ -68,9 +72,25 @@ export async function POST(
       };
     }
 
-    const updatedSale = await prisma.sale.update({
-      where: { id },
-      data: updateData,
+    const updatedSale = await prisma.$transaction(async (tx) => {
+      // Handle stock status transition based on delivery date change
+      if (deliveryDate !== undefined) {
+        const newDate = deliveryDate ? new Date(deliveryDate) : null;
+        const oldDate = sale.deliveryDate;
+
+        if (!oldDate && newDate) {
+          // Transition: Reserved -> Real Deducted
+          await confirmStockDeduction(id, tx);
+        } else if (oldDate && !newDate) {
+          // Transition: Real Deducted -> Reserved
+          await revertStockDeduction(id, tx);
+        }
+      }
+
+      return await tx.sale.update({
+        where: { id },
+        data: updateData,
+      });
     });
 
     // Revalidate the sale detail page

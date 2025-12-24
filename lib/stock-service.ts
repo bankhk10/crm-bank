@@ -60,22 +60,33 @@ export async function allocateStock(
         });
 
         // Update ProductStock summary
+        const isRealDeduction = !!sale.deliveryDate;
+
         await client.productStock.upsert({
           where: { productId: item.productId },
           create: {
             productId: item.productId,
-            physicalBalance: deduction, // Assuming this is start, but likely not.
-            // Ideally we shouldn't hit create here if sync run.
-            // But if we do, this is tricky.
-            // Let's assume 0 for others? No, that's dangerous.
-            // Best to just update if exists. If not, we might miss tracking.
-            // Given the instructions, let's assume sync script is run.
+            physicalBalance: isRealDeduction ? 0 : deduction, // If real deduction, started at deduction and cut to 0? Or just 0?
+            // If creating new record:
+            // Sync script should handle this, but if we create:
+            // If real deduction: Physical started as D, we subtract D -> 0. Available started D, sub D -> 0.
+            // If reserved: Physical started D. Reserved D. Available D - D = 0.
+            // Actually 'create' implies we found NO record. If we found NO record, we imply we had NO stock.
+            // But we successfully found LOTS. So there is a sync mismatch.
+            // Let's assume if upsert creates, we set it to safe baseline related to this transaction.
+            // If lots existed, physicalBalance *should* be at least deduction.
+            // But let's stick to update logic mainly.
             availableQuantity: 0,
-            reservedQuantity: deduction,
+            reservedQuantity: isRealDeduction ? 0 : deduction,
           },
           update: {
             availableQuantity: { decrement: deduction },
-            reservedQuantity: { increment: deduction },
+            reservedQuantity: isRealDeduction
+              ? undefined
+              : { increment: deduction },
+            physicalBalance: isRealDeduction
+              ? { decrement: deduction }
+              : undefined,
           },
         });
 
@@ -178,4 +189,79 @@ export async function releaseStock(
   }
 
   console.log(`Stock released for sale ${saleId}`);
+}
+
+/**
+ * Confirms stock deduction when a delivery date is set for a previously reserved sale.
+ * Moves stock from "Reserved" to "Real Deducted" (Physical decreases).
+ * Does NOT affect Available Quantity or Lots (since they were already handled).
+ */
+export async function confirmStockDeduction(
+  saleId: string,
+  tx?: Prisma.TransactionClient
+) {
+  const db = tx || prisma;
+  const sale = await db.sale.findUnique({
+    where: { id: saleId },
+    include: { items: true },
+  });
+
+  if (!sale) throw new Error("Sale not found");
+
+  const confirm = async (client: Prisma.TransactionClient) => {
+    for (const item of sale.items) {
+      await client.productStock.update({
+        where: { productId: item.productId },
+        data: {
+          reservedQuantity: { decrement: item.quantity },
+          physicalBalance: { decrement: item.quantity },
+        },
+      });
+    }
+  };
+
+  if (tx) {
+    await confirm(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await confirm(client);
+    });
+  }
+}
+
+/**
+ * Reverts stock deduction to reservation when a delivery date is removed.
+ * Moves stock from "Real Deducted" back to "Reserved".
+ */
+export async function revertStockDeduction(
+  saleId: string,
+  tx?: Prisma.TransactionClient
+) {
+  const db = tx || prisma;
+  const sale = await db.sale.findUnique({
+    where: { id: saleId },
+    include: { items: true },
+  });
+
+  if (!sale) throw new Error("Sale not found");
+
+  const revert = async (client: Prisma.TransactionClient) => {
+    for (const item of sale.items) {
+      await client.productStock.update({
+        where: { productId: item.productId },
+        data: {
+          reservedQuantity: { increment: item.quantity },
+          physicalBalance: { increment: item.quantity },
+        },
+      });
+    }
+  };
+
+  if (tx) {
+    await revert(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await revert(client);
+    });
+  }
 }
