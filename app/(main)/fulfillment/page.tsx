@@ -10,14 +10,12 @@ import {
   type SaleRecord,
 } from "@/components/features/fulfillment/fulfillment-table";
 
-import { ClipboardList } from "lucide-react";
-
 const FULFILLMENT_STATUSES = [
   "APPROVED",
   "AWAITING_PAYMENT",
   "PAID",
   "AWAITING_DELIVERY",
-  "DELIVERED",
+  "DELIVERY_COMPLETED",
 ];
 
 export default function FulfillmentPage() {
