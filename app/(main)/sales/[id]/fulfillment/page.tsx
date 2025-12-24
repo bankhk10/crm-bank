@@ -56,6 +56,8 @@ export default function FulfillmentPage({
   const [status, setStatus] = useState<string>("");
   const [deliveryDate, setDeliveryDate] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
+  const [paymentDate, setPaymentDate] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
 
   useEffect(() => {
     fetch(`/api/sales/${id}`)
@@ -75,6 +77,14 @@ export default function FulfillmentPage({
           setDueDate(
             new Date(data.sale.creditDueDate).toISOString().split("T")[0]
           );
+        }
+        if (data.sale.paymentDate) {
+          setPaymentDate(
+            new Date(data.sale.paymentDate).toISOString().split("T")[0]
+          );
+        }
+        if (data.sale.notes) {
+          setNotes(data.sale.notes);
         }
         setLoading(false);
       })
@@ -109,6 +119,8 @@ export default function FulfillmentPage({
           status,
           deliveryDate,
           creditDueDate: dueDate,
+          paymentDate,
+          notes,
         }),
       });
 
@@ -117,8 +129,6 @@ export default function FulfillmentPage({
         throw new Error(errorData.error || "Failed to update fulfillment");
       }
 
-      // Small delay to allow UI to update safely before navigation
-      // This often helps with "removeChild" race conditions during form submission -> navigation
       setTimeout(() => {
         router.push(`/sales/${id}`);
       }, 500);
@@ -148,6 +158,15 @@ export default function FulfillmentPage({
 
   if (!saleData) return null;
   const { sale } = saleData;
+
+  const formatDate = (dateString?: Date | string | null) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <div className="container mx-auto max-w-4xl py-8 space-y-6">
@@ -204,6 +223,14 @@ export default function FulfillmentPage({
               <Badge variant="secondary" className="bg-white">
                 {SaleStatusLabels[sale.status]}
               </Badge>
+            </div>
+            <div>
+              <span className="text-slate-500 block mb-1">
+                วันที่ต้องการของ
+              </span>
+              <span className="font-medium">
+                {formatDate(sale.requestedDeliveryDate)}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -275,6 +302,35 @@ export default function FulfillmentPage({
                   * คำนวณอัตโนมัติจาก วันที่จัดส่ง + {sale.creditDays || 0} วัน
                 </p>
               </div>
+
+              {/* 4. Payment Date */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <CreditCard className="h-4 w-4 text-slate-500" />
+                  <label className="text-sm font-medium">
+                    4. วันที่ชำระเงิน
+                  </label>
+                </div>
+                <DatePicker
+                  value={paymentDate}
+                  onChange={(val) => setPaymentDate(val || "")}
+                  label=""
+                  placeholder="เลือกวันที่ชำระเงิน"
+                />
+              </div>
+            </div>
+
+            {/* 5. Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">
+                หมายเหตุ
+              </label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
             </div>
           </CardContent>
         </Card>

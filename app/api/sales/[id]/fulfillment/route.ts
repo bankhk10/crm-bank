@@ -14,7 +14,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { status, deliveryDate, creditDueDate } = await request.json();
+    const { status, deliveryDate, creditDueDate, paymentDate, notes } =
+      await request.json();
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -30,7 +31,8 @@ export async function POST(
     if (status && Object.values(SaleStatus).includes(status)) {
       updateData.status = status;
       // If switching to PAID and no payment date, maybe set it?
-      if (status === "PAID" && !sale.paymentDate) {
+      if (status === "PAID" && !sale.paymentDate && !paymentDate) {
+        // Only auto-set if not provided explicitly
         updateData.paymentDate = new Date();
       }
     }
@@ -43,6 +45,16 @@ export async function POST(
     // 3. Credit Due Date
     if (creditDueDate) {
       updateData.creditDueDate = new Date(creditDueDate);
+    }
+
+    // 4. Payment Date
+    if (paymentDate) {
+      updateData.paymentDate = new Date(paymentDate);
+    }
+
+    // 5. Notes
+    if (notes !== undefined) {
+      updateData.notes = notes;
     }
 
     // Add history if status changed
