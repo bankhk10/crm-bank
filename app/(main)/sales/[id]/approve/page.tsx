@@ -154,79 +154,81 @@ export default function ApproveSalePage({
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
       {/* Sale Summary Card */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
-        <CardHeader className="border-b bg-white/50 backdrop-blur p-4 sm:p-6">
-          <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-              <FileText className="h-4 w-4 sm:h-10 sm:w-10 text-blue-600" />
-            </div>
-            <span className="text-base sm:text-xl px-5">
-              <h1 className="text-2xl font-bold text-gray-900">
-                พิจารณาอนุมัติรายการขาย
-              </h1>
-              <div className="mt-1 sm:mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm sm:text-base">
-                <span className="font-mono font-semibold text-blue-600 truncate">
-                  {sale.saleNumber}
-                </span>
-                <span className="text-gray-300 hidden sm:inline">•</span>
-                <span className="text-gray-500 truncate">
-                  {sale.customer.name}
-                </span>
+      <Card className="rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg">
+                <FileText className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
               </div>
-            </span>
-            <Badge className="px-3 py-1.5 bg-amber-100 text-amber-700 border-amber-200 text-sm justify-end ml-auto">
+              <div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                  พิจารณาอนุมัติรายการขาย
+                </h1>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base">
+                  <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit">
+                    {sale.saleNumber}
+                  </span>
+                  <span className="text-blue-100 hidden sm:inline">•</span>
+                  <span className="text-blue-50 font-medium truncate">
+                    {sale.customer.name}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <Badge className="px-4 py-2 bg-amber-400 text-amber-900 border-0 text-sm font-bold shadow-lg w-fit">
               รอการอนุมัติ
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-3 sm:p-4 lg:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
-            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+        <CardContent className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl p-5 border border-purple-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-purple-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <User className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                <span className="text-sm text-purple-700 font-bold uppercase tracking-wide">
                   ลูกค้า
                 </span>
               </div>
               <p
-                className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
+                className="font-bold text-gray-900 text-base sm:text-lg truncate"
                 title={sale.customer.name}
               >
                 {sale.customer.name}
               </p>
             </div>
 
-            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
-                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+            <div className="group bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-5 border border-green-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-green-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <User className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                <span className="text-sm text-green-700 font-bold uppercase tracking-wide">
                   พนักงานขาย
                 </span>
               </div>
               <p
-                className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate"
+                className="font-bold text-gray-900 text-base sm:text-lg truncate"
                 title={sale.employee.name}
               >
                 {sale.employee.name}
               </p>
             </div>
 
-            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <div className="group bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-blue-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <CreditCard className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                <span className="text-sm text-blue-700 font-bold uppercase tracking-wide">
                   เงื่อนไขชำระ
                 </span>
               </div>
               <Badge
                 variant="outline"
-                className="text-sm sm:text-base px-2 sm:px-3 py-0.5 sm:py-1 font-semibold max-w-full"
+                className="text-sm font-bold px-3 py-1.5 bg-white border-blue-300 text-blue-700 max-w-full"
                 title={PaymentTermLabels[sale.paymentTerm]}
               >
                 <span className="truncate block">
@@ -235,16 +237,16 @@ export default function ApproveSalePage({
               </Badge>
             </div>
 
-            <div className="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+            <div className="group bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-5 border border-orange-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-orange-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <Calendar className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-xs sm:text-sm text-gray-500 font-medium">
+                <span className="text-sm text-orange-700 font-bold uppercase tracking-wide">
                   วันที่ขาย
                 </span>
               </div>
-              <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate">
+              <p className="font-bold text-gray-900 text-base sm:text-lg truncate">
                 {format(new Date(sale.saleDate), "dd MMM yyyy", {
                   locale: th,
                 })}
@@ -256,7 +258,7 @@ export default function ApproveSalePage({
 
       {/* Price Change Warning */}
       {priceWarnings.length > 0 && (
-        <Card className="border-2 border-orange-200 bg-gradient-to-br from-white via-orange-50 to-amber-50 shadow-lg">
+        <Card className="py-6 border-2 border-orange-200 bg-gradient-to-br from-white via-orange-50 to-amber-50 shadow-lg">
           <CardHeader className="space-y-2">
             <CardTitle className="flex items-center gap-3 text-lg text-orange-900">
               <div className="p-2 bg-orange-100 rounded-xl">
