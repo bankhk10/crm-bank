@@ -547,8 +547,37 @@ export default function SaleDetailPage({
                 />
                 <DetailItem
                   icon={<MapPin className="h-4 w-4" />}
-                  label="ที่อยู่"
-                  value={sale.customer.addressLine}
+                  label="ที่อยู่วางบิล"
+                  value={
+                    sale.billingAddress ||
+                    [
+                      sale.customer.billingAddressLine ||
+                        sale.customer.addressLine,
+                      sale.customer.billingSubdistrict ||
+                      sale.customer.subdistrict
+                        ? `ต.${
+                            sale.customer.billingSubdistrict ||
+                            sale.customer.subdistrict
+                          }`
+                        : "",
+                      sale.customer.billingDistrict || sale.customer.district
+                        ? `อ.${
+                            sale.customer.billingDistrict ||
+                            sale.customer.district
+                          }`
+                        : "",
+                      sale.customer.billingProvince || sale.customer.province
+                        ? `จ.${
+                            sale.customer.billingProvince ||
+                            sale.customer.province
+                          }`
+                        : "",
+                      sale.customer.billingPostalCode ||
+                        sale.customer.postalCode,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")
+                  }
                 />
               </div>
             </div>
