@@ -872,6 +872,154 @@ async function main() {
       status: "ACTIVE",
     },
   });
+
+  // --- New Seed Data requested ---
+  console.log("Seeding Customers...");
+
+  // 1. Dealer with Credit Limit
+  await prisma.customer.create({
+    data: {
+      customerCode: "CUST-D-001",
+      customerType: "DEALER",
+      name: "Dealer One Co., Ltd.",
+      email: "dealer1@example.com",
+      phone: "081-111-1111",
+      status: "ACTIVE",
+      creditLimits: {
+        create: {
+          limitAmount: 5000000,
+          usedAmount: 0,
+          availableAmount: 5000000,
+          effectiveDate: new Date(),
+          status: "ACTIVE",
+        },
+      },
+    },
+  });
+
+  // 2. Subdealer
+  await prisma.customer.create({
+    data: {
+      customerCode: "CUST-S-001",
+      customerType: "SUBDEALER",
+      name: "Subdealer Shop",
+      email: "subdealer@example.com",
+      phone: "082-222-2222",
+      status: "ACTIVE",
+      receiveFromDealer: "Dealer One Co., Ltd.",
+    },
+  });
+
+  // 3. Farmer
+  await prisma.customer.create({
+    data: {
+      customerCode: "CUST-F-001",
+      customerType: "FARMER",
+      name: "Somchai Farmer",
+      email: "farmer@example.com",
+      phone: "083-333-3333",
+      status: "ACTIVE",
+      addressLine: "123 Farm Village",
+      province: "Chiang Mai",
+    },
+  });
+
+  // 4. Broker
+  await prisma.customer.create({
+    data: {
+      customerCode: "CUST-B-001",
+      customerType: "BROKER",
+      name: "Broker Agent",
+      email: "broker@example.com",
+      phone: "084-444-4444",
+      status: "ACTIVE",
+      serviceTypes: "Coordination",
+    },
+  });
+
+  console.log("Seeding Products...");
+
+  // Product 1
+  await prisma.product.create({
+    data: {
+      productCode: "PROD-001",
+      name: "Super Grow Fertilizer",
+      commonName: "Fertilizer A",
+      price: 450.0,
+      promotionBudget: 50.0,
+      status: "ACTIVE",
+      stockLots: {
+        create: [
+          {
+            lotNumber: "LOT-2024-001",
+            quantity: 1000,
+            importDate: new Date(),
+          },
+        ],
+      },
+      promotionItems: {
+        create: [
+          {
+            name: "Buy 10 Get 1",
+            quantity: 1,
+            price: 0,
+            notes: "Free item for bulk purchase",
+          },
+        ],
+      },
+      freeItems: {
+        create: [
+          {
+            purchaseQty: 100,
+            freeQty: 5,
+            netPrice: 0,
+            notes: "Bulk incentive",
+          },
+        ],
+      },
+    },
+  });
+
+  // Product 2
+  await prisma.product.create({
+    data: {
+      productCode: "PROD-002",
+      name: "Pesticide X",
+      commonName: "Pesticide X",
+      price: 1200.0,
+      promotionBudget: 200.0,
+      status: "ACTIVE",
+      stockLots: {
+        create: [
+          {
+            lotNumber: "LOT-2024-002",
+            quantity: 500,
+            importDate: new Date(),
+          },
+        ],
+      },
+      promotionItems: {
+        create: [
+          {
+            name: "Seasonal Discount",
+            quantity: 1,
+            price: 1000.0,
+            notes: "Discounted price",
+          },
+        ],
+      },
+      freeItems: {
+        create: [
+          {
+            purchaseQty: 20,
+            freeQty: 1,
+            netPrice: 0,
+            notes: "Small bulk incentive",
+          },
+        ],
+      },
+    },
+  });
 }
 
 main()
