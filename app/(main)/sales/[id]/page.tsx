@@ -529,7 +529,7 @@ export default function SaleDetailPage({
           <div className="lg:col-span-2 space-y-6">
             {/* Items Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="p-6 border-b border-gray-100 bg-blue-100">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <Package className="h-6 w-6 text-blue-600" />
                   รายการสินค้า
