@@ -30,7 +30,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
-  const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
+  const perPage = Math.min(
+    100,
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+  );
   const q = (url.searchParams.get("q") || "").trim();
   const customerId = url.searchParams.get("customerId");
   const statusFilter = url.searchParams.get("status");
@@ -61,7 +64,10 @@ export async function GET(request: Request) {
     };
   }
 
-  if (statusFilter && ["ACTIVE", "SUSPENDED", "EXPIRED"].includes(statusFilter)) {
+  if (
+    statusFilter &&
+    ["ACTIVE", "SUSPENDED", "EXPIRED"].includes(statusFilter)
+  ) {
     where.status = statusFilter as any;
   }
 
@@ -70,6 +76,51 @@ export async function GET(request: Request) {
       ...(fromDate ? { gte: startOfDay(fromDate) } : {}),
       ...(toDate ? { lte: endOfDay(toDate) } : {}),
     };
+  }
+
+  // Permission-based filtering
+  const resourceAccess = session.user.dataAccessByResource?.["creditlimit"];
+  const isAdmin = session.user.roles.includes("administrator");
+
+  if (!isAdmin) {
+    const currentCustomerWhere =
+      (where.customer as Prisma.CustomerWhereInput) || {};
+
+    switch (resourceAccess) {
+      case "VIEW_OWN":
+        if (session.user.employeeId) {
+          where.customer = {
+            ...currentCustomerWhere,
+            responsibleEmployeeId: session.user.employeeId,
+          };
+        } else {
+          where.createdById = session.user.id;
+        }
+        break;
+      case "VIEW_DEPARTMENT":
+        if (session.user.departmentId) {
+          where.customer = {
+            ...currentCustomerWhere,
+            responsibleEmployee: {
+              departmentId: session.user.departmentId,
+            },
+          };
+        }
+        break;
+      case "VIEW_ALL":
+        break;
+      default:
+        // Default to VIEW_OWN behavior
+        if (session.user.employeeId) {
+          where.customer = {
+            ...currentCustomerWhere,
+            responsibleEmployeeId: session.user.employeeId,
+          };
+        } else {
+          where.createdById = session.user.id;
+        }
+        break;
+    }
   }
 
   const [total, creditLimits] = await Promise.all([
@@ -117,14 +168,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const effectiveDate = typeof parsed.data.effectiveDate === "string" 
-      ? new Date(parsed.data.effectiveDate) 
-      : parsed.data.effectiveDate;
-    
-    const expiryDate = parsed.data.expiryDate 
-      ? (typeof parsed.data.expiryDate === "string" 
-          ? new Date(parsed.data.expiryDate) 
-          : parsed.data.expiryDate)
+    const effectiveDate =
+      typeof parsed.data.effectiveDate === "string"
+        ? new Date(parsed.data.effectiveDate)
+        : parsed.data.effectiveDate;
+
+    const expiryDate = parsed.data.expiryDate
+      ? typeof parsed.data.expiryDate === "string"
+        ? new Date(parsed.data.expiryDate)
+        : parsed.data.expiryDate
       : undefined;
 
     const limitAmount = parsed.data.limitAmount;
@@ -150,7 +202,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ creditLimit }, { status: 201 });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2003"
+    ) {
       return NextResponse.json(
         { error: "Customer not found" },
         { status: 400 }
