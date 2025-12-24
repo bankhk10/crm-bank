@@ -689,23 +689,13 @@ function useColumns(
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 200, width: 200, maxWidth: 200, align: "left" },
       },
-      {
-        accessorKey: "employee.name",
-        header: "พนักงานขาย",
-        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
-      },
-      {
-        accessorKey: "saleDate",
-        header: "วันที่ขาย",
-        cell: (info) => {
-          const value = info.getValue() as Date | string;
-          if (!value) return "-";
-          const date = typeof value === "string" ? new Date(value) : value;
-          return format(date, "dd MMM yyyy", { locale: th });
-        },
-        meta: { minWidth: 120, width: 120, align: "left" },
-      },
+      // {
+      //   accessorKey: "employee.name",
+      //   header: "พนักงานขาย",
+      //   cell: (info) => <TruncatedCell value={info.getValue() as string} />,
+      //   meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
+      // },
+
       {
         accessorKey: "totalAmount",
         header: "ยอดรวม",
@@ -728,12 +718,21 @@ function useColumns(
               variant="outline"
               className="text-xs bg-blue-100 text-blue-800"
             >
-              {(
-                PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
-                value
-              ).replace(/\s*\(.*?\)/, "")}
+              {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
+                value}
             </Badge>
           );
+        },
+        meta: { minWidth: 120, width: 120, align: "left" },
+      },
+      {
+        accessorKey: "saleDate",
+        header: "วันที่ขาย",
+        cell: (info) => {
+          const value = info.getValue() as Date | string;
+          if (!value) return "-";
+          const date = typeof value === "string" ? new Date(value) : value;
+          return format(date, "dd MMM yyyy", { locale: th });
         },
         meta: { minWidth: 120, width: 120, align: "left" },
       },
@@ -746,6 +745,7 @@ function useColumns(
         },
         meta: { minWidth: 100, width: 120, align: "left" },
       },
+
       {
         id: "actions",
         header: "จัดการ",
