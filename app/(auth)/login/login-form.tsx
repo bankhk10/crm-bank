@@ -59,6 +59,30 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
     [router, remember, callbackUrl] // ⭐️ เพิ่ม callbackUrl ใน dependency array
   );
 
+  const handleAdminLogin = async () => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    setError(null);
+    setIsSubmitting(true);
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: "b@b.com",
+      password: "b@b.com",
+      remember: "on",
+      callbackUrl: callbackUrl ?? "/dashboard",
+    });
+
+    setIsSubmitting(false);
+
+    if (result?.error) {
+      setError("Admin dev login ล้มเหลว");
+      return;
+    }
+
+    router.push(result?.url ?? "/dashboard");
+  };
+
   return (
     <main className="relative flex items-center justify-center w-full min-h-screen overflow-auto bg-[#e0e0e0] py-8">
       {/* ... (Background SVGs) ... */}
@@ -168,6 +192,20 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                 <span>บันทึกรหัส</span>
               </label>
             </div>
+
+            {process.env.NODE_ENV === "development" && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isSubmitting}
+                  onClick={handleAdminLogin}
+                  className="w-4/5 sm:w-1/2 h-10 text-sm border-dashed border-red-400 text-red-600 hover:bg-red-50"
+                >
+                  🔧 Admin Login (DEV)
+                </Button>
+              </div>
+            )}
 
             {/* Submit */}
             <div className="flex justify-center pt-2">
