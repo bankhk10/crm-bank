@@ -113,9 +113,8 @@ export default function SaleDetailPage({
     sale.status !== "REJECTED" &&
     sale.status !== "CANCELLED";
 
-  const paymentTermLabel = (
-    PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm
-  ).replace(/\s*\(.*?\)/, "");
+  const paymentTermLabel =
+    PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm;
 
   if (sale.status === "COMPLETED") {
     // Original Invoice Paper Layout
@@ -524,9 +523,9 @@ export default function SaleDetailPage({
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content (Items & Totals) - 2 Columns */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-8">
+          {/* Main Content (Items & Totals) */}
+          <div className="space-y-6">
             {/* Items Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
               <div className="p-6 border-b border-gray-100 bg-blue-100">
@@ -632,7 +631,7 @@ export default function SaleDetailPage({
             {/* Notes Card */}
             {sale.notes && (
               <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                <div className="p-6 border-b border-gray-100 bg-amber-50">
+                <div className="p-6 border-b border-gray-100 bg-amber-100">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <FileText className="h-5 w-5 text-amber-600" />
                     หมายเหตุ
@@ -647,8 +646,8 @@ export default function SaleDetailPage({
             )}
           </div>
 
-          {/* Right Sidebar - Information */}
-          <div className="space-y-6">
+          {/* Bottom Information Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Customer Info */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
               <div className="p-6 border-b border-gray-100 bg-blue-100">
@@ -697,19 +696,6 @@ export default function SaleDetailPage({
                   label="เงื่อนไขชำระเงิน"
                   value={paymentTermLabel}
                 />
-                {sale.creditDueDate && (
-                  <DetailItem
-                    icon={<Calendar className="h-4 w-4" />}
-                    label="ครบกำหนดชำระ"
-                    value={
-                      <span className="text-red-600 font-medium">
-                        {format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
-                          locale: th,
-                        })}
-                      </span>
-                    }
-                  />
-                )}
                 <DetailItem
                   icon={<User className="h-4 w-4" />}
                   label="พนักงานขาย"
