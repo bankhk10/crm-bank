@@ -705,14 +705,14 @@ export default function ApproveSalePage({
             <Button
               variant="outline"
               onClick={() => setShowRejectDialog(true)}
-              className="border-red-300 text-red-600 hover:bg-red-50 px-7 py-4 rounded-xl font-semibold"
+              className="flex-1 sm:flex-none border-red-300 text-red-600 hover:bg-red-50 px-7 py-4 rounded-xl font-semibold"
             >
               <XCircle className="h-5 mr-2" /> ไม่อนุมัติ
             </Button>
 
             <Button
               onClick={() => setShowApproveDialog(true)}
-              className="bg-gradient-to-r from-emerald-500 to-green-600 text-white px-7 py-4 rounded-xl shadow-lg hover:brightness-110 font-semibold"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-emerald-500 to-green-600 text-white px-7 py-4 rounded-xl shadow-lg hover:brightness-110 font-semibold"
             >
               <CheckCircle className="h-5 mr-2" /> อนุมัติ
             </Button>
