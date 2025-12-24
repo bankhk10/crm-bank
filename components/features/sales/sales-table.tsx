@@ -689,13 +689,6 @@ function useColumns(
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
         meta: { minWidth: 200, width: 200, maxWidth: 200, align: "left" },
       },
-      // {
-      //   accessorKey: "employee.name",
-      //   header: "พนักงานขาย",
-      //   cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-      //   meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
-      // },
-
       {
         accessorKey: "totalAmount",
         header: "ยอดรวม",
@@ -718,13 +711,28 @@ function useColumns(
               variant="outline"
               className="text-xs bg-blue-100 text-blue-800"
             >
-              {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
-                value}
+              <span
+                className="block max-w-[180px] truncate"
+                title={
+                  PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
+                  value
+                }
+              >
+                {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
+                  value}
+              </span>
             </Badge>
           );
         },
         meta: { minWidth: 120, width: 120, align: "left" },
       },
+      {
+        accessorKey: "employee.name",
+        header: "พนักงานขาย",
+        cell: (info) => <TruncatedCell value={info.getValue() as string} />,
+        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
+      },
+
       {
         accessorKey: "saleDate",
         header: "วันที่ขาย",
