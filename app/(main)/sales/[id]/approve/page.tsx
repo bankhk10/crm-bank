@@ -227,9 +227,12 @@ export default function ApproveSalePage({
               </div>
               <Badge
                 variant="outline"
-                className="text-sm sm:text-base px-2 sm:px-3 py-0.5 sm:py-1 font-semibold"
+                className="text-sm sm:text-base px-2 sm:px-3 py-0.5 sm:py-1 font-semibold max-w-full"
+                title={PaymentTermLabels[sale.paymentTerm]}
               >
-                {PaymentTermLabels[sale.paymentTerm]}
+                <span className="truncate block">
+                  {PaymentTermLabels[sale.paymentTerm]}
+                </span>
               </Badge>
             </div>
 
@@ -242,7 +245,7 @@ export default function ApproveSalePage({
                   วันที่ขาย
                 </span>
               </div>
-              <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg">
+              <p className="font-semibold text-gray-900 text-sm sm:text-base lg:text-lg truncate">
                 {format(new Date(sale.saleDate), "dd MMM yyyy", {
                   locale: th,
                 })}
@@ -541,10 +544,10 @@ export default function ApproveSalePage({
             <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
               <span className="text-sm text-gray-600 flex items-center gap-2">
                 <Truck className="h-4 w-4 text-blue-600" />
-                ค่าขนส่ง
+                ส่วนค่าขนส่ง
               </span>
-              <span className="text-base font-medium text-gray-700">
-                ฿
+              <span className="text-base font-medium text-red-600">
+                -฿
                 {Number(sale.shippingCost).toLocaleString("th-TH", {
                   minimumFractionDigits: 2,
                 })}
@@ -553,9 +556,9 @@ export default function ApproveSalePage({
 
             {Number(sale.otherCosts) > 0 && (
               <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
-                <span className="text-sm text-gray-600">ค่าใช้จ่ายอื่นๆ</span>
-                <span className="text-base font-medium text-gray-700">
-                  ฿
+                <span className="text-sm text-gray-600">ส่วนลดหน้าบิล</span>
+                <span className="text-base font-medium text-red-600">
+                  -฿
                   {Number(sale.otherCosts).toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   })}
@@ -707,11 +710,11 @@ export default function ApproveSalePage({
                 >
                   <span className="inline-flex items-center gap-2 justify-start w-full">
                     <Truck className="h-4 w-4 text-blue-600" />
-                    ค่าขนส่ง
+                    ส่วนค่าขนส่ง
                   </span>
                 </td>
-                <td className="text-right p-4 font-semibold text-gray-700">
-                  ฿
+                <td className="text-right p-4 font-semibold text-red-600">
+                  -฿
                   {Number(sale.shippingCost).toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   })}
@@ -723,10 +726,10 @@ export default function ApproveSalePage({
                     colSpan={3}
                     className="text-left p-4 font-medium text-gray-600"
                   >
-                    ค่าใช้จ่ายอื่นๆ
+                    ส่วนลดหน้าบิล
                   </td>
-                  <td className="text-right p-4 font-semibold text-gray-700">
-                    ฿
+                  <td className="text-right p-4 font-semibold text-red-600">
+                    -฿
                     {Number(sale.otherCosts).toLocaleString("th-TH", {
                       minimumFractionDigits: 2,
                     })}
