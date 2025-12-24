@@ -156,6 +156,14 @@ export default function ApproveSalePage({
       {/* Sale Summary Card */}
       <Card className="rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="inline-flex items-center text-blue-100 hover:text-white transition-colors group hover:bg-white/10 w-fit"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            กลับไปหน้ารายการขาย
+          </Button>
           <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg">
@@ -692,15 +700,7 @@ export default function ApproveSalePage({
 
       {/* 🧊 Sticky Bottom Action Bar Modern Glass UI */}
       <div className="sticky bottom-0 z-50 backdrop-blur-xl border-t bg-white/90 shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.08)] px-6 py-4 rounded-t-xl">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="text-gray-600 hover:bg-gray-100 px-6 py-5 text-base rounded-xl flex items-center gap-2"
-          >
-            <ArrowLeft className="h-5" /> กลับ
-          </Button>
-
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-3">
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
               variant="outline"
