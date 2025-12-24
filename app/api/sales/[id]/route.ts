@@ -234,7 +234,7 @@ export async function PUT(
         (sum, item) => sum + item.quantity * item.unitPrice,
         0
       );
-      const total = subtotal + body.shippingCost + body.otherCosts;
+      const total = subtotal - body.shippingCost - body.otherCosts;
 
       // Update sale
       return await tx.sale.update({
