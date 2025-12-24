@@ -230,10 +230,10 @@ export default function SaleDetailPage({
                       .filter(Boolean)
                       .join(" ")}
                 </p>
-                <p>
+                <div>
                   {sale.customer.taxId && <p>Tax ID: {sale.customer.taxId}</p>}
                   {sale.customer.phone && <p>Tel: {sale.customer.phone}</p>}
-                </p>
+                </div>
               </div>
             </div>
 
