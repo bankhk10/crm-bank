@@ -524,6 +524,82 @@ export default function SaleDetailPage({
         </div>
 
         <div className="space-y-8">
+          {/* Bottom Information Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Customer Info */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-blue-100">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  ข้อมูลลูกค้า
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <DetailItem
+                  icon={<User className="h-4 w-4" />}
+                  label="ชื่อลูกค้า"
+                  value={sale.customer.name}
+                />
+                <DetailItem
+                  icon={<FileText className="h-4 w-4" />}
+                  label="Tax ID"
+                  value={sale.customer.taxId}
+                />
+                <DetailItem
+                  icon={<MapPin className="h-4 w-4" />}
+                  label="ที่อยู่"
+                  value={sale.customer.addressLine}
+                />
+              </div>
+            </div>
+
+            {/* Sale Details */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-purple-100">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                  ข้อมูลการขาย
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <DetailItem
+                  icon={<Calendar className="h-4 w-4" />}
+                  label="วันที่ขาย"
+                  value={format(new Date(sale.saleDate), "dd/MM/yyyy", {
+                    locale: th,
+                  })}
+                />
+                <DetailItem
+                  icon={<CreditCard className="h-4 w-4" />}
+                  label="เงื่อนไขชำระเงิน"
+                  value={paymentTermLabel}
+                />
+                <DetailItem
+                  icon={<User className="h-4 w-4" />}
+                  label="พนักงานขาย"
+                  value={sale.employee.name}
+                />
+              </div>
+            </div>
+
+            {/* Shipping Info */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-100 bg-green-100">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-green-600" />
+                  การจัดส่ง
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <DetailItem
+                  icon={<MapPin className="h-4 w-4" />}
+                  label="ที่อยู่จัดส่ง"
+                  value={sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Main Content (Items & Totals) */}
           <div className="space-y-6">
             {/* Items Card */}
@@ -536,7 +612,7 @@ export default function SaleDetailPage({
               </div>
               <div className="p-0">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-500 font-medium">
+                  <thead className="bg-gray-50 text-gray-500 font-medium text-base">
                     <tr>
                       <th className="py-3 px-4 text-left">สินค้า</th>
                       <th className="py-3 px-4 text-right">จำนวน</th>
@@ -644,82 +720,6 @@ export default function SaleDetailPage({
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Bottom Information Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Customer Info */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-blue-100">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  ข้อมูลลูกค้า
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <DetailItem
-                  icon={<User className="h-4 w-4" />}
-                  label="ชื่อลูกค้า"
-                  value={sale.customer.name}
-                />
-                <DetailItem
-                  icon={<FileText className="h-4 w-4" />}
-                  label="Tax ID"
-                  value={sale.customer.taxId}
-                />
-                <DetailItem
-                  icon={<MapPin className="h-4 w-4" />}
-                  label="ที่อยู่"
-                  value={sale.customer.addressLine}
-                />
-              </div>
-            </div>
-
-            {/* Sale Details */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-purple-100">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                  ข้อมูลการขาย
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <DetailItem
-                  icon={<Calendar className="h-4 w-4" />}
-                  label="วันที่ขาย"
-                  value={format(new Date(sale.saleDate), "dd/MM/yyyy", {
-                    locale: th,
-                  })}
-                />
-                <DetailItem
-                  icon={<CreditCard className="h-4 w-4" />}
-                  label="เงื่อนไขชำระเงิน"
-                  value={paymentTermLabel}
-                />
-                <DetailItem
-                  icon={<User className="h-4 w-4" />}
-                  label="พนักงานขาย"
-                  value={sale.employee.name}
-                />
-              </div>
-            </div>
-
-            {/* Shipping Info */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-green-100">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Truck className="h-5 w-5 text-green-600" />
-                  การจัดส่ง
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <DetailItem
-                  icon={<MapPin className="h-4 w-4" />}
-                  label="ที่อยู่จัดส่ง"
-                  value={sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>
