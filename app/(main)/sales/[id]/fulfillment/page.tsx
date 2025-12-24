@@ -130,7 +130,7 @@ export default function FulfillmentPage({
       }
 
       setTimeout(() => {
-        router.push(`/sales/${id}`);
+        router.push("/fulfillment");
       }, 500);
     } catch (err: any) {
       setError(err.message);
