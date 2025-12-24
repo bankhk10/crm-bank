@@ -93,6 +93,7 @@ export async function GET(request: Request) {
             isUsed: false,
           },
         },
+        stock: true, // NEW: Include dedicated stock table
         _count: {
           select: {
             freeItems: true,
@@ -106,13 +107,33 @@ export async function GET(request: Request) {
 
   // Calculate stock quantity from stock lots
   const products = productsRaw.map((product) => {
-    const stockQuantity = product.stockLots.reduce(
+    // Prefer data from ProductStock table if available
+    if (product.stock) {
+      return {
+        ...product,
+        stockQuantity: product.stock.physicalBalance, // Total Physical Stock
+        availableQuantity: product.stock.availableQuantity,
+        reservedQuantity: product.stock.reservedQuantity,
+        physicalQuantity: product.stock.physicalBalance,
+      };
+    }
+
+    // Fallback to calculation if sync hasn't run yet
+    const availableQuantity = product.stockLots.reduce(
       (sum, lot) => sum + lot.quantity,
       0
     );
+
+    // Reserved quantity can't be easily calculated without the heavy query we just removed.
+    // So if no stock table, reserved is 0.
+    const reservedQuantity = 0;
+
     return {
       ...product,
-      stockQuantity,
+      stockQuantity: availableQuantity,
+      availableQuantity,
+      reservedQuantity,
+      physicalQuantity: availableQuantity + reservedQuantity,
     };
   });
 

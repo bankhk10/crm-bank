@@ -411,6 +411,18 @@ model Product {
   freeItems             ProductFreeItem[]
   stockLots             ProductStockLot[]
   saleItems             SaleItem[]    @relation("SaleItemProduct")
+  stock                 ProductStock?
+}
+
+model ProductStock {
+  id                String   @id @default(cuid())
+  productId         String   @unique
+  physicalBalance   Int      @default(0) // Total items in warehouse (Available + Reserved)
+  reservedQuantity  Int      @default(0) // Allocated to active orders
+  availableQuantity Int      @default(0) // Ready to sell (Physical - Reserved)
+  updatedAt         DateTime @updatedAt
+
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model CustomerImage {

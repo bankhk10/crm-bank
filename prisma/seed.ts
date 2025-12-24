@@ -957,6 +957,13 @@ async function main() {
           },
         ],
       },
+      stock: {
+        create: {
+          physicalBalance: 1000,
+          availableQuantity: 1000,
+          reservedQuantity: 0,
+        },
+      },
       promotionItems: {
         create: [
           {
@@ -997,6 +1004,13 @@ async function main() {
             importDate: new Date(),
           },
         ],
+      },
+      stock: {
+        create: {
+          physicalBalance: 500,
+          availableQuantity: 500,
+          reservedQuantity: 0,
+        },
       },
       promotionItems: {
         create: [

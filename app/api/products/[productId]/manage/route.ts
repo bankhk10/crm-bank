@@ -245,6 +245,38 @@ export async function PATCH(
         }
       }
 
+      // Sync ProductStock table if stock lots were modified
+      if (parsed.data.stockLots) {
+        const allLots = await tx.productStockLot.findMany({
+          where: { productId, isUsed: false },
+        });
+
+        const newAvailable = allLots.reduce(
+          (sum, lot) => sum + lot.quantity,
+          0
+        );
+
+        const currentStock = await tx.productStock.findUnique({
+          where: { productId },
+        });
+
+        const currentReserved = currentStock?.reservedQuantity || 0;
+
+        await tx.productStock.upsert({
+          where: { productId },
+          create: {
+            productId,
+            availableQuantity: newAvailable,
+            reservedQuantity: 0,
+            physicalBalance: newAvailable,
+          },
+          update: {
+            availableQuantity: newAvailable,
+            physicalBalance: newAvailable + currentReserved,
+          },
+        });
+      }
+
       // Fetch updated product with all relations
       return tx.product.findUnique({
         where: { id: productId },

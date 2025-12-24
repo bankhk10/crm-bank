@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { SaleFormData } from "@/types/sales";
+import { releaseStock } from "@/lib/stock-service";
 
 // GET /api/sales/[id] - Get sale detail
 export async function GET(
@@ -74,9 +75,15 @@ export async function GET(
           productId: item.product.id,
           productName: item.product.name,
           requested: item.quantity,
-          available: totalStock,
-          reserved: 0, // TODO: Calculate reserved stock
+          available: totalStock, // This is "Remaining Stock" (Available to Sell)
+          reserved: item.quantity, // This sale IS the reservation
+          physical: totalStock + item.quantity, // What's actually in warehouse
         });
+      } else {
+        // Also verify if we want to show info even if no warning?
+        // The original code only pushed to stockWarnings if totalStock < item.quantity.
+        // But maybe we want to return stock info regardless?
+        // No, this is stockWarnings.
       }
 
       if (item.priceModified) {
@@ -163,110 +170,141 @@ export async function PUT(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
+    // Check delivery date updates
+    let newDeliveryUpdateCount = existingSale.deliveryUpdateCount;
+    // Check if deliveryDate was actually changed (and present provided)
+    if (
+      body.deliveryDate &&
+      (!existingSale.deliveryDate ||
+        new Date(body.deliveryDate).getTime() !==
+          existingSale.deliveryDate.getTime())
+    ) {
+      if (existingSale.deliveryUpdateCount >= 3) {
+        return NextResponse.json(
+          {
+            error:
+              "Maximum number of delivery date updates exceeded (3 times).",
+          },
+          { status: 400 }
+        );
+      }
+      newDeliveryUpdateCount++;
+    }
+
     // If sale is approved, reset to PENDING for re-approval
     const needsReapproval =
       existingSale.status === "APPROVED" ||
       existingSale.status === "AWAITING_PAYMENT" ||
       existingSale.status === "AWAITING_DELIVERY";
 
-    // Return credit limit if sale was approved and used credit
-    if (needsReapproval && existingSale.paymentTerm !== "PREPAID") {
-      const creditLimit = await prisma.creditLimit.findFirst({
-        where: {
-          customerId: existingSale.customerId,
-          status: "ACTIVE",
-          deletedAt: null,
-        },
-      });
-
-      if (creditLimit) {
-        // Return the credit: decrease used, increase available
-        await prisma.creditLimit.update({
-          where: { id: creditLimit.id },
-          data: {
-            usedAmount: {
-              decrement: existingSale.totalAmount,
-            },
-            availableAmount: {
-              increment: existingSale.totalAmount,
-            },
+    const sale = await prisma.$transaction(async (tx) => {
+      // Return credit limit if sale was approved and used credit
+      if (needsReapproval && existingSale.paymentTerm !== "PREPAID") {
+        const creditLimit = await tx.creditLimit.findFirst({
+          where: {
+            customerId: existingSale.customerId,
+            status: "ACTIVE",
+            deletedAt: null,
           },
         });
-      }
-    }
 
-    // Calculate totals
-    const subtotal = body.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0
-    );
-    const total = subtotal + body.shippingCost + body.otherCosts;
-
-    // Update sale
-    const sale = await prisma.sale.update({
-      where: { id },
-      data: {
-        customerId: body.customerId,
-        employeeId: body.employeeId,
-        paymentTerm: body.paymentTerm,
-        creditDays: body.creditDays,
-        creditDueDate: body.creditDueDate ? new Date(body.creditDueDate) : null,
-        usePromotionalCredit: body.usePromotionalCredit,
-        promotionalCreditUsed: body.promotionalCreditUsed
-          ? new Prisma.Decimal(body.promotionalCreditUsed)
-          : null,
-        deliveryMethod: body.deliveryMethod,
-        pickupCompanyId: body.pickupCompanyId,
-        // requestedDeliveryDate: body.requestedDeliveryDate
-        //   ? new Date(body.requestedDeliveryDate)
-        //   : null, // Keep existing if not provided or add to form
-        saleDate: new Date(body.saleDate),
-        requestedDeliveryDate: body.requestedDeliveryDate
-          ? new Date(body.requestedDeliveryDate)
-          : null,
-        deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
-        billingAddress: body.billingAddress,
-        shippingAddress: body.shippingAddress,
-        subtotalAmount: new Prisma.Decimal(subtotal),
-        shippingCost: new Prisma.Decimal(body.shippingCost),
-        otherCosts: new Prisma.Decimal(body.otherCosts),
-        otherCostsDescription: body.otherCostsDescription,
-        totalAmount: new Prisma.Decimal(total),
-        notes: body.notes,
-        status: needsReapproval ? "PENDING" : existingSale.status,
-        items: {
-          deleteMany: {},
-          create: body.items.map((item) => {
-            const totalPrice = item.quantity * item.unitPrice;
-            return {
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: new Prisma.Decimal(item.unitPrice),
-              originalPrice: new Prisma.Decimal(item.originalPrice),
-              priceModified: item.priceModified,
-              totalPrice: new Prisma.Decimal(totalPrice),
-            };
-          }),
-        },
-        statusHistory: needsReapproval
-          ? {
-              create: {
-                status: "PENDING",
-                notes: "Sale updated - requires re-approval",
-                changedById: session.user.id,
+        if (creditLimit) {
+          // Return the credit: decrease used, increase available
+          await tx.creditLimit.update({
+            where: { id: creditLimit.id },
+            data: {
+              usedAmount: {
+                decrement: existingSale.totalAmount,
               },
-            }
-          : undefined,
-      },
-      include: {
-        customer: true,
-        employee: true,
-        items: {
-          include: {
-            product: true,
+              availableAmount: {
+                increment: existingSale.totalAmount,
+              },
+            },
+          });
+        }
+      }
+
+      // If reverting to PENDING, release stock
+      if (needsReapproval) {
+        await releaseStock(id, tx);
+      }
+
+      // Calculate totals
+      const subtotal = body.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0
+      );
+      const total = subtotal + body.shippingCost + body.otherCosts;
+
+      // Update sale
+      return await tx.sale.update({
+        where: { id },
+        data: {
+          customerId: body.customerId,
+          employeeId: body.employeeId,
+          paymentTerm: body.paymentTerm,
+          creditDays: body.creditDays,
+          creditDueDate: body.creditDueDate
+            ? new Date(body.creditDueDate)
+            : null,
+          usePromotionalCredit: body.usePromotionalCredit,
+          promotionalCreditUsed: body.promotionalCreditUsed
+            ? new Prisma.Decimal(body.promotionalCreditUsed)
+            : null,
+          deliveryMethod: body.deliveryMethod,
+          pickupCompanyId: body.pickupCompanyId,
+          // requestedDeliveryDate: body.requestedDeliveryDate
+          //   ? new Date(body.requestedDeliveryDate)
+          //   : null, // Keep existing if not provided or add to form
+          saleDate: new Date(body.saleDate),
+          requestedDeliveryDate: body.requestedDeliveryDate
+            ? new Date(body.requestedDeliveryDate)
+            : null,
+          deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
+          deliveryUpdateCount: newDeliveryUpdateCount,
+          billingAddress: body.billingAddress,
+          shippingAddress: body.shippingAddress,
+          subtotalAmount: new Prisma.Decimal(subtotal),
+          shippingCost: new Prisma.Decimal(body.shippingCost),
+          otherCosts: new Prisma.Decimal(body.otherCosts),
+          otherCostsDescription: body.otherCostsDescription,
+          totalAmount: new Prisma.Decimal(total),
+          notes: body.notes,
+          status: needsReapproval ? "PENDING" : existingSale.status,
+          items: {
+            deleteMany: {},
+            create: body.items.map((item) => {
+              const totalPrice = item.quantity * item.unitPrice;
+              return {
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: new Prisma.Decimal(item.unitPrice),
+                originalPrice: new Prisma.Decimal(item.originalPrice),
+                priceModified: item.priceModified,
+                totalPrice: new Prisma.Decimal(totalPrice),
+              };
+            }),
+          },
+          statusHistory: needsReapproval
+            ? {
+                create: {
+                  status: "PENDING",
+                  notes: "Sale updated - requires re-approval",
+                  changedById: session.user.id,
+                },
+              }
+            : undefined,
+        },
+        include: {
+          customer: true,
+          employee: true,
+          items: {
+            include: {
+              product: true,
+            },
           },
         },
-      },
+      });
     });
 
     return NextResponse.json({ sale });
@@ -303,55 +341,64 @@ export async function DELETE(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    // Return credit limit if sale was approved and used credit
-    if (
-      sale.paymentTerm !== "PREPAID" &&
-      (sale.status === "APPROVED" ||
-        sale.status === "AWAITING_PAYMENT" ||
-        sale.status === "AWAITING_DELIVERY" ||
-        sale.status === "DELIVERED" ||
-        sale.status === "COMPLETED")
-    ) {
-      const creditLimit = await prisma.creditLimit.findFirst({
-        where: {
-          customerId: sale.customerId,
-          status: "ACTIVE",
-          deletedAt: null,
-        },
-      });
-
-      if (creditLimit) {
-        // Return the credit: decrease used, increase available
-        await prisma.creditLimit.update({
-          where: { id: creditLimit.id },
-          data: {
-            usedAmount: {
-              decrement: sale.totalAmount,
-            },
-            availableAmount: {
-              increment: sale.totalAmount,
-            },
+    await prisma.$transaction(async (tx) => {
+      // Return credit limit if sale was approved and used credit
+      if (
+        sale.paymentTerm !== "PREPAID" &&
+        (sale.status === "APPROVED" ||
+          sale.status === "AWAITING_PAYMENT" ||
+          sale.status === "AWAITING_DELIVERY" ||
+          sale.status === "DELIVERED" ||
+          sale.status === "COMPLETED")
+      ) {
+        const creditLimit = await tx.creditLimit.findFirst({
+          where: {
+            customerId: sale.customerId,
+            status: "ACTIVE",
+            deletedAt: null,
           },
         });
-      }
-    }
 
-    // Soft delete
-    await prisma.sale.update({
-      where: { id },
-      data: {
-        deletedAt: new Date(),
-        statusHistory: {
-          create: {
-            status: "CANCELLED",
-            notes: "Sale deleted",
-            changedById: session.user.id,
+        if (creditLimit) {
+          // Return the credit: decrease used, increase available
+          await tx.creditLimit.update({
+            where: { id: creditLimit.id },
+            data: {
+              usedAmount: {
+                decrement: sale.totalAmount,
+              },
+              availableAmount: {
+                increment: sale.totalAmount,
+              },
+            },
+          });
+        }
+      }
+
+      // Return stock if sale was approved/allocated
+      if (
+        sale.status === "APPROVED" ||
+        sale.status === "AWAITING_PAYMENT" ||
+        sale.status === "AWAITING_DELIVERY"
+      ) {
+        await releaseStock(id, tx);
+      }
+
+      // Soft delete
+      await tx.sale.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+          statusHistory: {
+            create: {
+              status: "CANCELLED",
+              notes: "Sale deleted",
+              changedById: session.user.id,
+            },
           },
         },
-      },
+      });
     });
-
-    // TODO: Return stock if sale was approved
 
     return NextResponse.json({ message: "Sale deleted successfully" });
   } catch (error) {

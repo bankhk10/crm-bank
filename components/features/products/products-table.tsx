@@ -3,17 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  Settings,
-  PlusCircle,
-  Package,
-} from "lucide-react";
+import { Eye, Edit, Trash2, Settings, PlusCircle, Package } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,6 +33,9 @@ export interface ProductRecord extends Product {
   };
   stockQuantity?: number;
   reserved?: number;
+  reservedQuantity?: number; // Added from API
+  availableQuantity?: number; // Added from API
+  physicalQuantity?: number; // Added from API
 }
 
 export type ProductsPagination = {
@@ -67,30 +67,48 @@ export interface ProductsTableProps {
 // Constants
 const ALL_STATUS_VALUE = "__ALL_STATUS__";
 
-const statusStyle: Record<string, { label: string; className: string; dot: string }> = {
+const statusStyle: Record<
+  string,
+  { label: string; className: string; dot: string }
+> = {
   ACTIVE: {
     label: "ใช้งาน",
-    className: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-50",
     dot: "bg-emerald-500",
   },
   INACTIVE: {
     label: "ไม่ได้ใช้งาน",
-    className: "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
     dot: "bg-slate-400",
   },
 };
 
 // Badge Components
-function ProductStatusBadge({ status, className }: { status?: string; className?: string }) {
+function ProductStatusBadge({
+  status,
+  className,
+}: {
+  status?: string;
+  className?: string;
+}) {
   const key = (status || "").toUpperCase();
   const info = statusStyle[key] ?? {
     label: "ไม่ระบุ",
-    className: "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+    className:
+      "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
     dot: "bg-slate-400",
   };
 
   return (
-    <span className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium", info.className, className)}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
+        info.className,
+        className
+      )}
+    >
       <span className={cn("h-2 w-2 rounded-full", info.dot)} aria-hidden />
       {info.label}
     </span>
@@ -159,26 +177,54 @@ function useProductColumns(
       {
         accessorKey: "productCode",
         header: "รหัสสินค้า",
-        meta: { headerAlign: "left", minWidth: 100, width: 130, maxWidth: 130, align: "left" },
-        cell: ({ row }) => <TruncatedCell value={row.original.productCode ?? "-"} />,
+        meta: {
+          headerAlign: "left",
+          minWidth: 100,
+          width: 130,
+          maxWidth: 130,
+          align: "left",
+        },
+        cell: ({ row }) => (
+          <TruncatedCell value={row.original.productCode ?? "-"} />
+        ),
       },
       {
         accessorKey: "name",
         header: "ชื่อสินค้า",
-        meta: { headerAlign: "left", minWidth: 180, width: 180, maxWidth: 180, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 180,
+          width: 180,
+          maxWidth: 180,
+          align: "left",
+        },
         cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
       },
       {
         accessorKey: "productGroup",
         header: "กลุ่มสินค้า",
         enableSorting: false,
-        meta: { headerAlign: "left", minWidth: 100, width: 100, maxWidth: 100, align: "left" },
-        cell: ({ row }) => <TruncatedCell value={row.original.productGroup ?? "-"} />,
+        meta: {
+          headerAlign: "left",
+          minWidth: 100,
+          width: 100,
+          maxWidth: 100,
+          align: "left",
+        },
+        cell: ({ row }) => (
+          <TruncatedCell value={row.original.productGroup ?? "-"} />
+        ),
       },
       {
         accessorKey: "price",
         header: "ราคา",
-        meta: { headerAlign: "left", minWidth: 100, width: 100, maxWidth: 100, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 100,
+          width: 100,
+          maxWidth: 100,
+          align: "left",
+        },
         cell: ({ row }) => {
           const price = row.original.price;
           return (
@@ -187,7 +233,8 @@ function useProductColumns(
                 "-"
               ) : (
                 <span>
-                  ฿{Number(price).toLocaleString("th-TH", {
+                  ฿
+                  {Number(price).toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   })}
                 </span>
@@ -199,16 +246,16 @@ function useProductColumns(
       {
         accessorKey: "stockQuantity",
         header: "ทั้งหมด",
-        meta: { headerAlign: "left", minWidth: 110, width: 110, maxWidth: 110, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 110,
+          width: 110,
+          maxWidth: 110,
+          align: "left",
+        },
         cell: ({ row }) => {
           const totalStock =
-            row.original.stockQuantity ??
-            (row.original.stockLots
-              ? row.original.stockLots.reduce(
-                (s, lot) => s + (lot.quantity || 0),
-                0
-              )
-              : 0);
+            row.original.physicalQuantity ?? row.original.stockQuantity ?? 0;
           return <div className="text-sm">{totalStock.toLocaleString()}</div>;
         },
       },
@@ -216,39 +263,32 @@ function useProductColumns(
         accessorKey: "reserved",
         header: "จอง",
         enableSorting: false,
-        meta: { headerAlign: "left", minWidth: 70, width: 70, maxWidth: 70, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 70,
+          width: 70,
+          maxWidth: 70,
+          align: "left",
+        },
         cell: ({ row }) => {
-          const reserved = row.original.reserved ?? 0;
+          const reserved =
+            row.original.reservedQuantity ?? row.original.reserved ?? 0;
           return <div className="text-sm">{reserved.toLocaleString()}</div>;
         },
       },
       {
         id: "availableStock",
         header: "คงเหลือ",
-        accessorFn: (row) => {
-          const totalStock =
-            row.stockQuantity ??
-            (row.stockLots
-              ? row.stockLots.reduce(
-                (s, lot) => s + (lot.quantity || 0),
-                0
-              )
-              : 0);
-          const reserved = row.reserved ?? 0;
-          return Math.max(0, totalStock - reserved);
+        accessorFn: (row) => row.availableQuantity ?? 0,
+        meta: {
+          headerAlign: "left",
+          minWidth: 110,
+          width: 110,
+          maxWidth: 110,
+          align: "left",
         },
-        meta: { headerAlign: "left", minWidth: 110, width: 110, maxWidth: 110, align: "left" },
         cell: ({ row }) => {
-          const totalStock =
-            row.original.stockQuantity ??
-            (row.original.stockLots
-              ? row.original.stockLots.reduce(
-                (s, lot) => s + (lot.quantity || 0),
-                0
-              )
-              : 0);
-          const reserved = row.original.reserved ?? 0;
-          const available = Math.max(0, totalStock - reserved);
+          const available = row.original.availableQuantity ?? 0;
           return <div className="text-sm">{available.toLocaleString()}</div>;
         },
       },
@@ -256,17 +296,33 @@ function useProductColumns(
         accessorKey: "status",
         header: "สถานะ",
         enableSorting: false,
-        meta: { headerAlign: "left", minWidth: 120, width: 120, maxWidth: 120, align: "left" },
+        meta: {
+          headerAlign: "left",
+          minWidth: 120,
+          width: 120,
+          maxWidth: 120,
+          align: "left",
+        },
         cell: ({ row }) => {
           const status = row.original.status?.toUpperCase();
-          return status ? <ProductStatusBadge status={status} className="text-sm" /> : "-";
+          return status ? (
+            <ProductStatusBadge status={status} className="text-sm" />
+          ) : (
+            "-"
+          );
         },
       },
       {
         id: "actions",
         header: "จัดการ",
         enableSorting: false,
-        meta: { headerAlign: "center", minWidth: 150, width: 150, maxWidth: 150, align: "center" },
+        meta: {
+          headerAlign: "center",
+          minWidth: 150,
+          width: 150,
+          maxWidth: 150,
+          align: "center",
+        },
         cell: ({ row }) => {
           const product = row.original;
           return (
@@ -349,7 +405,9 @@ function ProductsToolbar({
           <label className="text-base font-medium mx-2">สถานะ</label>
           <Select
             value={statusFilter || ALL_STATUS_VALUE}
-            onValueChange={(v) => onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)}
+            onValueChange={(v) =>
+              onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+            }
           >
             <SelectTrigger className="mt-2 text-base w-full">
               <SelectValue placeholder="ทั้งหมด" />
@@ -402,12 +460,25 @@ function ProductsCards({
   canDelete,
   onDeleteRequest,
   pagination,
-}: Pick<ProductsTableProps, "data" | "loading" | "canView" | "canUpdate" | "canManage" | "canDelete" | "onDeleteRequest" | "pagination">) {
+}: Pick<
+  ProductsTableProps,
+  | "data"
+  | "loading"
+  | "canView"
+  | "canUpdate"
+  | "canManage"
+  | "canDelete"
+  | "onDeleteRequest"
+  | "pagination"
+>) {
   if (loading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, idx) => (
-          <Card key={`loading-${idx}`} className="h-full border border-slate-200/80 shadow-sm">
+          <Card
+            key={`loading-${idx}`}
+            className="h-full border border-slate-200/80 shadow-sm"
+          >
             <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
             <div className="space-y-3 p-4">
               <div className="flex items-center gap-3">
@@ -433,13 +504,24 @@ function ProductsCards({
   if (!data || data.length === 0) {
     return (
       <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
-        <div className="mb-2 text-base font-semibold text-slate-900">ยังไม่มีสินค้าในหน้านี้</div>
-        <p className="text-sm text-slate-600">ลองปรับการค้นหาหรือเพิ่มสินค้าใหม่</p>
+        <div className="mb-2 text-base font-semibold text-slate-900">
+          ยังไม่มีสินค้าในหน้านี้
+        </div>
+        <p className="text-sm text-slate-600">
+          ลองปรับการค้นหาหรือเพิ่มสินค้าใหม่
+        </p>
       </Card>
     );
   }
 
-  const { page, perPage, total, onPageChange, onPerPageChange, perPageOptions } = pagination;
+  const {
+    page,
+    perPage,
+    total,
+    onPageChange,
+    onPerPageChange,
+    perPageOptions,
+  } = pagination;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const startDisplay = (page - 1) * perPage + 1;
   const endDisplay = (page - 1) * perPage + data.length;
@@ -449,12 +531,9 @@ function ProductsCards({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {data.map((product) => {
           const totalStock =
-            product.stockQuantity ??
-            (product.stockLots
-              ? product.stockLots.reduce((s, lot) => s + (lot.quantity || 0), 0)
-              : 0);
-          const reserved = product.reserved ?? 0;
-          const available = Math.max(0, totalStock - reserved);
+            product.physicalQuantity ?? product.stockQuantity ?? 0;
+          const reserved = product.reservedQuantity ?? product.reserved ?? 0;
+          const available = product.availableQuantity ?? 0;
 
           return (
             <Card
@@ -469,8 +548,12 @@ function ProductsCards({
                       <Package className="h-5 w-5" />
                     </span>
                     <div>
-                      <div className="text-base font-semibold text-slate-900 line-clamp-1">{product.name || "-"}</div>
-                      <div className="text-xs text-slate-500">{product.productCode || "-"}</div>
+                      <div className="text-base font-semibold text-slate-900 line-clamp-1">
+                        {product.name || "-"}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {product.productCode || "-"}
+                      </div>
                     </div>
                   </div>
                   <ProductStatusBadge status={product.status} />
@@ -479,7 +562,9 @@ function ProductsCards({
                 <div className="space-y-2 text-sm text-slate-700">
                   <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <Package className="h-4 w-4 text-slate-400" />
-                    <span className="line-clamp-1">{product.productGroup || "-"}</span>
+                    <span className="line-clamp-1">
+                      {product.productGroup || "-"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
                     <span className="text-slate-600">ราคา:</span>
@@ -487,8 +572,8 @@ function ProductsCards({
                       {product.price == null
                         ? "-"
                         : `฿${Number(product.price).toLocaleString("th-TH", {
-                          minimumFractionDigits: 2,
-                        })}`}
+                            minimumFractionDigits: 2,
+                          })}`}
                     </span>
                   </div>
                 </div>
@@ -496,35 +581,56 @@ function ProductsCards({
                 <div className="grid grid-cols-3 gap-2">
                   <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
                     <div className="text-xs text-blue-600">ทั้งหมด</div>
-                    <div className="font-semibold text-blue-700">{totalStock.toLocaleString()}</div>
+                    <div className="font-semibold text-blue-700">
+                      {totalStock.toLocaleString()}
+                    </div>
                   </div>
                   <div className="rounded-lg bg-orange-50 px-3 py-2 text-center">
                     <div className="text-xs text-orange-600">จอง</div>
-                    <div className="font-semibold text-orange-700">{reserved.toLocaleString()}</div>
+                    <div className="font-semibold text-orange-700">
+                      {reserved.toLocaleString()}
+                    </div>
                   </div>
                   <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center">
                     <div className="text-xs text-emerald-600">คงเหลือ</div>
-                    <div className="font-semibold text-emerald-700">{available.toLocaleString()}</div>
+                    <div className="font-semibold text-emerald-700">
+                      {available.toLocaleString()}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-1">
                   {canView && (
-                    <Button asChild size="sm" variant="outline" className="border-blue-100 text-blue-700 hover:bg-blue-50">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-100 text-blue-700 hover:bg-blue-50"
+                    >
                       <Link href={`/products/${product.id}`}>
                         <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
                       </Link>
                     </Button>
                   )}
                   {canUpdate && (
-                    <Button asChild size="sm" variant="outline" className="border-indigo-100 text-indigo-700 hover:bg-indigo-50">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+                    >
                       <Link href={`/products/${product.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" /> แก้ไข
                       </Link>
                     </Button>
                   )}
                   {canManage && (
-                    <Button asChild size="sm" variant="outline" className="border-green-100 text-green-700 hover:bg-green-50">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="border-green-100 text-green-700 hover:bg-green-50"
+                    >
                       <Link href={`/products/${product.id}/manage`}>
                         <Settings className="mr-2 h-4 w-4" /> จัดการ
                       </Link>
@@ -554,7 +660,10 @@ function ProductsCards({
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           {perPageOptions && perPageOptions.length > 0 && (
-            <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v))}>
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => onPerPageChange(Number(v))}
+            >
               <SelectTrigger className="h-9 w-[70px] text-sm">
                 <SelectValue placeholder="ต่อหน้า" />
               </SelectTrigger>
@@ -616,7 +725,13 @@ export function ProductsTable(props: ProductsTableProps) {
     pagination,
   } = props;
 
-  const columns = useProductColumns(onDeleteRequest, canView, canUpdate, canDelete, canManage);
+  const columns = useProductColumns(
+    onDeleteRequest,
+    canView,
+    canUpdate,
+    canDelete,
+    canManage
+  );
 
   const toolbarProps = {
     canCreate,
