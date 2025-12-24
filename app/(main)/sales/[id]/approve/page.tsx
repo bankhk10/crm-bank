@@ -543,7 +543,6 @@ export default function ApproveSalePage({
 
             <div className="flex justify-between items-center py-2.5 border-b border-gray-200">
               <span className="text-sm text-gray-600 flex items-center gap-2">
-                <Truck className="h-4 w-4 text-blue-600" />
                 ส่วนค่าขนส่ง
               </span>
               <span className="text-base font-medium text-red-600">
@@ -709,7 +708,6 @@ export default function ApproveSalePage({
                   className="text-right p-4 font-medium text-gray-600"
                 >
                   <span className="inline-flex items-center gap-2 justify-start w-full">
-                    <Truck className="h-4 w-4 text-blue-600" />
                     ส่วนค่าขนส่ง
                   </span>
                 </td>
