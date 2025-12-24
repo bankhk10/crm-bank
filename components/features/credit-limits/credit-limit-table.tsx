@@ -16,6 +16,8 @@ export type CustomerRecord = {
   creditLimits?: Array<{
     id: string;
     limitAmount: number;
+    usedAmount?: number;
+    availableAmount?: number;
     promoAmount?: number;
   }>;
   temporaryCreditLimits?: Array<{
@@ -70,11 +72,20 @@ function useColumns() {
 
           if (!cl) return "-";
 
-          let totalLimit = Number(cl.limitAmount);
+          // Use availableAmount (Remaining) instead of limitAmount (Total)
+          // If availableAmount is provided, use it. Otherwise fall back to (limit - used) or limit.
+          let baseAmount =
+            cl.availableAmount !== undefined
+              ? Number(cl.availableAmount)
+              : Number(cl.limitAmount) - (Number(cl.usedAmount) || 0);
+
+          let totalRemaining = baseAmount;
 
           // เพิ่มวงเงินชั่วคราวที่ APPROVED และยังไม่หมดอายุ
           const tempLimits = r.temporaryCreditLimits || [];
-          const approvedLimits = tempLimits.filter(temp => temp.status === "APPROVED");
+          const approvedLimits = tempLimits.filter(
+            (temp) => temp.status === "APPROVED"
+          );
 
           if (approvedLimits.length > 0) {
             // เอารายการล่าสุด
@@ -89,14 +100,15 @@ function useColumns() {
 
             // ถ้ายังไม่หมดอายุ เพิ่มวงเงินชั่วคราว
             if (expiryDate >= now) {
-              totalLimit = totalLimit + Number(latestTemp.requestedAmount);
+              totalRemaining =
+                totalRemaining + Number(latestTemp.requestedAmount);
             }
           }
 
           return new Intl.NumberFormat("th-TH", {
             style: "currency",
             currency: "THB",
-          }).format(totalLimit);
+          }).format(totalRemaining);
         },
         meta: { minWidth: 170, width: 170, align: "center" },
       },
@@ -111,9 +123,9 @@ function useColumns() {
           const v = Number((cl as any).promoAmount);
           return Number.isFinite(v)
             ? new Intl.NumberFormat("th-TH", {
-              style: "currency",
-              currency: "THB",
-            }).format(v)
+                style: "currency",
+                currency: "THB",
+              }).format(v)
             : "-";
         },
         meta: { minWidth: 180, width: 180, align: "center" },
@@ -127,7 +139,7 @@ function useColumns() {
 
           // หารายการล่าสุดที่ APPROVED
           const approvedLimits = tempLimits
-            .filter(temp => temp.status === "APPROVED")
+            .filter((temp) => temp.status === "APPROVED")
             .sort((a, b) => {
               const dateA = new Date(a.expiryDate).getTime();
               const dateB = new Date(b.expiryDate).getTime();
@@ -234,13 +246,13 @@ export default function CustomersCreditTable(props: CustomersCreditTableProps) {
       pagination={
         pagination
           ? {
-            page: pagination.page,
-            perPage: pagination.perPage,
-            total: pagination.total,
-            onPageChange: pagination.onPageChange,
-            onPerPageChange: pagination.onPerPageChange,
-            perPageOptions: pagination.perPageOptions,
-          }
+              page: pagination.page,
+              perPage: pagination.perPage,
+              total: pagination.total,
+              onPageChange: pagination.onPageChange,
+              onPerPageChange: pagination.onPerPageChange,
+              perPageOptions: pagination.perPageOptions,
+            }
           : undefined
       }
       canCreate={false}

@@ -4,10 +4,13 @@ import React, { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import CustomersCreditTable, { type CustomerRecord } from "@/components/features/credit-limits/credit-limit-table";
+import CustomersCreditTable, {
+  type CustomerRecord,
+} from "@/components/features/credit-limits/credit-limit-table";
 
 export default function CreditLimitsPage() {
-  const { hasPermission, allowed, isLoading } = usePermission("menu.credit_limits");
+  const { hasPermission, allowed, isLoading } =
+    usePermission("menu.credit_limits");
   const canCreate = hasPermission("creditlimit.create");
   const canEdit = hasPermission("creditlimit.edit");
   const canDelete = hasPermission("creditlimit.delete");
@@ -62,14 +65,21 @@ export default function CreditLimitsPage() {
       setPage(1);
     }, delay);
     return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.dateRange, filterDraft.status, total, appliedFilters.query]);
+  }, [
+    filterDraft.query,
+    filterDraft.dateRange,
+    filterDraft.status,
+    total,
+    appliedFilters.query,
+  ]);
 
   const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
 
   const isTyping =
     filterDraft.query !== appliedFilters.query ||
-    mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange) ||
+    mkRangeKey(filterDraft.dateRange) !==
+      mkRangeKey(appliedFilters.dateRange) ||
     filterDraft.status !== appliedFilters.status;
 
   const handleSearchSubmit = () => {
@@ -95,8 +105,7 @@ export default function CreditLimitsPage() {
         params.set("type", "DEALER");
         if (appliedFilters.query.trim())
           params.set("q", appliedFilters.query.trim());
-        if (appliedFilters.status)
-          params.set("status", appliedFilters.status);
+        if (appliedFilters.status) params.set("status", appliedFilters.status);
         if (appliedFilters.dateRange?.from)
           params.set("from", appliedFilters.dateRange.from.toISOString());
         if (appliedFilters.dateRange?.to)
@@ -108,20 +117,30 @@ export default function CreditLimitsPage() {
         if (!res.ok) throw new Error("Failed to load credit limits");
         const json = await res.json();
         if (mounted) {
-          setCustomers((json.customers ?? []).map((c: any) => ({
-            id: c.id,
-            customerCode: c.customerCode,
-            name: c.name,
-            phone: c.phone,
-            email: c.email,
-            creditLimits: (c.creditLimits || []).map((cl: any) => ({ id: cl.id, limitAmount: cl.limitAmount, promoAmount: cl.promoAmount })),
-            temporaryCreditLimits: (c.temporaryCreditLimits || []).map((tcl: any) => ({
-              id: tcl.id,
-              requestedAmount: tcl.requestedAmount,
-              status: tcl.status,
-              expiryDate: tcl.expiryDate,
-            })),
-          })));
+          setCustomers(
+            (json.customers ?? []).map((c: any) => ({
+              id: c.id,
+              customerCode: c.customerCode,
+              name: c.name,
+              phone: c.phone,
+              email: c.email,
+              creditLimits: (c.creditLimits || []).map((cl: any) => ({
+                id: cl.id,
+                limitAmount: cl.limitAmount,
+                usedAmount: cl.usedAmount,
+                availableAmount: cl.availableAmount,
+                promoAmount: cl.promoAmount,
+              })),
+              temporaryCreditLimits: (c.temporaryCreditLimits || []).map(
+                (tcl: any) => ({
+                  id: tcl.id,
+                  requestedAmount: tcl.requestedAmount,
+                  status: tcl.status,
+                  expiryDate: tcl.expiryDate,
+                })
+              ),
+            }))
+          );
           setTotal(typeof json.total === "number" ? json.total : 0);
         }
       } catch (error) {
@@ -162,11 +181,18 @@ export default function CreditLimitsPage() {
             data={customers}
             loading={loading}
             searchValue={filterDraft.query}
-            onSearchChange={(value) => setFilterDraft((prev) => ({ ...prev, query: value }))}
+            onSearchChange={(value) =>
+              setFilterDraft((prev) => ({ ...prev, query: value }))
+            }
             isTyping={isTyping}
             onSearchSubmit={handleSearchSubmit}
             dateRange={filterDraft.dateRange}
-            onDateRangeChange={(range) => setFilterDraft((prev) => ({ ...prev, dateRange: range ?? undefined }))}
+            onDateRangeChange={(range) =>
+              setFilterDraft((prev) => ({
+                ...prev,
+                dateRange: range ?? undefined,
+              }))
+            }
             pagination={{
               page,
               perPage,
