@@ -8,6 +8,8 @@ type CreditLimitPayload = {
   customerId: string;
   limitAmount: number;
   promoAmount?: number;
+  usedAmount?: number;
+  availableAmount?: number;
   effectiveDate: Date;
   expiryDate?: Date;
   notes?: string;
@@ -41,6 +43,8 @@ export default function CreditLimitForm({
     customerId: initial.customerId ?? "",
     limitAmount: initial.limitAmount ?? 0,
     promoAmount: initial.promoAmount ?? 0,
+    usedAmount: initial.usedAmount ?? 0,
+    availableAmount: initial.availableAmount ?? 0,
     effectiveDate: initial.effectiveDate ?? new Date(),
     expiryDate: initial.expiryDate,
     notes: initial.notes ?? "",
@@ -83,7 +87,11 @@ export default function CreditLimitForm({
       };
 
       // keep payload in sync with parsed values
-      setPayload((p) => ({ ...p, limitAmount: parsedLimit, promoAmount: parsedPromo }));
+      setPayload((p) => ({
+        ...p,
+        limitAmount: parsedLimit,
+        promoAmount: parsedPromo,
+      }));
 
       if (payload.effectiveDate)
         body.effectiveDate = payload.effectiveDate.toISOString();
@@ -131,6 +139,34 @@ export default function CreditLimitForm({
           {fieldErrors.customerId && (
             <p className="text-red-600 text-sm">{fieldErrors.customerId}</p>
           )}
+        </div>
+
+        {/* Used Amount (Read-only) */}
+        <div>
+          <Label className={labelText}>ใช้วงเงินไปแล้ว (บาท)</Label>
+          <Input
+            type="text"
+            className={`${inputClass} bg-gray-100`}
+            value={new Intl.NumberFormat("th-TH", {
+              minimumFractionDigits: 2,
+            }).format(payload.usedAmount || 0)}
+            readOnly
+            disabled
+          />
+        </div>
+
+        {/* Available Amount (Read-only) */}
+        <div>
+          <Label className={labelText}>คงเหลือ (บาท)</Label>
+          <Input
+            type="text"
+            className={`${inputClass} bg-gray-100 font-semibold text-green-700`}
+            value={new Intl.NumberFormat("th-TH", {
+              minimumFractionDigits: 2,
+            }).format(payload.availableAmount || 0)}
+            readOnly
+            disabled
+          />
         </div>
 
         {/* limitAmount */}

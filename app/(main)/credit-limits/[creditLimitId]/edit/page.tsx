@@ -9,7 +9,8 @@ import CreditLimitForm from "@/components/features/credit-limits/credit-limit-fo
 export default function EditCreditLimitPage() {
   const { creditLimitId } = useParams() as { creditLimitId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("creditlimit.edit");
+  const { hasPermission, allowed, isLoading } =
+    usePermission("creditlimit.edit");
   const canEdit = !isLoading && hasPermission("creditlimit.edit");
 
   const [payload, setPayload] = useState<any>({
@@ -19,7 +20,9 @@ export default function EditCreditLimitPage() {
     expiryDate: undefined,
     notes: "",
   });
-  const [customers, setCustomers] = useState<Array<{ id: string; name: string; customerCode: string }>>([]);
+  const [customers, setCustomers] = useState<
+    Array<{ id: string; name: string; customerCode: string }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +39,13 @@ export default function EditCreditLimitPage() {
         ]);
 
         if (!creditLimitRes.ok) throw new Error("Failed to load credit limit");
-        
+
         const creditLimitJson = await creditLimitRes.json();
-        const src = (creditLimitJson && (creditLimitJson.creditLimit ?? creditLimitJson)) || {};
-        
+        const src =
+          (creditLimitJson &&
+            (creditLimitJson.creditLimit ?? creditLimitJson)) ||
+          {};
+
         if (customersRes.ok) {
           const customersJson = await customersRes.json();
           setCustomers(customersJson.customers ?? []);
@@ -51,7 +57,11 @@ export default function EditCreditLimitPage() {
             customerId: src.customerId ?? "",
             limitAmount: Number(src.limitAmount) ?? 0,
             promoAmount: src.promoAmount ?? undefined,
-            effectiveDate: src.effectiveDate ? new Date(src.effectiveDate) : new Date(),
+            usedAmount: Number(src.usedAmount) ?? 0,
+            availableAmount: Number(src.availableAmount) ?? 0,
+            effectiveDate: src.effectiveDate
+              ? new Date(src.effectiveDate)
+              : new Date(),
             expiryDate: src.expiryDate ? new Date(src.expiryDate) : undefined,
             notes: src.notes ?? "",
           }));
@@ -97,14 +107,18 @@ export default function EditCreditLimitPage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5 border-b pb-6">แก้ไขข้อมูลวงเงิน</h5>
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+              แก้ไขข้อมูลวงเงิน
+            </h5>
           </div>
 
           {(!canEdit || error) && (
             <div>
               {!canEdit && (
                 <Alert variant="destructive">
-                  <AlertDescription>คุณไม่มีสิทธิ์แก้ไขวงเงินนี้</AlertDescription>
+                  <AlertDescription>
+                    คุณไม่มีสิทธิ์แก้ไขวงเงินนี้
+                  </AlertDescription>
                 </Alert>
               )}
               {error && (
