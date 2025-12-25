@@ -154,7 +154,7 @@ export default function ApproveSalePage({
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
       {/* Sale Summary Card */}
-      <Card className="rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
+      <Card className="!py-0 rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
           <Button
             variant="ghost"
@@ -266,7 +266,7 @@ export default function ApproveSalePage({
 
       {/* Price Change Warning */}
       {priceWarnings.length > 0 && (
-        <Card className="py-6 border-2 border-orange-200 bg-gradient-to-br from-white via-orange-50 to-amber-50 shadow-lg">
+        <Card className="border-2 border-orange-200 bg-gradient-to-br from-white via-orange-50 to-amber-50 shadow-lg">
           <CardHeader className="space-y-2">
             <CardTitle className="flex items-center gap-3 text-lg text-orange-900">
               <div className="p-2 bg-orange-100 rounded-xl">
@@ -409,7 +409,7 @@ export default function ApproveSalePage({
       )}
 
       {/* ========================== 📦 รายการสินค้า ========================== */}
-      <Card className="rounded-3xl shadow-xl border-2 border-blue-100 overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
+      <Card className="!py-0 rounded-3xl shadow-xl border-2 border-blue-100 overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
         <CardHeader className="p-6 border-b-2 border-blue-100 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-3xl">
           <CardTitle className="flex items-center gap-3 text-xl font-bold text-white">
             <div className="p-2 bg-white/20 rounded-xl backdrop-blur">
