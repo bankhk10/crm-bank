@@ -631,6 +631,15 @@ async function main() {
         defaultDataAccess: "VIEW_DEPARTMENT",
       },
     }),
+    prisma.permission.create({
+      data: {
+        key: "data.sales",
+        name: "Sale data scope",
+        category: "DATA",
+        resource: "sale",
+        defaultDataAccess: "VIEW_DEPARTMENT",
+      },
+    }),
     // New Permissions
     prisma.permission.create({
       data: {
@@ -779,6 +788,7 @@ async function main() {
     { key: "temporary_creditlimit.view", access: "VIEW_OWN" },
     { key: "temporary_creditlimit.delete", access: "VIEW_OWN" },
     { key: "employee.view", access: "VIEW_ALL" },
+    { key: "data.sales", access: "VIEW_OWN" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -823,6 +833,7 @@ async function main() {
     { key: "creditlimit.view", access: "VIEW_DEPARTMENT" },
     { key: "creditlimit.approve", access: "VIEW_DEPARTMENT" },
     { key: "creditlimit.reject", access: "VIEW_DEPARTMENT" },
+    { key: "data.sales", access: "VIEW_DEPARTMENT" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -898,6 +909,7 @@ async function main() {
     { key: "data.customers", access: "VIEW_ALL" },
     { key: "data.creditlimits", access: "VIEW_ALL" },
     { key: "data.temporary_creditlimits", access: "VIEW_ALL" },
+    { key: "data.sales", access: "VIEW_ALL" },
     // Note: rbac.manage is excluded to differentiate from Administrator
   ];
 
