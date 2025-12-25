@@ -168,16 +168,6 @@ export default function SaleDetailPage({
 
         <Card className="shadow-lg border-slate-200 bg-white overflow-hidden print:shadow-none print:border-none">
           <div className="p-8 space-y-8 relative">
-            <div className="absolute top-8 right-8 print:hidden">
-              <Badge
-                className={`${getSaleStatusColor(
-                  sale.status
-                )} border-none px-4 py-1.5 text-sm shadow-md backdrop-blur`}
-              >
-                {SaleStatusLabels[sale.status]}
-              </Badge>
-            </div>
-
             {/* Same Invoice Header Title */}
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-slate-800 uppercase tracking-wide">
