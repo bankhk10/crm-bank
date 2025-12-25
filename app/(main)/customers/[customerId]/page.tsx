@@ -994,6 +994,84 @@ export default function CustomerDetailPage() {
             </Card>
           )}
 
+          {/* Section: Contact Person */}
+          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
+            <CardHeader className="pt-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 pb-5">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-gray-800">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
+                  <User className="h-6 w-6" />
+                </div>
+                ข้อมูลผู้ติดต่อ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+              <DetailItem
+                label="ชื่อ-นามสกุล"
+                value={
+                  <span className="text-gray-900">
+                    {[customer.prefix, customer.firstName, customer.lastName]
+                      .filter(Boolean)
+                      .join(" ") || "-"}
+                  </span>
+                }
+                icon={User}
+                className="col-span-full"
+              />
+              <DetailItem
+                label="เบอร์โทรศัพท์ (ส่วนตัว)"
+                value={
+                  customer.contactPhone ? (
+                    <a
+                      href={`tel:${customer.contactPhone}`}
+                      className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
+                    >
+                      {customer.contactPhone}
+                    </a>
+                  ) : (
+                    "-"
+                  )
+                }
+                icon={Phone}
+              />
+              <DetailItem
+                label="อีเมล (ส่วนตัว)"
+                value={
+                  customer.contactEmail ? (
+                    <a
+                      href={`mailto:${customer.contactEmail}`}
+                      className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
+                    >
+                      {customer.contactEmail}
+                    </a>
+                  ) : (
+                    "-"
+                  )
+                }
+                icon={Mail}
+              />
+              <DetailItem
+                label="วันเกิด / อายุ"
+                value={
+                  customer.birthDate ? (
+                    <span className="inline-flex items-center gap-2 bg-pink-50 text-pink-700 px-3 py-1 rounded-lg font-semibold">
+                      🎂{" "}
+                      {new Date(customer.birthDate).toLocaleDateString(
+                        "th-TH",
+                        { day: "numeric", month: "long", year: "numeric" }
+                      )}
+                      {age !== null && (
+                        <span className="text-pink-600">({age} ปี)</span>
+                      )}
+                    </span>
+                  ) : (
+                    "-"
+                  )
+                }
+                icon={Calendar}
+              />
+            </CardContent>
+          </Card>
+
           {/* Section: Addresses */}
           <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
             <CardHeader className="pt-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200 pb-5">
@@ -1231,88 +1309,11 @@ export default function CustomerDetailPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Section: Contact Person */}
-          <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
-            <CardHeader className="pt-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 pb-5">
-              <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-800">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-lg">
-                  <User className="h-5 w-5" />
-                </div>
-                ข้อมูลผู้ติดต่อ
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 grid grid-cols-1 gap-y-6">
-              <DetailItem
-                label="ชื่อ-นามสกุล"
-                value={
-                  <span className="text-gray-900">
-                    {[customer.prefix, customer.firstName, customer.lastName]
-                      .filter(Boolean)
-                      .join(" ") || "-"}
-                  </span>
-                }
-                icon={User}
-              />
-              <DetailItem
-                label="เบอร์โทรศัพท์ (ส่วนตัว)"
-                value={
-                  customer.contactPhone ? (
-                    <a
-                      href={`tel:${customer.contactPhone}`}
-                      className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
-                    >
-                      {customer.contactPhone}
-                    </a>
-                  ) : (
-                    "-"
-                  )
-                }
-                icon={Phone}
-              />
-              <DetailItem
-                label="อีเมล (ส่วนตัว)"
-                value={
-                  customer.contactEmail ? (
-                    <a
-                      href={`mailto:${customer.contactEmail}`}
-                      className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
-                    >
-                      {customer.contactEmail}
-                    </a>
-                  ) : (
-                    "-"
-                  )
-                }
-                icon={Mail}
-              />
-              <DetailItem
-                label="วันเกิด / อายุ"
-                value={
-                  customer.birthDate ? (
-                    <span className="inline-flex items-center gap-2 bg-pink-50 text-pink-700 px-3 py-1 rounded-lg font-semibold">
-                      🎂{" "}
-                      {new Date(customer.birthDate).toLocaleDateString(
-                        "th-TH",
-                        { day: "numeric", month: "long", year: "numeric" }
-                      )}
-                      {age !== null && (
-                        <span className="text-pink-600">({age} ปี)</span>
-                      )}
-                    </span>
-                  ) : (
-                    "-"
-                  )
-                }
-                icon={Calendar}
-              />
-            </CardContent>
-          </Card>
         </div>
       </div>
 
       {/* Back Navigation */}
-      <div className="flex items-center gap-3 pt-4">
+      <div className="flex justify-center pt-4">
         <Button
           variant="outline"
           size="lg"
