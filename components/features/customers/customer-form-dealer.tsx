@@ -833,19 +833,24 @@ export default function CustomerFormDealer({
           disabled={loading}
           initialFiles={convertToFileMetadata(initial.images || [])}
           onFilesChange={(files) => setUploadedFiles(files)}
+          // Enforce 1080x1080 size
+          targetSize={{ width: 1080, height: 1080 }}
         />
-        {uploadProgress !== null && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
-            <p className="text-xs text-center mt-1">
-              กำลังอัพโหลด: {uploadProgress}%
-            </p>
-          </div>
-        )}
       </div>
+
+      {uploadProgress !== null && (
+        <div className="md:col-span-2 mt-4">
+          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+            <div
+              className="h-3 bg-green-600 transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            กำลังอัพโหลดรูป: {uploadProgress}%
+          </div>
+        </div>
+      )}
 
       <div className="md:col-span-2 pt-6 border-t my-2">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
