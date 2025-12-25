@@ -115,6 +115,12 @@ const statusStyle: Record<
       "bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-900/30 dark:text-purple-50",
     dot: "bg-purple-500",
   },
+  DELIVERY_COMPLETED: {
+    label: "ส่งเสร็จแล้ว",
+    className:
+      "bg-green-50 text-green-700 ring-1 ring-green-100 dark:bg-green-900/30 dark:text-green-50",
+    dot: "bg-green-500",
+  },
   EXPIRED: {
     label: "หมดอายุ",
     className:
