@@ -11,6 +11,7 @@ import {
   Save,
   AlertCircle,
   Loader2,
+  ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -201,7 +202,7 @@ export default function FulfillmentPage({
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
-                  จัดการการชำระเงินและวันที่จัดส่ง
+                  จัดการสถานะการขาย
                 </h1>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base">
                   <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit">
@@ -297,7 +298,7 @@ export default function FulfillmentPage({
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
                   <CreditCard className="h-5 w-5 text-white" />
                 </div>
-                ข้อมูลการชำระเงินและการจัดส่ง
+                ข้อมูลสถานะการขาย
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
@@ -307,7 +308,8 @@ export default function FulfillmentPage({
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
                     1
                   </span>
-                  สถานะการชำระเงิน
+                  <ClipboardCheck className="h-4 w-4 text-blue-600" />
+                  สถานะ
                 </label>
                 <Select value={status} onValueChange={setStatus}>
                   <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
