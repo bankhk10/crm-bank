@@ -136,7 +136,6 @@ export default function RolePermissionEditor({
       nextPermissions.push({
         id: "temp-" + permissionId,
         createdAt: new Date(),
-        updatedAt: new Date(),
         deletedAt: null,
         roleId: currentRole.id,
         permissionId,
@@ -225,7 +224,6 @@ export default function RolePermissionEditor({
         ...(existing ?? {
           id: "temp-" + id,
           createdAt: new Date(),
-          updatedAt: new Date(),
           deletedAt: null,
           roleId: currentRole.id,
           permissionId: id,
