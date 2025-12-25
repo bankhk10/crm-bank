@@ -113,6 +113,13 @@ export default function FulfillmentPage({
     setSubmitting(true);
     setError(null);
 
+    // Validate: If status is COMPLETED, payment date is required
+    if (status === "COMPLETED" && !paymentDate) {
+      setError("กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/sales/${id}/fulfillment`, {
         method: "POST",
@@ -134,8 +141,8 @@ export default function FulfillmentPage({
       setTimeout(() => {
         router.push("/fulfillment");
       }, 500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       setSubmitting(false);
     }
   };
@@ -382,6 +389,9 @@ export default function FulfillmentPage({
                     </span>
                     <CreditCard className="h-4 w-4 text-purple-600" />
                     วันที่ชำระเงิน
+                    {status === "COMPLETED" && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </label>
                   <div className="relative max-w-md">
                     <DatePicker
@@ -391,6 +401,13 @@ export default function FulfillmentPage({
                       placeholder="เลือกวันที่ชำระเงิน"
                     />
                   </div>
+                  {status === "COMPLETED" && !paymentDate && (
+                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
+                      จำเป็นต้องระบุวันที่ชำระเงินเมื่อสถานะเป็น
+                      &ldquo;เสร็จสิ้น&rdquo;
+                    </p>
+                  )}
                 </div>
               </div>
 
