@@ -192,7 +192,7 @@ export default function SaleDetailPage({
             {/* Same Invoice Header Title */}
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-slate-800 uppercase tracking-wide">
-                ใบบันทึกการขาย ( Sales note )
+                ใบบันทึกการขาย
               </h2>
               <p className="text-slate-500 font-medium">{sale.saleNumber}</p>
             </div>
