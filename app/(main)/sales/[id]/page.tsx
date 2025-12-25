@@ -262,8 +262,18 @@ export default function SaleDetailPage({
                   {sale.creditDueDate && (
                     <div className="flex justify-between p-2 px-4 text-sm">
                       <span className="text-slate-500">วันที่ครบกำหนด:</span>
-                      <span className="font-medium text-red-600">
+                      <span className="font-medium">
                         {format(new Date(sale.creditDueDate!), "dd/MM/yyyy", {
+                          locale: th,
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {sale.paymentDate && (
+                    <div className="flex justify-between p-2 px-4 text-sm">
+                      <span className="text-slate-500">วันที่ชำระเงิน:</span>
+                      <span className="font-medium text-green-600">
+                        {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
                           locale: th,
                         })}
                       </span>
@@ -593,6 +603,32 @@ export default function SaleDetailPage({
                   label="เงื่อนไขชำระเงิน"
                   value={paymentTermLabel}
                 />
+                {sale.creditDueDate && (
+                  <DetailItem
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="วันที่ครบกำหนด"
+                    value={
+                      <span className="text-red-600">
+                        {format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
+                          locale: th,
+                        })}
+                      </span>
+                    }
+                  />
+                )}
+                {sale.paymentDate && (
+                  <DetailItem
+                    icon={<Calendar className="h-4 w-4" />}
+                    label="วันที่ชำระเงิน"
+                    value={
+                      <span className="text-green-600">
+                        {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
+                          locale: th,
+                        })}
+                      </span>
+                    }
+                  />
+                )}
                 <DetailItem
                   icon={<User className="h-4 w-4" />}
                   label="พนักงานขาย"
