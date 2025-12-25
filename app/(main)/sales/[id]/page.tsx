@@ -272,7 +272,15 @@ export default function SaleDetailPage({
                   {sale.paymentDate && (
                     <div className="flex justify-between p-2 px-4 text-sm">
                       <span className="text-slate-500">วันที่ชำระเงิน:</span>
-                      <span className="font-medium text-green-600">
+                      <span
+                        className={`font-medium ${
+                          sale.creditDueDate &&
+                          new Date(sale.paymentDate) >
+                            new Date(sale.creditDueDate)
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
                         {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
                           locale: th,
                         })}
@@ -621,7 +629,15 @@ export default function SaleDetailPage({
                     icon={<Calendar className="h-4 w-4" />}
                     label="วันที่ชำระเงิน"
                     value={
-                      <span className="text-green-600">
+                      <span
+                        className={`${
+                          sale.creditDueDate &&
+                          new Date(sale.paymentDate) >
+                            new Date(sale.creditDueDate)
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
                         {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
                           locale: th,
                         })}
