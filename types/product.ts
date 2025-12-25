@@ -86,11 +86,11 @@ export interface ProductFormData {
   images?: Array<
     | File
     | {
-      id?: string;
-      url: string;
-      name?: string;
-      size?: number;
-    }
+        id?: string;
+        url: string;
+        name?: string;
+        size?: number;
+      }
   >;
   /** index in `images` that should be treated as the cover (0-based) */
   coverIndex?: number | null;
@@ -126,9 +126,18 @@ export interface ProductManagementFormData {
 }
 
 export const UNIT_OPTIONS = [
-  { value: "ชิ้น", label: "ชิ้น" },
+  { value: "ขวด", label: "ขวด" },
   { value: "กล่อง", label: "กล่อง" },
-  { value: "ถุง", label: "ถุง" },
+  { value: "ถัง", label: "ถัง" },
+  { value: "แกลลอน", label: "แกลลอน" },
+  { value: "กรัม", label: "กรัม" },
+  { value: "กระปุก", label: "กระปุก" },
+  { value: "กิโลกรัม", label: "กิโลกรัม" },
+  { value: "ลิตร", label: "ลิตร" },
+  { value: "ชิ้น", label: "ชิ้น" },
+  { value: "กระสอบ", label: "กระสอบ" },
+  { value: "ชุด", label: "ชุด" },
+  { value: "ซอง", label: "ซอง" },
 ];
 
 export const PRODUCT_GROUP_OPTIONS = [

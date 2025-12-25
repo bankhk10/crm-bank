@@ -13,7 +13,21 @@ export type ProductRandomPayload = {
   properties?: string;
 };
 
-const units = ["ชิ้น", "กล่อง", "แพ็ค", "ลิตร"];
+const units = [
+  "ขวด",
+  "กล่อง",
+  "ถัง",
+  "แกลลอน",
+  "กรัม",
+  "กระปุก",
+  "กิโลกรัม",
+  "ลิตร",
+  "ชิ้น",
+  "กระสอบ",
+  "ชุด",
+  "ซอง",
+];
+
 const groups = ["กลุ่ม A", "กลุ่ม B", "กลุ่ม C", "กลุ่ม D"];
 const brands = ["แบรนด์ X", "แบรนด์ Y", "แบรนด์ Z", "แบรนด์ Q"];
 const productNames = [
@@ -30,12 +44,19 @@ function rand<T>(arr: T[]) {
 }
 
 function randNumberString(len = 4) {
-  return Array.from({ length: len }, () => Math.floor(Math.random() * 10)).join("");
+  return Array.from({ length: len }, () => Math.floor(Math.random() * 10)).join(
+    ""
+  );
 }
 
-export function generateRandomProduct(overrides: Partial<ProductRandomPayload> = {}): ProductRandomPayload {
-  const name = rand(productNames) + " " + rand(["Premium", "Pro", "Standard", "Plus"]);
-  const productCode = `P${Date.now().toString().slice(-6)}${randNumberString(3)}`;
+export function generateRandomProduct(
+  overrides: Partial<ProductRandomPayload> = {}
+): ProductRandomPayload {
+  const name =
+    rand(productNames) + " " + rand(["Premium", "Pro", "Standard", "Plus"]);
+  const productCode = `P${Date.now().toString().slice(-6)}${randNumberString(
+    3
+  )}`;
   const payload: ProductRandomPayload = {
     productCode,
     name,
