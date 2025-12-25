@@ -21,7 +21,11 @@ export async function GET() {
   }
 
   const roles = await db.role.findMany({
-    where: { deletedAt: null },
+    where: {
+      deletedAt: null,
+      // Exclude Administrator role from selection
+      slug: { not: "administrator" },
+    },
     include: {
       permissions: {
         include: { permission: true },

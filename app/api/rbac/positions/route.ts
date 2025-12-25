@@ -20,7 +20,11 @@ export async function GET() {
   }
 
   const positions = await db.position.findMany({
-    where: { deletedAt: null },
+    where: {
+      deletedAt: null,
+      // Exclude Admin position from selection
+      name: { not: "Admin" },
+    },
     include: { department: true, defaultRole: true },
     orderBy: { name: "asc" },
   });
