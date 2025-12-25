@@ -5,13 +5,17 @@ import { guardPermission } from "@/lib/api-guard";
 
 const roleSchema = z.object({
   name: z.string().min(2),
-  slug: z.string().min(2).regex(/^[a-z0-9_\-]+$/),
+  slug: z
+    .string()
+    .min(2)
+    .regex(/^[a-z0-9_\-]+$/),
   description: z.string().optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
 });
 
 export async function GET() {
-  const guardResult = await guardPermission("rbac.manage");
+  // Allow users with employee.manage to read roles for employee form
+  const guardResult = await guardPermission("employee.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
@@ -20,10 +24,10 @@ export async function GET() {
     where: { deletedAt: null },
     include: {
       permissions: {
-        include: { permission: true }
-      }
+        include: { permission: true },
+      },
     },
-    orderBy: { name: "asc" }
+    orderBy: { name: "asc" },
   });
 
   return NextResponse.json(roles);
@@ -38,7 +42,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = roleSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const payload = parsed.data;
@@ -47,8 +54,8 @@ export async function POST(request: Request) {
       name: payload.name,
       slug: payload.slug.toLowerCase(),
       description: payload.description,
-      isActive: payload.isActive ?? true
-    }
+      isActive: payload.isActive ?? true,
+    },
   });
 
   return NextResponse.json(role, { status: 201 });

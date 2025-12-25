@@ -9,11 +9,12 @@ const positionSchema = z.object({
   level: z.number().int().min(1).max(10).default(1),
   isManagerial: z.boolean().optional(),
   departmentId: z.string().nullable().optional(),
-  defaultRoleId: z.string().nullable().optional()
+  defaultRoleId: z.string().nullable().optional(),
 });
 
 export async function GET() {
-  const guardResult = await guardPermission("rbac.manage");
+  // Allow users with employee.manage to read positions for employee form
+  const guardResult = await guardPermission("employee.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
@@ -21,7 +22,7 @@ export async function GET() {
   const positions = await db.position.findMany({
     where: { deletedAt: null },
     include: { department: true, defaultRole: true },
-    orderBy: { name: "asc" }
+    orderBy: { name: "asc" },
   });
 
   return NextResponse.json(positions);
@@ -36,7 +37,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = positionSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const data = parsed.data;

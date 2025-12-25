@@ -6,11 +6,12 @@ import { guardPermission } from "@/lib/api-guard";
 const departmentSchema = z.object({
   name: z.string().min(2),
   code: z.string().min(2),
-  description: z.string().optional()
+  description: z.string().optional(),
 });
 
 export async function GET() {
-  const guardResult = await guardPermission("rbac.manage");
+  // Allow users with employee.manage to read departments for employee form
+  const guardResult = await guardPermission("employee.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
@@ -18,7 +19,7 @@ export async function GET() {
   const departments = await db.department.findMany({
     where: { deletedAt: null },
     include: { positions: { where: { deletedAt: null } } },
-    orderBy: { name: "asc" }
+    orderBy: { name: "asc" },
   });
 
   return NextResponse.json(departments);
@@ -34,7 +35,10 @@ export async function POST(request: Request) {
   const parsed = departmentSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const payload = parsed.data;
@@ -42,8 +46,8 @@ export async function POST(request: Request) {
     data: {
       name: payload.name,
       code: payload.code.toUpperCase(),
-      description: payload.description
-    }
+      description: payload.description,
+    },
   });
 
   return NextResponse.json(department, { status: 201 });

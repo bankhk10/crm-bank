@@ -35,19 +35,20 @@ const payloadSchema = z.object({
     department: z.string().optional(),
     // frontend sometimes sends relation ids as `positionId` / `departmentId`
     positionId: z.string().optional(),
-    departmentId: z.string().optional()
+    departmentId: z.string().optional(),
   }),
   user: z
     .object({
       email: z.string().email(),
       password: z.string().min(6),
-      roleId: z.string().optional()
+      roleId: z.string().optional(),
     })
-    .optional()
+    .optional(),
 });
 
 export async function POST(request: Request) {
-  const guardResult = await guardPermission("rbac.manage");
+  // Allow users with employee.manage to create employees with user accounts
+  const guardResult = await guardPermission("employee.manage");
   if ("response" in guardResult) {
     return guardResult.response;
   }
@@ -57,8 +58,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     // Log zod issues to server console for easier debugging in dev
 
-
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { employee: empPayload, user: userPayload } = parsed.data;
@@ -67,7 +70,9 @@ export async function POST(request: Request) {
   // try to resolve the company by name to a companyId.
   if (empPayload.company && !empPayload.companyId) {
     try {
-      const comp = await db.company.findFirst({ where: { name: empPayload.company } });
+      const comp = await db.company.findFirst({
+        where: { name: empPayload.company },
+      });
       if (comp) {
         // assign back to payload so creation uses the id
         (parsed.data.employee as any).companyId = comp.id;
@@ -80,16 +85,26 @@ export async function POST(request: Request) {
 
   // Basic uniqueness checks
   if (empPayload.email) {
-    const existingEmp = await db.employee.findUnique({ where: { email: empPayload.email } });
+    const existingEmp = await db.employee.findUnique({
+      where: { email: empPayload.email },
+    });
     if (existingEmp) {
-      return NextResponse.json({ error: "Employee email already in use" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Employee email already in use" },
+        { status: 409 }
+      );
     }
   }
 
   if (userPayload) {
-    const existingUser = await db.user.findUnique({ where: { email: userPayload.email } });
+    const existingUser = await db.user.findUnique({
+      where: { email: userPayload.email },
+    });
     if (existingUser) {
-      return NextResponse.json({ error: "User email already in use" }, { status: 409 });
+      return NextResponse.json(
+        { error: "User email already in use" },
+        { status: 409 }
+      );
     }
   }
 
@@ -113,7 +128,7 @@ export async function POST(request: Request) {
         const userCreateData: any = {
           name: empPayload.name,
           email: userPayload.email,
-          password: hashed
+          password: hashed,
         };
 
         if (userPayload.roleId) {
@@ -141,7 +156,8 @@ export async function POST(request: Request) {
         status: empPayload.status,
         // store relation ids if provided
         positionId: empPayload.positionId ?? empPayload.position ?? undefined,
-        departmentId: empPayload.departmentId ?? empPayload.department ?? undefined,
+        departmentId:
+          empPayload.departmentId ?? empPayload.department ?? undefined,
         // if frontend provided position/department objects instead of ids, you may
         // want to extract/display names here. Keep empty for now.
       };
@@ -158,22 +174,33 @@ export async function POST(request: Request) {
       }
 
       if (empPayload.address) {
-        if (empPayload.address.province) employeeCreateData.province = empPayload.address.province;
-        if (empPayload.address.district) employeeCreateData.district = empPayload.address.district;
-          if (empPayload.address.subdistrict) employeeCreateData.subdistrict = empPayload.address.subdistrict;
-          if (typeof empPayload.address.postalCode !== "undefined" && empPayload.address.postalCode !== null) {
-            employeeCreateData.postalCode = String(empPayload.address.postalCode);
-          }
+        if (empPayload.address.province)
+          employeeCreateData.province = empPayload.address.province;
+        if (empPayload.address.district)
+          employeeCreateData.district = empPayload.address.district;
+        if (empPayload.address.subdistrict)
+          employeeCreateData.subdistrict = empPayload.address.subdistrict;
+        if (
+          typeof empPayload.address.postalCode !== "undefined" &&
+          empPayload.address.postalCode !== null
+        ) {
+          employeeCreateData.postalCode = String(empPayload.address.postalCode);
+        }
       }
       if (createdUser) employeeCreateData.userId = createdUser.id;
 
-      const createdEmployee = await tx.employee.create({ data: employeeCreateData });
+      const createdEmployee = await tx.employee.create({
+        data: employeeCreateData,
+      });
 
       return { user: createdUser, employee: createdEmployee };
     });
 
     return NextResponse.json(result, { status: 201 });
   } catch (err: any) {
-    return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 });
+    return NextResponse.json(
+      { error: String(err?.message ?? err) },
+      { status: 500 }
+    );
   }
 }
