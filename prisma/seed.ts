@@ -32,6 +32,7 @@ async function main() {
   await prisma.company.createMany({
     data: [
       {
+        companyCode: "IC",
         shortName: "IC",
         name: "บริษัท อินเตอร์ คร็อพ จำกัด",
         addressLine: "22 ICG Building ถ.พระรามที่ 6",
@@ -45,6 +46,7 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "AI",
         shortName: "AI",
         name: "บริษัท แอ็กโฟรีแพ็กซ์อินดัสตรีส์ จำกัด",
         addressLine: "828 หมู่ 4 นิคมอุตสาหกรรมบางปู ซ.13B",
@@ -58,9 +60,10 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "UP",
         shortName: "UP",
         name: "บริษัท ยูนิพรีมา จำกัด",
-        addressLine: "831 หมู่ 4 นิคมอุตสาหกรรมบางปู ซ.13B ",
+        addressLine: "831 หมู่ 4 นิคมอุตสาหกรรมบางปู ซ.13B",
         email: "info@uniprema.co.th",
         phone: "02-709-6841",
         taxId: "0105547144354",
@@ -71,6 +74,7 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "AM",
         shortName: "AM",
         name: "บริษัท เอแม็กซ์ อินเตอร์ จำกัด",
         addressLine: "22 ICG Building ถ.พระรามที่ 6",
@@ -84,6 +88,7 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "BF",
         shortName: "BF",
         name: "บริษัท บีแฟค อินเตอร์ จำกัด",
         addressLine: "22 ICG Building ถ.พระรามที่ 6",
@@ -97,6 +102,7 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "CP",
         shortName: "CP",
         name: "บริษัท ซีเพช อินเตอร์ จำกัด",
         addressLine: "22 ICG Building ถ.พระรามที่ 6",
@@ -110,6 +116,7 @@ async function main() {
         status: "ACTIVE",
       },
       {
+        companyCode: "CS",
         shortName: "CS",
         name: "บริษัท คร็อพ ซายน์ จำกัด",
         addressLine: "22 ICG Building ถ.พระรามที่ 6",
