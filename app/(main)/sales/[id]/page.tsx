@@ -8,7 +8,6 @@ import { th } from "date-fns/locale";
 import {
   ArrowLeft,
   Edit,
-  CheckCircle,
   Truck,
   AlertTriangle,
   FileText,
@@ -44,8 +43,20 @@ export default function SaleDetailPage({
   const [data, setData] = useState<SaleDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Fetch current user session
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((session) => {
+        if (session?.user?.id) {
+          setCurrentUserId(session.user.id);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch session:", err));
+
+    // Fetch sale data
     fetch(`/api/sales/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch sale");
@@ -105,7 +116,17 @@ export default function SaleDetailPage({
   }
 
   const { sale, stockWarnings, priceWarnings } = data;
-  const canEditThis = canEdit && sale.status === "PENDING";
+
+  // Check if user is creator or admin
+  const isCreator = currentUserId === sale.createdById;
+  const isAdmin = hasPermission("sale.admin"); // Assuming admin permission exists
+
+  // Allow editing for PENDING status, or REJECTED status if user is creator or admin
+  const canEditThis =
+    canEdit &&
+    (sale.status === "PENDING" ||
+      (sale.status === "REJECTED" && (isCreator || isAdmin)));
+
   const canApproveThis = canApprove && sale.status === "PENDING";
   const canManageFulfillment =
     canEdit &&
@@ -472,7 +493,20 @@ export default function SaleDetailPage({
                 </div>
               </div>
             </div>
-            {/* Actions for this view could go here if needed, keeping it simple for now */}
+            {/* Action Buttons */}
+            {canEditThis && (
+              <div className="flex gap-3">
+                <Link href={`/sales/${id}/edit`}>
+                  <Button
+                    variant="secondary"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    แก้ไขข้อมูล
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

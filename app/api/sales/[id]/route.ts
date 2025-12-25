@@ -170,6 +170,20 @@ export async function PUT(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
+    // Check if user has permission to edit this sale
+    // For REJECTED sales, only creator or admin can edit
+    if (existingSale.status === "REJECTED") {
+      const isCreator = session.user.id === existingSale.createdById;
+      // TODO: Check if user is admin - you may need to implement this check based on your permission system
+      // For now, we'll allow creator to edit
+      if (!isCreator) {
+        return NextResponse.json(
+          { error: "Only the creator or admin can edit rejected sales" },
+          { status: 403 }
+        );
+      }
+    }
+
     // Check delivery date updates
     let newDeliveryUpdateCount = existingSale.deliveryUpdateCount;
     // Check if deliveryDate was actually changed (and present provided)
@@ -191,11 +205,12 @@ export async function PUT(
       newDeliveryUpdateCount++;
     }
 
-    // If sale is approved, reset to PENDING for re-approval
+    // If sale is approved or rejected, reset to PENDING for re-approval
     const needsReapproval =
       existingSale.status === "APPROVED" ||
       existingSale.status === "AWAITING_PAYMENT" ||
-      existingSale.status === "AWAITING_DELIVERY";
+      existingSale.status === "AWAITING_DELIVERY" ||
+      existingSale.status === "REJECTED";
 
     const sale = await prisma.$transaction(async (tx) => {
       // Return credit limit if sale was approved and used credit

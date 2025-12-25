@@ -121,6 +121,12 @@ const statusStyle: Record<
       "bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-900/30 dark:text-purple-50",
     dot: "bg-purple-500",
   },
+  DELIVERY_COMPLETED: {
+    label: "ส่งเสร็จแล้ว",
+    className:
+      "bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-50",
+    dot: "bg-violet-500",
+  },
   EXPIRED: {
     label: "หมดอายุ",
     className:
@@ -480,6 +486,9 @@ function SalesCards({
           const isPending = item.status === "PENDING";
           const isApproved = item.status === "APPROVED";
           const isRejected = item.status === "REJECTED";
+          const isCreator = currentUserId && item.createdById === currentUserId;
+          const canEditThis =
+            (canEdit || isCreator) && (isPending || isRejected);
 
           const amount = new Intl.NumberFormat("th-TH", {
             style: "currency",
@@ -578,20 +587,18 @@ function SalesCards({
                     </Button>
                   )}
 
-                  {(canEdit ||
-                    (currentUserId && item.createdById === currentUserId)) &&
-                    isPending && (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="border-purple-100 text-purple-700 hover:bg-purple-50"
-                      >
-                        <Link href={`/sales/${item.id}/edit`}>
-                          <Edit className="mr-2 h-4 w-4" /> แก้ไข
-                        </Link>
-                      </Button>
-                    )}
+                  {canEditThis && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="border-purple-100 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Link href={`/sales/${item.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                      </Link>
+                    </Button>
+                  )}
                   {(canDelete ||
                     (currentUserId && item.createdById === currentUserId)) &&
                     isPending &&
@@ -763,6 +770,10 @@ function useColumns(
         cell: ({ row }) => {
           const item = row.original;
           const isPending = item.status === "PENDING";
+          const isRejected = item.status === "REJECTED";
+          const isCreator = currentUserId && item.createdById === currentUserId;
+          const canEditThis =
+            (canEdit || isCreator) && (isPending || isRejected);
 
           return (
             <div className="flex items-center justify-center gap-2">
@@ -784,16 +795,14 @@ function useColumns(
                 </>
               )}
 
-              {(canEdit ||
-                (currentUserId && item.createdById === currentUserId)) &&
-                isPending && (
-                  <ActionButton
-                    href={`/sales/${item.id}/edit`}
-                    icon={Edit}
-                    label="แก้ไข"
-                    colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                  />
-                )}
+              {canEditThis && (
+                <ActionButton
+                  href={`/sales/${item.id}/edit`}
+                  icon={Edit}
+                  label="แก้ไข"
+                  colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                />
+              )}
 
               {(canDelete ||
                 (currentUserId && item.createdById === currentUserId)) &&
