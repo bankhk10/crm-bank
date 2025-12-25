@@ -169,278 +169,284 @@ export default function FulfillmentPage({
   if (!saleData) return null;
   const { sale } = saleData;
 
-  const formatDate = (dateString?: Date | string | null) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-      <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
-        {/* Header with Gradient */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-5 blur-2xl"></div>
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6">
-            <div className="flex items-start justify-between">
+    <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
+      {error && (
+        <Alert
+          variant="destructive"
+          className="border-red-200 bg-red-50 shadow-md animate-in slide-in-from-top-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <AlertDescription className="ml-2 text-red-800 font-medium">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Sale Summary Card */}
+      <Card className="py-0! rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="inline-flex items-center text-blue-100 hover:text-white transition-colors group hover:bg-white/10 w-fit"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            กลับไปหน้ารายการขาย
+          </Button>
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg">
+                <Truck className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+              </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
                   จัดการการชำระเงินและวันที่จัดส่ง
                 </h1>
-                <div className="flex items-center gap-3 text-slate-600">
-                  <span className="font-semibold text-blue-600">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base">
+                  <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit">
                     {sale.saleNumber}
                   </span>
-                  <span className="text-slate-400">•</span>
-                  <span className="font-medium">{sale.customer.name}</span>
+                  <span className="text-blue-100 hidden sm:inline">•</span>
+                  <span className="text-blue-50 font-medium truncate">
+                    {sale.customer.name}
+                  </span>
                 </div>
               </div>
             </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl p-5 border border-purple-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-purple-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-sm text-purple-700 font-bold uppercase tracking-wide">
+                  ยอดรวมสุทธิ
+                </span>
+              </div>
+              <p className="font-bold text-gray-900 text-base sm:text-lg">
+                ฿{Number(sale.totalAmount).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="group bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-5 border border-green-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-green-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-sm text-green-700 font-bold uppercase tracking-wide">
+                  เงื่อนไขชำระ
+                </span>
+              </div>
+              <Badge
+                variant="outline"
+                className="text-sm font-bold px-3 py-1.5 bg-white border-green-300 text-green-700 max-w-full"
+                title={PaymentTermLabels[sale.paymentTerm]}
+              >
+                <span className="truncate block">
+                  {PaymentTermLabels[sale.paymentTerm]}
+                </span>
+              </Badge>
+            </div>
+
+            <div className="group bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-blue-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-sm text-blue-700 font-bold uppercase tracking-wide">
+                  เครดิต (วัน)
+                </span>
+              </div>
+              <p className="font-bold text-gray-900 text-base sm:text-lg">
+                {sale.creditDays || 0} วัน
+              </p>
+            </div>
+
+            <div className="group bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-5 border border-orange-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-orange-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-sm text-orange-700 font-bold uppercase tracking-wide">
+                  สถานะปัจจุบัน
+                </span>
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-white border-orange-300 text-orange-700 font-bold px-3 py-1.5"
+              >
+                {SaleStatusLabels[sale.status]}
+              </Badge>
+            </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {error && (
-          <Alert
-            variant="destructive"
-            className="border-red-200 bg-red-50 shadow-md animate-in slide-in-from-top-2"
-          >
-            <AlertCircle className="h-5 w-5" />
-            <AlertDescription className="ml-2 text-red-800 font-medium">
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Input Card with Modern Design */}
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity blur"></div>
+          <Card className="relative bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <CardHeader className="border-b border-slate-100 bg-gradient-to-br from-white to-slate-50/50 pt-6 pb-5">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold text-slate-800">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </div>
+                ข้อมูลการชำระเงินและการจัดส่ง
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-8">
+              {/* 1. Payment Status */}
+              <div className="space-y-3 group/field">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+                    1
+                  </span>
+                  สถานะการชำระเงิน
+                </label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
+                    <SelectValue placeholder="เลือกสถานะ" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {FULFILLMENT_STATUSES.map((st) => (
+                      <SelectItem key={st} value={st} className="rounded-lg">
+                        {SaleStatusLabels[
+                          st as keyof typeof SaleStatusLabels
+                        ] || st}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
+                  เลือกสถานะปัจจุบันของรายการขาย
+                </p>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Info Card with Gradient Border */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity blur"></div>
-            <Card className="relative bg-white/90 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-              <CardHeader className="pb-4 pt-6">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse inline-block"></span>
-                  ข้อมูลรายการขาย
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                <div className="group/item hover:scale-105 transition-transform">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-                    ยอดรวมสุทธิ
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      ฿{Number(sale.totalAmount).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="group/item hover:scale-105 transition-transform">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-                    เงื่อนไขการชำระ
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className="bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200 text-emerald-700 font-medium px-3 py-1"
-                  >
-                    {PaymentTermLabels[sale.paymentTerm]}
-                  </Badge>
-                </div>
-                <div className="group/item hover:scale-105 transition-transform">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-                    เครดิต (วัน)
-                  </span>
-                  <span className="text-lg font-semibold text-slate-700">
-                    {sale.creditDays || 0} วัน
-                  </span>
-                </div>
-                <div className="group/item hover:scale-105 transition-transform">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-                    สถานะปัจจุบัน
-                  </span>
-                  <Badge
-                    variant="secondary"
-                    className="bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 font-medium px-3 py-1 shadow-sm"
-                  >
-                    {SaleStatusLabels[sale.status]}
-                  </Badge>
-                </div>
-                <div className="group/item hover:scale-105 transition-transform sm:col-span-2 lg:col-span-2">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2">
-                    วันที่ต้องการของ
-                  </span>
-                  <span className="text-lg font-semibold text-slate-700">
-                    {formatDate(sale.requestedDeliveryDate)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Input Card with Modern Design */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity blur"></div>
-            <Card className="relative bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-              <CardHeader className="border-b border-slate-100 bg-gradient-to-br from-white to-slate-50/50 pt-6 pb-5">
-                <CardTitle className="flex items-center gap-3 text-xl font-bold text-slate-800">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                    <CreditCard className="h-5 w-5 text-white" />
-                  </div>
-                  ข้อมูลการชำระเงินและการจัดส่ง
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                {/* 1. Payment Status */}
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* 2. Delivery Date */}
                 <div className="space-y-3 group/field">
                   <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
-                      1
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">
+                      2
                     </span>
-                    สถานะการชำระเงิน
+                    <Truck className="h-4 w-4 text-emerald-600" />
+                    วันที่จัดส่งของ
                   </label>
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
-                      <SelectValue placeholder="เลือกสถานะ" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {FULFILLMENT_STATUSES.map((st) => (
-                        <SelectItem key={st} value={st} className="rounded-lg">
-                          {SaleStatusLabels[
-                            st as keyof typeof SaleStatusLabels
-                          ] || st}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
-                    เลือกสถานะปัจจุบันของรายการขาย
+                  <div className="relative">
+                    <DatePicker
+                      value={deliveryDate}
+                      onChange={(val) => setDeliveryDate(val || "")}
+                      label=""
+                      placeholder="เลือกวันที่จัดส่ง"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. Due Date */}
+                <div className="space-y-3 group/field">
+                  <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 text-xs font-bold">
+                      3
+                    </span>
+                    <Calendar className="h-4 w-4 text-amber-600" />
+                    วันครบกำหนดชำระ
+                  </label>
+                  <div className="relative">
+                    <DatePicker
+                      value={dueDate}
+                      onChange={(val) => setDueDate(val || "")}
+                      label=""
+                      placeholder="เลือกวันครบกำหนด"
+                    />
+                  </div>
+                  <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-2 rounded-lg">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block"></span>
+                    คำนวณอัตโนมัติจาก วันที่จัดส่ง + {sale.creditDays || 0} วัน
                   </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* 2. Delivery Date */}
-                  <div className="space-y-3 group/field">
-                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">
-                        2
-                      </span>
-                      <Truck className="h-4 w-4 text-emerald-600" />
-                      วันที่จัดส่งของ
-                    </label>
-                    <div className="relative">
-                      <DatePicker
-                        value={deliveryDate}
-                        onChange={(val) => setDeliveryDate(val || "")}
-                        label=""
-                        placeholder="เลือกวันที่จัดส่ง"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 3. Due Date */}
-                  <div className="space-y-3 group/field">
-                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 text-xs font-bold">
-                        3
-                      </span>
-                      <Calendar className="h-4 w-4 text-amber-600" />
-                      วันครบกำหนดชำระ
-                    </label>
-                    <div className="relative">
-                      <DatePicker
-                        value={dueDate}
-                        onChange={(val) => setDueDate(val || "")}
-                        label=""
-                        placeholder="เลือกวันครบกำหนด"
-                      />
-                    </div>
-                    <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-2 rounded-lg">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block"></span>
-                      คำนวณอัตโนมัติจาก วันที่จัดส่ง + {sale.creditDays || 0}{" "}
-                      วัน
-                    </p>
-                  </div>
-
-                  {/* 4. Payment Date */}
-                  <div className="space-y-3 group/field md:col-span-2">
-                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs font-bold">
-                        4
-                      </span>
-                      <CreditCard className="h-4 w-4 text-purple-600" />
-                      วันที่ชำระเงิน
-                    </label>
-                    <div className="relative max-w-md">
-                      <DatePicker
-                        value={paymentDate}
-                        onChange={(val) => setPaymentDate(val || "")}
-                        label=""
-                        placeholder="เลือกวันที่ชำระเงิน"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. Notes */}
-                <div className="space-y-3 group/field">
+                {/* 4. Payment Date */}
+                <div className="space-y-3 group/field md:col-span-2">
                   <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                      5
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs font-bold">
+                      4
                     </span>
-                    หมายเหตุ
+                    <CreditCard className="h-4 w-4 text-purple-600" />
+                    วันที่ชำระเงิน
                   </label>
-                  <textarea
-                    className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
+                  <div className="relative max-w-md">
+                    <DatePicker
+                      value={paymentDate}
+                      onChange={(val) => setPaymentDate(val || "")}
+                      label=""
+                      placeholder="เลือกวันที่ชำระเงิน"
+                    />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
 
-          {/* Action Buttons with Gradient */}
-          <div className="flex items-center justify-center gap-4 sticky bottom-6 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 px-6 h-12 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md"
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 h-12 rounded-xl font-semibold min-w-[160px] shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-              {/* Use Layout stability to prevent hydration/DOM mismatch errors */}
-              <div
-                className={
-                  submitting ? "flex items-center relative z-10" : "hidden"
-                }
-              >
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                กำลังบันทึก...
+              {/* 5. Notes */}
+              <div className="space-y-3 group/field">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+                    5
+                  </span>
+                  หมายเหตุ
+                </label>
+                <textarea
+                  className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
               </div>
-              <div
-                className={
-                  !submitting ? "flex items-center relative z-10" : "hidden"
-                }
-              >
-                <Save className="mr-2 h-5 w-5" />
-                บันทึกข้อมูล
-              </div>
-            </Button>
-          </div>
-        </form>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons with Gradient */}
+        <div className="flex items-center justify-center gap-4 sticky bottom-6 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            className="bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 px-6 h-12 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md"
+          >
+            ยกเลิก
+          </Button>
+          <Button
+            type="submit"
+            disabled={submitting}
+            className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 h-12 rounded-xl font-semibold min-w-[160px] shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            {/* Use Layout stability to prevent hydration/DOM mismatch errors */}
+            <div
+              className={
+                submitting ? "flex items-center relative z-10" : "hidden"
+              }
+            >
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              กำลังบันทึก...
+            </div>
+            <div
+              className={
+                !submitting ? "flex items-center relative z-10" : "hidden"
+              }
+            >
+              <Save className="mr-2 h-5 w-5" />
+              บันทึกข้อมูล
+            </div>
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
