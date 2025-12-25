@@ -138,6 +138,10 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   if (isAdministrator(roles)) {
     return "/dashboard/admin";
   }
+  // Check for Admin role (second highest permission level)
+  if (roles.some((role) => role === "admin")) {
+    return "/dashboard/admin";
+  }
   if (isManager(roles)) {
     return "/dashboard/manager";
   }

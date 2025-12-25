@@ -195,6 +195,17 @@ async function main() {
     },
   });
 
+  // Admin role - second highest permission level
+  const adminRoleSecondary = await prisma.role.create({
+    data: {
+      name: "Admin",
+      slug: "admin",
+      description:
+        "High-level access with most permissions except RBAC management",
+      isSystem: true,
+    },
+  });
+
   const permissions = await prisma.$transaction([
     prisma.permission.create({
       data: {
@@ -825,6 +836,82 @@ async function main() {
       })),
   });
 
+  // Admin Role Permissions (below Administrator, excludes RBAC management)
+  const adminConfig = [
+    { key: "menu.dashboard", access: undefined },
+    { key: "menu.reports", access: undefined },
+    { key: "menu.sales", access: undefined },
+    { key: "menu.products", access: undefined },
+    { key: "menu.customers", access: undefined },
+    { key: "menu.credit_limits", access: undefined },
+    { key: "menu.temporary_credit_limits", access: undefined },
+    { key: "menu.fulfillment", access: undefined },
+    { key: "menu.employees", access: undefined },
+    { key: "menu.companies", access: undefined },
+    // Sale permissions
+    { key: "sale.create", access: "VIEW_ALL" },
+    { key: "sale.edit", access: "VIEW_ALL" },
+    { key: "sale.view", access: "VIEW_ALL" },
+    { key: "sale.delete", access: "VIEW_ALL" },
+    { key: "sale.approve", access: "VIEW_ALL" },
+    { key: "sale.reject", access: "VIEW_ALL" },
+    { key: "sale.confirm-payment", access: "VIEW_ALL" },
+    { key: "sale.manage_fulfillment", access: "VIEW_ALL" },
+    // Product permissions
+    { key: "product.create", access: "VIEW_ALL" },
+    { key: "product.update", access: "VIEW_ALL" },
+    { key: "product.delete", access: "VIEW_ALL" },
+    { key: "product.view", access: "VIEW_ALL" },
+    { key: "product.manage", access: "VIEW_ALL" },
+    // Customer permissions
+    { key: "customer.create.dealer", access: "VIEW_ALL" },
+    { key: "customer.create.subdealer", access: "VIEW_ALL" },
+    { key: "customer.create.farmer", access: "VIEW_ALL" },
+    { key: "customer.create.broker", access: "VIEW_ALL" },
+    { key: "customer.edit", access: "VIEW_ALL" },
+    { key: "customer.delete", access: "VIEW_ALL" },
+    { key: "customer.view", access: "VIEW_ALL" },
+    // Credit limit permissions
+    { key: "creditlimit.create", access: "VIEW_ALL" },
+    { key: "creditlimit.edit", access: "VIEW_ALL" },
+    { key: "creditlimit.delete", access: "VIEW_ALL" },
+    { key: "creditlimit.view", access: "VIEW_ALL" },
+    { key: "creditlimit.approve", access: "VIEW_ALL" },
+    { key: "creditlimit.reject", access: "VIEW_ALL" },
+    // Temporary credit limit permissions
+    { key: "temporary_creditlimit.create", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.edit", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.delete", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.view", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.approve", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.reject", access: "VIEW_ALL" },
+    // Company permissions
+    { key: "company.create", access: "VIEW_ALL" },
+    { key: "company.edit", access: "VIEW_ALL" },
+    { key: "company.delete", access: "VIEW_ALL" },
+    // Employee permissions
+    { key: "employee.view", access: "VIEW_ALL" },
+    { key: "employee.manage", access: "VIEW_ALL" },
+    // Data scope permissions
+    { key: "data.products", access: "VIEW_ALL" },
+    { key: "data.employees", access: "VIEW_ALL" },
+    { key: "data.customers", access: "VIEW_ALL" },
+    { key: "data.creditlimits", access: "VIEW_ALL" },
+    { key: "data.temporary_creditlimits", access: "VIEW_ALL" },
+    // Note: rbac.manage is excluded to differentiate from Administrator
+  ];
+
+  await prisma.rolePermission.createMany({
+    data: adminConfig
+      .filter((item) => p(item.key))
+      .map((item) => ({
+        roleId: adminRoleSecondary.id,
+        permissionId: p(item.key),
+        allow: true,
+        dataAccess: item.access as any,
+      })),
+  });
+
   // 4. Create Users with Employee Profiles
   const userPassword = await hash("123456", 12);
 
@@ -876,6 +963,33 @@ async function main() {
       userId: managerUser.id,
       departmentId: sales.id,
       positionId: salesManagerPosition.id,
+      status: "ACTIVE",
+    },
+  });
+
+  // Create Admin user for testing
+  const adminTestUser = await prisma.user.create({
+    data: {
+      name: "Admin Test",
+      email: "admin@bank.com",
+      password: userPassword,
+      departmentId: sales.id,
+      positionId: adminPosition.id,
+      userRoles: { create: { roleId: adminRoleSecondary.id } },
+    },
+  });
+
+  // Create Employee profile for admin test user
+  await prisma.employee.create({
+    data: {
+      name: "Admin Test",
+      firstName: "แอดมิน",
+      lastName: "ทดสอบ",
+      email: "admin@bank.com",
+      employeeCode: "EMP003",
+      userId: adminTestUser.id,
+      departmentId: sales.id,
+      positionId: adminPosition.id,
       status: "ACTIVE",
     },
   });
