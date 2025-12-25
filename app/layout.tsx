@@ -22,6 +22,11 @@ const prompt = Prompt({
 export const metadata: Metadata = {
   title: "CRM",
   description: "CRM for Bank",
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
 };
 
 export default async function RootLayout({
