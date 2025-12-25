@@ -185,15 +185,6 @@ export default function FulfillmentPage({
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-5 blur-2xl"></div>
           <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/60 p-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="mb-4 hover:bg-blue-50 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              ย้อนกลับ
-            </Button>
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
@@ -414,7 +405,7 @@ export default function FulfillmentPage({
           </div>
 
           {/* Action Buttons with Gradient */}
-          <div className="flex items-center justify-end gap-4 sticky bottom-6 pt-4">
+          <div className="flex items-center justify-center gap-4 sticky bottom-6 pt-4">
             <Button
               type="button"
               variant="outline"
