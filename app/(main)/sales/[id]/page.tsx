@@ -250,8 +250,13 @@ export default function SaleDetailPage({
                 <div className="bg-slate-100/80 px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-sm">
                   ที่อยู่จัดส่ง
                 </div>
-                <div className="p-4 text-sm text-slate-600 whitespace-pre-wrap flex-1">
-                  {sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+                <div className="p-4 text-sm text-slate-600 flex-1">
+                  <p className="font-bold mb-1 text-slate-800">
+                    {getDeliveryMethodLabel((sale as any).deliveryMethod)}
+                  </p>
+                  <p className="whitespace-pre-wrap">
+                    {sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+                  </p>
                 </div>
               </div>
 
@@ -697,6 +702,11 @@ export default function SaleDetailPage({
               </div>
               <div className="p-6 space-y-4">
                 <DetailItem
+                  icon={<Truck className="h-4 w-4" />}
+                  label="วิธีการจัดส่ง"
+                  value={getDeliveryMethodLabel((sale as any).deliveryMethod)}
+                />
+                <DetailItem
                   icon={<MapPin className="h-4 w-4" />}
                   label="ที่อยู่จัดส่ง"
                   value={sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
@@ -852,4 +862,17 @@ function DetailItem({
       </div>
     </div>
   );
+}
+
+function getDeliveryMethodLabel(method?: string | null) {
+  switch (method) {
+    case "SALES_DELIVERY":
+      return "พนักงานขายจัดส่งสินค้า";
+    case "CUSTOMER_PICKUP":
+      return "ลูกค้ามารับสินค้าเอง";
+    case "COURIER":
+      return "ส่งผ่านบริษัทขนส่ง";
+    default:
+      return method || "-";
+  }
 }
