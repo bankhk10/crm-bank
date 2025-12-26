@@ -710,7 +710,7 @@ export function SaleForm({
         })()}
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        เงื่อนไขการชำระเงินและวันที่
+        เงื่อนไขการชำระเงิน
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
