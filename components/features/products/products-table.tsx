@@ -542,6 +542,7 @@ function ProductsCards({
             >
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
               <div className="p-4 space-y-3">
+                <ProductStatusBadge status={product.status} />
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
@@ -556,7 +557,6 @@ function ProductsCards({
                       </div>
                     </div>
                   </div>
-                  <ProductStatusBadge status={product.status} />
                 </div>
 
                 <div className="space-y-2 text-sm text-slate-700">
