@@ -36,28 +36,45 @@ export function generateRandomSaleClient(
     });
   }
 
-  const paymentTerm = Math.random() > 0.5 ? "PREPAID" : "CREDIT_90";
+  const paymentTerms = ["CREDIT_90", "CASH_7", "PREPAID"];
+  const paymentTerm = rand(paymentTerms);
   const saleDate = new Date().toISOString().split("T")[0];
 
   let creditDays: number | undefined = undefined;
   let creditDueDate: string | undefined = undefined;
-  if (paymentTerm !== "PREPAID") {
-    const days = [7, 15, 30, 45][Math.floor(Math.random() * 4)];
-    creditDays = days;
-    const due = new Date();
-    due.setDate(due.getDate() + days);
+
+  if (paymentTerm === "CREDIT_90") {
+    creditDays = 90;
+  } else if (paymentTerm === "CASH_7") {
+    creditDays = 7;
+  } else if (paymentTerm === "PREPAID") {
+    creditDays = 0;
+  }
+
+  if (creditDays !== undefined && creditDays > 0) {
+    const due = new Date(saleDate);
+    due.setDate(due.getDate() + creditDays);
     creditDueDate = due.toISOString().split("T")[0];
   }
+
+  // Create requested delivery date (random 1-7 days from sale date)
+  const reqDate = new Date(saleDate);
+  reqDate.setDate(reqDate.getDate() + Math.floor(Math.random() * 7) + 1);
+  const requestedDeliveryDate = reqDate.toISOString().split("T")[0];
 
   const payload: SaleFormData = {
     customerId: customer.id,
     employeeId: employee.id,
-    paymentTerm: paymentTerm,
+    paymentTerm: paymentTerm as any,
     creditDays,
     creditDueDate,
     usePromotionalCredit: false,
+    promotionalCreditUsed: 0,
     saleDate,
-    deliveryDate: saleDate,
+    requestedDeliveryDate,
+    deliveryDate: "",
+    deliveryMethod: "SALES_DELIVERY",
+    pickupCompanyId: "",
     billingAddress: customer.billingAddress ?? "",
     shippingAddress: customer.shippingAddress ?? "",
     items,

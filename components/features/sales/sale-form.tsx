@@ -686,20 +686,11 @@ export function SaleForm({
 
           return (
             <>
-              <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+              <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
                 <FormInput
                   label="วงเงินเครดิตคงเหลือ"
                   type="number"
                   value={String(availableAmount)}
-                  onChange={() => {}}
-                  disabled
-                  readOnly
-                />
-
-                <FormInput
-                  label="วงเงินส่งเสริมการขายคงเหลือ"
-                  type="number"
-                  value={String(promoAmount)}
                   onChange={() => {}}
                   disabled
                   readOnly
