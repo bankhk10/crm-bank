@@ -608,7 +608,7 @@ function ProductsCards({
                       className="border-blue-100 text-blue-700 hover:bg-blue-50"
                     >
                       <Link href={`/products/${product.id}`}>
-                        <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
+                        <Eye className="mr-2 h-4 w-4" /> ดูข้อมูล
                       </Link>
                     </Button>
                   )}
