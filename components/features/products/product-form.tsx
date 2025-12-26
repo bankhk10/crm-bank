@@ -630,19 +630,20 @@ export function ProductForm({
         </div>
       )}
 
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <RandomFillButton
-            size="lg"
-            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            onClick={handleRandomFill}
-            disabled={loading}
-          >
-            กรอกข้อมูลแบบสุ่ม
-          </RandomFillButton>
+      <div className="md:col-span-2 pt-6 border-t mt-6 mb-16 md:mb-4">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
           <Button
             size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            className="w-full md:w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            type="submit"
+            disabled={!canEdit || loading}
+            title={!canEdit ? permissionHint : undefined}
+          >
+            {loading ? "กำลังบันทึก..." : "บันทึก"}
+          </Button>
+          <Button
+            size="lg"
+            className="w-full md:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
             type="button"
             onClick={onCancel ?? (() => router.back())}
             disabled={!canEdit}
@@ -650,16 +651,14 @@ export function ProductForm({
           >
             ยกเลิก
           </Button>
-
-          <Button
+          <RandomFillButton
             size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-            type="submit"
-            disabled={!canEdit || loading}
-            title={!canEdit ? permissionHint : undefined}
+            className="w-full md:w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            onClick={handleRandomFill}
+            disabled={loading}
           >
-            {loading ? "กำลังบันทึก..." : "บันทึก"}
-          </Button>
+            กรอกข้อมูลแบบสุ่ม
+          </RandomFillButton>
         </div>
       </div>
     </form>
