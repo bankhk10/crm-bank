@@ -825,6 +825,32 @@ export function SaleForm({
               </div>
             </div>
           </div>
+
+          <div
+            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+              deliveryMethod === "COURIER"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
+            }`}
+            onClick={() => setDeliveryMethod("COURIER")}
+          >
+            <div className="flex items-start space-x-3">
+              <input
+                type="radio"
+                name="deliveryMethod"
+                value="COURIER"
+                checked={deliveryMethod === "COURIER"}
+                onChange={(e) => setDeliveryMethod(e.target.value)}
+                className="mt-1 h-4 w-4 text-blue-600"
+              />
+              <div className="flex-1">
+                <div className="font-medium text-base">ส่งผ่านบริษัทขนส่ง</div>
+                <p className="text-sm text-gray-600 mt-1">
+                  ระบุที่อยู่สำหรับจัดส่งให้บริษัทขนส่ง
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
