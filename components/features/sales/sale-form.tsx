@@ -231,7 +231,11 @@ export function SaleForm({
   );
   const [useCustomShippingAddress, setUseCustomShippingAddress] =
     useState(false);
-  const [customShippingAddress, setCustomShippingAddress] = useState("");
+  const [customShippingAddress, setCustomShippingAddress] = useState(
+    (initialData as any)?.deliveryMethod === "COURIER"
+      ? initialData?.shippingAddress || ""
+      : ""
+  );
   const [deliveryMethod, setDeliveryMethod] = useState(
     (initialData as any)?.deliveryMethod || "SALES_DELIVERY"
   );
@@ -371,6 +375,30 @@ export function SaleForm({
         setCustomShippingAddress("");
         setUseCustomShippingAddress(true);
       }
+    } else if (deliveryMethod === "COURIER") {
+      // Allow manual input for courier
+      setUseCustomShippingAddress(true);
+      // Pre-fill if empty and we have customer info
+      if (!customShippingAddress && selectedCustomer) {
+        const shippingParts = [
+          selectedCustomer.shippingAddressLine,
+          selectedCustomer.shippingSubdistrict
+            ? `ตำบล${selectedCustomer.shippingSubdistrict}`
+            : "",
+          selectedCustomer.shippingDistrict
+            ? `อำเภอ${selectedCustomer.shippingDistrict}`
+            : "",
+          selectedCustomer.shippingProvince
+            ? `จังหวัด${selectedCustomer.shippingProvince}`
+            : "",
+          selectedCustomer.shippingPostalCode || "",
+        ].filter(Boolean);
+        const addr = shippingParts.join(" ");
+        if (addr) {
+          setCustomShippingAddress(addr);
+          setShippingAddress(addr);
+        }
+      }
     } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
       // Revert to customer logic if switching back
       setUseCustomShippingAddress(false);
@@ -392,7 +420,15 @@ export function SaleForm({
       // Clear pickup company if switching away from pickup
       setPickupCompanyId("");
     }
-  }, [pickupCompanyId, deliveryMethod, companies, selectedCustomer]);
+  }, [
+    pickupCompanyId,
+    deliveryMethod,
+    companies,
+    selectedCustomer,
+    // customShippingAddress, // We shouldn't depend on this to avoid loops, only init logic relies on it check?
+    // Actually we only check !customShippingAddress inside, so it's safer to exclude or handle carefully.
+    // Excluding it is safe because we only want to run this when deliveryMethod changes.
+  ]);
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -464,6 +500,9 @@ export function SaleForm({
     if (!saleDate) newErrors.push("กรุณาระบุวันที่ขาย");
     if (deliveryMethod === "CUSTOMER_PICKUP" && !pickupCompanyId) {
       newErrors.push("กรุณาเลือกสถานที่รับสินค้า");
+    }
+    if (deliveryMethod === "COURIER" && !customShippingAddress) {
+      newErrors.push("กรุณาระบุที่อยู่สำหรับส่งให้บริษัทขนส่ง");
     }
 
     // Validate items
@@ -769,7 +808,7 @@ export function SaleForm({
         <Label className="text-base font-medium mx-2 mb-3 block">
           วิธีการจัดส่ง *
         </Label>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div
             className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
               deliveryMethod === "SALES_DELIVERY"
@@ -892,6 +931,24 @@ export function SaleForm({
               </div>
             </div>
           </div>
+        ) : deliveryMethod === "COURIER" ? (
+          <div className="space-y-4 border rounded-xl p-4 bg-gray-50">
+            <h4 className="font-medium text-gray-900">
+              รายละเอียดการจัดส่งผ่านบริษัทขนส่ง
+            </h4>
+            <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
+              <FormTextarea
+                label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง *"
+                value={customShippingAddress}
+                onChange={(e) => {
+                  setCustomShippingAddress(e.target.value);
+                  setShippingAddress(e.target.value);
+                }}
+                placeholder="ระบุชื่อบริษัทขนส่ง และรายละเอียดที่อยู่..."
+                rows={4}
+              />
+            </div>
+          </div>
         ) : selectedCustomer ? (
           <>
             {!useCustomShippingAddress && (
@@ -1000,35 +1057,37 @@ export function SaleForm({
         )}
 
         {/* Custom Shipping Address Option */}
-        {selectedCustomer && deliveryMethod !== "CUSTOMER_PICKUP" && (
-          <div className="mt-6 space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="customShippingAddress"
-                checked={useCustomShippingAddress}
-                onCheckedChange={(checked) =>
-                  setUseCustomShippingAddress(checked as boolean)
-                }
-              />
-              <label
-                htmlFor="customShippingAddress"
-                className="text-base font-medium cursor-pointer"
-              >
-                ระบุที่อยู่จัดส่งสำหรับรายการขายนี้เท่านั้น
-              </label>
-            </div>
+        {selectedCustomer &&
+          deliveryMethod !== "CUSTOMER_PICKUP" &&
+          deliveryMethod !== "COURIER" && (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="customShippingAddress"
+                  checked={useCustomShippingAddress}
+                  onCheckedChange={(checked) =>
+                    setUseCustomShippingAddress(checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="customShippingAddress"
+                  className="text-base font-medium cursor-pointer"
+                >
+                  ระบุที่อยู่จัดส่งสำหรับรายการขายนี้เท่านั้น
+                </label>
+              </div>
 
-            {useCustomShippingAddress && (
-              <FormTextarea
-                label="ที่อยู่จัดส่งสำหรับรายการนี้"
-                value={customShippingAddress}
-                onChange={(e) => setCustomShippingAddress(e.target.value)}
-                rows={4}
-                placeholder="กรอกที่อยู่จัดส่งสำหรับรายการขายนี้..."
-              />
-            )}
-          </div>
-        )}
+              {useCustomShippingAddress && (
+                <FormTextarea
+                  label="ที่อยู่จัดส่งสำหรับรายการนี้"
+                  value={customShippingAddress}
+                  onChange={(e) => setCustomShippingAddress(e.target.value)}
+                  rows={4}
+                  placeholder="กรอกที่อยู่จัดส่งสำหรับรายการขายนี้..."
+                />
+              )}
+            </div>
+          )}
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6 flex items-center justify-between">
