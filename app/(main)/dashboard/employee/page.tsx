@@ -225,7 +225,7 @@ function ProductCarousel() {
 
 export default function EmployeeDashboardPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4 md:p-8 space-y-6 md:space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4 md:p-8 space-y-6 md:space-y-8 rounded-2xl">
       {/* Product Carousel */}
       <ProductCarousel />
 
