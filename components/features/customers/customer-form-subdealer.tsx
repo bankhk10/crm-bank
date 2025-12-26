@@ -11,6 +11,8 @@ import {
   SubmitResult,
 } from "./customer-form-types";
 import generateRandomSubdealer from "@/lib/random-fill/subdealer";
+import GalleryUpload from "@/components/custom/gallery-upload";
+import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
   FormInput,
   FormSelect,
@@ -62,6 +64,7 @@ export default function CustomerFormSubdealer({
     responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? "",
     relationshipScore: (initial as any).relationshipScore ?? null,
     notes: initial.notes ?? "",
+    images: initial.images || [],
   });
 
   const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
@@ -72,6 +75,9 @@ export default function CustomerFormSubdealer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   // get next sequential customerCode from backend (format C00001)
   const fetchNextCustomerCode = async () => {
@@ -161,6 +167,85 @@ export default function CustomerFormSubdealer({
     });
   };
 
+  // Convert initial images to FileMetadata format for GalleryUpload
+  const convertToFileMetadata = (images: any[]): FileMetadata[] => {
+    return images.map((img) => ({
+      id: img.id,
+      name: img.name || `image-${img.id}`,
+      size: img.size || 0,
+      type: img.type || "image/jpeg",
+      url: img.url,
+    }));
+  };
+
+  const uploadImages = (customerId: string, files: File[]): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const form = new FormData();
+      files.forEach((f) => form.append("images", f));
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `/api/customers/${customerId}/images`);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const json = JSON.parse(xhr.responseText || "{}");
+            resolve(json);
+          } catch (err) {
+            resolve({});
+          }
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.send(form);
+    });
+  };
+
+  const deleteImages = (
+    customerId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/customers/${customerId}/images`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to delete images"));
+        })
+        .catch(reject);
+    });
+  };
+
+  const reorderImages = (
+    customerId: string,
+    imageIds: string[]
+  ): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      fetch(`/api/customers/${customerId}/images`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageIds }),
+      })
+        .then((res) => {
+          if (res.ok) resolve(res.json());
+          else reject(new Error("Failed to reorder images"));
+        })
+        .catch(reject);
+    });
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -226,12 +311,74 @@ export default function CustomerFormSubdealer({
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
       } else {
+        // Handle images (delete removed, upload new, reorder)
+        const targetCustomerId = res.data?.customer?.id || values.id;
+
+        if (targetCustomerId) {
+          try {
+            // 1. Identify removed images
+            const initialImages = (initial.images || []) as any[];
+            const currentImageIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) return null;
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
+            const removedImageIds = initialImages
+              .map((img) => img.id)
+              .filter((id) => !currentImageIds.includes(id));
+
+            // 2. Delete removed images
+            if (removedImageIds.length > 0) {
+              await deleteImages(targetCustomerId, removedImageIds);
+            }
+
+            // 3. Upload new images and collect all IDs in order
+            let uploadedImages: any[] = [];
+            const filesToUpload = uploadedFiles
+              .filter((item) => item.file instanceof File)
+              .map((item) => item.file as File);
+
+            if (filesToUpload.length > 0) {
+              setUploadProgress(0);
+              const uploadRes = await uploadImages(
+                targetCustomerId,
+                filesToUpload
+              );
+              if (uploadRes.created) {
+                uploadedImages = uploadRes.created;
+              }
+            }
+
+            // 4. Construct final ordered ID list
+            let uploadIndex = 0;
+            const finalOrderedIds = uploadedFiles
+              .map((item) => {
+                if (item.file instanceof File) {
+                  const newImg = uploadedImages[uploadIndex++];
+                  return newImg?.id;
+                }
+                return (item.file as FileMetadata).id;
+              })
+              .filter(Boolean);
+
+            // 5. Update order
+            if (finalOrderedIds.length > 0) {
+              await reorderImages(targetCustomerId, finalOrderedIds);
+            }
+          } catch (err) {
+            console.error("Image operation failed", err);
+            // We don't block success navigation if image op fails, but we log it
+          }
+        }
+        // Navigation is handled by onSuccess callback
         onSuccess?.();
       }
     } catch (err: any) {
       setError(String(err));
     } finally {
       setLoading(false);
+      setUploadProgress(null);
     }
   }
 
@@ -605,6 +752,37 @@ export default function CustomerFormSubdealer({
         }}
         rows={3}
       />
+
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+        รูปภาพร้านค้า
+      </h3>
+      <div className="md:col-span-2 mt-6 mx-2">
+        <GalleryUpload
+          maxFiles={5}
+          maxSize={5 * 1024 * 1024}
+          accept="image/*"
+          multiple={true}
+          disabled={loading}
+          initialFiles={convertToFileMetadata(initial.images || [])}
+          onFilesChange={(files) => setUploadedFiles(files)}
+          // Enforce 1080x1080 size
+          targetSize={{ width: 1080, height: 1080 }}
+        />
+      </div>
+
+      {uploadProgress !== null && (
+        <div className="md:col-span-2 mt-4">
+          <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+            <div
+              className="h-3 bg-green-600 transition-all"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            กำลังอัพโหลดรูป: {uploadProgress}%
+          </div>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
