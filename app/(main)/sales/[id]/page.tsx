@@ -650,7 +650,7 @@ export default function SaleDetailPage({
                     icon={<Calendar className="h-4 w-4" />}
                     label="วันที่ครบกำหนด"
                     value={
-                      <span className="text-red-600">
+                      <span>
                         {format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
                           locale: th,
                         })}
