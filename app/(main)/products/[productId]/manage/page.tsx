@@ -215,7 +215,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
                 className="group relative bg-background border rounded-xl p-4 lg:p-2 lg:border-0 lg:bg-transparent lg:grid lg:grid-cols-[1fr_1fr_1fr_1.5fr_auto] gap-4 items-start shadow-sm lg:shadow-none transition-all hover:bg-muted/30"
               >
                 {/* Mobile Labels are handled via simple stacking or flex */}
-                <div className="grid grid-cols-2 gap-4 lg:block mb-4 lg:mb-0">
+                <div className="grid grid-cols-2 gap-4 lg:contents mb-4 lg:mb-0">
                   <div className="space-y-1.5 lg:space-y-0">
                     <Label className="lg:hidden text-xs text-muted-foreground">
                       ซื้อ (จำนวน)
@@ -252,7 +252,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:block gap-4 mb-4 lg:mb-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:contents gap-4 mb-4 lg:mb-0">
                   <div className="space-y-1.5 lg:space-y-0">
                     <Label className="lg:hidden text-xs text-muted-foreground">
                       ราคาสุทธิ
@@ -933,26 +933,42 @@ export default function ProductManagementPage() {
         onSubmit={handleSubmit}
         className="min-h-screen bg-gray-50/50 pb-20"
       >
-        {/* Top Header Strip with Gradient */}
-        <div className="bg-white border-b sticky top-0 z-10 shadow-sm backdrop-blur-md bg-white/80">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
+        {/* Modern Blue Gradient Header */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-6">
+              {/* Back Link */}
+              <button
                 type="button"
-                variant="ghost"
-                size="icon"
                 onClick={() => router.back()}
-                className="-ml-2 hover:bg-muted"
+                className="flex items-center gap-2 text-blue-100 hover:text-white transition-colors text-sm font-medium w-fit"
               >
-                <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-              </Button>
-              <div className="flex flex-col">
-                <h1 className="text-lg font-bold leading-tight md:text-xl text-foreground">
-                  จัดการสินค้า
-                </h1>
-                <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-md">
-                  {product.name}
-                </p>
+                <ArrowLeft className="h-4 w-4" />
+                กลับไปหน้ารายการสินค้า
+              </button>
+
+              {/* Main Info Row */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                {/* Icon Wrapper */}
+                <div className="p-4 bg-white/15 rounded-full text-white backdrop-blur-sm shadow-inner ring-1 ring-white/20">
+                  <Package className="h-8 w-8 sm:h-10 sm:w-10" />
+                </div>
+                <div className="flex-1 text-center sm:text-left space-y-2">
+                  <h1 className="text-2xl sm:text-4xl font-bold tracking-tight drop-shadow-sm">
+                    จัดการสินค้า
+                  </h1>
+
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1">
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-50 text-xs sm:text-sm border border-white/10 shadow-sm">
+                      <Tag className="h-3.5 w-3.5 opacity-70" />
+                      {product.name}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
