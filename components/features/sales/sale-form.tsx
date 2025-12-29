@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Info, MapPin } from "lucide-react";
+import { Plus, Trash2, Info, MapPin, Save, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import DatePicker from "@/components/custom/DatePicker";
 import {
@@ -1300,33 +1300,48 @@ export function SaleForm({
       </div>
 
       <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-          <RandomFillButton
-            size="lg"
-            className="w-full sm:w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
-            onClick={handleRandomFill}
-            disabled={loading}
-          >
-            กรอกข้อมูลแบบสุ่ม
-          </RandomFillButton>
-          <Button
-            size="lg"
-            className="w-full sm:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
-            type="button"
-            onClick={onCancel ?? (() => router.back())}
-            disabled={loading}
-          >
-            ยกเลิก
-          </Button>
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="w-full sm:w-auto">
+            <RandomFillButton
+              size="lg"
+              className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+              onClick={handleRandomFill}
+              disabled={loading}
+              variant="secondary"
+            >
+              <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+            </RandomFillButton>
+          </div>
 
-          <Button
-            size="lg"
-            className="w-full sm:w-36 bg-green-700 hover:bg-green-800 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? "กำลังบันทึก..." : "บันทึก"}
-          </Button>
+          <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-32 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium transition-all"
+              type="button"
+              onClick={onCancel ?? (() => router.back())}
+              disabled={loading}
+            >
+              <X className="h-4 w-4 mr-2" />
+              ยกเลิก
+            </Button>
+
+            <Button
+              size="lg"
+              className="w-full sm:w-32 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? (
+                "กำลังบันทึก..."
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  บันทึก
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
