@@ -563,7 +563,7 @@ function SalesCards({
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-1 mt-2">
+                <div className="grid grid-cols-2 gap-2 pt-1 mt-2">
                   <Button
                     asChild
                     size="sm"
