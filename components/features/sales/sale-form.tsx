@@ -797,88 +797,94 @@ export function SaleForm({
 
       {/* Delivery Method Selection */}
       <div className="mt-6">
-        <Label className="text-base font-medium mx-2 mb-3 block">
+        <Label className="text-base font-semibold mx-2 mb-4 block">
           วิธีการจัดส่ง *
         </Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* พนักงานขายจัดส่ง */}
           <div
-            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
-              deliveryMethod === "SALES_DELIVERY"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
             onClick={() => setDeliveryMethod("SALES_DELIVERY")}
+            className={`group relative cursor-pointer rounded-2xl border-2 p-5 transition-all
+        ${
+          deliveryMethod === "SALES_DELIVERY"
+            ? "border-blue-500 bg-blue-50 shadow-md"
+            : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
+        }`}
           >
-            <div className="flex items-start space-x-3">
+            <div className="flex items-center gap-4">
               <input
                 type="radio"
                 name="deliveryMethod"
                 value="SALES_DELIVERY"
                 checked={deliveryMethod === "SALES_DELIVERY"}
                 onChange={(e) => setDeliveryMethod(e.target.value)}
-                className="mt-1 h-4 w-4 text-blue-600"
+                className="h-4 w-4 text-blue-600"
               />
-              <div className="flex-1">
-                <div className="font-medium text-base">
+
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🚚</span>
+                <span className="text-base font-medium text-gray-900">
                   พนักงานขายจัดส่งสินค้า
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  พนักงานขายจะเป็นผู้จัดส่งสินค้าให้ถึงที่อยู่ลูกค้า
-                </p>
+                </span>
               </div>
             </div>
           </div>
 
+          {/* ลูกค้ามารับเอง */}
           <div
-            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
-              deliveryMethod === "CUSTOMER_PICKUP"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
             onClick={() => setDeliveryMethod("CUSTOMER_PICKUP")}
+            className={`group relative cursor-pointer rounded-2xl border-2 p-5 transition-all
+        ${
+          deliveryMethod === "CUSTOMER_PICKUP"
+            ? "border-blue-500 bg-blue-50 shadow-md"
+            : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
+        }`}
           >
-            <div className="flex items-start space-x-3">
+            <div className="flex items-center gap-4">
               <input
                 type="radio"
                 name="deliveryMethod"
                 value="CUSTOMER_PICKUP"
                 checked={deliveryMethod === "CUSTOMER_PICKUP"}
                 onChange={(e) => setDeliveryMethod(e.target.value)}
-                className="mt-1 h-4 w-4 text-blue-600"
+                className="h-4 w-4 text-blue-600"
               />
-              <div className="flex-1">
-                <div className="font-medium text-base">
+
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏬</span>
+                <span className="text-base font-medium text-gray-900">
                   ลูกค้ามารับสินค้าเอง
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  ลูกค้าจะมารับสินค้าด้วยตนเองที่สถานที่กำหนด
-                </p>
+                </span>
               </div>
             </div>
           </div>
 
+          {/* บริษัทขนส่ง */}
           <div
-            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
-              deliveryMethod === "COURIER"
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
             onClick={() => setDeliveryMethod("COURIER")}
+            className={`group relative cursor-pointer rounded-2xl border-2 p-5 transition-all
+        ${
+          deliveryMethod === "COURIER"
+            ? "border-blue-500 bg-blue-50 shadow-md"
+            : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
+        }`}
           >
-            <div className="flex items-start space-x-3">
+            <div className="flex items-center gap-4">
               <input
                 type="radio"
                 name="deliveryMethod"
                 value="COURIER"
                 checked={deliveryMethod === "COURIER"}
                 onChange={(e) => setDeliveryMethod(e.target.value)}
-                className="mt-1 h-4 w-4 text-blue-600"
+                className="h-4 w-4 text-blue-600"
               />
-              <div className="flex-1">
-                <div className="font-medium text-base">ส่งผ่านบริษัทขนส่ง</div>
-                <p className="text-sm text-gray-600 mt-1">
-                  ระบุที่อยู่สำหรับจัดส่งให้บริษัทขนส่ง
-                </p>
+
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📦</span>
+                <span className="text-base font-medium text-gray-900">
+                  ส่งผ่านบริษัทขนส่ง
+                </span>
               </div>
             </div>
           </div>
