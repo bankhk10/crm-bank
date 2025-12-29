@@ -521,7 +521,7 @@ export default function SaleDetailPage({
                     <div className="flex justify-between items-center text-sm sm:text-base">
                       <span className="text-gray-600 font-medium flex items-center gap-2">
                         <Truck className="h-4 w-4" />
-                        ส่วนค่าขนส่ง
+                        ส่วนลดค่าขนส่ง
                       </span>
                       <span className="font-semibold text-red-500">
                         -฿
@@ -839,7 +839,7 @@ function TotalsSection({ subtotal, shippingCost, otherCosts, total }: any) {
 
       {Number(shippingCost) > 0 && (
         <div className="flex justify-between items-center p-2 sm:p-3 border border-slate-300 rounded-sm text-sm sm:text-base">
-          <span className="font-semibold text-slate-600">ส่วนค่าขนส่ง</span>
+          <span className="font-semibold text-slate-600">ส่วนลดค่าขนส่ง</span>
           <span className="font-bold text-red-500">
             -
             {Number(shippingCost).toLocaleString("th-TH", {
