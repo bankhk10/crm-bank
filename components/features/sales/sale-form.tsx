@@ -378,26 +378,11 @@ export function SaleForm({
     } else if (deliveryMethod === "COURIER") {
       // Allow manual input for courier
       setUseCustomShippingAddress(true);
-      // Pre-fill if empty and we have customer info
-      if (!customShippingAddress && selectedCustomer) {
-        const shippingParts = [
-          selectedCustomer.shippingAddressLine,
-          selectedCustomer.shippingSubdistrict
-            ? `ตำบล${selectedCustomer.shippingSubdistrict}`
-            : "",
-          selectedCustomer.shippingDistrict
-            ? `อำเภอ${selectedCustomer.shippingDistrict}`
-            : "",
-          selectedCustomer.shippingProvince
-            ? `จังหวัด${selectedCustomer.shippingProvince}`
-            : "",
-          selectedCustomer.shippingPostalCode || "",
-        ].filter(Boolean);
-        const addr = shippingParts.join(" ");
-        if (addr) {
-          setCustomShippingAddress(addr);
-          setShippingAddress(addr);
-        }
+      // Clear address if switching from Pickup (indicated by pickupCompanyId)
+      if (pickupCompanyId) {
+        setCustomShippingAddress("");
+        setShippingAddress("");
+        setPickupCompanyId("");
       }
     } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
       // Revert to customer logic if switching back
