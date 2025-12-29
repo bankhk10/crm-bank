@@ -5,12 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -29,7 +24,6 @@ import {
   Package,
   Gift,
   Tag,
-  Save,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import type { Product, ProductManagementFormData } from "@/types/product";
@@ -758,7 +752,6 @@ export default function ProductManagementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState<ProductManagementFormData>({
     price: undefined,
@@ -829,9 +822,10 @@ export default function ProductManagementPage() {
    * ---------------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+
     setSaving(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const res = await fetch(`/api/products/${productId}/manage`, {
@@ -845,15 +839,12 @@ export default function ProductManagementPage() {
         throw new Error(data.error || "เกิดข้อผิดพลาด");
       }
 
-      setSuccess(true);
-      setTimeout(() => {
-        router.push(`/products`);
-        router.refresh();
-      }, 1500);
+      router.push(`/products`);
+      router.refresh();
+      // NOTE: Do NOT set saving(false) here.
     } catch (err) {
       console.error("Submit error:", err);
       setError((err as Error).message);
-    } finally {
       setSaving(false);
     }
   };
@@ -884,7 +875,7 @@ export default function ProductManagementPage() {
     );
   }
 
-  if (error && !success) {
+  if (error) {
     return (
       <div className="p-4 max-w-2xl mx-auto mt-10 space-y-4">
         <Alert variant="destructive">
@@ -909,26 +900,6 @@ export default function ProductManagementPage() {
 
   return (
     <>
-      {success && (
-        <Dialog open={true} onOpenChange={(open) => !open && setSuccess(false)}>
-          <DialogContent showCloseButton={false} className="sm:max-w-md">
-            <div className="flex flex-col items-center justify-center py-8 gap-4 text-center">
-              <div className="rounded-full bg-green-100 p-3">
-                <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">
-                  กำลังบันทึกข้อมูล...
-                </DialogTitle>
-                <DialogDescription className="mt-2 text-center">
-                  ระบบกำลังนำคุณกลับไปหน้ารายการสินค้า
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
       <form
         onSubmit={handleSubmit}
         className="min-h-screen bg-gray-50/50 pb-20"
@@ -1001,54 +972,34 @@ export default function ProductManagementPage() {
             onError={(msg) => setError(msg)}
           />
 
-          {/* Desktop/Tablet Action Buttons */}
-          <div className="hidden sm:flex justify-end gap-4 pt-6 border-t mt-8">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => router.back()}
-              disabled={saving}
-              className="px-8"
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              type="submit"
-              size="lg"
-              disabled={saving}
-              className="px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> บันทึก...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" /> บันทึก
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Bottom Mobile Action Bar */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg flex gap-3 z-50">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={saving}
-              className="flex-1"
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 bg-primary text-primary-foreground"
-            >
-              {saving ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-            </Button>
+          {/* Unifed Action Buttons (Matching ProductForm style) */}
+          <div className="md:col-span-2 pt-6 border-t mt-6 mb-16 md:mb-4">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
+              <Button
+                size="lg"
+                className="w-full md:w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+                type="submit"
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  "บันทึก"
+                )}
+              </Button>
+              <Button
+                size="lg"
+                className="w-full md:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+                type="button"
+                onClick={() => router.back()}
+                disabled={saving}
+              >
+                ยกเลิก
+              </Button>
+            </div>
           </div>
         </div>
       </form>
