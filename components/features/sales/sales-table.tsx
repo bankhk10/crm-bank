@@ -728,13 +728,13 @@ function useColumns(
 
           return (
             <Badge variant="outline" className={cn("text-xs", style)}>
-              <span className="block max-w-[150px] truncate" title={label}>
+              <span className="block max-w-[160px] truncate" title={label}>
                 {label}
               </span>
             </Badge>
           );
         },
-        meta: { minWidth: 150, width: 150, maxWidth: 150, align: "left" },
+        meta: { minWidth: 160, width: 160, maxWidth: 160, align: "left" },
       },
       {
         accessorKey: "employee.name",
@@ -818,7 +818,7 @@ function useColumns(
             </div>
           );
         },
-        meta: { minWidth: 180, width: 200, align: "center" },
+        meta: { minWidth: 150, width: 150, align: "center" },
       },
     ];
   }, [canEdit, canDelete, canApprove, currentUserId, onDelete]);
