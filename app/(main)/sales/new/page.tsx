@@ -61,8 +61,17 @@ export default function NewSalePage() {
       <Card>
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl border-b pb-6">
-              สร้างบันทึกการขาย ( Sales note )
+            <h5 className="font-semibold text-3xl border-b pb-6 leading-snug">
+              {/* Desktop / Tablet */}
+              <span className="hidden sm:inline">
+                สร้างบันทึกการขาย ( Sales note )
+              </span>
+
+              {/* Mobile */}
+              <span className="inline sm:hidden">
+                สร้างบันทึกการขาย
+                <br />( Sales note )
+              </span>
             </h5>
           </div>
           <SaleForm onSubmit={handleSubmit} />
