@@ -787,6 +787,7 @@ export function SaleForm({
             value={saleDate}
             onChange={(val) => setSaleDate(val || "")}
             placeholder=""
+            disabled={!isAdmin}
           />
         </div>
       </div>

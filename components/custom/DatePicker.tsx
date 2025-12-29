@@ -128,7 +128,10 @@ function DatePicker({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(newOpen) => !disabled && setOpen(newOpen)}
+    >
       <div className="w-full">
         {label && (
           <Label
