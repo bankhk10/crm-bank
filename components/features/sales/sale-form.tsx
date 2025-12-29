@@ -640,13 +640,18 @@ export function SaleForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-[2000px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8"
+    >
       {errors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="border-2">
           <AlertDescription>
-            <ul className="list-disc pl-4">
+            <ul className="list-disc pl-4 space-y-1">
               {errors.map((error, i) => (
-                <li key={i}>{error}</li>
+                <li key={i} className="text-sm sm:text-base">
+                  {error}
+                </li>
               ))}
             </ul>
           </AlertDescription>
@@ -654,22 +659,24 @@ export function SaleForm({
       )}
 
       {warnings.length > 0 && (
-        <Alert>
+        <Alert className="border-2 border-yellow-400 bg-yellow-50">
           <AlertDescription>
-            <ul className="list-disc pl-4">
+            <ul className="list-disc pl-4 space-y-1">
               {warnings.map((warning, i) => (
-                <li key={i}>{warning}</li>
+                <li key={i} className="text-sm sm:text-base text-yellow-800">
+                  {warning}
+                </li>
               ))}
             </ul>
           </AlertDescription>
         </Alert>
       )}
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         ข้อมูลลูกค้าและพนักงาน
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormCombobox
           label="ลูกค้า *"
           value={customerId}
@@ -724,11 +731,11 @@ export function SaleForm({
           );
         })()}
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-purple-600 to-purple-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         เงื่อนไขการชำระเงิน
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         <FormSelect
           label="เงื่อนไขการชำระเงิน *"
           value={paymentTerm}
@@ -784,7 +791,7 @@ export function SaleForm({
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-green-600 to-green-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         การจัดส่งและที่อยู่
       </h3>
 
@@ -793,7 +800,7 @@ export function SaleForm({
         <Label className="text-base font-medium mx-2 mb-3 block">
           วิธีการจัดส่ง *
         </Label>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
           <div
             className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
               deliveryMethod === "SALES_DELIVERY"
@@ -1075,17 +1082,19 @@ export function SaleForm({
           )}
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6 flex items-center justify-between">
-        <span>รายการสินค้า</span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 to-orange-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md">
+        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+          รายการสินค้า
+        </h3>
         <Button
           type="button"
           onClick={handleAddItem}
-          className="bg-green-700 hover:bg-green-800 text-white rounded-xl"
+          className="bg-white hover:bg-gray-100 text-orange-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           เพิ่มรายการ
         </Button>
-      </h3>
+      </div>
 
       <div className="space-y-4 mt-6">
         {items.map((item, index) => {
@@ -1192,11 +1201,11 @@ export function SaleForm({
         })}
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-pink-600 to-pink-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         ส่วนลดและหมายเหตุ
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormInput
           label="ส่วนลดค่าขนส่ง"
           type="number"
@@ -1228,7 +1237,7 @@ export function SaleForm({
         rows={3}
       />
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         สรุปยอดรวม
       </h3>
 
@@ -1267,11 +1276,11 @@ export function SaleForm({
         </div>
       </div>
 
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
           <RandomFillButton
             size="lg"
-            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            className="w-full sm:w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
             onClick={handleRandomFill}
             disabled={loading}
           >
@@ -1279,7 +1288,7 @@ export function SaleForm({
           </RandomFillButton>
           <Button
             size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            className="w-full sm:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
             type="button"
             onClick={onCancel ?? (() => router.back())}
             disabled={loading}
@@ -1289,7 +1298,7 @@ export function SaleForm({
 
           <Button
             size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            className="w-full sm:w-36 bg-green-700 hover:bg-green-800 text-white rounded-2xl sm:rounded-3xl h-12 sm:h-auto text-base sm:text-sm font-semibold"
             type="submit"
             disabled={loading}
           >
