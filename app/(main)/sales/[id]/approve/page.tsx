@@ -699,12 +699,12 @@ export default function ApproveSalePage({
       </Card>
 
       {/* 🧊 Sticky Bottom Action Bar Modern Glass UI */}
-      <div className="sticky bottom-6 z-50 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-4">
+      <div className="sticky bottom-24 sm:bottom-6 z-50 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto flex flex-row justify-center items-center gap-3 sm:gap-4">
           <Button
             variant="outline"
             onClick={() => setShowRejectDialog(true)}
-            className="w-full sm:w-auto bg-white hover:bg-red-50 border-2 border-red-200 hover:border-red-300 text-red-600 px-8 h-12 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md"
+            className="flex-1 sm:flex-none sm:w-auto bg-white hover:bg-red-50 border-2 border-red-200 hover:border-red-300 text-red-600 px-4 sm:px-8 h-12 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md"
           >
             <XCircle className="h-5 w-5 mr-2" />
             ไม่อนุมัติ
@@ -712,7 +712,7 @@ export default function ApproveSalePage({
 
           <Button
             onClick={() => setShowApproveDialog(true)}
-            className="relative w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-8 h-12 rounded-xl font-semibold min-w-[160px] shadow-lg hover:shadow-xl transition-all overflow-hidden group"
+            className="flex-1 sm:flex-none sm:w-auto relative bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-4 sm:px-8 h-12 rounded-xl font-semibold min-w-0 sm:min-w-[160px] shadow-lg hover:shadow-xl transition-all overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
             <CheckCircle className="h-5 w-5 mr-2 relative z-10" />
