@@ -1115,7 +1115,7 @@ export function SaleForm({
 
               <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
                 {/* Product Select */}
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 min-w-0">
                   <FormCombobox
                     label="สินค้า"
                     value={item.productId}
