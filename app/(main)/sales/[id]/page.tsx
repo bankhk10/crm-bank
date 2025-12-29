@@ -16,6 +16,8 @@ import {
   MapPin,
   Calendar,
   CreditCard,
+  Tag,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -718,102 +720,146 @@ export default function SaleDetailPage({
           {/* Main Content (Items & Totals) */}
           <div className="space-y-6">
             {/* Items Card */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-blue-100">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Package className="h-6 w-6 text-blue-600" />
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 backdrop-blur-sm bg-opacity-95">
+              {/* Header with gradient */}
+              <div className="p-6 bg-gradient-to-r from-blue-500 to-indigo-600">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Package className="h-6 w-6 text-white" />
+                  </div>
                   รายการสินค้า
                 </h2>
               </div>
-              <div className="p-0">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-gray-500 font-medium text-base">
-                    <tr>
-                      <th className="py-3 px-4 text-left">สินค้า</th>
-                      <th className="py-3 px-4 text-right">จำนวน</th>
-                      <th className="py-3 px-4 text-right">ราคา/หน่วย</th>
-                      <th className="py-3 px-4 text-right">รวม</th>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
+                      <th className="py-4 px-6 text-left text-base font-semibold text-gray-700">
+                        สินค้า
+                      </th>
+                      <th className="py-4 px-6 text-right text-base font-semibold text-gray-700">
+                        จำนวน
+                      </th>
+                      <th className="py-4 px-6 text-right text-base font-semibold text-gray-700">
+                        ราคา/หน่วย
+                      </th>
+                      <th className="py-4 px-6 text-right text-base font-semibold text-gray-700">
+                        รวม
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     {sale.items.map((item) => (
                       <tr
                         key={item.id}
-                        className="hover:bg-gray-50/50 transition-colors"
+                        className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200"
                       >
-                        <td className="py-4 px-4 align-top">
-                          <div className="font-medium text-gray-900">
-                            {item.product.name}
+                        <td className="py-5 px-6">
+                          <div className="flex items-start gap-3">
+                            <div>
+                              <div className="font-semibold text-gray-900 text-base mb-1">
+                                {item.product.name}
+                              </div>
+                              <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
+                                {item.product.productCode}
+                              </div>
+                              {item.priceModified && (
+                                <div className="mt-2">
+                                  <span className="text-xs font-medium text-amber-700 bg-gradient-to-r from-amber-100 to-yellow-100 px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-sm">
+                                    <Tag className="h-3 w-3" />
+                                    ราคาพิเศษ
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {item.product.productCode}
-                          </div>
-                          {item.priceModified && (
-                            <span className="text-[10px] text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded inline-block mt-1">
-                              ราคาพิเศษ
-                            </span>
-                          )}
                         </td>
-                        <td className="py-4 px-4 text-right text-gray-700 align-top">
-                          {item.quantity}
+                        <td className="py-5 px-6 text-right">
+                          <span className="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 bg-gray-100 text-gray-800 font-semibold rounded-lg">
+                            {item.quantity}
+                          </span>
                         </td>
-                        <td className="py-4 px-4 text-right text-gray-700 align-top">
+                        <td className="py-5 px-6 text-right text-gray-700 font-medium">
+                          ฿
                           {Number(item.unitPrice).toLocaleString("th-TH", {
                             minimumFractionDigits: 2,
                           })}
                         </td>
-                        <td className="py-4 px-4 text-right font-medium text-gray-900 align-top">
-                          {Number(item.totalPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
+                        <td className="py-5 px-6 text-right">
+                          <span className="text-lg font-bold text-gray-900">
+                            ฿
+                            {Number(item.totalPrice).toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              {/* Totals Section inside Items Card */}
-              <div className="bg-gray-50 p-6 border-t border-gray-100">
-                <div className="flex flex-col gap-3 ml-auto max-w-xs">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">รวมเป็นเงิน</span>
-                    <span className="font-medium text-gray-900">
+
+              {/* Totals Section */}
+              <div className="bg-gradient-to-br p-8 border-t border-gray-200">
+                <div className="max-w-md ml-auto space-y-4">
+                  <div className="flex justify-between items-center text-base">
+                    <span className="text-gray-600 font-medium">
+                      รวมเป็นเงิน
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      ฿
                       {Number(sale.subtotalAmount).toLocaleString("th-TH", {
                         minimumFractionDigits: 2,
                       })}
                     </span>
                   </div>
+
                   {Number(sale.shippingCost) > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">ส่วนค่าขนส่ง</span>
-                      <span className="font-medium text-red-600">
-                        -
+                    <div className="flex justify-between items-center text-base">
+                      <span className="text-gray-600 font-medium flex items-center gap-2">
+                        <Truck className="h-4 w-4" />
+                        ส่วนค่าขนส่ง
+                      </span>
+                      <span className="font-semibold text-red-500">
+                        -฿
                         {Number(sale.shippingCost).toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
                     </div>
                   )}
+
                   {Number(sale.otherCosts) > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">ส่วนลดหน้าบิล</span>
-                      <span className="font-medium text-red-600">
-                        -
+                    <div className="flex justify-between items-center text-base">
+                      <span className="text-gray-600 font-medium flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        ส่วนลดหน้าบิล
+                      </span>
+                      <span className="font-semibold text-red-500">
+                        -฿
                         {Number(sale.otherCosts).toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
                     </div>
                   )}
-                  <div className="border-t border-gray-200 my-2 pt-3 flex justify-between items-center">
-                    <span className="text-base font-bold text-gray-900">
-                      ยอดสุทธิ
-                    </span>
-                    <span className="text-xl font-bold text-blue-700">
-                      {Number(sale.totalAmount).toLocaleString("th-TH", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
+
+                  <div className="pt-4 border-t-2 border-gray-300">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 shadow-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-white">
+                          ยอดสุทธิ
+                        </span>
+                        <span className="text-3xl font-bold text-white">
+                          ฿
+                          {Number(sale.totalAmount).toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -821,17 +867,21 @@ export default function SaleDetailPage({
 
             {/* Notes Card */}
             {sale.notes && (
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                <div className="p-6 border-b border-gray-100 bg-amber-100">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-amber-600" />
+              <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 backdrop-blur-sm bg-opacity-95">
+                <div className="p-6 bg-gradient-to-r from-amber-400 to-orange-500">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
                     หมายเหตุ
                   </h2>
                 </div>
-                <div className="p-6">
-                  <p className="text-gray-700 whitespace-pre-wrap">
-                    {sale.notes}
-                  </p>
+                <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+                  <div className="bg-white rounded-xl p-5 shadow-sm border border-amber-200">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      {sale.notes}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
