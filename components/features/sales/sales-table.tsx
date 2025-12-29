@@ -878,7 +878,7 @@ export function SalesTable(props: SalesTableProps) {
   };
 
   return (
-    <div className="bg-white shadow-sm sm:rounded-lg">
+    <div className="bg-white shadow-sm sm:rounded-lg rounded-lg">
       <div className="p-6">
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-3">
