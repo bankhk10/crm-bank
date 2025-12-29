@@ -687,14 +687,14 @@ function useColumns(
         accessorKey: "saleNumber",
         header: "เลขที่ใบขาย",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
+        meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
       },
 
       {
         accessorKey: "customer.name",
         header: "ชื่อลูกค้า",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 200, width: 200, maxWidth: 200, align: "left" },
+        meta: { minWidth: 150, width: 150, maxWidth: 150, align: "left" },
       },
       {
         accessorKey: "totalAmount",
@@ -706,7 +706,7 @@ function useColumns(
             currency: "THB",
           }).format(value);
         },
-        meta: { minWidth: 120, width: 140, align: "left" },
+        meta: { minWidth: 110, width: 110, maxWidth: 110, align: "left" },
       },
       {
         accessorKey: "paymentTerm",
@@ -728,19 +728,19 @@ function useColumns(
 
           return (
             <Badge variant="outline" className={cn("text-xs", style)}>
-              <span className="block max-w-[180px] truncate" title={label}>
+              <span className="block max-w-[150px] truncate" title={label}>
                 {label}
               </span>
             </Badge>
           );
         },
-        meta: { minWidth: 120, width: 120, align: "left" },
+        meta: { minWidth: 150, width: 150, maxWidth: 150, align: "left" },
       },
       {
         accessorKey: "employee.name",
         header: "พนักงานขาย",
         cell: (info) => <TruncatedCell value={info.getValue() as string} />,
-        meta: { minWidth: 120, width: 140, maxWidth: 200, align: "left" },
+        meta: { minWidth: 140, width: 140, maxWidth: 140, align: "left" },
       },
 
       {
@@ -752,7 +752,7 @@ function useColumns(
           const date = typeof value === "string" ? new Date(value) : value;
           return format(date, "dd MMM yyyy", { locale: th });
         },
-        meta: { minWidth: 120, width: 120, align: "left" },
+        meta: { minWidth: 110, width: 110, maxWidth: 110, align: "left" },
       },
       {
         accessorKey: "status",
