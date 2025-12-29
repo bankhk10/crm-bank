@@ -575,18 +575,6 @@ function SalesCards({
                     </Link>
                   </Button>
 
-                  {canApprove && isPending && (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <Link href={`/sales/${item.id}/approve`}>
-                        <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
-                      </Link>
-                    </Button>
-                  )}
-
                   {canEditThis && (
                     <Button
                       asChild
@@ -596,6 +584,17 @@ function SalesCards({
                     >
                       <Link href={`/sales/${item.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                      </Link>
+                    </Button>
+                  )}
+                  {canApprove && isPending && (
+                    <Button
+                      asChild
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Link href={`/sales/${item.id}/approve`}>
+                        <CheckCircle className="mr-2 h-4 w-4" /> อนุมัติ
                       </Link>
                     </Button>
                   )}
@@ -784,6 +783,15 @@ function useColumns(
                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
               />
 
+              {canEditThis && (
+                <ActionButton
+                  href={`/sales/${item.id}/edit`}
+                  icon={Edit}
+                  label="แก้ไข"
+                  colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                />
+              )}
+
               {canApprove && isPending && (
                 <>
                   <ActionButton
@@ -793,15 +801,6 @@ function useColumns(
                     colorClass="text-green-600 border-green-100 hover:bg-green-50 rounded-md"
                   />
                 </>
-              )}
-
-              {canEditThis && (
-                <ActionButton
-                  href={`/sales/${item.id}/edit`}
-                  icon={Edit}
-                  label="แก้ไข"
-                  colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                />
               )}
 
               {(canDelete ||
