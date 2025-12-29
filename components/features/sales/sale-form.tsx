@@ -942,7 +942,7 @@ export function SaleForm({
                   setCustomShippingAddress(e.target.value);
                   setShippingAddress(e.target.value);
                 }}
-                placeholder="ระบุชื่อบริษัทขนส่ง และรายละเอียดที่อยู่..."
+                placeholder="ระบุรายละเอียดที่อยู่..."
                 rows={4}
               />
             </div>
