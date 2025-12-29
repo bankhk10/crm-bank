@@ -771,16 +771,17 @@ export function SaleForm({
           placeholder="เลือกเงื่อนไข"
           groupLabel="เงื่อนไข"
         />
-        {deliveryMethod !== "CUSTOMER_PICKUP" && (
-          <div>
-            <DatePicker
-              label="วันที่ต้องการของ"
-              value={requestedDeliveryDate}
-              onChange={(val) => setRequestedDeliveryDate(val || "")}
-              placeholder=""
-            />
-          </div>
-        )}
+        {deliveryMethod !== "CUSTOMER_PICKUP" &&
+          deliveryMethod !== "COURIER" && (
+            <div>
+              <DatePicker
+                label="วันที่ต้องการของ"
+                value={requestedDeliveryDate}
+                onChange={(val) => setRequestedDeliveryDate(val || "")}
+                placeholder=""
+              />
+            </div>
+          )}
         <div>
           <DatePicker
             label="วันที่ขาย *"
@@ -935,7 +936,22 @@ export function SaleForm({
             <h4 className="font-medium text-gray-900">
               รายละเอียดการจัดส่งผ่านบริษัทขนส่ง
             </h4>
+
             <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
+              <div className="space-y-1">
+                <DatePicker
+                  label="วันที่ต้องการให้ส่งของ"
+                  value={requestedDeliveryDate}
+                  onChange={(val) => setRequestedDeliveryDate(val || "")}
+                  placeholder="เลือกวันที่ต้องการส่งของ"
+                />
+
+                {/* หมายเหตุ */}
+                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+                  ⏰ หมายเหตุ สร้างรายการหลัง 12:00 น. → จัดส่งวันถัดไป
+                </p>
+              </div>
+
               <FormTextarea
                 label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง *"
                 value={customShippingAddress}
