@@ -375,7 +375,7 @@ function SalesToolbar({
               <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                 <span className="inline-flex items-center gap-2">
                   <PlusCircle className="h-4 w-4" />
-                  สร้างรายการขายใหม่
+                  สร้างรายการขาย
                 </span>
               </Button>
             </Link>
@@ -383,7 +383,7 @@ function SalesToolbar({
             <Button className="w-full lg:w-auto" variant="outline" disabled>
               <span className="inline-flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" />
-                สร้างรายการขายใหม่
+                สร้างรายการขาย
               </span>
             </Button>
           )}
