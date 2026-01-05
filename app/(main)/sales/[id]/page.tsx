@@ -562,6 +562,7 @@ export default function SaleDetailPage({
                       </div>
                     </div>
                   </div>
+                  <div className="pb-20 sm:pb-1"></div>
                 </div>
               </div>
             </div>
