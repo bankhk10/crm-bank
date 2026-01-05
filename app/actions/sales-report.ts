@@ -1,0 +1,166 @@
+"use server";
+
+import { db as prisma } from "@/lib/db";
+import { startOfYear, endOfYear, format } from "date-fns";
+
+export type ReportType = "CUSTOMER" | "EMPLOYEE";
+
+export async function getFilterOptions() {
+  const [customers, employees, yearsResult] = await Promise.all([
+    prisma.customer.findMany({
+      select: { id: true, name: true, customerCode: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.employee.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.dailySalesSummary.groupBy({
+      by: ["year"],
+      orderBy: { year: "desc" },
+    }),
+  ]);
+
+  // If no summary data, provide current year
+  const years =
+    yearsResult.length > 0
+      ? yearsResult.map((y) => y.year)
+      : [new Date().getFullYear()];
+
+  return { customers, employees, years };
+}
+
+export async function getReportSummary(
+  year: number,
+  type: ReportType,
+  entityId?: string
+) {
+  if (!entityId) return null;
+
+  // 1. Get Monthly Trend
+  const monthlyData = await prisma.dailySalesSummary.groupBy({
+    by: ["month"],
+    where: {
+      year,
+      ...(type === "CUSTOMER"
+        ? { customerId: entityId }
+        : { employeeId: entityId }),
+    },
+    _sum: {
+      totalAmount: true,
+      quantity: true,
+      orderCount: true,
+    },
+    orderBy: { month: "asc" },
+  });
+
+  // 2. Get Product Breakdown (Top 5)
+  const productData = await prisma.dailySalesSummary.groupBy({
+    by: ["productId", "brand"],
+    where: {
+      year,
+      ...(type === "CUSTOMER"
+        ? { customerId: entityId }
+        : { employeeId: entityId }),
+    },
+    _sum: {
+      totalAmount: true,
+      quantity: true,
+    },
+    orderBy: {
+      _sum: { totalAmount: "desc" },
+    },
+    take: 5,
+  });
+
+  // Enrich product names
+  const productIds = productData.map((p) => p.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, name: true, productCode: true },
+  });
+
+  const topProducts = productData.map((p) => {
+    const product = products.find((prod) => prod.id === p.productId);
+    return {
+      name: product?.name || "Unknown Product",
+      code: product?.productCode || "",
+      brand: p.brand || "-",
+      amount: Number(p._sum.totalAmount || 0),
+      quantity: Number(p._sum.quantity || 0),
+    };
+  });
+
+  // 3. Calculate Totals
+  const totalSales = monthlyData.reduce(
+    (acc, curr) => acc + Number(curr._sum.totalAmount || 0),
+    0
+  );
+  const totalOrders = monthlyData.reduce(
+    (acc, curr) => acc + Number(curr._sum.orderCount || 0),
+    0
+  ); // Note: This might be slightly off if multiple summaries per day, but good enough for trend
+
+  // Refine monthly data for chart
+  const chartData = Array.from({ length: 12 }, (_, i) => {
+    const monthNum = i + 1;
+    const found = monthlyData.find((m) => m.month === monthNum);
+    return {
+      month: format(new Date(year, i, 1), "MMM"),
+      sales: Number(found?._sum.totalAmount || 0),
+      orders: Number(found?._sum.orderCount || 0),
+    };
+  });
+
+  return {
+    totalSales,
+    totalOrders,
+    chartData,
+    topProducts,
+  };
+}
+
+export async function getOrderHistory(
+  year: number,
+  type: ReportType,
+  entityId?: string,
+  limit = 50
+) {
+  if (!entityId) return [];
+
+  const startDate = startOfYear(new Date(year, 0, 1));
+  const endDate = endOfYear(new Date(year, 0, 1));
+
+  const orders = await prisma.sale.findMany({
+    where: {
+      saleDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: "COMPLETED",
+      ...(type === "CUSTOMER"
+        ? { customerId: entityId }
+        : { employeeId: entityId }),
+    },
+    select: {
+      id: true,
+      saleNumber: true,
+      saleDate: true,
+      totalAmount: true,
+      items: {
+        select: {
+          product: { select: { name: true, productCode: true } },
+          quantity: true,
+          totalPrice: true,
+          unitPrice: true,
+        },
+      },
+    },
+    orderBy: {
+      saleDate: "desc",
+    },
+    take: limit,
+  });
+
+  return orders;
+}
