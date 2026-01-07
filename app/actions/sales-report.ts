@@ -9,10 +9,12 @@ export async function getFilterOptions() {
   const [customers, employees, yearsResult] = await Promise.all([
     prisma.customer.findMany({
       select: { id: true, name: true, customerCode: true },
+      where: { deletedAt: null },
       orderBy: { name: "asc" },
     }),
     prisma.employee.findMany({
       select: { id: true, name: true },
+      where: { deletedAt: null },
       orderBy: { name: "asc" },
     }),
     prisma.dailySalesSummary.groupBy({
