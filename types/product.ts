@@ -143,9 +143,12 @@ export const UNIT_OPTIONS = [
 ];
 
 export const PRODUCT_GROUP_OPTIONS = [
-  { value: "กลุ่ม A", label: "กลุ่ม A" },
-  { value: "กลุ่ม B", label: "กลุ่ม B" },
-  { value: "กลุ่ม C", label: "กลุ่ม C" },
+  { value: "SEP", label: "SEP" },
+  { value: "AMN", label: "AMN" },
+  { value: "ISPI", label: "ISPI" },
+  { value: "24D", label: "24D" },
+  { value: "ABA", label: "ABA" },
+  { value: "OTH", label: "OTH" },
 ];
 
 export const BRAND_OPTIONS = [

@@ -77,7 +77,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-            Dashboard Overview
+            ภาพรวมแดชบอร์ด
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
             ภาพรวมยอดขายและสถานะงานประจำเดือน
@@ -158,9 +158,7 @@ export default function DashboardPage() {
             <div className="flex justify-between mt-4 text-sm">
               <div>
                 <p className="text-xs text-slate-400">ยอดปัจจุบัน</p>
-                <p className="font-semibold">
-                  {formatNumber(target.current)}
-                </p>
+                <p className="font-semibold">{formatNumber(target.current)}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-slate-400">ส่วนต่าง</p>
