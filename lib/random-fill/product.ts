@@ -28,7 +28,7 @@ const units = [
   "ซอง",
 ];
 
-const groups = ["กลุ่ม A", "กลุ่ม B", "กลุ่ม C", "กลุ่ม D"];
+const groups = ["SEP", "AMN", "ISPI", "24D", "ABA", "OTH"];
 const brands = ["แบรนด์ X", "แบรนด์ Y", "แบรนด์ Z", "แบรนด์ Q"];
 const productNames = [
   "ปุ๋ยสูตร A",
