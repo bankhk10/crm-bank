@@ -7,7 +7,7 @@ export default async function SalesReportPage() {
   const { customers, employees, years } = await getFilterOptions();
 
   return (
-    <div className="h-full p-6 space-y-6 bg-slate-50/50 min-h-screen">
+    <div className="h-full p-6 space-y-6 bg-white rounded-2xl min-h-screen">
       <Suspense
         fallback={
           <div className="flex h-[50vh] w-full items-center justify-center">
