@@ -1304,17 +1304,6 @@ export function SaleForm({
           <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
             <Button
               size="lg"
-              className="w-full sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="button"
-              onClick={onCancel ?? (() => router.back())}
-              disabled={loading}
-            >
-              <X className="h-4 w-4 -ml-3" />
-              ยกเลิก
-            </Button>
-
-            <Button
-              size="lg"
               className="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="submit"
               disabled={loading}
@@ -1328,11 +1317,21 @@ export function SaleForm({
                 </>
               )}
             </Button>
+            <Button
+              size="lg"
+              className="w-full sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              type="button"
+              onClick={onCancel ?? (() => router.back())}
+              disabled={loading}
+            >
+              <X className="h-4 w-4 -ml-3" />
+              ยกเลิก
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* <div className="w-full sm:w-auto">
+      <div className="w-full sm:w-auto">
         <RandomFillButton
           size="lg"
           className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
@@ -1342,7 +1341,7 @@ export function SaleForm({
         >
           <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
         </RandomFillButton>
-      </div> */}
+      </div>
 
       {/* Product Detail Modal */}
       <Dialog
