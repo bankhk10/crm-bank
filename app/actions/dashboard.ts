@@ -78,12 +78,14 @@ export async function getDashboardData(): Promise<DashboardData> {
     _count: true,
   });
 
-  // Sales Note = PENDING, APPROVED, AWAITING_PAYMENT
+  // Sales Note = PENDING, APPROVED, AWAITING_PAYMENT, AWAITING_DELIVERY (ยังไม่จบกระบวนการ)
   const salesNoteRaw = await prisma.sale.aggregate({
     where: {
       saleDate: { gte: monthStart, lte: monthEnd },
       deletedAt: null,
-      status: { in: ["PENDING", "APPROVED", "AWAITING_PAYMENT"] },
+      status: {
+        in: ["PENDING", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"],
+      },
     },
     _sum: { totalAmount: true },
   });
@@ -173,7 +175,14 @@ export async function getDashboardData(): Promise<DashboardData> {
           sale: {
             saleDate: { gte: monthStart, lte: monthEnd },
             deletedAt: null,
-            status: { in: ["PENDING", "APPROVED", "AWAITING_PAYMENT"] },
+            status: {
+              in: [
+                "PENDING",
+                "APPROVED",
+                "AWAITING_PAYMENT",
+                "AWAITING_DELIVERY",
+              ],
+            },
           },
         },
         _sum: { totalPrice: true },
@@ -279,7 +288,14 @@ export async function getDashboardData(): Promise<DashboardData> {
           customerId: { in: customerIds },
           saleDate: { gte: monthStart, lte: monthEnd },
           deletedAt: null,
-          status: { in: ["PENDING", "APPROVED", "AWAITING_PAYMENT"] },
+          status: {
+            in: [
+              "PENDING",
+              "APPROVED",
+              "AWAITING_PAYMENT",
+              "AWAITING_DELIVERY",
+            ],
+          },
         },
         _sum: { totalAmount: true },
       });
