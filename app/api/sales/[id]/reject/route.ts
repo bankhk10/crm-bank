@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
+import { createApiContext, createApiLogger, logReject } from "@/lib/logger";
 
 // POST /api/sales/[id]/reject - Reject sale
 export async function POST(
@@ -77,6 +78,31 @@ export async function POST(
           },
         },
       },
+    });
+
+    // Log audit event (REJECT)
+    const context = createApiContext(request, session.user);
+    const reqLogger = createApiLogger(context);
+    await logReject(
+      "Sale",
+      id,
+      { status: sale.status, saleNumber: sale.saleNumber },
+      {
+        status: updatedSale.status,
+        rejectionReason: reason,
+        saleNumber: updatedSale.saleNumber,
+      },
+      context,
+      {
+        entityName: sale.saleNumber,
+        module: "sales",
+        errorMessage: reason,
+      }
+    );
+
+    reqLogger.info("Sale rejected", {
+      module: "sales",
+      metadata: { saleId: id, saleNumber: sale.saleNumber, reason },
     });
 
     // TODO: Send notification to sale creator

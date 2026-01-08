@@ -52,3 +52,15 @@ export {
   SECURITY_EVENTS_CONFIG,
   SENSITIVE_FIELDS,
 } from "./types";
+
+// API Helpers
+export {
+  createRequestContext as createApiContext,
+  createApiLogger,
+  logCreate,
+  logUpdate,
+  logDelete,
+  logApprove,
+  logReject,
+  logAuditAction,
+} from "./api-helpers";

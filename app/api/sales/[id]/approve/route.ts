@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { allocateStock } from "@/lib/stock-service";
+import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";
 
 // POST /api/sales/[id]/approve - Approve sale
 export async function POST(
@@ -135,12 +136,39 @@ export async function POST(
 
     // TODO: Send notification to sale creator
 
-    return NextResponse.json({ sale: updatedSale });
-  } catch (error: any) {
-    console.error("Error approving sale:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to approve sale" },
-      { status: 500 }
+    // Log audit event (APPROVE)
+    const context = createApiContext(request, session.user);
+    const reqLogger = createApiLogger(context);
+    await logApprove(
+      "Sale",
+      id,
+      { status: sale.status, saleNumber: sale.saleNumber },
+      {
+        status: updatedSale.status,
+        approvedById: updatedSale.approvedById,
+        saleNumber: updatedSale.saleNumber,
+      },
+      context,
+      {
+        entityName: sale.saleNumber,
+        module: "sales",
+      }
     );
+
+    reqLogger.info("Sale approved successfully", {
+      module: "sales",
+      metadata: {
+        saleId: id,
+        saleNumber: sale.saleNumber,
+        newStatus: updatedSale.status,
+      },
+    });
+
+    return NextResponse.json({ sale: updatedSale });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to approve sale";
+    console.error("Error approving sale:", error);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { SaleStatus, PaymentTerm, Prisma } from "@prisma/client";
 import type { SalesFilterParams, SaleFormData } from "@/types/sales";
+import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
 
 // GET /api/sales - List sales with filters
 export async function GET(request: NextRequest) {
@@ -406,6 +407,35 @@ export async function POST(request: NextRequest) {
     });
 
     // TODO: Create notification for approvers
+
+    // Log audit event (CREATE)
+    const context = createApiContext(request, session.user);
+    const reqLogger = createApiLogger(context);
+    await logCreate(
+      "Sale",
+      sale.id,
+      {
+        saleNumber: sale.saleNumber,
+        customerId: sale.customerId,
+        customerName: sale.customer?.name,
+        employeeId: sale.employeeId,
+        employeeName: sale.employee?.name,
+        status: sale.status,
+        paymentTerm: sale.paymentTerm,
+        totalAmount: sale.totalAmount.toString(),
+        itemCount: sale.items.length,
+      },
+      context,
+      {
+        entityName: sale.saleNumber,
+        module: "sales",
+      }
+    );
+
+    reqLogger.info("Sale created successfully", {
+      module: "sales",
+      metadata: { saleId: sale.id, saleNumber: sale.saleNumber },
+    });
 
     return NextResponse.json({
       sale,
