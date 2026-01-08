@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 import Can from "@/components/rbac/Can";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
+import { X, Save } from "lucide-react";
 
 type CompanyPayload = {
   name: string;
@@ -33,15 +35,14 @@ interface Props {
   initial?: Partial<CompanyPayload>;
   onSubmit: (payload: CompanyPayload) => Promise<SubmitResult>;
   onCancel?: () => void;
-  submitLabel?: string;
 }
 
 export default function CompanyForm({
   initial = {},
   onSubmit,
   onCancel,
-  submitLabel = "บันทึก",
 }: Props) {
+  const router = useRouter();
   const [payload, setPayload] = useState<CompanyPayload>({
     name: initial.name ?? "",
     companyCode: initial.companyCode ?? "",
@@ -228,43 +229,58 @@ export default function CompanyForm({
       </div>
 
       {/* Action Buttons */}
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
+        <div className="flex justify-center sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
           <Button
             size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="button"
-            onClick={onCancel}
+            onClick={onCancel ?? (() => router.back())}
+            disabled={loading}
           >
+            <X className="h-4 w-4" />
             ยกเลิก
           </Button>
           <Button
             size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="submit"
             disabled={loading}
           >
-            {loading ? "กำลังบันทึก..." : submitLabel}
+            {loading ? (
+              <span>กำลังบันทึก...</span>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                <span>บันทึก</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
+      <div className="w-full h-12 sm:hidden"></div>
 
       {error && (
         <div className="text-center text-red-600 text-sm mt-4">{error}</div>
       )}
 
       <Can permission="randomize">
-        <RandomFillButton
-          variant="secondary"
-          size="lg"
-          className="w-40 mt-4 mx-auto block"
-          onClick={() => {
-            setFieldErrors({});
-            setError(null);
-            const random = generateRandomCompany();
-            setPayload((p) => ({ ...p, ...random }));
-          }}
-        />
+        <div className="w-full sm:w-auto">
+          <RandomFillButton
+            size="lg"
+            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+            onClick={() => {
+              setFieldErrors({});
+              setError(null);
+              const random = generateRandomCompany();
+              setPayload((p) => ({ ...p, ...random }));
+            }}
+            disabled={loading}
+            variant="secondary"
+          >
+            <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+          </RandomFillButton>
+        </div>
       </Can>
     </form>
   );
