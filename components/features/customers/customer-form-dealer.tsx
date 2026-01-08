@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, X, Save } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -852,69 +852,84 @@ export default function CustomerFormDealer({
         </div>
       )}
 
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <RandomFillButton
-            size="lg"
-            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            onClick={() => {
-              const rnd = generateRandomDealer();
-              setValues((p: any) => ({
-                ...p,
-                companyName: rnd.name ?? p.companyName,
-                taxId: rnd.taxId ?? p.taxId,
-                phone: rnd.phone ?? p.phone,
-                email: rnd.email ?? p.email,
-                addressLine: rnd.addressLine ?? p.addressLine,
-                province: rnd.province ?? p.province,
-                district: rnd.district ?? p.district,
-                subdistrict: rnd.subdistrict ?? p.subdistrict,
-                postalCode: rnd.postalCode ?? p.postalCode,
-                billingAddressLine:
-                  rnd.billingAddressLine ?? p.billingAddressLine,
-                billingProvince: rnd.billingProvince ?? p.billingProvince,
-                billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
-                billingSubdistrict:
-                  rnd.billingSubdistrict ?? p.billingSubdistrict,
-                billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
-                shippingAddressLine:
-                  rnd.shippingAddressLine ?? p.shippingAddressLine,
-                shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
-                shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
-                shippingSubdistrict:
-                  rnd.shippingSubdistrict ?? p.shippingSubdistrict,
-                shippingPostalCode:
-                  rnd.shippingPostalCode ?? p.shippingPostalCode,
-                prefix: rnd.prefix ?? p.prefix,
-                firstName: rnd.firstName ?? p.firstName,
-                lastName: rnd.lastName ?? p.lastName,
-                contactPhone: rnd.contactPhone ?? p.contactPhone,
-                contactEmail: rnd.contactEmail ?? p.contactEmail,
-                businessNotes: rnd.businessNotes ?? p.businessNotes,
-                relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
-              }));
-            }}
-          />
-
+      {/* Action Buttons */}
+      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
+        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
           <Button
             size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="button"
             onClick={onCancel ?? (() => router.back())}
             disabled={loading}
           >
+            <X className="h-4 w-4" />
             ยกเลิก
           </Button>
-
           <Button
             size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="submit"
             disabled={loading}
           >
-            {loading ? "กำลังบันทึก..." : submitLabel}
+            {loading ? (
+              "กำลังบันทึก..."
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                บันทึก
+              </>
+            )}
           </Button>
         </div>
+      </div>
+      <div className="w-full h-12 sm:hidden"></div>
+
+      <div className="w-full sm:w-auto">
+        <RandomFillButton
+          size="lg"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+          onClick={() => {
+            const rnd = generateRandomDealer();
+            setValues((p: any) => ({
+              ...p,
+              companyName: rnd.name ?? p.companyName,
+              taxId: rnd.taxId ?? p.taxId,
+              phone: rnd.phone ?? p.phone,
+              email: rnd.email ?? p.email,
+              addressLine: rnd.addressLine ?? p.addressLine,
+              province: rnd.province ?? p.province,
+              district: rnd.district ?? p.district,
+              subdistrict: rnd.subdistrict ?? p.subdistrict,
+              postalCode: rnd.postalCode ?? p.postalCode,
+              billingAddressLine:
+                rnd.billingAddressLine ?? p.billingAddressLine,
+              billingProvince: rnd.billingProvince ?? p.billingProvince,
+              billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
+              billingSubdistrict:
+                rnd.billingSubdistrict ?? p.billingSubdistrict,
+              billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
+              shippingAddressLine:
+                rnd.shippingAddressLine ?? p.shippingAddressLine,
+              shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
+              shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
+              shippingSubdistrict:
+                rnd.shippingSubdistrict ?? p.shippingSubdistrict,
+              shippingPostalCode:
+                rnd.shippingPostalCode ?? p.shippingPostalCode,
+              prefix: rnd.prefix ?? p.prefix,
+              firstName: rnd.firstName ?? p.firstName,
+              lastName: rnd.lastName ?? p.lastName,
+              contactPhone: rnd.contactPhone ?? p.contactPhone,
+              contactEmail: rnd.contactEmail ?? p.contactEmail,
+              businessNotes: rnd.businessNotes ?? p.businessNotes,
+              relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+            }));
+          }}
+          disabled={loading}
+          variant="secondary"
+        >
+          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+        </RandomFillButton>
       </div>
     </form>
   );

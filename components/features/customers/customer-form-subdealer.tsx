@@ -20,7 +20,7 @@ import {
 } from "@/components/custom/form-components";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { MultiSelect } from "@/components/custom/multi-select";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, X, Save } from "lucide-react";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -786,49 +786,12 @@ export default function CustomerFormSubdealer({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <RandomFillButton
-            size="lg"
-            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            onClick={() => {
-              const rnd = generateRandomSubdealer();
-              setValues((p: any) => ({
-                ...p,
-                companyName: rnd.companyName ?? p.companyName,
-                taxId: rnd.taxId ?? p.taxId,
-                phone: rnd.phone ?? p.phone,
-                email: rnd.email ?? p.email,
-                latitude: rnd.latitude ?? p.latitude,
-                longitude: rnd.longitude ?? p.longitude,
-                addressLine: rnd.addressLine ?? p.addressLine,
-                province: rnd.province ?? p.province,
-                district: rnd.district ?? p.district,
-                subdistrict: rnd.subdistrict ?? p.subdistrict,
-                postalCode: rnd.postalCode ?? p.postalCode,
-                prefix: rnd.prefix ?? p.prefix,
-                firstName: rnd.firstName ?? p.firstName,
-                lastName: rnd.lastName ?? p.lastName,
-                birthDate: rnd.birthDate ?? p.birthDate,
-                contactPhone: rnd.contactPhone ?? p.contactPhone,
-                contactEmail: rnd.contactEmail ?? p.contactEmail,
-                receiveFromDealer: rnd.receiveFromDealer ?? p.receiveFromDealer,
-                mainCompetitor: rnd.mainCompetitor ?? p.mainCompetitor,
-                areaCrops: rnd.areaCrops ?? p.areaCrops,
-                averageMonthlyPurchase:
-                  rnd.averageMonthlyPurchase ?? p.averageMonthlyPurchase,
-                mainProductSold: rnd.mainProductSold ?? p.mainProductSold,
-                brandsSold: rnd.brandsSold ?? p.brandsSold,
-                areaType: rnd.areaType ?? p.areaType,
-                relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
-                notes: rnd.notes ?? p.notes,
-              }));
-              setFieldErrors({});
-            }}
-          />
+      {/* Action Buttons */}
+      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
+        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
           <Button
             size="lg"
-            className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="button"
             onClick={() => {
               try {
@@ -838,18 +801,73 @@ export default function CustomerFormSubdealer({
               }
               router.push("/customers");
             }}
+            disabled={loading}
           >
-            ย้อนกลับ
+            <X className="h-4 w-4" />
+            ยกเลิก
           </Button>
           <Button
             size="lg"
-            className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="submit"
             disabled={loading}
           >
-            {loading ? "กำลังบันทึก..." : submitLabel}
+            {loading ? (
+              "กำลังบันทึก..."
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                บันทึก
+              </>
+            )}
           </Button>
         </div>
+      </div>
+      <div className="w-full h-12 sm:hidden"></div>
+
+      <div className="w-full sm:w-auto">
+        <RandomFillButton
+          size="lg"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+          onClick={() => {
+            const rnd = generateRandomSubdealer();
+            setValues((p: any) => ({
+              ...p,
+              companyName: rnd.companyName ?? p.companyName,
+              taxId: rnd.taxId ?? p.taxId,
+              phone: rnd.phone ?? p.phone,
+              email: rnd.email ?? p.email,
+              latitude: rnd.latitude ?? p.latitude,
+              longitude: rnd.longitude ?? p.longitude,
+              addressLine: rnd.addressLine ?? p.addressLine,
+              province: rnd.province ?? p.province,
+              district: rnd.district ?? p.district,
+              subdistrict: rnd.subdistrict ?? p.subdistrict,
+              postalCode: rnd.postalCode ?? p.postalCode,
+              prefix: rnd.prefix ?? p.prefix,
+              firstName: rnd.firstName ?? p.firstName,
+              lastName: rnd.lastName ?? p.lastName,
+              birthDate: rnd.birthDate ?? p.birthDate,
+              contactPhone: rnd.contactPhone ?? p.contactPhone,
+              contactEmail: rnd.contactEmail ?? p.contactEmail,
+              receiveFromDealer: rnd.receiveFromDealer ?? p.receiveFromDealer,
+              mainCompetitor: rnd.mainCompetitor ?? p.mainCompetitor,
+              areaCrops: rnd.areaCrops ?? p.areaCrops,
+              averageMonthlyPurchase:
+                rnd.averageMonthlyPurchase ?? p.averageMonthlyPurchase,
+              mainProductSold: rnd.mainProductSold ?? p.mainProductSold,
+              brandsSold: rnd.brandsSold ?? p.brandsSold,
+              areaType: rnd.areaType ?? p.areaType,
+              relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+              notes: rnd.notes ?? p.notes,
+            }));
+            setFieldErrors({});
+          }}
+          disabled={loading}
+          variant="secondary"
+        >
+          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+        </RandomFillButton>
       </div>
     </form>
   );
