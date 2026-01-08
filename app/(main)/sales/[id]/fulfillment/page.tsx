@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Loader2,
   ClipboardCheck,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -427,43 +428,39 @@ export default function FulfillmentPage({
                 />
               </div>
             </CardContent>
+            {/* Action Buttons */}
+            <div className="sm:pt-2 mt-6 sm:mt-8 space-y-6">
+              <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+                <Button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="w-32 sm:w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                  disabled={submitting}
+                >
+                  <X className=" h-4 w-4" />
+                  ยกเลิก
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-32 sm:w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      กำลังบันทึก...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      บันทึก
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="w-full h-12 sm:hidden"></div>
+            </div>
           </Card>
-        </div>
-
-        {/* Action Buttons with Gradient */}
-        <div className="flex items-center justify-center gap-4 sticky bottom-6 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            className="bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 px-6 h-12 rounded-xl font-semibold transition-all shadow-sm hover:shadow-md"
-          >
-            ยกเลิก
-          </Button>
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 h-12 rounded-xl font-semibold min-w-[160px] shadow-lg hover:shadow-xl transition-all disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-            {/* Use Layout stability to prevent hydration/DOM mismatch errors */}
-            <div
-              className={
-                submitting ? "flex items-center relative z-10" : "hidden"
-              }
-            >
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              กำลังบันทึก...
-            </div>
-            <div
-              className={
-                !submitting ? "flex items-center relative z-10" : "hidden"
-              }
-            >
-              <Save className="mr-2 h-5 w-5" />
-              บันทึกข้อมูล
-            </div>
-          </Button>
         </div>
       </form>
     </div>
