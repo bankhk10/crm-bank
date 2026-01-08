@@ -1329,7 +1329,6 @@ export function SaleForm({
           </Button>
         </div>
       </div>
-
       <div className="w-full h-12 sm:hidden"></div>
 
       <div className="w-full sm:w-auto">

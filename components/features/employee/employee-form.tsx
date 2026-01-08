@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, X, Save } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import generateRandomEmployee from "@/lib/random-fill/employee";
 import type { Employee } from "@/types/Employee.ts";
@@ -692,40 +692,48 @@ export default function EmployeeForm({
         />
       </div>
 
-      <div className="md:col-span-2 pt-6 border-t my-2">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          {canEdit && (
-            <RandomFillButton
-              size="lg"
-              className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-              onClick={handleRandomFill}
-            />
-          )}
+      {/* Random Fill Button */}
+      {canEdit && (
+        <div className="flex justify-center">
+          <RandomFillButton
+            size="lg"
+            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
+            onClick={handleRandomFill}
+          />
+        </div>
+      )}
 
-          {onCancel && (
-            <Button
-              size="lg"
-              className="w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-              type="button"
-              onClick={onCancel}
-              disabled={loading}
-            >
-              ยกเลิก
-            </Button>
-          )}
-
-          {canEdit && (
-            <Button
-              size="lg"
-              className="w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "กำลังบันทึก..." : "บันทึก"}
-            </Button>
-          )}
+      {/* Action Buttons */}
+      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
+        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+          <Button
+            size="lg"
+            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+            type="button"
+            onClick={onCancel ?? (() => {})}
+            disabled={loading}
+          >
+            <X className="h-4 w-4" />
+            ยกเลิก
+          </Button>
+          <Button
+            size="lg"
+            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+            type="submit"
+            disabled={loading || !canEdit}
+          >
+            {loading ? (
+              <span>กำลังบันทึก...</span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Save className="h-4 w-4" />
+                บันทึก
+              </span>
+            )}
+          </Button>
         </div>
       </div>
+      <div className="w-full h-12 sm:hidden"></div>
     </form>
   );
 }
