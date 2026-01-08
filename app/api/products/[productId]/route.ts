@@ -1,9 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
+import {
+  logger,
+  auditLogger,
+  generateRequestId,
+  extractClientIp,
+  extractUserAgent,
+} from "@/lib/logger";
+import type { RequestContext } from "@/lib/logger/types";
 
 const resourcePath = "/api/products";
 
@@ -22,10 +30,7 @@ const productSchema = z.object({
   properties: z.string().optional(),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: any }
-) {
+export async function GET(request: Request, { params }: { params: any }) {
   const session = await auth();
 
   if (!session?.user) {
@@ -65,8 +70,9 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: any }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
+  const startTime = Date.now();
   const session = await auth();
 
   if (!session?.user) {
@@ -84,6 +90,21 @@ export async function PATCH(
     );
   }
 
+  // Create request context for logging
+  const headersObj = Object.fromEntries(request.headers.entries());
+  const context: RequestContext = {
+    requestId: generateRequestId(),
+    userId: session.user.id,
+    userEmail: session.user.email ?? undefined,
+    userName: session.user.name ?? undefined,
+    ipAddress: extractClientIp(headersObj),
+    userAgent: extractUserAgent(headersObj),
+    endpoint: "/api/products/[productId]",
+    method: "PATCH",
+  };
+
+  const reqLogger = logger.child(context);
+
   const body = await request.json().catch(() => null);
   const parsed = productSchema.partial().safeParse(body);
 
@@ -97,7 +118,8 @@ export async function PATCH(
   try {
     const { productId } = await params;
 
-    const existing = await (db as any).product.findFirst({
+    // Get existing product (old value for audit)
+    const existing = await db.product.findFirst({
       where: { id: productId, deletedAt: null },
     });
 
@@ -105,7 +127,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    const product = await (db as any).product.update({
+    reqLogger.info("Updating product", {
+      module: "products",
+      metadata: { productId, productCode: existing.productCode },
+    });
+
+    // Update product
+    const product = await db.product.update({
       where: { id: productId },
       data: parsed.data,
       include: {
@@ -113,8 +141,53 @@ export async function PATCH(
       },
     });
 
+    // Log audit event (UPDATE)
+    const duration = Date.now() - startTime;
+    await auditLogger.logUpdate(
+      "Product",
+      productId,
+      {
+        productCode: existing.productCode,
+        name: existing.name,
+        commonName: existing.commonName,
+        unit: existing.unit,
+        productGroup: existing.productGroup,
+        brand: existing.brand,
+        status: existing.status,
+        price: existing.price?.toString(),
+      },
+      {
+        productCode: product.productCode,
+        name: product.name,
+        commonName: product.commonName,
+        unit: product.unit,
+        productGroup: product.productGroup,
+        brand: product.brand,
+        status: product.status,
+        price: product.price?.toString(),
+      },
+      context,
+      {
+        entityName: product.name,
+        module: "products",
+        duration,
+      }
+    );
+
+    reqLogger.info("Product updated successfully", {
+      module: "products",
+      duration,
+      metadata: { productId, productCode: product.productCode },
+    });
+
     return NextResponse.json({ product });
   } catch (err) {
+    const duration = Date.now() - startTime;
+    reqLogger.error("Failed to update product", err, {
+      module: "products",
+      duration,
+    });
+
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2025"
@@ -126,7 +199,8 @@ export async function PATCH(
       err instanceof Prisma.PrismaClientKnownRequestError &&
       err.code === "P2002"
     ) {
-      const target = (err.meta && (err.meta as any).target) || [];
+      const target =
+        (err.meta && (err.meta as Record<string, unknown>).target) || [];
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
         { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
@@ -138,10 +212,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: any }
-) {
+export async function DELETE(request: Request, { params }: { params: any }) {
   const session = await auth();
 
   if (!session?.user) {

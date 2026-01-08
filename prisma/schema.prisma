@@ -78,6 +78,11 @@ model User {
   createdSales                  Sale[]                   @relation("SaleCreator")
   approvedSales                 Sale[]                   @relation("SaleApprover")
   saleStatusChanges             SaleStatusHistory[]      @relation("StatusHistoryUser")
+  
+  // Logging relations
+  auditLogs                     AuditLog[]               @relation("AuditLogUser")
+  securityLogs                  SecurityLog[]            @relation("SecurityLogUser")
+  targetedSecurityLogs          SecurityLog[]            @relation("SecurityLogTargetUser")
 }
 
 model Company {
@@ -643,4 +648,175 @@ model DailySalesSummary {
   @@index([year, employeeId]) // สำหรับรายงานเซลล์แยกรายปี
   @@index([date])
   @@unique([date, customerId, employeeId, productId]) // ป้องกันข้อมูลซ้ำซ้อน
+}
+
+// ==========================================
+// LOGGING SYSTEM
+// ==========================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  APPROVE
+  REJECT
+  EXPORT
+  IMPORT
+  LOGIN
+  LOGOUT
+}
+
+enum SecurityEventType {
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGE
+  PASSWORD_RESET
+  PERMISSION_CHANGE
+  ROLE_CHANGE
+  ADMIN_ACTION
+  DATA_EXPORT
+  SUSPICIOUS_ACTIVITY
+  SESSION_EXPIRED
+  ACCOUNT_LOCKED
+  ACCOUNT_UNLOCKED
+}
+
+enum LogSeverity {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+model AuditLog {
+  id            String      @id @default(cuid())
+  timestamp     DateTime    @default(now())
+  
+  // Who performed the action
+  userId        String?
+  userEmail     String?
+  userName      String?
+  ipAddress     String?
+  userAgent     String?
+  
+  // What action was performed
+  action        AuditAction
+  entityType    String      // Sale, Customer, CreditLimit, User, Product, etc.
+  entityId      String?
+  entityName    String?     // Human-readable name (e.g., customer name, sale number)
+  
+  // Data Changes
+  oldValue      Json?       // State before change
+  newValue      Json?       // State after change
+  changedFields String[]    // List of changed field names
+  
+  // Context
+  module        String?     // sales, customers, products, users, etc.
+  requestId     String?     // Correlation ID for tracing
+  sessionId     String?
+  endpoint      String?     // API endpoint that was called
+  method        String?     // HTTP method (GET, POST, PUT, DELETE)
+  
+  // Result
+  success       Boolean     @default(true)
+  errorMessage  String?
+  duration      Int?        // Request duration in milliseconds
+  
+  // Optional relation to User
+  user          User?       @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+  @@index([entityType, timestamp])
+  @@index([action, timestamp])
+  @@index([timestamp])
+  @@index([module, timestamp])
+}
+
+model SecurityLog {
+  id            String            @id @default(cuid())
+  timestamp     DateTime          @default(now())
+  
+  // Event Information
+  eventType     SecurityEventType
+  severity      LogSeverity       @default(INFO)
+  message       String?
+  
+  // Who triggered the event
+  userId        String?
+  userEmail     String?
+  userName      String?
+  
+  // Request Information
+  ipAddress     String
+  userAgent     String?
+  geoLocation   String?           // Country/City if available
+  
+  // Session Information
+  sessionId     String?
+  requestId     String?
+  
+  // Event Details
+  details       Json?             // Additional context
+  targetUserId  String?           // For admin actions affecting other users
+  targetUserEmail String?
+  
+  // Result
+  success       Boolean           @default(true)
+  failureReason String?
+  
+  // Risk Assessment
+  riskScore     Int?              // 0-100, higher = more risky
+  isBlocked     Boolean           @default(false)
+  
+  // Rate Limiting
+  attemptCount  Int               @default(1)  // For tracking repeated failures
+  
+  // Optional relation to User
+  user          User?             @relation("SecurityLogUser", fields: [userId], references: [id], onDelete: SetNull)
+  targetUser    User?             @relation("SecurityLogTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([eventType, timestamp])
+  @@index([ipAddress, timestamp])
+  @@index([severity, timestamp])
+  @@index([timestamp])
+  @@index([riskScore])
+}
+
+model ApplicationLog {
+  id            String      @id @default(cuid())
+  timestamp     DateTime    @default(now())
+  
+  // Log Information
+  level         LogSeverity
+  message       String
+  
+  // Context
+  module        String?     // Component/module name
+  functionName  String?
+  
+  // Request Context
+  requestId     String?
+  userId        String?
+  sessionId     String?
+  
+  // Error Details
+  errorName     String?
+  errorMessage  String?
+  stackTrace    String?     @db.Text
+  
+  // Additional Data
+  metadata      Json?
+  
+  // Performance
+  duration      Int?        // milliseconds
+  
+  @@index([level, timestamp])
+  @@index([module, timestamp])
+  @@index([requestId])
+  @@index([timestamp])
 }
