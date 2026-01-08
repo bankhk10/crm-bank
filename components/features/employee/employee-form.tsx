@@ -692,17 +692,6 @@ export default function EmployeeForm({
         />
       </div>
 
-      {/* Random Fill Button */}
-      {canEdit && (
-        <div className="flex justify-center">
-          <RandomFillButton
-            size="lg"
-            className="w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            onClick={handleRandomFill}
-          />
-        </div>
-      )}
-
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
         <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
@@ -734,6 +723,18 @@ export default function EmployeeForm({
         </div>
       </div>
       <div className="w-full h-12 sm:hidden"></div>
+
+      <div className="w-full sm:w-auto">
+        <RandomFillButton
+          size="lg"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+          onClick={handleRandomFill}
+          disabled={loading}
+          variant="secondary"
+        >
+          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+        </RandomFillButton>
+      </div>
     </form>
   );
 }
