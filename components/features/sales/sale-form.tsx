@@ -1301,10 +1301,10 @@ export function SaleForm({
 
       <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8 flex justify-center">
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="flex flex-row gap-3 w-full sm:w-auto">
             <Button
               size="lg"
-              className="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="submit"
               disabled={loading}
             >
@@ -1319,7 +1319,7 @@ export function SaleForm({
             </Button>
             <Button
               size="lg"
-              className="w-full sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="button"
               onClick={onCancel ?? (() => router.back())}
               disabled={loading}
