@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import {
   TrendingUp,
@@ -21,6 +22,9 @@ import {
   Package,
   DollarSign,
   Target,
+  ArrowUpRight,
+  Sparkles,
+  BarChart3,
 } from "lucide-react";
 
 /* ================= Mock Data ================= */
@@ -36,9 +40,9 @@ const target = {
 };
 
 const productGroupData = [
-  { group: "A", target: 500000, salesNote: 320000, invoice: 150000 },
-  { group: "B", target: 600000, salesNote: 380000, invoice: 220000 },
-  { group: "C", target: 400000, salesNote: 120000, invoice: 60000 },
+  { group: "กลุ่ม A", target: 500000, salesNote: 320000, invoice: 150000 },
+  { group: "กลุ่ม B", target: 600000, salesNote: 380000, invoice: 220000 },
+  { group: "กลุ่ม C", target: 400000, salesNote: 120000, invoice: 60000 },
 ];
 
 const regionData = [
@@ -66,262 +70,487 @@ const formatCurrency = (value: number) =>
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("th-TH").format(value);
 
+const formatCompact = (value: number) =>
+  new Intl.NumberFormat("th-TH", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+
 /* ================= Page ================= */
 export default function DashboardPage() {
   const percent = Math.round((target.current / target.target) * 100);
   const remaining = target.target - target.current;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-10 space-y-10">
-      {/* ================= Header ================= */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 px-3 py-4 sm:p-6 md:p-8 lg:p-10 space-y-4 sm:space-y-6 lg:space-y-8 animate-in fade-in duration-500">
+      {/* ================= Header - Mobile First ================= */}
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Title */}
+        <div className="text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+            <span className="text-xs sm:text-sm font-medium text-blue-600 uppercase tracking-wider">
+              Dashboard
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
             ภาพรวมแดชบอร์ด
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 mt-1 text-xs sm:text-sm">
             ภาพรวมยอดขายและสถานะงานประจำเดือน
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-600 bg-white/70 backdrop-blur px-4 py-2 rounded-full shadow border">
-          <Clock className="w-4 h-4" />
-          <span>
-            อัปเดตล่าสุด{" "}
-            {new Date().toLocaleString("th-TH", {
-              dateStyle: "long",
-              timeStyle: "short",
-            })}
-          </span>
+        {/* Last Updated Badge */}
+        <div className="flex justify-center sm:justify-end">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">อัปเดตล่าสุด </span>
+            <span className="font-medium">
+              {new Date().toLocaleString("th-TH", {
+                day: "numeric",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ================= Top KPI ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Monthly Sales */}
-        <Card className="relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white/70 backdrop-blur shadow-sm hover:shadow-xl transition">
-          <div className="absolute right-4 top-4 opacity-10">
-            <DollarSign className="w-24 h-24 text-blue-600" />
+      {/* ================= Top KPI Cards - Responsive Grid ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        {/* Monthly Sales Card */}
+        <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 group sm:col-span-2 xl:col-span-1">
+          <div className="absolute -right-6 -top-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <DollarSign className="w-32 h-32 sm:w-40 sm:h-40 text-blue-600" />
           </div>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-slate-500">
-              ยอดขายเดือนปัจจุบัน
-            </CardTitle>
-            <div className="text-4xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+
+          <CardHeader className="pb-2 sm:pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                ยอดขายเดือนปัจจุบัน
+              </CardTitle>
+              <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                <ArrowUpRight className="w-3 h-3" />
+                <span className="text-[10px] sm:text-xs font-bold">+8.5%</span>
+              </div>
+            </div>
+            <div className="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-1 sm:mt-2 truncate">
               {formatCurrency(monthlySales.total)}
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/60">
-                <p className="text-xs font-semibold text-blue-600">
+
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-4">
+              <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-100">
+                <p className="text-[10px] sm:text-xs font-semibold text-blue-600 uppercase tracking-wide">
                   Sales Note
                 </p>
-                <p className="text-lg font-bold text-slate-800">
-                  {formatNumber(monthlySales.salesNote)}
+                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                  {formatCompact(monthlySales.salesNote)}
                 </p>
               </div>
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/60">
-                <p className="text-xs font-semibold text-indigo-600">Invoice</p>
-                <p className="text-lg font-bold text-slate-800">
-                  {formatNumber(monthlySales.invoice)}
+              <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-100">
+                <p className="text-[10px] sm:text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                  Invoice
+                </p>
+                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                  {formatCompact(monthlySales.invoice)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Target */}
-        <Card className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl hover:scale-[1.01] transition">
-          <div className="absolute right-4 top-4 opacity-10">
-            <Target className="w-32 h-32" />
+        {/* Target Card - Dark Theme */}
+        <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/25 hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
+          <div className="absolute -right-4 -top-4 opacity-5">
+            <Target className="w-28 h-28 sm:w-36 sm:h-36" />
           </div>
-          <CardHeader className="pb-2 flex justify-between items-center">
-            <CardTitle className="text-xs uppercase tracking-wider text-slate-300">
-              เป้ายอดขาย
-            </CardTitle>
-            <Target className="w-5 h-5 text-emerald-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-end mb-3">
-              <div className="text-4xl font-black">{percent}%</div>
-              <div className="text-xs text-slate-400">
-                เป้า {formatNumber(target.target)}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
+
+          <CardHeader className="pb-2 sm:pb-3 relative">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                เป้ายอดขาย
+              </CardTitle>
+              <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               </div>
             </div>
+          </CardHeader>
 
-            <Progress
-              value={percent}
-              className="h-3 rounded-full bg-slate-700/70 [&>div]:bg-gradient-to-r [&>div]:from-emerald-400 [&>div]:to-lime-400"
-            />
-
-            <div className="flex justify-between mt-4 text-sm">
-              <div>
-                <p className="text-xs text-slate-400">ยอดปัจจุบัน</p>
-                <p className="font-semibold">{formatNumber(target.current)}</p>
+          <CardContent className="relative">
+            <div className="flex justify-between items-end mb-2 sm:mb-3">
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-black">
+                  {percent}
+                </span>
+                <span className="text-lg sm:text-xl font-bold text-slate-400">
+                  %
+                </span>
               </div>
               <div className="text-right">
-                <p className="text-xs text-slate-400">ส่วนต่าง</p>
-                <p className="font-semibold text-emerald-400">
-                  -{formatNumber(remaining)}
+                <p className="text-[10px] sm:text-xs text-slate-500">
+                  เป้าหมาย
+                </p>
+                <p className="text-xs sm:text-sm font-semibold text-slate-300">
+                  {formatCompact(target.target)}
+                </p>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Progress
+                value={percent}
+                className="h-2 sm:h-3 rounded-full bg-slate-700/70 [&>div]:bg-gradient-to-r [&>div]:from-emerald-400 [&>div]:to-lime-400 [&>div]:rounded-full"
+              />
+              <div className="absolute -top-1 left-0 w-full h-4 sm:h-5 overflow-hidden">
+                <div
+                  className="absolute top-0 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
+                  style={{ width: "50%", animation: "shimmer 2s infinite" }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm">
+                <p className="text-[10px] sm:text-xs text-slate-500">
+                  ยอดปัจจุบัน
+                </p>
+                <p className="text-sm sm:text-base font-bold text-white">
+                  {formatCompact(target.current)}
+                </p>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-right">
+                <p className="text-[10px] sm:text-xs text-slate-500">
+                  ส่วนต่าง
+                </p>
+                <p className="text-sm sm:text-base font-bold text-emerald-400">
+                  -{formatCompact(remaining)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* YTD */}
-        <Card className="rounded-3xl border border-slate-200/60 bg-white/70 backdrop-blur shadow-sm hover:shadow-xl transition">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-slate-500">
+        {/* YTD Card */}
+        <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-amber-200/50 transition-all duration-300 group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500" />
+          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Sparkles className="w-28 h-28 sm:w-36 sm:h-36 text-amber-500" />
+          </div>
+
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
               ยอดขายสะสม (YTD)
             </CardTitle>
           </CardHeader>
+
           <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-full bg-amber-100">
-                <TrendingUp className="w-8 h-8 text-amber-600" />
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 shadow-inner">
+                <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" />
               </div>
               <div>
-                <div className="text-4xl font-black text-slate-900">
-                  4,850,000
+                <div className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
+                  4.85M
                 </div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">
+                <div className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-medium">
                   บาท
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-3 py-1.5 rounded-full">
-              <TrendingUp className="w-3 h-3" />
-              +12.5% จากปีที่แล้ว
+            <div className="mt-4 sm:mt-6 flex items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-100/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                <ArrowUpRight className="w-3 h-3" />
+                +12.5%
+              </div>
+              <span className="text-[10px] sm:text-xs text-slate-500">
+                จากปีที่แล้ว
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* ================= Charts ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Product Group */}
-        <Card className="rounded-3xl border border-slate-200/60 bg-white/70 backdrop-blur shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-100">
-                <Package className="w-5 h-5 text-purple-600" />
+      {/* ================= Charts - Responsive ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        {/* Product Group Chart */}
+        <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
+          <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">
+                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               </div>
-              <CardTitle className="text-lg font-semibold">
-                ยอดขายตามกลุ่มสินค้า
-              </CardTitle>
+              <div>
+                <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                  ยอดขายตามกลุ่มสินค้า
+                </CardTitle>
+                <p className="text-[10px] sm:text-xs text-slate-500">
+                  เปรียบเทียบเป้าหมายและยอดขายจริง
+                </p>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={productGroupData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="group" />
-                <YAxis tickFormatter={(v) => `${v / 1000}k`} />
+              <BarChart
+                data={productGroupData}
+                margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E2E8F0"
+                />
+                <XAxis
+                  dataKey="group"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => `${v / 1000}k`}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
+                />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: 14,
-                    border: "1px solid #e2e8f0",
+                    borderRadius: 12,
+                    border: "none",
+                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                    fontSize: 12,
                   }}
+                  formatter={(value: number) => formatNumber(value)}
                 />
-                <Bar dataKey="target" fill="#e2e8f0" />
-                <Bar dataKey="salesNote" fill="#818cf8" stackId="a" />
-                <Bar dataKey="invoice" fill="#4f46e5" stackId="a" />
+                <Legend
+                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+                  iconSize={8}
+                />
+                <Bar
+                  dataKey="target"
+                  name="เป้าหมาย"
+                  fill="#E2E8F0"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="salesNote"
+                  name="Sales Note"
+                  fill="#818cf8"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="invoice"
+                  name="Invoice"
+                  fill="#4f46e5"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Region */}
-        <Card className="rounded-3xl border border-slate-200/60 bg-white/70 backdrop-blur shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-orange-100">
-                <Map className="w-5 h-5 text-orange-600" />
+        {/* Region Chart */}
+        <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
+          <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-100 to-amber-100">
+                <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
               </div>
-              <CardTitle className="text-lg font-semibold">
-                ยอดขายรายภาค
-              </CardTitle>
+              <div>
+                <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                  ยอดขายรายภาค
+                </CardTitle>
+                <p className="text-[10px] sm:text-xs text-slate-500">
+                  แยกตามภูมิภาคทั่วประเทศ
+                </p>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[350px]">
+          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={regionData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="region" />
-                <YAxis tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip />
-                <Bar dataKey="target" fill="#e2e8f0" />
-                <Bar dataKey="salesNote" fill="#fb923c" />
-                <Bar dataKey="invoice" fill="#ea580c" />
+              <BarChart
+                data={regionData}
+                margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E2E8F0"
+                />
+                <XAxis
+                  dataKey="region"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => `${v / 1000}k`}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
+                />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "none",
+                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                    fontSize: 12,
+                  }}
+                  formatter={(value: number) => formatNumber(value)}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+                  iconSize={8}
+                />
+                <Bar
+                  dataKey="target"
+                  name="เป้าหมาย"
+                  fill="#E2E8F0"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="salesNote"
+                  name="Sales Note"
+                  fill="#fb923c"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="invoice"
+                  name="Invoice"
+                  fill="#ea580c"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* ================= Job Status ================= */}
-      <Card className="rounded-3xl border border-slate-200/60 bg-white/70 backdrop-blur shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-slate-100">
-              <Briefcase className="w-5 h-5 text-slate-600" />
+      {/* ================= Job Status - Mobile First ================= */}
+      <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
+        <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-slate-100 to-slate-200">
+              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
             </div>
-            <CardTitle className="text-lg font-semibold">
-              ติดตามสถานะงานในเดือนนี้
-            </CardTitle>
+            <div>
+              <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                ติดตามสถานะงานในเดือนนี้
+              </CardTitle>
+              <p className="text-[10px] sm:text-xs text-slate-500">
+                สรุปภาพรวมการดำเนินงาน
+              </p>
+            </div>
           </div>
         </CardHeader>
 
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="flex flex-col justify-center items-center rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl">
-            <div className="text-6xl font-black">{jobStatus.total}</div>
-            <div className="text-slate-300 mt-1">งานทั้งหมด</div>
-          </div>
-
-          <div className="col-span-1 md:col-span-2 lg:col-span-3 space-y-5">
-            {[
-              {
-                label: "สำเร็จ",
-                value: jobStatus.success,
-                color: "emerald",
-                icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-              },
-              {
-                label: "กำลังดำเนินการ",
-                value: jobStatus.progress,
-                color: "blue",
-                icon: <Briefcase className="w-5 h-5 text-blue-500" />,
-              },
-              {
-                label: "ไม่สำเร็จ/ยกเลิก",
-                value: jobStatus.fail,
-                color: "rose",
-                icon: <AlertCircle className="w-5 h-5 text-rose-500" />,
-              },
-            ].map((item) => (
-              <div key={item.label} className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                  <div className="flex items-center gap-2">
-                    {item.icon}
-                    <span className="font-medium">{item.label}</span>
-                  </div>
-                  <span className="font-bold">
-                    {item.value} (
-                    {Math.round((item.value / jobStatus.total) * 100)}%)
-                  </span>
-                </div>
-                <Progress
-                  value={(item.value / jobStatus.total) * 100}
-                  className={`h-2.5 bg-slate-200 [&>div]:bg-${item.color}-500`}
-                />
+        <CardContent className="p-3 sm:p-4 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            {/* Total Jobs - Featured Card */}
+            <div className="col-span-2 sm:col-span-1 flex flex-col justify-center items-center rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent" />
+              <div className="text-4xl sm:text-5xl md:text-6xl font-black relative">
+                {jobStatus.total}
               </div>
-            ))}
+              <div className="text-slate-400 mt-1 text-xs sm:text-sm font-medium relative">
+                งานทั้งหมด
+              </div>
+            </div>
+
+            {/* Status Cards - Grid */}
+            <div className="col-span-2 sm:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+              {[
+                {
+                  label: "สำเร็จ",
+                  value: jobStatus.success,
+                  bgColor: "bg-gradient-to-br from-emerald-50 to-green-100",
+                  barColor: "bg-emerald-500",
+                  textColor: "text-emerald-700",
+                  icon: (
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
+                  ),
+                },
+                {
+                  label: "กำลังดำเนินการ",
+                  value: jobStatus.progress,
+                  bgColor: "bg-gradient-to-br from-blue-50 to-indigo-100",
+                  barColor: "bg-blue-500",
+                  textColor: "text-blue-700",
+                  icon: (
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                  ),
+                },
+                {
+                  label: "ไม่สำเร็จ",
+                  value: jobStatus.fail,
+                  bgColor: "bg-gradient-to-br from-rose-50 to-red-100",
+                  barColor: "bg-rose-500",
+                  textColor: "text-rose-700",
+                  icon: (
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-500" />
+                  ),
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`${item.bgColor} rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2 sm:space-y-3 hover:shadow-md transition-shadow`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      {item.icon}
+                      <span className="text-xs sm:text-sm font-medium text-slate-700">
+                        {item.label}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-lg sm:text-xl md:text-2xl font-black ${item.textColor}`}
+                    >
+                      {item.value}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="h-1.5 sm:h-2 bg-white/60 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${item.barColor} rounded-full transition-all duration-500`}
+                        style={{
+                          width: `${(item.value / jobStatus.total) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-slate-500 text-right font-medium">
+                      {Math.round((item.value / jobStatus.total) * 100)}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Shimmer Animation Style */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(300%);
+          }
+        }
+      `}</style>
     </div>
   );
 }
