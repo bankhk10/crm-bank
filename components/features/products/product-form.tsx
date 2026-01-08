@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, X, Save } from "lucide-react";
 import {
   FormInput,
   FormSelect,
@@ -642,36 +642,48 @@ export function ProductForm({
         </div>
       )}
 
-      <div className="md:col-span-2 pt-6 border-t mt-6 mb-16 md:mb-4">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
-          <Button
-            size="lg"
-            className="w-full md:w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
-            type="submit"
-            disabled={!canEdit || loading}
-            title={!canEdit ? permissionHint : undefined}
-          >
-            {loading ? "กำลังบันทึก..." : "บันทึก"}
-          </Button>
-          <Button
-            size="lg"
-            className="w-full md:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
-            type="button"
-            onClick={onCancel ?? (() => router.back())}
-            disabled={!canEdit}
-            title={!canEdit ? permissionHint : undefined}
-          >
-            ยกเลิก
-          </Button>
-          <RandomFillButton
-            size="lg"
-            className="w-full md:w-44 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl"
-            onClick={handleRandomFill}
-            disabled={loading}
-          >
-            กรอกข้อมูลแบบสุ่ม
-          </RandomFillButton>
+      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8 flex justify-center">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-row gap-3 w-full sm:w-auto">
+            <Button
+              size="lg"
+              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              type="button"
+              onClick={onCancel ?? (() => router.back())}
+              disabled={loading}
+            >
+              <X className="h-4 w-4" />
+              ยกเลิก
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? (
+                "กำลังบันทึก..."
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  บันทึก
+                </>
+              )}
+            </Button>
+          </div>
         </div>
+      </div>
+
+      <div className="w-full sm:w-auto flex justify-center mt-4">
+        <RandomFillButton
+          size="lg"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+          onClick={handleRandomFill}
+          disabled={loading}
+          variant="secondary"
+        >
+          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+        </RandomFillButton>
       </div>
     </form>
   );
