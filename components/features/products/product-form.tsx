@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import {
   FormInput,
   FormSelect,
@@ -425,13 +425,25 @@ export function ProductForm({
 
       {success && (
         <Dialog open={true} onOpenChange={(open) => !open && setSuccess(false)}>
-          <DialogContent showCloseButton={false}>
-            <div className="flex flex-col items-center justify-center py-8 gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-              <DialogTitle>กำลังบันทึกข้อมูล...</DialogTitle>
-              <DialogDescription>
-                กำลังนำทางกลับไปหน้ารายการสินค้า...
-              </DialogDescription>
+          <DialogContent
+            showCloseButton={false}
+            className="sm:max-w-md border-none shadow-xl"
+          >
+            <div className="flex flex-col items-center justify-center py-10 gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
+                <div className="bg-green-100 p-4 rounded-full relative">
+                  <CheckCircle className="h-12 w-12 text-green-600 animate-in zoom-in duration-500" />
+                </div>
+              </div>
+              <div className="space-y-2 text-center">
+                <DialogTitle className="text-2xl font-bold text-gray-900">
+                  บันทึกข้อมูลสำเร็จ
+                </DialogTitle>
+                <DialogDescription className="text-base text-gray-500">
+                  กำลังนำทางกลับไปหน้ารายการสินค้า...
+                </DialogDescription>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
