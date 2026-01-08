@@ -1304,6 +1304,16 @@ export function SaleForm({
           <div className="flex flex-row gap-3 w-full sm:w-auto">
             <Button
               size="lg"
+              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+              type="button"
+              onClick={onCancel ?? (() => router.back())}
+              disabled={loading}
+            >
+              <X className="h-4 w-4" />
+              ยกเลิก
+            </Button>
+            <Button
+              size="lg"
               className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="submit"
               disabled={loading}
@@ -1316,16 +1326,6 @@ export function SaleForm({
                   บันทึก
                 </>
               )}
-            </Button>
-            <Button
-              size="lg"
-              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="button"
-              onClick={onCancel ?? (() => router.back())}
-              disabled={loading}
-            >
-              <X className="h-4 w-4 -ml-3" />
-              ยกเลิก
             </Button>
           </div>
         </div>
