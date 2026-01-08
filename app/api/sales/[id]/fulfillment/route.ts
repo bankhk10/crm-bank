@@ -141,6 +141,17 @@ export async function POST(
     try {
       const { revalidatePath } = await import("next/cache");
       revalidatePath(`/sales/${id}`);
+
+      // If status is COMPLETED, sync the sales summary for this date
+      if (updatedSale.status === "COMPLETED") {
+        const { syncSalesSummary } = await import(
+          "@/lib/sales-summary-service"
+        );
+        // Run in background (fire and forget) to avoid delaying response
+        syncSalesSummary(updatedSale.saleDate).catch((err) =>
+          console.error("Error syncing sales summary:", err)
+        );
+      }
     } catch (e) {
       console.error("Revalidate failed", e);
     }

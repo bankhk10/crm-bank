@@ -164,5 +164,15 @@ export async function getOrderHistory(
     take: limit,
   });
 
-  return orders;
+  const mappedOrders = orders.map((order) => ({
+    ...order,
+    totalAmount: Number(order.totalAmount),
+    items: order.items.map((item) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice),
+      totalPrice: Number(item.totalPrice),
+    })),
+  }));
+
+  return mappedOrders;
 }
