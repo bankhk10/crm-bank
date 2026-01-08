@@ -1299,36 +1299,23 @@ export function SaleForm({
         </div>
       </div>
 
-      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8">
+      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8 flex justify-center">
         <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="w-full sm:w-auto">
-            <RandomFillButton
-              size="lg"
-              className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-              onClick={handleRandomFill}
-              disabled={loading}
-              variant="secondary"
-            >
-              <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-            </RandomFillButton>
-          </div>
-
           <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
             <Button
               size="lg"
-              variant="outline"
-              className="w-full sm:w-32 border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium transition-all"
+              className="w-full sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="button"
               onClick={onCancel ?? (() => router.back())}
               disabled={loading}
             >
-              <X className="h-4 w-4 mr-2" />
+              <X className="h-4 w-4 -ml-3" />
               ยกเลิก
             </Button>
 
             <Button
               size="lg"
-              className="w-full sm:w-32 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+              className="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
               type="submit"
               disabled={loading}
             >
@@ -1336,7 +1323,7 @@ export function SaleForm({
                 "กำลังบันทึก..."
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-4 w-4" />
                   บันทึก
                 </>
               )}
@@ -1344,6 +1331,18 @@ export function SaleForm({
           </div>
         </div>
       </div>
+
+      {/* <div className="w-full sm:w-auto">
+        <RandomFillButton
+          size="lg"
+          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+          onClick={handleRandomFill}
+          disabled={loading}
+          variant="secondary"
+        >
+          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
+        </RandomFillButton>
+      </div> */}
 
       {/* Product Detail Modal */}
       <Dialog
