@@ -4,6 +4,14 @@ import { db as prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import type { SaleFormData } from "@/types/sales";
 import { releaseStock } from "@/lib/stock-service";
+import {
+  logger,
+  auditLogger,
+  generateRequestId,
+  extractClientIp,
+  extractUserAgent,
+} from "@/lib/logger";
+import type { RequestContext } from "@/lib/logger/types";
 
 // GET /api/sales/[id] - Get sale detail
 export async function GET(
@@ -152,6 +160,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -161,14 +171,38 @@ export async function PUT(
     const { id } = await params;
     const body: SaleFormData = await request.json();
 
+    // Create request context for logging
+    const headersObj = Object.fromEntries(request.headers.entries());
+    const context: RequestContext = {
+      requestId: generateRequestId(),
+      userId: session.user.id,
+      userEmail: session.user.email ?? undefined,
+      userName: session.user.name ?? undefined,
+      ipAddress: extractClientIp(headersObj),
+      userAgent: extractUserAgent(headersObj),
+      endpoint: `/api/sales/${id}`,
+      method: "PUT",
+    };
+    const reqLogger = logger.child(context);
+
     // Check if sale exists and can be edited
     const existingSale = await prisma.sale.findUnique({
       where: { id, deletedAt: null },
+      include: { customer: true },
     });
 
     if (!existingSale) {
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
+
+    reqLogger.info("Updating sale", {
+      module: "sales",
+      metadata: {
+        saleId: id,
+        saleNumber: existingSale.saleNumber,
+        currentStatus: existingSale.status,
+      },
+    });
 
     // Check if user has permission to edit this sale
     // For REJECTED sales, only creator or admin can edit
@@ -320,6 +354,45 @@ export async function PUT(
           },
         },
       });
+    });
+
+    // Log audit event (UPDATE)
+    const duration = Date.now() - startTime;
+    await auditLogger.logUpdate(
+      "Sale",
+      id,
+      {
+        saleNumber: existingSale.saleNumber,
+        status: existingSale.status,
+        customerId: existingSale.customerId,
+        customerName: existingSale.customer?.name,
+        totalAmount: existingSale.totalAmount.toString(),
+        paymentTerm: existingSale.paymentTerm,
+      },
+      {
+        saleNumber: sale.saleNumber,
+        status: sale.status,
+        customerId: sale.customerId,
+        customerName: sale.customer?.name,
+        totalAmount: sale.totalAmount.toString(),
+        paymentTerm: sale.paymentTerm,
+      },
+      context,
+      {
+        entityName: sale.saleNumber,
+        module: "sales",
+        duration,
+      }
+    );
+
+    reqLogger.info("Sale updated successfully", {
+      module: "sales",
+      duration,
+      metadata: {
+        saleId: id,
+        saleNumber: sale.saleNumber,
+        newStatus: sale.status,
+      },
     });
 
     return NextResponse.json({ sale });

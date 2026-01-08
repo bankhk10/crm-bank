@@ -3,6 +3,14 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
+import {
+  logger,
+  auditLogger,
+  generateRequestId,
+  extractClientIp,
+  extractUserAgent,
+} from "@/lib/logger";
+import type { RequestContext } from "@/lib/logger/types";
 
 const resourcePath = "/api/customers";
 
@@ -68,7 +76,10 @@ const customerUpdateSchema = z.object({
 });
 
 export async function GET(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+  const params =
+    typeof context?.params?.then === "function"
+      ? await context.params
+      : context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -113,8 +124,12 @@ export async function GET(request: Request, context: any) {
   return NextResponse.json({ customer });
 }
 
-export async function PUT(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+export async function PUT(
+  request: Request,
+  context: { params: Promise<{ customerId: string }> }
+) {
+  const startTime = Date.now();
+  const params = await context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -126,32 +141,73 @@ export async function PUT(request: Request, context: any) {
   }
 
   if (!session.user.permissions?.["customer.edit"]?.allow) {
-    return NextResponse.json({ error: "Forbidden - missing customer.edit" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden - missing customer.edit" },
+      { status: 403 }
+    );
   }
 
+  // Create request context for logging
+  const headersObj = Object.fromEntries(request.headers.entries());
+  const logContext: RequestContext = {
+    requestId: generateRequestId(),
+    userId: session.user.id,
+    userEmail: session.user.email ?? undefined,
+    userName: session.user.name ?? undefined,
+    ipAddress: extractClientIp(headersObj),
+    userAgent: extractUserAgent(headersObj),
+    endpoint: `/api/customers/${params.customerId}`,
+    method: "PUT",
+  };
+  const reqLogger = logger.child(logContext);
+
   const body = await request.json().catch(() => null);
-  const normalizedBody = body && typeof body === "object" ? { ...(body as Record<string, unknown>) } : body;
+  const normalizedBody =
+    body && typeof body === "object"
+      ? { ...(body as Record<string, unknown>) }
+      : body;
 
   if (normalizedBody && typeof normalizedBody === "object") {
-    if (typeof (normalizedBody as any).postalCode === "number") {
-      (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
+    const nb = normalizedBody as Record<string, unknown>;
+    if (typeof nb.postalCode === "number") {
+      nb.postalCode = String(nb.postalCode);
     }
-    if (typeof (normalizedBody as any).billingPostalCode === "number") {
-      (normalizedBody as any).billingPostalCode = String((normalizedBody as any).billingPostalCode);
+    if (typeof nb.billingPostalCode === "number") {
+      nb.billingPostalCode = String(nb.billingPostalCode);
     }
-    if (typeof (normalizedBody as any).shippingPostalCode === "number") {
-      (normalizedBody as any).shippingPostalCode = String((normalizedBody as any).shippingPostalCode);
+    if (typeof nb.shippingPostalCode === "number") {
+      nb.shippingPostalCode = String(nb.shippingPostalCode);
     }
   }
 
   const parsed = customerUpdateSchema.safeParse(normalizedBody);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
   }
 
+  // Get existing customer for audit log
+  const existingCustomer = await db.customer.findUnique({
+    where: { id: params.customerId },
+  });
+
+  if (!existingCustomer) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  reqLogger.info("Updating customer", {
+    module: "customers",
+    metadata: {
+      customerId: params.customerId,
+      customerCode: existingCustomer.customerCode,
+    },
+  });
+
   // Normalize data types for Prisma
-  const updateData: any = { ...parsed.data };
+  const updateData: Record<string, unknown> = { ...parsed.data };
 
   // birthDate: convert from date-only or string to JS Date, or null
   if (updateData.birthDate !== undefined) {
@@ -175,7 +231,8 @@ export async function PUT(request: Request, context: any) {
     if (updateData.parentDealerId === "") updateData.parentDealerId = null;
   }
   if (updateData.responsibleEmployeeId !== undefined) {
-    if (updateData.responsibleEmployeeId === "") updateData.responsibleEmployeeId = null;
+    if (updateData.responsibleEmployeeId === "")
+      updateData.responsibleEmployeeId = null;
   }
 
   // relationshipScore: ensure integer or null
@@ -183,7 +240,8 @@ export async function PUT(request: Request, context: any) {
     const rs = updateData.relationshipScore;
     if (rs === null || rs === "") updateData.relationshipScore = null;
     else updateData.relationshipScore = Number(rs);
-    if (Number.isNaN(updateData.relationshipScore)) updateData.relationshipScore = null;
+    if (Number.isNaN(updateData.relationshipScore))
+      updateData.relationshipScore = null;
   }
 
   const customer = await db.customer.update({
@@ -191,11 +249,52 @@ export async function PUT(request: Request, context: any) {
     data: updateData,
   });
 
+  // Log audit event (UPDATE)
+  const duration = Date.now() - startTime;
+  await auditLogger.logUpdate(
+    "Customer",
+    params.customerId,
+    {
+      customerCode: existingCustomer.customerCode,
+      name: existingCustomer.name,
+      customerType: existingCustomer.customerType,
+      status: existingCustomer.status,
+      phone: existingCustomer.phone,
+      email: existingCustomer.email,
+    },
+    {
+      customerCode: customer.customerCode,
+      name: customer.name,
+      customerType: customer.customerType,
+      status: customer.status,
+      phone: customer.phone,
+      email: customer.email,
+    },
+    logContext,
+    {
+      entityName: customer.name,
+      module: "customers",
+      duration,
+    }
+  );
+
+  reqLogger.info("Customer updated successfully", {
+    module: "customers",
+    duration,
+    metadata: {
+      customerId: params.customerId,
+      customerCode: customer.customerCode,
+    },
+  });
+
   return NextResponse.json({ customer });
 }
 
 export async function DELETE(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+  const params =
+    typeof context?.params?.then === "function"
+      ? await context.params
+      : context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -207,7 +306,10 @@ export async function DELETE(request: Request, context: any) {
   }
 
   if (!session.user.permissions?.["customer.delete"]?.allow) {
-    return NextResponse.json({ error: "Forbidden - missing customer.delete" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden - missing customer.delete" },
+      { status: 403 }
+    );
   }
 
   const updated = await db.customer.update({
