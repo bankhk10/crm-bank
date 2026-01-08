@@ -1299,37 +1299,38 @@ export function SaleForm({
         </div>
       </div>
 
-      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8 flex justify-center">
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-row gap-3 w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="button"
-              onClick={onCancel ?? (() => router.back())}
-              disabled={loading}
-            >
-              <X className="h-4 w-4" />
-              ยกเลิก
-            </Button>
-            <Button
-              size="lg"
-              className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? (
-                "กำลังบันทึก..."
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  บันทึก
-                </>
-              )}
-            </Button>
-          </div>
+      {/* Action Buttons */}
+      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
+        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+          <Button
+            size="lg"
+            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+            type="button"
+            onClick={onCancel ?? (() => router.back())}
+            disabled={loading}
+          >
+            <X className="h-4 w-4" />
+            ยกเลิก
+          </Button>
+          <Button
+            size="lg"
+            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? (
+              "กำลังบันทึก..."
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                บันทึก
+              </>
+            )}
+          </Button>
         </div>
       </div>
+
+      <div className="w-full h-12 sm:hidden"></div>
 
       <div className="w-full sm:w-auto">
         <RandomFillButton
