@@ -277,6 +277,38 @@ export default function CustomerFormDealer({
     setError(null);
     setFieldErrors({});
 
+    // Client-side validation
+    const nextFieldErrors: Record<string, string[]> = {};
+    const pushErr = (field: string, msg: string) => {
+      nextFieldErrors[field] = [msg];
+    };
+
+    if (!values.companyName?.trim()) {
+      pushErr("name", "กรุณากรอกชื่อร้านค้า");
+    }
+    if (!values.prefix) {
+      pushErr("prefix", "กรุณาเลือกคำนำหน้า");
+    }
+    if (!values.firstName?.trim()) {
+      pushErr("firstName", "กรุณากรอกชื่อ");
+    }
+    if (!values.lastName?.trim()) {
+      pushErr("lastName", "กรุณากรอกนามสกุล");
+    }
+    if (!values.contactPhone?.trim()) {
+      pushErr("contactPhone", "กรุณากรอกเบอร์โทรศัพท์บุคคล");
+    }
+    if (!values.responsibleEmployeeId) {
+      pushErr("responsibleEmployeeId", "กรุณาเลือกพนักงานที่รับผิดชอบ");
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError(Object.values(nextFieldErrors)[0][0]);
+      setLoading(false);
+      return;
+    }
+
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "DEALER",
@@ -440,7 +472,7 @@ export default function CustomerFormDealer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
       </h3>
@@ -489,7 +521,6 @@ export default function CustomerFormDealer({
             clearFieldError("phone");
           }}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-          required
         />
         <FormInput
           label="E-mail (บริษัท)"
@@ -658,7 +689,10 @@ export default function CustomerFormDealer({
         <FormSelect
           label="คำนำหน้า"
           value={values.prefix}
-          onChange={(v) => setValues((p: any) => ({ ...p, prefix: v }))}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, prefix: v }));
+            clearFieldError("prefix");
+          }}
           options={[
             { value: "นาย", label: "นาย" },
             { value: "นาง", label: "นาง" },
@@ -666,6 +700,8 @@ export default function CustomerFormDealer({
           ]}
           placeholder="เลือกคำนำหน้า"
           groupLabel="คำนำหน้า"
+          required
+          error={fieldErrors.prefix?.[0]}
         />
 
         <FormInput
@@ -676,6 +712,7 @@ export default function CustomerFormDealer({
             clearFieldError("firstName");
           }}
           required
+          error={fieldErrors.firstName?.[0]}
           containerClassName="md:col-span-2"
         />
 
@@ -687,6 +724,7 @@ export default function CustomerFormDealer({
             clearFieldError("lastName");
           }}
           required
+          error={fieldErrors.lastName?.[0]}
           containerClassName="md:col-span-2"
         />
       </div>
@@ -699,6 +737,8 @@ export default function CustomerFormDealer({
             setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
             clearFieldError("contactPhone");
           }}
+          required
+          error={fieldErrors.contactPhone?.[0]}
         />
         <FormInput
           label="E-mail (บุคคล)"
@@ -774,6 +814,8 @@ export default function CustomerFormDealer({
           options={employeeOptions}
           placeholder="เลือกพนักงาน"
           groupLabel="พนักงาน"
+          required
+          error={fieldErrors.responsibleEmployeeId?.[0]}
         />
 
         <FormSelect
