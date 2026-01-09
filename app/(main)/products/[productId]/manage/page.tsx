@@ -48,12 +48,12 @@ const SectionHeader = ({
   icon: React.ElementType;
   action?: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+  <div className="flex items-center justify-between mb-6 pb-4 border-b border-red-100">
     <div className="flex items-center gap-3">
-      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+      <div className="p-2.5 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl text-white shadow-lg shadow-red-500/20">
         <Icon className="h-5 w-5" />
       </div>
-      <h2 className="text-xl font-semibold text-foreground tracking-tight">
+      <h2 className="text-xl font-semibold text-gray-800 tracking-tight">
         {title}
       </h2>
     </div>
@@ -69,7 +69,7 @@ const Card = ({
   className?: string;
 }) => (
   <div
-    className={`bg-card text-card-foreground rounded-xl border shadow-sm p-5 md:p-6 lg:p-8 transition-all hover:shadow-md ${className}`}
+    className={`bg-white text-gray-800 rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 lg:p-8 transition-all hover:shadow-lg hover:shadow-red-500/5 hover:border-red-100 ${className}`}
   >
     {children}
   </div>
@@ -182,7 +182,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
             size="sm"
             onClick={addFreeItem}
             disabled={saving}
-            className="h-9 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มรายการ</span>
@@ -378,7 +378,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
             size="sm"
             onClick={addPromotionItem}
             disabled={saving}
-            className="h-9 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มรายการ</span>
@@ -574,7 +574,7 @@ const StockLotsSection: React.FC<
             size="sm"
             onClick={addStockLot}
             disabled={saving}
-            className="h-9 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
@@ -583,11 +583,15 @@ const StockLotsSection: React.FC<
         }
       />
 
-      <div className="mb-6 flex items-center p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100">
-        <Package className="h-5 w-5 mr-2" />
+      <div className="mb-6 flex items-center p-4 bg-gradient-to-r from-red-50 to-rose-50 text-red-800 rounded-xl border border-red-100 shadow-sm">
+        <div className="p-2 bg-red-100 rounded-lg mr-3">
+          <Package className="h-5 w-5 text-red-600" />
+        </div>
         <span className="font-medium">ผลรวมจำนวนคงเหลือ:</span>
-        <span className="ml-2 text-xl font-bold">{getTotalStock()}</span>
-        <span className="ml-1 text-sm opacity-80">หน่วย</span>
+        <span className="ml-2 text-2xl font-bold text-red-600">
+          {getTotalStock()}
+        </span>
+        <span className="ml-1 text-sm text-red-500">หน่วย</span>
       </div>
 
       <div className="space-y-6">
@@ -902,39 +906,32 @@ export default function ProductManagementPage() {
     <>
       <form
         onSubmit={handleSubmit}
-        className="min-h-screen bg-gray-50/50 pb-20"
+        className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-20"
       >
-        {/* Modern Blue Gradient Header */}
+        {/* Modern Red-Gray Gradient Header */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-            {/* Background Decorations */}
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 space-y-6">
-              {/* Back Link */}
+          <div className="bg-gradient-to-br from-red-800 via-red-700 to-gray-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="relative z-10 space-y-5">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex items-center gap-2 text-blue-100 hover:text-white transition-colors text-sm font-medium w-fit"
+                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-medium w-fit group"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                 กลับไปหน้ารายการสินค้า
               </button>
 
-              {/* Main Info Row */}
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-                {/* Icon Wrapper */}
-                <div className="p-4 bg-white/15 rounded-full text-white backdrop-blur-sm shadow-inner ring-1 ring-white/20">
+                <div className="p-4 bg-gradient-to-br from-gray-300 to-gray-600 rounded-2xl text-white shadow-lg shadow-red-500/25 ring-1 ring-white/10">
                   <Package className="h-8 w-8 sm:h-10 sm:w-10" />
                 </div>
                 <div className="flex-1 text-center sm:text-left space-y-2">
-                  <h1 className="text-2xl sm:text-4xl font-bold tracking-tight drop-shadow-sm">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
                     จัดการสินค้า
                   </h1>
 
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1">
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-50 text-xs sm:text-sm border border-white/10 shadow-sm">
+                    <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 text-gray-200 text-xs sm:text-sm border border-white/10 backdrop-blur-sm">
                       <Tag className="h-3.5 w-3.5 opacity-70" />
                       {product.name}
                     </div>
@@ -972,12 +969,12 @@ export default function ProductManagementPage() {
             onError={(msg) => setError(msg)}
           />
 
-          {/* Unifed Action Buttons (Matching ProductForm style) */}
-          <div className="md:col-span-2 pt-6 border-t mt-6 mb-16 md:mb-4">
+          {/* Unified Action Buttons (Red-Gray Theme) */}
+          <div className="md:col-span-2 pt-8 border-t border-gray-200 mt-8 mb-16 md:mb-4">
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
               <Button
                 size="lg"
-                className="w-full md:w-36 bg-green-700 hover:bg-green-800 text-white rounded-3xl"
+                className="w-full md:w-40 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-2xl shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 transition-all hover:scale-[1.02]"
                 type="submit"
                 disabled={saving}
               >
@@ -992,7 +989,7 @@ export default function ProductManagementPage() {
               </Button>
               <Button
                 size="lg"
-                className="w-full md:w-36 bg-gray-500 hover:bg-gray-600 text-white rounded-3xl"
+                className="w-full md:w-40 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl shadow-md hover:shadow-lg transition-all"
                 type="button"
                 onClick={() => router.back()}
                 disabled={saving}
