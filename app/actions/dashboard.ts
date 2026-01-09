@@ -149,24 +149,29 @@ export async function getDashboardData(): Promise<DashboardData> {
     lastYtdTotal > 0 ? ((ytdTotal - lastYtdTotal) / lastYtdTotal) * 100 : 0;
 
   // === 3. Product Group Sales (This Month) ===
-  const productGroups = await prisma.product.groupBy({
-    by: ["productGroup"],
-    where: { deletedAt: null, productGroup: { not: null } },
-  });
-
-  const uniqueGroups = productGroups
-    .map((p) => p.productGroup)
-    .filter((g): g is string => g !== null)
-    .slice(0, 5); // Limit to 5 groups
+  // Use predefined PRODUCT_GROUP_OPTIONS as the source of truth
+  const { PRODUCT_GROUP_OPTIONS } = await import("@/types/product");
 
   const productGroupData = await Promise.all(
-    uniqueGroups.map(async (group) => {
+    PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
+      const group = groupOption.value;
+
       // Get product IDs for this group
       const products = await prisma.product.findMany({
         where: { productGroup: group, deletedAt: null },
         select: { id: true },
       });
       const productIds = products.map((p) => p.id);
+
+      // If no products in this group, return zeros
+      if (productIds.length === 0) {
+        return {
+          group: groupOption.label,
+          target: 500000,
+          salesNote: 0,
+          invoice: 0,
+        };
+      }
 
       // Sales Note amounts
       const salesNoteAgg = await prisma.saleItem.aggregate({
@@ -210,7 +215,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       const target = Math.round(total * 1.2) || 500000; // 20% above current or default
 
       return {
-        group: `กลุ่ม ${group}`,
+        group: groupOption.label,
         target,
         salesNote: salesNoteAmt,
         invoice: invoiceAmt,
@@ -405,9 +410,12 @@ export async function getDashboardData(): Promise<DashboardData> {
 // Default data if no real data exists
 function getDefaultProductGroups() {
   return [
-    { group: "กลุ่ม A", target: 500000, salesNote: 320000, invoice: 150000 },
-    { group: "กลุ่ม B", target: 600000, salesNote: 380000, invoice: 220000 },
-    { group: "กลุ่ม C", target: 400000, salesNote: 120000, invoice: 60000 },
+    { group: "SEP", target: 500000, salesNote: 320000, invoice: 150000 },
+    { group: "AMN", target: 600000, salesNote: 380000, invoice: 220000 },
+    { group: "ISPI", target: 400000, salesNote: 120000, invoice: 60000 },
+    { group: "24D", target: 350000, salesNote: 180000, invoice: 80000 },
+    { group: "ABA", target: 450000, salesNote: 220000, invoice: 120000 },
+    { group: "OTH", target: 300000, salesNote: 100000, invoice: 50000 },
   ];
 }
 

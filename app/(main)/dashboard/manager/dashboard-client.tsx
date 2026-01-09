@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -55,6 +57,39 @@ const formatCompact = (value: number) =>
 export default function DashboardClient({ data }: DashboardClientProps) {
   const { monthlySales, target, ytd, productGroupData, regionData, jobStatus } =
     data;
+
+  // State for managing visible product groups
+  const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
+    () => new Set(productGroupData.map((p) => p.group))
+  );
+
+  // Toggle group visibility
+  const toggleGroup = (group: string) => {
+    setVisibleGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(group)) {
+        newSet.delete(group);
+      } else {
+        newSet.add(group);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle all groups
+  const toggleAllGroups = () => {
+    if (visibleGroups.size === productGroupData.length) {
+      setVisibleGroups(new Set());
+    } else {
+      setVisibleGroups(new Set(productGroupData.map((p) => p.group)));
+    }
+  };
+
+  // Filter product group data based on visible groups
+  const filteredProductGroupData = useMemo(
+    () => productGroupData.filter((p) => visibleGroups.has(p.group)),
+    [productGroupData, visibleGroups]
+  );
 
   const percent =
     target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
@@ -287,77 +322,142 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         {/* Product Group Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
           <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">
-                <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">
+                  <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                    ยอดขายตามกลุ่มสินค้า
+                  </CardTitle>
+                  <p className="text-[10px] sm:text-xs text-slate-500">
+                    เปรียบเทียบเป้าหมายและยอดขายจริง
+                  </p>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                  ยอดขายตามกลุ่มสินค้า
-                </CardTitle>
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  เปรียบเทียบเป้าหมายและยอดขายจริง
-                </p>
+              {/* Group Filter Toggle Info */}
+              <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                {visibleGroups.size}/{productGroupData.length} กลุ่ม
+              </div>
+            </div>
+
+            {/* Group Selection UI */}
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs font-medium text-slate-600">
+                  เลือกกลุ่มที่ต้องการแสดง:
+                </span>
+                <button
+                  onClick={toggleAllGroups}
+                  className="text-[10px] sm:text-xs text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                >
+                  {visibleGroups.size === productGroupData.length
+                    ? "ซ่อนทั้งหมด"
+                    : "เลือกทั้งหมด"}
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {productGroupData.map((group) => {
+                  const isVisible = visibleGroups.has(group.group);
+                  return (
+                    <button
+                      key={group.group}
+                      onClick={() => toggleGroup(group.group)}
+                      className={`
+                        inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium
+                        transition-all duration-200 border
+                        ${
+                          isVisible
+                            ? "bg-gradient-to-r from-purple-500 to-violet-500 text-white border-transparent shadow-sm"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-purple-300 hover:bg-purple-50"
+                        }
+                      `}
+                    >
+                      <span
+                        className={`w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center rounded border-2 transition-colors ${
+                          isVisible
+                            ? "bg-white border-white"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        {isVisible && (
+                          <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
+                        )}
+                      </span>
+                      {group.group}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </CardHeader>
           <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={productGroupData}
-                margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E2E8F0"
-                />
-                <XAxis
-                  dataKey="group"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tickFormatter={(v) => `${v / 1000}k`}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  width={40}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: "none",
-                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                    fontSize: 12,
-                  }}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                  iconSize={8}
-                />
-                <Bar
-                  dataKey="target"
-                  name="เป้าหมาย"
-                  fill="#E2E8F0"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="salesNote"
-                  name="Sales Note"
-                  fill="#818cf8"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="invoice"
-                  name="Invoice"
-                  fill="#4f46e5"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {filteredProductGroupData.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-slate-400">
+                <div className="text-center">
+                  <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">กรุณาเลือกกลุ่มสินค้าที่ต้องการแสดง</p>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={filteredProductGroupData}
+                  margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#E2E8F0"
+                  />
+                  <XAxis
+                    dataKey="group"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `${v / 1000}k`}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    width={40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "none",
+                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                      fontSize: 12,
+                    }}
+                    formatter={(value: number) => formatNumber(value)}
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+                    iconSize={8}
+                  />
+                  <Bar
+                    dataKey="target"
+                    name="เป้าหมาย"
+                    fill="#E2E8F0"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="salesNote"
+                    name="Sales Note"
+                    fill="#818cf8"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="invoice"
+                    name="Invoice"
+                    fill="#4f46e5"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
