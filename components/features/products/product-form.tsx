@@ -428,7 +428,7 @@ export function ProductForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -471,6 +471,7 @@ export function ProductForm({
           value={formData.productCode}
           onChange={(e) => updateField("productCode", e.target.value)}
           required
+          disabled={loading}
           error={errors.productCode}
         />
 
@@ -479,6 +480,7 @@ export function ProductForm({
           value={formData.name}
           onChange={(e) => updateField("name", e.target.value)}
           required
+          disabled={loading}
           error={errors.name}
         />
 
