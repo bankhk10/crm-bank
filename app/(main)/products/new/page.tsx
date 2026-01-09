@@ -9,7 +9,8 @@ import { usePermission } from "@/hooks/use-permission";
 export default function NewProductPage() {
   const { allowed, isLoading } = usePermission("product.create");
   const canCreate = !isLoading && allowed;
-  const permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่";
+  const permissionHint =
+    "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่";
 
   if (isLoading) {
     return (
@@ -33,9 +34,10 @@ export default function NewProductPage() {
       <Card>
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl border-b pb-6">เพิ่มสินค้าใหม่</h5>
+            <h5 className="font-semibold text-3xl border-b pb-6">
+              เพิ่มสินค้าใหม่
+            </h5>
           </div>
-
           <ProductForm />
         </div>
       </Card>
