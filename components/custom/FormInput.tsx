@@ -51,7 +51,10 @@ export function FormInput({
 
   return (
     <div className={cn(containerClassName)}>
-      <Label className={cn(defaultLabelClass, labelClassName)}>{label}</Label>
+      <Label className={cn(defaultLabelClass, labelClassName)}>
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </Label>
       {hasIcon ? (
         <div className="relative mt-1">
           {leftIcon && (
