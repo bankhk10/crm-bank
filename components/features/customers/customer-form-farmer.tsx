@@ -157,6 +157,35 @@ export default function CustomerFormFarmer({
     setError(null);
     setFieldErrors({});
 
+    // Client-side validation
+    const nextFieldErrors: Record<string, string[]> = {};
+    const pushErr = (field: string, msg: string) => {
+      nextFieldErrors[field] = [msg];
+    };
+
+    if (!values.prefix) {
+      pushErr("prefix", "กรุณาเลือกคำนำหน้า");
+    }
+    if (!values.firstName?.trim()) {
+      pushErr("firstName", "กรุณากรอกชื่อ");
+    }
+    if (!values.lastName?.trim()) {
+      pushErr("lastName", "กรุณากรอกนามสกุล");
+    }
+    if (!values.phone?.trim()) {
+      pushErr("phone", "กรุณากรอกเบอร์โทรศัพท์");
+    }
+    if (!values.responsibleEmployeeId) {
+      pushErr("responsibleEmployeeId", "กรุณาเลือกพนักงานที่รับผิดชอบ");
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError(Object.values(nextFieldErrors)[0][0]);
+      setLoading(false);
+      return;
+    }
+
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "FARMER",
@@ -255,7 +284,7 @@ export default function CustomerFormFarmer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบุคคล
       </h3>
@@ -287,11 +316,12 @@ export default function CustomerFormFarmer({
           ]}
           placeholder="เลือกคำนำหน้า"
           groupLabel="คำนำหน้า"
+          required
           error={fieldErrors.prefix?.[0]}
         />
 
         <FormInput
-          label="ชื่อ *"
+          label="ชื่อ"
           value={values.firstName}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, firstName: e.target.value }));
@@ -303,7 +333,7 @@ export default function CustomerFormFarmer({
         />
 
         <FormInput
-          label="นามสกุล *"
+          label="นามสกุล"
           value={values.lastName}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, lastName: e.target.value }));
@@ -316,7 +346,7 @@ export default function CustomerFormFarmer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
-          label="เบอร์โทรศัพท์ (บุคคล) *"
+          label="เบอร์โทรศัพท์ (บุคคล)"
           value={values.phone}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, phone: e.target.value }));
@@ -521,6 +551,8 @@ export default function CustomerFormFarmer({
           options={employeeOptions}
           placeholder="เลือกพนักงาน"
           groupLabel="พนักงาน"
+          required
+          error={fieldErrors.responsibleEmployeeId?.[0]}
         />
       </div>
 
