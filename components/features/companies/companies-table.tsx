@@ -431,16 +431,16 @@ function useCompanyColumns(
         id: "actions",
         header: "จัดการ",
         meta: {
-          headerAlign: "right",
+          headerAlign: "center",
           minWidth: 120,
           width: 140,
           maxWidth: 180,
-          align: "right",
+          align: "center",
         },
         cell: ({ row }) => {
           const company = row.original;
           return (
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
