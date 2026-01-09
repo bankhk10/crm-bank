@@ -261,29 +261,6 @@ export default function CompanyForm({
         </div>
       </div>
       <div className="w-full h-12 sm:hidden"></div>
-
-      {error && (
-        <div className="text-center text-red-600 text-sm mt-4">{error}</div>
-      )}
-
-      <Can permission="randomize">
-        <div className="w-full sm:w-auto">
-          <RandomFillButton
-            size="lg"
-            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-            onClick={() => {
-              setFieldErrors({});
-              setError(null);
-              const random = generateRandomCompany();
-              setPayload((p) => ({ ...p, ...random }));
-            }}
-            disabled={loading}
-            variant="secondary"
-          >
-            <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-          </RandomFillButton>
-        </div>
-      </Can>
     </form>
   );
 }
