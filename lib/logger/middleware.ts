@@ -149,7 +149,7 @@ export function withLogging<
  */
 export function createActionLogger(
   actionName: string,
-  session?: { user?: { id?: string; email?: string; name?: string } },
+  session?: { user?: { id?: string; email?: string; name?: string } } | null,
   additionalContext?: Partial<RequestContext>
 ) {
   const requestId = generateRequestId();

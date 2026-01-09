@@ -35,7 +35,8 @@ export function maskSensitiveData<T extends Record<string, unknown>>(
     return data;
   }
 
-  const masked = { ...data };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const masked = { ...data } as Record<string, any>;
 
   for (const key of Object.keys(masked)) {
     const lowerKey = key.toLowerCase();
@@ -45,7 +46,7 @@ export function maskSensitiveData<T extends Record<string, unknown>>(
     if (
       SENSITIVE_FIELDS.some((field) => lowerKey.includes(field.toLowerCase()))
     ) {
-      masked[key] = "[REDACTED]" as T[Extract<keyof T, string>];
+      masked[key] = "[REDACTED]";
       continue;
     }
 
@@ -81,7 +82,7 @@ export function maskSensitiveData<T extends Record<string, unknown>>(
     }
   }
 
-  return masked;
+  return masked as T;
 }
 
 /**

@@ -35,12 +35,14 @@ interface Props {
   initial?: Partial<CompanyPayload>;
   onSubmit: (payload: CompanyPayload) => Promise<SubmitResult>;
   onCancel?: () => void;
+  submitLabel?: string;
 }
 
 export default function CompanyForm({
   initial = {},
   onSubmit,
   onCancel,
+  submitLabel,
 }: Props) {
   const router = useRouter();
   const [payload, setPayload] = useState<CompanyPayload>({
@@ -252,7 +254,7 @@ export default function CompanyForm({
             ) : (
               <>
                 <Save className="h-4 w-4" />
-                <span>บันทึก</span>
+                <span>{submitLabel || "บันทึก"}</span>
               </>
             )}
           </Button>
