@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ import {
   PLANT_OPTIONS,
   type ProductFormData,
 } from "@/types/product";
-import generateRandomProduct from "@/lib/random-fill/product";
+import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
 interface ProductFormProps {
@@ -329,24 +329,51 @@ export function ProductForm({
     }
   };
 
-  const handleRandomFill = async () => {
-    const payload = generateRandomProduct();
-    setFormData((prev) => ({
-      ...prev,
-      productCode: payload.productCode ?? prev.productCode,
-      name: payload.name ?? prev.name,
-      commonName: payload.commonName ?? prev.commonName,
-      unit: payload.unit ?? prev.unit,
-      productGroup: payload.productGroup ?? prev.productGroup,
-      brand: payload.brand ?? prev.brand,
-      packageSize: payload.packageSize ?? prev.packageSize,
-      packageSizePerBox: payload.packageSizePerBox ?? prev.packageSizePerBox,
-      status: payload.status ?? prev.status,
-      usedForPlants: payload.usedForPlants ?? prev.usedForPlants,
-      salesPoint: payload.salesPoint ?? prev.salesPoint,
-      properties: payload.properties ?? prev.properties,
-    }));
-  };
+  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
+  const randomFillGenerator = useCallback(async () => {
+    const { generateRandomProduct } = await import("@/lib/random-fill/product");
+    return generateRandomProduct();
+  }, []);
+
+  const handleRandomFillGenerated = useCallback(
+    (payload: Partial<ProductFormData>) => {
+      setFormData((prev) => ({
+        ...prev,
+        productCode:
+          (payload.productCode as string | undefined) ?? prev.productCode,
+        name: (payload.name as string | undefined) ?? prev.name,
+        commonName:
+          (payload.commonName as string | undefined) ?? prev.commonName,
+        unit: (payload.unit as string | undefined) ?? prev.unit,
+        productGroup:
+          (payload.productGroup as string | undefined) ?? prev.productGroup,
+        brand: (payload.brand as string | undefined) ?? prev.brand,
+        packageSize:
+          (payload.packageSize as string | undefined) ?? prev.packageSize,
+        packageSizePerBox:
+          (payload.packageSizePerBox as string | undefined) ??
+          prev.packageSizePerBox,
+        status:
+          (payload.status as "ACTIVE" | "INACTIVE" | undefined) ?? prev.status,
+        usedForPlants:
+          (payload.usedForPlants as string[] | undefined) ?? prev.usedForPlants,
+        salesPoint:
+          (payload.salesPoint as string | undefined) ?? prev.salesPoint,
+        properties:
+          (payload.properties as string | undefined) ?? prev.properties,
+      }));
+    },
+    []
+  );
+
+  const {
+    isEnabled: isRandomFillEnabled,
+    isGenerating: isRandomFillGenerating,
+    triggerRandomFill,
+  } = useRandomFill({
+    generator: randomFillGenerator,
+    onGenerated: handleRandomFillGenerated,
+  });
 
   const updateField = (field: keyof ProductFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -679,17 +706,19 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="w-full sm:w-auto flex justify-center mt-4">
-        <RandomFillButton
-          size="lg"
-          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-          onClick={handleRandomFill}
-          disabled={loading}
-          variant="secondary"
-        >
-          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-        </RandomFillButton>
-      </div>
+      {/* Random Fill Button - แสดงเฉพาะ development */}
+      {isRandomFillEnabled && (
+        <div className="w-full sm:w-auto flex justify-center mt-4">
+          <RandomFillButton
+            size="lg"
+            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+            onClick={triggerRandomFill}
+            disabled={loading}
+            isGenerating={isRandomFillGenerating}
+            variant="secondary"
+          />
+        </div>
+      )}
     </form>
   );
 }

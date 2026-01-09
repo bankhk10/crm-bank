@@ -1,19 +1,75 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { canShowDevFeatures } from "@/lib/dev-only/config";
+import { Dices } from "lucide-react";
+import { type VariantProps } from "class-variance-authority";
 
-const SHOW_RANDOM_FILL = process.env.NEXT_PUBLIC_SHOW_RANDOM_FILL === "true";
+// Define Button props type based on the actual Button component signature
+type ButtonBaseProps = React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  };
 
-export default function RandomFillButton({
+export interface RandomFillButtonProps extends ButtonBaseProps {
+  /**
+   * กำลังสร้างข้อมูลอยู่หรือไม่
+   */
+  isGenerating?: boolean;
+  /**
+   * แสดง loading state
+   */
+  showLoadingState?: boolean;
+}
+
+/**
+ * RandomFillButton - ปุ่มสำหรับกรอกข้อมูลแบบสุ่ม
+ *
+ * Features:
+ * - ซ่อนใน production โดยอัตโนมัติ
+ * - รองรับ loading state
+ * - ใช้ได้กับทุก form
+ *
+ * Usage:
+ * ```tsx
+ * const { isEnabled, isGenerating, triggerRandomFill } = useRandomFill({...});
+ *
+ * {isEnabled && (
+ *   <RandomFillButton
+ *     onClick={triggerRandomFill}
+ *     isGenerating={isGenerating}
+ *   />
+ * )}
+ * ```
+ *
+ * หรือใช้ DevOnlyWrapper:
+ * ```tsx
+ * <DevOnlyWrapper>
+ *   <RandomFillButton onClick={handleRandomFill} />
+ * </DevOnlyWrapper>
+ * ```
+ */
+export function RandomFillButton({
   children,
+  isGenerating = false,
+  showLoadingState = true,
+  disabled,
   ...props
-}: React.ComponentPropsWithoutRef<typeof Button>) {
-  if (!SHOW_RANDOM_FILL) return null;
+}: RandomFillButtonProps) {
+  // ซ่อนใน production
+  if (!canShowDevFeatures) return null;
+
+  const isDisabled = disabled || (showLoadingState && isGenerating);
 
   return (
-    <Button type="button" {...props}>
-      {children || "สุ่มข้อมูล"}
+    <Button type="button" disabled={isDisabled} {...props}>
+      <Dices className="h-4 w-4 mr-2" />
+      {showLoadingState && isGenerating
+        ? "กำลังสร้าง..."
+        : children || "🎲 กรอกข้อมูลแบบสุ่ม"}
     </Button>
   );
 }
+
+export default RandomFillButton;
