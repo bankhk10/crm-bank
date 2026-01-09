@@ -113,6 +113,18 @@ export function ProductForm({
       newErrors.name = "กรุณากรอกชื่อการค้า";
     }
 
+    if (!formData.commonName?.trim()) {
+      newErrors.commonName = "กรุณากรอกชื่อสามัญ";
+    }
+
+    if (!formData.unit) {
+      newErrors.unit = "กรุณาเลือกหน่วยนับ";
+    }
+
+    if (!formData.productGroup) {
+      newErrors.productGroup = "กรุณาเลือกกลุ่มสินค้า";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -473,43 +485,34 @@ export function ProductForm({
         <FormInput
           label="ชื่อสามัญ"
           value={formData.commonName || ""}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              commonName: e.target.value,
-            }))
-          }
+          onChange={(e) => updateField("commonName", e.target.value)}
+          required
           disabled={loading}
+          error={errors.commonName}
         />
 
         <FormSelect
           label="หน่วยนับ"
           value={formData.unit || ""}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              unit: v,
-            }))
-          }
+          onChange={(v) => updateField("unit", v)}
+          required
           options={UNIT_OPTIONS}
           placeholder="เลือกหน่วยนับ"
           groupLabel="หน่วยนับ"
           disabled={loading}
+          error={errors.unit}
         />
 
         <FormSelect
           label="กลุ่มสินค้า"
           value={formData.productGroup || ""}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              productGroup: v,
-            }))
-          }
+          onChange={(v) => updateField("productGroup", v)}
+          required
           options={PRODUCT_GROUP_OPTIONS}
           placeholder="เลือกกลุ่มสินค้า"
           groupLabel="กลุ่มสินค้า"
           disabled={loading}
+          error={errors.productGroup}
         />
 
         <FormSelect
