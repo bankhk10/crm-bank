@@ -53,15 +53,6 @@ export default function NewEmployeePage() {
               เพิ่มข้อมูลพนักงานใหม่
             </h5>
           </div>
-
-          {error && (
-            <div className="mt-3">
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </div>
-          )}
-
           <EmployeeForm
             hideBorder
             onSubmit={async (body) => {

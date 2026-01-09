@@ -445,31 +445,7 @@ export default function EmployeeForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {(!canEdit || error || success) && (
-        <div>
-          {!canEdit && (
-            <Alert variant="destructive">
-              <AlertDescription>{permissionHint}</AlertDescription>
-            </Alert>
-          )}
-          {error && (
-            <div className="mt-3">
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </div>
-          )}
-          {success && (
-            <div className="mt-3">
-              <Alert>
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            </div>
-          )}
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลส่วนตัว
       </h3>
@@ -497,7 +473,7 @@ export default function EmployeeForm({
           label="ชื่อ"
           value={values.firstName ?? ""}
           onChange={handleChange("firstName")}
-          disabled={!canEdit}
+          disabled={loading || !canEdit}
           required
           error={fieldErrors.firstName?.[0]}
           containerClassName="md:col-span-2"
@@ -507,7 +483,7 @@ export default function EmployeeForm({
           label="นามสกุล"
           value={values.lastName ?? ""}
           onChange={handleChange("lastName")}
-          disabled={!canEdit}
+          disabled={loading || !canEdit}
           required
           error={fieldErrors.lastName?.[0]}
           containerClassName="md:col-span-2"
@@ -630,7 +606,7 @@ export default function EmployeeForm({
           type="email"
           value={values.email ?? ""}
           onChange={handleChange("email")}
-          disabled={!canEdit}
+          disabled={loading || !canEdit}
           required
           error={fieldErrors.email?.[0]}
         />
@@ -650,7 +626,8 @@ export default function EmployeeForm({
               ? "เว้นว่างหากไม่ต้องการเปลี่ยน"
               : "รหัสผ่านสำหรับเข้าสู่ระบบ"
           }
-          disabled={!canEdit}
+          disabled={loading || !canEdit}
+          required={!employeeId}
           error={fieldErrors.password?.[0]}
           rightIcon={
             <button
@@ -670,12 +647,13 @@ export default function EmployeeForm({
         />
 
         <FormSelect
-          label="สิทธิ์การใช้งาน *"
+          label="สิทธิ์การใช้งาน"
           value={values.roleDefinitionId ?? ""}
           onChange={handleSelect("roleDefinitionId")}
           options={roles.map((r: any) => ({ value: r.id, label: r.name }))}
           placeholder="เลือกสิทธิ์การใช้งาน"
-          disabled={!canEdit || roles.length === 0}
+          disabled={loading || !canEdit || roles.length === 0}
+          required
           error={fieldErrors.roleDefinitionId?.[0]}
         />
 
