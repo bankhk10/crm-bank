@@ -210,7 +210,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.reports",
-        name: "Reports menu",
+        name: "เมนูรายงาน",
         category: "MENU",
         menuPath: "/reports",
       },
@@ -218,7 +218,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.sales",
-        name: "Sales menu",
+        name: "เมนูการขาย",
         category: "MENU",
         menuPath: "/reports/salesReport",
       },
@@ -227,7 +227,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.employees",
-        name: "Employee menu",
+        name: "เมนูพนักงาน",
         category: "MENU",
         menuPath: "/employee",
       },
@@ -235,7 +235,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.companies",
-        name: "Company menu",
+        name: "เมนูบริษัท",
         category: "MENU",
         menuPath: "/companies",
       },
@@ -243,7 +243,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.customers",
-        name: "Customer menu",
+        name: "เมนูลูกค้า",
         category: "MENU",
         menuPath: "/customers",
       },
@@ -251,7 +251,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.credit_limits",
-        name: "Credit Limit menu",
+        name: "เมนูวงเงินสินเชื่อ",
         category: "MENU",
         menuPath: "/credit-limits",
       },
@@ -259,7 +259,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.fulfillment",
-        name: "Fulfillment menu",
+        name: "เมนูจัดส่งสินค้า",
         category: "MENU",
         menuPath: "/fulfillment",
       },
@@ -267,7 +267,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.temporary_credit_limits",
-        name: "Temporary Credit Limit menu",
+        name: "เมนูวงเงินสินเชื่อชั่วคราว",
         category: "MENU",
         menuPath: "/temporary-credit-limits",
       },
@@ -275,7 +275,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.products",
-        name: "Product menu",
+        name: "เมนูสินค้า",
         category: "MENU",
         menuPath: "/products",
       },
@@ -283,7 +283,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.create",
-        name: "Create sale",
+        name: "สร้างใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "create",
@@ -292,7 +292,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.edit",
-        name: "Edit sale",
+        name: "แก้ไขใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "edit",
@@ -301,7 +301,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.view",
-        name: "View sale details",
+        name: "ดูรายละเอียดใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "view",
@@ -310,7 +310,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.approve",
-        name: "Approve sale",
+        name: "อนุมัติใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "approve",
@@ -319,7 +319,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.confirm-payment",
-        name: "Confirm sale payment",
+        name: "ยืนยันการชำระเงิน",
         category: "ACTION",
         resource: "sale",
         action: "confirm_payment",
@@ -328,7 +328,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.manage_fulfillment",
-        name: "Manage sale fulfillment",
+        name: "จัดการการจัดส่งสินค้า",
         category: "ACTION",
         resource: "sale",
         action: "manage_fulfillment",
@@ -337,7 +337,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "product.create",
-        name: "Create product",
+        name: "สร้างสินค้า",
         category: "ACTION",
         resource: "product",
         action: "create",
@@ -346,7 +346,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "product.update",
-        name: "Update product",
+        name: "แก้ไขสินค้า",
         category: "ACTION",
         resource: "product",
         action: "update",
@@ -355,7 +355,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "product.delete",
-        name: "Delete product",
+        name: "ลบสินค้า",
         category: "ACTION",
         resource: "product",
         action: "delete",
@@ -364,7 +364,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "product.view",
-        name: "View product details",
+        name: "ดูรายละเอียดสินค้า",
         category: "ACTION",
         resource: "product",
         action: "view",
@@ -373,7 +373,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "product.manage",
-        name: "Manage product (pricing, stock, promotions)",
+        name: "จัดการสินค้า (ราคา, สต็อก, โปรโมชั่น)",
         category: "ACTION",
         resource: "product",
         action: "manage",
@@ -382,7 +382,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "company.create",
-        name: "Create company",
+        name: "สร้างบริษัท",
         category: "ACTION",
         resource: "company",
         action: "create",
@@ -391,7 +391,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "company.edit",
-        name: "Edit company",
+        name: "แก้ไขบริษัท",
         category: "ACTION",
         resource: "company",
         action: "edit",
@@ -400,7 +400,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "company.delete",
-        name: "Delete company",
+        name: "ลบบริษัท",
         category: "ACTION",
         resource: "company",
         action: "delete",
@@ -409,7 +409,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.create.dealer",
-        name: "Create DEALER customer",
+        name: "สร้างลูกค้าตัวแทนจำหน่าย",
         category: "ACTION",
         resource: "customer",
         action: "create",
@@ -418,7 +418,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.create.subdealer",
-        name: "Create SUBDEALER customer",
+        name: "สร้างลูกค้าตัวแทนจำหน่ายย่อย",
         category: "ACTION",
         resource: "customer",
         action: "create",
@@ -427,7 +427,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.create.farmer",
-        name: "Create FARMER customer",
+        name: "สร้างลูกค้าเกษตรกร",
         category: "ACTION",
         resource: "customer",
         action: "create",
@@ -436,7 +436,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.create.broker",
-        name: "Create BROKER customer",
+        name: "สร้างลูกค้านายหน้า",
         category: "ACTION",
         resource: "customer",
         action: "create",
@@ -445,7 +445,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.edit",
-        name: "Edit customer",
+        name: "แก้ไขลูกค้า",
         category: "ACTION",
         resource: "customer",
         action: "edit",
@@ -454,7 +454,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.delete",
-        name: "Delete customer",
+        name: "ลบลูกค้า",
         category: "ACTION",
         resource: "customer",
         action: "delete",
@@ -463,7 +463,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "customer.view",
-        name: "View customer details",
+        name: "ดูรายละเอียดลูกค้า",
         category: "ACTION",
         resource: "customer",
         action: "view",
@@ -472,7 +472,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.create",
-        name: "Create credit limit",
+        name: "สร้างวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "create",
@@ -481,7 +481,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.edit",
-        name: "Edit credit limit",
+        name: "แก้ไขวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "edit",
@@ -490,7 +490,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.delete",
-        name: "Delete credit limit",
+        name: "ลบวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "delete",
@@ -499,7 +499,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.view",
-        name: "View credit limit details",
+        name: "ดูรายละเอียดวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "view",
@@ -508,7 +508,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.create",
-        name: "Create temporary credit limit",
+        name: "สร้างวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "create",
@@ -517,7 +517,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.edit",
-        name: "Edit temporary credit limit",
+        name: "แก้ไขวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "edit",
@@ -526,7 +526,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.delete",
-        name: "Delete temporary credit limit",
+        name: "ลบวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "delete",
@@ -535,7 +535,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.view",
-        name: "View temporary credit limit details",
+        name: "ดูรายละเอียดวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "view",
@@ -544,7 +544,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.approve",
-        name: "Approve temporary credit limit",
+        name: "อนุมัติวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "approve",
@@ -553,7 +553,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "temporary_creditlimit.reject",
-        name: "Reject temporary credit limit",
+        name: "ปฏิเสธวงเงินสินเชื่อชั่วคราว",
         category: "ACTION",
         resource: "temporary_creditlimit",
         action: "reject",
@@ -562,7 +562,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "randomize",
-        name: "Randomize data",
+        name: "สุ่มข้อมูล",
         category: "ACTION",
         action: "randomize",
       },
@@ -571,7 +571,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "employee.manage",
-        name: "Manage employees",
+        name: "จัดการพนักงาน",
         category: "ACTION",
         resource: "employee",
         action: "edit",
@@ -580,7 +580,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "rbac.manage",
-        name: "Manage RBAC",
+        name: "จัดการสิทธิ์ผู้ใช้",
         category: "ACTION",
         resource: "rbac",
         action: "manage",
@@ -589,7 +589,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.products",
-        name: "Product data scope",
+        name: "ขอบเขตข้อมูลสินค้า",
         category: "DATA",
         resource: "product",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -598,7 +598,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.employees",
-        name: "Employee data scope",
+        name: "ขอบเขตข้อมูลพนักงาน",
         category: "DATA",
         resource: "employee",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -607,7 +607,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.customers",
-        name: "Customer data scope",
+        name: "ขอบเขตข้อมูลลูกค้า",
         category: "DATA",
         resource: "customer",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -616,7 +616,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.creditlimits",
-        name: "Credit Limit data scope",
+        name: "ขอบเขตข้อมูลวงเงินสินเชื่อ",
         category: "DATA",
         resource: "creditlimit",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -625,7 +625,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.temporary_creditlimits",
-        name: "Temporary Credit Limit data scope",
+        name: "ขอบเขตข้อมูลวงเงินสินเชื่อชั่วคราว",
         category: "DATA",
         resource: "temporary_creditlimit",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -634,7 +634,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "data.sales",
-        name: "Sale data scope",
+        name: "ขอบเขตข้อมูลการขาย",
         category: "DATA",
         resource: "sale",
         defaultDataAccess: "VIEW_DEPARTMENT",
@@ -644,7 +644,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "menu.dashboard",
-        name: "Dashboard menu",
+        name: "เมนูแดชบอร์ด",
         category: "MENU",
         menuPath: "/dashboard",
       },
@@ -652,7 +652,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "employee.view",
-        name: "View employee details",
+        name: "ดูรายละเอียดพนักงาน",
         category: "ACTION",
         resource: "employee",
         action: "view",
@@ -661,7 +661,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.delete",
-        name: "Delete sale",
+        name: "ลบใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "delete",
@@ -670,7 +670,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "sale.reject",
-        name: "Reject sale",
+        name: "ปฏิเสธใบขาย",
         category: "ACTION",
         resource: "sale",
         action: "reject",
@@ -679,7 +679,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.approve",
-        name: "Approve credit limit",
+        name: "อนุมัติวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "approve",
@@ -688,7 +688,7 @@ async function main() {
     prisma.permission.create({
       data: {
         key: "creditlimit.reject",
-        name: "Reject credit limit",
+        name: "ปฏิเสธวงเงินสินเชื่อ",
         category: "ACTION",
         resource: "creditlimit",
         action: "reject",
