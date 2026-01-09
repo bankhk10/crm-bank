@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
 import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
-import generateRandomDealer from "@/lib/random-fill/dealer";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
@@ -18,6 +17,7 @@ import {
   FormTextarea,
 } from "@/components/custom/form-components";
 import RandomFillButton from "@/components/custom/random-fill-button";
+import { useRandomFill } from "@/hooks/use-random-fill";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -84,6 +84,53 @@ export default function CustomerFormDealer({
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
+  const randomFillGenerator = useCallback(async () => {
+    const { generateRandomDealer } = await import("@/lib/random-fill/dealer");
+    return generateRandomDealer();
+  }, []);
+
+  const handleRandomFillGenerated = useCallback((rnd: any) => {
+    setValues((p: any) => ({
+      ...p,
+      companyName: rnd.name ?? p.companyName,
+      taxId: rnd.taxId ?? p.taxId,
+      phone: rnd.phone ?? p.phone,
+      email: rnd.email ?? p.email,
+      addressLine: rnd.addressLine ?? p.addressLine,
+      province: rnd.province ?? p.province,
+      district: rnd.district ?? p.district,
+      subdistrict: rnd.subdistrict ?? p.subdistrict,
+      postalCode: rnd.postalCode ?? p.postalCode,
+      billingAddressLine: rnd.billingAddressLine ?? p.billingAddressLine,
+      billingProvince: rnd.billingProvince ?? p.billingProvince,
+      billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
+      billingSubdistrict: rnd.billingSubdistrict ?? p.billingSubdistrict,
+      billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
+      shippingAddressLine: rnd.shippingAddressLine ?? p.shippingAddressLine,
+      shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
+      shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
+      shippingSubdistrict: rnd.shippingSubdistrict ?? p.shippingSubdistrict,
+      shippingPostalCode: rnd.shippingPostalCode ?? p.shippingPostalCode,
+      prefix: rnd.prefix ?? p.prefix,
+      firstName: rnd.firstName ?? p.firstName,
+      lastName: rnd.lastName ?? p.lastName,
+      contactPhone: rnd.contactPhone ?? p.contactPhone,
+      contactEmail: rnd.contactEmail ?? p.contactEmail,
+      businessNotes: rnd.businessNotes ?? p.businessNotes,
+      relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+    }));
+  }, []);
+
+  const {
+    isEnabled: isRandomFillEnabled,
+    isGenerating: isRandomFillGenerating,
+    triggerRandomFill,
+  } = useRandomFill({
+    generator: randomFillGenerator,
+    onGenerated: handleRandomFillGenerated,
+  });
 
   // Convert initial images to FileMetadata format for GalleryUpload
   const convertToFileMetadata = (images: any[]): FileMetadata[] => {
@@ -926,53 +973,19 @@ export default function CustomerFormDealer({
       </div>
       <div className="w-full h-12 sm:hidden"></div>
 
-      <div className="w-full sm:w-auto">
-        <RandomFillButton
-          size="lg"
-          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-          onClick={() => {
-            const rnd = generateRandomDealer();
-            setValues((p: any) => ({
-              ...p,
-              companyName: rnd.name ?? p.companyName,
-              taxId: rnd.taxId ?? p.taxId,
-              phone: rnd.phone ?? p.phone,
-              email: rnd.email ?? p.email,
-              addressLine: rnd.addressLine ?? p.addressLine,
-              province: rnd.province ?? p.province,
-              district: rnd.district ?? p.district,
-              subdistrict: rnd.subdistrict ?? p.subdistrict,
-              postalCode: rnd.postalCode ?? p.postalCode,
-              billingAddressLine:
-                rnd.billingAddressLine ?? p.billingAddressLine,
-              billingProvince: rnd.billingProvince ?? p.billingProvince,
-              billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
-              billingSubdistrict:
-                rnd.billingSubdistrict ?? p.billingSubdistrict,
-              billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
-              shippingAddressLine:
-                rnd.shippingAddressLine ?? p.shippingAddressLine,
-              shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
-              shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
-              shippingSubdistrict:
-                rnd.shippingSubdistrict ?? p.shippingSubdistrict,
-              shippingPostalCode:
-                rnd.shippingPostalCode ?? p.shippingPostalCode,
-              prefix: rnd.prefix ?? p.prefix,
-              firstName: rnd.firstName ?? p.firstName,
-              lastName: rnd.lastName ?? p.lastName,
-              contactPhone: rnd.contactPhone ?? p.contactPhone,
-              contactEmail: rnd.contactEmail ?? p.contactEmail,
-              businessNotes: rnd.businessNotes ?? p.businessNotes,
-              relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
-            }));
-          }}
-          disabled={loading}
-          variant="secondary"
-        >
-          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-        </RandomFillButton>
-      </div>
+      {/* Random Fill Button - แสดงเฉพาะ development */}
+      {isRandomFillEnabled && (
+        <div className="w-full sm:w-auto flex justify-center mt-4">
+          <RandomFillButton
+            size="lg"
+            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+            onClick={triggerRandomFill}
+            disabled={loading}
+            isGenerating={isRandomFillGenerating}
+            variant="secondary"
+          />
+        </div>
+      )}
     </form>
   );
 }

@@ -9,7 +9,7 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Eye, EyeOff, X, Save } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
-import generateRandomEmployee from "@/lib/random-fill/employee";
+import { useRandomFill } from "@/hooks/use-random-fill";
 import type { Employee } from "@/types/Employee.ts";
 import {
   prefixOptions,
@@ -258,29 +258,53 @@ export default function EmployeeForm({
     return "";
   }, [values.age, values.birthDate]);
 
+  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
+  const randomFillGenerator = useCallback(async () => {
+    const { generateRandomEmployee } = await import(
+      "@/lib/random-fill/employee"
+    );
+    return generateRandomEmployee();
+  }, []);
+
+  const handleRandomFillGenerated = useCallback(
+    (p: any) => {
+      if (!canEdit) return;
+      setValues((prev) => ({
+        ...prev,
+        prefix: p.prefix ?? prev.prefix,
+        firstName: p.firstName ?? prev.firstName,
+        lastName: p.lastName ?? prev.lastName,
+        email: p.email ?? prev.email,
+        phone: p.phone ?? prev.phone,
+        birthDate: p.birthDate ?? prev.birthDate,
+        employeeCode: p.employeeCode ?? prev.employeeCode,
+        province: p.province ?? prev.province,
+        district: p.district ?? prev.district,
+        subdistrict: p.subdistrict ?? prev.subdistrict,
+        postalCode: p.postalCode ?? prev.postalCode,
+      }));
+      setPassword(p.password ?? "");
+      clearFieldError("firstName");
+      clearFieldError("lastName");
+      clearFieldError("email");
+      clearFieldError("phone");
+    },
+    [canEdit, clearFieldError]
+  );
+
+  const {
+    isEnabled: isRandomFillEnabled,
+    isGenerating: isRandomFillGenerating,
+    triggerRandomFill,
+  } = useRandomFill({
+    generator: randomFillGenerator,
+    onGenerated: handleRandomFillGenerated,
+  });
+
+  // Legacy support for registerRandomize prop
   const handleRandomFill = useCallback(() => {
-    if (!canEdit) return;
-    const p = generateRandomEmployee();
-    setValues((prev) => ({
-      ...prev,
-      prefix: p.prefix ?? prev.prefix,
-      firstName: p.firstName ?? prev.firstName,
-      lastName: p.lastName ?? prev.lastName,
-      email: p.email ?? prev.email,
-      phone: p.phone ?? prev.phone,
-      birthDate: p.birthDate ?? prev.birthDate,
-      employeeCode: p.employeeCode ?? prev.employeeCode,
-      province: p.province ?? prev.province,
-      district: p.district ?? prev.district,
-      subdistrict: p.subdistrict ?? prev.subdistrict,
-      postalCode: p.postalCode ?? prev.postalCode,
-    }));
-    setPassword(p.password ?? "");
-    clearFieldError("firstName");
-    clearFieldError("lastName");
-    clearFieldError("email");
-    clearFieldError("phone");
-  }, [canEdit, clearFieldError]);
+    triggerRandomFill();
+  }, [triggerRandomFill]);
 
   useEffect(() => {
     if (!registerRandomize) return;
@@ -702,17 +726,19 @@ export default function EmployeeForm({
       </div>
       <div className="w-full h-12 sm:hidden"></div>
 
-      <div className="w-full sm:w-auto">
-        <RandomFillButton
-          size="lg"
-          className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-          onClick={handleRandomFill}
-          disabled={loading}
-          variant="secondary"
-        >
-          <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-        </RandomFillButton>
-      </div>
+      {/* Random Fill Button - แสดงเฉพาะ development */}
+      {isRandomFillEnabled && (
+        <div className="w-full sm:w-auto flex justify-center mt-4">
+          <RandomFillButton
+            size="lg"
+            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
+            onClick={triggerRandomFill}
+            disabled={loading}
+            isGenerating={isRandomFillGenerating}
+            variant="secondary"
+          />
+        </div>
+      )}
     </form>
   );
 }
