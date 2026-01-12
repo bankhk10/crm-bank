@@ -569,7 +569,7 @@ const StockLotsSection: React.FC<
         }
       />
 
-      <div className="mb-6 flex items-center p-4 bg-gradient-to-r from-green-50 to-rose-50 text-green-800 rounded-xl border border-green-100 shadow-sm">
+      <div className="mb-6 flex items-center p-4 bg-gradient-to-r from-green-50 to-green-50 text-green-800 rounded-xl border border-green-100 shadow-sm">
         <div className="p-2 bg-green-100 rounded-lg mr-3">
           <Package className="h-5 w-5 text-green-600" />
         </div>
@@ -970,7 +970,7 @@ export default function ProductManagementPage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
               <Button
                 size="lg"
-                className="w-full md:w-40 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-2xl shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 transition-all hover:scale-[1.02]"
+                className="w-full md:w-40 bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
                 type="submit"
                 disabled={saving}
               >
