@@ -24,6 +24,7 @@ import {
   Package,
   Gift,
   Tag,
+  X,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import type { Product, ProductManagementFormData } from "@/types/product";
@@ -884,7 +885,7 @@ export default function ProductManagementPage() {
     <>
       <form
         onSubmit={handleSubmit}
-        className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-20"
+        className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50"
       >
         {/* Modern Red-Gray Gradient Header */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
@@ -970,7 +971,17 @@ export default function ProductManagementPage() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 w-full">
               <Button
                 size="lg"
-                className="w-full md:w-40 bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+                className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
+                type="button"
+                onClick={() => router.back()}
+                disabled={saving}
+              >
+                <X className="h-4 w-4" />
+                ยกเลิก
+              </Button>
+              <Button
+                size="lg"
+                className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
                 type="submit"
                 disabled={saving}
               >
@@ -982,15 +993,6 @@ export default function ProductManagementPage() {
                 ) : (
                   "บันทึก"
                 )}
-              </Button>
-              <Button
-                size="lg"
-                className="w-full md:w-40 bg-gray-500 hover:bg-gray-600 text-white rounded-2xl shadow-md hover:shadow-lg transition-all"
-                type="button"
-                onClick={() => router.back()}
-                disabled={saving}
-              >
-                ยกเลิก
               </Button>
             </div>
           </div>
