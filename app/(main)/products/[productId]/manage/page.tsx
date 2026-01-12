@@ -371,7 +371,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
             size="sm"
             onClick={addPromotionItem}
             disabled={saving}
-            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
+            className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มรายการ</span>
@@ -479,7 +479,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
                     size="icon"
                     onClick={() => removePromotionItem(index)}
                     disabled={saving}
-                    className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="h-10 w-10 text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -560,7 +560,7 @@ const StockLotsSection: React.FC<
             size="sm"
             onClick={addStockLot}
             disabled={saving}
-            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
+            className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
@@ -569,15 +569,14 @@ const StockLotsSection: React.FC<
         }
       />
 
-      <div className="mb-6 flex items-center p-4 bg-gradient-to-r from-red-50 to-rose-50 text-red-800 rounded-xl border border-red-100 shadow-sm">
-        <div className="p-2 bg-red-100 rounded-lg mr-3">
-          <Package className="h-5 w-5 text-red-600" />
+      <div className="mb-6 flex items-center p-4 bg-gradient-to-r from-green-50 to-rose-50 text-green-800 rounded-xl border border-green-100 shadow-sm">
+        <div className="p-2 bg-green-100 rounded-lg mr-3">
+          <Package className="h-5 w-5 text-green-600" />
         </div>
         <span className="font-medium">ผลรวมจำนวนคงเหลือ:</span>
-        <span className="ml-2 text-2xl font-bold text-red-600">
+        <span className="ml-2 text-2xl font-bold text-green-600">
           {getTotalStock()}
         </span>
-        <span className="ml-1 text-sm text-red-500">หน่วย</span>
       </div>
 
       <div className="space-y-6">
@@ -611,7 +610,7 @@ const StockLotsSection: React.FC<
                   size="sm"
                   onClick={() => removeStockLot(index)}
                   disabled={saving}
-                  className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
+                  className="text-muted-foreground text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20 h-8 w-8 p-0"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
