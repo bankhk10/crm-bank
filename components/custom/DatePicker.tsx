@@ -38,6 +38,7 @@ interface DatePickerProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  required?: boolean;
 }
 function DatePicker({
   startYear = getYear(new Date()) - 100,
@@ -48,6 +49,7 @@ function DatePicker({
   placeholder = "",
   disabled = false,
   className,
+  required = false,
 }: DatePickerProps) {
   const toDate = (v?: string | Date) => {
     if (!v) return undefined;
@@ -139,6 +141,7 @@ function DatePicker({
             className="mx-2 mb-1 font-medium text-base text-gray-900"
           >
             {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
           </Label>
         )}
 

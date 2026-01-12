@@ -166,6 +166,7 @@ export function SaleForm({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Customer & Employee data
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -401,19 +402,9 @@ export function SaleForm({
         selectedCustomer.shippingPostalCode || "",
       ].filter(Boolean);
       setShippingAddress(shippingParts.join(" "));
-
-      // Clear pickup company if switching away from pickup
       setPickupCompanyId("");
     }
-  }, [
-    pickupCompanyId,
-    deliveryMethod,
-    companies,
-    selectedCustomer,
-    // customShippingAddress, // We shouldn't depend on this to avoid loops, only init logic relies on it check?
-    // Actually we only check !customShippingAddress inside, so it's safer to exclude or handle carefully.
-    // Excluding it is safe because we only want to run this when deliveryMethod changes.
-  ]);
+  }, [pickupCompanyId, deliveryMethod, companies, selectedCustomer]);
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -473,21 +464,35 @@ export function SaleForm({
     e.preventDefault();
     setErrors([]);
     setWarnings([]);
+    setFieldErrors({});
 
     const newErrors: string[] = [];
     const newWarnings: string[] = [];
+    const newFieldErrors: Record<string, string> = {};
 
     // Validation
-    if (!customerId) newErrors.push("กรุณาเลือกลูกค้า");
-    if (!employeeId) newErrors.push("กรุณาเลือกพนักงานขาย");
+    if (!customerId) {
+      newErrors.push("กรุณาเลือกลูกค้า");
+      newFieldErrors.customerId = "กรุณาเลือกลูกค้า";
+    }
+    if (!employeeId) {
+      newErrors.push("กรุณาเลือกพนักงานขาย");
+      newFieldErrors.employeeId = "กรุณาเลือกพนักงานขาย";
+    }
     if (items.length === 0)
       newErrors.push("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
-    if (!saleDate) newErrors.push("กรุณาระบุวันที่ขาย");
+    if (!saleDate) {
+      newErrors.push("กรุณาระบุวันที่ขาย");
+      newFieldErrors.saleDate = "กรุณาระบุวันที่ขาย";
+    }
     if (deliveryMethod === "CUSTOMER_PICKUP" && !pickupCompanyId) {
       newErrors.push("กรุณาเลือกสถานที่รับสินค้า");
+      newFieldErrors.pickupCompanyId = "กรุณาเลือกสถานที่รับสินค้า";
     }
     if (deliveryMethod === "COURIER" && !customShippingAddress) {
       newErrors.push("กรุณาระบุที่อยู่สำหรับส่งให้บริษัทขนส่ง");
+      newFieldErrors.customShippingAddress =
+        "กรุณาระบุที่อยู่สำหรับส่งให้บริษัทขนส่ง";
     }
 
     // Validate items
@@ -573,6 +578,7 @@ export function SaleForm({
 
     setErrors(newErrors);
     setWarnings(newWarnings);
+    setFieldErrors(newFieldErrors);
 
     if (newErrors.length > 0) {
       return;
@@ -643,21 +649,8 @@ export function SaleForm({
     <form
       onSubmit={handleSubmit}
       className="w-full max-w-[2000px] mx-auto space-y-4 sm:space-y-6 lg:space-y-8"
+      noValidate
     >
-      {errors.length > 0 && (
-        <Alert variant="destructive" className="border-2">
-          <AlertDescription>
-            <ul className="list-disc pl-4 space-y-1">
-              {errors.map((error, i) => (
-                <li key={i} className="text-sm sm:text-base">
-                  {error}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {warnings.length > 0 && (
         <Alert className="border-2 border-yellow-400 bg-yellow-50">
           <AlertDescription>
@@ -678,9 +671,12 @@ export function SaleForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormCombobox
-          label="ลูกค้า *"
+          label="ลูกค้า"
           value={customerId}
-          onChange={(val) => setCustomerId(val)}
+          onChange={(val) => {
+            setCustomerId(val);
+            setFieldErrors((prev) => ({ ...prev, customerId: "" }));
+          }}
           options={customers.map((customer) => ({
             value: customer.id,
             label: `${customer.name} (${customer.customerCode})`,
@@ -688,12 +684,17 @@ export function SaleForm({
           placeholder="เลือกลูกค้า"
           searchPlaceholder="ค้นหาลูกค้า..."
           emptyText="ไม่พบลูกค้า"
+          required
+          error={fieldErrors.customerId}
         />
 
         <FormCombobox
-          label="พนักงานขาย *"
+          label="พนักงานขาย"
           value={employeeId}
-          onChange={(val) => setEmployeeId(val)}
+          onChange={(val) => {
+            setEmployeeId(val);
+            setFieldErrors((prev) => ({ ...prev, employeeId: "" }));
+          }}
           options={employees.map((employee) => ({
             value: employee.id,
             label: employee.name,
@@ -702,6 +703,8 @@ export function SaleForm({
           searchPlaceholder="ค้นหาพนักงานขาย..."
           emptyText="ไม่พบพนักงานขาย"
           disabled={!canSelectOtherEmployees}
+          required
+          error={fieldErrors.employeeId}
         />
       </div>
 
@@ -737,7 +740,7 @@ export function SaleForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         <FormSelect
-          label="เงื่อนไขการชำระเงิน *"
+          label="เงื่อนไขการชำระเงิน"
           value={paymentTerm}
           onChange={(val: any) => {
             setPaymentTerm(val);
@@ -770,6 +773,7 @@ export function SaleForm({
           ]}
           placeholder="เลือกเงื่อนไข"
           groupLabel="เงื่อนไข"
+          required
         />
         {deliveryMethod !== "CUSTOMER_PICKUP" &&
           deliveryMethod !== "COURIER" && (
@@ -784,12 +788,19 @@ export function SaleForm({
           )}
         <div>
           <DatePicker
-            label="วันที่ขาย *"
+            label="วันที่ขาย"
             value={saleDate}
-            onChange={(val) => setSaleDate(val || "")}
+            onChange={(val) => {
+              setSaleDate(val || "");
+              setFieldErrors((prev) => ({ ...prev, saleDate: "" }));
+            }}
             placeholder=""
             disabled={!isAdmin}
+            required
           />
+          {fieldErrors.saleDate && (
+            <p className="text-xs text-red-600 mt-1">{fieldErrors.saleDate}</p>
+          )}
         </div>
       </div>
 
@@ -800,7 +811,7 @@ export function SaleForm({
       {/* Delivery Method Selection */}
       <div className="mt-6">
         <Label className="text-base font-semibold mx-2 mb-4 block">
-          วิธีการจัดส่ง *
+          วิธีการจัดส่ง <span className="text-red-500">*</span>
         </Label>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -902,16 +913,20 @@ export function SaleForm({
             </h4>
             <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
               <DatePicker
-                label="วันที่มารับสินค้า *"
+                label="วันที่มารับสินค้า"
                 value={requestedDeliveryDate}
                 onChange={(val) => setRequestedDeliveryDate(val || "")}
                 placeholder="เลือกวันที่มารับสินค้า"
+                required
               />
 
               <FormCombobox
-                label="สถานที่รับสินค้า (บริษัท/สาขา) *"
+                label="สถานที่รับสินค้า (บริษัท/สาขา)"
                 value={pickupCompanyId}
-                onChange={(val) => setPickupCompanyId(val)}
+                onChange={(val) => {
+                  setPickupCompanyId(val);
+                  setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
+                }}
                 options={companies.map((c) => ({
                   value: c.id,
                   label: c.name,
@@ -919,6 +934,8 @@ export function SaleForm({
                 placeholder="เลือกสถานที่รับสินค้า"
                 searchPlaceholder="ค้นหาสถานที่..."
                 emptyText="ไม่พบสถานที่"
+                required
+                error={fieldErrors.pickupCompanyId}
               />
 
               <div className="md:col-span-2">
@@ -953,14 +970,20 @@ export function SaleForm({
               </div>
 
               <FormTextarea
-                label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง *"
+                label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
                 value={customShippingAddress}
                 onChange={(e) => {
                   setCustomShippingAddress(e.target.value);
                   setShippingAddress(e.target.value);
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    customShippingAddress: "",
+                  }));
                 }}
                 placeholder="ระบุรายละเอียดที่อยู่..."
                 rows={4}
+                required
+                error={fieldErrors.customShippingAddress}
               />
             </div>
           </div>

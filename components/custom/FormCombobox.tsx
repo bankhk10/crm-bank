@@ -53,6 +53,7 @@ export function FormCombobox({
   searchPlaceholder = "ค้นหา...",
   emptyText = "ไม่พบข้อมูล",
   disabled = false,
+  required = false,
   error,
   className,
   triggerClassName,
@@ -65,7 +66,10 @@ export function FormCombobox({
 
   return (
     <div className={cn(containerClassName)}>
-      <Label className={cn(defaultLabelClass, labelClassName)}>{label}</Label>
+      <Label className={cn(defaultLabelClass, labelClassName)}>
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </Label>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
