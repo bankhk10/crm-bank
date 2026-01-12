@@ -5,6 +5,7 @@ import { SaleStatus } from "@prisma/client";
 import {
   confirmStockDeduction,
   revertStockDeduction,
+  releaseStock,
 } from "@/lib/stock-service";
 
 export async function POST(
@@ -33,6 +34,14 @@ export async function POST(
 
     // 1. Status
     if (status && Object.values(SaleStatus).includes(status)) {
+      // Validate: CANCELLED requires notes
+      if (status === "CANCELLED" && (!notes || !notes.trim())) {
+        return NextResponse.json(
+          { error: "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย" },
+          { status: 400 }
+        );
+      }
+
       updateData.status = status;
       // If switching to PAID and no payment date, maybe set it?
       if (status === "PAID" && !sale.paymentDate && !paymentDate) {
@@ -73,8 +82,35 @@ export async function POST(
     }
 
     const updatedSale = await prisma.$transaction(async (tx) => {
+      // Handle CANCELLED status: Release stock and restore credit limit
+      if (status === "CANCELLED" && sale.status !== "CANCELLED") {
+        // 1. Release stock (return to available)
+        await releaseStock(id, tx);
+
+        // 2. Restore credit limit (for non-PREPAID and not yet paid)
+        if (sale.paymentTerm !== "PREPAID" && !sale.paymentDate) {
+          const creditLimit = await tx.creditLimit.findFirst({
+            where: {
+              customerId: sale.customerId,
+              status: "ACTIVE",
+              deletedAt: null,
+            },
+          });
+
+          if (creditLimit) {
+            await tx.creditLimit.update({
+              where: { id: creditLimit.id },
+              data: {
+                usedAmount: { decrement: sale.totalAmount },
+                availableAmount: { increment: sale.totalAmount },
+              },
+            });
+          }
+        }
+      }
+
       // Handle stock status transition based on delivery date change
-      if (deliveryDate !== undefined) {
+      if (deliveryDate !== undefined && status !== "CANCELLED") {
         const newDate = deliveryDate ? new Date(deliveryDate) : null;
         const oldDate = sale.deliveryDate;
 
@@ -88,7 +124,11 @@ export async function POST(
       }
 
       // Handle Credit Limit restoration on Payment (for non-PREPAID)
-      if (paymentDate !== undefined && sale.paymentTerm !== "PREPAID") {
+      if (
+        paymentDate !== undefined &&
+        sale.paymentTerm !== "PREPAID" &&
+        status !== "CANCELLED"
+      ) {
         const newPaymentDate = paymentDate ? new Date(paymentDate) : null;
         const oldPaymentDate = sale.paymentDate;
 

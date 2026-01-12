@@ -38,6 +38,7 @@ const FULFILLMENT_STATUSES = [
   "DELIVERED",
   "DELIVERY_COMPLETED",
   "COMPLETED",
+  "CANCELLED",
 ];
 
 export default function FulfillmentPage({
@@ -117,6 +118,13 @@ export default function FulfillmentPage({
     // Validate: If status is COMPLETED, payment date is required
     if (status === "COMPLETED" && !paymentDate) {
       setError("กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'");
+      setSubmitting(false);
+      return;
+    }
+
+    // Validate: If status is CANCELLED, notes is required
+    if (status === "CANCELLED" && !notes.trim()) {
+      setError("กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย");
       setSubmitting(false);
       return;
     }
@@ -419,6 +427,9 @@ export default function FulfillmentPage({
                     5
                   </span>
                   หมายเหตุ
+                  {status === "CANCELLED" && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
                 </label>
                 <textarea
                   className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
@@ -426,6 +437,12 @@ export default function FulfillmentPage({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
+                {status === "CANCELLED" && !notes.trim() && (
+                  <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg mt-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
+                    จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
+                  </p>
+                )}
               </div>
             </CardContent>
             {/* Action Buttons */}
