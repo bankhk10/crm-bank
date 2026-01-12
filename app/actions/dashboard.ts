@@ -59,6 +59,7 @@ export interface DashboardData {
 export async function getDashboardData(): Promise<DashboardData> {
   const now = new Date();
   const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
   // Date ranges
   const monthStart = startOfMonth(now);
@@ -153,9 +154,26 @@ export async function getDashboardData(): Promise<DashboardData> {
   // Use predefined PRODUCT_GROUP_OPTIONS as the source of truth
   const { PRODUCT_GROUP_OPTIONS } = await import("@/types/product");
 
+  // Get product group targets from database
+  const productGroupTargets = await prisma.productGroupSalesTarget.findMany({
+    where: {
+      year: currentYear,
+      month: currentMonth,
+      deletedAt: null,
+    },
+  });
+
+  // Create a map for quick lookup
+  const productGroupTargetMap = new Map(
+    productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)])
+  );
+
   const productGroupData = await Promise.all(
     PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
       const group = groupOption.value;
+
+      // Get target from database, fallback to default
+      const target = productGroupTargetMap.get(group) || 500000;
 
       // Get product IDs for this group
       const products = await prisma.product.findMany({
@@ -168,7 +186,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       if (productIds.length === 0) {
         return {
           group: groupOption.label,
-          target: 500000,
+          target,
           salesNote: 0,
           invoice: 0,
         };
@@ -209,11 +227,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         _sum: { totalPrice: true },
       });
 
-      // Set a mock target (in a real scenario, this would come from a targets table)
       const salesNoteAmt = Number(salesNoteAgg._sum.totalPrice || 0);
       const invoiceAmt = Number(invoiceAgg._sum.totalPrice || 0);
-      const total = salesNoteAmt + invoiceAmt;
-      const target = Math.round(total * 1.2) || 500000; // 20% above current or default
 
       return {
         group: groupOption.label,
@@ -225,9 +240,9 @@ export async function getDashboardData(): Promise<DashboardData> {
   );
 
   // === 4. Region Sales (This Month) ===
-  // Group by customer's province
+  // Group by customer's province - 6 regions of Thailand
   const regionMapping: Record<string, string[]> = {
-    เหนือ: [
+    ภาคเหนือ: [
       "เชียงใหม่",
       "เชียงราย",
       "ลำปาง",
@@ -236,18 +251,17 @@ export async function getDashboardData(): Promise<DashboardData> {
       "น่าน",
       "พะเยา",
       "แพร่",
+      "อุตรดิตถ์",
+      "ตาก",
+      "สุโขทัย",
+      "พิษณุโลก",
+      "พิจิตร",
+      "กำแพงเพชร",
+      "เพชรบูรณ์",
+      "นครสวรรค์",
+      "อุทัยธานี",
     ],
-    กลาง: [
-      "กรุงเทพมหานคร",
-      "นนทบุรี",
-      "ปทุมธานี",
-      "สมุทรปราการ",
-      "นครปฐม",
-      "สมุทรสาคร",
-      "อยุธยา",
-      "พระนครศรีอยุธยา",
-    ],
-    อีสาน: [
+    ภาคตะวันออกเฉียงเหนือ: [
       "ขอนแก่น",
       "อุดรธานี",
       "นครราชสีมา",
@@ -255,17 +269,84 @@ export async function getDashboardData(): Promise<DashboardData> {
       "ร้อยเอ็ด",
       "มหาสารคาม",
       "สกลนคร",
+      "นครพนม",
+      "กาฬสินธุ์",
+      "หนองคาย",
+      "หนองบัวลำภู",
+      "เลย",
+      "ชัยภูมิ",
+      "บุรีรัมย์",
+      "สุรินทร์",
+      "ศรีสะเกษ",
+      "ยโสธร",
+      "อำนาจเจริญ",
+      "มุกดาหาร",
+      "บึงกาฬ",
     ],
-    ใต้: [
-      "สงขลา",
-      "ภูเก็ต",
+    ภาคตะวันออก: [
+      "ชลบุรี",
+      "ระยอง",
+      "จันทบุรี",
+      "ตราด",
+      "ฉะเชิงเทรา",
+      "ปราจีนบุรี",
+      "สระแก้ว",
+    ],
+    ภาคตะวันตก: [
+      "ราชบุรี",
+      "กาญจนบุรี",
+      "สุพรรณบุรี",
+      "นครปฐม",
+      "สมุทรสาคร",
+      "สมุทรสงคราม",
+      "เพชรบุรี",
+      "ประจวบคีรีขันธ์",
+    ],
+    ภาคกลาง: [
+      "กรุงเทพมหานคร",
+      "นนทบุรี",
+      "ปทุมธานี",
+      "สมุทรปราการ",
+      "พระนครศรีอยุธยา",
+      "อ่างทอง",
+      "ลพบุรี",
+      "สิงห์บุรี",
+      "ชัยนาท",
+      "สระบุรี",
+      "นครนายก",
+    ],
+    ภาคใต้: [
       "นครศรีธรรมราช",
-      "สุราษฎร์ธานี",
       "กระบี่",
+      "พังงา",
+      "ภูเก็ต",
+      "สุราษฎร์ธานี",
+      "ระนอง",
+      "ชุมพร",
+      "สงขลา",
+      "สตูล",
       "ตรัง",
       "พัทลุง",
+      "ปัตตานี",
+      "ยะลา",
+      "นราธิวาส",
     ],
   };
+
+  // Get region targets from database
+
+  const regionTargets = await prisma.regionSalesTarget.findMany({
+    where: {
+      year: currentYear,
+      month: currentMonth,
+      deletedAt: null,
+    },
+  });
+
+  // Create a map for quick lookup
+  const regionTargetMap = new Map(
+    regionTargets.map((t) => [t.region, Number(t.targetAmount)])
+  );
 
   const regionData = await Promise.all(
     Object.entries(regionMapping).map(async ([region, provinces]) => {
@@ -279,10 +360,13 @@ export async function getDashboardData(): Promise<DashboardData> {
       });
       const customerIds = customers.map((c) => c.id);
 
+      // Get target from database, fallback to default
+      const target = regionTargetMap.get(region) || 300000;
+
       if (customerIds.length === 0) {
         return {
           region,
-          target: 300000,
+          target,
           salesNote: 0,
           invoice: 0,
         };
@@ -321,8 +405,6 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       const salesNoteAmt = Number(salesNoteAgg._sum.totalAmount || 0);
       const invoiceAmt = Number(invoiceAgg._sum.totalAmount || 0);
-      const total = salesNoteAmt + invoiceAmt;
-      const target = Math.round(total * 1.2) || 300000;
 
       return {
         region,
@@ -372,9 +454,28 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const total = success + fail + progress;
 
-  // === 6. Target (Mock data - would come from a targets table in production) ===
-  // Using current month sales * 1.2 as target
-  const monthlyTarget = Math.round(currentMonthTotal * 1.2) || 1500000;
+  // === 6. Target - Fetch from database ===
+  const monthlyTargetRecord = await prisma.monthlySalesTarget.findFirst({
+    where: {
+      year: currentYear,
+      month: currentMonth,
+      deletedAt: null,
+    },
+  });
+  const monthlyTarget = monthlyTargetRecord
+    ? Number(monthlyTargetRecord.targetAmount)
+    : 1500000;
+
+  const yearlyTargetRecord = await prisma.monthlySalesTarget.findFirst({
+    where: {
+      year: currentYear,
+      month: null,
+      deletedAt: null,
+    },
+  });
+  const yearlyTarget = yearlyTargetRecord
+    ? Number(yearlyTargetRecord.targetAmount)
+    : 10000000;
 
   return {
     monthlySales: {
@@ -389,7 +490,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
     ytd: {
       total: ytdTotal,
-      target: Math.round(ytdTotal * 1.2) || 10000000, // 20% above current or 10M default
+      target: yearlyTarget,
       growthPercent: Math.round(ytdGrowth * 10) / 10,
     },
     productGroupData:
@@ -423,9 +524,21 @@ function getDefaultProductGroups() {
 
 function getDefaultRegions() {
   return [
-    { region: "เหนือ", target: 300000, salesNote: 180000, invoice: 90000 },
-    { region: "กลาง", target: 500000, salesNote: 320000, invoice: 180000 },
-    { region: "อีสาน", target: 400000, salesNote: 250000, invoice: 120000 },
-    { region: "ใต้", target: 300000, salesNote: 150000, invoice: 80000 },
+    { region: "ภาคเหนือ", target: 300000, salesNote: 180000, invoice: 90000 },
+    {
+      region: "ภาคตะวันออกเฉียงเหนือ",
+      target: 400000,
+      salesNote: 250000,
+      invoice: 120000,
+    },
+    {
+      region: "ภาคตะวันออก",
+      target: 450000,
+      salesNote: 280000,
+      invoice: 140000,
+    },
+    { region: "ภาคตะวันตก", target: 250000, salesNote: 150000, invoice: 70000 },
+    { region: "ภาคกลาง", target: 500000, salesNote: 320000, invoice: 180000 },
+    { region: "ภาคใต้", target: 300000, salesNote: 150000, invoice: 80000 },
   ];
 }

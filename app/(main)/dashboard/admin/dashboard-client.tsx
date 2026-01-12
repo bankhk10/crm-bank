@@ -226,8 +226,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">
                   ยอดขายเทียบกับเป้าหมาย
                 </p>
-                <p className="text-sm sm:text-base font-bold text-white">
-                  <div
+                <div className="text-sm sm:text-base font-bold text-white">
+                  <span
                     className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
                       remaining <= 0
                         ? "bg-emerald-500/20 text-emerald-400"
@@ -243,8 +243,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                       {remaining <= 0 ? "+" : "-"}
                       {formatCompact(Math.abs(remaining))} บาท
                     </span>
-                  </div>
-                </p>
+                  </span>
+                </div>
               </div>
               <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
                 <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">

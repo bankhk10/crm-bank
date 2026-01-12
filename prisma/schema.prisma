@@ -651,6 +651,65 @@ model DailySalesSummary {
 }
 
 // ==========================================
+// SALES TARGETS
+// ==========================================
+
+// เป้ายอดขายรายภาค
+model RegionSalesTarget {
+  id          String   @id @default(cuid())
+  region      String   // ภาคเหนือ, ภาคตะวันออกเฉียงเหนือ, ภาคตะวันตก, ภาคกลาง, ภาคใต้
+  year        Int      // ปี พ.ศ. หรือ ค.ศ.
+  month       Int?     // เดือน (1-12), null = เป้าหมายรายปี
+  targetAmount Decimal @db.Decimal(15, 2) // เป้ายอดขาย (บาท)
+  notes       String?  // หมายเหตุเพิ่มเติม
+  
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@unique([region, year, month]) // ป้องกันข้อมูลซ้ำซ้อน
+  @@index([year, month])
+  @@index([region])
+}
+
+// เป้ายอดขายรายกลุ่มสินค้า
+model ProductGroupSalesTarget {
+  id           String   @id @default(cuid())
+  productGroup String   // กลุ่มสินค้า (ตรงกับ PRODUCT_GROUP_OPTIONS)
+  year         Int      // ปี พ.ศ. หรือ ค.ศ.
+  month        Int?     // เดือน (1-12), null = เป้าหมายรายปี
+  targetAmount Decimal  @db.Decimal(15, 2) // เป้ายอดขาย (บาท)
+  notes        String?  // หมายเหตุเพิ่มเติม
+  
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([productGroup, year, month]) // ป้องกันข้อมูลซ้ำซ้อน
+  @@index([year, month])
+  @@index([productGroup])
+}
+
+// เป้ายอดขายรวมรายเดือน/รายปี
+model MonthlySalesTarget {
+  id           String   @id @default(cuid())
+  year         Int      // ปี พ.ศ. หรือ ค.ศ.
+  month        Int?     // เดือน (1-12), null = เป้าหมายรายปี
+  targetAmount Decimal  @db.Decimal(15, 2) // เป้ายอดขาย (บาท)
+  notes        String?  // หมายเหตุเพิ่มเติม
+  
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([year, month]) // ป้องกันข้อมูลซ้ำซ้อน
+  @@index([year])
+}
+
+// ==========================================
 // LOGGING SYSTEM
 // ==========================================
 
