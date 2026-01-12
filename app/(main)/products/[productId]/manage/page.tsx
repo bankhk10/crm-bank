@@ -309,9 +309,9 @@ const FreeItemsSection: React.FC<SectionProps> = ({
                     size="icon"
                     onClick={() => removeFreeItem(index)}
                     disabled={saving}
-                    className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    className="h-10 w-10 text-muted-foreground text-destructive bg-destructive/10 hover:text-destructive hover:bg-destructive/20"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 " />
                   </Button>
                 </div>
               </div>
@@ -319,15 +319,8 @@ const FreeItemsSection: React.FC<SectionProps> = ({
           </div>
         ) : (
           <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
-            <Gift className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+            <Gift className="h-12 w-12 mx-auto text-muted-foreground/20 mb-3" />
             <p className="text-muted-foreground">ยังไม่มีรายการของแถม</p>
-            <Button
-              variant="link"
-              onClick={addFreeItem}
-              className="mt-2 text-primary"
-            >
-              + เพิ่มรายการแรก
-            </Button>
           </div>
         )}
       </div>
@@ -500,13 +493,6 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
             <p className="text-muted-foreground">
               ยังไม่มีรายการส่งเสริมการขาย
             </p>
-            <Button
-              variant="link"
-              onClick={addPromotionItem}
-              className="mt-2 text-primary"
-            >
-              + เพิ่มรายการแรก
-            </Button>
           </div>
         )}
       </div>
@@ -727,13 +713,6 @@ const StockLotsSection: React.FC<
           <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground">ยังไม่มีสต็อกสินค้า</p>
-            <Button
-              variant="link"
-              onClick={addStockLot}
-              className="mt-2 text-primary"
-            >
-              + เพิ่มสต็อกแรก
-            </Button>
           </div>
         )}
       </div>
