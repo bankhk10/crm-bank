@@ -522,8 +522,8 @@ const StockLotsSection: React.FC<
 
   const removeStockLot = (index: number) => {
     const lot = formData.stockLots[index];
-    if (lot.id && lot.isUsed) {
-      onError("ไม่สามารถลบรายการที่ถูกใช้งานแล้ว");
+    if (lot.id) {
+      onError("ไม่สามารถลบ Lot ที่เพิ่มไปแล้วได้");
       return;
     }
     setFormData((prev) => ({
@@ -603,7 +603,7 @@ const StockLotsSection: React.FC<
                   </span>
                 )}
               </div>
-              {!lot.isUsed && (
+              {!lot.id && (
                 <Button
                   type="button"
                   variant="ghost"
