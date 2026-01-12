@@ -25,6 +25,7 @@ import {
   Gift,
   Tag,
   X,
+  Save,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import type { Product, ProductManagementFormData } from "@/types/product";
@@ -991,7 +992,10 @@ export default function ProductManagementPage() {
                     กำลังบันทึก...
                   </>
                 ) : (
-                  "บันทึก"
+                  <>
+                    <Save className="h-4 w-4 mr-1" />
+                    บันทึก
+                  </>
                 )}
               </Button>
             </div>
