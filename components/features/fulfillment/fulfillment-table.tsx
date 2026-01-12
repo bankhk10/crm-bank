@@ -588,14 +588,28 @@ function useFulfillmentColumns() {
         header: "เงื่อนไขชำระ",
         cell: (info) => {
           const value = info.getValue() as string;
+          const label =
+            PaymentTermLabels[value as keyof typeof PaymentTermLabels] || value;
+
+          // Color mapping - same as sales-table
+          const styles: Record<string, string> = {
+            CREDIT_90: "bg-blue-100 text-blue-800 border-blue-200",
+            CASH_7: "bg-emerald-100 text-emerald-800 border-emerald-200",
+            PREPAID: "bg-purple-100 text-purple-800 border-purple-200",
+            CREDIT_OVER_90: "bg-orange-100 text-orange-800 border-orange-200",
+          };
+          const style =
+            styles[value] || "bg-gray-100 text-gray-800 border-gray-200";
+
           return (
-            <Badge variant="outline" className="text-xs">
-              {PaymentTermLabels[value as keyof typeof PaymentTermLabels] ||
-                value}
+            <Badge variant="outline" className={cn("text-xs", style)}>
+              <span className="block max-w-[150px] truncate" title={label}>
+                {label}
+              </span>
             </Badge>
           );
         },
-        meta: { minWidth: 100, width: 120, align: "center" },
+        meta: { minWidth: 180, width: 180, maxWidth: 180, align: "left" },
       },
       {
         accessorKey: "status",
