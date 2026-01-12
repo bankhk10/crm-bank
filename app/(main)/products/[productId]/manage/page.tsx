@@ -48,7 +48,7 @@ const SectionHeader = ({
   icon: React.ElementType;
   action?: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between mb-6 pb-4 border-b border-red-100">
+  <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
     <div className="flex items-center gap-3">
       <div className="p-2.5 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl text-white shadow-lg shadow-red-500/20">
         <Icon className="h-5 w-5" />
@@ -69,7 +69,7 @@ const Card = ({
   className?: string;
 }) => (
   <div
-    className={`bg-white text-gray-800 rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 lg:p-8 transition-all hover:shadow-lg hover:shadow-red-500/5 hover:border-red-100 ${className}`}
+    className={`bg-white text-gray-800 rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 lg:p-8 transition-all hover:shadow-lg hover:shadow-gray-500/5 hover:border-gray-100 ${className}`}
   >
     {children}
   </div>
@@ -182,7 +182,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
             size="sm"
             onClick={addFreeItem}
             disabled={saving}
-            className="h-9 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-all"
+            className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
           >
             <Plus className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">เพิ่มรายการ</span>
@@ -910,30 +910,49 @@ export default function ProductManagementPage() {
       >
         {/* Modern Red-Gray Gradient Header */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <div className="bg-gradient-to-br from-red-800 via-red-700 to-gray-500 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-            <div className="relative z-10 space-y-5">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-medium w-fit group"
-              >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                กลับไปหน้ารายการสินค้า
-              </button>
+          {/* 1. ขอบเทารอบข้าง (Outer Border Container) */}
+          <div className="relative bg-gradient-to-br from-gray-400 via-gray-400 to-gray-400 rounded-3xl p-[4px] shadow-2xl overflow-hidden">
+            {/* Animated background elements (ปรับเป็นสีขาว/เทาอ่อนเพื่อให้ขอบดูมีมิติ) */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-white/10 animate-pulse" />
 
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-                <div className="p-4 bg-gradient-to-br from-gray-300 to-gray-600 rounded-2xl text-white shadow-lg shadow-red-500/25 ring-1 ring-white/10">
-                  <Package className="h-8 w-8 sm:h-10 sm:w-10" />
-                </div>
-                <div className="flex-1 text-center sm:text-left space-y-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    จัดการสินค้า
-                  </h1>
+            {/* 2. พื้นหลังด้านในสีแดง (Inner Content Container) */}
+            {/* ปรับจากสีเทา/แดงผสม เป็น แดงสดไปถึงแดงเข้ม */}
+            <div className="relative bg-gradient-to-br from-red-700 via-red-600 to-red-800 backdrop-blur-xl rounded-[22px] p-6 sm:p-8">
+              <div className="relative z-10 space-y-5">
+                {/* Back button */}
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="flex items-center gap-2 text-red-100 hover:text-white transition-all duration-300 text-sm font-medium w-fit group hover:gap-3 px-3 py-1.5 rounded-lg hover:bg-white/10"
+                >
+                  <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1 group-hover:scale-110" />
+                  กลับไปหน้ารายการสินค้า
+                </button>
 
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1">
-                    <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 text-gray-200 text-xs sm:text-sm border border-white/10 backdrop-blur-sm">
-                      <Tag className="h-3.5 w-3.5 opacity-70" />
-                      {product.name}
+                {/* Main header content */}
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
+                  {/* Icon container */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
+                    <div className="relative p-5 bg-white rounded-2xl shadow-xl ring-1 ring-black/5 transform transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                      <Package className="h-9 w-9 sm:h-11 sm:w-11 text-red-600" />
+                    </div>
+                  </div>
+
+                  {/* Text content */}
+                  <div className="flex-1 text-center sm:text-left space-y-3">
+                    <div className="space-y-1">
+                      <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+                        จัดการสินค้า
+                      </h1>
+                    </div>
+
+                    {/* Product tag */}
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
+                      <div className="relative flex items-center gap-2 px-5 py-2 rounded-full bg-black/20 text-white text-sm sm:text-base border border-white/10 backdrop-blur-md shadow-inner">
+                        <Tag className="h-4 w-4 text-yellow-300" />
+                        <span className="font-medium">{product.name}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -941,7 +960,6 @@ export default function ProductManagementPage() {
             </div>
           </div>
         </div>
-
         {/* Main Content Areas */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
           <PriceManagementSection
