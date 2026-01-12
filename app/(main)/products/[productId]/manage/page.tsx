@@ -890,16 +890,10 @@ export default function ProductManagementPage() {
       >
         {/* Modern Red-Gray Gradient Header */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          {/* 1. ขอบเทารอบข้าง (Outer Border Container) */}
           <div className="relative bg-gradient-to-br from-gray-400 via-gray-400 to-gray-400 rounded-3xl p-[4px] shadow-2xl overflow-hidden">
-            {/* Animated background elements (ปรับเป็นสีขาว/เทาอ่อนเพื่อให้ขอบดูมีมิติ) */}
             <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-white/10 animate-pulse" />
-
-            {/* 2. พื้นหลังด้านในสีแดง (Inner Content Container) */}
-            {/* ปรับจากสีเทา/แดงผสม เป็น แดงสดไปถึงแดงเข้ม */}
             <div className="relative bg-gradient-to-br from-red-700 via-red-600 to-red-800 backdrop-blur-xl rounded-[22px] p-6 sm:p-8">
               <div className="relative z-10 space-y-5">
-                {/* Back button */}
                 <button
                   type="button"
                   onClick={() => router.back()}
@@ -909,9 +903,7 @@ export default function ProductManagementPage() {
                   กลับไปหน้ารายการสินค้า
                 </button>
 
-                {/* Main header content */}
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6">
-                  {/* Icon container */}
                   <div className="relative group">
                     <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
                     <div className="relative p-5 bg-white rounded-2xl shadow-xl ring-1 ring-black/5 transform transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
@@ -919,7 +911,6 @@ export default function ProductManagementPage() {
                     </div>
                   </div>
 
-                  {/* Text content */}
                   <div className="flex-1 text-center sm:text-left space-y-3">
                     <div className="space-y-1">
                       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
@@ -927,7 +918,6 @@ export default function ProductManagementPage() {
                       </h1>
                     </div>
 
-                    {/* Product tag */}
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
                       <div className="relative flex items-center gap-2 px-5 py-2 rounded-full bg-black/20 text-white text-sm sm:text-base border border-white/10 backdrop-blur-md shadow-inner">
                         <Tag className="h-4 w-4 text-yellow-300" />
