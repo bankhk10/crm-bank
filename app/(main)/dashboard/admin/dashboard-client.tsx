@@ -110,7 +110,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-            ภาพรวมแดชบอร์ด
+            ภาพรวมแดชบอร์ดแอดมิน
           </h1>
           <p className="text-slate-500 mt-1 text-xs sm:text-sm">
             ภาพรวมยอดขายและสถานะงานประจำเดือน
@@ -204,7 +204,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <CardHeader className="pb-2 sm:pb-3 relative">
             <div className="flex justify-between items-center">
               <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold">
-                เป้ายอดขาย
+                เป้ายอดขายเดือนปัจจุบัน
               </CardTitle>
               <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
                 <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
@@ -213,53 +213,60 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           </CardHeader>
 
           <CardContent className="relative">
-            <div className="flex justify-between items-end mb-2 sm:mb-3">
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl sm:text-4xl md:text-5xl font-black">
-                  {percent}
-                </span>
-                <span className="text-lg sm:text-xl font-bold text-slate-400">
-                  %
-                </span>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  เป้าหมาย
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-slate-300">
-                  {formatCompact(target.target)}
-                </p>
+            {/* Main Amount Display */}
+            <div className="text-center mb-3 sm:mb-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
+                {formatCurrency(target.current)}
               </div>
             </div>
 
-            <div className="relative">
-              <Progress
-                value={percent > 100 ? 100 : percent}
-                className="h-2 sm:h-3 rounded-full bg-slate-700/70 [&>div]:bg-gradient-to-r [&>div]:from-emerald-400 [&>div]:to-lime-400 [&>div]:rounded-full"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
-              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm">
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  ยอดปัจจุบัน
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
+                <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">
+                  ยอดขายเทียบกับเป้าหมาย
                 </p>
                 <p className="text-sm sm:text-base font-bold text-white">
-                  {formatCompact(target.current)}
+                  <div
+                    className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
+                      remaining <= 0
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-amber-500/20 text-amber-400"
+                    }`}
+                  >
+                    {remaining <= 0 ? (
+                      <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    )}
+                    <span>
+                      {remaining <= 0 ? "+" : "-"}
+                      {formatCompact(Math.abs(remaining))} บาท
+                    </span>
+                  </div>
                 </p>
               </div>
-              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-right">
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  ส่วนต่าง
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
+                <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">
+                  % ยอดขายเทียบกับเป้าหมาย
                 </p>
-                <p
-                  className={`text-sm sm:text-base font-bold ${
-                    remaining <= 0 ? "text-emerald-400" : "text-amber-400"
+                <div
+                  className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
+                    remaining <= 0
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-amber-500/20 text-amber-400"
                   }`}
                 >
-                  {remaining <= 0 ? "+" : "-"}
-                  {formatCompact(Math.abs(remaining))}
-                </p>
+                  {remaining <= 0 ? (
+                    <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  )}
+                  <span>
+                    {remaining <= 0 ? "+" : "-"}
+                    {Math.abs(percent - 100)}%
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -274,11 +281,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
-              ยอดขายสะสม (YTD)
+              ยอดขายสะสมทั้งปี (YTD)
             </CardTitle>
           </CardHeader>
 
           <CardContent>
+            {/* Main Amount */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 shadow-inner">
                 <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" />
@@ -293,7 +301,29 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
             </div>
 
-            <div className="mt-4 sm:mt-6 flex items-center gap-2">
+            {/* Progress to Target */}
+            <div className="mt-3 sm:mt-4">
+              <div className="flex justify-between text-[10px] sm:text-xs text-slate-500 mb-1 sm:mb-1.5">
+                <span>
+                  {ytd.target > 0
+                    ? Math.round((ytd.total / ytd.target) * 100)
+                    : 0}
+                  %
+                </span>
+                <span>เป้าหมาย: {formatCompact(ytd.target)}</span>
+              </div>
+              <Progress
+                value={
+                  ytd.target > 0
+                    ? Math.min((ytd.total / ytd.target) * 100, 100)
+                    : 0
+                }
+                className="h-2 sm:h-2.5 rounded-full bg-amber-100 [&>div]:bg-gradient-to-r [&>div]:from-amber-400 [&>div]:to-orange-500 [&>div]:rounded-full"
+              />
+            </div>
+
+            {/* Growth & Remaining Info */}
+            <div className="mt-3 sm:mt-4 flex items-center justify-between">
               <div
                 className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold ${
                   ytd.growthPercent >= 0
@@ -308,10 +338,23 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 )}
                 {ytd.growthPercent >= 0 ? "+" : ""}
                 {ytd.growthPercent}%
+                <span className="text-slate-400 font-normal ml-1">
+                  จากปีที่แล้ว
+                </span>
               </div>
-              <span className="text-[10px] sm:text-xs text-slate-500">
-                จากปีที่แล้ว
-              </span>
+              <div className="text-right">
+                <p className="text-[10px] sm:text-xs text-slate-500">คงเหลือ</p>
+                <p
+                  className={`text-xs sm:text-sm font-bold ${
+                    ytd.total >= ytd.target
+                      ? "text-emerald-600"
+                      : "text-amber-600"
+                  }`}
+                >
+                  {ytd.total >= ytd.target ? "+" : "-"}
+                  {formatCompact(Math.abs(ytd.target - ytd.total))}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

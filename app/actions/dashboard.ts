@@ -27,6 +27,7 @@ export interface DashboardData {
   // YTD
   ytd: {
     total: number;
+    target: number;
     growthPercent: number;
   };
 
@@ -388,6 +389,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
     ytd: {
       total: ytdTotal,
+      target: Math.round(ytdTotal * 1.2) || 10000000, // 20% above current or 10M default
       growthPercent: Math.round(ytdGrowth * 10) / 10,
     },
     productGroupData:
