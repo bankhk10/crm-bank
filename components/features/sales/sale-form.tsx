@@ -425,6 +425,7 @@ export function SaleForm({
         priceModified: false,
       },
     ]);
+    setFieldErrors((prev) => ({ ...prev, items: "" }));
   };
 
   // Remove item
@@ -479,8 +480,10 @@ export function SaleForm({
       newErrors.push("กรุณาเลือกพนักงานขาย");
       newFieldErrors.employeeId = "กรุณาเลือกพนักงานขาย";
     }
-    if (items.length === 0)
+    if (items.length === 0) {
       newErrors.push("กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ");
+      newFieldErrors.items = "กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ";
+    }
     if (!saleDate) {
       newErrors.push("กรุณาระบุวันที่ขาย");
       newFieldErrors.saleDate = "กรุณาระบุวันที่ขาย";
@@ -499,6 +502,7 @@ export function SaleForm({
     items.forEach((item, index) => {
       if (!item.productId) {
         newErrors.push(`รายการที่ ${index + 1}: กรุณาเลือกสินค้า`);
+        newFieldErrors[`item_${index}_productId`] = "กรุณาเลือกสินค้า";
       }
       if (item.quantity < 0) {
         newErrors.push(`รายการที่ ${index + 1}: จำนวนต้องไม่ติดลบ`);
@@ -1137,10 +1141,14 @@ export function SaleForm({
           onClick={handleAddItem}
           className="bg-white hover:bg-gray-100 text-orange-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
         >
-          <Plus className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
+          <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           เพิ่มรายการ
         </Button>
       </div>
+
+      {fieldErrors.items && (
+        <p className="text-sm text-red-600 mt-2">{fieldErrors.items}</p>
+      )}
 
       <div className="space-y-4 mt-6">
         {items.map((item, index) => {
@@ -1165,9 +1173,13 @@ export function SaleForm({
                   <FormCombobox
                     label="สินค้า"
                     value={item.productId}
-                    onChange={(val) =>
-                      handleUpdateItem(index, "productId", val)
-                    }
+                    onChange={(val) => {
+                      handleUpdateItem(index, "productId", val);
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        [`item_${index}_productId`]: "",
+                      }));
+                    }}
                     options={products.map((product) => ({
                       value: product.id,
                       label: `${product.name} - ${product.productCode}`,
@@ -1175,6 +1187,8 @@ export function SaleForm({
                     placeholder="เลือกสินค้า"
                     searchPlaceholder="ค้นหาสินค้า..."
                     emptyText="ไม่พบสินค้า"
+                    required
+                    error={fieldErrors[`item_${index}_productId`]}
                   />
                 </div>
 
