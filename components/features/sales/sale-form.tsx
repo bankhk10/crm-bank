@@ -454,7 +454,8 @@ export function SaleForm({
 
     // Check if price was modified
     if (field === "unitPrice") {
-      newItems[index].priceModified = value !== newItems[index].originalPrice;
+      newItems[index].priceModified =
+        Number(value) !== Number(newItems[index].originalPrice);
     }
 
     setItems(newItems);
