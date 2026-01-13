@@ -51,14 +51,14 @@ export async function allocateStock(
     for (const item of sale.items) {
       const remainingQtyToDeduct = item.quantity;
 
-      // Fetch available lots ordered by importDate ASC (FIFO)
+      // Fetch available lots ordered by lotNumber ASC (lowest LOT number first)
       const lots = await client.productStockLot.findMany({
         where: {
           productId: item.productId,
           isUsed: false,
           quantity: { gt: 0 },
         },
-        orderBy: { importDate: "asc" },
+        orderBy: { lotNumber: "asc" },
       });
 
       // Calculate total available
@@ -194,7 +194,7 @@ export async function releaseStock(
           productId: item.productId,
           isUsed: false,
         },
-        orderBy: { importDate: "asc" },
+        orderBy: { lotNumber: "asc" },
       });
 
       if (lot) {
@@ -207,7 +207,7 @@ export async function releaseStock(
       } else {
         const anyLot = await client.productStockLot.findFirst({
           where: { productId: item.productId },
-          orderBy: { importDate: "desc" },
+          orderBy: { lotNumber: "desc" },
         });
 
         if (anyLot) {
