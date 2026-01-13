@@ -1320,17 +1320,6 @@ export function SaleForm({
                   disabled
                   readOnly
                 />
-
-                {product && (
-                  <div className="mx-4 mt-4">
-                    <label className="text-sm text-gray-500 block mb-1">
-                      คงเหลือ
-                    </label>
-                    <Badge variant="outline">
-                      {product.stockQuantity || 0} {product.unit || ""}
-                    </Badge>
-                  </div>
-                )}
               </div>
 
               {item.priceModified && (

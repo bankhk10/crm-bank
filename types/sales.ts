@@ -100,6 +100,7 @@ export interface SaleDetailResponse {
 export interface StockWarning {
   productId: string;
   productName: string;
+  productCode: string; // Added for display
   requested: number;
   available: number;
   reserved: number;

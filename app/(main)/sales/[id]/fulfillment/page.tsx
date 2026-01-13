@@ -29,6 +29,8 @@ import DatePicker from "@/components/custom/DatePicker";
 import { usePermission } from "@/hooks/use-permission";
 import { PaymentTermLabels, SaleStatusLabels } from "@/types/sales";
 import type { SaleDetailResponse, StockWarning } from "@/types/sales";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
 
 const FULFILLMENT_STATUSES = [
   "APPROVED",
@@ -217,35 +219,6 @@ export default function FulfillmentPage({
         </Alert>
       )}
 
-      {/* Stock Warning Alert */}
-      {stockWarnings.length > 0 && (
-        <Alert className="border-amber-300 bg-amber-50 shadow-md animate-in slide-in-from-top-2">
-          <AlertCircle className="h-5 w-5 text-amber-600" />
-          <AlertDescription className="ml-2">
-            <div className="space-y-2">
-              <p className="text-amber-800 font-semibold">
-                ⚠️ สต็อกสินค้าไม่เพียงพอ - ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้
-              </p>
-              <ul className="text-amber-700 text-sm space-y-1">
-                {stockWarnings.map((warning) => (
-                  <li
-                    key={warning.productId}
-                    className="flex items-center gap-2"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                    <span className="font-medium">{warning.productName}</span>
-                    <span>
-                      - ต้องการ: {warning.requested} | คงเหลือ:{" "}
-                      {warning.available}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Sale Summary Card */}
       <Card className="py-0! rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
@@ -280,7 +253,7 @@ export default function FulfillmentPage({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 sm:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl p-5 border border-purple-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-purple-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
@@ -292,6 +265,30 @@ export default function FulfillmentPage({
               </div>
               <p className="font-bold text-gray-900 text-base sm:text-lg">
                 ฿{Number(sale.totalAmount).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="group bg-gradient-to-br from-pink-50 to-pink-100/50 rounded-2xl p-5 border border-pink-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-pink-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                  <Calendar className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-sm text-pink-700 font-bold uppercase tracking-wide">
+                  {sale.deliveryMethod === "CUSTOMER_PICKUP"
+                    ? "วันที่มารับสินค้า"
+                    : sale.deliveryMethod === "SALES_DELIVERY"
+                    ? "วันที่ต้องการให้ส่งของ"
+                    : "วันที่ต้องการของ"}
+                </span>
+              </div>
+              <p className="font-bold text-gray-900 text-base sm:text-lg">
+                {sale.requestedDeliveryDate
+                  ? (() => {
+                      const date = new Date(sale.requestedDeliveryDate);
+                      const year = date.getFullYear() + 543;
+                      return format(date, `d MMM ${year}`, { locale: th });
+                    })()
+                  : "-"}
               </p>
             </div>
 
@@ -348,6 +345,37 @@ export default function FulfillmentPage({
           </div>
         </CardContent>
       </Card>
+
+      {/* Stock Warning Alert */}
+      {stockWarnings.length > 0 && (
+        <Alert className="border-amber-300 bg-amber-50 shadow-md animate-in slide-in-from-top-2">
+          <AlertCircle className="h-5 w-5 text-amber-600" />
+          <AlertDescription className="ml-2">
+            <div className="space-y-2">
+              <p className="text-amber-800 font-semibold">
+                ⚠️ สต็อกสินค้าไม่เพียงพอ - ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้
+              </p>
+              <ul className="text-amber-700 text-sm space-y-1">
+                {stockWarnings.map((warning) => (
+                  <li
+                    key={warning.productId}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                    <span className="font-medium">
+                      {warning.productName} - {warning.productCode}
+                    </span>
+                    <span>
+                      - ต้องการ: {warning.requested} | คงเหลือ:{" "}
+                      {warning.available}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Input Card with Modern Design */}

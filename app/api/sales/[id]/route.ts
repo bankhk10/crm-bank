@@ -147,6 +147,7 @@ export async function GET(
         stockWarnings.push({
           productId: item.product.id,
           productName: item.product.name,
+          productCode: item.product.productCode,
           requested: item.quantity,
           available: Math.max(0, displayAvailable), // Don't show negative
           reserved: item.quantity,
