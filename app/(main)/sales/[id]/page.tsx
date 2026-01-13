@@ -127,6 +127,7 @@ export default function SaleDetailPage({
 
   // Build shipping address display
   // If deliveryMethod is CUSTOMER_PICKUP, show pickup company address
+  // If deliveryMethod is COURIER, show the stored shippingAddress (address for courier)
   // If useCustomShipping is true, use the stored shippingAddress
   // Otherwise, build from customer's shipping address fields
   const getDisplayShippingAddress = () => {
@@ -149,7 +150,12 @@ export default function SaleDetailPage({
         : "ตามที่อยู่สถานที่รับสินค้า";
     }
 
-    // For custom shipping address
+    // For COURIER, show the stored shipping address (address for courier company)
+    if ((sale as any).deliveryMethod === "COURIER" && sale.shippingAddress) {
+      return sale.shippingAddress;
+    }
+
+    // For custom shipping address (SALES_DELIVERY with custom address)
     if ((sale as any).useCustomShipping && sale.shippingAddress) {
       return sale.shippingAddress;
     }
