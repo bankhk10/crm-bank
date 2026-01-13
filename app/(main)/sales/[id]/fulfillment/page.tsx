@@ -253,7 +253,8 @@ export default function FulfillmentPage({
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 sm:p-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {/* ยอดรวมสุทธิ */}
             <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl p-5 border border-purple-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-purple-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
@@ -268,6 +269,7 @@ export default function FulfillmentPage({
               </p>
             </div>
 
+            {/* วันที่รับ/ส่งสินค้า */}
             <div className="group bg-gradient-to-br from-pink-50 to-pink-100/50 rounded-2xl p-5 border border-pink-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-pink-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
@@ -292,6 +294,7 @@ export default function FulfillmentPage({
               </p>
             </div>
 
+            {/* เงื่อนไขชำระ */}
             <div className="group bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-5 border border-green-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-green-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
@@ -312,20 +315,7 @@ export default function FulfillmentPage({
               </Badge>
             </div>
 
-            <div className="group bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 bg-blue-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
-                  <Calendar className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-sm text-blue-700 font-bold uppercase tracking-wide">
-                  เครดิต (วัน)
-                </span>
-              </div>
-              <p className="font-bold text-gray-900 text-base sm:text-lg">
-                {sale.creditDays || 0} วัน
-              </p>
-            </div>
-
+            {/* สถานะปัจจุบัน */}
             <div className="group bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-5 border border-orange-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2.5 bg-orange-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
