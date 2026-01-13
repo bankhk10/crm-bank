@@ -28,7 +28,7 @@ import {
 import DatePicker from "@/components/custom/DatePicker";
 import { usePermission } from "@/hooks/use-permission";
 import { PaymentTermLabels, SaleStatusLabels } from "@/types/sales";
-import type { SaleDetailResponse } from "@/types/sales";
+import type { SaleDetailResponse, StockWarning } from "@/types/sales";
 
 const FULFILLMENT_STATUSES = [
   "APPROVED",
@@ -52,6 +52,7 @@ export default function FulfillmentPage({
   const { allowed, isLoading: permissionLoading } = usePermission("sale.edit");
 
   const [saleData, setSaleData] = useState<SaleDetailResponse | null>(null);
+  const [stockWarnings, setStockWarnings] = useState<StockWarning[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -71,6 +72,7 @@ export default function FulfillmentPage({
       })
       .then((data: SaleDetailResponse) => {
         setSaleData(data);
+        setStockWarnings(data.stockWarnings || []);
         setStatus(data.sale.status);
         if (data.sale.deliveryDate) {
           setDeliveryDate(
@@ -125,6 +127,21 @@ export default function FulfillmentPage({
     // Validate: If status is CANCELLED, notes is required
     if (status === "CANCELLED" && !notes.trim()) {
       setError("กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย");
+      setSubmitting(false);
+      return;
+    }
+
+    // Validate: If stock is insufficient, prevent delivery status
+    const deliveryStatuses = [
+      "AWAITING_DELIVERY",
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+    ];
+    if (stockWarnings.length > 0 && deliveryStatuses.includes(status)) {
+      const productNames = stockWarnings.map((w) => w.productName).join(", ");
+      setError(
+        `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`
+      );
       setSubmitting(false);
       return;
     }
@@ -196,6 +213,35 @@ export default function FulfillmentPage({
           <AlertCircle className="h-5 w-5" />
           <AlertDescription className="ml-2 text-red-800 font-medium">
             {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Stock Warning Alert */}
+      {stockWarnings.length > 0 && (
+        <Alert className="border-amber-300 bg-amber-50 shadow-md animate-in slide-in-from-top-2">
+          <AlertCircle className="h-5 w-5 text-amber-600" />
+          <AlertDescription className="ml-2">
+            <div className="space-y-2">
+              <p className="text-amber-800 font-semibold">
+                ⚠️ สต็อกสินค้าไม่เพียงพอ - ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้
+              </p>
+              <ul className="text-amber-700 text-sm space-y-1">
+                {stockWarnings.map((warning) => (
+                  <li
+                    key={warning.productId}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                    <span className="font-medium">{warning.productName}</span>
+                    <span>
+                      - ต้องการ: {warning.requested} | คงเหลือ:{" "}
+                      {warning.available}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </AlertDescription>
         </Alert>
       )}
@@ -332,18 +378,43 @@ export default function FulfillmentPage({
                     <SelectValue placeholder="เลือกสถานะ" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    {FULFILLMENT_STATUSES.map((st) => (
-                      <SelectItem key={st} value={st} className="rounded-lg">
-                        {SaleStatusLabels[
-                          st as keyof typeof SaleStatusLabels
-                        ] || st}
-                      </SelectItem>
-                    ))}
+                    {FULFILLMENT_STATUSES.map((st) => {
+                      // Disable delivery-related statuses if stock is insufficient
+                      const deliveryStatuses = [
+                        "AWAITING_DELIVERY",
+                        "DELIVERED",
+                        "DELIVERY_COMPLETED",
+                      ];
+                      const isDeliveryStatus = deliveryStatuses.includes(st);
+                      const isDisabled =
+                        isDeliveryStatus && stockWarnings.length > 0;
+
+                      return (
+                        <SelectItem
+                          key={st}
+                          value={st}
+                          className={`rounded-lg ${
+                            isDisabled ? "opacity-50" : ""
+                          }`}
+                          disabled={isDisabled}
+                        >
+                          {SaleStatusLabels[
+                            st as keyof typeof SaleStatusLabels
+                          ] || st}
+                          {isDisabled && " (สต็อกไม่พอ)"}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-slate-500 flex items-center gap-1.5">
                   <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
                   เลือกสถานะปัจจุบันของรายการขาย
+                  {stockWarnings.length > 0 && (
+                    <span className="text-amber-600 font-medium ml-2">
+                      (สถานะจัดส่งถูกปิดเนื่องจากสต็อกไม่เพียงพอ)
+                    </span>
+                  )}
                 </p>
               </div>
 

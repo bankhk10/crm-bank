@@ -52,6 +52,7 @@ export async function GET(
                 stockLots: {
                   where: { isUsed: false },
                 },
+                stock: true, // Include ProductStock for accurate available quantity
               },
             },
           },
@@ -69,30 +70,88 @@ export async function GET(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
+    // Check if this sale has been approved (stock already allocated)
+    const isApprovedOrder = [
+      "APPROVED",
+      "AWAITING_PAYMENT",
+      "PAID",
+      "AWAITING_DELIVERY",
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+    ].includes(sale.status);
+
     // Calculate stock and price warnings
     const stockWarnings = [];
     const priceWarnings = [];
 
     for (const item of sale.items) {
-      const totalStock = item.product.stockLots.reduce(
-        (sum: number, lot: any) => sum + lot.quantity,
-        0
-      );
+      // Use ProductStock if available, otherwise sum from stockLots
+      const productStock = (
+        item.product as {
+          stock?: { availableQuantity: number; physicalBalance: number };
+        }
+      ).stock;
 
-      if (totalStock < item.quantity) {
+      // Get the current available quantity from ProductStock
+      // If this order is approved, the stock was already deducted, so we need to check if
+      // the remaining available + what was reserved for this order meets the requirement
+      let availableStock: number;
+
+      if (productStock) {
+        // availableQuantity from ProductStock (already reflects all deductions)
+        availableStock = productStock.availableQuantity;
+
+        // If this is an approved order, the stock for this order has already been allocated
+        // So we need to add back this order's quantity to see the "original" available
+        // before this order was placed - but actually for warning purposes, we want to show
+        // what's TRULY available now for shipping
+        // If availableQuantity is negative, it means there's a backorder
+      } else {
+        // Fallback: sum from stockLots
+        availableStock = item.product.stockLots.reduce(
+          (sum: number, lot: { quantity: number }) => sum + lot.quantity,
+          0
+        );
+      }
+
+      // For an approved order: if availableQuantity < 0, there's insufficient stock
+      // The stock for this order was supposed to be allocated, but if available is negative,
+      // it means the full quantity couldn't be met
+      //
+      // For checking if stock is sufficient for delivery:
+      // - If order is NOT yet approved: check if available >= requested
+      // - If order IS approved: check if (available + reserved_for_this_order) >= requested
+      //   But since stock is already allocated, just check if availableQuantity >= 0
+      //   A negative availableQuantity means backorder situation
+
+      let insufficientStock = false;
+      let displayAvailable = availableStock;
+
+      if (isApprovedOrder) {
+        // For approved orders, stock was allocated at approval time.
+        // If availableQuantity is negative, there's a backorder situation (shortage)
+        // For fulfillment page: we check if we can ship this order
+        insufficientStock = availableStock < 0;
+
+        // For display: show what was originally available when order was created
+        // Since stock is already allocated, add back the item quantity to show pre-allocation amount
+        displayAvailable = availableStock + item.quantity;
+      } else {
+        // For pending orders, check if current available >= requested
+        insufficientStock = availableStock < item.quantity;
+        displayAvailable = availableStock;
+      }
+
+      if (insufficientStock) {
         stockWarnings.push({
           productId: item.product.id,
           productName: item.product.name,
           requested: item.quantity,
-          available: totalStock, // This is "Remaining Stock" (Available to Sell)
-          reserved: item.quantity, // This sale IS the reservation
-          physical: totalStock + item.quantity, // What's actually in warehouse
+          available: Math.max(0, displayAvailable), // Don't show negative
+          reserved: item.quantity,
+          physical: productStock?.physicalBalance || displayAvailable,
         });
-      } else {
-        // Also verify if we want to show info even if no warning?
-        // The original code only pushed to stockWarnings if totalStock < item.quantity.
-        // But maybe we want to return stock info regardless?
-        // No, this is stockWarnings.
       }
 
       if (item.priceModified) {
