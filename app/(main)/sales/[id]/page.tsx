@@ -690,8 +690,19 @@ function ReferenceSection({
         </div>
         <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
           <span className="text-slate-500">เงื่อนไขการชำระเงิน:</span>
-          <span className="font-medium text-slate-900 truncate ml-2">
-            {paymentTerm}
+          <span className="font-medium text-slate-900 text-right ml-2">
+            {(() => {
+              const match = paymentTerm.match(/^(.+?)\s*(\(.+?\))$/);
+              if (match) {
+                return (
+                  <>
+                    <span className="block">{match[1]}</span>
+                    <span className="block text-slate-600">{match[2]}</span>
+                  </>
+                );
+              }
+              return paymentTerm;
+            })()}
           </span>
         </div>
         {creditDueDate && (
