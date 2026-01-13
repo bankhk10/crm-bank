@@ -760,7 +760,7 @@ function useColumns(
           const value = info.getValue() as Date | string;
           if (!value) return "-";
           const date = typeof value === "string" ? new Date(value) : value;
-          return format(date, "dd MMM yyyy", { locale: th });
+          return format(date, "dd MMM yyyy HH:mm น.", { locale: th });
         },
         meta: { minWidth: 110, width: 110, maxWidth: 110, align: "left" },
       },
