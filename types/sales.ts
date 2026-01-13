@@ -66,6 +66,7 @@ export interface SaleFormData {
   pickupCompanyId?: string;
   billingAddress?: string;
   shippingAddress?: string;
+  useCustomShipping?: boolean; // Flag indicating user specified custom shipping address
   items: SaleItemFormData[];
   shippingCost: number;
   otherCosts: number;

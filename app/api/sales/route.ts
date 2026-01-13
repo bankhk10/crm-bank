@@ -338,6 +338,8 @@ export async function POST(request: NextRequest) {
         pickupCompanyId: body.pickupCompanyId,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
+        // Store flag indicating user specified custom shipping address
+        useCustomShipping: body.useCustomShipping ?? false,
         subtotalAmount: new Prisma.Decimal(subtotal),
         shippingCost: new Prisma.Decimal(body.shippingCost),
         otherCosts: new Prisma.Decimal(body.otherCosts),

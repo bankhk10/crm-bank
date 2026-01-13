@@ -33,6 +33,12 @@ export default function EditSalePage({
         const sale = data.sale;
 
         // Convert to form data format
+        // Use the useCustomShipping flag from database directly
+        // Fallback to old logic for backward compatibility with existing data
+        const useCustomShipping =
+          sale.useCustomShipping ??
+          (sale.deliveryMethod === "SALES_DELIVERY" && !!sale.shippingAddress);
+
         setInitialData({
           id: sale.id,
           customerId: sale.customerId,
@@ -57,6 +63,7 @@ export default function EditSalePage({
           pickupCompanyId: sale.pickupCompanyId,
           billingAddress: sale.billingAddress || "",
           shippingAddress: sale.shippingAddress || "",
+          useCustomShipping, // Flag to indicate custom shipping was used
           items: sale.items.map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,

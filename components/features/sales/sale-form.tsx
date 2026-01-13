@@ -230,12 +230,28 @@ export function SaleForm({
   const [shippingAddress, setShippingAddress] = useState(
     initialData?.shippingAddress || ""
   );
-  const [useCustomShippingAddress, setUseCustomShippingAddress] =
-    useState(false);
+  // Determine if custom shipping address was used based on initialData
+  // Use the useCustomShipping flag from edit page or check deliveryMethod
+  const [useCustomShippingAddress, setUseCustomShippingAddress] = useState(
+    () => {
+      if (!initialData) return false;
+      // Use the explicit flag if provided (from edit page)
+      if ((initialData as any)?.useCustomShipping === true) {
+        return true;
+      }
+      const deliveryMethodValue = (initialData as any)?.deliveryMethod;
+      // For COURIER and CUSTOMER_PICKUP, the form handles it automatically
+      if (
+        deliveryMethodValue === "COURIER" ||
+        deliveryMethodValue === "CUSTOMER_PICKUP"
+      ) {
+        return true;
+      }
+      return false;
+    }
+  );
   const [customShippingAddress, setCustomShippingAddress] = useState(
-    (initialData as any)?.deliveryMethod === "COURIER"
-      ? initialData?.shippingAddress || ""
-      : ""
+    initialData?.shippingAddress || ""
   );
   const [deliveryMethod, setDeliveryMethod] = useState(
     (initialData as any)?.deliveryMethod || "SALES_DELIVERY"
@@ -353,6 +369,10 @@ export function SaleForm({
   }, [billingStreet, billingThaiAddress]);
 
   // Handle Pickup Company Selection -> Update Shipping Address
+  // Track if this is the first render for edit mode to prevent resetting custom shipping address
+  const [hasInitializedDeliveryMethod, setHasInitializedDeliveryMethod] =
+    useState(false);
+
   useEffect(() => {
     if (deliveryMethod === "CUSTOMER_PICKUP") {
       if (pickupCompanyId) {
@@ -386,25 +406,51 @@ export function SaleForm({
         setPickupCompanyId("");
       }
     } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
-      // Revert to customer logic if switching back
-      setUseCustomShippingAddress(false);
-      const shippingParts = [
-        selectedCustomer.shippingAddressLine,
-        selectedCustomer.shippingSubdistrict
-          ? `ตำบล${selectedCustomer.shippingSubdistrict}`
-          : "",
-        selectedCustomer.shippingDistrict
-          ? `อำเภอ${selectedCustomer.shippingDistrict}`
-          : "",
-        selectedCustomer.shippingProvince
-          ? `จังหวัด${selectedCustomer.shippingProvince}`
-          : "",
-        selectedCustomer.shippingPostalCode || "",
-      ].filter(Boolean);
-      setShippingAddress(shippingParts.join(" "));
-      setPickupCompanyId("");
+      // In edit mode, preserve the custom shipping address if it was set initially
+      const isInitialCustomer = initialData?.customerId === customerId;
+      const hadCustomShipping =
+        isEdit &&
+        isInitialCustomer &&
+        (initialData as any)?.useCustomShipping === true;
+
+      if (hadCustomShipping) {
+        // Edit mode with custom shipping - preserve the state, don't reset
+        if (!hasInitializedDeliveryMethod) {
+          setHasInitializedDeliveryMethod(true);
+        }
+        setPickupCompanyId("");
+        // Keep useCustomShippingAddress and customShippingAddress as initialized
+        // Do NOT call setUseCustomShippingAddress(false) here!
+      } else if (!isEdit || !isInitialCustomer) {
+        // New sale or customer changed - reset to customer default
+        setUseCustomShippingAddress(false);
+        const shippingParts = [
+          selectedCustomer.shippingAddressLine,
+          selectedCustomer.shippingSubdistrict
+            ? `ตำบล${selectedCustomer.shippingSubdistrict}`
+            : "",
+          selectedCustomer.shippingDistrict
+            ? `อำเภอ${selectedCustomer.shippingDistrict}`
+            : "",
+          selectedCustomer.shippingProvince
+            ? `จังหวัด${selectedCustomer.shippingProvince}`
+            : "",
+          selectedCustomer.shippingPostalCode || "",
+        ].filter(Boolean);
+        setShippingAddress(shippingParts.join(" "));
+        setPickupCompanyId("");
+      }
     }
-  }, [pickupCompanyId, deliveryMethod, companies, selectedCustomer]);
+  }, [
+    pickupCompanyId,
+    deliveryMethod,
+    companies,
+    selectedCustomer,
+    isEdit,
+    initialData,
+    customerId,
+    hasInitializedDeliveryMethod,
+  ]);
 
   // Calculate totals
   const subtotal = items.reduce(
@@ -606,9 +652,19 @@ export function SaleForm({
         requestedDeliveryDate: requestedDeliveryDate || undefined,
         deliveryDate: deliveryDate || undefined,
         billingAddress,
-        shippingAddress: useCustomShippingAddress
-          ? customShippingAddress
-          : shippingAddress,
+        // Only send custom shipping address when checkbox is checked (for SALES_DELIVERY)
+        // For other delivery methods, send the appropriate address
+        shippingAddress:
+          deliveryMethod === "SALES_DELIVERY"
+            ? useCustomShippingAddress
+              ? customShippingAddress
+              : undefined
+            : useCustomShippingAddress
+            ? customShippingAddress
+            : shippingAddress,
+        // Explicitly pass the useCustomShipping flag
+        useCustomShipping:
+          deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress,
         deliveryMethod,
         pickupCompanyId:
           deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,

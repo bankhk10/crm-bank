@@ -545,6 +545,7 @@ model Sale {
   // Addresses
   billingAddress        String?
   shippingAddress       String?
+  useCustomShipping     Boolean     @default(false) // Flag to indicate if user specified custom shipping address
   
   // Amounts
   subtotalAmount        Decimal     @db.Decimal(15, 2)
