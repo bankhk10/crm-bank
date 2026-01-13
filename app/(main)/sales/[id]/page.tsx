@@ -605,43 +605,6 @@ function WarningsSection({ stockWarnings, priceWarnings, sale }: any) {
 
   return (
     <div className="space-y-3 mb-6 sm:mb-8 print:hidden">
-      {stockWarnings.length > 0 && (
-        <Alert variant="destructive" className="bg-red-50 border-red-200">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertTitle className="text-red-800">
-            แจ้งเตือนสินค้าคงคลัง
-          </AlertTitle>
-          <AlertDescription className="text-red-700">
-            <ul className="list-disc pl-5 mt-1 space-y-1 text-sm">
-              {stockWarnings.map((w: any, i: number) => (
-                <li key={i}>
-                  <span className="font-medium">{w.productName}</span>:
-                  สินค้าไม่เพียงพอ (มี {w.available} / ต้องการ {w.requested})
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-      {priceWarnings.length > 0 && (
-        <Alert className="bg-yellow-50 border-yellow-200">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <AlertTitle className="text-yellow-800">แจ้งเตือนราคาขาย</AlertTitle>
-          <AlertDescription className="text-yellow-700">
-            <ul className="list-disc pl-5 mt-1 space-y-1 text-sm">
-              {priceWarnings.map((w: any, i: number) => (
-                <li key={i}>
-                  <span className="font-medium">{w.productName}</span>:
-                  มีการแก้ไขราคาจาก ฿{w.originalPrice.toLocaleString()} เป็น ฿
-                  {w.modifiedPrice.toLocaleString()} (
-                  {w.percentageDiff > 0 ? "+" : ""}
-                  {w.percentageDiff.toFixed(2)}%)
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
       {sale && sale.status === "REJECTED" && sale.rejectionReason && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
