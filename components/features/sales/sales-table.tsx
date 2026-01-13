@@ -760,9 +760,10 @@ function useColumns(
           const value = info.getValue() as Date | string;
           if (!value) return "-";
           const date = typeof value === "string" ? new Date(value) : value;
-          return format(date, "dd MMM yyyy HH:mm น.", { locale: th });
+          const year = date.getFullYear() + 543;
+          return format(date, `dd MMM ${year} HH:mm น.`, { locale: th });
         },
-        meta: { minWidth: 110, width: 110, maxWidth: 110, align: "left" },
+        meta: { minWidth: 140, width: 140, maxWidth: 140, align: "left" },
       },
       {
         accessorKey: "status",
