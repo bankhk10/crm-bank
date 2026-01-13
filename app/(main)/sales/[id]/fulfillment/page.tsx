@@ -104,7 +104,13 @@ export default function FulfillmentPage({
 
   // Auto-calculate Due Date from Delivery Date
   useEffect(() => {
-    if (!saleData || !deliveryDate) return;
+    if (!saleData) return;
+
+    // If deliveryDate is not set, clear dueDate
+    if (!deliveryDate) {
+      setDueDate("");
+      return;
+    }
 
     const creditDays = saleData.sale.creditDays || 0;
     // Calculate due date regardless of term, user can edit if needed.
