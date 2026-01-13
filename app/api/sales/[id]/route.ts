@@ -44,6 +44,7 @@ export async function GET(
         employee: true,
         createdBy: true,
         approvedBy: true,
+        pickupCompany: true, // Include pickup company for CUSTOMER_PICKUP delivery method
         items: {
           include: {
             product: {

@@ -126,12 +126,34 @@ export default function SaleDetailPage({
     PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm;
 
   // Build shipping address display
+  // If deliveryMethod is CUSTOMER_PICKUP, show pickup company address
   // If useCustomShipping is true, use the stored shippingAddress
   // Otherwise, build from customer's shipping address fields
   const getDisplayShippingAddress = () => {
+    // For CUSTOMER_PICKUP, show pickup company address
+    if (
+      (sale as any).deliveryMethod === "CUSTOMER_PICKUP" &&
+      (sale as any).pickupCompany
+    ) {
+      const company = (sale as any).pickupCompany;
+      const addressParts = [
+        company.name,
+        company.addressLine,
+        company.subdistrict ? `ต.${company.subdistrict}` : "",
+        company.district ? `อ.${company.district}` : "",
+        company.province ? `จ.${company.province}` : "",
+        company.postalCode,
+      ].filter(Boolean);
+      return addressParts.length > 0
+        ? addressParts.join(" ")
+        : "ตามที่อยู่สถานที่รับสินค้า";
+    }
+
+    // For custom shipping address
     if ((sale as any).useCustomShipping && sale.shippingAddress) {
       return sale.shippingAddress;
     }
+
     // Build from customer shipping address fields (use any casting for fields not in type)
     const customer = sale.customer as any;
     const shippingParts = [
