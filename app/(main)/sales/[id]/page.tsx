@@ -254,6 +254,7 @@ export default function SaleDetailPage({
                 saleNumber={sale.saleNumber}
                 paymentTerm={paymentTermLabel}
                 creditDueDate={sale.creditDueDate}
+                deliveryDate={(sale as any).deliveryDate}
                 paymentDate={sale.paymentDate}
                 employeeName={sale.employee.name}
               />
@@ -428,15 +429,21 @@ export default function SaleDetailPage({
                 label="เงื่อนไขชำระเงิน"
                 value={paymentTermLabel}
               />
-              {sale.creditDueDate && (
-                <DetailItem
-                  icon={<Calendar className="h-4 w-4" />}
-                  label="วันที่ครบกำหนด"
-                  value={format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
-                    locale: th,
-                  })}
-                />
-              )}
+              <DetailItem
+                icon={<Calendar className="h-4 w-4" />}
+                label="วันที่จัดส่งของ"
+                value={
+                  (sale as any).deliveryDate
+                    ? format(
+                        new Date((sale as any).deliveryDate),
+                        "dd/MM/yyyy",
+                        {
+                          locale: th,
+                        }
+                      )
+                    : "-"
+                }
+              />
               {sale.paymentDate && (
                 <DetailItem
                   icon={<Calendar className="h-4 w-4" />}
@@ -729,6 +736,7 @@ function ReferenceSection({
   saleNumber,
   paymentTerm,
   creditDueDate,
+  deliveryDate,
   paymentDate,
   employeeName,
 }: any) {
@@ -767,14 +775,14 @@ function ReferenceSection({
             })()}
           </span>
         </div>
-        {creditDueDate && (
-          <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-            <span className="text-slate-500">วันที่ครบกำหนด:</span>
-            <span className="font-medium">
-              {format(new Date(creditDueDate), "dd/MM/yyyy", { locale: th })}
-            </span>
-          </div>
-        )}
+        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
+          <span className="text-slate-500">วันที่จัดส่งของ:</span>
+          <span className="font-medium">
+            {deliveryDate
+              ? format(new Date(deliveryDate), "dd/MM/yyyy", { locale: th })
+              : "-"}
+          </span>
+        </div>
         {paymentDate && (
           <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
             <span className="text-slate-500">วันที่ชำระเงิน:</span>
