@@ -638,6 +638,22 @@ export function SaleForm({
     // Submit
     setLoading(true);
     try {
+      // Combine saleDate with current time for accurate timestamp
+      const now = new Date();
+      const saleDateWithTime = (() => {
+        if (!saleDate) return saleDate;
+        const [year, month, day] = saleDate.split("-").map(Number);
+        const dateWithTime = new Date(
+          year,
+          month - 1,
+          day,
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds()
+        );
+        return dateWithTime.toISOString();
+      })();
+
       await onSubmit({
         customerId,
         employeeId,
@@ -648,7 +664,7 @@ export function SaleForm({
         promotionalCreditUsed: usePromotionalCredit
           ? promotionalCreditUsed
           : undefined,
-        saleDate,
+        saleDate: saleDateWithTime,
         requestedDeliveryDate: requestedDeliveryDate || undefined,
         deliveryDate: deliveryDate || undefined,
         billingAddress,
