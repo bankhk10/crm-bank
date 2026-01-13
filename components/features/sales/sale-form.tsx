@@ -399,10 +399,17 @@ export function SaleForm({
     } else if (deliveryMethod === "COURIER") {
       // Allow manual input for courier
       setUseCustomShippingAddress(true);
-      // Clear address if switching from Pickup (indicated by pickupCompanyId)
-      if (pickupCompanyId) {
+      // Only clear address if actually switching from Pickup
+      // Check if the initial delivery method was COURIER - if so, preserve the address
+      const wasInitiallyCourier =
+        (initialData as any)?.deliveryMethod === "COURIER";
+      if (pickupCompanyId && !wasInitiallyCourier) {
+        // Switching from PICKUP to COURIER - clear the pickup company address
         setCustomShippingAddress("");
         setShippingAddress("");
+        setPickupCompanyId("");
+      } else if (pickupCompanyId && wasInitiallyCourier) {
+        // Was initially COURIER, just clear pickupCompanyId but keep the address
         setPickupCompanyId("");
       }
     } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
@@ -669,9 +676,12 @@ export function SaleForm({
         deliveryDate: deliveryDate || undefined,
         billingAddress,
         // Only send custom shipping address when checkbox is checked (for SALES_DELIVERY)
-        // For other delivery methods, send the appropriate address
+        // For COURIER, always send customShippingAddress
+        // For CUSTOMER_PICKUP, send the company address
         shippingAddress:
-          deliveryMethod === "SALES_DELIVERY"
+          deliveryMethod === "COURIER"
+            ? customShippingAddress
+            : deliveryMethod === "SALES_DELIVERY"
             ? useCustomShippingAddress
               ? customShippingAddress
               : undefined
@@ -679,8 +689,10 @@ export function SaleForm({
             ? customShippingAddress
             : shippingAddress,
         // Explicitly pass the useCustomShipping flag
+        // For COURIER, always use custom shipping (the user-entered address)
         useCustomShipping:
-          deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress,
+          deliveryMethod === "COURIER" ||
+          (deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress),
         deliveryMethod,
         pickupCompanyId:
           deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
