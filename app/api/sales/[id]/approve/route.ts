@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { allocateStock } from "@/lib/stock-service";
+import { calculateOrderExpiryDate } from "@/lib/order-expiry-service";
 import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";
 
 // POST /api/sales/[id]/approve - Approve sale
@@ -88,13 +89,18 @@ export async function POST(
       // Instead it allocates what's available and creates backorders
       const stockResult = await allocateStock(id, tx);
 
+      // Calculate order expiry date (3 days from now)
+      const approvedAt = new Date();
+      const orderExpiryDate = calculateOrderExpiryDate(approvedAt);
+
       // Approve sale
       const updatedSaleData = await tx.sale.update({
         where: { id },
         data: {
           status: nextStatus,
           approvedById: session.user.id,
-          approvedAt: new Date(),
+          approvedAt,
+          orderExpiryDate,
           statusHistory: {
             create: {
               status: nextStatus,

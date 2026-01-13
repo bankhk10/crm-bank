@@ -50,9 +50,49 @@ export async function POST(
       }
     }
 
-    // 2. Delivery Date
+    // 2. Delivery Date - with update count tracking
+    let shouldMarkOverdue = false; // Flag to mark as OVERDUE if exceeds max updates
+
     if (deliveryDate !== undefined) {
-      updateData.deliveryDate = deliveryDate ? new Date(deliveryDate) : null;
+      const newDate = deliveryDate ? new Date(deliveryDate) : null;
+      const oldDate = sale.deliveryDate;
+      const isAddingDate = !oldDate && newDate;
+      const isChangingDate =
+        oldDate && newDate && oldDate.getTime() !== newDate.getTime();
+
+      // Check if delivery is locked
+      if ((isAddingDate || isChangingDate) && sale.isDeliveryLocked) {
+        return NextResponse.json(
+          { error: "ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่จัดส่งแล้ว" },
+          { status: 400 }
+        );
+      }
+
+      // Increment update count only when changing existing date (not first time setting)
+      if (isChangingDate) {
+        const maxUpdates = sale.maxDeliveryUpdates ?? 3;
+        const newCount = sale.deliveryUpdateCount + 1;
+
+        if (newCount > maxUpdates) {
+          // Exceeds max updates → Mark as OVERDUE immediately
+          shouldMarkOverdue = true;
+          updateData.status = "OVERDUE";
+          updateData.isDeliveryLocked = true;
+          updateData.deliveryUpdateCount = newCount;
+          updateData.lastDeliveryUpdate = new Date();
+          // Don't update delivery date - keep it as is
+        } else {
+          updateData.deliveryUpdateCount = newCount;
+          updateData.lastDeliveryUpdate = new Date();
+          updateData.deliveryDate = newDate;
+        }
+      } else if (isAddingDate) {
+        // First time setting delivery date
+        updateData.lastDeliveryUpdate = new Date();
+        updateData.deliveryDate = newDate;
+      } else {
+        updateData.deliveryDate = newDate;
+      }
     }
 
     // 3. Credit Due Date
@@ -72,18 +112,30 @@ export async function POST(
 
     // Add history if status changed
     if (updateData.status && updateData.status !== sale.status) {
+      // Custom notes for OVERDUE status
+      const historyNotes =
+        updateData.status === "OVERDUE"
+          ? `ใบคำสั่งซื้อถูกปิดการแก้ไขเนื่องจากอัปเดตวันที่จัดส่งเกิน ${
+              sale.maxDeliveryUpdates ?? 3
+            } ครั้ง`
+          : "Updated from fulfillment management";
+
       updateData.statusHistory = {
         create: {
           status: updateData.status,
-          notes: "Updated from fulfillment management",
+          notes: historyNotes,
           changedById: session.user.id,
         },
       };
     }
 
     const updatedSale = await prisma.$transaction(async (tx) => {
-      // Handle CANCELLED status: Release stock and restore credit limit
-      if (status === "CANCELLED" && sale.status !== "CANCELLED") {
+      // Handle CANCELLED or OVERDUE status: Release stock and restore credit limit
+      const shouldReleaseResources =
+        (status === "CANCELLED" && sale.status !== "CANCELLED") ||
+        (shouldMarkOverdue && sale.status !== "OVERDUE");
+
+      if (shouldReleaseResources) {
         // 1. Release stock (return to available)
         await releaseStock(id, tx);
 

@@ -165,6 +165,7 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
   DELIVERED: "จัดส่งแล้ว",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
+  OVERDUE: "เลยกำหนด",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
@@ -188,6 +189,7 @@ export const getSaleStatusColor = (status: SaleStatus): string => {
     DELIVERED: "bg-purple-100 text-purple-800",
     DELIVERY_COMPLETED: "bg-cyan-100 text-cyan-800",
     EXPIRED: "bg-gray-100 text-gray-800",
+    OVERDUE: "bg-orange-100 text-orange-800",
     CANCELLED: "bg-red-100 text-red-800",
     COMPLETED: "bg-emerald-100 text-emerald-800",
   };

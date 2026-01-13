@@ -506,7 +506,8 @@ enum SaleStatus {
   AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
   DELIVERED         // จัดส่งแล้ว
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
-  EXPIRED           // หมดอายุ
+  EXPIRED           // หมดอายุ (ไม่ระบุวันส่ง + เลย 3 วัน)
+  OVERDUE           // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)
   CANCELLED         // ยกเลิก
   COMPLETED         // เสร็จสิ้น
 }
@@ -537,7 +538,11 @@ model Sale {
   requestedDeliveryDate DateTime?  // วันที่ต้องการของ
   deliveryDate          DateTime?
   actualDeliveryDate    DateTime?
-  deliveryUpdateCount   Int         @default(0)
+  deliveryUpdateCount   Int         @default(0)  // จำนวนครั้งที่อัปเดตวันส่ง
+  maxDeliveryUpdates    Int         @default(3)  // จำนวนครั้งสูงสุดที่อนุญาตให้แก้ไขวันส่ง
+  isDeliveryLocked      Boolean     @default(false) // ล็อคการแก้ไขใบสั่งซื้อ
+  orderExpiryDate       DateTime?   // วันหมดอายุใบคำสั่งซื้อ (approvedAt + 3 วัน)
+  lastDeliveryUpdate    DateTime?   // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String?     // SALES_DELIVERY or CUSTOMER_PICKUP
   pickupCompanyId       String?
   pickupCompany         Company?    @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
