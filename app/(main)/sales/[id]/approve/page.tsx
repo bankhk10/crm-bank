@@ -347,13 +347,27 @@ export default function ApproveSalePage({
 
       {/* Stock Warning */}
       {stockWarnings.length > 0 && (
-        <Alert className="border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 text-sm p-4 leading-relaxed">
-          <Package className="mr-2" /> สินค้าบางรายการสต็อกไม่พอ
-          {stockWarnings.map((w, i) => (
-            <p key={i} className="mt-1">
-              • {w.productName} เหลือ {w.available} ต้องใช้ {w.requested}
-            </p>
-          ))}
+        <Alert className="border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 text-sm p-4 leading-relaxed block">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="h-4 w-4 flex-shrink-0" />
+            <span className="font-semibold">สินค้าบางรายการสต็อกไม่พอ</span>
+          </div>
+          <div className="space-y-1 ml-6">
+            {stockWarnings.map((w, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-x-1">
+                <span>•</span>
+                <span className="font-medium">{w.productName}</span>
+                <span>เหลือ</span>
+                <span className="font-semibold text-red-600">
+                  {w.available}
+                </span>
+                <span>ต้องใช้</span>
+                <span className="font-semibold text-red-600">
+                  {w.requested}
+                </span>
+              </div>
+            ))}
+          </div>
         </Alert>
       )}
 
