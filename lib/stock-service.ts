@@ -2,20 +2,41 @@ import { db as prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
 /**
+ * Result of stock allocation
+ */
+export interface StockAllocationResult {
+  success: boolean;
+  backorders: {
+    productId: string;
+    productName?: string;
+    requested: number;
+    allocated: number;
+    backorder: number;
+  }[];
+}
+
+/**
  * Allocates stock for a sale using FIFO strategy.
  * Decrements quantity from ProductStockLot.
- * Throws error if insufficient stock.
+ * If stock is insufficient, allocates what's available and creates a "backorder" (reserved quantity).
+ * Never throws error for insufficient stock - allows sale to proceed with partial allocation.
  */
 export async function allocateStock(
   saleId: string,
   tx?: Prisma.TransactionClient
-) {
+): Promise<StockAllocationResult> {
   const db = tx || prisma;
 
   const sale = await db.sale.findUnique({
     where: { id: saleId },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: {
+            select: { name: true },
+          },
+        },
+      },
     },
   });
 
@@ -23,12 +44,13 @@ export async function allocateStock(
     throw new Error("Sale not found");
   }
 
+  const backorders: StockAllocationResult["backorders"] = [];
+
   // Define the logic as a reusable function or execute directly
   const allocate = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      let remainingQtyToDeduct = item.quantity;
+      const remainingQtyToDeduct = item.quantity;
 
-      // unique id/query for finding lots
       // Fetch available lots ordered by importDate ASC (FIFO)
       const lots = await client.productStockLot.findMany({
         where: {
@@ -39,18 +61,33 @@ export async function allocateStock(
         orderBy: { importDate: "asc" },
       });
 
-      // Calculate total available to verify first
+      // Calculate total available
       const totalAvailable = lots.reduce((sum, lot) => sum + lot.quantity, 0);
-      if (totalAvailable < remainingQtyToDeduct) {
-        throw new Error(
-          `Insufficient stock for product ${item.productId}. Required: ${remainingQtyToDeduct}, Available: ${totalAvailable}`
-        );
+
+      // Calculate how much we can actually allocate vs backorder
+      const canAllocate = Math.min(totalAvailable, remainingQtyToDeduct);
+      const backorderQty = Math.max(0, remainingQtyToDeduct - totalAvailable);
+
+      // Track backorder if any
+      if (backorderQty > 0) {
+        backorders.push({
+          productId: item.productId,
+          productName: (item as { product?: { name?: string } }).product?.name,
+          requested: item.quantity,
+          allocated: canAllocate,
+          backorder: backorderQty,
+        });
       }
 
+      // Deduct from physical lots (FIFO) - only what's available
+      let deductedFromLots = 0;
       for (const lot of lots) {
-        if (remainingQtyToDeduct <= 0) break;
+        if (deductedFromLots >= canAllocate) break;
 
-        const deduction = Math.min(lot.quantity, remainingQtyToDeduct);
+        const deduction = Math.min(
+          lot.quantity,
+          canAllocate - deductedFromLots
+        );
 
         await client.productStockLot.update({
           where: { id: lot.id },
@@ -59,38 +96,49 @@ export async function allocateStock(
           },
         });
 
-        // Update ProductStock summary
-        const isRealDeduction = !!sale.deliveryDate;
+        deductedFromLots += deduction;
+      }
 
+      // Update ProductStock summary
+      const isRealDeduction = !!sale.deliveryDate;
+
+      // For the part that was allocated from lots
+      if (canAllocate > 0) {
         await client.productStock.upsert({
           where: { productId: item.productId },
           create: {
             productId: item.productId,
-            physicalBalance: isRealDeduction ? 0 : deduction, // If real deduction, started at deduction and cut to 0? Or just 0?
-            // If creating new record:
-            // Sync script should handle this, but if we create:
-            // If real deduction: Physical started as D, we subtract D -> 0. Available started D, sub D -> 0.
-            // If reserved: Physical started D. Reserved D. Available D - D = 0.
-            // Actually 'create' implies we found NO record. If we found NO record, we imply we had NO stock.
-            // But we successfully found LOTS. So there is a sync mismatch.
-            // Let's assume if upsert creates, we set it to safe baseline related to this transaction.
-            // If lots existed, physicalBalance *should* be at least deduction.
-            // But let's stick to update logic mainly.
+            physicalBalance: 0,
             availableQuantity: 0,
-            reservedQuantity: isRealDeduction ? 0 : deduction,
+            reservedQuantity: isRealDeduction ? 0 : canAllocate,
           },
           update: {
-            availableQuantity: { decrement: deduction },
+            availableQuantity: { decrement: canAllocate },
             reservedQuantity: isRealDeduction
               ? undefined
-              : { increment: deduction },
+              : { increment: canAllocate },
             physicalBalance: isRealDeduction
-              ? { decrement: deduction }
+              ? { decrement: canAllocate }
               : undefined,
           },
         });
+      }
 
-        remainingQtyToDeduct -= deduction;
+      // For backorder - reserve in reservedQuantity (negative available is allowed for backorder tracking)
+      if (backorderQty > 0) {
+        await client.productStock.upsert({
+          where: { productId: item.productId },
+          create: {
+            productId: item.productId,
+            physicalBalance: 0,
+            availableQuantity: -backorderQty, // Negative indicates backorder
+            reservedQuantity: backorderQty,
+          },
+          update: {
+            availableQuantity: { decrement: backorderQty },
+            reservedQuantity: { increment: backorderQty },
+          },
+        });
       }
     }
   };
@@ -104,7 +152,17 @@ export async function allocateStock(
     });
   }
 
-  console.log(`Stock allocated for sale ${saleId}`);
+  const hasBackorders = backorders.length > 0;
+  console.log(
+    `Stock allocated for sale ${saleId}${
+      hasBackorders ? ` with ${backorders.length} backorders` : ""
+    }`
+  );
+
+  return {
+    success: true,
+    backorders,
+  };
 }
 
 /**

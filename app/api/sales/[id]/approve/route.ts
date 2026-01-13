@@ -84,10 +84,12 @@ export async function POST(
       }
 
       // Allocate stock (Cut stock simulator)
-      await allocateStock(id, tx);
+      // Note: This no longer throws error for insufficient stock
+      // Instead it allocates what's available and creates backorders
+      const stockResult = await allocateStock(id, tx);
 
       // Approve sale
-      return await tx.sale.update({
+      const updatedSaleData = await tx.sale.update({
         where: { id },
         data: {
           status: nextStatus,
@@ -132,6 +134,8 @@ export async function POST(
           },
         },
       });
+
+      return { sale: updatedSaleData, stockResult };
     });
 
     // TODO: Send notification to sale creator
@@ -144,9 +148,9 @@ export async function POST(
       id,
       { status: sale.status, saleNumber: sale.saleNumber },
       {
-        status: updatedSale.status,
-        approvedById: updatedSale.approvedById,
-        saleNumber: updatedSale.saleNumber,
+        status: updatedSale.sale.status,
+        approvedById: updatedSale.sale.approvedById,
+        saleNumber: updatedSale.sale.saleNumber,
       },
       context,
       {
@@ -160,11 +164,15 @@ export async function POST(
       metadata: {
         saleId: id,
         saleNumber: sale.saleNumber,
-        newStatus: updatedSale.status,
+        newStatus: updatedSale.sale.status,
+        hasBackorders: updatedSale.stockResult.backorders.length > 0,
       },
     });
 
-    return NextResponse.json({ sale: updatedSale });
+    return NextResponse.json({
+      sale: updatedSale.sale,
+      backorders: updatedSale.stockResult.backorders,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to approve sale";
