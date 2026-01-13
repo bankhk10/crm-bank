@@ -125,6 +125,40 @@ export default function SaleDetailPage({
   const paymentTermLabel =
     PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm;
 
+  // Build shipping address display
+  // If useCustomShipping is true, use the stored shippingAddress
+  // Otherwise, build from customer's shipping address fields
+  const getDisplayShippingAddress = () => {
+    if ((sale as any).useCustomShipping && sale.shippingAddress) {
+      return sale.shippingAddress;
+    }
+    // Build from customer shipping address fields (use any casting for fields not in type)
+    const customer = sale.customer as any;
+    const shippingParts = [
+      customer.shippingAddressLine || customer.addressLine,
+      customer.shippingSubdistrict
+        ? `ต.${customer.shippingSubdistrict}`
+        : customer.subdistrict
+        ? `ต.${customer.subdistrict}`
+        : "",
+      customer.shippingDistrict
+        ? `อ.${customer.shippingDistrict}`
+        : customer.district
+        ? `อ.${customer.district}`
+        : "",
+      customer.shippingProvince
+        ? `จ.${customer.shippingProvince}`
+        : customer.province
+        ? `จ.${customer.province}`
+        : "",
+      customer.shippingPostalCode || customer.postalCode,
+    ].filter(Boolean);
+    return shippingParts.length > 0
+      ? shippingParts.join(" ")
+      : "ตามที่อยู่ลูกค้า";
+  };
+  const displayShippingAddress = getDisplayShippingAddress();
+
   if (sale.status === "COMPLETED") {
     return (
       <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 max-w-5xl">
@@ -184,7 +218,7 @@ export default function SaleDetailPage({
               <AddressSection
                 title="ที่อยู่จัดส่ง"
                 name={getDeliveryMethodLabel((sale as any).deliveryMethod)}
-                address={sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+                address={displayShippingAddress}
               />
 
               <ReferenceSection
@@ -416,7 +450,7 @@ export default function SaleDetailPage({
               <DetailItem
                 icon={<MapPin className="h-4 w-4" />}
                 label="ที่อยู่จัดส่ง"
-                value={sale.shippingAddress || "ตามที่อยู่ลูกค้า"}
+                value={displayShippingAddress}
               />
             </InfoCard>
           </div>
