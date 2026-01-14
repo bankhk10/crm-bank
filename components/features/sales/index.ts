@@ -16,7 +16,6 @@ export * from "./utils";
 export * from "./types";
 
 // Main Form Components
-export { SaleForm } from "./sale-form";
 export { SaleFormV2 } from "./sale-form-v2";
 
 // Table Component
