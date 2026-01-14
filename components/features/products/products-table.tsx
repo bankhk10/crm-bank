@@ -254,8 +254,8 @@ function useProductColumns(
           align: "left",
         },
         cell: ({ row }) => {
-          const totalStock =
-            row.original.physicalQuantity ?? row.original.stockQuantity ?? 0;
+          // ทั้งหมด = สต็อกกายภาพที่มีจริง (physicalQuantity)
+          const totalStock = row.original.physicalQuantity ?? 0;
           return <div className="text-sm">{totalStock.toLocaleString()}</div>;
         },
       },
@@ -288,8 +288,11 @@ function useProductColumns(
           align: "left",
         },
         cell: ({ row }) => {
-          const available = row.original.availableQuantity ?? 0;
-          return <div className="text-sm">{available.toLocaleString()}</div>;
+          // คงเหลือ = สต็อกกายภาพ - จอง
+          const physical = row.original.physicalQuantity ?? 0;
+          const reserved = row.original.reservedQuantity ?? 0;
+          const remaining = physical - reserved;
+          return <div className="text-sm">{remaining.toLocaleString()}</div>;
         },
       },
       {
@@ -530,10 +533,11 @@ function ProductsCards({
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {data.map((product) => {
-          const totalStock =
-            product.physicalQuantity ?? product.stockQuantity ?? 0;
+          // ทั้งหมด = สต็อกกายภาพที่มีจริง (physicalQuantity)
+          const totalStock = product.physicalQuantity ?? 0;
           const reserved = product.reservedQuantity ?? product.reserved ?? 0;
-          const available = product.availableQuantity ?? 0;
+          // คงเหลือ = สต็อกกายภาพ - จอง
+          const remaining = totalStock - reserved;
 
           return (
             <Card
@@ -594,7 +598,7 @@ function ProductsCards({
                   <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center">
                     <div className="text-xs text-emerald-600">คงเหลือ</div>
                     <div className="font-semibold text-emerald-700">
-                      {available.toLocaleString()}
+                      {remaining.toLocaleString()}
                     </div>
                   </div>
                 </div>

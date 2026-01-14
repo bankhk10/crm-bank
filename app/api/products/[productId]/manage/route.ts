@@ -254,7 +254,8 @@ export async function PATCH(
           where: { productId, isUsed: false },
         });
 
-        const newAvailable = allLots.reduce(
+        // Physical balance = sum of all lot quantities (actual physical stock)
+        const physicalBalance = allLots.reduce(
           (sum, lot) => sum + lot.quantity,
           0
         );
@@ -265,17 +266,20 @@ export async function PATCH(
 
         const currentReserved = currentStock?.reservedQuantity || 0;
 
+        // Available = physical - reserved (stock that can be sold to new customers)
+        const availableQuantity = physicalBalance - currentReserved;
+
         await tx.productStock.upsert({
           where: { productId },
           create: {
             productId,
-            availableQuantity: newAvailable,
+            availableQuantity: physicalBalance, // No reservations yet
             reservedQuantity: 0,
-            physicalBalance: newAvailable,
+            physicalBalance: physicalBalance,
           },
           update: {
-            availableQuantity: newAvailable,
-            physicalBalance: newAvailable + currentReserved,
+            availableQuantity: availableQuantity,
+            physicalBalance: physicalBalance,
           },
         });
       }

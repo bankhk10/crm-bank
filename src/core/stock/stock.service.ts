@@ -1,6 +1,11 @@
 /**
  * Stock Service
  * Business logic for stock management
+ *
+ * Flow:
+ * 1. On APPROVE: Reserve stock (increase reservedQuantity) but DON'T deduct from lots
+ * 2. On SET DELIVERY DATE: Deduct from lots using FIFO, decrease availableQuantity/reservedQuantity/physicalBalance
+ * 3. On REMOVE DELIVERY DATE: Return stock to lots, increase all quantities back
  */
 
 import { db as prisma } from "@/src/infrastructure/database";
@@ -9,10 +14,9 @@ import type { StockAllocationResult, BackorderItem } from "./stock.types";
 import * as StockRepository from "./stock.repository";
 
 /**
- * Allocates stock for a sale using FIFO strategy.
- * Decrements quantity from ProductStockLot.
- * If stock is insufficient, allocates what's available and creates a "backorder" (reserved quantity).
- * Never throws error for insufficient stock - allows sale to proceed with partial allocation.
+ * Reserves stock for a sale on approval.
+ * Only tracks reservation in reservedQuantity - does NOT deduct from lots.
+ * Lots will be deducted when delivery date is set via confirmStockDeduction.
  */
 export async function allocateStock(
   saleId: string,
@@ -41,9 +45,9 @@ export async function allocateStock(
 
   const allocate = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      const remainingQtyToDeduct = item.quantity;
+      const requestedQty = item.quantity;
 
-      // Fetch available lots ordered by lotNumber ASC (lowest LOT number first)
+      // Fetch available lots to check stock availability
       const lots = await StockRepository.getAvailableLots(
         item.productId,
         client
@@ -52,68 +56,33 @@ export async function allocateStock(
       // Calculate total available
       const totalAvailable = lots.reduce((sum, lot) => sum + lot.quantity, 0);
 
-      // Calculate how much we can actually allocate vs backorder
-      const canAllocate = Math.min(totalAvailable, remainingQtyToDeduct);
-      const backorderQty = Math.max(0, remainingQtyToDeduct - totalAvailable);
+      // Calculate how much we can reserve vs backorder
+      const canReserve = Math.min(totalAvailable, requestedQty);
+      const backorderQty = Math.max(0, requestedQty - totalAvailable);
 
-      // Track backorder if any
+      // Track backorder if stock is insufficient
       if (backorderQty > 0) {
         backorders.push({
           productId: item.productId,
           productName: (item as { product?: { name?: string } }).product?.name,
           requested: item.quantity,
-          allocated: canAllocate,
+          allocated: canReserve,
           backorder: backorderQty,
         });
       }
 
-      // Deduct from physical lots (FIFO) - only what's available
-      let deductedFromLots = 0;
-      for (const lot of lots) {
-        if (deductedFromLots >= canAllocate) break;
+      // DON'T deduct from lots here - that happens when delivery date is set
+      // Just reserve the stock in reservedQuantity
 
-        const deduction = Math.min(
-          lot.quantity,
-          canAllocate - deductedFromLots
-        );
-
-        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
-        deductedFromLots += deduction;
-      }
-
-      // Update ProductStock summary
-      const isRealDeduction = !!sale.deliveryDate;
-
-      // For the part that was allocated from lots
-      if (canAllocate > 0) {
+      // Update ProductStock summary - only add to reservedQuantity
+      if (requestedQty > 0) {
         await StockRepository.upsertProductStock(
           item.productId,
           {
             physicalBalance: 0,
             availableQuantity: 0,
-            reservedQuantity: isRealDeduction ? 0 : canAllocate,
-            availableQuantityIncrement: -canAllocate,
-            reservedQuantityIncrement: isRealDeduction
-              ? undefined
-              : canAllocate,
-            physicalBalanceIncrement: isRealDeduction
-              ? -canAllocate
-              : undefined,
-          },
-          client
-        );
-      }
-
-      // For backorder - reserve in reservedQuantity
-      if (backorderQty > 0) {
-        await StockRepository.upsertProductStock(
-          item.productId,
-          {
-            physicalBalance: 0,
-            availableQuantity: -backorderQty,
-            reservedQuantity: backorderQty,
-            availableQuantityIncrement: -backorderQty,
-            reservedQuantityIncrement: backorderQty,
+            reservedQuantity: requestedQty,
+            reservedQuantityIncrement: requestedQty,
           },
           client
         );
@@ -131,7 +100,7 @@ export async function allocateStock(
 
   const hasBackorders = backorders.length > 0;
   console.log(
-    `Stock allocated for sale ${saleId}${
+    `Stock reserved for sale ${saleId}${
       hasBackorders ? ` with ${backorders.length} backorders` : ""
     }`
   );
@@ -144,8 +113,9 @@ export async function allocateStock(
 
 /**
  * Releases stock for a sale (e.g., cancellation or status revert).
- * Adds quantity back to available lots.
- * Strategy: Add to the oldest active lot or most appropriate one.
+ * Handles two scenarios:
+ * 1. If delivery date was set: Lots were deducted, so return stock to lots
+ * 2. If no delivery date: Lots were NOT deducted, just release reservation
  */
 export async function releaseStock(
   saleId: string,
@@ -164,35 +134,59 @@ export async function releaseStock(
     throw new Error("Sale not found");
   }
 
+  const hadDeliveryDate = !!sale.deliveryDate;
+
   const release = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      const lot = await StockRepository.getFirstAvailableLot(
-        item.productId,
-        client
-      );
+      const releaseQty = item.quantity;
 
-      if (lot) {
-        await StockRepository.updateLotQuantity(lot.id, item.quantity, client);
-      } else {
-        const anyLot = await StockRepository.getAnyLot(item.productId, client);
-
-        if (anyLot) {
-          await StockRepository.reactivateLot(anyLot.id, item.quantity, client);
-        }
-      }
-
-      // Update ProductStock summary
-      try {
-        await StockRepository.updateProductStock(
+      if (hadDeliveryDate) {
+        // Delivery date was set, so lots were deducted - return stock to lots
+        const lot = await StockRepository.getFirstAvailableLot(
           item.productId,
-          {
-            availableQuantityIncrement: item.quantity,
-            reservedQuantityIncrement: -item.quantity,
-          },
           client
         );
-      } catch {
-        console.warn(`Could not update product stock for ${item.productId}`);
+
+        if (lot) {
+          await StockRepository.updateLotQuantity(lot.id, releaseQty, client);
+        } else {
+          const anyLot = await StockRepository.getAnyLot(
+            item.productId,
+            client
+          );
+
+          if (anyLot) {
+            await StockRepository.reactivateLot(anyLot.id, releaseQty, client);
+          }
+        }
+
+        // Update ProductStock summary - restore all quantities
+        try {
+          await StockRepository.updateProductStock(
+            item.productId,
+            {
+              availableQuantityIncrement: releaseQty,
+              reservedQuantityIncrement: -releaseQty, // Was already at 0 after confirm, but decrement to handle edge cases
+              physicalBalanceIncrement: releaseQty,
+            },
+            client
+          );
+        } catch {
+          console.warn(`Could not update product stock for ${item.productId}`);
+        }
+      } else {
+        // No delivery date was set, lots were NOT deducted - just release reservation
+        try {
+          await StockRepository.updateProductStock(
+            item.productId,
+            {
+              reservedQuantityIncrement: -releaseQty,
+            },
+            client
+          );
+        } catch {
+          console.warn(`Could not update product stock for ${item.productId}`);
+        }
       }
     }
   };
@@ -205,13 +199,18 @@ export async function releaseStock(
     });
   }
 
-  console.log(`Stock released for sale ${saleId}`);
+  console.log(
+    `Stock released for sale ${saleId} (hadDeliveryDate: ${hadDeliveryDate})`
+  );
 }
 
 /**
  * Confirms stock deduction when a delivery date is set for a previously reserved sale.
- * Moves stock from "Reserved" to "Real Deducted" (Physical decreases).
- * Does NOT affect Available Quantity or Lots (since they were already handled).
+ * This is when the ACTUAL stock deduction happens:
+ * - Deducts from physical lots using FIFO
+ * - Decreases availableQuantity (the stock that can be sold)
+ * - Decreases reservedQuantity (moving from reserved to deducted)
+ * - Decreases physicalBalance (actual physical stock)
  */
 export async function confirmStockDeduction(
   saleId: string,
@@ -227,11 +226,38 @@ export async function confirmStockDeduction(
 
   const confirm = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
+      const requestedQty = item.quantity;
+
+      // Fetch available lots ordered by lotNumber ASC (FIFO)
+      const lots = await StockRepository.getAvailableLots(
+        item.productId,
+        client
+      );
+
+      // Deduct from physical lots (FIFO)
+      let deductedFromLots = 0;
+      for (const lot of lots) {
+        if (deductedFromLots >= requestedQty) break;
+
+        const deduction = Math.min(
+          lot.quantity,
+          requestedQty - deductedFromLots
+        );
+
+        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
+        deductedFromLots += deduction;
+      }
+
+      // Update ProductStock summary
+      // - Decrease availableQuantity (stock is now committed/shipped)
+      // - Decrease reservedQuantity (moving from reserved to deducted)
+      // - Decrease physicalBalance (actual physical stock leaving warehouse)
       await StockRepository.updateProductStock(
         item.productId,
         {
-          reservedQuantityIncrement: -item.quantity,
-          physicalBalanceIncrement: -item.quantity,
+          availableQuantityIncrement: -requestedQty,
+          reservedQuantityIncrement: -requestedQty,
+          physicalBalanceIncrement: -requestedQty,
         },
         client
       );
@@ -245,11 +271,17 @@ export async function confirmStockDeduction(
       await confirm(client);
     });
   }
+
+  console.log(`Stock deducted for sale ${saleId}`);
 }
 
 /**
  * Reverts stock deduction to reservation when a delivery date is removed.
- * Moves stock from "Real Deducted" back to "Reserved".
+ * This reverses the confirmStockDeduction operation:
+ * - Returns stock to physical lots
+ * - Increases availableQuantity
+ * - Increases reservedQuantity (back to reserved state)
+ * - Increases physicalBalance
  */
 export async function revertStockDeduction(
   saleId: string,
@@ -265,11 +297,35 @@ export async function revertStockDeduction(
 
   const revert = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
+      const returnQty = item.quantity;
+
+      // Return stock to the first available lot (or reactivate a lot)
+      const lot = await StockRepository.getFirstAvailableLot(
+        item.productId,
+        client
+      );
+
+      if (lot) {
+        await StockRepository.updateLotQuantity(lot.id, returnQty, client);
+      } else {
+        // No available lot found, try to reactivate any lot
+        const anyLot = await StockRepository.getAnyLot(item.productId, client);
+
+        if (anyLot) {
+          await StockRepository.reactivateLot(anyLot.id, returnQty, client);
+        }
+      }
+
+      // Update ProductStock summary
+      // - Increase availableQuantity (stock is available again)
+      // - Increase reservedQuantity (back to reserved state)
+      // - Increase physicalBalance (stock returned to warehouse)
       await StockRepository.updateProductStock(
         item.productId,
         {
-          reservedQuantityIncrement: item.quantity,
-          physicalBalanceIncrement: item.quantity,
+          availableQuantityIncrement: returnQty,
+          reservedQuantityIncrement: returnQty,
+          physicalBalanceIncrement: returnQty,
         },
         client
       );
@@ -283,4 +339,6 @@ export async function revertStockDeduction(
       await revert(client);
     });
   }
+
+  console.log(`Stock deduction reverted for sale ${saleId}`);
 }
