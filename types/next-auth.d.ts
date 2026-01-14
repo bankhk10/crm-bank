@@ -1,4 +1,7 @@
-import type { DataAccessLevel, PermissionType } from "@prisma/client";
+import type {
+  DataAccessLevel,
+  PermissionType,
+} from "@/src/infrastructure/database";
 import type { DefaultSession } from "next-auth";
 
 export interface SessionPermission {

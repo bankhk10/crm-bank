@@ -3,7 +3,10 @@
  * Type definitions for customer domain
  */
 
-import type { CustomerType, CustomerStatus } from "@prisma/client";
+import type {
+  CustomerType,
+  CustomerStatus,
+} from "@/src/infrastructure/database";
 import type { Address, ContactInfo, GeoLocation } from "@/src/shared/types";
 
 /**

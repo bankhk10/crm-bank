@@ -3,7 +3,7 @@
  * Type definitions for product domain
  */
 
-import type { ProductStatus } from "@prisma/client";
+import type { ProductStatus } from "@/src/infrastructure/database";
 
 /**
  * Product summary for lists

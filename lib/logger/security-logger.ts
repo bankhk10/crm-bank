@@ -3,7 +3,7 @@
  * บริการสำหรับ Security Logging
  */
 
-import { LogSeverity, SecurityEventType } from "@prisma/client";
+import { LogSeverity, SecurityEventType } from "@/src/infrastructure/database";
 import { db as prisma } from "@/src/infrastructure/database";
 import {
   RequestContext,

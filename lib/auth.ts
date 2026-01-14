@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { z } from "zod";
-import type { DataAccessLevel } from "@prisma/client";
+import type { DataAccessLevel } from "@/src/infrastructure/database";
 import type { SessionPermission } from "@/types/next-auth";
 import { db } from "./db";
 import { buildDataAccessByResource, buildPermissionMap } from "./rbac";

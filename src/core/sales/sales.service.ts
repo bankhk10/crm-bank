@@ -3,7 +3,7 @@
  * Business logic for sales operations
  */
 
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/src/infrastructure/database";
 import * as SalesRepository from "./sales.repository";
 import type { SalesQueryFilters, PaginationParams } from "./sales.repository";
 import type { SaleFormData } from "@/types/sales";

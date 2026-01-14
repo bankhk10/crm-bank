@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DataAccessLevel } from "@prisma/client";
+import { DataAccessLevel } from "@/src/infrastructure/database";
 import { db } from "@/lib/db";
 import { guardPermission } from "@/lib/api-guard";
 
@@ -10,9 +10,9 @@ const payloadSchema = z.object({
       permissionId: z.string(),
       allow: z.boolean(),
       dataAccess: z.nativeEnum(DataAccessLevel).nullable().optional(),
-      reason: z.string().optional()
+      reason: z.string().optional(),
     })
-  )
+  ),
 });
 
 interface RouteParams {
@@ -20,7 +20,10 @@ interface RouteParams {
 }
 
 export async function PUT(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+  const params =
+    typeof context?.params?.then === "function"
+      ? await context.params
+      : context.params;
   const guardResult = await guardPermission("rbac.manage");
   if ("response" in guardResult) {
     return guardResult.response;
@@ -29,7 +32,10 @@ export async function PUT(request: Request, context: any) {
   const body = await request.json().catch(() => null);
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const userId = params?.userId as string | undefined;
@@ -39,7 +45,10 @@ export async function PUT(request: Request, context: any) {
   }
 
   await db.$transaction(async (tx) => {
-    await tx.userPermissionOverride.updateMany({ where: { userId }, data: { deletedAt: new Date() } });
+    await tx.userPermissionOverride.updateMany({
+      where: { userId },
+      data: { deletedAt: new Date() },
+    });
     if (parsed.data.overrides.length) {
       await tx.userPermissionOverride.createMany({
         data: parsed.data.overrides.map((item) => ({
@@ -47,15 +56,15 @@ export async function PUT(request: Request, context: any) {
           permissionId: item.permissionId,
           allow: item.allow,
           dataAccess: item.dataAccess ?? null,
-          reason: item.reason
-        }))
+          reason: item.reason,
+        })),
       });
     }
   });
 
   const overrides = await db.userPermissionOverride.findMany({
     where: { userId, deletedAt: null },
-    include: { permission: true }
+    include: { permission: true },
   });
 
   return NextResponse.json(overrides);

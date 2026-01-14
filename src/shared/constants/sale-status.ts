@@ -3,7 +3,7 @@
  * Centralized sale status definitions and labels
  */
 
-import type { SaleStatus } from "@prisma/client";
+import type { SaleStatus } from "@/src/infrastructure/database";
 
 /**
  * Sale status labels in Thai

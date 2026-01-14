@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/src/infrastructure/database";
 
 const resourcePath = "/api/temporary-credit-limits";
 
@@ -13,7 +13,10 @@ const approvalSchema = z.object({
 });
 
 export async function POST(request: Request, context: any) {
-  const params = typeof context?.params?.then === "function" ? await context.params : context.params;
+  const params =
+    typeof context?.params?.then === "function"
+      ? await context.params
+      : context.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -25,14 +28,20 @@ export async function POST(request: Request, context: any) {
   }
 
   if (!session.user.permissions?.["temporary_creditlimit.approve"]?.allow) {
-    return NextResponse.json({ error: "Forbidden - missing temporary_creditlimit.approve" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Forbidden - missing temporary_creditlimit.approve" },
+      { status: 403 }
+    );
   }
 
   const body = await request.json().catch(() => null);
   const parsed = approvalSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten().fieldErrors }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
   }
 
   const existing = await db.temporaryCreditLimit.findFirst({
@@ -47,11 +56,17 @@ export async function POST(request: Request, context: any) {
   }
 
   if (existing.status !== "PENDING") {
-    return NextResponse.json({ error: "Only pending requests can be processed" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Only pending requests can be processed" },
+      { status: 400 }
+    );
   }
 
   if (!parsed.data.approve && !parsed.data.rejectionReason) {
-    return NextResponse.json({ error: "Rejection reason is required when rejecting" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Rejection reason is required when rejecting" },
+      { status: 400 }
+    );
   }
 
   const now = new Date();
@@ -62,7 +77,11 @@ export async function POST(request: Request, context: any) {
       // If customer has an existing active credit limit with remaining available amount,
       // merge the requested amount into that limit. Otherwise create a new credit limit.
       const existingCredit = await tx.creditLimit.findFirst({
-        where: { customerId: existing.customerId, deletedAt: null, status: "ACTIVE" },
+        where: {
+          customerId: existing.customerId,
+          deletedAt: null,
+          status: "ACTIVE",
+        },
         orderBy: { createdAt: "desc" },
       });
 
@@ -71,17 +90,28 @@ export async function POST(request: Request, context: any) {
       if (existingCredit && (existingCredit.availableAmount as any).gt?.(0)) {
         // Merge requested amount into existing credit limit using Decimal arithmetic
         const newLimitAmount = (existingCredit.limitAmount as any).add
-          ? (existingCredit.limitAmount as any).add(existing.requestedAmount as any)
-          : new Prisma.Decimal(String(existingCredit.limitAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+          ? (existingCredit.limitAmount as any).add(
+              existing.requestedAmount as any
+            )
+          : new Prisma.Decimal(String(existingCredit.limitAmount)).add(
+              new Prisma.Decimal(String(existing.requestedAmount))
+            );
 
         const newAvailableAmount = (existingCredit.availableAmount as any).add
-          ? (existingCredit.availableAmount as any).add(existing.requestedAmount as any)
-          : new Prisma.Decimal(String(existingCredit.availableAmount)).add(new Prisma.Decimal(String(existing.requestedAmount)));
+          ? (existingCredit.availableAmount as any).add(
+              existing.requestedAmount as any
+            )
+          : new Prisma.Decimal(String(existingCredit.availableAmount)).add(
+              new Prisma.Decimal(String(existing.requestedAmount))
+            );
 
         // Determine expiry date: choose the later date between existing credit and temporary request, if both present
-        const newExpiryDate = existing.expiryDate && existingCredit.expiryDate
-          ? (existing.expiryDate > existingCredit.expiryDate ? existing.expiryDate : existingCredit.expiryDate)
-          : existing.expiryDate ?? existingCredit.expiryDate;
+        const newExpiryDate =
+          existing.expiryDate && existingCredit.expiryDate
+            ? existing.expiryDate > existingCredit.expiryDate
+              ? existing.expiryDate
+              : existingCredit.expiryDate
+            : existing.expiryDate ?? existingCredit.expiryDate;
 
         creditLimit = await tx.creditLimit.update({
           where: { id: existingCredit.id },
@@ -105,7 +135,9 @@ export async function POST(request: Request, context: any) {
             expiryDate: existing.expiryDate,
             temporaryCreditAmount: existing.requestedAmount,
             temporaryCreditExpiryDate: existing.expiryDate,
-            notes: `Temporary credit limit approved. Original notes: ${existing.notes || 'N/A'}`,
+            notes: `Temporary credit limit approved. Original notes: ${
+              existing.notes || "N/A"
+            }`,
             status: "ACTIVE",
             approvedBy: session.user.id,
             approvedAt: now,

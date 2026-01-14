@@ -1,4 +1,9 @@
-import { Sale, SaleItem, SaleStatus, PaymentTerm } from "@prisma/client";
+import {
+  Sale,
+  SaleItem,
+  SaleStatus,
+  PaymentTerm,
+} from "@/src/infrastructure/database";
 
 export type { Sale, SaleItem, SaleStatus, PaymentTerm };
 

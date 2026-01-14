@@ -3,7 +3,7 @@
  * Centralized payment term definitions and labels
  */
 
-import type { PaymentTerm } from "@prisma/client";
+import type { PaymentTerm } from "@/src/infrastructure/database";
 
 /**
  * Payment term labels in Thai

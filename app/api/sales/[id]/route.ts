@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/src/infrastructure/database";
 import type { SaleFormData } from "@/types/sales";
 import { releaseStock } from "@/src/core/stock";
 import {

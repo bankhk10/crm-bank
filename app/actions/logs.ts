@@ -7,7 +7,11 @@
 
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
-import { AuditAction, LogSeverity, SecurityEventType } from "@prisma/client";
+import {
+  AuditAction,
+  LogSeverity,
+  SecurityEventType,
+} from "@/src/infrastructure/database";
 
 // Permission check helper
 async function requireAdminAccess(): Promise<void> {

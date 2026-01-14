@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { DataAccessLevel } from "@prisma/client";
+import type { DataAccessLevel } from "@/src/infrastructure/database";
 import { useCurrentUser } from "./use-current-user";
 
 interface PermissionHookResult {
@@ -12,9 +12,15 @@ interface PermissionHookResult {
   dataAccess: (resource: string) => DataAccessLevel | null;
 }
 
-export function usePermission(required?: string | string[]): PermissionHookResult {
+export function usePermission(
+  required?: string | string[]
+): PermissionHookResult {
   const currentUser = useCurrentUser();
-  const requirements = Array.isArray(required) ? required : required ? [required] : [];
+  const requirements = Array.isArray(required)
+    ? required
+    : required
+    ? [required]
+    : [];
 
   return useMemo(() => {
     if (!currentUser) {
@@ -23,11 +29,12 @@ export function usePermission(required?: string | string[]): PermissionHookResul
         allowed: requirements.length === 0,
         roles: [],
         hasPermission: () => false,
-        dataAccess: () => null
+        dataAccess: () => null,
       } satisfies PermissionHookResult;
     }
 
-    const hasPermission = (key: string): boolean => Boolean(currentUser.permissions[key]?.allow);
+    const hasPermission = (key: string): boolean =>
+      Boolean(currentUser.permissions[key]?.allow);
     const allowed = requirements.length
       ? requirements.every((key) => hasPermission(key))
       : true;
@@ -40,7 +47,7 @@ export function usePermission(required?: string | string[]): PermissionHookResul
       allowed,
       roles: currentUser.roles,
       hasPermission,
-      dataAccess
+      dataAccess,
     } satisfies PermissionHookResult;
   }, [currentUser, requirements]);
 }

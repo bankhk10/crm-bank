@@ -4,7 +4,7 @@
  */
 
 import { db as prisma } from "@/src/infrastructure/database";
-import { Prisma, SaleStatus } from "@prisma/client";
+import { Prisma, SaleStatus } from "@/src/infrastructure/database";
 import { releaseStock } from "@/src/core/stock";
 import { ORDER_CONFIG } from "@/src/shared/constants";
 import type {

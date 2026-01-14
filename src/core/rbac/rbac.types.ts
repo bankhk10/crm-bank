@@ -9,7 +9,7 @@ import type {
   PermissionType,
   RolePermission,
   UserPermissionOverride,
-} from "@prisma/client";
+} from "@/src/infrastructure/database";
 
 /**
  * Session permission structure

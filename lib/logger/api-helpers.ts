@@ -12,7 +12,7 @@ import {
   extractUserAgent,
 } from "@/lib/logger";
 import type { RequestContext, AuditableEntity } from "@/lib/logger/types";
-import type { AuditAction } from "@prisma/client";
+import type { AuditAction } from "@/src/infrastructure/database";
 
 // Session type
 interface SessionUser {

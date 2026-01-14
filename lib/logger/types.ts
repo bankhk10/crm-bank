@@ -3,7 +3,11 @@
  * ประเภทข้อมูลสำหรับระบบ Logging
  */
 
-import { AuditAction, LogSeverity, SecurityEventType } from "@prisma/client";
+import {
+  AuditAction,
+  LogSeverity,
+  SecurityEventType,
+} from "@/src/infrastructure/database";
 
 // ==========================================
 // Common Types

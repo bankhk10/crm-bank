@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { startOfDay, endOfDay } from "date-fns";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";

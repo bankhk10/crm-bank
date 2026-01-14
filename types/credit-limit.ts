@@ -1,4 +1,4 @@
-import { CreditLimit, CreditLimitStatus } from "@prisma/client";
+import { CreditLimit, CreditLimitStatus } from "@/src/infrastructure/database";
 import { Customer } from "./customers";
 
 export type { CreditLimit, CreditLimitStatus };

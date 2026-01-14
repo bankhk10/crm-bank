@@ -3,7 +3,7 @@
  * Role-Based Access Control business logic
  */
 
-import type { DataAccessLevel } from "@prisma/client";
+import type { DataAccessLevel } from "@/src/infrastructure/database";
 import type {
   SessionPermission,
   RoutePermissionRule,

@@ -1,6 +1,18 @@
-import { Customer, CustomerType, CustomerStatus, CreditLimit, CreditLimitStatus } from "@prisma/client";
+import {
+  Customer,
+  CustomerType,
+  CustomerStatus,
+  CreditLimit,
+  CreditLimitStatus,
+} from "@/src/infrastructure/database";
 
-export type { Customer, CustomerType, CustomerStatus, CreditLimit, CreditLimitStatus };
+export type {
+  Customer,
+  CustomerType,
+  CustomerStatus,
+  CreditLimit,
+  CreditLimitStatus,
+};
 
 export interface CustomerWithCreditLimits extends Customer {
   creditLimits: CreditLimit[];

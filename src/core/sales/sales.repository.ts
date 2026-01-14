@@ -4,7 +4,11 @@
  */
 
 import { db as prisma } from "@/src/infrastructure/database";
-import type { Prisma, SaleStatus, PaymentTerm } from "@prisma/client";
+import type {
+  Prisma,
+  SaleStatus,
+  PaymentTerm,
+} from "@/src/infrastructure/database";
 
 /**
  * Sales filter parameters

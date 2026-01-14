@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DataAccessLevel, PermissionType } from "@prisma/client";
+import { DataAccessLevel, PermissionType } from "@/src/infrastructure/database";
 import { db } from "@/src/infrastructure/database";
 import { guardPermission } from "@/lib/api-guard";
 
@@ -12,7 +12,7 @@ const payloadSchema = z.object({
   menuPath: z.string().optional().nullable(),
   action: z.string().optional().nullable(),
   resource: z.string().optional().nullable(),
-  defaultDataAccess: z.nativeEnum(DataAccessLevel).optional().nullable()
+  defaultDataAccess: z.nativeEnum(DataAccessLevel).optional().nullable(),
 });
 
 export async function GET() {
@@ -21,7 +21,10 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const permissions = await db.permission.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } });
+  const permissions = await db.permission.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" },
+  });
   return NextResponse.json(permissions);
 }
 
@@ -34,7 +37,10 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   try {
@@ -43,7 +49,10 @@ export async function POST(request: Request) {
   } catch (error: any) {
     // Prisma unique constraint on `key`
     if (error?.code === "P2002") {
-      return NextResponse.json({ error: "Permission key already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Permission key already exists" },
+        { status: 409 }
+      );
     }
     throw error;
   }

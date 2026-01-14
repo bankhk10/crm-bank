@@ -3,7 +3,10 @@
  * Type definitions for credit limit domain
  */
 
-import type { CreditLimitStatus, TemporaryCreditStatus } from "@prisma/client";
+import type {
+  CreditLimitStatus,
+  TemporaryCreditStatus,
+} from "@/src/infrastructure/database";
 
 /**
  * Credit limit summary

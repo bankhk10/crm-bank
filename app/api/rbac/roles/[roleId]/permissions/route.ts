@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DataAccessLevel } from "@prisma/client";
+import { DataAccessLevel } from "@/src/infrastructure/database";
 import { db } from "@/lib/db";
 import { guardPermission } from "@/lib/api-guard";
 

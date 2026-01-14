@@ -14,7 +14,7 @@ import {
   User,
   UserPermissionOverride,
   DataAccessLevel,
-} from "@prisma/client";
+} from "@/src/infrastructure/database";
 import {
   Dialog,
   DialogTrigger,

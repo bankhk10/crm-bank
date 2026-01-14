@@ -4,7 +4,7 @@
  */
 
 import { db as prisma } from "@/src/infrastructure/database";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/src/infrastructure/database";
 import type { StockAllocationResult, BackorderItem } from "./stock.types";
 import * as StockRepository from "./stock.repository";
 

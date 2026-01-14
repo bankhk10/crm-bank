@@ -3,7 +3,7 @@
  * Type definitions for sales domain
  */
 
-import type { SaleStatus, PaymentTerm } from "@prisma/client";
+import type { SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
 
 /**
  * Order expiry info result

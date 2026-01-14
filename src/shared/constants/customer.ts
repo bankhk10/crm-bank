@@ -3,7 +3,10 @@
  * Centralized customer type definitions and labels
  */
 
-import type { CustomerType, CustomerStatus } from "@prisma/client";
+import type {
+  CustomerType,
+  CustomerStatus,
+} from "@/src/infrastructure/database";
 
 /**
  * Customer type labels in Thai

@@ -8,7 +8,7 @@ import {
   Role,
   RolePermission,
   DataAccessLevel,
-} from "@prisma/client";
+} from "@/src/infrastructure/database";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
