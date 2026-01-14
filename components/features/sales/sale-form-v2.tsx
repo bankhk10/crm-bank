@@ -471,7 +471,7 @@ export function SaleFormV2({
       )}
 
       {/* Customer & Employee Section */}
-      <SectionHeader title="ข้อมูลลูกค้าและพนักงาน" color="blue" />
+      <SectionHeader title="ข้อมูลลูกค้าและพนักงาน" color="gray" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormCombobox
@@ -516,7 +516,7 @@ export function SaleFormV2({
       {selectedCustomer && <CustomerCreditInfo customer={selectedCustomer} />}
 
       {/* Payment Terms Section */}
-      <SectionHeader title="เงื่อนไขการชำระเงิน" color="purple" />
+      <SectionHeader title="เงื่อนไขการชำระเงิน" color="gray" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         <FormSelect
@@ -573,7 +573,7 @@ export function SaleFormV2({
       </div>
 
       {/* Delivery Section */}
-      <SectionHeader title="การจัดส่งและที่อยู่" color="green" />
+      <SectionHeader title="การจัดส่งและที่อยู่" color="gray" />
 
       <DeliveryMethodSection
         value={deliveryMethod}
@@ -797,11 +797,20 @@ export function SaleFormV2({
       </div>
 
       {/* Products Section */}
-      <SectionHeader title="รายการสินค้า" color="orange">
+      <SectionHeader title="รายการสินค้า" color="gray">
         <Button
           type="button"
           onClick={addItem}
-          className="bg-white hover:bg-gray-100 text-orange-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
+          className="
+          bg-emerald-600 hover:bg-emerald-700
+          text-white font-semibold
+          rounded-xl sm:rounded-lg
+          px-4 sm:px-6 py-2 sm:py-2.5
+          text-sm sm:text-sm
+          shadow-sm hover:shadow-md
+          transition-all duration-200
+          w-full sm:w-auto
+        "
         >
           <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           เพิ่มรายการ
@@ -834,7 +843,7 @@ export function SaleFormV2({
       </div>
 
       {/* Discounts Section */}
-      <SectionHeader title="ส่วนลดและหมายเหตุ" color="pink" />
+      <SectionHeader title="ส่วนลดและหมายเหตุ" color="gray" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormInput
@@ -869,7 +878,7 @@ export function SaleFormV2({
       />
 
       {/* Summary Section */}
-      <SectionHeader title="สรุปยอดรวม" color="indigo" />
+      <SectionHeader title="สรุปยอดรวม" color="gray" />
 
       <SaleSummary
         subtotal={subtotal}

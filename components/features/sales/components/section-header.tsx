@@ -9,7 +9,7 @@ import React from "react";
 
 interface SectionHeaderProps {
   title: string;
-  color?: "blue" | "purple" | "green" | "orange" | "pink" | "indigo";
+  color?: "blue" | "purple" | "green" | "orange" | "pink" | "indigo" | "gray";
   children?: React.ReactNode;
 }
 
@@ -20,6 +20,7 @@ const colorClasses = {
   orange: "from-orange-600 to-orange-500",
   pink: "from-pink-600 to-pink-500",
   indigo: "from-indigo-600 to-indigo-500",
+  gray: "from-gray-500 to-gray-500",
 };
 
 export function SectionHeader({
