@@ -1,7 +1,6 @@
+import "dotenv/config";
 import { hash } from "bcryptjs";
-import { PrismaClient } from "./prisma/generated/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../src/infrastructure/database/prisma";
 
 async function main() {
   // Delete in correct order to avoid foreign key constraints
