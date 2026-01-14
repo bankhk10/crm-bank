@@ -127,6 +127,12 @@ const statusStyle: Record<
       "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
     dot: "bg-slate-400",
   },
+  OVERDUE: {
+    label: "เลยกำหนด",
+    className:
+      "bg-orange-50 text-orange-700 ring-1 ring-orange-200 dark:bg-orange-900/40 dark:text-orange-100",
+    dot: "bg-orange-500",
+  },
   COMPLETED: {
     label: "เสร็จสิ้น",
     className:

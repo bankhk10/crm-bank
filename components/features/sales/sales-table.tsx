@@ -142,6 +142,13 @@ const statusStyle: Record<
       "bg-gray-100 text-gray-600 ring-1 ring-gray-300 dark:bg-gray-800/50 dark:text-gray-300",
     dot: "bg-gray-400",
   },
+  // 🟠 Orange - เลยกำหนด (Overdue)
+  OVERDUE: {
+    label: "เลยกำหนด",
+    className:
+      "bg-orange-100 text-orange-700 ring-1 ring-orange-300 dark:bg-orange-900/40 dark:text-orange-100",
+    dot: "bg-orange-500",
+  },
   // ✅ Green - เสร็จสิ้น (Completed/Success)
   COMPLETED: {
     label: "เสร็จสิ้น",
