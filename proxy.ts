@@ -6,7 +6,7 @@ import {
   getDefaultRouteForRoles,
   isAuthorized,
   isRoutePublic
-} from "@/lib/rbac";
+} from "@/src/core/rbac";
 
 export async function proxy(request: NextRequest) {
   const { nextUrl } = request;

@@ -1,4 +1,4 @@
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { Prisma } from "@prisma/client";
 
 export async function syncSalesSummary(targetDate?: Date) {

@@ -5,7 +5,7 @@
  * โดยอัตโนมัติ
  */
 
-import { db } from "@/lib/db";
+import { db } from "@/src/infrastructure/database";
 import { Prisma } from "@prisma/client";
 
 export class TemporaryCreditExpiryService {

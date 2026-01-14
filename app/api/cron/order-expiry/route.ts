@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  checkExpiredOrders,
-  checkOverdueOrders,
-} from "@/lib/order-expiry-service";
+import { checkExpiredOrders, checkOverdueOrders } from "@/src/core/sales";
 
 /**
  * API Route for Order Expiry Cron Job

@@ -17,11 +17,11 @@ import type {
 export interface SessionPermission {
   key: string;
   category: PermissionType;
-  menuPath: string | null;
-  action: string | null;
-  resource: string | null;
   allow: boolean;
-  dataAccess: DataAccessLevel | null;
+  menuPath?: string | null;
+  action?: string | null;
+  resource?: string | null;
+  dataAccess?: DataAccessLevel | null;
 }
 
 /**

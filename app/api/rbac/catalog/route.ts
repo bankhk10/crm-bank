@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db } from "@/src/infrastructure/database";
 
 export async function GET() {
   const [departments, positions, roles] = await Promise.all([

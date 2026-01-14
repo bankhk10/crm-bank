@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import LoginForm from "./login-form";
 import { auth } from "@/lib/auth";
-import { getDefaultRouteForRoles } from "@/lib/rbac";
+import { getDefaultRouteForRoles } from "@/src/core/rbac";
 import { safeRedirect } from "@/lib/safe-redirect";
 
 interface LoginPageProps {

@@ -4,7 +4,7 @@
  */
 
 import { LogSeverity, SecurityEventType } from "@prisma/client";
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import {
   RequestContext,
   SECURITY_EVENTS_CONFIG,

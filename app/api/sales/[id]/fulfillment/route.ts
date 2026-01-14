@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { SaleStatus } from "@prisma/client";
 import {
   confirmStockDeduction,
   revertStockDeduction,
   releaseStock,
-} from "@/lib/stock-service";
+} from "@/src/core/stock";
 
 export async function POST(
   request: NextRequest,

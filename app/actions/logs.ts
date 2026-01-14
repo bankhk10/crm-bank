@@ -6,7 +6,7 @@
  */
 
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { AuditAction, LogSeverity, SecurityEventType } from "@prisma/client";
 
 // Permission check helper

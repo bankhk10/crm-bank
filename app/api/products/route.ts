@@ -3,8 +3,8 @@ import { z } from "zod";
 import { startOfDay, endOfDay } from "date-fns";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { isAuthorized } from "@/lib/rbac";
+import { db } from "@/src/infrastructure/database";
+import { isAuthorized } from "@/src/core/rbac";
 
 const resourcePath = "/api/products";
 

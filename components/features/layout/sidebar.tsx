@@ -32,7 +32,7 @@ import {
   getDefaultRouteForRoles,
   isAdministrator,
   isManager,
-} from "@/lib/rbac";
+} from "@/src/core/rbac";
 
 interface SidebarChildItem {
   href: string;

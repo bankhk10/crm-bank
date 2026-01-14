@@ -3,8 +3,8 @@ import { z } from "zod";
 import { startOfDay, endOfDay } from "date-fns";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { isAuthorized } from "@/lib/rbac";
+import { db } from "@/src/infrastructure/database";
+import { isAuthorized } from "@/src/core/rbac";
 
 const resourcePath = "/api/temporary-credit-limits";
 
@@ -37,7 +37,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
-  const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
+  const perPage = Math.min(
+    100,
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+  );
   const q = (url.searchParams.get("q") || "").trim();
   const customerId = url.searchParams.get("customerId");
   const statusFilter = url.searchParams.get("status");
@@ -68,7 +71,10 @@ export async function GET(request: Request) {
     };
   }
 
-  if (statusFilter && ["PENDING", "APPROVED", "REJECTED"].includes(statusFilter)) {
+  if (
+    statusFilter &&
+    ["PENDING", "APPROVED", "REJECTED"].includes(statusFilter)
+  ) {
     where.status = statusFilter as any;
   }
 
@@ -142,9 +148,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const expiryDate = typeof parsed.data.expiryDate === "string"
-      ? new Date(parsed.data.expiryDate)
-      : parsed.data.expiryDate;
+    const expiryDate =
+      typeof parsed.data.expiryDate === "string"
+        ? new Date(parsed.data.expiryDate)
+        : parsed.data.expiryDate;
 
     console.log("✅ Validation passed, creating temporary credit limit...");
     console.log("  Customer ID:", parsed.data.customerId);
@@ -179,13 +186,18 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("❌ Error creating temporary credit limit:", err);
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2003"
+    ) {
       const target = err.meta?.modelName as string | undefined; // Sometimes comes as modelName, sometimes parsing message is needed
       const message = err.message;
 
       if (message.includes("TemporaryCreditLimit_requestedById_fkey")) {
         return NextResponse.json(
-          { error: "Invalid User (Requester) ID. Please try logging in again." },
+          {
+            error: "Invalid User (Requester) ID. Please try logging in again.",
+          },
           { status: 400 }
         );
       }
@@ -197,14 +209,14 @@ export async function POST(request: Request) {
     }
 
     console.error("Full error details:", {
-      name: err instanceof Error ? err.name : 'Unknown',
+      name: err instanceof Error ? err.name : "Unknown",
       message: err instanceof Error ? err.message : String(err),
     });
 
     return NextResponse.json(
       {
         error: "Failed to create temporary credit limit",
-        details: err instanceof Error ? err.message : String(err)
+        details: err instanceof Error ? err.message : String(err),
       },
       { status: 500 }
     );

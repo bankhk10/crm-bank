@@ -1,6 +1,6 @@
 "use server";
 
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { startOfYear, endOfYear, format } from "date-fns";
 
 export type ReportType = "CUSTOMER" | "EMPLOYEE";

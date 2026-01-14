@@ -3,7 +3,7 @@
  * Logger หลักสำหรับ Application Logs
  */
 
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { getLoggerConfig } from "./config";
 import { LogEntry, LogLevel, RequestContext } from "./types";
 import {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { Prisma } from "@prisma/client";
 import type { SaleFormData } from "@/types/sales";
-import { releaseStock } from "@/lib/stock-service";
+import { releaseStock } from "@/src/core/stock";
 import {
   logger,
   auditLogger,

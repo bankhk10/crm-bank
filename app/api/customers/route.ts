@@ -3,8 +3,8 @@ import { z } from "zod";
 import { startOfDay, endOfDay } from "date-fns";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { isAuthorized } from "@/lib/rbac";
+import { db } from "@/src/infrastructure/database";
+import { isAuthorized } from "@/src/core/rbac";
 
 const resourcePath = "/api/customers";
 
@@ -82,7 +82,10 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
-  const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)));
+  const perPage = Math.min(
+    100,
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+  );
   const q = (url.searchParams.get("q") || "").trim();
   const typeFilter = url.searchParams.get("type");
   const statusFilter = url.searchParams.get("status");
@@ -109,11 +112,17 @@ export async function GET(request: Request) {
     ];
   }
 
-  if (typeFilter && ["DEALER", "SUBDEALER", "FARMER", "BROKER"].includes(typeFilter)) {
+  if (
+    typeFilter &&
+    ["DEALER", "SUBDEALER", "FARMER", "BROKER"].includes(typeFilter)
+  ) {
     where.customerType = typeFilter as any;
   }
 
-  if (statusFilter && ["ACTIVE", "INACTIVE", "SUSPENDED"].includes(statusFilter)) {
+  if (
+    statusFilter &&
+    ["ACTIVE", "INACTIVE", "SUSPENDED"].includes(statusFilter)
+  ) {
     where.status = statusFilter as any;
   }
 
@@ -185,16 +194,25 @@ export async function POST(request: Request) {
   }
 
   // Normalize postal codes to strings if they are numbers
-  const normalizedBody = body && typeof body === "object" ? { ...(body as Record<string, unknown>) } : body;
+  const normalizedBody =
+    body && typeof body === "object"
+      ? { ...(body as Record<string, unknown>) }
+      : body;
   if (normalizedBody && typeof normalizedBody === "object") {
     if (typeof (normalizedBody as any).postalCode === "number") {
-      (normalizedBody as any).postalCode = String((normalizedBody as any).postalCode);
+      (normalizedBody as any).postalCode = String(
+        (normalizedBody as any).postalCode
+      );
     }
     if (typeof (normalizedBody as any).billingPostalCode === "number") {
-      (normalizedBody as any).billingPostalCode = String((normalizedBody as any).billingPostalCode);
+      (normalizedBody as any).billingPostalCode = String(
+        (normalizedBody as any).billingPostalCode
+      );
     }
     if (typeof (normalizedBody as any).shippingPostalCode === "number") {
-      (normalizedBody as any).shippingPostalCode = String((normalizedBody as any).shippingPostalCode);
+      (normalizedBody as any).shippingPostalCode = String(
+        (normalizedBody as any).shippingPostalCode
+      );
     }
   }
 
@@ -206,7 +224,7 @@ export async function POST(request: Request) {
         userId: session.user.id,
         issues: parsed.error.flatten().fieldErrors,
       });
-    } catch (logErr) { }
+    } catch (logErr) {}
 
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
@@ -216,13 +234,15 @@ export async function POST(request: Request) {
 
   try {
     const customer = await db.customer.create({
-      data: ({
+      data: {
         customerCode: parsed.data.customerCode,
         customerType: parsed.data.customerType,
         name: parsed.data.name,
         prefix: parsed.data.prefix,
         firstName: parsed.data.firstName,
-        birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
+        birthDate: parsed.data.birthDate
+          ? new Date(parsed.data.birthDate)
+          : null,
         lastName: parsed.data.lastName,
         email: parsed.data.email || null,
         phone: parsed.data.phone,
@@ -245,8 +265,12 @@ export async function POST(request: Request) {
         latitude: parsed.data.latitude ?? null,
         longitude: parsed.data.longitude ?? null,
         relationshipScore: parsed.data.relationshipScore ?? null,
-        parentDealer: parsed.data.parentDealerId ? { connect: { id: parsed.data.parentDealerId } } : undefined,
-        responsibleEmployee: parsed.data.responsibleEmployeeId ? { connect: { id: parsed.data.responsibleEmployeeId } } : undefined,
+        parentDealer: parsed.data.parentDealerId
+          ? { connect: { id: parsed.data.parentDealerId } }
+          : undefined,
+        responsibleEmployee: parsed.data.responsibleEmployeeId
+          ? { connect: { id: parsed.data.responsibleEmployeeId } }
+          : undefined,
         status: parsed.data.status ?? "ACTIVE",
         contactPerson: parsed.data.contactPerson,
         contactPhone: parsed.data.contactPhone,
@@ -276,7 +300,7 @@ export async function POST(request: Request) {
         serviceTypes: parsed.data.serviceTypes ?? null,
         usedBrands: parsed.data.usedBrands ?? null,
         createdById: session.user.id,
-      } as any),
+      } as any,
     });
 
     try {
@@ -285,15 +309,18 @@ export async function POST(request: Request) {
         customerId: customer.id,
         customerCode: customer.customerCode,
       });
-    } catch (logErr) { }
+    } catch (logErr) {}
 
     return NextResponse.json({ customer }, { status: 201 });
   } catch (err) {
     try {
       console.error(`[api/customers] Error creating customer`, { error: err });
-    } catch (logErr) { }
+    } catch (logErr) {}
 
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
       const target = (err.meta && (err.meta as any).target) || [];
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(

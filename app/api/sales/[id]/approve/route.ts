@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/lib/db";
-import { allocateStock } from "@/lib/stock-service";
-import { calculateOrderExpiryDate } from "@/lib/order-expiry-service";
+import { db as prisma } from "@/src/infrastructure/database";
+import { allocateStock } from "@/src/core/stock";
+import { calculateOrderExpiryDate } from "@/src/core/sales";
 import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";
 
 // POST /api/sales/[id]/approve - Approve sale

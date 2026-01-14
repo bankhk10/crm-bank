@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db as prisma } from "@/lib/db";
-import { releaseStock } from "@/lib/stock-service";
+import { db as prisma } from "@/src/infrastructure/database";
+import { releaseStock } from "@/src/core/stock";
 
 export const dynamic = "force-dynamic";
 
