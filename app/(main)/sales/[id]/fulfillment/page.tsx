@@ -25,9 +25,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import DatePicker from "@/components/custom/DatePicker";
 import { usePermission } from "@/hooks/use-permission";
-import { PaymentTermLabels, SaleStatusLabels } from "@/types/sales";
+import {
+  PaymentTermLabels,
+  SaleStatusLabels,
+  getSaleStatusColor,
+} from "@/types/sales";
 import type { SaleDetailResponse, StockWarning } from "@/types/sales";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -333,7 +338,10 @@ export default function FulfillmentPage({
               </div>
               <Badge
                 variant="secondary"
-                className="bg-white border-orange-300 text-orange-700 font-bold px-3 py-1.5"
+                className={cn(
+                  "font-bold px-3 py-1.5",
+                  getSaleStatusColor(sale.status)
+                )}
               >
                 {SaleStatusLabels[sale.status]}
               </Badge>

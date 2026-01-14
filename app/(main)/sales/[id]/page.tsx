@@ -329,7 +329,7 @@ export default function SaleDetailPage({
                   <Badge
                     className={`${getSaleStatusColor(
                       sale.status
-                    )} border-none shadow-none text-white bg-transparent p-0`}
+                    )} border-none shadow-none text-white bg-transparent p-0 ring-0`}
                   >
                     {SaleStatusLabels[sale.status]}
                   </Badge>

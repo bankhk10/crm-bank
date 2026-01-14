@@ -186,18 +186,18 @@ export const PaymentTermLabels: Record<PaymentTerm, string> = {
 // Status color helpers
 export const getSaleStatusColor = (status: SaleStatus): string => {
   const colors: Record<SaleStatus, string> = {
-    PENDING: "bg-yellow-100 text-yellow-800",
-    APPROVED: "bg-green-100 text-green-800",
-    REJECTED: "bg-red-100 text-red-800",
-    AWAITING_PAYMENT: "bg-blue-100 text-blue-800",
-    PAID: "bg-teal-100 text-teal-800",
-    AWAITING_DELIVERY: "bg-indigo-100 text-indigo-800",
-    DELIVERED: "bg-purple-100 text-purple-800",
-    DELIVERY_COMPLETED: "bg-cyan-100 text-cyan-800",
-    EXPIRED: "bg-gray-100 text-gray-800",
-    OVERDUE: "bg-orange-100 text-orange-800",
-    CANCELLED: "bg-red-100 text-red-800",
-    COMPLETED: "bg-emerald-100 text-emerald-800",
+    PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+    APPROVED: "bg-green-50 text-green-700 ring-1 ring-green-200",
+    REJECTED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+    AWAITING_PAYMENT: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
+    PAID: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    AWAITING_DELIVERY: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+    DELIVERED: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",
+    DELIVERY_COMPLETED: "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200",
+    EXPIRED: "bg-gray-100 text-gray-600 ring-1 ring-gray-300",
+    OVERDUE: "bg-orange-100 text-orange-700 ring-1 ring-orange-300",
+    COMPLETED: "bg-green-100 text-green-800 ring-1 ring-green-300",
+    CANCELLED: "bg-red-100 text-red-700 ring-1 ring-red-300",
   };
-  return colors[status] || "bg-gray-100 text-gray-800";
+  return colors[status] || "bg-gray-100 text-gray-800 ring-1 ring-gray-300";
 };
