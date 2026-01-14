@@ -1224,7 +1224,7 @@ export function SaleForm({
         <Button
           type="button"
           onClick={handleAddItem}
-          className="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           เพิ่มรายการ
