@@ -2,11 +2,12 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { SaleForm } from "@/components/features/sales/sale-form";
+import { SaleFormV2 } from "@/components/features/sales/sale-form-v2";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 import { Card } from "@/components/ui/card";
+import { SaleForm } from "@/components/features/sales";
 
 export default function NewSalePage() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function NewSalePage() {
               </span>
             </h5>
           </div>
-          <SaleForm onSubmit={handleSubmit} />
+          <SaleFormV2 onSubmit={handleSubmit} />
         </div>
       </Card>
     </section>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SaleForm } from "@/components/features/sales/sale-form";
+import { SaleFormV2 } from "@/components/features/sales/sale-form-v2";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
@@ -140,7 +140,11 @@ export default function EditSalePage({
               แก้ไขบันทึกการขาย ( Sales note )
             </h5>
           </div>
-          <SaleForm initialData={initialData} onSubmit={handleSubmit} isEdit />
+          <SaleFormV2
+            initialData={initialData}
+            onSubmit={handleSubmit}
+            isEdit
+          />
         </div>
       </Card>
     </section>
