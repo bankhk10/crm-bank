@@ -754,7 +754,7 @@ export function SaleForm({
         </Alert>
       )}
 
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         ข้อมูลลูกค้าและพนักงาน
       </h3>
 
@@ -823,7 +823,7 @@ export function SaleForm({
           );
         })()}
 
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-purple-600 to-purple-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         เงื่อนไขการชำระเงิน
       </h3>
 
@@ -893,7 +893,7 @@ export function SaleForm({
         </div>
       </div>
 
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-green-600 to-green-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         การจัดส่งและที่อยู่
       </h3>
 
@@ -1217,14 +1217,14 @@ export function SaleForm({
           )}
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 to-orange-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md">
         <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
           รายการสินค้า
         </h3>
         <Button
           type="button"
           onClick={handleAddItem}
-          className="bg-white hover:bg-gray-100 text-orange-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
+          className="bg-white hover:bg-gray-100 text-blue-600 font-semibold rounded-xl sm:rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 h-auto text-base sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
         >
           <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           เพิ่มรายการ
@@ -1335,7 +1335,7 @@ export function SaleForm({
         })}
       </div>
 
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-pink-600 to-pink-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         ส่วนลดและหมายเหตุ
       </h3>
 
@@ -1371,7 +1371,7 @@ export function SaleForm({
         rows={3}
       />
 
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white bg-gradient-to-r from-gray-500 to-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-md mb-4 sm:mb-6">
         สรุปยอดรวม
       </h3>
 
