@@ -697,7 +697,7 @@ const StockLotsSection: React.FC<
                   }
                   disabled={saving || !!(lot.id && lot.isUsed)}
                 >
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="!h-10 w-full flex items-center justify-between">
                     <SelectValue placeholder="เลือกสถานที่" />
                   </SelectTrigger>
                   <SelectContent>
