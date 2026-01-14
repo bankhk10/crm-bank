@@ -89,24 +89,21 @@ export async function GET(
       // Use ProductStock if available, otherwise sum from stockLots
       const productStock = (
         item.product as {
-          stock?: { availableQuantity: number; physicalBalance: number };
+          stock?: {
+            availableQuantity: number;
+            physicalBalance: number;
+          };
         }
       ).stock;
 
       // Get the current available quantity from ProductStock
-      // If this order is approved, the stock was already deducted, so we need to check if
-      // the remaining available + what was reserved for this order meets the requirement
       let availableStock: number;
+      let physicalStock: number = 0;
 
       if (productStock) {
         // availableQuantity from ProductStock (already reflects all deductions)
         availableStock = productStock.availableQuantity;
-
-        // If this is an approved order, the stock for this order has already been allocated
-        // So we need to add back this order's quantity to see the "original" available
-        // before this order was placed - but actually for warning purposes, we want to show
-        // what's TRULY available now for shipping
-        // If availableQuantity is negative, it means there's a backorder
+        physicalStock = productStock.physicalBalance || 0;
       } else {
         // Fallback: sum from stockLots
         availableStock = item.product.stockLots.reduce(
@@ -115,28 +112,39 @@ export async function GET(
         );
       }
 
-      // For an approved order: if availableQuantity < 0, there's insufficient stock
-      // The stock for this order was supposed to be allocated, but if available is negative,
-      // it means the full quantity couldn't be met
-      //
       // For checking if stock is sufficient for delivery:
       // - If order is NOT yet approved: check if available >= requested
-      // - If order IS approved: check if (available + reserved_for_this_order) >= requested
-      //   But since stock is already allocated, just check if availableQuantity >= 0
-      //   A negative availableQuantity means backorder situation
+      // - If order IS approved: The stock was already reserved at approval time.
+      //   For approved orders, we should check if physicalBalance >= quantity needed
+      //   because the reservedQuantity already includes this order's allocation.
+      //
+      //   The key insight:
+      //   - physicalBalance = total items in warehouse
+      //   - reservedQuantity = stock reserved for all approved orders (including this one)
+      //   - availableQuantity = physicalBalance - reservedQuantity (can be negative if over-allocated)
+      //
+      //   For THIS specific order that was already approved:
+      //   - Its quantity is included in reservedQuantity
+      //   - So if physicalBalance >= item.quantity, we can fulfill THIS order
+      //   - Even if availableQuantity is negative (due to other orders over-allocating)
 
       let insufficientStock = false;
       let displayAvailable = availableStock;
 
       if (isApprovedOrder) {
-        // For approved orders, stock was allocated at approval time.
-        // If availableQuantity is negative, there's a backorder situation (shortage)
-        // For fulfillment page: we check if we can ship this order
-        insufficientStock = availableStock < 0;
+        // For approved orders, stock was already allocated/reserved at approval time.
+        // We need to check if the physical stock can cover this order's quantity.
+        //
+        // Since this order's quantity is already part of reservedQuantity,
+        // we can ship if: physicalBalance >= item.quantity
+        //
+        // This allows orders that were approved first (like Order A with 50 units)
+        // to be shipped even when a later order (Order B with 100 units) caused
+        // availableQuantity to go negative.
+        insufficientStock = physicalStock < item.quantity;
 
-        // For display: show what was originally available when order was created
-        // Since stock is already allocated, add back the item quantity to show pre-allocation amount
-        displayAvailable = availableStock + item.quantity;
+        // For display: show physical balance as what's available for this approved order
+        displayAvailable = physicalStock;
       } else {
         // For pending orders, check if current available >= requested
         insufficientStock = availableStock < item.quantity;
