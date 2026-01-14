@@ -245,7 +245,6 @@ export default function SaleDetailPage({
 
               <AddressSection
                 title="ที่อยู่จัดส่ง"
-                name={getDeliveryMethodLabel((sale as any).deliveryMethod)}
                 address={displayShippingAddress}
               />
 
