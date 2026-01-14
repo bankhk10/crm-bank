@@ -648,11 +648,8 @@ const StockLotsSection: React.FC<
                 <Input
                   type="number"
                   value={lot.quantity}
-                  onChange={(e) =>
-                    updateStockLot(index, "quantity", Number(e.target.value))
-                  }
-                  disabled={saving || !!(lot.id && lot.isUsed)}
-                  className="h-10"
+                  readOnly
+                  className="h-10 bg-muted cursor-not-allowed"
                   onWheel={(e) => e.currentTarget.blur()}
                 />
               </div>
