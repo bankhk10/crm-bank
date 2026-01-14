@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 import { Card } from "@/components/ui/card";
-import { SaleForm } from "@/components/features/sales";
 
 export default function NewSalePage() {
   const router = useRouter();
@@ -32,8 +31,8 @@ export default function NewSalePage() {
       console.warn("Stock warnings:", result.stockWarnings);
     }
 
-    // Redirect to sale detail page
-    router.push(`/sales/${result.sale.id}`);
+    // Redirect to sales list page
+    router.push(`/sales`);
   };
 
   if (isLoading) {
