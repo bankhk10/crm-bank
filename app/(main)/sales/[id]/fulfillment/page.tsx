@@ -130,11 +130,18 @@ export default function FulfillmentPage({
     setSubmitting(true);
     setError(null);
 
-    // Validate: If status is COMPLETED, payment date is required
-    if (status === "COMPLETED" && !paymentDate) {
-      setError("กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'");
-      setSubmitting(false);
-      return;
+    // Validate: If status is COMPLETED, payment date and delivery date are required
+    if (status === "COMPLETED") {
+      if (!paymentDate) {
+        setError("กรุณาระบุวันที่ชำระเงินเมื่อสถานะเป็น 'เสร็จสิ้น'");
+        setSubmitting(false);
+        return;
+      }
+      if (!deliveryDate) {
+        setError("กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น 'เสร็จสิ้น'");
+        setSubmitting(false);
+        return;
+      }
     }
 
     // Validate: If status is CANCELLED, notes is required
@@ -149,11 +156,12 @@ export default function FulfillmentPage({
       "AWAITING_DELIVERY",
       "DELIVERED",
       "DELIVERY_COMPLETED",
+      "COMPLETED",
     ];
     if (stockWarnings.length > 0 && deliveryStatuses.includes(status)) {
       const productNames = stockWarnings.map((w) => w.productName).join(", ");
       setError(
-        `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`
+        `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งหรือเสร็จสิ้นได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`
       );
       setSubmitting(false);
       return;
@@ -416,6 +424,7 @@ export default function FulfillmentPage({
                         "AWAITING_DELIVERY",
                         "DELIVERED",
                         "DELIVERY_COMPLETED",
+                        "COMPLETED",
                       ];
                       const isDeliveryStatus = deliveryStatuses.includes(st);
                       const isDisabled =
@@ -451,7 +460,6 @@ export default function FulfillmentPage({
               </div>
 
               <div className="grid md:grid-cols-2 gap-8">
-                {/* 2. Delivery Date */}
                 <div className="space-y-3 group/field">
                   <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">
@@ -459,6 +467,9 @@ export default function FulfillmentPage({
                     </span>
                     <Truck className="h-4 w-4 text-emerald-600" />
                     วันที่จัดส่งของ
+                    {status === "COMPLETED" && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </label>
                   <div className="relative">
                     <DatePicker
@@ -468,6 +479,13 @@ export default function FulfillmentPage({
                       placeholder="เลือกวันที่จัดส่ง"
                     />
                   </div>
+                  {status === "COMPLETED" && !deliveryDate && (
+                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
+                      จำเป็นต้องระบุวันที่จัดส่งของเมื่อสถานะเป็น
+                      &ldquo;เสร็จสิ้น&rdquo;
+                    </p>
+                  )}
                 </div>
 
                 {/* 3. Due Date */}
