@@ -12,7 +12,11 @@ export default function EditEmployeePage() {
   const { employeeId } = useParams() as { employeeId: string };
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("employee.edit");
-  const canEdit = !isLoading && (hasPermission("employee.edit") || hasPermission("employee.manage") || hasPermission("menu.employees"));
+  const canEdit =
+    !isLoading &&
+    (hasPermission("employee.edit") ||
+      hasPermission("employee.manage") ||
+      hasPermission("menu.employees"));
 
   const [payload, setPayload] = useState<any>({});
   const [loading, setLoading] = useState(true);
@@ -30,7 +34,6 @@ export default function EditEmployeePage() {
         const src = (json && (json.employee ?? json)) || {};
 
         if (mounted) {
-
           // Map API fields into the form's expected initial shape if needed
           const mappedPayload = {
             prefix: src.prefix ?? "",
@@ -44,6 +47,7 @@ export default function EditEmployeePage() {
             department: src.departmentId ?? src.department ?? "",
             company: src.companyId ?? src.company?.id ?? "",
             responsibilityArea: src.responsibilityArea ?? "",
+            managerId: src.managerId ?? src.manager?.id ?? "",
             addressLine: src.addressLine ?? "",
             // Ensure address object is provided for the form's ThaiAddressPicker
             address:
@@ -62,7 +66,9 @@ export default function EditEmployeePage() {
             roleDefinitionId:
               src.roleDefinitionId ??
               src.roleId ??
-              (src.user && src.user.userRoles && src.user.userRoles[0]?.role?.id) ??
+              (src.user &&
+                src.user.userRoles &&
+                src.user.userRoles[0]?.role?.id) ??
               undefined,
           };
           setPayload(mappedPayload);
@@ -103,14 +109,18 @@ export default function EditEmployeePage() {
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl my-5 border-b pb-6">แก้ไขข้อมูลพนักงาน</h5>
+            <h5 className="font-semibold text-3xl my-5 border-b pb-6">
+              แก้ไขข้อมูลพนักงาน
+            </h5>
           </div>
 
           {(!canEdit || error) && (
             <div>
               {!canEdit && (
                 <Alert variant="destructive">
-                  <AlertDescription>คุณไม่มีสิทธิ์แก้ไขพนักงานนี้</AlertDescription>
+                  <AlertDescription>
+                    คุณไม่มีสิทธิ์แก้ไขพนักงานนี้
+                  </AlertDescription>
                 </Alert>
               )}
               {error && (
