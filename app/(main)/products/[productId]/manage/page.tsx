@@ -632,8 +632,8 @@ const StockLotsSection: React.FC<
                   onChange={(e) => {
                     const val = Number(e.target.value);
                     updateStockLot(index, "initialQuantity", val);
-                    // If new lot, sync remaining quantity
-                    if (!lot.id) {
+                    // If new lot or not used, sync remaining quantity
+                    if (!lot.id || !lot.isUsed) {
                       updateStockLot(index, "quantity", val);
                     }
                   }}
