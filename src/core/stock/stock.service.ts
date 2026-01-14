@@ -1,24 +1,12 @@
 /**
- * @deprecated Use `import { allocateStock, releaseStock, ... } from "@/src/core/stock"` instead
- * This file is kept for backward compatibility during migration
+ * Stock Service
+ * Business logic for stock management
  */
 
-import { db as prisma } from "@/lib/db";
-import { Prisma } from "@prisma/client";
-
-/**
- * Result of stock allocation
- */
-export interface StockAllocationResult {
-  success: boolean;
-  backorders: {
-    productId: string;
-    productName?: string;
-    requested: number;
-    allocated: number;
-    backorder: number;
-  }[];
-}
+import { db as prisma } from "@/src/infrastructure/database";
+import type { Prisma } from "@prisma/client";
+import type { StockAllocationResult, BackorderItem } from "./stock.types";
+import * as StockRepository from "./stock.repository";
 
 /**
  * Allocates stock for a sale using FIFO strategy.
@@ -49,22 +37,17 @@ export async function allocateStock(
     throw new Error("Sale not found");
   }
 
-  const backorders: StockAllocationResult["backorders"] = [];
+  const backorders: BackorderItem[] = [];
 
-  // Define the logic as a reusable function or execute directly
   const allocate = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
       const remainingQtyToDeduct = item.quantity;
 
       // Fetch available lots ordered by lotNumber ASC (lowest LOT number first)
-      const lots = await client.productStockLot.findMany({
-        where: {
-          productId: item.productId,
-          isUsed: false,
-          quantity: { gt: 0 },
-        },
-        orderBy: { lotNumber: "asc" },
-      });
+      const lots = await StockRepository.getAvailableLots(
+        item.productId,
+        client
+      );
 
       // Calculate total available
       const totalAvailable = lots.reduce((sum, lot) => sum + lot.quantity, 0);
@@ -94,13 +77,7 @@ export async function allocateStock(
           canAllocate - deductedFromLots
         );
 
-        await client.productStockLot.update({
-          where: { id: lot.id },
-          data: {
-            quantity: { decrement: deduction },
-          },
-        });
-
+        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
         deductedFromLots += deduction;
       }
 
@@ -109,41 +86,37 @@ export async function allocateStock(
 
       // For the part that was allocated from lots
       if (canAllocate > 0) {
-        await client.productStock.upsert({
-          where: { productId: item.productId },
-          create: {
-            productId: item.productId,
+        await StockRepository.upsertProductStock(
+          item.productId,
+          {
             physicalBalance: 0,
             availableQuantity: 0,
             reservedQuantity: isRealDeduction ? 0 : canAllocate,
-          },
-          update: {
-            availableQuantity: { decrement: canAllocate },
-            reservedQuantity: isRealDeduction
+            availableQuantityIncrement: -canAllocate,
+            reservedQuantityIncrement: isRealDeduction
               ? undefined
-              : { increment: canAllocate },
-            physicalBalance: isRealDeduction
-              ? { decrement: canAllocate }
+              : canAllocate,
+            physicalBalanceIncrement: isRealDeduction
+              ? -canAllocate
               : undefined,
           },
-        });
+          client
+        );
       }
 
-      // For backorder - reserve in reservedQuantity (negative available is allowed for backorder tracking)
+      // For backorder - reserve in reservedQuantity
       if (backorderQty > 0) {
-        await client.productStock.upsert({
-          where: { productId: item.productId },
-          create: {
-            productId: item.productId,
+        await StockRepository.upsertProductStock(
+          item.productId,
+          {
             physicalBalance: 0,
-            availableQuantity: -backorderQty, // Negative indicates backorder
+            availableQuantity: -backorderQty,
             reservedQuantity: backorderQty,
+            availableQuantityIncrement: -backorderQty,
+            reservedQuantityIncrement: backorderQty,
           },
-          update: {
-            availableQuantity: { decrement: backorderQty },
-            reservedQuantity: { increment: backorderQty },
-          },
-        });
+          client
+        );
       }
     }
   };
@@ -151,7 +124,6 @@ export async function allocateStock(
   if (tx) {
     await allocate(tx);
   } else {
-    // Start a new transaction if one wasn't provided
     await prisma.$transaction(async (client) => {
       await allocate(client);
     });
@@ -194,50 +166,32 @@ export async function releaseStock(
 
   const release = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      const lot = await client.productStockLot.findFirst({
-        where: {
-          productId: item.productId,
-          isUsed: false,
-        },
-        orderBy: { lotNumber: "asc" },
-      });
+      const lot = await StockRepository.getFirstAvailableLot(
+        item.productId,
+        client
+      );
 
       if (lot) {
-        await client.productStockLot.update({
-          where: { id: lot.id },
-          data: {
-            quantity: { increment: item.quantity },
-          },
-        });
+        await StockRepository.updateLotQuantity(lot.id, item.quantity, client);
       } else {
-        const anyLot = await client.productStockLot.findFirst({
-          where: { productId: item.productId },
-          orderBy: { lotNumber: "desc" },
-        });
+        const anyLot = await StockRepository.getAnyLot(item.productId, client);
 
         if (anyLot) {
-          await client.productStockLot.update({
-            where: { id: anyLot.id },
-            data: {
-              quantity: { increment: item.quantity },
-              isUsed: false,
-            },
-          });
+          await StockRepository.reactivateLot(anyLot.id, item.quantity, client);
         }
       }
 
       // Update ProductStock summary
-      // We upsert just in case, but really should expect it to exist.
       try {
-        await client.productStock.update({
-          where: { productId: item.productId },
-          data: {
-            availableQuantity: { increment: item.quantity },
-            reservedQuantity: { decrement: item.quantity },
+        await StockRepository.updateProductStock(
+          item.productId,
+          {
+            availableQuantityIncrement: item.quantity,
+            reservedQuantityIncrement: -item.quantity,
           },
-        });
-      } catch (e) {
-        // Ignore if not found? Or log.
+          client
+        );
+      } catch {
         console.warn(`Could not update product stock for ${item.productId}`);
       }
     }
@@ -273,13 +227,14 @@ export async function confirmStockDeduction(
 
   const confirm = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      await client.productStock.update({
-        where: { productId: item.productId },
-        data: {
-          reservedQuantity: { decrement: item.quantity },
-          physicalBalance: { decrement: item.quantity },
+      await StockRepository.updateProductStock(
+        item.productId,
+        {
+          reservedQuantityIncrement: -item.quantity,
+          physicalBalanceIncrement: -item.quantity,
         },
-      });
+        client
+      );
     }
   };
 
@@ -310,13 +265,14 @@ export async function revertStockDeduction(
 
   const revert = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {
-      await client.productStock.update({
-        where: { productId: item.productId },
-        data: {
-          reservedQuantity: { increment: item.quantity },
-          physicalBalance: { increment: item.quantity },
+      await StockRepository.updateProductStock(
+        item.productId,
+        {
+          reservedQuantityIncrement: item.quantity,
+          physicalBalanceIncrement: item.quantity,
         },
-      });
+        client
+      );
     }
   };
 

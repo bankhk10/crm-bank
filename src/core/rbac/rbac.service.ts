@@ -1,26 +1,29 @@
 /**
- * @deprecated Use `import { ... } from "@/src/core/rbac"` instead
- * This file is kept for backward compatibility during migration
+ * RBAC Service
+ * Role-Based Access Control business logic
  */
 
+import type { DataAccessLevel } from "@prisma/client";
 import type {
-  DataAccessLevel,
-  Permission,
-  PermissionType,
-  RolePermission,
-  UserPermissionOverride,
-} from "@prisma/client";
-import type { SessionPermission } from "@/types/next-auth";
+  SessionPermission,
+  RoutePermissionRule,
+  PermissionInput,
+  OverrideInput,
+} from "./rbac.types";
 
-interface RoutePermissionRule {
-  pattern: RegExp;
-  required: string[];
-}
-
+/**
+ * Public paths that don't require authentication
+ */
 export const PUBLIC_PATHS = ["/", "/login", "/api/auth"];
 
+/**
+ * Default redirect path after authentication
+ */
 export const DEFAULT_AUTH_REDIRECT = "/dashboard/employee";
 
+/**
+ * Route permission rules
+ */
 const routeRules: RoutePermissionRule[] = [
   {
     pattern: /^\/reports(\/aggregateReport|\/activityReport)?$/,
@@ -41,14 +44,9 @@ const routeRules: RoutePermissionRule[] = [
   { pattern: /^\/api\/companies(\/.*)?$/, required: ["menu.companies"] },
 ];
 
-export type PermissionInput = RolePermission & {
-  permission: Permission;
-};
-
-export type OverrideInput = UserPermissionOverride & {
-  permission: Permission;
-};
-
+/**
+ * Build permission map from role permissions and overrides
+ */
 export function buildPermissionMap(
   rolePermissions: PermissionInput[],
   overrides: OverrideInput[]
@@ -91,6 +89,9 @@ export function buildPermissionMap(
   return permissionMap;
 }
 
+/**
+ * Build data access level map by resource
+ */
 export function buildDataAccessByResource(
   permissions: Record<string, SessionPermission>
 ): Record<string, DataAccessLevel> {
@@ -107,6 +108,9 @@ export function buildDataAccessByResource(
   return map;
 }
 
+/**
+ * Check if a route is public (no authentication required)
+ */
 export function isRoutePublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((route) =>
     route === "/api/auth"
@@ -117,6 +121,9 @@ export function isRoutePublic(pathname: string): boolean {
   );
 }
 
+/**
+ * Check if user is authorized for a route
+ */
 export function isAuthorized(
   pathname: string,
   permissionMap: Record<string, SessionPermission>
@@ -129,21 +136,27 @@ export function isAuthorized(
   return rule.required.every((key) => permissionMap[key]?.allow);
 }
 
-// Helper to check for Administrator role type
+/**
+ * Check for Administrator role type
+ */
 export function isAdministrator(roles: string[]): boolean {
   return roles.some((role) => role === "administrator");
 }
 
-// Helper to check for Manager role type (e.g., sales_manager, manager)
+/**
+ * Check for Manager role type
+ */
 export function isManager(roles: string[]): boolean {
   return roles.some((role) => role.toLowerCase().includes("manager"));
 }
 
+/**
+ * Get default route for user roles
+ */
 export function getDefaultRouteForRoles(roles: string[]): string {
   if (isAdministrator(roles)) {
     return "/dashboard/admin";
   }
-  // Check for Admin role (second highest permission level)
   if (roles.some((role) => role === "admin")) {
     return "/dashboard/admin";
   }
@@ -153,6 +166,9 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   return DEFAULT_AUTH_REDIRECT;
 }
 
+/**
+ * Check if user has a specific permission
+ */
 export function userHasPermission(
   permissionMap: Record<string, SessionPermission>,
   key: string
@@ -160,6 +176,9 @@ export function userHasPermission(
   return Boolean(permissionMap[key]?.allow);
 }
 
+/**
+ * Get data access level for a resource
+ */
 export function getDataAccessForResource(
   permissionMap: Record<string, SessionPermission>,
   resource: string
@@ -169,4 +188,24 @@ export function getDataAccessForResource(
       permission.resource === resource && permission.category === "DATA"
   );
   return match?.dataAccess ?? null;
+}
+
+/**
+ * Check if user has any of the specified permissions
+ */
+export function hasAnyPermission(
+  permissionMap: Record<string, SessionPermission>,
+  keys: string[]
+): boolean {
+  return keys.some((key) => userHasPermission(permissionMap, key));
+}
+
+/**
+ * Check if user has all of the specified permissions
+ */
+export function hasAllPermissions(
+  permissionMap: Record<string, SessionPermission>,
+  keys: string[]
+): boolean {
+  return keys.every((key) => userHasPermission(permissionMap, key));
 }

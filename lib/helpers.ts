@@ -1,4 +1,9 @@
 /**
+ * @deprecated Use `import { formatDate, formatCurrency, ... } from "@/src/shared/utils"` instead
+ * This file is kept for backward compatibility during migration
+ */
+
+/**
  * Throttles a function to limit its execution to once every specified duration.
  *
  * @param func - The function to throttle.

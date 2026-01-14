@@ -1,21 +1,18 @@
 /**
- * @deprecated Use `import { checkExpiredOrders, ... } from "@/src/core/sales"` instead
- * This file is kept for backward compatibility during migration
+ * Order Expiry Service
+ * Handles order expiration and overdue logic
  */
 
-import { db as prisma } from "@/lib/db";
+import { db as prisma } from "@/src/infrastructure/database";
 import { Prisma, SaleStatus } from "@prisma/client";
-import { releaseStock } from "./stock-service";
-
-/**
- * Order Expiry & Overdue Management Service
- *
- * Handles:
- * 1. EXPIRED: Orders approved but no delivery date set within 3 days
- * 2. OVERDUE: Orders with delivery date updated more than 3 times
- */
-
-const ORDER_EXPIRY_DAYS = 3;
+import { releaseStock } from "@/src/core/stock";
+import { ORDER_CONFIG } from "@/src/shared/constants";
+import type {
+  OrderExpiryInfo,
+  OrderCheckResult,
+  DeliveryDateUpdateResult,
+} from "./sales.types";
+import { IMMUTABLE_STATUSES, isCreditPaymentTerm } from "./sales.types";
 
 /**
  * Restores customer credit limit when an order is cancelled/expired/overdue
@@ -32,8 +29,7 @@ async function restoreCreditLimit(
   if (!sale) return;
 
   // Only restore credit for credit-based payment terms
-  const creditPaymentTerms = ["CREDIT_90", "CREDIT_OVER_90"];
-  if (!creditPaymentTerms.includes(sale.paymentTerm)) return;
+  if (!isCreditPaymentTerm(sale.paymentTerm)) return;
 
   // Find active credit limit
   const activeCreditLimit = sale.customer.creditLimits.find(
@@ -59,19 +55,12 @@ async function restoreCreditLimit(
  * Check and mark expired orders (approved but no delivery date after 3 days)
  * Should be called periodically via cron job
  */
-export async function checkExpiredOrders(): Promise<{
-  processed: number;
-  errors: string[];
-}> {
+export async function checkExpiredOrders(): Promise<OrderCheckResult> {
   const now = new Date();
   const errors: string[] = [];
   let processed = 0;
 
   try {
-    // Find orders that are:
-    // - Status: APPROVED (not yet moved to AWAITING_DELIVERY)
-    // - No delivery date set
-    // - Order expiry date has passed
     const expiredSales = await prisma.sale.findMany({
       where: {
         status: SaleStatus.APPROVED,
@@ -112,7 +101,7 @@ export async function checkExpiredOrders(): Promise<{
               status: SaleStatus.EXPIRED,
               notes:
                 "ใบคำสั่งซื้อหมดอายุเนื่องจากไม่ได้ระบุวันที่จัดส่งภายใน 3 วัน",
-              changedById: "SYSTEM", // Will need to handle this differently
+              changedById: "SYSTEM",
             },
           });
         });
@@ -137,23 +126,16 @@ export async function checkExpiredOrders(): Promise<{
  * Check and mark overdue orders (delivery date updated more than 3 times and past due)
  * Should be called periodically via cron job
  */
-export async function checkOverdueOrders(): Promise<{
-  processed: number;
-  errors: string[];
-}> {
+export async function checkOverdueOrders(): Promise<OrderCheckResult> {
   const now = new Date();
   const errors: string[] = [];
   let processed = 0;
 
   try {
-    // Find orders that are:
-    // - Status: AWAITING_DELIVERY
-    // - Delivery update count >= 3
-    // - Delivery date has passed
     const overdueSales = await prisma.sale.findMany({
       where: {
         status: SaleStatus.AWAITING_DELIVERY,
-        deliveryUpdateCount: { gte: 3 },
+        deliveryUpdateCount: { gte: ORDER_CONFIG.MAX_DELIVERY_UPDATES },
         deliveryDate: { lt: now },
         isDeliveryLocked: false,
         deletedAt: null,
@@ -220,12 +202,7 @@ export async function updateDeliveryDate(
   deliveryDate: Date,
   userId: string,
   notes?: string
-): Promise<{
-  success: boolean;
-  error?: string;
-  isFirstDeliveryDate?: boolean;
-  newUpdateCount?: number;
-}> {
+): Promise<DeliveryDateUpdateResult> {
   const sale = await prisma.sale.findUnique({
     where: { id: saleId },
   });
@@ -240,16 +217,7 @@ export async function updateDeliveryDate(
   }
 
   // Check if already delivered/completed/cancelled
-  const immutableStatuses: SaleStatus[] = [
-    SaleStatus.DELIVERED,
-    SaleStatus.DELIVERY_COMPLETED,
-    SaleStatus.COMPLETED,
-    SaleStatus.CANCELLED,
-    SaleStatus.EXPIRED,
-    SaleStatus.OVERDUE,
-  ];
-
-  if (immutableStatuses.includes(sale.status)) {
+  if (IMMUTABLE_STATUSES.includes(sale.status)) {
     return {
       success: false,
       error: "ไม่สามารถแก้ไขวันที่จัดส่งสำหรับสถานะนี้ได้",
@@ -258,13 +226,13 @@ export async function updateDeliveryDate(
 
   const isFirstDeliveryDate = !sale.deliveryDate;
   const newUpdateCount = sale.deliveryUpdateCount + 1;
-  const maxUpdates = sale.maxDeliveryUpdates || 3;
+  const maxUpdates =
+    sale.maxDeliveryUpdates || ORDER_CONFIG.MAX_DELIVERY_UPDATES;
 
   try {
     await prisma.$transaction(async (tx) => {
       // Check if this update will exceed max updates
       if (newUpdateCount > maxUpdates && !isFirstDeliveryDate) {
-        // Don't allow update - would exceed limit
         throw new Error(
           `ไม่สามารถอัปเดตวันที่จัดส่งได้อีก (ครบ ${maxUpdates} ครั้งแล้ว)`
         );
@@ -316,7 +284,7 @@ export async function updateDeliveryDate(
  */
 export function calculateOrderExpiryDate(approvedAt: Date): Date {
   const expiryDate = new Date(approvedAt);
-  expiryDate.setDate(expiryDate.getDate() + ORDER_EXPIRY_DAYS);
+  expiryDate.setDate(expiryDate.getDate() + ORDER_CONFIG.EXPIRY_DAYS);
   return expiryDate;
 }
 
@@ -329,15 +297,11 @@ export function getOrderExpiryInfo(sale: {
   deliveryUpdateCount: number;
   maxDeliveryUpdates: number;
   isDeliveryLocked: boolean;
-}): {
-  isLocked: boolean;
-  expiresIn: number | null; // milliseconds until expiry, null if has delivery date
-  remainingUpdates: number;
-  warningLevel: "none" | "warning" | "critical";
-} {
+}): OrderExpiryInfo {
   const remainingUpdates = Math.max(
     0,
-    (sale.maxDeliveryUpdates || 3) - sale.deliveryUpdateCount
+    (sale.maxDeliveryUpdates || ORDER_CONFIG.MAX_DELIVERY_UPDATES) -
+      sale.deliveryUpdateCount
   );
 
   if (sale.isDeliveryLocked) {
