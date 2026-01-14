@@ -36,6 +36,7 @@ export interface ProductStockLot {
   productId: string;
   lotNumber: string;
   quantity: number;
+  initialQuantity?: number;
   importDate: Date | string;
   expiryDate: Date | string | null;
   storageLocation: string | null;
@@ -117,6 +118,7 @@ export interface ProductManagementFormData {
     id?: string;
     lotNumber: string;
     quantity: number;
+    initialQuantity?: number;
     importDate: Date | string;
     expiryDate?: Date | string;
     storageLocation?: string;

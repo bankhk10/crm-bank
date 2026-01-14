@@ -28,10 +28,12 @@ export type AggregateProductStockLot = {
 
 export type ProductStockLotAvgAggregateOutputType = {
   quantity: number | null
+  initialQuantity: number | null
 }
 
 export type ProductStockLotSumAggregateOutputType = {
   quantity: number | null
+  initialQuantity: number | null
 }
 
 export type ProductStockLotMinAggregateOutputType = {
@@ -39,6 +41,7 @@ export type ProductStockLotMinAggregateOutputType = {
   productId: string | null
   lotNumber: string | null
   quantity: number | null
+  initialQuantity: number | null
   importDate: Date | null
   expiryDate: Date | null
   storageLocation: string | null
@@ -53,6 +56,7 @@ export type ProductStockLotMaxAggregateOutputType = {
   productId: string | null
   lotNumber: string | null
   quantity: number | null
+  initialQuantity: number | null
   importDate: Date | null
   expiryDate: Date | null
   storageLocation: string | null
@@ -67,6 +71,7 @@ export type ProductStockLotCountAggregateOutputType = {
   productId: number
   lotNumber: number
   quantity: number
+  initialQuantity: number
   importDate: number
   expiryDate: number
   storageLocation: number
@@ -80,10 +85,12 @@ export type ProductStockLotCountAggregateOutputType = {
 
 export type ProductStockLotAvgAggregateInputType = {
   quantity?: true
+  initialQuantity?: true
 }
 
 export type ProductStockLotSumAggregateInputType = {
   quantity?: true
+  initialQuantity?: true
 }
 
 export type ProductStockLotMinAggregateInputType = {
@@ -91,6 +98,7 @@ export type ProductStockLotMinAggregateInputType = {
   productId?: true
   lotNumber?: true
   quantity?: true
+  initialQuantity?: true
   importDate?: true
   expiryDate?: true
   storageLocation?: true
@@ -105,6 +113,7 @@ export type ProductStockLotMaxAggregateInputType = {
   productId?: true
   lotNumber?: true
   quantity?: true
+  initialQuantity?: true
   importDate?: true
   expiryDate?: true
   storageLocation?: true
@@ -119,6 +128,7 @@ export type ProductStockLotCountAggregateInputType = {
   productId?: true
   lotNumber?: true
   quantity?: true
+  initialQuantity?: true
   importDate?: true
   expiryDate?: true
   storageLocation?: true
@@ -220,6 +230,7 @@ export type ProductStockLotGroupByOutputType = {
   productId: string
   lotNumber: string
   quantity: number
+  initialQuantity: number
   importDate: Date
   expiryDate: Date | null
   storageLocation: string | null
@@ -257,6 +268,7 @@ export type ProductStockLotWhereInput = {
   productId?: Prisma.StringFilter<"ProductStockLot"> | string
   lotNumber?: Prisma.StringFilter<"ProductStockLot"> | string
   quantity?: Prisma.IntFilter<"ProductStockLot"> | number
+  initialQuantity?: Prisma.IntFilter<"ProductStockLot"> | number
   importDate?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   expiryDate?: Prisma.DateTimeNullableFilter<"ProductStockLot"> | Date | string | null
   storageLocation?: Prisma.StringNullableFilter<"ProductStockLot"> | string | null
@@ -272,6 +284,7 @@ export type ProductStockLotOrderByWithRelationInput = {
   productId?: Prisma.SortOrder
   lotNumber?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
   importDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrderInput | Prisma.SortOrder
   storageLocation?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -290,6 +303,7 @@ export type ProductStockLotWhereUniqueInput = Prisma.AtLeast<{
   productId?: Prisma.StringFilter<"ProductStockLot"> | string
   lotNumber?: Prisma.StringFilter<"ProductStockLot"> | string
   quantity?: Prisma.IntFilter<"ProductStockLot"> | number
+  initialQuantity?: Prisma.IntFilter<"ProductStockLot"> | number
   importDate?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   expiryDate?: Prisma.DateTimeNullableFilter<"ProductStockLot"> | Date | string | null
   storageLocation?: Prisma.StringNullableFilter<"ProductStockLot"> | string | null
@@ -305,6 +319,7 @@ export type ProductStockLotOrderByWithAggregationInput = {
   productId?: Prisma.SortOrder
   lotNumber?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
   importDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrderInput | Prisma.SortOrder
   storageLocation?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -327,6 +342,7 @@ export type ProductStockLotScalarWhereWithAggregatesInput = {
   productId?: Prisma.StringWithAggregatesFilter<"ProductStockLot"> | string
   lotNumber?: Prisma.StringWithAggregatesFilter<"ProductStockLot"> | string
   quantity?: Prisma.IntWithAggregatesFilter<"ProductStockLot"> | number
+  initialQuantity?: Prisma.IntWithAggregatesFilter<"ProductStockLot"> | number
   importDate?: Prisma.DateTimeWithAggregatesFilter<"ProductStockLot"> | Date | string
   expiryDate?: Prisma.DateTimeNullableWithAggregatesFilter<"ProductStockLot"> | Date | string | null
   storageLocation?: Prisma.StringNullableWithAggregatesFilter<"ProductStockLot"> | string | null
@@ -340,6 +356,7 @@ export type ProductStockLotCreateInput = {
   id?: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -355,6 +372,7 @@ export type ProductStockLotUncheckedCreateInput = {
   productId: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -368,6 +386,7 @@ export type ProductStockLotUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -383,6 +402,7 @@ export type ProductStockLotUncheckedUpdateInput = {
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -397,6 +417,7 @@ export type ProductStockLotCreateManyInput = {
   productId: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -410,6 +431,7 @@ export type ProductStockLotUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -424,6 +446,7 @@ export type ProductStockLotUncheckedUpdateManyInput = {
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -448,6 +471,7 @@ export type ProductStockLotCountOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   lotNumber?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
   importDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   storageLocation?: Prisma.SortOrder
@@ -459,6 +483,7 @@ export type ProductStockLotCountOrderByAggregateInput = {
 
 export type ProductStockLotAvgOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
 }
 
 export type ProductStockLotMaxOrderByAggregateInput = {
@@ -466,6 +491,7 @@ export type ProductStockLotMaxOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   lotNumber?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
   importDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   storageLocation?: Prisma.SortOrder
@@ -480,6 +506,7 @@ export type ProductStockLotMinOrderByAggregateInput = {
   productId?: Prisma.SortOrder
   lotNumber?: Prisma.SortOrder
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
   importDate?: Prisma.SortOrder
   expiryDate?: Prisma.SortOrder
   storageLocation?: Prisma.SortOrder
@@ -491,6 +518,7 @@ export type ProductStockLotMinOrderByAggregateInput = {
 
 export type ProductStockLotSumOrderByAggregateInput = {
   quantity?: Prisma.SortOrder
+  initialQuantity?: Prisma.SortOrder
 }
 
 export type ProductStockLotCreateNestedManyWithoutProductInput = {
@@ -539,6 +567,7 @@ export type ProductStockLotCreateWithoutProductInput = {
   id?: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -552,6 +581,7 @@ export type ProductStockLotUncheckedCreateWithoutProductInput = {
   id?: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -595,6 +625,7 @@ export type ProductStockLotScalarWhereInput = {
   productId?: Prisma.StringFilter<"ProductStockLot"> | string
   lotNumber?: Prisma.StringFilter<"ProductStockLot"> | string
   quantity?: Prisma.IntFilter<"ProductStockLot"> | number
+  initialQuantity?: Prisma.IntFilter<"ProductStockLot"> | number
   importDate?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   expiryDate?: Prisma.DateTimeNullableFilter<"ProductStockLot"> | Date | string | null
   storageLocation?: Prisma.StringNullableFilter<"ProductStockLot"> | string | null
@@ -608,6 +639,7 @@ export type ProductStockLotCreateManyProductInput = {
   id?: string
   lotNumber: string
   quantity: number
+  initialQuantity?: number
   importDate: Date | string
   expiryDate?: Date | string | null
   storageLocation?: string | null
@@ -621,6 +653,7 @@ export type ProductStockLotUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -634,6 +667,7 @@ export type ProductStockLotUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -647,6 +681,7 @@ export type ProductStockLotUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
   importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -663,6 +698,7 @@ export type ProductStockLotSelect<ExtArgs extends runtime.Types.Extensions.Inter
   productId?: boolean
   lotNumber?: boolean
   quantity?: boolean
+  initialQuantity?: boolean
   importDate?: boolean
   expiryDate?: boolean
   storageLocation?: boolean
@@ -678,6 +714,7 @@ export type ProductStockLotSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   productId?: boolean
   lotNumber?: boolean
   quantity?: boolean
+  initialQuantity?: boolean
   importDate?: boolean
   expiryDate?: boolean
   storageLocation?: boolean
@@ -693,6 +730,7 @@ export type ProductStockLotSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   productId?: boolean
   lotNumber?: boolean
   quantity?: boolean
+  initialQuantity?: boolean
   importDate?: boolean
   expiryDate?: boolean
   storageLocation?: boolean
@@ -708,6 +746,7 @@ export type ProductStockLotSelectScalar = {
   productId?: boolean
   lotNumber?: boolean
   quantity?: boolean
+  initialQuantity?: boolean
   importDate?: boolean
   expiryDate?: boolean
   storageLocation?: boolean
@@ -717,7 +756,7 @@ export type ProductStockLotSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProductStockLotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "lotNumber" | "quantity" | "importDate" | "expiryDate" | "storageLocation" | "notes" | "isUsed" | "createdAt" | "updatedAt", ExtArgs["result"]["productStockLot"]>
+export type ProductStockLotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "lotNumber" | "quantity" | "initialQuantity" | "importDate" | "expiryDate" | "storageLocation" | "notes" | "isUsed" | "createdAt" | "updatedAt", ExtArgs["result"]["productStockLot"]>
 export type ProductStockLotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }
@@ -738,6 +777,7 @@ export type $ProductStockLotPayload<ExtArgs extends runtime.Types.Extensions.Int
     productId: string
     lotNumber: string
     quantity: number
+    initialQuantity: number
     importDate: Date
     expiryDate: Date | null
     storageLocation: string | null
@@ -1173,6 +1213,7 @@ export interface ProductStockLotFieldRefs {
   readonly productId: Prisma.FieldRef<"ProductStockLot", 'String'>
   readonly lotNumber: Prisma.FieldRef<"ProductStockLot", 'String'>
   readonly quantity: Prisma.FieldRef<"ProductStockLot", 'Int'>
+  readonly initialQuantity: Prisma.FieldRef<"ProductStockLot", 'Int'>
   readonly importDate: Prisma.FieldRef<"ProductStockLot", 'DateTime'>
   readonly expiryDate: Prisma.FieldRef<"ProductStockLot", 'DateTime'>
   readonly storageLocation: Prisma.FieldRef<"ProductStockLot", 'String'>

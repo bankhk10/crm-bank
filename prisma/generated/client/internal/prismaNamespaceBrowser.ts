@@ -476,6 +476,7 @@ export const ProductStockLotScalarFieldEnum = {
   productId: 'productId',
   lotNumber: 'lotNumber',
   quantity: 'quantity',
+  initialQuantity: 'initialQuantity',
   importDate: 'importDate',
   expiryDate: 'expiryDate',
   storageLocation: 'storageLocation',

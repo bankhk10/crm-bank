@@ -513,6 +513,7 @@ const StockLotsSection: React.FC<
         {
           lotNumber: "",
           quantity: 1,
+          initialQuantity: 1,
           importDate: new Date().toISOString().split("T")[0],
           expiryDate: undefined,
           storageLocation: "",
@@ -620,9 +621,30 @@ const StockLotsSection: React.FC<
             </div>
 
             {/* Content Form */}
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">จำนวน</Label>
+                <Label className="text-xs text-muted-foreground">
+                  จำนวนนำเข้า
+                </Label>
+                <Input
+                  type="number"
+                  value={lot.initialQuantity ?? lot.quantity}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    updateStockLot(index, "initialQuantity", val);
+                    // If new lot, sync remaining quantity
+                    if (!lot.id) {
+                      updateStockLot(index, "quantity", val);
+                    }
+                  }}
+                  disabled={saving || !!(lot.id && lot.isUsed)}
+                  className="h-10"
+                  onWheel={(e) => e.currentTarget.blur()}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">คงเหลือ</Label>
                 <Input
                   type="number"
                   value={lot.quantity}
@@ -691,7 +713,7 @@ const StockLotsSection: React.FC<
                 </Select>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-4 space-y-1.5">
+              <div className="sm:col-span-2 lg:col-span-5 space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   หมายเหตุ
                 </Label>
@@ -784,6 +806,7 @@ export default function ProductManagementPage() {
               id: lot.id,
               lotNumber: lot.lotNumber,
               quantity: lot.quantity,
+              initialQuantity: lot.initialQuantity ?? lot.quantity,
               importDate: lot.importDate,
               expiryDate: lot.expiryDate || undefined,
               storageLocation: lot.storageLocation || "",

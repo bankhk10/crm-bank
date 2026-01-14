@@ -487,6 +487,7 @@ model ProductStockLot {
   productId       String
   lotNumber       String
   quantity        Int
+  initialQuantity Int       @default(0)
   importDate      DateTime
   expiryDate      DateTime?
   storageLocation String?

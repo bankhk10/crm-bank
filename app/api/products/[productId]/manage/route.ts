@@ -36,7 +36,8 @@ const managementSchema = z.object({
     .array(
       z.object({
         id: z.string().optional(),
-        quantity: z.number().min(1),
+        quantity: z.number().min(0),
+        initialQuantity: z.number().min(0).optional(),
         importDate: z.string().or(z.date()),
         expiryDate: z.string().or(z.date()).optional(),
         storageLocation: z.string().optional(),
@@ -216,6 +217,7 @@ export async function PATCH(
                 where: { id: item.id },
                 data: {
                   quantity: item.quantity,
+                  initialQuantity: item.initialQuantity,
                   importDate: new Date(item.importDate),
                   expiryDate: item.expiryDate
                     ? new Date(item.expiryDate)
@@ -234,6 +236,7 @@ export async function PATCH(
                 productId,
                 lotNumber: newLotNumber,
                 quantity: item.quantity,
+                initialQuantity: item.initialQuantity ?? item.quantity,
                 importDate: new Date(item.importDate),
                 expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
                 storageLocation: item.storageLocation,
