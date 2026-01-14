@@ -1,8 +1,25 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { Bell, Globe, LogOut, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const NotificationBell = dynamic(
+  () => import("@/components/features/notifications/notification-bell"),
+  {
+    ssr: false,
+    loading: () => (
+      <Button
+        variant="ghost"
+        className="p-2 rounded hover:bg-white/10"
+        aria-label="Notifications"
+      >
+        <Bell className="h-5 w-5 text-white" />
+      </Button>
+    ),
+  }
+);
 
 interface NavbarProps {
   user: {
@@ -33,13 +50,7 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
 
       {/* Right: controls */}
       <div className="flex items-center gap-1 text-sm">
-        <Button
-          variant="ghost"
-          className="p-2 rounded hover:bg-white/10"
-          aria-label="Notifications"
-        >
-          <Bell className="h-5 w-5 text-white" />
-        </Button>
+        <NotificationBell />
         <Button
           variant="ghost"
           className="p-2 rounded hover:bg-white/10"

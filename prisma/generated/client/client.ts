@@ -189,3 +189,8 @@ export type SecurityLog = Prisma.SecurityLogModel
  * 
  */
 export type ApplicationLog = Prisma.ApplicationLogModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

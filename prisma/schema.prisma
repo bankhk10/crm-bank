@@ -82,7 +82,8 @@ model User {
   // Logging relations
   auditLogs                     AuditLog[]               @relation("AuditLogUser")
   securityLogs                  SecurityLog[]            @relation("SecurityLogUser")
-  targetedSecurityLogs          SecurityLog[]            @relation("SecurityLogTargetUser")
+  targetedSecurityLogs          SecurityLog[]            @relation("SecurityLogTargetUser") // Existing
+  notifications                 Notification[]           @relation("UserNotifications")
 }
 
 model Company {
@@ -884,4 +885,34 @@ model ApplicationLog {
   @@index([module, timestamp])
   @@index([requestId])
   @@index([timestamp])
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  APPROVED
+  REJECTED
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        NotificationType @default(INFO)
+  link        String?
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  user        User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
 }

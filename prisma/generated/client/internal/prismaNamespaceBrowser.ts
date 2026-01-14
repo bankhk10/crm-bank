@@ -80,7 +80,8 @@ export const ModelName = {
   MonthlySalesTarget: 'MonthlySalesTarget',
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
-  ApplicationLog: 'ApplicationLog'
+  ApplicationLog: 'ApplicationLog',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -702,6 +703,21 @@ export const ApplicationLogScalarFieldEnum = {
 } as const
 
 export type ApplicationLogScalarFieldEnum = (typeof ApplicationLogScalarFieldEnum)[keyof typeof ApplicationLogScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  message: 'message',
+  type: 'type',
+  link: 'link',
+  isRead: 'isRead',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SortOrder = {

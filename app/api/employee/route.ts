@@ -5,6 +5,7 @@ import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
 
 const resourcePath = "/api/employee";
+const requiredPermission = "employee.manage";
 
 const employeeSchema = z.object({
   name: z.string().min(2),
@@ -22,7 +23,10 @@ export async function GET() {
   }
 
   if (!isAuthorized(resourcePath, session.user.permissions)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // If exact route match fails, check if they have general management permission
+    if (!session.user.permissions["employee.manage"]?.allow) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const employees = await db.employee.findMany({
@@ -50,6 +54,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
+  console.log(`[API] Returning ${employees.length} employees`);
   return NextResponse.json({ employees });
 }
 

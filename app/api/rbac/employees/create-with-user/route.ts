@@ -36,6 +36,7 @@ const payloadSchema = z.object({
     // frontend sometimes sends relation ids as `positionId` / `departmentId`
     positionId: z.string().optional(),
     departmentId: z.string().optional(),
+    managerId: z.string().optional(),
   }),
   user: z
     .object({
@@ -158,6 +159,7 @@ export async function POST(request: Request) {
         positionId: empPayload.positionId ?? empPayload.position ?? undefined,
         departmentId:
           empPayload.departmentId ?? empPayload.department ?? undefined,
+        managerId: empPayload.managerId ?? undefined,
         // if frontend provided position/department objects instead of ids, you may
         // want to extract/display names here. Keep empty for now.
       };

@@ -37,6 +37,7 @@ type EmployeeFormValues = Partial<Employee> & {
   status?: string;
   roleDefinitionId?: string;
   role?: string;
+  managerId?: string;
 };
 
 interface EmployeeFormProps {
@@ -73,6 +74,7 @@ export default function EmployeeForm({
   const [companyOptions, setCompanyOptions] = useState<Option[]>([]);
   const [departmentOptions, setDepartmentOptions] = useState<Option[]>([]);
   const [positionOptions, setPositionOptions] = useState<Option[]>([]);
+  const [managerOptions, setManagerOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -143,6 +145,10 @@ export default function EmployeeForm({
           ? String((initial as any).zipCode)
           : prev.postalCode,
       status: (initial as any).status ?? prev.status ?? "ACTIVE",
+      managerId:
+        (initial as any).managerId ??
+        (initial as any).manager?.id ??
+        prev.managerId,
     }));
   }, [initial]);
 
@@ -191,6 +197,24 @@ export default function EmployeeForm({
         }
       } catch (e) {
         // ignore
+      }
+      try {
+        console.log("Fetching managers...");
+        const mRes = await fetch(`/api/employee`);
+        console.log("Managers fetch status:", mRes.status);
+        if (mRes.ok) {
+          const mm = await mRes.json();
+          console.log("Managers data:", mm);
+          if (mounted && Array.isArray(mm.employees)) {
+            const opts = mm.employees
+              .filter((e: any) => e.id !== employeeId)
+              .map((e: any) => ({ value: e.id, label: e.name }));
+            console.log("Manager options filtered:", opts);
+            setManagerOptions(opts);
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching managers:", e);
       }
     }
 
@@ -392,6 +416,7 @@ export default function EmployeeForm({
         positionId: values.position,
         departmentId: values.department,
         companyId: values.company,
+        managerId: values.managerId,
         responsibilityArea: values.responsibilityArea,
         addressLine: values.addressLine,
         status: values.status ?? "ACTIVE",
@@ -616,6 +641,15 @@ export default function EmployeeForm({
             label: o.label,
           }))}
           placeholder="เลือกเขต"
+          disabled={!canEdit}
+        />
+
+        <FormSelect
+          label="หัวหน้างาน"
+          value={values.managerId ?? ""}
+          onChange={handleSelect("managerId")}
+          options={managerOptions}
+          placeholder="เลือกหัวหน้างาน"
           disabled={!canEdit}
         />
       </div>

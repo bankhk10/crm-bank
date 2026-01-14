@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { createApiContext, createApiLogger, logReject } from "@/lib/logger";
+import { sendNotification } from "@/src/core/notifications";
 
 // POST /api/sales/[id]/reject - Reject sale
 export async function POST(
@@ -105,7 +106,14 @@ export async function POST(
       metadata: { saleId: id, saleNumber: sale.saleNumber, reason },
     });
 
-    // TODO: Send notification to sale creator
+    // Send notification to sale creator
+    await sendNotification({
+      userId: updatedSale.createdById,
+      title: "Sale Rejected",
+      message: `Sale Order ${updatedSale.saleNumber} has been rejected. Reason: ${reason}`,
+      type: "REJECTED",
+      link: `/sales/${id}`,
+    });
 
     return NextResponse.json({ sale: updatedSale });
   } catch (error) {

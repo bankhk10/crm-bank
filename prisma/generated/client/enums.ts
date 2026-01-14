@@ -153,3 +153,15 @@ export const LogSeverity = {
 } as const
 
 export type LogSeverity = (typeof LogSeverity)[keyof typeof LogSeverity]
+
+
+export const NotificationType = {
+  INFO: 'INFO',
+  SUCCESS: 'SUCCESS',
+  WARNING: 'WARNING',
+  ERROR: 'ERROR',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

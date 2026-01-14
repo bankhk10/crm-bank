@@ -4,6 +4,7 @@ import { db as prisma } from "@/src/infrastructure/database";
 import { SaleStatus, PaymentTerm, Prisma } from "@/src/infrastructure/database";
 import type { SalesFilterParams, SaleFormData } from "@/types/sales";
 import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
+import { sendNotification } from "@/src/core/notifications";
 
 // GET /api/sales - List sales with filters
 export async function GET(request: NextRequest) {
@@ -408,7 +409,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Create notification for approvers
+    // Create notification for approvers (Manager)
+    try {
+      const employee = await prisma.employee.findUnique({
+        where: { id: body.employeeId },
+        include: { manager: true },
+      });
+
+      if (employee?.manager?.userId) {
+        await sendNotification({
+          userId: employee.manager.userId,
+          title: "New Sale Request",
+          message: `New Sale Order ${saleNumber} from ${employee.name} requires approval.`,
+          type: "INFO",
+          link: `/sales/${sale.id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error("Failed to send notification to manager:", notifError);
+    }
 
     // Log audit event (CREATE)
     const context = createApiContext(request, session.user);

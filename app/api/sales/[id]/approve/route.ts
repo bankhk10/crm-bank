@@ -4,6 +4,7 @@ import { db as prisma } from "@/src/infrastructure/database";
 import { allocateStock } from "@/src/core/stock";
 import { calculateOrderExpiryDate } from "@/src/core/sales";
 import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";
+import { sendNotification } from "@/src/core/notifications";
 
 // POST /api/sales/[id]/approve - Approve sale
 export async function POST(
@@ -144,7 +145,14 @@ export async function POST(
       return { sale: updatedSaleData, stockResult };
     });
 
-    // TODO: Send notification to sale creator
+    // Send notification to sale creator
+    await sendNotification({
+      userId: updatedSale.sale.createdById,
+      title: "Sale Approved",
+      message: `Sale Order ${updatedSale.sale.saleNumber} has been approved.`,
+      type: "APPROVED",
+      link: `/sales/${id}`,
+    });
 
     // Log audit event (APPROVE)
     const context = createApiContext(request, session.user);
