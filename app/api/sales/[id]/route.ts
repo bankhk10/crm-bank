@@ -390,7 +390,7 @@ export async function PUT(
           otherCostsDescription: body.otherCostsDescription,
           totalAmount: new Prisma.Decimal(total),
           notes: body.notes,
-          status: needsReapproval ? "PENDING" : existingSale.status,
+          status: needsReapproval ? "PENDING_APPROVAL" : existingSale.status,
           items: {
             deleteMany: {},
             create: body.items.map((item) => {
@@ -408,7 +408,7 @@ export async function PUT(
           statusHistory: needsReapproval
             ? {
                 create: {
-                  status: "PENDING",
+                  status: "PENDING_APPROVAL",
                   notes: "Sale updated - requires re-approval",
                   changedById: session.user.id,
                 },

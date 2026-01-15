@@ -322,7 +322,7 @@ export async function POST(request: NextRequest) {
         saleNumber,
         customerId: body.customerId,
         employeeId: body.employeeId,
-        status: "PENDING",
+        status: "PENDING_APPROVAL",
         paymentTerm: body.paymentTerm,
         creditDays: body.creditDays,
         creditDueDate: body.creditDueDate ? new Date(body.creditDueDate) : null,
@@ -363,7 +363,7 @@ export async function POST(request: NextRequest) {
         },
         statusHistory: {
           create: {
-            status: "PENDING",
+            status: "PENDING_APPROVAL",
             notes: "Sale created",
             changedById: session.user.id,
           },
