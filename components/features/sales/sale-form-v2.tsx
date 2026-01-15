@@ -578,7 +578,7 @@ export function SaleFormV2({
       {/* Shipping Address based on delivery method */}
       <div className="mt-6">
         {deliveryMethod === "CUSTOMER_PICKUP" ? (
-          <div className="space-y-4 border rounded-xl p-4 bg-gray-50">
+          <div className="space-y-4 border rounded-xl p-4">
             <h4 className="font-medium text-gray-900">
               รายละเอียดการรับสินค้า
             </h4>
@@ -620,7 +620,7 @@ export function SaleFormV2({
             </div>
           </div>
         ) : deliveryMethod === "COURIER" ? (
-          <div className="space-y-4 border rounded-xl p-4 bg-gray-50">
+          <div className="space-y-4 border rounded-xl p-4">
             <h4 className="font-medium text-gray-900">
               รายละเอียดการจัดส่งผ่านบริษัทขนส่ง
             </h4>
