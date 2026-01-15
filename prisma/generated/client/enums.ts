@@ -35,6 +35,26 @@ export const DataAccessLevel = {
 export type DataAccessLevel = (typeof DataAccessLevel)[keyof typeof DataAccessLevel]
 
 
+export const EditAccessLevel = {
+  EDIT_NONE: 'EDIT_NONE',
+  EDIT_OWN: 'EDIT_OWN',
+  EDIT_DEPARTMENT: 'EDIT_DEPARTMENT',
+  EDIT_ALL: 'EDIT_ALL'
+} as const
+
+export type EditAccessLevel = (typeof EditAccessLevel)[keyof typeof EditAccessLevel]
+
+
+export const DeleteAccessLevel = {
+  DELETE_NONE: 'DELETE_NONE',
+  DELETE_OWN: 'DELETE_OWN',
+  DELETE_DEPARTMENT: 'DELETE_DEPARTMENT',
+  DELETE_ALL: 'DELETE_ALL'
+} as const
+
+export type DeleteAccessLevel = (typeof DeleteAccessLevel)[keyof typeof DeleteAccessLevel]
+
+
 export const CustomerType = {
   DEALER: 'DEALER',
   SUBDEALER: 'SUBDEALER',

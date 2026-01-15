@@ -9,6 +9,8 @@ export {
   DEFAULT_AUTH_REDIRECT,
   buildPermissionMap,
   buildDataAccessByResource,
+  buildEditAccessByResource,
+  buildDeleteAccessByResource,
   isRoutePublic,
   isAuthorized,
   isAdministrator,
@@ -16,8 +18,14 @@ export {
   getDefaultRouteForRoles,
   userHasPermission,
   getDataAccessForResource,
+  getEditAccessForResource,
+  getDeleteAccessForResource,
   hasAnyPermission,
   hasAllPermissions,
+  canViewResource,
+  canEditResource,
+  canDeleteResource,
+  checkResourceAccessScope,
 } from "./rbac.service";
 
 // Types

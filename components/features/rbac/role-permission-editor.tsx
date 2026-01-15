@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield, ArrowLeft, Eye, Pencil, Trash2 } from "lucide-react";
 import {
   Permission,
   Role,
   RolePermission,
   DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
 } from "@/src/infrastructure/database";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -18,13 +20,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface RoleWithPermissions extends Role {
   permissions: (RolePermission & { permission: Permission })[];
@@ -39,6 +36,20 @@ const dataAccessOptions: { label: string; value: DataAccessLevel }[] = [
   { label: "เฉพาะฉัน", value: "VIEW_OWN" },
   { label: "แผนกเดียวกัน", value: "VIEW_DEPARTMENT" },
   { label: "ทั้งหมด", value: "VIEW_ALL" },
+];
+
+const editAccessOptions: { label: string; value: EditAccessLevel }[] = [
+  { label: "ไม่สามารถแก้ไข", value: "EDIT_NONE" },
+  { label: "เฉพาะของตัวเอง", value: "EDIT_OWN" },
+  { label: "เฉพาะแผนกตัวเอง", value: "EDIT_DEPARTMENT" },
+  { label: "แก้ไขได้ทั้งหมด", value: "EDIT_ALL" },
+];
+
+const deleteAccessOptions: { label: string; value: DeleteAccessLevel }[] = [
+  { label: "ไม่สามารถลบ", value: "DELETE_NONE" },
+  { label: "เฉพาะของตัวเอง", value: "DELETE_OWN" },
+  { label: "เฉพาะแผนกตัวเอง", value: "DELETE_DEPARTMENT" },
+  { label: "ลบได้ทั้งหมด", value: "DELETE_ALL" },
 ];
 
 export default function RolePermissionEditor({
@@ -107,7 +118,9 @@ export default function RolePermissionEditor({
   const togglePermission = async (
     permissionId: string,
     allow: boolean,
-    dataAccess?: DataAccessLevel | null
+    dataAccess?: DataAccessLevel | null,
+    editAccess?: EditAccessLevel | null,
+    deleteAccess?: DeleteAccessLevel | null
   ) => {
     // Optimistic update logic
     const basePermission = allPermissions.find((p) => p.id === permissionId)!;
@@ -125,12 +138,11 @@ export default function RolePermissionEditor({
         allow,
         dataAccess:
           dataAccess ?? nextPermissions[existingIndex].dataAccess ?? null,
+        editAccess:
+          editAccess ?? nextPermissions[existingIndex].editAccess ?? null,
+        deleteAccess:
+          deleteAccess ?? nextPermissions[existingIndex].deleteAccess ?? null,
       };
-      // If disabling, we could technically filter it out, but keeping it with allow=false is also fine for UI state
-      // However, to match previous logic of "clean state", let's replicate the filter-then-push or just update.
-      // The previous implementation used filter-then-push to ensure consistent object structure.
-      // Let's stick to update if exists for simplicity, but handle the case of "removing" if that was the intent.
-      // Actually, simplified: just set allow.
     } else {
       // Add new
       nextPermissions.push({
@@ -141,23 +153,17 @@ export default function RolePermissionEditor({
         permissionId,
         allow,
         dataAccess: dataAccess ?? null,
+        editAccess: editAccess ?? null,
+        deleteAccess: deleteAccess ?? null,
         permission: basePermission,
       });
     }
 
-    // Clean up: if allow is false and no dataAccess, maybe removing it from list is cleaner for the API payload?
-    // But API payload expects list of changes.
-    // Let's simpler approach: Always maintain the list in state as "what is currently active/inactive".
-    // For the UI to show "checked", we need the entry to exist AND allow=true.
-
-    // WAIT: The previous logic was explicitly removing it if !allow && !dataAccess.
-    // Let's refine:
-    if (!allow && !dataAccess) {
+    // Clean up: if allow is false and no access settings, remove from list
+    if (!allow && !dataAccess && !editAccess && !deleteAccess) {
       nextPermissions = nextPermissions.filter(
         (p) => p.permissionId !== permissionId
       );
-    } else if (existingIndex === -1 && (allow || dataAccess)) {
-      // (already pushed above)
     }
 
     // Update State
@@ -165,20 +171,12 @@ export default function RolePermissionEditor({
     setIsSaving(true);
 
     try {
-      // Prepare payload for JUST this permission change or all?
-      // The API accepts a list. Efficient to send just the changed one?
-      // Or send all? The API uses Upsert. Sending all is safer for "replace" logic but bulkier.
-      // The previous implementation sent ONLY the modified ones in a specific way,
-      // actually looking at the previous code: it rebuilt a payload list based on interaction.
-      // But `togglePermission` built a `next` list of ALL permissions and sent THAT?
-      // No, let's look at the toggle logic I replaced.
-      // It sent: `permissions: next.map(...)` which was the FULL list.
-      // That is safest to ensure full sync.
-
       const payload = nextPermissions.map((entry) => ({
         permissionId: entry.permissionId,
         allow: entry.allow,
         dataAccess: entry.dataAccess,
+        editAccess: entry.editAccess,
+        deleteAccess: entry.deleteAccess,
       }));
 
       const response = await fetch(
@@ -229,21 +227,23 @@ export default function RolePermissionEditor({
           permissionId: id,
           allow: false,
           dataAccess: null,
+          editAccess: null,
+          deleteAccess: null,
           permission: base,
         }),
         permissionId: id,
         allow: allow,
-        // Preserve data access if enable, or keep if disable?
+        // Preserve existing access settings
         dataAccess: existing?.dataAccess ?? null,
+        editAccess: existing?.editAccess ?? null,
+        deleteAccess: existing?.deleteAccess ?? null,
         permission: base,
       };
     });
 
-    // Filter out strictly empty ones if allow=false?
-    // Actually keeping them with allow=false is fine, better for "Select All" logic retention.
-    // But to match togglePermission logic:
+    // Filter out strictly empty ones if allow=false
     const finalGroupPerms = newGroupPerms.filter(
-      (p) => p.allow || p.dataAccess
+      (p) => p.allow || p.dataAccess || p.editAccess || p.deleteAccess
     );
 
     const nextPermissions = [...otherPerms, ...finalGroupPerms];
@@ -256,6 +256,8 @@ export default function RolePermissionEditor({
         permissionId: p.permissionId,
         allow: p.allow,
         dataAccess: p.dataAccess,
+        editAccess: p.editAccess,
+        deleteAccess: p.deleteAccess,
       }));
 
       const response = await fetch(
@@ -282,125 +284,131 @@ export default function RolePermissionEditor({
   };
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/rbac")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to RBAC
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            Permission Settings:{" "}
-            <span className="text-primary">{currentRole.name}</span>
-          </h1>
-          <p className="text-muted-foreground">
-            {currentRole.description || "Manage permissions for this role"}
-          </p>
+    <TooltipProvider>
+      <div className="flex flex-col space-y-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/rbac")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to RBAC
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Shield className="h-6 w-6 text-primary" />
+              Permission Settings:{" "}
+              <span className="text-primary">{currentRole.name}</span>
+            </h1>
+            <p className="text-muted-foreground">
+              {currentRole.description || "Manage permissions for this role"}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 pb-12">
+          {sortedGroupKeys.map((groupName) => {
+            const groupPermissions = groupedPermissions[groupName];
+
+            // Further split into "Access (Menu)" and "Capabilities (Action/Data)"
+            const menuPermissions = groupPermissions.filter(
+              (p) => p.category === "MENU"
+            );
+            const actionPermissions = groupPermissions.filter(
+              (p) => p.category !== "MENU"
+            );
+
+            const areAllSelected = groupPermissions.every((p) => {
+              const existing = currentRole.permissions.find(
+                (ep) => ep.permissionId === p.id
+              );
+              return existing?.allow;
+            });
+
+            return (
+              <Card
+                key={groupName}
+                className="overflow-hidden border-slate-200 shadow-sm"
+              >
+                <CardHeader className="bg-slate-50/50 border-b py-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-base font-bold text-slate-800">
+                    {groupName}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground mr-2">
+                      {groupPermissions.length} permissions
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() =>
+                        toggleGroupPermissions(
+                          groupPermissions,
+                          !areAllSelected
+                        )
+                      }
+                      disabled={isSaving}
+                    >
+                      {areAllSelected ? "Deselect All" : "Select All"}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 grid gap-6">
+                  {/* Menu Access Section */}
+                  {menuPermissions.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                        Menu Access
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {menuPermissions.map((p) => (
+                          <PermissionItem
+                            key={p.id}
+                            permission={p}
+                            role={currentRole}
+                            onToggle={togglePermission}
+                            disabled={isSaving}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Divider if both exist */}
+                  {menuPermissions.length > 0 &&
+                    actionPermissions.length > 0 && (
+                      <div className="border-t border-slate-100" />
+                    )}
+
+                  {/* Actions Section */}
+                  {actionPermissions.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        Actions & Data
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {actionPermissions.map((p) => (
+                          <PermissionItem
+                            key={p.id}
+                            permission={p}
+                            role={currentRole}
+                            onToggle={togglePermission}
+                            disabled={isSaving}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
-
-      <div className="grid gap-6 pb-12">
-        {sortedGroupKeys.map((groupName) => {
-          const groupPermissions = groupedPermissions[groupName];
-
-          // Further split into "Access (Menu)" and "Capabilities (Action/Data)"
-          const menuPermissions = groupPermissions.filter(
-            (p) => p.category === "MENU"
-          );
-          const actionPermissions = groupPermissions.filter(
-            (p) => p.category !== "MENU"
-          );
-
-          const areAllSelected = groupPermissions.every((p) => {
-            const existing = currentRole.permissions.find(
-              (ep) => ep.permissionId === p.id
-            );
-            return existing?.allow;
-          });
-
-          return (
-            <Card
-              key={groupName}
-              className="overflow-hidden border-slate-200 shadow-sm"
-            >
-              <CardHeader className="bg-slate-50/50 border-b py-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-base font-bold text-slate-800">
-                  {groupName}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground mr-2">
-                    {groupPermissions.length} permissions
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() =>
-                      toggleGroupPermissions(groupPermissions, !areAllSelected)
-                    }
-                    disabled={isSaving}
-                  >
-                    {areAllSelected ? "Deselect All" : "Select All"}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 grid gap-6">
-                {/* Menu Access Section */}
-                {menuPermissions.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                      Menu Access
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {menuPermissions.map((p) => (
-                        <PermissionItem
-                          key={p.id}
-                          permission={p}
-                          role={currentRole}
-                          onToggle={togglePermission}
-                          disabled={isSaving}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Divider if both exist */}
-                {menuPermissions.length > 0 && actionPermissions.length > 0 && (
-                  <div className="border-t border-slate-100" />
-                )}
-
-                {/* Actions Section */}
-                {actionPermissions.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      Actions & Data
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {actionPermissions.map((p) => (
-                        <PermissionItem
-                          key={p.id}
-                          permission={p}
-                          role={currentRole}
-                          onToggle={togglePermission}
-                          disabled={isSaving}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+    </TooltipProvider>
   );
 }
 
@@ -413,7 +421,13 @@ function PermissionItem({
 }: {
   permission: Permission;
   role: RoleWithPermissions;
-  onToggle: (id: string, allow: boolean, da?: DataAccessLevel | null) => void;
+  onToggle: (
+    id: string,
+    allow: boolean,
+    da?: DataAccessLevel | null,
+    ea?: EditAccessLevel | null,
+    dela?: DeleteAccessLevel | null
+  ) => void;
   disabled: boolean;
 }) {
   const entry = role.permissions.find((p) => p.permissionId === permission.id);
@@ -448,34 +462,120 @@ function PermissionItem({
       </div>
 
       {isChecked && permission.category === "DATA" && (
-        <div className="pt-2 mt-auto border-t border-primary/10">
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold uppercase text-primary/70">
-              Data Scope
-            </label>
+        <div className="pt-2 mt-auto border-t border-primary/10 space-y-3">
+          {/* View Scope */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Eye className="h-3 w-3 text-blue-500" />
+              <label className="text-[10px] font-bold uppercase text-blue-600/80">
+                ขอบเขตการมองเห็น
+              </label>
+            </div>
+            <Select
+              value={entry?.dataAccess ?? "VIEW_OWN"}
+              disabled={disabled}
+              onValueChange={(value) =>
+                onToggle(
+                  permission.id,
+                  true,
+                  value as DataAccessLevel,
+                  entry?.editAccess,
+                  entry?.deleteAccess
+                )
+              }
+            >
+              <SelectTrigger className="h-7 text-[11px] bg-white/50 border-blue-200">
+                <SelectValue placeholder="Select Scope" />
+              </SelectTrigger>
+              <SelectContent>
+                {dataAccessOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-xs"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select
-            value={entry?.dataAccess ?? "VIEW_OWN"}
-            disabled={disabled}
-            onValueChange={(value) =>
-              onToggle(permission.id, true, value as DataAccessLevel)
-            }
-          >
-            <SelectTrigger className="h-7 text-[11px] bg-white/50 border-primary/20">
-              <SelectValue placeholder="Select Scope" />
-            </SelectTrigger>
-            <SelectContent>
-              {dataAccessOptions.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className="text-xs"
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          {/* Edit Scope */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Pencil className="h-3 w-3 text-amber-500" />
+              <label className="text-[10px] font-bold uppercase text-amber-600/80">
+                ขอบเขตการแก้ไข
+              </label>
+            </div>
+            <Select
+              value={entry?.editAccess ?? "EDIT_NONE"}
+              disabled={disabled}
+              onValueChange={(value) =>
+                onToggle(
+                  permission.id,
+                  true,
+                  entry?.dataAccess,
+                  value as EditAccessLevel,
+                  entry?.deleteAccess
+                )
+              }
+            >
+              <SelectTrigger className="h-7 text-[11px] bg-white/50 border-amber-200">
+                <SelectValue placeholder="Select Scope" />
+              </SelectTrigger>
+              <SelectContent>
+                {editAccessOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-xs"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Delete Scope */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Trash2 className="h-3 w-3 text-red-500" />
+              <label className="text-[10px] font-bold uppercase text-red-600/80">
+                ขอบเขตการลบ
+              </label>
+            </div>
+            <Select
+              value={entry?.deleteAccess ?? "DELETE_NONE"}
+              disabled={disabled}
+              onValueChange={(value) =>
+                onToggle(
+                  permission.id,
+                  true,
+                  entry?.dataAccess,
+                  entry?.editAccess,
+                  value as DeleteAccessLevel
+                )
+              }
+            >
+              <SelectTrigger className="h-7 text-[11px] bg-white/50 border-red-200">
+                <SelectValue placeholder="Select Scope" />
+              </SelectTrigger>
+              <SelectContent>
+                {deleteAccessOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="text-xs"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
     </div>

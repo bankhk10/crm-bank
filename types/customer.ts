@@ -1,4 +1,8 @@
-import type { DataAccessLevel } from "@/src/infrastructure/database";
+import type {
+  DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
+} from "@/src/infrastructure/database";
 import type { SessionPermission } from "./next-auth";
 
 export interface CurrentUser {
@@ -10,5 +14,7 @@ export interface CurrentUser {
   positionId?: string | null;
   permissions: Record<string, SessionPermission>;
   dataAccessByResource: Record<string, DataAccessLevel>;
+  editAccessByResource?: Record<string, EditAccessLevel>;
+  deleteAccessByResource?: Record<string, DeleteAccessLevel>;
   employeeId?: string | null;
 }

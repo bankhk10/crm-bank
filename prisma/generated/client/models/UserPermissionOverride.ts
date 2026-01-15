@@ -30,6 +30,8 @@ export type UserPermissionOverrideMinAggregateOutputType = {
   permissionId: string | null
   allow: boolean | null
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   reason: string | null
   createdAt: Date | null
   deletedAt: Date | null
@@ -41,6 +43,8 @@ export type UserPermissionOverrideMaxAggregateOutputType = {
   permissionId: string | null
   allow: boolean | null
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   reason: string | null
   createdAt: Date | null
   deletedAt: Date | null
@@ -52,6 +56,8 @@ export type UserPermissionOverrideCountAggregateOutputType = {
   permissionId: number
   allow: number
   dataAccess: number
+  editAccess: number
+  deleteAccess: number
   reason: number
   createdAt: number
   deletedAt: number
@@ -65,6 +71,8 @@ export type UserPermissionOverrideMinAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   reason?: true
   createdAt?: true
   deletedAt?: true
@@ -76,6 +84,8 @@ export type UserPermissionOverrideMaxAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   reason?: true
   createdAt?: true
   deletedAt?: true
@@ -87,6 +97,8 @@ export type UserPermissionOverrideCountAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   reason?: true
   createdAt?: true
   deletedAt?: true
@@ -171,6 +183,8 @@ export type UserPermissionOverrideGroupByOutputType = {
   permissionId: string
   allow: boolean
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   reason: string | null
   createdAt: Date
   deletedAt: Date | null
@@ -203,6 +217,8 @@ export type UserPermissionOverrideWhereInput = {
   permissionId?: Prisma.StringFilter<"UserPermissionOverride"> | string
   allow?: Prisma.BoolFilter<"UserPermissionOverride"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DeleteAccessLevel | null
   reason?: Prisma.StringNullableFilter<"UserPermissionOverride"> | string | null
   createdAt?: Prisma.DateTimeFilter<"UserPermissionOverride"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"UserPermissionOverride"> | Date | string | null
@@ -216,6 +232,8 @@ export type UserPermissionOverrideOrderByWithRelationInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  editAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -233,6 +251,8 @@ export type UserPermissionOverrideWhereUniqueInput = Prisma.AtLeast<{
   permissionId?: Prisma.StringFilter<"UserPermissionOverride"> | string
   allow?: Prisma.BoolFilter<"UserPermissionOverride"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DeleteAccessLevel | null
   reason?: Prisma.StringNullableFilter<"UserPermissionOverride"> | string | null
   createdAt?: Prisma.DateTimeFilter<"UserPermissionOverride"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"UserPermissionOverride"> | Date | string | null
@@ -246,6 +266,8 @@ export type UserPermissionOverrideOrderByWithAggregationInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  editAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -263,6 +285,8 @@ export type UserPermissionOverrideScalarWhereWithAggregatesInput = {
   permissionId?: Prisma.StringWithAggregatesFilter<"UserPermissionOverride"> | string
   allow?: Prisma.BoolWithAggregatesFilter<"UserPermissionOverride"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableWithAggregatesFilter<"UserPermissionOverride"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableWithAggregatesFilter<"UserPermissionOverride"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableWithAggregatesFilter<"UserPermissionOverride"> | $Enums.DeleteAccessLevel | null
   reason?: Prisma.StringNullableWithAggregatesFilter<"UserPermissionOverride"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserPermissionOverride"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"UserPermissionOverride"> | Date | string | null
@@ -272,6 +296,8 @@ export type UserPermissionOverrideCreateInput = {
   id?: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -285,6 +311,8 @@ export type UserPermissionOverrideUncheckedCreateInput = {
   permissionId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -294,6 +322,8 @@ export type UserPermissionOverrideUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -307,6 +337,8 @@ export type UserPermissionOverrideUncheckedUpdateInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -318,6 +350,8 @@ export type UserPermissionOverrideCreateManyInput = {
   permissionId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -327,6 +361,8 @@ export type UserPermissionOverrideUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -338,6 +374,8 @@ export type UserPermissionOverrideUncheckedUpdateManyInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -364,6 +402,8 @@ export type UserPermissionOverrideCountOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -375,6 +415,8 @@ export type UserPermissionOverrideMaxOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -386,6 +428,8 @@ export type UserPermissionOverrideMinOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   reason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -479,6 +523,8 @@ export type UserPermissionOverrideCreateWithoutUserInput = {
   id?: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -490,6 +536,8 @@ export type UserPermissionOverrideUncheckedCreateWithoutUserInput = {
   permissionId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -530,6 +578,8 @@ export type UserPermissionOverrideScalarWhereInput = {
   permissionId?: Prisma.StringFilter<"UserPermissionOverride"> | string
   allow?: Prisma.BoolFilter<"UserPermissionOverride"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"UserPermissionOverride"> | $Enums.DeleteAccessLevel | null
   reason?: Prisma.StringNullableFilter<"UserPermissionOverride"> | string | null
   createdAt?: Prisma.DateTimeFilter<"UserPermissionOverride"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"UserPermissionOverride"> | Date | string | null
@@ -539,6 +589,8 @@ export type UserPermissionOverrideCreateWithoutPermissionInput = {
   id?: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -550,6 +602,8 @@ export type UserPermissionOverrideUncheckedCreateWithoutPermissionInput = {
   userId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -586,6 +640,8 @@ export type UserPermissionOverrideCreateManyUserInput = {
   permissionId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -595,6 +651,8 @@ export type UserPermissionOverrideUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -606,6 +664,8 @@ export type UserPermissionOverrideUncheckedUpdateWithoutUserInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -616,6 +676,8 @@ export type UserPermissionOverrideUncheckedUpdateManyWithoutUserInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -626,6 +688,8 @@ export type UserPermissionOverrideCreateManyPermissionInput = {
   userId: string
   allow: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   reason?: string | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
@@ -635,6 +699,8 @@ export type UserPermissionOverrideUpdateWithoutPermissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -646,6 +712,8 @@ export type UserPermissionOverrideUncheckedUpdateWithoutPermissionInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -656,6 +724,8 @@ export type UserPermissionOverrideUncheckedUpdateManyWithoutPermissionInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -669,6 +739,8 @@ export type UserPermissionOverrideSelect<ExtArgs extends runtime.Types.Extension
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   reason?: boolean
   createdAt?: boolean
   deletedAt?: boolean
@@ -682,6 +754,8 @@ export type UserPermissionOverrideSelectCreateManyAndReturn<ExtArgs extends runt
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   reason?: boolean
   createdAt?: boolean
   deletedAt?: boolean
@@ -695,6 +769,8 @@ export type UserPermissionOverrideSelectUpdateManyAndReturn<ExtArgs extends runt
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   reason?: boolean
   createdAt?: boolean
   deletedAt?: boolean
@@ -708,12 +784,14 @@ export type UserPermissionOverrideSelectScalar = {
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   reason?: boolean
   createdAt?: boolean
   deletedAt?: boolean
 }
 
-export type UserPermissionOverrideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "permissionId" | "allow" | "dataAccess" | "reason" | "createdAt" | "deletedAt", ExtArgs["result"]["userPermissionOverride"]>
+export type UserPermissionOverrideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "permissionId" | "allow" | "dataAccess" | "editAccess" | "deleteAccess" | "reason" | "createdAt" | "deletedAt", ExtArgs["result"]["userPermissionOverride"]>
 export type UserPermissionOverrideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   permission?: boolean | Prisma.PermissionDefaultArgs<ExtArgs>
@@ -739,6 +817,8 @@ export type $UserPermissionOverridePayload<ExtArgs extends runtime.Types.Extensi
     permissionId: string
     allow: boolean
     dataAccess: $Enums.DataAccessLevel | null
+    editAccess: $Enums.EditAccessLevel | null
+    deleteAccess: $Enums.DeleteAccessLevel | null
     reason: string | null
     createdAt: Date
     deletedAt: Date | null
@@ -1172,6 +1252,8 @@ export interface UserPermissionOverrideFieldRefs {
   readonly permissionId: Prisma.FieldRef<"UserPermissionOverride", 'String'>
   readonly allow: Prisma.FieldRef<"UserPermissionOverride", 'Boolean'>
   readonly dataAccess: Prisma.FieldRef<"UserPermissionOverride", 'DataAccessLevel'>
+  readonly editAccess: Prisma.FieldRef<"UserPermissionOverride", 'EditAccessLevel'>
+  readonly deleteAccess: Prisma.FieldRef<"UserPermissionOverride", 'DeleteAccessLevel'>
   readonly reason: Prisma.FieldRef<"UserPermissionOverride", 'String'>
   readonly createdAt: Prisma.FieldRef<"UserPermissionOverride", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"UserPermissionOverride", 'DateTime'>

@@ -20,6 +20,8 @@ export function useCurrentUser(): CurrentUser | null {
     positionId: sessionUser.positionId,
     permissions: sessionUser.permissions ?? {},
     dataAccessByResource: sessionUser.dataAccessByResource ?? {},
+    editAccessByResource: sessionUser.editAccessByResource ?? {},
+    deleteAccessByResource: sessionUser.deleteAccessByResource ?? {},
     employeeId: sessionUser.employeeId,
   };
 }

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { DataAccessLevel } from "@/src/infrastructure/database";
+import {
+  DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
+} from "@/src/infrastructure/database";
 import { db } from "@/lib/db";
 import { guardPermission } from "@/lib/api-guard";
 
@@ -11,6 +15,8 @@ const payloadSchema = z.object({
         permissionId: z.string(),
         allow: z.boolean(),
         dataAccess: z.nativeEnum(DataAccessLevel).nullable().optional(),
+        editAccess: z.nativeEnum(EditAccessLevel).nullable().optional(),
+        deleteAccess: z.nativeEnum(DeleteAccessLevel).nullable().optional(),
       })
     )
     .min(1),
@@ -60,6 +66,8 @@ export async function PUT(request: Request, context: any) {
           data: {
             allow: item.allow,
             dataAccess: item.dataAccess ?? null,
+            editAccess: item.editAccess ?? null,
+            deleteAccess: item.deleteAccess ?? null,
             deletedAt: null, // Restore
           },
         });
@@ -71,6 +79,8 @@ export async function PUT(request: Request, context: any) {
             permissionId: item.permissionId,
             allow: item.allow,
             dataAccess: item.dataAccess ?? null,
+            editAccess: item.editAccess ?? null,
+            deleteAccess: item.deleteAccess ?? null,
           },
         });
       }

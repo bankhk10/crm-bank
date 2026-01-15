@@ -3,12 +3,18 @@
  * Role-Based Access Control business logic
  */
 
-import type { DataAccessLevel } from "@/src/infrastructure/database";
+import type {
+  DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
+} from "@/src/infrastructure/database";
 import type {
   SessionPermission,
   RoutePermissionRule,
   PermissionInput,
   OverrideInput,
+  AccessScopeCheckOptions,
+  AccessScopeCheckResult,
 } from "./rbac.types";
 
 /**
@@ -67,6 +73,16 @@ export function buildPermissionMap(
         current?.dataAccess ??
         rolePermission.permission.defaultDataAccess ??
         null,
+      editAccess:
+        rolePermission.editAccess ??
+        current?.editAccess ??
+        rolePermission.permission.defaultEditAccess ??
+        null,
+      deleteAccess:
+        rolePermission.deleteAccess ??
+        current?.deleteAccess ??
+        rolePermission.permission.defaultDeleteAccess ??
+        null,
     } satisfies SessionPermission;
   }
 
@@ -82,6 +98,16 @@ export function buildPermissionMap(
         override.dataAccess ??
         permissionMap[override.permission.key]?.dataAccess ??
         override.permission.defaultDataAccess ??
+        null,
+      editAccess:
+        override.editAccess ??
+        permissionMap[override.permission.key]?.editAccess ??
+        override.permission.defaultEditAccess ??
+        null,
+      deleteAccess:
+        override.deleteAccess ??
+        permissionMap[override.permission.key]?.deleteAccess ??
+        override.permission.defaultDeleteAccess ??
         null,
     } satisfies SessionPermission;
   }
@@ -103,6 +129,44 @@ export function buildDataAccessByResource(
       permission.dataAccess
     ) {
       map[permission.resource] = permission.dataAccess;
+    }
+  }
+  return map;
+}
+
+/**
+ * Build edit access level map by resource
+ */
+export function buildEditAccessByResource(
+  permissions: Record<string, SessionPermission>
+): Record<string, EditAccessLevel> {
+  const map: Record<string, EditAccessLevel> = {};
+  for (const permission of Object.values(permissions)) {
+    if (
+      permission.resource &&
+      permission.category === "DATA" &&
+      permission.editAccess
+    ) {
+      map[permission.resource] = permission.editAccess;
+    }
+  }
+  return map;
+}
+
+/**
+ * Build delete access level map by resource
+ */
+export function buildDeleteAccessByResource(
+  permissions: Record<string, SessionPermission>
+): Record<string, DeleteAccessLevel> {
+  const map: Record<string, DeleteAccessLevel> = {};
+  for (const permission of Object.values(permissions)) {
+    if (
+      permission.resource &&
+      permission.category === "DATA" &&
+      permission.deleteAccess
+    ) {
+      map[permission.resource] = permission.deleteAccess;
     }
   }
   return map;
@@ -191,6 +255,34 @@ export function getDataAccessForResource(
 }
 
 /**
+ * Get edit access level for a resource
+ */
+export function getEditAccessForResource(
+  permissionMap: Record<string, SessionPermission>,
+  resource: string
+): EditAccessLevel | null {
+  const match = Object.values(permissionMap).find(
+    (permission) =>
+      permission.resource === resource && permission.category === "DATA"
+  );
+  return match?.editAccess ?? null;
+}
+
+/**
+ * Get delete access level for a resource
+ */
+export function getDeleteAccessForResource(
+  permissionMap: Record<string, SessionPermission>,
+  resource: string
+): DeleteAccessLevel | null {
+  const match = Object.values(permissionMap).find(
+    (permission) =>
+      permission.resource === resource && permission.category === "DATA"
+  );
+  return match?.deleteAccess ?? null;
+}
+
+/**
  * Check if user has any of the specified permissions
  */
 export function hasAnyPermission(
@@ -208,4 +300,102 @@ export function hasAllPermissions(
   keys: string[]
 ): boolean {
   return keys.every((key) => userHasPermission(permissionMap, key));
+}
+
+/**
+ * Check if user can view a resource based on data access scope
+ */
+export function canViewResource(
+  dataAccess: DataAccessLevel | null,
+  options: AccessScopeCheckOptions
+): boolean {
+  if (!dataAccess) return false;
+
+  switch (dataAccess) {
+    case "VIEW_ALL":
+      return true;
+    case "VIEW_DEPARTMENT":
+      return (
+        options.userDepartmentId === options.resourceDepartmentId ||
+        options.userId === options.resourceOwnerId
+      );
+    case "VIEW_OWN":
+      return options.userId === options.resourceOwnerId;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Check if user can edit a resource based on edit access scope
+ */
+export function canEditResource(
+  editAccess: EditAccessLevel | null,
+  options: AccessScopeCheckOptions
+): boolean {
+  if (!editAccess) return false;
+
+  switch (editAccess) {
+    case "EDIT_ALL":
+      return true;
+    case "EDIT_DEPARTMENT":
+      return (
+        options.userDepartmentId === options.resourceDepartmentId ||
+        options.userId === options.resourceOwnerId
+      );
+    case "EDIT_OWN":
+      return options.userId === options.resourceOwnerId;
+    case "EDIT_NONE":
+      return false;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Check if user can delete a resource based on delete access scope
+ */
+export function canDeleteResource(
+  deleteAccess: DeleteAccessLevel | null,
+  options: AccessScopeCheckOptions
+): boolean {
+  if (!deleteAccess) return false;
+
+  switch (deleteAccess) {
+    case "DELETE_ALL":
+      return true;
+    case "DELETE_DEPARTMENT":
+      return (
+        options.userDepartmentId === options.resourceDepartmentId ||
+        options.userId === options.resourceOwnerId
+      );
+    case "DELETE_OWN":
+      return options.userId === options.resourceOwnerId;
+    case "DELETE_NONE":
+      return false;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Get full access scope check result for a resource
+ */
+export function checkResourceAccessScope(
+  permissionMap: Record<string, SessionPermission>,
+  resource: string,
+  options: AccessScopeCheckOptions
+): AccessScopeCheckResult {
+  const dataAccess = getDataAccessForResource(permissionMap, resource);
+  const editAccess = getEditAccessForResource(permissionMap, resource);
+  const deleteAccess = getDeleteAccessForResource(permissionMap, resource);
+
+  return {
+    canView: canViewResource(dataAccess, options),
+    canEdit: canEditResource(editAccess, options),
+    canDelete: canDeleteResource(deleteAccess, options),
+    viewScope: dataAccess,
+    editScope: editAccess,
+    deleteScope: deleteAccess,
+  };
 }

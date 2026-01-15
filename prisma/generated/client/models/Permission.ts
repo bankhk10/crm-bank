@@ -34,6 +34,8 @@ export type PermissionMinAggregateOutputType = {
   action: string | null
   resource: string | null
   defaultDataAccess: $Enums.DataAccessLevel | null
+  defaultEditAccess: $Enums.EditAccessLevel | null
+  defaultDeleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -49,6 +51,8 @@ export type PermissionMaxAggregateOutputType = {
   action: string | null
   resource: string | null
   defaultDataAccess: $Enums.DataAccessLevel | null
+  defaultEditAccess: $Enums.EditAccessLevel | null
+  defaultDeleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -64,6 +68,8 @@ export type PermissionCountAggregateOutputType = {
   action: number
   resource: number
   defaultDataAccess: number
+  defaultEditAccess: number
+  defaultDeleteAccess: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -81,6 +87,8 @@ export type PermissionMinAggregateInputType = {
   action?: true
   resource?: true
   defaultDataAccess?: true
+  defaultEditAccess?: true
+  defaultDeleteAccess?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -96,6 +104,8 @@ export type PermissionMaxAggregateInputType = {
   action?: true
   resource?: true
   defaultDataAccess?: true
+  defaultEditAccess?: true
+  defaultDeleteAccess?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -111,6 +121,8 @@ export type PermissionCountAggregateInputType = {
   action?: true
   resource?: true
   defaultDataAccess?: true
+  defaultEditAccess?: true
+  defaultDeleteAccess?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -199,6 +211,8 @@ export type PermissionGroupByOutputType = {
   action: string | null
   resource: string | null
   defaultDataAccess: $Enums.DataAccessLevel | null
+  defaultEditAccess: $Enums.EditAccessLevel | null
+  defaultDeleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -235,6 +249,8 @@ export type PermissionWhereInput = {
   action?: Prisma.StringNullableFilter<"Permission"> | string | null
   resource?: Prisma.StringNullableFilter<"Permission"> | string | null
   defaultDataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"Permission"> | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.EnumEditAccessLevelNullableFilter<"Permission"> | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"Permission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
@@ -252,6 +268,8 @@ export type PermissionOrderByWithRelationInput = {
   action?: Prisma.SortOrderInput | Prisma.SortOrder
   resource?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultDataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultEditAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultDeleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -272,6 +290,8 @@ export type PermissionWhereUniqueInput = Prisma.AtLeast<{
   action?: Prisma.StringNullableFilter<"Permission"> | string | null
   resource?: Prisma.StringNullableFilter<"Permission"> | string | null
   defaultDataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"Permission"> | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.EnumEditAccessLevelNullableFilter<"Permission"> | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"Permission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Permission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Permission"> | Date | string | null
@@ -289,6 +309,8 @@ export type PermissionOrderByWithAggregationInput = {
   action?: Prisma.SortOrderInput | Prisma.SortOrder
   resource?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultDataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultEditAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultDeleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -310,6 +332,8 @@ export type PermissionScalarWhereWithAggregatesInput = {
   action?: Prisma.StringNullableWithAggregatesFilter<"Permission"> | string | null
   resource?: Prisma.StringNullableWithAggregatesFilter<"Permission"> | string | null
   defaultDataAccess?: Prisma.EnumDataAccessLevelNullableWithAggregatesFilter<"Permission"> | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.EnumEditAccessLevelNullableWithAggregatesFilter<"Permission"> | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.EnumDeleteAccessLevelNullableWithAggregatesFilter<"Permission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Permission"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Permission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Permission"> | Date | string | null
@@ -325,6 +349,8 @@ export type PermissionCreateInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -342,6 +368,8 @@ export type PermissionUncheckedCreateInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -359,6 +387,8 @@ export type PermissionUpdateInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -376,6 +406,8 @@ export type PermissionUncheckedUpdateInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -393,6 +425,8 @@ export type PermissionCreateManyInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -408,6 +442,8 @@ export type PermissionUpdateManyMutationInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -423,6 +459,8 @@ export type PermissionUncheckedUpdateManyInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -438,6 +476,8 @@ export type PermissionCountOrderByAggregateInput = {
   action?: Prisma.SortOrder
   resource?: Prisma.SortOrder
   defaultDataAccess?: Prisma.SortOrder
+  defaultEditAccess?: Prisma.SortOrder
+  defaultDeleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -453,6 +493,8 @@ export type PermissionMaxOrderByAggregateInput = {
   action?: Prisma.SortOrder
   resource?: Prisma.SortOrder
   defaultDataAccess?: Prisma.SortOrder
+  defaultEditAccess?: Prisma.SortOrder
+  defaultDeleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -468,6 +510,8 @@ export type PermissionMinOrderByAggregateInput = {
   action?: Prisma.SortOrder
   resource?: Prisma.SortOrder
   defaultDataAccess?: Prisma.SortOrder
+  defaultEditAccess?: Prisma.SortOrder
+  defaultDeleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -484,6 +528,14 @@ export type EnumPermissionTypeFieldUpdateOperationsInput = {
 
 export type NullableEnumDataAccessLevelFieldUpdateOperationsInput = {
   set?: $Enums.DataAccessLevel | null
+}
+
+export type NullableEnumEditAccessLevelFieldUpdateOperationsInput = {
+  set?: $Enums.EditAccessLevel | null
+}
+
+export type NullableEnumDeleteAccessLevelFieldUpdateOperationsInput = {
+  set?: $Enums.DeleteAccessLevel | null
 }
 
 export type PermissionCreateNestedOneWithoutRolePermissionsInput = {
@@ -524,6 +576,8 @@ export type PermissionCreateWithoutRolePermissionsInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -540,6 +594,8 @@ export type PermissionUncheckedCreateWithoutRolePermissionsInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -572,6 +628,8 @@ export type PermissionUpdateWithoutRolePermissionsInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -588,6 +646,8 @@ export type PermissionUncheckedUpdateWithoutRolePermissionsInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -604,6 +664,8 @@ export type PermissionCreateWithoutOverridesInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -620,6 +682,8 @@ export type PermissionUncheckedCreateWithoutOverridesInput = {
   action?: string | null
   resource?: string | null
   defaultDataAccess?: $Enums.DataAccessLevel | null
+  defaultEditAccess?: $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -652,6 +716,8 @@ export type PermissionUpdateWithoutOverridesInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -668,6 +734,8 @@ export type PermissionUncheckedUpdateWithoutOverridesInput = {
   action?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultDataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  defaultEditAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  defaultDeleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -724,6 +792,8 @@ export type PermissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   action?: boolean
   resource?: boolean
   defaultDataAccess?: boolean
+  defaultEditAccess?: boolean
+  defaultDeleteAccess?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -742,6 +812,8 @@ export type PermissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   action?: boolean
   resource?: boolean
   defaultDataAccess?: boolean
+  defaultEditAccess?: boolean
+  defaultDeleteAccess?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -757,6 +829,8 @@ export type PermissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   action?: boolean
   resource?: boolean
   defaultDataAccess?: boolean
+  defaultEditAccess?: boolean
+  defaultDeleteAccess?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -772,12 +846,14 @@ export type PermissionSelectScalar = {
   action?: boolean
   resource?: boolean
   defaultDataAccess?: boolean
+  defaultEditAccess?: boolean
+  defaultDeleteAccess?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type PermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "name" | "description" | "category" | "menuPath" | "action" | "resource" | "defaultDataAccess" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["permission"]>
+export type PermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "key" | "name" | "description" | "category" | "menuPath" | "action" | "resource" | "defaultDataAccess" | "defaultEditAccess" | "defaultDeleteAccess" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["permission"]>
 export type PermissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   rolePermissions?: boolean | Prisma.Permission$rolePermissionsArgs<ExtArgs>
   overrides?: boolean | Prisma.Permission$overridesArgs<ExtArgs>
@@ -802,6 +878,8 @@ export type $PermissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     action: string | null
     resource: string | null
     defaultDataAccess: $Enums.DataAccessLevel | null
+    defaultEditAccess: $Enums.EditAccessLevel | null
+    defaultDeleteAccess: $Enums.DeleteAccessLevel | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -1239,6 +1317,8 @@ export interface PermissionFieldRefs {
   readonly action: Prisma.FieldRef<"Permission", 'String'>
   readonly resource: Prisma.FieldRef<"Permission", 'String'>
   readonly defaultDataAccess: Prisma.FieldRef<"Permission", 'DataAccessLevel'>
+  readonly defaultEditAccess: Prisma.FieldRef<"Permission", 'EditAccessLevel'>
+  readonly defaultDeleteAccess: Prisma.FieldRef<"Permission", 'DeleteAccessLevel'>
   readonly createdAt: Prisma.FieldRef<"Permission", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Permission", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Permission", 'DateTime'>

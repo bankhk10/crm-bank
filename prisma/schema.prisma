@@ -30,6 +30,20 @@ enum DataAccessLevel {
   VIEW_ALL
 }
 
+enum EditAccessLevel {
+  EDIT_NONE        // ไม่สามารถแก้ไขได้
+  EDIT_OWN         // แก้ไขได้เฉพาะของตัวเอง
+  EDIT_DEPARTMENT  // แก้ไขได้เฉพาะของแผนกตัวเอง
+  EDIT_ALL         // แก้ไขได้ทั้งหมด
+}
+
+enum DeleteAccessLevel {
+  DELETE_NONE        // ไม่สามารถลบได้
+  DELETE_OWN         // ลบได้เฉพาะของตัวเอง
+  DELETE_DEPARTMENT  // ลบได้เฉพาะของแผนกตัวเอง
+  DELETE_ALL         // ลบได้ทั้งหมด
+}
+
 enum CustomerType {
   DEALER
   SUBDEALER
@@ -197,30 +211,34 @@ model Role {
 }
 
 model Permission {
-  id                String           @id @default(cuid())
-  key               String           @unique
-  name              String
-  description       String?
-  category          PermissionType
-  menuPath          String?
-  action            String?
-  resource          String?
-  defaultDataAccess DataAccessLevel?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  deletedAt         DateTime?
+  id                  String             @id @default(cuid())
+  key                 String             @unique
+  name                String
+  description         String?
+  category            PermissionType
+  menuPath            String?
+  action              String?
+  resource            String?
+  defaultDataAccess   DataAccessLevel?
+  defaultEditAccess   EditAccessLevel?   // ขอบเขตการแก้ไขเริ่มต้น
+  defaultDeleteAccess DeleteAccessLevel? // ขอบเขตการลบเริ่มต้น
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deletedAt           DateTime?
 
   rolePermissions RolePermission[]
   overrides       UserPermissionOverride[]
 }
 
 model RolePermission {
-  id           String           @id @default(cuid())
+  id           String             @id @default(cuid())
   roleId       String
   permissionId String
-  allow        Boolean          @default(true)
-  dataAccess   DataAccessLevel?
-  createdAt    DateTime         @default(now())
+  allow        Boolean            @default(true)
+  dataAccess   DataAccessLevel?   // ขอบเขตการมองเห็น
+  editAccess   EditAccessLevel?   // ขอบเขตการแก้ไข
+  deleteAccess DeleteAccessLevel? // ขอบเขตการลบ
+  createdAt    DateTime           @default(now())
   deletedAt    DateTime?
 
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -244,13 +262,15 @@ model UserRole {
 }
 
 model UserPermissionOverride {
-  id           String           @id @default(cuid())
+  id           String             @id @default(cuid())
   userId       String
   permissionId String
   allow        Boolean
-  dataAccess   DataAccessLevel?
+  dataAccess   DataAccessLevel?   // ขอบเขตการมองเห็น (override)
+  editAccess   EditAccessLevel?   // ขอบเขตการแก้ไข (override)
+  deleteAccess DeleteAccessLevel? // ขอบเขตการลบ (override)
   reason       String?
-  createdAt    DateTime         @default(now())
+  createdAt    DateTime           @default(now())
   deletedAt    DateTime?
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)

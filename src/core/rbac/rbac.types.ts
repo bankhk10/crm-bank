@@ -5,6 +5,8 @@
 
 import type {
   DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
   Permission,
   PermissionType,
   RolePermission,
@@ -22,6 +24,8 @@ export interface SessionPermission {
   action?: string | null;
   resource?: string | null;
   dataAccess?: DataAccessLevel | null;
+  editAccess?: EditAccessLevel | null;
+  deleteAccess?: DeleteAccessLevel | null;
 }
 
 /**
@@ -57,4 +61,26 @@ export type UserRoleType = "administrator" | "admin" | "manager" | "employee";
 export interface PermissionCheckResult {
   allowed: boolean;
   reason?: string;
+}
+
+/**
+ * Access scope check options
+ */
+export interface AccessScopeCheckOptions {
+  userId: string;
+  userDepartmentId?: string | null;
+  resourceOwnerId?: string | null;
+  resourceDepartmentId?: string | null;
+}
+
+/**
+ * Access scope check result
+ */
+export interface AccessScopeCheckResult {
+  canView: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  viewScope: DataAccessLevel | null;
+  editScope: EditAccessLevel | null;
+  deleteScope: DeleteAccessLevel | null;
 }

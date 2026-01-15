@@ -2890,6 +2890,8 @@ export const PermissionScalarFieldEnum = {
   action: 'action',
   resource: 'resource',
   defaultDataAccess: 'defaultDataAccess',
+  defaultEditAccess: 'defaultEditAccess',
+  defaultDeleteAccess: 'defaultDeleteAccess',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -2904,6 +2906,8 @@ export const RolePermissionScalarFieldEnum = {
   permissionId: 'permissionId',
   allow: 'allow',
   dataAccess: 'dataAccess',
+  editAccess: 'editAccess',
+  deleteAccess: 'deleteAccess',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt'
 } as const
@@ -2929,6 +2933,8 @@ export const UserPermissionOverrideScalarFieldEnum = {
   permissionId: 'permissionId',
   allow: 'allow',
   dataAccess: 'dataAccess',
+  editAccess: 'editAccess',
+  deleteAccess: 'deleteAccess',
   reason: 'reason',
   createdAt: 'createdAt',
   deletedAt: 'deletedAt'
@@ -3523,6 +3529,34 @@ export type EnumDataAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$
  * Reference to a field of type 'DataAccessLevel[]'
  */
 export type ListEnumDataAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DataAccessLevel[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EditAccessLevel'
+ */
+export type EnumEditAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EditAccessLevel'>
+    
+
+
+/**
+ * Reference to a field of type 'EditAccessLevel[]'
+ */
+export type ListEnumEditAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EditAccessLevel[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DeleteAccessLevel'
+ */
+export type EnumDeleteAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeleteAccessLevel'>
+    
+
+
+/**
+ * Reference to a field of type 'DeleteAccessLevel[]'
+ */
+export type ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeleteAccessLevel[]'>
     
 
 

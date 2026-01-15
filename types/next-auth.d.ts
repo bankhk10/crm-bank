@@ -1,5 +1,7 @@
 import type {
   DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
   PermissionType,
 } from "@/src/infrastructure/database";
 import type { DefaultSession } from "next-auth";
@@ -12,6 +14,8 @@ export interface SessionPermission {
   action?: string | null;
   resource?: string | null;
   dataAccess?: DataAccessLevel | null;
+  editAccess?: EditAccessLevel | null;
+  deleteAccess?: DeleteAccessLevel | null;
 }
 
 declare module "next-auth" {
@@ -23,6 +27,8 @@ declare module "next-auth" {
       departmentId?: string | null;
       positionId?: string | null;
       dataAccessByResource: Record<string, DataAccessLevel>;
+      editAccessByResource?: Record<string, EditAccessLevel>;
+      deleteAccessByResource?: Record<string, DeleteAccessLevel>;
       employeeId?: string | null;
     } & DefaultSession["user"];
   }
@@ -41,6 +47,8 @@ declare module "next-auth/jwt" {
     departmentId?: string | null;
     positionId?: string | null;
     dataAccessByResource?: Record<string, DataAccessLevel>;
+    editAccessByResource?: Record<string, EditAccessLevel>;
+    deleteAccessByResource?: Record<string, DeleteAccessLevel>;
     employeeId?: string | null;
   }
 }

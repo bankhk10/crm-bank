@@ -71,6 +71,10 @@ export interface SalesTableProps {
   canDelete?: boolean;
   canApprove?: boolean;
   currentUserId?: string;
+  userDepartmentId?: string | null;
+  // Callback functions to check per-item permissions based on access scope
+  canEditItem?: (item: SaleRecord) => boolean;
+  canDeleteItem?: (item: SaleRecord) => boolean;
 }
 
 // --- Constants & Styles ---
@@ -422,6 +426,8 @@ function SalesCards({
   onDelete,
   currentUserId,
   pagination,
+  canEditItem,
+  canDeleteItem,
 }: Pick<
   SalesTableProps,
   | "loading"
@@ -430,6 +436,8 @@ function SalesCards({
   | "canDelete"
   | "onDelete"
   | "currentUserId"
+  | "canEditItem"
+  | "canDeleteItem"
 > & {
   data: SaleRecord[];
   pagination: {
@@ -505,8 +513,16 @@ function SalesCards({
           const isApproved = item.status === "APPROVED";
           const isRejected = item.status === "REJECTED";
           const isCreator = currentUserId && item.createdById === currentUserId;
-          const canEditThis =
-            (canEdit || isCreator) && (isPending || isRejected);
+
+          // Use canEditItem callback if provided, otherwise fallback to simple logic
+          const canEditThis = canEditItem
+            ? canEditItem(item) && (isPending || isRejected)
+            : (canEdit || isCreator) && (isPending || isRejected);
+
+          // Use canDeleteItem callback if provided, otherwise fallback to simple logic
+          const canDeleteThis = canDeleteItem
+            ? canDeleteItem(item) && isPending
+            : (canDelete || isCreator) && isPending;
 
           const amount = new Intl.NumberFormat("th-TH", {
             style: "currency",
@@ -616,19 +632,16 @@ function SalesCards({
                       </Link>
                     </Button>
                   )}
-                  {(canDelete ||
-                    (currentUserId && item.createdById === currentUserId)) &&
-                    isPending &&
-                    onDelete && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="bg-red-50 text-red-700 hover:bg-red-100"
-                        onClick={() => onDelete(item)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> ลบ
-                      </Button>
-                    )}
+                  {canDeleteThis && onDelete && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="bg-red-50 text-red-700 hover:bg-red-100"
+                      onClick={() => onDelete(item)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> ลบ
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
@@ -696,7 +709,9 @@ function useColumns(
   canDelete: boolean,
   canApprove: boolean,
   currentUserId: string | undefined,
-  onDelete?: (sale: SaleRecord) => void
+  onDelete?: (sale: SaleRecord) => void,
+  canEditItem?: (item: SaleRecord) => boolean,
+  canDeleteItem?: (item: SaleRecord) => boolean
 ) {
   return React.useMemo<ColumnDef<SaleRecord>[]>(() => {
     return [
@@ -790,8 +805,16 @@ function useColumns(
           const isPending = item.status === "PENDING";
           const isRejected = item.status === "REJECTED";
           const isCreator = currentUserId && item.createdById === currentUserId;
-          const canEditThis =
-            (canEdit || isCreator) && (isPending || isRejected);
+
+          // Use canEditItem callback if provided, otherwise fallback to simple logic
+          const canEditThis = canEditItem
+            ? canEditItem(item) && (isPending || isRejected)
+            : (canEdit || isCreator) && (isPending || isRejected);
+
+          // Use canDeleteItem callback if provided, otherwise fallback to simple logic
+          const canDeleteThis = canDeleteItem
+            ? canDeleteItem(item) && isPending
+            : (canDelete || isCreator) && isPending;
 
           return (
             <div className="flex items-center justify-center gap-2">
@@ -822,24 +845,29 @@ function useColumns(
                 </>
               )}
 
-              {(canDelete ||
-                (currentUserId && item.createdById === currentUserId)) &&
-                isPending &&
-                onDelete && (
-                  <ActionButton
-                    icon={Trash2}
-                    label="ลบ"
-                    colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
-                    onClick={() => onDelete(item)}
-                  />
-                )}
+              {canDeleteThis && onDelete && (
+                <ActionButton
+                  icon={Trash2}
+                  label="ลบ"
+                  colorClass="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                  onClick={() => onDelete(item)}
+                />
+              )}
             </div>
           );
         },
         meta: { minWidth: 150, width: 150, align: "center" },
       },
     ];
-  }, [canEdit, canDelete, canApprove, currentUserId, onDelete]);
+  }, [
+    canEdit,
+    canDelete,
+    canApprove,
+    currentUserId,
+    onDelete,
+    canEditItem,
+    canDeleteItem,
+  ]);
 }
 
 // --- Main Component ---
@@ -866,6 +894,8 @@ export function SalesTable(props: SalesTableProps) {
     currentUserId,
     statusFilter,
     onStatusFilterChange,
+    canEditItem,
+    canDeleteItem,
   } = props;
 
   const columns = useColumns(
@@ -873,7 +903,9 @@ export function SalesTable(props: SalesTableProps) {
     canDelete,
     canApprove,
     currentUserId,
-    onDelete
+    onDelete,
+    canEditItem,
+    canDeleteItem
   );
 
   const toolbarProps = {
@@ -919,6 +951,8 @@ export function SalesTable(props: SalesTableProps) {
               currentUserId={currentUserId}
               onDelete={onDelete}
               pagination={pagination}
+              canEditItem={canEditItem}
+              canDeleteItem={canDeleteItem}
             />
           </div>
 

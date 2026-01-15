@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -21,13 +21,55 @@ import {
 import type { SaleStatus } from "@/types/sales";
 
 export default function SalesPage() {
-  const { hasPermission, allowed, isLoading } = usePermission("menu.sales");
+  const {
+    hasPermission,
+    allowed,
+    isLoading,
+    canEdit: canEditScope,
+    canDelete: canDeleteScope,
+  } = usePermission("menu.sales");
+
   const canCreate = hasPermission("sale.create");
-  const canEdit = hasPermission("sale.edit");
-  const canDelete = hasPermission("sale.delete");
+  const canEditBase = hasPermission("sale.edit");
+  const canDeleteBase = hasPermission("sale.delete");
   const canApprove = hasPermission("sale.approve");
   const canView = !isLoading && allowed;
   const user = useCurrentUser();
+
+  // Create callbacks for checking edit/delete permissions per item based on access scope
+  const canEditItem = useCallback(
+    (item: SaleRecord): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canEditBase) return false;
+
+      // Check scope-based permission using the access level
+      // Note: resource name is "sale" (singular) in the permission config
+      const scopeAllowed = canEditScope("sale", {
+        resourceOwnerId: item.createdById,
+      });
+
+      // Return scope check result - this respects EDIT_OWN, EDIT_DEPARTMENT, EDIT_ALL
+      return scopeAllowed;
+    },
+    [canEditScope, canEditBase]
+  );
+
+  const canDeleteItem = useCallback(
+    (item: SaleRecord): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canDeleteBase) return false;
+
+      // Check scope-based permission using the access level
+      // Note: resource name is "sale" (singular) in the permission config
+      const scopeAllowed = canDeleteScope("sale", {
+        resourceOwnerId: item.createdById,
+      });
+
+      // Return scope check result - this respects DELETE_OWN, DELETE_DEPARTMENT, DELETE_ALL
+      return scopeAllowed;
+    },
+    [canDeleteScope, canDeleteBase]
+  );
 
   const [sales, setSales] = useState<SaleRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -204,10 +246,13 @@ export default function SalesPage() {
         onPerPageChange={setPerPage}
         onDelete={setDeleteCandidate}
         canCreate={canCreate}
-        canEdit={canEdit}
-        canDelete={canDelete}
+        canEdit={canEditBase}
+        canDelete={canDeleteBase}
         canApprove={canApprove}
         currentUserId={user?.id}
+        userDepartmentId={user?.departmentId}
+        canEditItem={canEditItem}
+        canDeleteItem={canDeleteItem}
       />
 
       <Dialog

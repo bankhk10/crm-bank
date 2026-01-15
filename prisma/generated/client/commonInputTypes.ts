@@ -206,6 +206,20 @@ export type EnumDataAccessLevelNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel> | $Enums.DataAccessLevel | null
 }
 
+export type EnumEditAccessLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.EditAccessLevel | Prisma.EnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel> | $Enums.EditAccessLevel | null
+}
+
+export type EnumDeleteAccessLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeleteAccessLevel | Prisma.EnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel> | $Enums.DeleteAccessLevel | null
+}
+
 export type EnumPermissionTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.PermissionType | Prisma.EnumPermissionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.PermissionType[] | Prisma.ListEnumPermissionTypeFieldRefInput<$PrismaModel>
@@ -224,6 +238,26 @@ export type EnumDataAccessLevelNullableWithAggregatesFilter<$PrismaModel = never
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel>
+}
+
+export type EnumEditAccessLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EditAccessLevel | Prisma.EnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEditAccessLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.EditAccessLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel>
+}
+
+export type EnumDeleteAccessLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeleteAccessLevel | Prisma.EnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumDeleteAccessLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.DeleteAccessLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel>
 }
 
 export type EnumCustomerTypeFilter<$PrismaModel = never> = {
@@ -750,6 +784,20 @@ export type NestedEnumDataAccessLevelNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel> | $Enums.DataAccessLevel | null
 }
 
+export type NestedEnumEditAccessLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.EditAccessLevel | Prisma.EnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel> | $Enums.EditAccessLevel | null
+}
+
+export type NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeleteAccessLevel | Prisma.EnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel> | $Enums.DeleteAccessLevel | null
+}
+
 export type NestedEnumPermissionTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.PermissionType | Prisma.EnumPermissionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.PermissionType[] | Prisma.ListEnumPermissionTypeFieldRefInput<$PrismaModel>
@@ -768,6 +816,26 @@ export type NestedEnumDataAccessLevelNullableWithAggregatesFilter<$PrismaModel =
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumDataAccessLevelNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumEditAccessLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EditAccessLevel | Prisma.EnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.EditAccessLevel[] | Prisma.ListEnumEditAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumEditAccessLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.EditAccessLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEditAccessLevelNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumDeleteAccessLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.DeleteAccessLevel | Prisma.EnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.DeleteAccessLevel[] | Prisma.ListEnumDeleteAccessLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumDeleteAccessLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.DeleteAccessLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumDeleteAccessLevelNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumCustomerTypeFilter<$PrismaModel = never> = {

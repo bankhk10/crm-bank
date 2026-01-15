@@ -30,6 +30,8 @@ export type RolePermissionMinAggregateOutputType = {
   permissionId: string | null
   allow: boolean | null
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date | null
   deletedAt: Date | null
 }
@@ -40,6 +42,8 @@ export type RolePermissionMaxAggregateOutputType = {
   permissionId: string | null
   allow: boolean | null
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date | null
   deletedAt: Date | null
 }
@@ -50,6 +54,8 @@ export type RolePermissionCountAggregateOutputType = {
   permissionId: number
   allow: number
   dataAccess: number
+  editAccess: number
+  deleteAccess: number
   createdAt: number
   deletedAt: number
   _all: number
@@ -62,6 +68,8 @@ export type RolePermissionMinAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   createdAt?: true
   deletedAt?: true
 }
@@ -72,6 +80,8 @@ export type RolePermissionMaxAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   createdAt?: true
   deletedAt?: true
 }
@@ -82,6 +92,8 @@ export type RolePermissionCountAggregateInputType = {
   permissionId?: true
   allow?: true
   dataAccess?: true
+  editAccess?: true
+  deleteAccess?: true
   createdAt?: true
   deletedAt?: true
   _all?: true
@@ -165,6 +177,8 @@ export type RolePermissionGroupByOutputType = {
   permissionId: string
   allow: boolean
   dataAccess: $Enums.DataAccessLevel | null
+  editAccess: $Enums.EditAccessLevel | null
+  deleteAccess: $Enums.DeleteAccessLevel | null
   createdAt: Date
   deletedAt: Date | null
   _count: RolePermissionCountAggregateOutputType | null
@@ -196,6 +210,8 @@ export type RolePermissionWhereInput = {
   permissionId?: Prisma.StringFilter<"RolePermission"> | string
   allow?: Prisma.BoolFilter<"RolePermission"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"RolePermission"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"RolePermission"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"RolePermission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFilter<"RolePermission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RolePermission"> | Date | string | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
@@ -208,6 +224,8 @@ export type RolePermissionOrderByWithRelationInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  editAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
@@ -224,6 +242,8 @@ export type RolePermissionWhereUniqueInput = Prisma.AtLeast<{
   permissionId?: Prisma.StringFilter<"RolePermission"> | string
   allow?: Prisma.BoolFilter<"RolePermission"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"RolePermission"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"RolePermission"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"RolePermission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFilter<"RolePermission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RolePermission"> | Date | string | null
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
@@ -236,6 +256,8 @@ export type RolePermissionOrderByWithAggregationInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  editAccess?: Prisma.SortOrderInput | Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.RolePermissionCountOrderByAggregateInput
@@ -252,6 +274,8 @@ export type RolePermissionScalarWhereWithAggregatesInput = {
   permissionId?: Prisma.StringWithAggregatesFilter<"RolePermission"> | string
   allow?: Prisma.BoolWithAggregatesFilter<"RolePermission"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableWithAggregatesFilter<"RolePermission"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableWithAggregatesFilter<"RolePermission"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableWithAggregatesFilter<"RolePermission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RolePermission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"RolePermission"> | Date | string | null
 }
@@ -260,6 +284,8 @@ export type RolePermissionCreateInput = {
   id?: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutPermissionsInput
@@ -272,6 +298,8 @@ export type RolePermissionUncheckedCreateInput = {
   permissionId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -280,6 +308,8 @@ export type RolePermissionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutPermissionsNestedInput
@@ -292,6 +322,8 @@ export type RolePermissionUncheckedUpdateInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -302,6 +334,8 @@ export type RolePermissionCreateManyInput = {
   permissionId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -310,6 +344,8 @@ export type RolePermissionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -320,6 +356,8 @@ export type RolePermissionUncheckedUpdateManyInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -345,6 +383,8 @@ export type RolePermissionCountOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
@@ -355,6 +395,8 @@ export type RolePermissionMaxOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
@@ -365,6 +407,8 @@ export type RolePermissionMinOrderByAggregateInput = {
   permissionId?: Prisma.SortOrder
   allow?: Prisma.SortOrder
   dataAccess?: Prisma.SortOrder
+  editAccess?: Prisma.SortOrder
+  deleteAccess?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
 }
@@ -457,6 +501,8 @@ export type RolePermissionCreateWithoutRoleInput = {
   id?: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
   permission: Prisma.PermissionCreateNestedOneWithoutRolePermissionsInput
@@ -467,6 +513,8 @@ export type RolePermissionUncheckedCreateWithoutRoleInput = {
   permissionId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -506,6 +554,8 @@ export type RolePermissionScalarWhereInput = {
   permissionId?: Prisma.StringFilter<"RolePermission"> | string
   allow?: Prisma.BoolFilter<"RolePermission"> | boolean
   dataAccess?: Prisma.EnumDataAccessLevelNullableFilter<"RolePermission"> | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.EnumEditAccessLevelNullableFilter<"RolePermission"> | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.EnumDeleteAccessLevelNullableFilter<"RolePermission"> | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFilter<"RolePermission"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"RolePermission"> | Date | string | null
 }
@@ -514,6 +564,8 @@ export type RolePermissionCreateWithoutPermissionInput = {
   id?: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
   role: Prisma.RoleCreateNestedOneWithoutPermissionsInput
@@ -524,6 +576,8 @@ export type RolePermissionUncheckedCreateWithoutPermissionInput = {
   roleId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -559,6 +613,8 @@ export type RolePermissionCreateManyRoleInput = {
   permissionId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -567,6 +623,8 @@ export type RolePermissionUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   permission?: Prisma.PermissionUpdateOneRequiredWithoutRolePermissionsNestedInput
@@ -577,6 +635,8 @@ export type RolePermissionUncheckedUpdateWithoutRoleInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -586,6 +646,8 @@ export type RolePermissionUncheckedUpdateManyWithoutRoleInput = {
   permissionId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -595,6 +657,8 @@ export type RolePermissionCreateManyPermissionInput = {
   roleId: string
   allow?: boolean
   dataAccess?: $Enums.DataAccessLevel | null
+  editAccess?: $Enums.EditAccessLevel | null
+  deleteAccess?: $Enums.DeleteAccessLevel | null
   createdAt?: Date | string
   deletedAt?: Date | string | null
 }
@@ -603,6 +667,8 @@ export type RolePermissionUpdateWithoutPermissionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.RoleUpdateOneRequiredWithoutPermissionsNestedInput
@@ -613,6 +679,8 @@ export type RolePermissionUncheckedUpdateWithoutPermissionInput = {
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -622,6 +690,8 @@ export type RolePermissionUncheckedUpdateManyWithoutPermissionInput = {
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   allow?: Prisma.BoolFieldUpdateOperationsInput | boolean
   dataAccess?: Prisma.NullableEnumDataAccessLevelFieldUpdateOperationsInput | $Enums.DataAccessLevel | null
+  editAccess?: Prisma.NullableEnumEditAccessLevelFieldUpdateOperationsInput | $Enums.EditAccessLevel | null
+  deleteAccess?: Prisma.NullableEnumDeleteAccessLevelFieldUpdateOperationsInput | $Enums.DeleteAccessLevel | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -634,6 +704,8 @@ export type RolePermissionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   createdAt?: boolean
   deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -646,6 +718,8 @@ export type RolePermissionSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   createdAt?: boolean
   deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -658,6 +732,8 @@ export type RolePermissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   createdAt?: boolean
   deletedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -670,11 +746,13 @@ export type RolePermissionSelectScalar = {
   permissionId?: boolean
   allow?: boolean
   dataAccess?: boolean
+  editAccess?: boolean
+  deleteAccess?: boolean
   createdAt?: boolean
   deletedAt?: boolean
 }
 
-export type RolePermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "roleId" | "permissionId" | "allow" | "dataAccess" | "createdAt" | "deletedAt", ExtArgs["result"]["rolePermission"]>
+export type RolePermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "roleId" | "permissionId" | "allow" | "dataAccess" | "editAccess" | "deleteAccess" | "createdAt" | "deletedAt", ExtArgs["result"]["rolePermission"]>
 export type RolePermissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   permission?: boolean | Prisma.PermissionDefaultArgs<ExtArgs>
@@ -700,6 +778,8 @@ export type $RolePermissionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     permissionId: string
     allow: boolean
     dataAccess: $Enums.DataAccessLevel | null
+    editAccess: $Enums.EditAccessLevel | null
+    deleteAccess: $Enums.DeleteAccessLevel | null
     createdAt: Date
     deletedAt: Date | null
   }, ExtArgs["result"]["rolePermission"]>
@@ -1132,6 +1212,8 @@ export interface RolePermissionFieldRefs {
   readonly permissionId: Prisma.FieldRef<"RolePermission", 'String'>
   readonly allow: Prisma.FieldRef<"RolePermission", 'Boolean'>
   readonly dataAccess: Prisma.FieldRef<"RolePermission", 'DataAccessLevel'>
+  readonly editAccess: Prisma.FieldRef<"RolePermission", 'EditAccessLevel'>
+  readonly deleteAccess: Prisma.FieldRef<"RolePermission", 'DeleteAccessLevel'>
   readonly createdAt: Prisma.FieldRef<"RolePermission", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"RolePermission", 'DateTime'>
 }
