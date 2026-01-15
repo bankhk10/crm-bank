@@ -184,14 +184,9 @@ export function SaleFormV2({
     }
   }, [saleDate, creditDays]);
 
-  // Auto-fill employeeId for sales_employee users
+  // Auto-fill employeeId for current user (if they have an employeeId)
   useEffect(() => {
-    if (
-      !isEdit &&
-      !employeeId &&
-      currentUser?.roles?.includes("sales_employee") &&
-      currentUser?.employeeId
-    ) {
+    if (!isEdit && !employeeId && currentUser?.employeeId) {
       setEmployeeId(currentUser.employeeId);
     }
   }, [currentUser, isEdit, employeeId]);
