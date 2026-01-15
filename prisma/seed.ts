@@ -592,6 +592,8 @@ async function main() {
         category: "DATA",
         resource: "product",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     prisma.permission.create({
@@ -601,6 +603,8 @@ async function main() {
         category: "DATA",
         resource: "employee",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     prisma.permission.create({
@@ -610,6 +614,8 @@ async function main() {
         category: "DATA",
         resource: "customer",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     prisma.permission.create({
@@ -619,6 +625,8 @@ async function main() {
         category: "DATA",
         resource: "creditlimit",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     prisma.permission.create({
@@ -628,6 +636,8 @@ async function main() {
         category: "DATA",
         resource: "temporary_creditlimit",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     prisma.permission.create({
@@ -637,6 +647,8 @@ async function main() {
         category: "DATA",
         resource: "sale",
         defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
       },
     }),
     // New Permissions
@@ -704,12 +716,19 @@ async function main() {
   }));
 
   await prisma.rolePermission.createMany({
-    data: allowAll.map((entry) => ({
-      permissionId: entry.permissionId,
-      roleId: adminRole.id,
-      allow: true,
-      dataAccess: "VIEW_ALL",
-    })),
+    data: allowAll.map((entry) => {
+      const perm = permissions.find((p) => p.id === entry.permissionId);
+      const isDataPermission = perm?.category === "DATA";
+      return {
+        permissionId: entry.permissionId,
+        roleId: adminRole.id,
+        allow: true,
+        dataAccess: "VIEW_ALL",
+        // Add edit and delete access for DATA permissions
+        editAccess: isDataPermission ? "EDIT_ALL" : null,
+        deleteAccess: isDataPermission ? "DELETE_ALL" : null,
+      };
+    }),
   });
 
   const adminPassword = await hash("b@b.com", 12);
@@ -768,26 +787,40 @@ async function main() {
   // 3. Assign Permissions
   const p = (key: string) => permissionMap[key]?.id;
 
-  // Sales Rep Permissions
-  const salesRepConfig = [
-    { key: "menu.products", access: undefined },
-    { key: "product.view", access: "VIEW_ALL" },
-    { key: "menu.sales", access: undefined },
-    { key: "sale.create", access: "VIEW_OWN" },
-    { key: "sale.edit", access: "VIEW_OWN" },
-    { key: "sale.view", access: "VIEW_OWN" },
-    { key: "sale.delete", access: "VIEW_OWN" },
-    { key: "menu.customers", access: undefined },
-    { key: "customer.create.dealer", access: undefined },
-    { key: "customer.edit", access: "VIEW_OWN" },
-    { key: "customer.view", access: "VIEW_ALL" },
-    { key: "menu.temporary_credit_limits", access: undefined },
-    { key: "temporary_creditlimit.create", access: "VIEW_OWN" },
-    { key: "temporary_creditlimit.edit", access: "VIEW_OWN" },
-    { key: "temporary_creditlimit.view", access: "VIEW_OWN" },
-    { key: "temporary_creditlimit.delete", access: "VIEW_OWN" },
-    { key: "employee.view", access: "VIEW_ALL" },
-    { key: "data.sales", access: "VIEW_OWN" },
+  // Helper type for permission config
+  type PermissionConfig = {
+    key: string;
+    dataAccess?: string;
+    editAccess?: string;
+    deleteAccess?: string;
+  };
+
+  // Sales Rep Permissions - can only edit/delete their own records
+  const salesRepConfig: PermissionConfig[] = [
+    { key: "menu.products" },
+    { key: "product.view", dataAccess: "VIEW_ALL" },
+    { key: "menu.sales" },
+    { key: "sale.create" },
+    { key: "sale.edit" },
+    { key: "sale.view" },
+    { key: "sale.delete" },
+    { key: "menu.customers" },
+    { key: "customer.create.dealer" },
+    { key: "customer.edit" },
+    { key: "customer.view", dataAccess: "VIEW_ALL" },
+    { key: "menu.temporary_credit_limits" },
+    { key: "temporary_creditlimit.create" },
+    { key: "temporary_creditlimit.edit" },
+    { key: "temporary_creditlimit.view" },
+    { key: "temporary_creditlimit.delete" },
+    { key: "employee.view", dataAccess: "VIEW_ALL" },
+    // DATA permission with view/edit/delete scopes
+    {
+      key: "data.sales",
+      dataAccess: "VIEW_OWN",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
+    },
   ];
 
   await prisma.rolePermission.createMany({
@@ -797,42 +830,47 @@ async function main() {
         roleId: salesRepRole.id,
         permissionId: p(item.key),
         allow: true,
-        dataAccess:
-          item.access === "VIEW_OWN" && item.key === "sale.view"
-            ? "VIEW_ALL"
-            : (item.access as any),
+        dataAccess: (item.dataAccess as any) ?? null,
+        editAccess: (item.editAccess as any) ?? null,
+        deleteAccess: (item.deleteAccess as any) ?? null,
       })),
   });
 
-  // Sales Manager Permissions
-  const salesManagerConfig = [
-    { key: "menu.dashboard", access: undefined },
-    { key: "menu.products", access: undefined },
-    { key: "product.view", access: "VIEW_ALL" },
-    { key: "menu.sales", access: undefined },
-    { key: "sale.create", access: "VIEW_OWN" },
-    { key: "sale.edit", access: "VIEW_OWN" },
-    { key: "sale.delete", access: "VIEW_OWN" },
-    { key: "sale.view", access: "VIEW_ALL" },
-    { key: "sale.approve", access: "VIEW_DEPARTMENT" },
-    { key: "sale.reject", access: "VIEW_DEPARTMENT" },
-    { key: "menu.employees", access: undefined },
-    { key: "employee.view", access: "VIEW_DEPARTMENT" },
-    { key: "menu.customers", access: undefined },
-    { key: "customer.create.dealer", access: undefined },
-    { key: "customer.create.subdealer", access: undefined },
-    { key: "customer.create.farmer", access: undefined },
-    { key: "customer.create.broker", access: undefined },
-    { key: "customer.edit", access: "VIEW_ALL" },
-    { key: "customer.view", access: "VIEW_ALL" },
-    { key: "menu.credit_limits", access: undefined },
-    { key: "creditlimit.create", access: "VIEW_OWN" },
-    { key: "creditlimit.edit", access: "VIEW_OWN" },
-    { key: "creditlimit.delete", access: "VIEW_OWN" },
-    { key: "creditlimit.view", access: "VIEW_DEPARTMENT" },
-    { key: "creditlimit.approve", access: "VIEW_DEPARTMENT" },
-    { key: "creditlimit.reject", access: "VIEW_DEPARTMENT" },
-    { key: "data.sales", access: "VIEW_DEPARTMENT" },
+  // Sales Manager Permissions - can view department but only edit/delete own
+  const salesManagerConfig: PermissionConfig[] = [
+    { key: "menu.dashboard" },
+    { key: "menu.products" },
+    { key: "product.view", dataAccess: "VIEW_ALL" },
+    { key: "menu.sales" },
+    { key: "sale.create" },
+    { key: "sale.edit" },
+    { key: "sale.delete" },
+    { key: "sale.view" },
+    { key: "sale.approve" },
+    { key: "sale.reject" },
+    { key: "menu.employees" },
+    { key: "employee.view", dataAccess: "VIEW_DEPARTMENT" },
+    { key: "menu.customers" },
+    { key: "customer.create.dealer" },
+    { key: "customer.create.subdealer" },
+    { key: "customer.create.farmer" },
+    { key: "customer.create.broker" },
+    { key: "customer.edit" },
+    { key: "customer.view", dataAccess: "VIEW_ALL" },
+    { key: "menu.credit_limits" },
+    { key: "creditlimit.create" },
+    { key: "creditlimit.edit" },
+    { key: "creditlimit.delete" },
+    { key: "creditlimit.view", dataAccess: "VIEW_DEPARTMENT" },
+    { key: "creditlimit.approve" },
+    { key: "creditlimit.reject" },
+    // DATA permission - can view department but only edit/delete own
+    {
+      key: "data.sales",
+      dataAccess: "VIEW_DEPARTMENT",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
+    },
   ];
 
   await prisma.rolePermission.createMany({
@@ -842,73 +880,105 @@ async function main() {
         roleId: salesManagerRole.id,
         permissionId: p(item.key),
         allow: true,
-        dataAccess: item.access as any,
+        dataAccess: (item.dataAccess as any) ?? null,
+        editAccess: (item.editAccess as any) ?? null,
+        deleteAccess: (item.deleteAccess as any) ?? null,
       })),
   });
 
   // Admin Role Permissions (below Administrator, excludes RBAC management)
-  const adminConfig = [
-    { key: "menu.dashboard", access: undefined },
-    { key: "menu.reports", access: undefined },
-    { key: "menu.sales", access: undefined },
-    { key: "menu.products", access: undefined },
-    { key: "menu.customers", access: undefined },
-    { key: "menu.credit_limits", access: undefined },
-    { key: "menu.temporary_credit_limits", access: undefined },
-    { key: "menu.fulfillment", access: undefined },
-    { key: "menu.employees", access: undefined },
-    { key: "menu.companies", access: undefined },
+  const adminConfig: PermissionConfig[] = [
+    { key: "menu.dashboard" },
+    { key: "menu.reports" },
+    { key: "menu.sales" },
+    { key: "menu.products" },
+    { key: "menu.customers" },
+    { key: "menu.credit_limits" },
+    { key: "menu.temporary_credit_limits" },
+    { key: "menu.fulfillment" },
+    { key: "menu.employees" },
+    { key: "menu.companies" },
     // Sale permissions
-    { key: "sale.create", access: "VIEW_ALL" },
-    { key: "sale.edit", access: "VIEW_ALL" },
-    { key: "sale.view", access: "VIEW_ALL" },
-    { key: "sale.delete", access: "VIEW_ALL" },
-    { key: "sale.approve", access: "VIEW_ALL" },
-    { key: "sale.reject", access: "VIEW_ALL" },
-    { key: "sale.confirm-payment", access: "VIEW_ALL" },
-    { key: "sale.manage_fulfillment", access: "VIEW_ALL" },
+    { key: "sale.create" },
+    { key: "sale.edit" },
+    { key: "sale.view" },
+    { key: "sale.delete" },
+    { key: "sale.approve" },
+    { key: "sale.reject" },
+    { key: "sale.confirm-payment" },
+    { key: "sale.manage_fulfillment" },
     // Product permissions
-    { key: "product.create", access: "VIEW_ALL" },
-    { key: "product.update", access: "VIEW_ALL" },
-    { key: "product.delete", access: "VIEW_ALL" },
-    { key: "product.view", access: "VIEW_ALL" },
-    { key: "product.manage", access: "VIEW_ALL" },
+    { key: "product.create" },
+    { key: "product.update" },
+    { key: "product.delete" },
+    { key: "product.view" },
+    { key: "product.manage" },
     // Customer permissions
-    { key: "customer.create.dealer", access: "VIEW_ALL" },
-    { key: "customer.create.subdealer", access: "VIEW_ALL" },
-    { key: "customer.create.farmer", access: "VIEW_ALL" },
-    { key: "customer.create.broker", access: "VIEW_ALL" },
-    { key: "customer.edit", access: "VIEW_ALL" },
-    { key: "customer.delete", access: "VIEW_ALL" },
-    { key: "customer.view", access: "VIEW_ALL" },
+    { key: "customer.create.dealer" },
+    { key: "customer.create.subdealer" },
+    { key: "customer.create.farmer" },
+    { key: "customer.create.broker" },
+    { key: "customer.edit" },
+    { key: "customer.delete" },
+    { key: "customer.view" },
     // Credit limit permissions
-    { key: "creditlimit.create", access: "VIEW_ALL" },
-    { key: "creditlimit.edit", access: "VIEW_ALL" },
-    { key: "creditlimit.delete", access: "VIEW_ALL" },
-    { key: "creditlimit.view", access: "VIEW_ALL" },
-    { key: "creditlimit.approve", access: "VIEW_ALL" },
-    { key: "creditlimit.reject", access: "VIEW_ALL" },
+    { key: "creditlimit.create" },
+    { key: "creditlimit.edit" },
+    { key: "creditlimit.delete" },
+    { key: "creditlimit.view" },
+    { key: "creditlimit.approve" },
+    { key: "creditlimit.reject" },
     // Temporary credit limit permissions
-    { key: "temporary_creditlimit.create", access: "VIEW_ALL" },
-    { key: "temporary_creditlimit.edit", access: "VIEW_ALL" },
-    { key: "temporary_creditlimit.delete", access: "VIEW_ALL" },
-    { key: "temporary_creditlimit.view", access: "VIEW_ALL" },
-    { key: "temporary_creditlimit.approve", access: "VIEW_ALL" },
-    { key: "temporary_creditlimit.reject", access: "VIEW_ALL" },
+    { key: "temporary_creditlimit.create" },
+    { key: "temporary_creditlimit.edit" },
+    { key: "temporary_creditlimit.delete" },
+    { key: "temporary_creditlimit.view" },
+    { key: "temporary_creditlimit.approve" },
+    { key: "temporary_creditlimit.reject" },
     // Company permissions
-    { key: "company.create", access: "VIEW_ALL" },
-    { key: "company.edit", access: "VIEW_ALL" },
-    { key: "company.delete", access: "VIEW_ALL" },
+    { key: "company.create" },
+    { key: "company.edit" },
+    { key: "company.delete" },
     // Employee permissions
-    { key: "employee.view", access: "VIEW_ALL" },
-    { key: "employee.manage", access: "VIEW_ALL" },
-    // Data scope permissions
-    { key: "data.products", access: "VIEW_ALL" },
-    { key: "data.employees", access: "VIEW_ALL" },
-    { key: "data.customers", access: "VIEW_ALL" },
-    { key: "data.creditlimits", access: "VIEW_ALL" },
-    { key: "data.temporary_creditlimits", access: "VIEW_ALL" },
-    { key: "data.sales", access: "VIEW_ALL" },
+    { key: "employee.view", dataAccess: "VIEW_ALL" },
+    { key: "employee.manage" },
+    // Data scope permissions - Admin can view/edit/delete all
+    {
+      key: "data.products",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.employees",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.customers",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.temporary_creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.sales",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
     // Note: rbac.manage is excluded to differentiate from Administrator
   ];
 
@@ -919,7 +989,9 @@ async function main() {
         roleId: adminRoleSecondary.id,
         permissionId: p(item.key),
         allow: true,
-        dataAccess: item.access as any,
+        dataAccess: (item.dataAccess as any) ?? null,
+        editAccess: (item.editAccess as any) ?? null,
+        deleteAccess: (item.deleteAccess as any) ?? null,
       })),
   });
 
