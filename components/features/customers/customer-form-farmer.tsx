@@ -133,38 +133,6 @@ export default function CustomerFormFarmer({
     onGenerated: handleRandomFillGenerated,
   });
 
-  const fetchNextCustomerCode = async () => {
-    try {
-      const res = await fetch(`/api/customers/next-code`);
-      const json = await res.json();
-      if (res.ok && json.nextCode) return json.nextCode as string;
-    } catch (err) {
-      // ignore fallback below
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!initial?.customerCode && !values.customerCode) {
-        const next = await fetchNextCustomerCode();
-        if (mounted) {
-          if (next) setValues((p: any) => ({ ...p, customerCode: next }));
-          else
-            setValues((p: any) => ({
-              ...p,
-              customerCode: `C${String(Date.now()).slice(-5)}`,
-            }));
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(() => {
     async function fetchEmployees() {
       try {
