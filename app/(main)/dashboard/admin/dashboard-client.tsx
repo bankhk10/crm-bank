@@ -468,6 +468,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     width={40}
                   />
                   <Tooltip
+                    cursor={{ fill: "#F5F5F5" }}
                     contentStyle={{
                       borderRadius: 12,
                       border: "none",
@@ -546,6 +547,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   width={40}
                 />
                 <Tooltip
+                  cursor={{ fill: "#F5F5F5" }}
                   contentStyle={{
                     borderRadius: 12,
                     border: "none",
