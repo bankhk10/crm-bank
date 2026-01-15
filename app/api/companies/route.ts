@@ -31,7 +31,12 @@ export async function GET(request: Request) {
   }
 
   if (!isAuthorized(resourcePath, session.user.permissions)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Allow if user has sale.create permission (needed for sale form dropdowns)
+    if (session.user.permissions["sale.create"]?.allow) {
+      // Allowed
+    } else {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const url = new URL(request.url);

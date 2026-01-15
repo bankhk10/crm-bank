@@ -61,6 +61,13 @@ export function SaleFormV2({
   onCancel,
 }: SaleFormProps) {
   const router = useRouter();
+  const currentUser = useCurrentUser();
+  const isAdmin =
+    currentUser?.roles?.includes("admin") ||
+    currentUser?.roles?.includes("administrator") ||
+    false;
+  const isManager = currentUser?.roles?.includes("sales_manager") || false;
+  const canSelectOtherEmployees = isAdmin || isManager;
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -74,7 +81,9 @@ export function SaleFormV2({
 
   // Form state
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
-  const [employeeId, setEmployeeId] = useState(initialData?.employeeId || "");
+  const [employeeId, setEmployeeId] = useState(
+    initialData?.employeeId || (!isEdit ? currentUser?.employeeId : "") || ""
+  );
   const [pickupCompanyId, setPickupCompanyId] = useState(
     initialData?.pickupCompanyId || ""
   );
@@ -165,13 +174,7 @@ export function SaleFormV2({
     useState<SaleFormProduct | null>(null);
 
   // User permissions
-  const currentUser = useCurrentUser();
-  const isAdmin =
-    currentUser?.roles?.includes("admin") ||
-    currentUser?.roles?.includes("administrator") ||
-    false;
-  const isManager = currentUser?.roles?.includes("sales_manager") || false;
-  const canSelectOtherEmployees = isAdmin || isManager;
+  // User permissions (moved to top)
 
   // Auto-calculate credit due date
   useEffect(() => {

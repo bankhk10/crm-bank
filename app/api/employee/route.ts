@@ -5,7 +5,6 @@ import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
 
 const resourcePath = "/api/employee";
-const requiredPermission = "employee.manage";
 
 const employeeSchema = z.object({
   name: z.string().min(2),
@@ -23,8 +22,12 @@ export async function GET() {
   }
 
   if (!isAuthorized(resourcePath, session.user.permissions)) {
+    // Allow if user has sale.create permission (needed for sale form dropdowns)
+    if (session.user.permissions["sale.create"]?.allow) {
+      // Allowed
+    }
     // If exact route match fails, check if they have general management permission
-    if (!session.user.permissions["employee.manage"]?.allow) {
+    else if (!session.user.permissions["employee.manage"]?.allow) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
