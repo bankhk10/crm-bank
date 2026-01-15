@@ -389,17 +389,11 @@ export default function ApproveSalePage({
             )}
           </h3>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
             <div className="bg-white p-4 rounded-xl border shadow-sm">
               <span className="text-sm text-gray-600">วงเงิน</span>
               <p className="font-bold text-xl text-gray-900 mt-1">
                 ฿{creditInfo.creditLimit.toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-xl border shadow-sm">
-              <span className="text-sm text-gray-600">ใช้ไปแล้ว</span>
-              <p className="font-bold text-xl text-orange-600 mt-1">
-                ฿{creditInfo.usedCredit.toLocaleString()}
               </p>
             </div>
             <div className="bg-white p-4 rounded-xl border shadow-sm">
@@ -523,15 +517,17 @@ export default function ApproveSalePage({
               </span>
             </div>
 
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
-              <span className="text-base font-semibold text-red-600">
-                -
-                {Number(sale.shippingCost).toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                })}
-              </span>
-            </div>
+            {Number(sale.shippingCost) > 0 && (
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
+                <span className="text-base font-semibold text-red-600">
+                  -
+                  {Number(sale.shippingCost).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            )}
 
             {Number(sale.otherCosts) > 0 && (
               <div className="flex justify-between items-center py-2">
@@ -675,15 +671,17 @@ export default function ApproveSalePage({
                 </span>
               </div>
 
-              <div className="flex justify-between items-center py-1">
-                <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
-                <span className="text-lg font-semibold text-red-600">
-                  -
-                  {Number(sale.shippingCost).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
+              {Number(sale.shippingCost) > 0 && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
+                  <span className="text-lg font-semibold text-red-600">
+                    -
+                    {Number(sale.shippingCost).toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
 
               {Number(sale.otherCosts) > 0 && (
                 <div className="flex justify-between items-center py-1">
