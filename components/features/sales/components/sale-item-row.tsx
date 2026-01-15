@@ -110,7 +110,7 @@ export function SaleItemRow({
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         <FormInput
-          label="รวม"
+          label="ราคารวม (บาท)"
           type="number"
           value={String(item.quantity * item.unitPrice)}
           onChange={() => {}}
