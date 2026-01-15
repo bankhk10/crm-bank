@@ -15,20 +15,14 @@ import {
 } from "@/components/custom/form-components";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { useRandomFill } from "@/hooks/use-random-fill";
-
-// Local feature imports - use types from centralized types.ts
 import type { CustomerFormProps, CustomerPayload, SelectOption } from "./types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
-
-const labelTextClass = "text-base font-medium mx-2";
-const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function CustomerFormDealer({
   initial = {},
   onSubmit,
   onCancel,
-  submitLabel = "บันทึก",
   onSuccess,
 }: Props) {
   const router = useRouter();

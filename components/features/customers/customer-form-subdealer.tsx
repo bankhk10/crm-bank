@@ -881,8 +881,6 @@ export default function CustomerFormSubdealer({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
         <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">

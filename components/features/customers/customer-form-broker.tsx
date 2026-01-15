@@ -28,7 +28,6 @@ export default function CustomerFormBroker({
   initial = {},
   onSubmit,
   onCancel,
-  submitLabel = "เพิ่มลูกค้า",
   onSuccess,
 }: Props) {
   const router = useRouter();
@@ -568,8 +567,6 @@ export default function CustomerFormBroker({
         }}
         rows={3}
       />
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
