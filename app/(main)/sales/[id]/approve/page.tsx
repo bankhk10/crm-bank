@@ -129,7 +129,7 @@ export default function ApproveSalePage({
 
   const { sale, priceWarnings, stockWarnings, creditInfo } = data;
 
-  if (sale.status !== "PENDING")
+  if (sale.status !== "PENDING_APPROVAL")
     return (
       <div className="max-w-lg mx-auto py-16 text-center">
         <Card className="border-l-4 border-yellow-500 shadow-md">

@@ -814,18 +814,21 @@ function useColumns(
         cell: ({ row }) => {
           const item = row.original;
           const isPending = item.status === "PENDING";
+          const isPendingApproval = item.status === "PENDING_APPROVAL";
           const isRejected = item.status === "REJECTED";
           const isCreator = currentUserId && item.createdById === currentUserId;
 
           // Use canEditItem callback if provided, otherwise fallback to simple logic
           const canEditThis = canEditItem
-            ? canEditItem(item) && (isPending || isRejected)
-            : (canEdit || isCreator) && (isPending || isRejected);
+            ? canEditItem(item) &&
+              (isPending || isPendingApproval || isRejected)
+            : (canEdit || isCreator) &&
+              (isPending || isPendingApproval || isRejected);
 
           // Use canDeleteItem callback if provided, otherwise fallback to simple logic
           const canDeleteThis = canDeleteItem
-            ? canDeleteItem(item) && isPending
-            : (canDelete || isCreator) && isPending;
+            ? canDeleteItem(item) && (isPending || isPendingApproval)
+            : (canDelete || isCreator) && (isPending || isPendingApproval);
 
           return (
             <div className="flex items-center justify-center gap-2">
@@ -845,7 +848,7 @@ function useColumns(
                 />
               )}
 
-              {canApprove && isPending && (
+              {canApprove && (isPending || isPendingApproval) && (
                 <>
                   <ActionButton
                     href={`/sales/${item.id}/approve`}
