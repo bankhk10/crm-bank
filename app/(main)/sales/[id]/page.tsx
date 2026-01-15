@@ -29,6 +29,7 @@ import {
   SaleStatusLabels,
   PaymentTermLabels,
   getSaleStatusColor,
+  getSaleStatusDotColor,
 } from "@/types/sales";
 
 export default function SaleDetailPage({
@@ -304,43 +305,6 @@ export default function SaleDetailPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <Card className="!py-0 rounded-3xl shadow-2xl bg-white border-0 overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 p-6 sm:p-8 rounded-t-3xl">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="inline-flex items-center text-blue-100 hover:text-white transition-colors group hover:bg-white/10 w-fit"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            กลับไปหน้ารายการขาย
-          </Button>
-          <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg">
-                <FileText className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
-                  พิจารณาอนุมัติรายการขาย
-                </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base">
-                  <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit">
-                    {sale.saleNumber}
-                  </span>
-                  <span className="text-blue-100 hidden sm:inline">•</span>
-                  <span className="text-blue-50 font-medium truncate">
-                    {sale.customer.name}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <Badge className="px-4 py-2 bg-amber-400 text-amber-900 border-0 text-sm font-bold shadow-lg w-fit">
-              รอการอนุมัติ
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-      </Card>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-4 sm:p-6 lg:p-8">
           <Link
@@ -364,30 +328,20 @@ export default function SaleDetailPage({
                   <User className="h-4 w-4 flex-shrink-0" />
                   <span className="truncate">ลูกค้า: {sale.customer.name}</span>
                 </div>
-                <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <Badge
-                    className={`${getSaleStatusColor(
-                      sale.status
-                    )} border-none shadow-none text-white bg-transparent p-0 ring-0`}
-                  >
-                    {SaleStatusLabels[sale.status]}
-                  </Badge>
-                </div>
               </div>
             </div>
-            {canEditThis && (
-              <div className="flex gap-3">
-                <Link href={`/sales/${id}/edit`} className="w-full sm:w-auto">
-                  <Button
-                    variant="secondary"
-                    className="w-full sm:w-auto bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    แก้ไขข้อมูล
-                  </Button>
-                </Link>
-              </div>
-            )}
+            <Badge
+              className={`${getSaleStatusColor(
+                sale.status
+              )} border-none shadow-none px-4 py-2`}
+            >
+              <span
+                className={`mr-2 h-4 w-4 rounded-full ${getSaleStatusDotColor(
+                  sale.status
+                )}`}
+              />
+              {SaleStatusLabels[sale.status]}
+            </Badge>
           </div>
         </div>
       </div>
