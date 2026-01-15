@@ -189,6 +189,12 @@ export default function CustomerFormFarmer({
       nextFieldErrors[field] = [msg];
     };
 
+    if (!values.customerCode?.trim()) {
+      pushErr("customerCode", "กรุณากรอกรหัสลูกค้า");
+    } else if (fieldErrors.customerCode?.length) {
+      // If there's already a duplicate error from onBlur check
+      nextFieldErrors.customerCode = fieldErrors.customerCode;
+    }
     if (!values.prefix) {
       pushErr("prefix", "กรุณาเลือกคำนำหน้า");
     }

@@ -331,6 +331,12 @@ export default function CustomerFormDealer({
       nextFieldErrors[field] = [msg];
     };
 
+    if (!values.customerCode?.trim()) {
+      pushErr("customerCode", "กรุณากรอกรหัสลูกค้า");
+    } else if (fieldErrors.customerCode?.length) {
+      // If there's already a duplicate error from onBlur check
+      nextFieldErrors.customerCode = fieldErrors.customerCode;
+    }
     if (!values.companyName?.trim()) {
       pushErr("name", "กรุณากรอกชื่อร้านค้า");
     }
