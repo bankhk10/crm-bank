@@ -521,6 +521,7 @@ model ProductStockLot {
 
 enum SaleStatus {
   PENDING           // รอดำเนินการ
+  PENDING_APPROVAL  // รออนุมัติ
   APPROVED          // อนุมัติแล้ว
   REJECTED          // ไม่อนุมัติ
   AWAITING_PAYMENT  // รอดำเนินการชำระเงิน

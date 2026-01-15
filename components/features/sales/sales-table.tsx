@@ -85,10 +85,16 @@ const statusStyle: Record<
 > = {
   // 🟡 Yellow - รอดำเนินการ (Pending action required)
   PENDING: {
-    label: "รออนุมัติ",
+    label: "รอดำเนินการ",
     className:
       "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-100",
     dot: "bg-amber-500",
+  },
+  PENDING_APPROVAL: {
+    label: "รออนุมัติ",
+    className:
+      "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-100",
+    dot: "bg-yellow-500",
   },
   // 🟢 Green - สำเร็จ (Success/Approved)
   APPROVED: {
@@ -510,19 +516,22 @@ function SalesCards({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {data.map((item) => {
           const isPending = item.status === "PENDING";
+          const isPendingApproval = item.status === "PENDING_APPROVAL";
           const isApproved = item.status === "APPROVED";
           const isRejected = item.status === "REJECTED";
           const isCreator = currentUserId && item.createdById === currentUserId;
 
           // Use canEditItem callback if provided, otherwise fallback to simple logic
           const canEditThis = canEditItem
-            ? canEditItem(item) && (isPending || isRejected)
-            : (canEdit || isCreator) && (isPending || isRejected);
+            ? canEditItem(item) &&
+              (isPending || isPendingApproval || isRejected)
+            : (canEdit || isCreator) &&
+              (isPending || isPendingApproval || isRejected);
 
           // Use canDeleteItem callback if provided, otherwise fallback to simple logic
           const canDeleteThis = canDeleteItem
-            ? canDeleteItem(item) && isPending
-            : (canDelete || isCreator) && isPending;
+            ? canDeleteItem(item) && (isPending || isPendingApproval)
+            : (canDelete || isCreator) && (isPending || isPendingApproval);
 
           const amount = new Intl.NumberFormat("th-TH", {
             style: "currency",
@@ -538,6 +547,8 @@ function SalesCards({
                 className={cn(
                   "absolute inset-x-0 top-0 h-1",
                   isPending
+                    ? "bg-amber-400"
+                    : isPendingApproval
                     ? "bg-yellow-400"
                     : isApproved
                     ? "bg-emerald-500"
@@ -621,7 +632,7 @@ function SalesCards({
                       </Link>
                     </Button>
                   )}
-                  {canApprove && isPending && (
+                  {canApprove && (isPending || isPendingApproval) && (
                     <Button
                       asChild
                       size="sm"

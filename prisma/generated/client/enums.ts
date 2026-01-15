@@ -103,6 +103,7 @@ export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
 
 export const SaleStatus = {
   PENDING: 'PENDING',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   AWAITING_PAYMENT: 'AWAITING_PAYMENT',

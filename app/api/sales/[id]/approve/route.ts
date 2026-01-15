@@ -31,7 +31,7 @@ export async function POST(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    if (sale.status !== "PENDING") {
+    if (sale.status !== "PENDING" && sale.status !== "PENDING_APPROVAL") {
       return NextResponse.json(
         { error: "Sale is not pending approval" },
         { status: 400 }

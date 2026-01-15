@@ -163,6 +163,7 @@ export interface PaymentConfirmationData {
 // Status labels in Thai
 export const SaleStatusLabels: Record<SaleStatus, string> = {
   PENDING: "รอดำเนินการ",
+  PENDING_APPROVAL: "รออนุมัติ",
   APPROVED: "อนุมัติแล้ว",
   REJECTED: "ไม่อนุมัติ",
   AWAITING_PAYMENT: "รอดำเนินการชำระเงิน",
@@ -187,6 +188,7 @@ export const PaymentTermLabels: Record<PaymentTerm, string> = {
 export const getSaleStatusColor = (status: SaleStatus): string => {
   const colors: Record<SaleStatus, string> = {
     PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+    PENDING_APPROVAL: "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200",
     APPROVED: "bg-green-50 text-green-700 ring-1 ring-green-200",
     REJECTED: "bg-red-50 text-red-700 ring-1 ring-red-200",
     AWAITING_PAYMENT: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",

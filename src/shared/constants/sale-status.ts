@@ -10,6 +10,7 @@ import type { SaleStatus } from "@/src/infrastructure/database";
  */
 export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   PENDING: "รอดำเนินการ",
+  PENDING_APPROVAL: "รออนุมัติ",
   APPROVED: "อนุมัติแล้ว",
   REJECTED: "ไม่อนุมัติ",
   AWAITING_PAYMENT: "รอชำระเงิน",
@@ -32,10 +33,16 @@ export const SALE_STATUS_STYLES: Record<
 > = {
   // 🟡 Yellow - รอดำเนินการ (Pending action required)
   PENDING: {
-    label: "รออนุมัติ",
+    label: "รอดำเนินการ",
     className:
       "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-100",
     dot: "bg-amber-500",
+  },
+  PENDING_APPROVAL: {
+    label: "รออนุมัติ",
+    className:
+      "bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-100",
+    dot: "bg-yellow-500",
   },
   APPROVED: {
     label: "อนุมัติแล้ว",
@@ -134,6 +141,7 @@ export function getSaleStatusStyle(status?: string) {
 export const SALE_STATUS_GROUPS = {
   active: [
     "PENDING",
+    "PENDING_APPROVAL",
     "APPROVED",
     "AWAITING_PAYMENT",
     "AWAITING_DELIVERY",
@@ -150,12 +158,12 @@ export const SALE_STATUS_GROUPS = {
 /**
  * Statuses that can be edited
  */
-export const EDITABLE_STATUSES: SaleStatus[] = ["PENDING"];
+export const EDITABLE_STATUSES: SaleStatus[] = ["PENDING", "PENDING_APPROVAL"];
 
 /**
  * Statuses that can be approved
  */
-export const APPROVABLE_STATUSES: SaleStatus[] = ["PENDING"];
+export const APPROVABLE_STATUSES: SaleStatus[] = ["PENDING_APPROVAL"];
 
 /**
  * Statuses where stock is allocated
