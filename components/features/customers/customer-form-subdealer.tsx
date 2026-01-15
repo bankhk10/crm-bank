@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import {
-  CustomerFormProps,
-  CustomerPayload,
-  SubmitResult,
-} from "./customer-form-types";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
@@ -22,9 +17,15 @@ import { MultiSelect } from "@/components/custom/multi-select";
 import { LocateFixed, X, Save } from "lucide-react";
 import { useRandomFill } from "@/hooks/use-random-fill";
 
-type Props = Omit<CustomerFormProps, "customerType">;
+// Local feature imports - use types from centralized types.ts
+import type {
+  CustomerFormProps,
+  CustomerPayload,
+  SubmitResult,
+  SelectOption,
+} from "./types";
 
-type Option = { value: string; label: string };
+type Props = Omit<CustomerFormProps, "customerType">;
 
 export default function CustomerFormSubdealer({
   initial = {},
@@ -67,10 +68,12 @@ export default function CustomerFormSubdealer({
     images: initial.images || [],
   });
 
-  const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
-  const [employeeOptions, setEmployeeOptions] = useState<Option[]>([]);
-  const [productGroupOptions, setProductGroupOptions] = useState<Option[]>([]);
-  const [brandOptions, setBrandOptions] = useState<Option[]>([]);
+  const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
+  const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
+  const [productGroupOptions, setProductGroupOptions] = useState<
+    SelectOption[]
+  >([]);
+  const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,37 @@ export default function CustomerFormSubdealer({
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  // Check if customer code already exists
+  const checkCustomerCode = useCallback(
+    async (code: string) => {
+      if (!code?.trim()) return;
+      try {
+        const excludeId = (initial as any)?.id || "";
+        const res = await fetch(
+          `/api/customers/check-code?code=${encodeURIComponent(code)}${
+            excludeId ? `&excludeId=${excludeId}` : ""
+          }`
+        );
+        const json = await res.json();
+        if (json.exists) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            customerCode: [json.message || `รหัสลูกค้า "${code}" ถูกใช้แล้ว`],
+          }));
+        } else {
+          setFieldErrors((prev) => {
+            const next = { ...prev };
+            delete next.customerCode;
+            return next;
+          });
+        }
+      } catch {
+        // ignore network errors
+      }
+    },
+    [initial]
+  );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
@@ -513,9 +547,13 @@ export default function CustomerFormSubdealer({
             setValues((p: any) => ({ ...p, customerCode: e.target.value }));
             clearFieldError("customerCode");
           }}
-          readOnly
-          disabled
+          onBlur={(e) => {
+            const code = e.target.value?.trim();
+            if (code) checkCustomerCode(code);
+          }}
+          required
           error={fieldErrors.customerCode?.[0]}
+          placeholder="C00001"
         />
 
         <FormInput

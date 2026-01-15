@@ -2,13 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { LocateFixed, X, Save } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import { CustomerFormProps, CustomerPayload } from "./customer-form-types";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
@@ -19,9 +16,10 @@ import {
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { useRandomFill } from "@/hooks/use-random-fill";
 
-type Props = Omit<CustomerFormProps, "customerType">;
+// Local feature imports - use types from centralized types.ts
+import type { CustomerFormProps, CustomerPayload, SelectOption } from "./types";
 
-type Option = { value: string; label: string };
+type Props = Omit<CustomerFormProps, "customerType">;
 
 const labelTextClass = "text-base font-medium mx-2";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
@@ -72,8 +70,8 @@ export default function CustomerFormDealer({
     images: initial.images || [],
   });
 
-  const [dealerOptions, setDealerOptions] = useState<Option[]>([]);
-  const [employeeOptions, setEmployeeOptions] = useState<Option[]>([]);
+  const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
+  const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
   const [parentDealerLabel, setParentDealerLabel] = useState<string>("");
   const [responsibleEmployeeLabel, setResponsibleEmployeeLabel] =
     useState<string>("");
@@ -81,9 +79,46 @@ export default function CustomerFormDealer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [checkingCode, setCheckingCode] = useState(false);
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  // Check if customer code already exists
+  const checkCustomerCode = useCallback(
+    async (code: string) => {
+      if (!code?.trim()) return;
+
+      setCheckingCode(true);
+      try {
+        const excludeId = (initial as any)?.id || "";
+        const res = await fetch(
+          `/api/customers/check-code?code=${encodeURIComponent(code)}${
+            excludeId ? `&excludeId=${excludeId}` : ""
+          }`
+        );
+        const json = await res.json();
+
+        if (json.exists) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            customerCode: [json.message || `รหัสลูกค้า "${code}" ถูกใช้แล้ว`],
+          }));
+        } else {
+          setFieldErrors((prev) => {
+            const next = { ...prev };
+            delete next.customerCode;
+            return next;
+          });
+        }
+      } catch {
+        // ignore network errors during check
+      } finally {
+        setCheckingCode(false);
+      }
+    },
+    [initial]
+  );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
@@ -531,9 +566,13 @@ export default function CustomerFormDealer({
             setValues((p: any) => ({ ...p, customerCode: e.target.value }));
             clearFieldError("customerCode");
           }}
-          readOnly
-          disabled
+          onBlur={(e) => {
+            const code = e.target.value?.trim();
+            if (code) checkCustomerCode(code);
+          }}
+          required
           error={fieldErrors.customerCode?.[0]}
+          placeholder="C00001"
         />
 
         <FormInput

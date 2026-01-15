@@ -9,6 +9,7 @@ interface FormInputProps {
   label: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   type?: "text" | "email" | "number" | "tel" | "password" | "url";
   placeholder?: string;
   required?: boolean;
@@ -32,6 +33,7 @@ export function FormInput({
   label,
   value,
   onChange,
+  onBlur,
   type = "text",
   placeholder,
   required = false,
@@ -66,6 +68,7 @@ export function FormInput({
             type={type}
             value={value}
             onChange={onChange}
+            onBlur={onBlur}
             placeholder={placeholder}
             required={required}
             disabled={disabled}
@@ -95,6 +98,7 @@ export function FormInput({
           type={type}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           required={required}
           disabled={disabled}
