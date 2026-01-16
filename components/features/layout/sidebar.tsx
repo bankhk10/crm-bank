@@ -97,12 +97,7 @@ export const navigationItems: SidebarNavItem[] = [
     permissionKey: "menu.sales_targets",
     icon: <Target className="h-4 w-4" />,
   },
-  {
-    href: "/products",
-    label: "สินค้า",
-    permissionKey: "menu.products",
-    icon: <Package className="h-4 w-4" />,
-  },
+
   {
     href: "/sales",
     label: "การขาย",
@@ -114,6 +109,12 @@ export const navigationItems: SidebarNavItem[] = [
     label: "จัดการคำสั่งซื้อ",
     permissionKey: "menu.fulfillment",
     icon: <ClipboardList className="h-4 w-4" />,
+  },
+  {
+    href: "/products",
+    label: "สินค้า",
+    permissionKey: "menu.products",
+    icon: <Package className="h-4 w-4" />,
   },
   {
     href: "/employee",
