@@ -121,19 +121,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-          {/* Set Target Button */}
-          <Link href="/admin/sales-targets">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-700 shadow-sm"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">ตั้งเป้าหมาย</span>
-              <span className="sm:hidden">เป้าหมาย</span>
-            </Button>
-          </Link>
-
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end">
           {/* Last Updated Badge */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
