@@ -250,8 +250,8 @@ export default function TimeSalesReportPage() {
       <div className="px-6 py-8 max-w-7xl mx-auto">
         {isPending ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-32 rounded-xl" />
               ))}
             </div>
@@ -260,7 +260,7 @@ export default function TimeSalesReportPage() {
         ) : reportData ? (
           <div className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
                 <CardContent className="p-6 text-white">
@@ -315,24 +315,6 @@ export default function TimeSalesReportPage() {
                       </p>
                     </div>
                     <BarChart3 className="h-10 w-10 text-amber-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-500 to-violet-500">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
-                <CardContent className="p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100 text-sm">วันขายดีที่สุด</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {reportData.bestSellingDay.dayOfWeek}
-                      </p>
-                    </div>
-                    <Clock className="h-10 w-10 text-purple-200" />
-                  </div>
-                  <div className="mt-4 text-sm text-purple-100">
-                    {formatTHB(reportData.bestSellingDay.sales)}
                   </div>
                 </CardContent>
               </Card>
@@ -466,25 +448,7 @@ export default function TimeSalesReportPage() {
                 </div>
 
                 {/* Best Selling Info */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                  <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                          <Calendar className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <h3 className="font-semibold">วันขายดีที่สุด</h3>
-                      </div>
-                      <p className="text-2xl font-bold text-blue-600">
-                        {reportData.bestSellingDay.dayOfWeek}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatTHB(reportData.bestSellingDay.sales)} (
-                        {reportData.bestSellingDay.orders} ออเดอร์)
-                      </p>
-                    </CardContent>
-                  </Card>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                   <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-4">
