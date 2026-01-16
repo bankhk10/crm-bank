@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import ProductForm from "@/components/features/products/product-form";
+import { ProductForm } from "@/components/features/products";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -13,7 +13,8 @@ import type { Product } from "@/types/product";
 export default function EditProductPage() {
   const params = useParams();
   const productId = params.productId as string;
-  const { hasPermission, isLoading: permissionLoading } = usePermission("product.update");
+  const { hasPermission, isLoading: permissionLoading } =
+    usePermission("product.update");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,9 +54,7 @@ export default function EditProductPage() {
   if (!hasPermission) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>
-          คุณไม่มีสิทธิ์ในการแก้ไขสินค้า
-        </AlertDescription>
+        <AlertDescription>คุณไม่มีสิทธิ์ในการแก้ไขสินค้า</AlertDescription>
       </Alert>
     );
   }
@@ -81,7 +80,9 @@ export default function EditProductPage() {
       <Card>
         <div className="p-6">
           <div className="text-center">
-            <h5 className="font-semibold text-3xl border-b pb-6">แก้ไขสินค้า</h5>
+            <h5 className="font-semibold text-3xl border-b pb-6">
+              แก้ไขสินค้า
+            </h5>
           </div>
 
           <ProductForm
@@ -98,13 +99,15 @@ export default function EditProductPage() {
               usedForPlants: product.usedForPlants,
               salesPoint: product.salesPoint || "",
               properties: product.properties || "",
-              images: product.images?.map((img: any) => ({
-                id: img.id,
-                url: img.url,
-                name: img.filename,
-                size: 0,
-              })) || [],
-              coverIndex: product.images && product.images.length > 0 ? 0 : null,
+              images:
+                product.images?.map((img: any) => ({
+                  id: img.id,
+                  url: img.url,
+                  name: img.filename,
+                  size: 0,
+                })) || [],
+              coverIndex:
+                product.images && product.images.length > 0 ? 0 : null,
             }}
             productId={productId}
             isEdit

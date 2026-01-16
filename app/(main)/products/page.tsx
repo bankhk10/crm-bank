@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ProductsTable,
   type ProductRecord,
-} from "@/components/features/products/products-table";
+} from "@/components/features/products";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import Link from "next/link";
@@ -77,7 +77,14 @@ export default function ProductsPage() {
       setPage(1);
     }, delay);
     return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.status, filterDraft.dateRange, total, appliedFilters.query, appliedFilters.status]);
+  }, [
+    filterDraft.query,
+    filterDraft.status,
+    filterDraft.dateRange,
+    total,
+    appliedFilters.query,
+    appliedFilters.status,
+  ]);
 
   const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
@@ -258,7 +265,11 @@ export default function ProductsPage() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      setFilterDraft({ query: "", status: "", dateRange: undefined });
+                      setFilterDraft({
+                        query: "",
+                        status: "",
+                        dateRange: undefined,
+                      });
                       handleSearchSubmit();
                     }}
                   >

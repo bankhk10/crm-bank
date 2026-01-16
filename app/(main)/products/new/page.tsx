@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import ProductForm from "@/components/features/products/product-form";
+import { ProductForm } from "@/components/features/products";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { usePermission } from "@/hooks/use-permission";

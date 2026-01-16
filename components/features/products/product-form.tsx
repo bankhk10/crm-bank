@@ -30,21 +30,7 @@ import {
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
-interface ProductFormProps {
-  initialData?: Partial<ProductFormData>;
-  productId?: string;
-  isEdit?: boolean;
-  onSubmit?: (payload: any) => Promise<{
-    success: boolean;
-    issues?: Record<string, string[]>;
-    error?: string;
-    data?: any;
-  }>;
-  onCancel?: () => void;
-  hideBorder?: boolean;
-  canEdit?: boolean;
-  permissionHint?: string;
-}
+import { ProductFormProps } from "./types";
 
 export function ProductForm({
   initialData,
