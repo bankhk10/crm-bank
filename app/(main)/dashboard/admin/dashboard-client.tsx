@@ -191,7 +191,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <CardContent className="pt-0">
             <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-4">
               <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-100">
-                <p className="text-[10px] sm:text-xs font-semibold text-blue-600 uppercase tracking-wide">
+                <p className="text-[10px] sm:text-xs font-semibold text-orange-600 uppercase tracking-wide">
                   Sales Note
                 </p>
                 <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
@@ -199,7 +199,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </p>
               </div>
               <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-100">
-                <p className="text-[10px] sm:text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                <p className="text-[10px] sm:text-xs font-semibold text-green-600 uppercase tracking-wide">
                   Invoice
                 </p>
                 <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
