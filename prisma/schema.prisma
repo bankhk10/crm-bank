@@ -442,6 +442,7 @@ model Product {
   saleItems             SaleItem[]    @relation("SaleItemProduct")
   stock                 ProductStock?
   dailySalesSummaries   DailySalesSummary[]
+  salesTargets          ProductSalesTarget[] @relation("ProductSalesTargets")
 }
 
 model ProductStock {
@@ -737,6 +738,27 @@ model MonthlySalesTarget {
 
   @@unique([year, month]) // ป้องกันข้อมูลซ้ำซ้อน
   @@index([year])
+}
+
+// เป้ายอดขายรายสินค้า
+model ProductSalesTarget {
+  id           String   @id @default(cuid())
+  productId    String   // FK to Product
+  year         Int      // ปี พ.ศ. หรือ ค.ศ.
+  month        Int?     // เดือน (1-12), null = เป้าหมายรายปี
+  targetAmount Decimal  @db.Decimal(15, 2) // เป้ายอดขาย (บาท)
+  notes        String?  // หมายเหตุเพิ่มเติม
+  
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  product      Product  @relation("ProductSalesTargets", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, year, month]) // ป้องกันข้อมูลซ้ำซ้อน
+  @@index([year, month])
+  @@index([productId])
 }
 
 // ==========================================

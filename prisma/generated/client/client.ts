@@ -175,6 +175,11 @@ export type ProductGroupSalesTarget = Prisma.ProductGroupSalesTargetModel
  */
 export type MonthlySalesTarget = Prisma.MonthlySalesTargetModel
 /**
+ * Model ProductSalesTarget
+ * 
+ */
+export type ProductSalesTarget = Prisma.ProductSalesTargetModel
+/**
  * Model AuditLog
  * 
  */

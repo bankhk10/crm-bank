@@ -78,6 +78,7 @@ export const ModelName = {
   RegionSalesTarget: 'RegionSalesTarget',
   ProductGroupSalesTarget: 'ProductGroupSalesTarget',
   MonthlySalesTarget: 'MonthlySalesTarget',
+  ProductSalesTarget: 'ProductSalesTarget',
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
   ApplicationLog: 'ApplicationLog',
@@ -636,6 +637,22 @@ export const MonthlySalesTargetScalarFieldEnum = {
 } as const
 
 export type MonthlySalesTargetScalarFieldEnum = (typeof MonthlySalesTargetScalarFieldEnum)[keyof typeof MonthlySalesTargetScalarFieldEnum]
+
+
+export const ProductSalesTargetScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  year: 'year',
+  month: 'month',
+  targetAmount: 'targetAmount',
+  notes: 'notes',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ProductSalesTargetScalarFieldEnum = (typeof ProductSalesTargetScalarFieldEnum)[keyof typeof ProductSalesTargetScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {
