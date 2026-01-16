@@ -232,7 +232,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             {/* Main Amount Display */}
             <div className="text-center mb-3 sm:mb-4">
               <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
-                {formatCurrency(target.current)}
+                {formatCurrency(target.target)}
               </div>
             </div>
 
