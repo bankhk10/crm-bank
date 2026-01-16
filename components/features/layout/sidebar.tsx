@@ -54,11 +54,6 @@ export const navigationItems: SidebarNavItem[] = [
     label: "รายงาน",
     permissionKey: "menu.reports",
     icon: <FileChartPie className="h-4 w-4" />,
-    children: [
-      // { href: "/reports/aggregateReport", label: "ภาพรวม" },
-      { href: "/reports/salesReport", label: "การขาย" },
-      { href: "/reports/activityReport", label: "กิจกรรม" },
-    ],
   },
   {
     href: "/products",
