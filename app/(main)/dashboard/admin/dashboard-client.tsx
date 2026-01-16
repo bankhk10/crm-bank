@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import {
   BarChart,
   Bar,
@@ -18,10 +15,8 @@ import {
 } from "recharts";
 import {
   TrendingUp,
-  AlertCircle,
   CheckCircle2,
   Clock,
-  Briefcase,
   Map,
   Package,
   DollarSign,
@@ -30,7 +25,6 @@ import {
   ArrowDownRight,
   Sparkles,
   BarChart3,
-  Settings,
 } from "lucide-react";
 import type { DashboardData } from "@/app/actions/dashboard";
 
