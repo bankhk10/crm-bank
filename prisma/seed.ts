@@ -131,6 +131,7 @@ async function main() {
     ],
   });
 
+  // Create departments
   const [sales] = await Promise.all([
     prisma.department.create({
       data: {
@@ -205,6 +206,7 @@ async function main() {
     },
   });
 
+  // Create permissions
   const permissions = await prisma.$transaction([
     prisma.permission.create({
       data: {
@@ -791,7 +793,7 @@ async function main() {
 
   const adminPassword = await hash("b@b.com", 12);
 
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "Bank Admin",
       email: "b@b.com",
@@ -1061,249 +1063,7 @@ async function main() {
       })),
   });
 
-  // 4. Create Users with Employee Profiles
-  const userPassword = await hash("123456", 12);
 
-  const salesUser = await prisma.user.create({
-    data: {
-      name: "Somchai Sales",
-      email: "sales@bank.com",
-      password: userPassword,
-      departmentId: sales.id,
-      positionId: salesRepPosition.id,
-      userRoles: { create: { roleId: salesRepRole.id } },
-    },
-  });
-
-  // Create Employee profile for sales user
-  await prisma.employee.create({
-    data: {
-      name: "Somchai Sales",
-      firstName: "สมชาย",
-      lastName: "ขายดี",
-      email: "sales@bank.com",
-      employeeCode: "EMP001",
-      userId: salesUser.id,
-      departmentId: sales.id,
-      positionId: salesRepPosition.id,
-      status: "ACTIVE",
-    },
-  });
-
-  const managerUser = await prisma.user.create({
-    data: {
-      name: "Mana Manager",
-      email: "manager@bank.com",
-      password: userPassword,
-      departmentId: sales.id,
-      positionId: salesManagerPosition.id,
-      userRoles: { create: { roleId: salesManagerRole.id } },
-    },
-  });
-
-  // Create Employee profile for manager user
-  await prisma.employee.create({
-    data: {
-      name: "Mana Manager",
-      firstName: "มานะ",
-      lastName: "จัดการดี",
-      email: "manager@bank.com",
-      employeeCode: "EMP002",
-      userId: managerUser.id,
-      departmentId: sales.id,
-      positionId: salesManagerPosition.id,
-      status: "ACTIVE",
-    },
-  });
-
-  // Create Admin user for testing
-  const adminTestUser = await prisma.user.create({
-    data: {
-      name: "Admin Test",
-      email: "admin@bank.com",
-      password: userPassword,
-      departmentId: sales.id,
-      positionId: adminPosition.id,
-      userRoles: { create: { roleId: adminRoleSecondary.id } },
-    },
-  });
-
-  // Create Employee profile for admin test user
-  await prisma.employee.create({
-    data: {
-      name: "Admin Test",
-      firstName: "แอดมิน",
-      lastName: "ทดสอบ",
-      email: "admin@bank.com",
-      employeeCode: "EMP003",
-      userId: adminTestUser.id,
-      departmentId: sales.id,
-      positionId: adminPosition.id,
-      status: "ACTIVE",
-    },
-  });
-
-  // --- New Seed Data requested ---
-  console.log("Seeding Customers...");
-
-  // 1. Dealer with Credit Limit
-  await prisma.customer.create({
-    data: {
-      customerCode: "CUST-D-001",
-      customerType: "DEALER",
-      name: "Dealer One Co., Ltd.",
-      email: "dealer1@example.com",
-      phone: "081-111-1111",
-      status: "ACTIVE",
-      creditLimits: {
-        create: {
-          limitAmount: 5000000,
-          usedAmount: 0,
-          availableAmount: 5000000,
-          effectiveDate: new Date(),
-          status: "ACTIVE",
-        },
-      },
-    },
-  });
-
-  // 2. Subdealer
-  await prisma.customer.create({
-    data: {
-      customerCode: "CUST-S-001",
-      customerType: "SUBDEALER",
-      name: "Subdealer Shop",
-      email: "subdealer@example.com",
-      phone: "082-222-2222",
-      status: "ACTIVE",
-      receiveFromDealer: "Dealer One Co., Ltd.",
-    },
-  });
-
-  // 3. Farmer
-  await prisma.customer.create({
-    data: {
-      customerCode: "CUST-F-001",
-      customerType: "FARMER",
-      name: "Somchai Farmer",
-      email: "farmer@example.com",
-      phone: "083-333-3333",
-      status: "ACTIVE",
-      addressLine: "123 Farm Village",
-      province: "Chiang Mai",
-    },
-  });
-
-  // 4. Broker
-  await prisma.customer.create({
-    data: {
-      customerCode: "CUST-B-001",
-      customerType: "BROKER",
-      name: "Broker Agent",
-      email: "broker@example.com",
-      phone: "084-444-4444",
-      status: "ACTIVE",
-      serviceTypes: "Coordination",
-    },
-  });
-
-  console.log("Seeding Products...");
-
-  // Product 1
-  await prisma.product.create({
-    data: {
-      productCode: "PROD-001",
-      name: "Super Grow Fertilizer",
-      commonName: "Fertilizer A",
-      price: 450.0,
-      promotionBudget: 50.0,
-      status: "ACTIVE",
-      stockLots: {
-        create: [
-          {
-            lotNumber: "LOT-2024-001",
-            quantity: 1000,
-            importDate: new Date(),
-          },
-        ],
-      },
-      stock: {
-        create: {
-          physicalBalance: 1000,
-          availableQuantity: 1000,
-          reservedQuantity: 0,
-        },
-      },
-      promotionItems: {
-        create: [
-          {
-            name: "Buy 10 Get 1",
-            quantity: 1,
-            price: 0,
-            notes: "Free item for bulk purchase",
-          },
-        ],
-      },
-      freeItems: {
-        create: [
-          {
-            purchaseQty: 100,
-            freeQty: 5,
-            netPrice: 0,
-            notes: "Bulk incentive",
-          },
-        ],
-      },
-    },
-  });
-
-  // Product 2
-  await prisma.product.create({
-    data: {
-      productCode: "PROD-002",
-      name: "Pesticide X",
-      commonName: "Pesticide X",
-      price: 1200.0,
-      promotionBudget: 200.0,
-      status: "ACTIVE",
-      stockLots: {
-        create: [
-          {
-            lotNumber: "LOT-2024-002",
-            quantity: 500,
-            importDate: new Date(),
-          },
-        ],
-      },
-      stock: {
-        create: {
-          physicalBalance: 500,
-          availableQuantity: 500,
-          reservedQuantity: 0,
-        },
-      },
-      promotionItems: {
-        create: [
-          {
-            name: "Seasonal Discount",
-            quantity: 1,
-            price: 1000.0,
-            notes: "Discounted price",
-          },
-        ],
-      },
-      freeItems: {
-        create: [
-          {
-            purchaseQty: 20,
-            freeQty: 1,
-            netPrice: 0,
-            notes: "Small bulk incentive",
-          },
-        ],
-      },
-    },
-  });
 }
 
 main()
