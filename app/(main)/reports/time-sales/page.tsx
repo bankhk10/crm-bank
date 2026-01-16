@@ -415,7 +415,9 @@ export default function TimeSalesReportPage() {
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
-                              data={reportData.seasonalityData}
+                              data={reportData.seasonalityData.filter(
+                                (d) => d.percentage > 0
+                              )}
                               dataKey="sales"
                               nameKey="quarter"
                               cx="50%"
@@ -426,12 +428,14 @@ export default function TimeSalesReportPage() {
                                 `${quarter}: ${percentage.toFixed(1)}%`
                               }
                             >
-                              {reportData.seasonalityData.map((_, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
-                                />
-                              ))}
+                              {reportData.seasonalityData
+                                .filter((d) => d.percentage > 0)
+                                .map((entry, index) => (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={COLORS[index % COLORS.length]}
+                                  />
+                                ))}
                             </Pie>
                             <Tooltip
                               formatter={(value: number) => [
