@@ -173,7 +173,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       const group = groupOption.value;
 
       // Get target from database, fallback to default
-      const target = productGroupTargetMap.get(group) || 500000;
+      const target = productGroupTargetMap.get(group) || 0;
 
       // Get product IDs for this group
       const products = await prisma.product.findMany({
@@ -361,7 +361,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       const customerIds = customers.map((c) => c.id);
 
       // Get target from database, fallback to default
-      const target = regionTargetMap.get(region) || 300000;
+      const target = regionTargetMap.get(region) || 0;
 
       if (customerIds.length === 0) {
         return {
@@ -464,7 +464,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   });
   const monthlyTarget = monthlyTargetRecord
     ? Number(monthlyTargetRecord.targetAmount)
-    : 1500000;
+    : 0;
 
   const yearlyTargetRecord = await prisma.monthlySalesTarget.findFirst({
     where: {
@@ -475,7 +475,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   });
   const yearlyTarget = yearlyTargetRecord
     ? Number(yearlyTargetRecord.targetAmount)
-    : 10000000;
+    : 0;
 
   return {
     monthlySales: {
@@ -493,14 +493,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       target: yearlyTarget,
       growthPercent: Math.round(ytdGrowth * 10) / 10,
     },
-    productGroupData:
-      productGroupData.length > 0
-        ? productGroupData
-        : getDefaultProductGroups(),
-    regionData:
-      regionData.filter((r) => r.salesNote > 0 || r.invoice > 0).length > 0
-        ? regionData
-        : getDefaultRegions(),
+    productGroupData: productGroupData.length > 0 ? productGroupData : [],
+    regionData: regionData.length > 0 ? regionData : [],
     jobStatus: {
       total: total || 120,
       success: success || 70,
@@ -508,37 +502,4 @@ export async function getDashboardData(): Promise<DashboardData> {
       progress: progress || 30,
     },
   };
-}
-
-// Default data if no real data exists
-function getDefaultProductGroups() {
-  return [
-    { group: "SEP", target: 500000, salesNote: 320000, invoice: 150000 },
-    { group: "AMN", target: 600000, salesNote: 380000, invoice: 220000 },
-    { group: "ISPI", target: 400000, salesNote: 120000, invoice: 60000 },
-    { group: "24D", target: 350000, salesNote: 180000, invoice: 80000 },
-    { group: "ABA", target: 450000, salesNote: 220000, invoice: 120000 },
-    { group: "OTH", target: 300000, salesNote: 100000, invoice: 50000 },
-  ];
-}
-
-function getDefaultRegions() {
-  return [
-    { region: "ภาคเหนือ", target: 300000, salesNote: 180000, invoice: 90000 },
-    {
-      region: "ภาคตะวันออกเฉียงเหนือ",
-      target: 400000,
-      salesNote: 250000,
-      invoice: 120000,
-    },
-    {
-      region: "ภาคตะวันออก",
-      target: 450000,
-      salesNote: 280000,
-      invoice: 140000,
-    },
-    { region: "ภาคตะวันตก", target: 250000, salesNote: 150000, invoice: 70000 },
-    { region: "ภาคกลาง", target: 500000, salesNote: 320000, invoice: 180000 },
-    { region: "ภาคใต้", target: 300000, salesNote: 150000, invoice: 80000 },
-  ];
 }
