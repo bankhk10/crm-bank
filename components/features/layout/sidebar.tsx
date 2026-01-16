@@ -19,13 +19,14 @@ import {
   Users2,
   Building2,
   ShieldCheck,
-  PackageSearch,
   UserCog,
   Home,
   ClipboardList,
   ClipboardPen,
   ChartPie,
   Package,
+  TrendingUp,
+  Target,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
@@ -38,6 +39,7 @@ import {
 interface SidebarChildItem {
   href: string;
   label: string;
+  permissionKey?: string;
 }
 
 interface SidebarNavItem {
@@ -55,6 +57,45 @@ export const navigationItems: SidebarNavItem[] = [
     label: "รายงาน",
     permissionKey: "menu.reports",
     icon: <ChartPie className="h-4 w-4" />,
+    children: [
+      {
+        href: "/reports/time-sales",
+        label: "รายงานยอดขายตามเวลา",
+        permissionKey: "report.time_sales",
+      },
+      {
+        href: "/reports/product-sales",
+        label: "รายงานตามสินค้า",
+        permissionKey: "report.product_sales",
+      },
+      {
+        href: "/reports/product-group-sales",
+        label: "รายงานตามกลุ่มสินค้า",
+        permissionKey: "report.product_group_sales",
+      },
+      {
+        href: "/reports/customer-sales",
+        label: "รายงานตามลูกค้า",
+        permissionKey: "report.customer_sales",
+      },
+      {
+        href: "/reports/salesperson",
+        label: "รายงานตามพนักงานขาย",
+        permissionKey: "report.salesperson",
+      },
+    ],
+  },
+  {
+    href: "/sales-forecast",
+    label: "การคาดการณ์ยอดขาย",
+    permissionKey: "menu.sales_forecast",
+    icon: <TrendingUp className="h-4 w-4" />,
+  },
+  {
+    href: "/admin/sales-targets",
+    label: "ตั้งเป้าหมายยอดขาย",
+    permissionKey: "menu.sales_targets",
+    icon: <Target className="h-4 w-4" />,
   },
   {
     href: "/products",
@@ -121,9 +162,22 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const items = useMemo(() => {
-    const navs = navigationItems.filter(
-      (item) => permissions[item.permissionKey]?.allow
-    );
+    const navs = navigationItems
+      .filter((item) => permissions[item.permissionKey]?.allow)
+      .map((item) => {
+        // Filter children based on permissions
+        if (item.children) {
+          const filteredChildren = item.children.filter((child) => {
+            // If child has permissionKey, check it; otherwise, show it
+            if (child.permissionKey) {
+              return permissions[child.permissionKey]?.allow;
+            }
+            return true;
+          });
+          return { ...item, children: filteredChildren };
+        }
+        return item;
+      });
 
     const dashboardHref = getDefaultRouteForRoles(roles);
     const isDashboard = isAdministrator(roles) || isManager(roles);

@@ -705,6 +705,64 @@ async function main() {
         action: "reject",
       },
     }),
+    // New Menu Permissions
+    prisma.permission.create({
+      data: {
+        key: "menu.sales_forecast",
+        name: "เมนูการคาดการณ์ยอดขาย",
+        category: "MENU",
+        menuPath: "/sales-forecast",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "menu.sales_targets",
+        name: "เมนูตั้งเป้าหมายยอดขาย",
+        category: "MENU",
+        menuPath: "/admin/sales-targets",
+      },
+    }),
+    // Report Permissions
+    prisma.permission.create({
+      data: {
+        key: "report.time_sales",
+        name: "รายงานยอดขายตามเวลา",
+        category: "MENU",
+        menuPath: "/reports/time-sales",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "report.product_sales",
+        name: "รายงานตามสินค้า",
+        category: "MENU",
+        menuPath: "/reports/product-sales",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "report.product_group_sales",
+        name: "รายงานตามกลุ่มสินค้า",
+        category: "MENU",
+        menuPath: "/reports/product-group-sales",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "report.customer_sales",
+        name: "รายงานตามลูกค้า",
+        category: "MENU",
+        menuPath: "/reports/customer-sales",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "report.salesperson",
+        name: "รายงานตามพนักงานขาย",
+        category: "MENU",
+        menuPath: "/reports/salesperson",
+      },
+    }),
   ]);
 
   const permissionMap = Object.fromEntries(
@@ -898,6 +956,14 @@ async function main() {
     { key: "menu.fulfillment" },
     { key: "menu.employees" },
     { key: "menu.companies" },
+    { key: "menu.sales_forecast" },
+    { key: "menu.sales_targets" },
+    // Report permissions
+    { key: "report.time_sales" },
+    { key: "report.product_sales" },
+    { key: "report.product_group_sales" },
+    { key: "report.customer_sales" },
+    { key: "report.salesperson" },
     // Sale permissions
     { key: "sale.create" },
     { key: "sale.edit" },
