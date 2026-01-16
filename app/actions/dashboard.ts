@@ -240,7 +240,9 @@ export async function getDashboardData(): Promise<DashboardData> {
   );
 
   // === 4. Region Sales (This Month) ===
-  const { getAllRegions } = await import("@/lib/province-region-mapping");
+  const { getAllRegions, getRegionByProvince } = await import(
+    "@/lib/province-region-mapping"
+  );
   const regions = getAllRegions();
 
   // Get region targets from database
@@ -252,74 +254,79 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
   });
 
-  // Create a map for quick lookup
   const regionTargetMap = new Map(
     regionTargets.map((t) => [t.region, Number(t.targetAmount)])
   );
 
-  const regionData = await Promise.all(
-    regions.map(async (region) => {
-      // Get target from database, fallback to default
-      const target = regionTargetMap.get(region) || 0;
+  // Initialize accumulators
+  const regionSalesMap = new Map<
+    string,
+    { salesNote: number; invoice: number }
+  >();
 
-      // Sales Note: Aggregate directly on Sale with Customer relation filter
-      const salesNoteAgg = await prisma.sale.aggregate({
-        where: {
-          customer: {
-            region: region,
-            deletedAt: null,
-          },
-          saleDate: { gte: monthStart, lte: monthEnd },
-          deletedAt: null,
-          status: {
-            in: [
-              "PENDING",
-              "APPROVED",
-              "AWAITING_PAYMENT",
-              "AWAITING_DELIVERY",
-            ],
-          },
+  regions.forEach((r) => {
+    regionSalesMap.set(r, { salesNote: 0, invoice: 0 });
+  });
+
+  // Fetch all sales for this month with customer province
+  const salesThisMonth = await prisma.sale.findMany({
+    where: {
+      saleDate: { gte: monthStart, lte: monthEnd },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    select: {
+      totalAmount: true,
+      status: true,
+      customer: {
+        select: {
+          province: true,
         },
-        _sum: { totalAmount: true },
-      });
+      },
+    },
+  });
 
-      // Invoice
-      const invoiceAgg = await prisma.sale.aggregate({
-        where: {
-          customer: {
-            region: region,
-            deletedAt: null,
-          },
-          saleDate: { gte: monthStart, lte: monthEnd },
-          deletedAt: null,
-          status: {
-            in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-          },
-        },
-        _sum: { totalAmount: true },
-      });
+  // Process sales in memory
+  for (const sale of salesThisMonth) {
+    const province = sale.customer.province;
+    const region = getRegionByProvince(province);
 
-      const salesNoteAmt = Number(salesNoteAgg._sum.totalAmount || 0);
-      const invoiceAmt = Number(invoiceAgg._sum.totalAmount || 0);
+    if (region && regionSalesMap.has(region)) {
+      const entry = regionSalesMap.get(region)!;
+      const amount = Number(sale.totalAmount);
 
-      // Only include regions that have target or sales
-      if (target === 0 && salesNoteAmt === 0 && invoiceAmt === 0) {
-        return null;
+      const isInvoice = [
+        "PAID",
+        "DELIVERED",
+        "DELIVERY_COMPLETED",
+        "COMPLETED",
+      ].includes(sale.status);
+      const isSalesNote = [
+        "PENDING",
+        "APPROVED",
+        "AWAITING_PAYMENT",
+        "AWAITING_DELIVERY",
+      ].includes(sale.status);
+
+      if (isInvoice) {
+        entry.invoice += amount;
+      } else if (isSalesNote) {
+        entry.salesNote += amount;
       }
+    }
+  }
 
-      return {
-        region,
-        target,
-        salesNote: salesNoteAmt,
-        invoice: invoiceAmt,
-      };
-    })
-  );
+  const validRegionData = regions.map((region) => {
+    const target = regionTargetMap.get(region) || 0;
+    const sales = regionSalesMap.get(region) || { salesNote: 0, invoice: 0 };
 
-  // Filter out nulls
-  const validRegionData = regionData.filter(
-    (r): r is NonNullable<typeof r> => r !== null
-  );
+    return {
+      region,
+      target,
+      salesNote: sales.salesNote,
+      invoice: sales.invoice,
+    };
+  });
 
   // === 5. Job Status (Sales in this month) ===
   const statusCounts = await prisma.sale.groupBy({
