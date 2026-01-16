@@ -15,6 +15,7 @@ import {
   differenceInDays,
   subMonths,
   subYears,
+  subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -418,22 +419,24 @@ export async function getTimeSalesReport(
   filter: DateRangeFilter
 ): Promise<TimeSalesReportData> {
   const { start, end } = getDateRange(filter);
-  const previousStart = subMonths(
-    start,
-    differenceInDays(end, start) > 31
-      ? 12
-      : differenceInDays(end, start) > 7
-      ? 1
-      : 0
-  );
-  const previousEnd = subMonths(
-    end,
-    differenceInDays(end, start) > 31
-      ? 12
-      : differenceInDays(end, start) > 7
-      ? 1
-      : 0
-  );
+  const durationInDays = differenceInDays(end, start) + 1; // +1 to include both start and end dates
+
+  let previousStart: Date;
+  let previousEnd: Date;
+
+  if (durationInDays > 360) {
+    // Year-over-Year for long periods (> approx 1 year)
+    previousStart = subYears(start, 1);
+    previousEnd = subYears(end, 1);
+  } else if (durationInDays > 27) {
+    // Month-over-Month for medium periods (> approx 1 month)
+    previousStart = subMonths(start, 1);
+    previousEnd = subMonths(end, 1);
+  } else {
+    // Previous contiguous period for short periods
+    previousStart = subDays(start, durationInDays);
+    previousEnd = subDays(end, durationInDays);
+  }
 
   // Get main sales data
   const sales = await prisma.sale.findMany({
