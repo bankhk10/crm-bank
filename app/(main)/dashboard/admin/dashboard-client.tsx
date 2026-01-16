@@ -377,7 +377,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       </div>
 
       {/* ================= Charts - Responsive ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:gap-6">
         {/* Product Group Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
           <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
@@ -463,7 +463,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={filteredProductGroupData}
-                  margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+                  margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -481,7 +481,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
-                    width={40}
+                    width={50}
                   />
                   <Tooltip
                     cursor={{ fill: "#F5F5F5" }}
@@ -542,7 +542,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={regionData}
-                margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+                margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -560,7 +560,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
-                  width={40}
+                  width={50}
                 />
                 <Tooltip
                   cursor={{ fill: "#F5F5F5" }}
