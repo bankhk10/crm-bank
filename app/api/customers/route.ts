@@ -5,6 +5,7 @@ import { Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
+import { getRegionByProvince } from "@/lib/province-region-mapping";
 
 const resourcePath = "/api/customers";
 
@@ -249,6 +250,7 @@ export async function POST(request: Request) {
         taxId: parsed.data.taxId,
         addressLine: parsed.data.addressLine,
         province: parsed.data.province,
+        region: getRegionByProvince(parsed.data.province),
         district: parsed.data.district,
         subdistrict: parsed.data.subdistrict,
         postalCode: parsed.data.postalCode,

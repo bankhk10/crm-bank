@@ -240,101 +240,10 @@ export async function getDashboardData(): Promise<DashboardData> {
   );
 
   // === 4. Region Sales (This Month) ===
-  // Group by customer's province - 6 regions of Thailand
-  const regionMapping: Record<string, string[]> = {
-    ภาคเหนือ: [
-      "เชียงใหม่",
-      "เชียงราย",
-      "ลำปาง",
-      "ลำพูน",
-      "แม่ฮ่องสอน",
-      "น่าน",
-      "พะเยา",
-      "แพร่",
-      "อุตรดิตถ์",
-      "ตาก",
-      "สุโขทัย",
-      "พิษณุโลก",
-      "พิจิตร",
-      "กำแพงเพชร",
-      "เพชรบูรณ์",
-      "นครสวรรค์",
-      "อุทัยธานี",
-    ],
-    ภาคตะวันออกเฉียงเหนือ: [
-      "ขอนแก่น",
-      "อุดรธานี",
-      "นครราชสีมา",
-      "อุบลราชธานี",
-      "ร้อยเอ็ด",
-      "มหาสารคาม",
-      "สกลนคร",
-      "นครพนม",
-      "กาฬสินธุ์",
-      "หนองคาย",
-      "หนองบัวลำภู",
-      "เลย",
-      "ชัยภูมิ",
-      "บุรีรัมย์",
-      "สุรินทร์",
-      "ศรีสะเกษ",
-      "ยโสธร",
-      "อำนาจเจริญ",
-      "มุกดาหาร",
-      "บึงกาฬ",
-    ],
-    ภาคตะวันออก: [
-      "ชลบุรี",
-      "ระยอง",
-      "จันทบุรี",
-      "ตราด",
-      "ฉะเชิงเทรา",
-      "ปราจีนบุรี",
-      "สระแก้ว",
-    ],
-    ภาคตะวันตก: [
-      "ราชบุรี",
-      "กาญจนบุรี",
-      "สุพรรณบุรี",
-      "นครปฐม",
-      "สมุทรสาคร",
-      "สมุทรสงคราม",
-      "เพชรบุรี",
-      "ประจวบคีรีขันธ์",
-    ],
-    ภาคกลาง: [
-      "กรุงเทพมหานคร",
-      "นนทบุรี",
-      "ปทุมธานี",
-      "สมุทรปราการ",
-      "พระนครศรีอยุธยา",
-      "อ่างทอง",
-      "ลพบุรี",
-      "สิงห์บุรี",
-      "ชัยนาท",
-      "สระบุรี",
-      "นครนายก",
-    ],
-    ภาคใต้: [
-      "นครศรีธรรมราช",
-      "กระบี่",
-      "พังงา",
-      "ภูเก็ต",
-      "สุราษฎร์ธานี",
-      "ระนอง",
-      "ชุมพร",
-      "สงขลา",
-      "สตูล",
-      "ตรัง",
-      "พัทลุง",
-      "ปัตตานี",
-      "ยะลา",
-      "นราธิวาส",
-    ],
-  };
+  const { getAllRegions } = await import("@/lib/province-region-mapping");
+  const regions = getAllRegions();
 
   // Get region targets from database
-
   const regionTargets = await prisma.regionSalesTarget.findMany({
     where: {
       year: currentYear,
@@ -349,33 +258,17 @@ export async function getDashboardData(): Promise<DashboardData> {
   );
 
   const regionData = await Promise.all(
-    Object.entries(regionMapping).map(async ([region, provinces]) => {
-      // Get customers in this region
-      const customers = await prisma.customer.findMany({
-        where: {
-          province: { in: provinces },
-          deletedAt: null,
-        },
-        select: { id: true },
-      });
-      const customerIds = customers.map((c) => c.id);
-
+    regions.map(async (region) => {
       // Get target from database, fallback to default
       const target = regionTargetMap.get(region) || 0;
 
-      if (customerIds.length === 0) {
-        return {
-          region,
-          target,
-          salesNote: 0,
-          invoice: 0,
-        };
-      }
-
-      // Sales Note
+      // Sales Note: Aggregate directly on Sale with Customer relation filter
       const salesNoteAgg = await prisma.sale.aggregate({
         where: {
-          customerId: { in: customerIds },
+          customer: {
+            region: region,
+            deletedAt: null,
+          },
           saleDate: { gte: monthStart, lte: monthEnd },
           deletedAt: null,
           status: {
@@ -393,7 +286,10 @@ export async function getDashboardData(): Promise<DashboardData> {
       // Invoice
       const invoiceAgg = await prisma.sale.aggregate({
         where: {
-          customerId: { in: customerIds },
+          customer: {
+            region: region,
+            deletedAt: null,
+          },
           saleDate: { gte: monthStart, lte: monthEnd },
           deletedAt: null,
           status: {
@@ -406,6 +302,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       const salesNoteAmt = Number(salesNoteAgg._sum.totalAmount || 0);
       const invoiceAmt = Number(invoiceAgg._sum.totalAmount || 0);
 
+      // Only include regions that have target or sales
+      if (target === 0 && salesNoteAmt === 0 && invoiceAmt === 0) {
+        return null;
+      }
+
       return {
         region,
         target,
@@ -413,6 +314,11 @@ export async function getDashboardData(): Promise<DashboardData> {
         invoice: invoiceAmt,
       };
     })
+  );
+
+  // Filter out nulls
+  const validRegionData = regionData.filter(
+    (r): r is NonNullable<typeof r> => r !== null
   );
 
   // === 5. Job Status (Sales in this month) ===
@@ -494,7 +400,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       growthPercent: Math.round(ytdGrowth * 10) / 10,
     },
     productGroupData: productGroupData.length > 0 ? productGroupData : [],
-    regionData: regionData.length > 0 ? regionData : [],
+    regionData: validRegionData.length > 0 ? validRegionData : [],
     jobStatus: {
       total: total || 120,
       success: success || 70,

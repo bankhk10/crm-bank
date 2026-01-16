@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
+import { getRegionByProvince } from "@/lib/province-region-mapping";
 import {
   logger,
   auditLogger,
@@ -208,6 +209,13 @@ export async function PUT(
 
   // Normalize data types for Prisma
   const updateData: Record<string, unknown> = { ...parsed.data };
+
+  // If province is being updated, automatically update region
+  if (typeof updateData.province === "string") {
+    updateData.region = getRegionByProvince(updateData.province as string);
+  } else if (updateData.province === null) {
+    updateData.region = null;
+  }
 
   // birthDate: convert from date-only or string to JS Date, or null
   if (updateData.birthDate !== undefined) {

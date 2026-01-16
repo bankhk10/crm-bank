@@ -2957,6 +2957,7 @@ export const CustomerScalarFieldEnum = {
   taxId: 'taxId',
   addressLine: 'addressLine',
   province: 'province',
+  region: 'region',
   district: 'district',
   subdistrict: 'subdistrict',
   postalCode: 'postalCode',

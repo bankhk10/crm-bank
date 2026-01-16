@@ -48,6 +48,7 @@ export type CustomerMinAggregateOutputType = {
   taxId: string | null
   addressLine: string | null
   province: string | null
+  region: string | null
   district: string | null
   subdistrict: string | null
   postalCode: string | null
@@ -108,6 +109,7 @@ export type CustomerMaxAggregateOutputType = {
   taxId: string | null
   addressLine: string | null
   province: string | null
+  region: string | null
   district: string | null
   subdistrict: string | null
   postalCode: string | null
@@ -168,6 +170,7 @@ export type CustomerCountAggregateOutputType = {
   taxId: number
   addressLine: number
   province: number
+  region: number
   district: number
   subdistrict: number
   postalCode: number
@@ -241,6 +244,7 @@ export type CustomerMinAggregateInputType = {
   taxId?: true
   addressLine?: true
   province?: true
+  region?: true
   district?: true
   subdistrict?: true
   postalCode?: true
@@ -301,6 +305,7 @@ export type CustomerMaxAggregateInputType = {
   taxId?: true
   addressLine?: true
   province?: true
+  region?: true
   district?: true
   subdistrict?: true
   postalCode?: true
@@ -361,6 +366,7 @@ export type CustomerCountAggregateInputType = {
   taxId?: true
   addressLine?: true
   province?: true
+  region?: true
   district?: true
   subdistrict?: true
   postalCode?: true
@@ -511,6 +517,7 @@ export type CustomerGroupByOutputType = {
   taxId: string | null
   addressLine: string | null
   province: string | null
+  region: string | null
   district: string | null
   subdistrict: string | null
   postalCode: string | null
@@ -597,6 +604,7 @@ export type CustomerWhereInput = {
   taxId?: Prisma.StringNullableFilter<"Customer"> | string | null
   addressLine?: Prisma.StringNullableFilter<"Customer"> | string | null
   province?: Prisma.StringNullableFilter<"Customer"> | string | null
+  region?: Prisma.StringNullableFilter<"Customer"> | string | null
   district?: Prisma.StringNullableFilter<"Customer"> | string | null
   subdistrict?: Prisma.StringNullableFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableFilter<"Customer"> | string | null
@@ -668,6 +676,7 @@ export type CustomerOrderByWithRelationInput = {
   taxId?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
+  region?: Prisma.SortOrderInput | Prisma.SortOrder
   district?: Prisma.SortOrderInput | Prisma.SortOrder
   subdistrict?: Prisma.SortOrderInput | Prisma.SortOrder
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -742,6 +751,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   taxId?: Prisma.StringNullableFilter<"Customer"> | string | null
   addressLine?: Prisma.StringNullableFilter<"Customer"> | string | null
   province?: Prisma.StringNullableFilter<"Customer"> | string | null
+  region?: Prisma.StringNullableFilter<"Customer"> | string | null
   district?: Prisma.StringNullableFilter<"Customer"> | string | null
   subdistrict?: Prisma.StringNullableFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableFilter<"Customer"> | string | null
@@ -813,6 +823,7 @@ export type CustomerOrderByWithAggregationInput = {
   taxId?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine?: Prisma.SortOrderInput | Prisma.SortOrder
   province?: Prisma.SortOrderInput | Prisma.SortOrder
+  region?: Prisma.SortOrderInput | Prisma.SortOrder
   district?: Prisma.SortOrderInput | Prisma.SortOrder
   subdistrict?: Prisma.SortOrderInput | Prisma.SortOrder
   postalCode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -884,6 +895,7 @@ export type CustomerScalarWhereWithAggregatesInput = {
   taxId?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   addressLine?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   province?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  region?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   district?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   subdistrict?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
@@ -947,6 +959,7 @@ export type CustomerCreateInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -1016,6 +1029,7 @@ export type CustomerUncheckedCreateInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -1085,6 +1099,7 @@ export type CustomerUpdateInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1154,6 +1169,7 @@ export type CustomerUncheckedUpdateInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1223,6 +1239,7 @@ export type CustomerCreateManyInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -1286,6 +1303,7 @@ export type CustomerUpdateManyMutationInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1347,6 +1365,7 @@ export type CustomerUncheckedUpdateManyInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1433,6 +1452,7 @@ export type CustomerCountOrderByAggregateInput = {
   taxId?: Prisma.SortOrder
   addressLine?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  region?: Prisma.SortOrder
   district?: Prisma.SortOrder
   subdistrict?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
@@ -1500,6 +1520,7 @@ export type CustomerMaxOrderByAggregateInput = {
   taxId?: Prisma.SortOrder
   addressLine?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  region?: Prisma.SortOrder
   district?: Prisma.SortOrder
   subdistrict?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
@@ -1560,6 +1581,7 @@ export type CustomerMinOrderByAggregateInput = {
   taxId?: Prisma.SortOrder
   addressLine?: Prisma.SortOrder
   province?: Prisma.SortOrder
+  region?: Prisma.SortOrder
   district?: Prisma.SortOrder
   subdistrict?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
@@ -1833,6 +1855,7 @@ export type CustomerCreateWithoutResponsibleEmployeeInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -1901,6 +1924,7 @@ export type CustomerUncheckedCreateWithoutResponsibleEmployeeInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -1998,6 +2022,7 @@ export type CustomerScalarWhereInput = {
   taxId?: Prisma.StringNullableFilter<"Customer"> | string | null
   addressLine?: Prisma.StringNullableFilter<"Customer"> | string | null
   province?: Prisma.StringNullableFilter<"Customer"> | string | null
+  region?: Prisma.StringNullableFilter<"Customer"> | string | null
   district?: Prisma.StringNullableFilter<"Customer"> | string | null
   subdistrict?: Prisma.StringNullableFilter<"Customer"> | string | null
   postalCode?: Prisma.StringNullableFilter<"Customer"> | string | null
@@ -2061,6 +2086,7 @@ export type CustomerCreateWithoutSubDealersInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2129,6 +2155,7 @@ export type CustomerUncheckedCreateWithoutSubDealersInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2202,6 +2229,7 @@ export type CustomerCreateWithoutParentDealerInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2270,6 +2298,7 @@ export type CustomerUncheckedCreateWithoutParentDealerInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2359,6 +2388,7 @@ export type CustomerUpdateWithoutSubDealersInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2427,6 +2457,7 @@ export type CustomerUncheckedUpdateWithoutSubDealersInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2511,6 +2542,7 @@ export type CustomerCreateWithoutCreditLimitsInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2579,6 +2611,7 @@ export type CustomerUncheckedCreateWithoutCreditLimitsInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2663,6 +2696,7 @@ export type CustomerUpdateWithoutCreditLimitsInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2731,6 +2765,7 @@ export type CustomerUncheckedUpdateWithoutCreditLimitsInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2799,6 +2834,7 @@ export type CustomerCreateWithoutTemporaryCreditLimitsInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2867,6 +2903,7 @@ export type CustomerUncheckedCreateWithoutTemporaryCreditLimitsInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -2951,6 +2988,7 @@ export type CustomerUpdateWithoutTemporaryCreditLimitsInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3019,6 +3057,7 @@ export type CustomerUncheckedUpdateWithoutTemporaryCreditLimitsInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3087,6 +3126,7 @@ export type CustomerCreateWithoutImagesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3155,6 +3195,7 @@ export type CustomerUncheckedCreateWithoutImagesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3239,6 +3280,7 @@ export type CustomerUpdateWithoutImagesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3307,6 +3349,7 @@ export type CustomerUncheckedUpdateWithoutImagesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3375,6 +3418,7 @@ export type CustomerCreateWithoutSalesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3443,6 +3487,7 @@ export type CustomerUncheckedCreateWithoutSalesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3527,6 +3572,7 @@ export type CustomerUpdateWithoutSalesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3595,6 +3641,7 @@ export type CustomerUncheckedUpdateWithoutSalesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3663,6 +3710,7 @@ export type CustomerCreateWithoutDailySalesSummariesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3731,6 +3779,7 @@ export type CustomerUncheckedCreateWithoutDailySalesSummariesInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -3815,6 +3864,7 @@ export type CustomerUpdateWithoutDailySalesSummariesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3883,6 +3933,7 @@ export type CustomerUncheckedUpdateWithoutDailySalesSummariesInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3951,6 +4002,7 @@ export type CustomerCreateManyResponsibleEmployeeInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -4013,6 +4065,7 @@ export type CustomerUpdateWithoutResponsibleEmployeeInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4081,6 +4134,7 @@ export type CustomerUncheckedUpdateWithoutResponsibleEmployeeInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4149,6 +4203,7 @@ export type CustomerUncheckedUpdateManyWithoutResponsibleEmployeeInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4211,6 +4266,7 @@ export type CustomerCreateManyParentDealerInput = {
   taxId?: string | null
   addressLine?: string | null
   province?: string | null
+  region?: string | null
   district?: string | null
   subdistrict?: string | null
   postalCode?: string | null
@@ -4273,6 +4329,7 @@ export type CustomerUpdateWithoutParentDealerInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4341,6 +4398,7 @@ export type CustomerUncheckedUpdateWithoutParentDealerInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4409,6 +4467,7 @@ export type CustomerUncheckedUpdateManyWithoutParentDealerInput = {
   taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4547,6 +4606,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   taxId?: boolean
   addressLine?: boolean
   province?: boolean
+  region?: boolean
   district?: boolean
   subdistrict?: boolean
   postalCode?: boolean
@@ -4619,6 +4679,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   taxId?: boolean
   addressLine?: boolean
   province?: boolean
+  region?: boolean
   district?: boolean
   subdistrict?: boolean
   postalCode?: boolean
@@ -4684,6 +4745,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   taxId?: boolean
   addressLine?: boolean
   province?: boolean
+  region?: boolean
   district?: boolean
   subdistrict?: boolean
   postalCode?: boolean
@@ -4749,6 +4811,7 @@ export type CustomerSelectScalar = {
   taxId?: boolean
   addressLine?: boolean
   province?: boolean
+  region?: boolean
   district?: boolean
   subdistrict?: boolean
   postalCode?: boolean
@@ -4798,7 +4861,7 @@ export type CustomerSelectScalar = {
   deletedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customerCode" | "customerType" | "name" | "prefix" | "firstName" | "birthDate" | "lastName" | "email" | "phone" | "taxId" | "addressLine" | "province" | "district" | "subdistrict" | "postalCode" | "billingAddressLine" | "billingProvince" | "billingDistrict" | "billingSubdistrict" | "billingPostalCode" | "shippingAddressLine" | "shippingProvince" | "shippingDistrict" | "shippingSubdistrict" | "shippingPostalCode" | "status" | "contactPerson" | "contactPhone" | "contactEmail" | "notes" | "latitude" | "longitude" | "relationshipScore" | "parentDealerId" | "responsibleEmployeeId" | "receiveFromDealer" | "mainCompetitor" | "areaCrops" | "averageMonthlyPurchase" | "mainProductSold" | "brandsSold" | "areaType" | "farmPlots" | "cropTypes" | "currentYield" | "farmerCount" | "plotCount" | "totalAreaRai" | "harvestPerYear" | "creditDays" | "chemicalValuePerCycle" | "chemicalQtyPerCycle" | "regularShops" | "serviceTypes" | "usedBrands" | "createdById" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customerCode" | "customerType" | "name" | "prefix" | "firstName" | "birthDate" | "lastName" | "email" | "phone" | "taxId" | "addressLine" | "province" | "region" | "district" | "subdistrict" | "postalCode" | "billingAddressLine" | "billingProvince" | "billingDistrict" | "billingSubdistrict" | "billingPostalCode" | "shippingAddressLine" | "shippingProvince" | "shippingDistrict" | "shippingSubdistrict" | "shippingPostalCode" | "status" | "contactPerson" | "contactPhone" | "contactEmail" | "notes" | "latitude" | "longitude" | "relationshipScore" | "parentDealerId" | "responsibleEmployeeId" | "receiveFromDealer" | "mainCompetitor" | "areaCrops" | "averageMonthlyPurchase" | "mainProductSold" | "brandsSold" | "areaType" | "farmPlots" | "cropTypes" | "currentYield" | "farmerCount" | "plotCount" | "totalAreaRai" | "harvestPerYear" | "creditDays" | "chemicalValuePerCycle" | "chemicalQtyPerCycle" | "regularShops" | "serviceTypes" | "usedBrands" | "createdById" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   images?: boolean | Prisma.Customer$imagesArgs<ExtArgs>
   creditLimits?: boolean | Prisma.Customer$creditLimitsArgs<ExtArgs>
@@ -4845,6 +4908,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     taxId: string | null
     addressLine: string | null
     province: string | null
+    region: string | null
     district: string | null
     subdistrict: string | null
     postalCode: string | null
@@ -5336,6 +5400,7 @@ export interface CustomerFieldRefs {
   readonly taxId: Prisma.FieldRef<"Customer", 'String'>
   readonly addressLine: Prisma.FieldRef<"Customer", 'String'>
   readonly province: Prisma.FieldRef<"Customer", 'String'>
+  readonly region: Prisma.FieldRef<"Customer", 'String'>
   readonly district: Prisma.FieldRef<"Customer", 'String'>
   readonly subdistrict: Prisma.FieldRef<"Customer", 'String'>
   readonly postalCode: Prisma.FieldRef<"Customer", 'String'>

@@ -293,6 +293,7 @@ model Customer {
   taxId                 String?        @map("tax_id")
   addressLine           String?        @map("address_line")
   province              String?
+  region                String?            // เก็บภาคของลูกค้า (เหนือ, กลาง, etc.)
   district              String?
   subdistrict           String?
   postalCode            String?        @map("postal_code")

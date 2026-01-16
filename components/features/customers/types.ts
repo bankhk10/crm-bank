@@ -47,6 +47,7 @@ export type CustomerPayload = {
   taxId?: string;
   addressLine?: string;
   province?: string;
+  region?: string;
   district?: string;
   subdistrict?: string;
   postalCode?: string;
