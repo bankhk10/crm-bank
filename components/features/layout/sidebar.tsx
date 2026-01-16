@@ -22,9 +22,10 @@ import {
   PackageSearch,
   UserCog,
   Home,
-  FileChartPie,
   ClipboardList,
   ClipboardPen,
+  ChartPie,
+  Package,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import type { SessionPermission } from "@/types/next-auth";
@@ -53,13 +54,13 @@ export const navigationItems: SidebarNavItem[] = [
     href: "/reports",
     label: "รายงาน",
     permissionKey: "menu.reports",
-    icon: <FileChartPie className="h-4 w-4" />,
+    icon: <ChartPie className="h-4 w-4" />,
   },
   {
     href: "/products",
     label: "สินค้า",
     permissionKey: "menu.products",
-    icon: <PackageSearch className="h-4 w-4" />,
+    icon: <Package className="h-4 w-4" />,
   },
   {
     href: "/sales",
