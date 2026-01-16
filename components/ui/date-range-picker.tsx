@@ -28,6 +28,10 @@ export type DateRangePreset = {
 export interface DateRangePickerProps {
   value?: DateRange | null;
   onChange?: (range: DateRange | undefined) => void;
+  // Alternative props for convenience
+  from?: Date;
+  to?: Date;
+  onSelect?: (range: DateRange | undefined) => void;
   placeholder?: string;
   buttonLabel?: string;
   disabled?: boolean;
@@ -60,16 +64,21 @@ const defaultPresets: DateRangePreset[] = [
 export function DateRangePicker({
   value,
   onChange,
+  from,
+  to,
+  onSelect,
   placeholder = "เลือกช่วงวันที่",
-  buttonLabel,
   disabled,
   className,
   presets = defaultPresets,
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const [hideLeftLabel, setHideLeftLabel] = React.useState(false);
 
-  const resolvedValue = value ?? undefined;
+  // Support both "value/onChange" and "from/to/onSelect" patterns
+  const resolvedValue: DateRange | undefined =
+    value ?? (from && to ? { from, to } : from ? { from } : undefined);
+  const handleChange = onChange ?? onSelect;
+
   const hasSelection = Boolean(resolvedValue?.from && resolvedValue?.to);
 
   const displayText = React.useMemo(() => {
@@ -93,27 +102,15 @@ export function DateRangePicker({
     return placeholder;
   }, [placeholder, resolvedValue]);
 
-  const handleSelect = (range: DateRange | undefined) => {
-    onChange?.(range);
+  const handleSelectRange = (range: DateRange | undefined) => {
+    handleChange?.(range);
   };
 
   const handleReset = () => {
-    onChange?.(undefined);
-    setHideLeftLabel(false);
+    handleChange?.(undefined);
   };
 
-  React.useEffect(() => {
-    // If external value is cleared, show the left label again
-    if (!resolvedValue?.from || !resolvedValue?.to) {
-      setHideLeftLabel(false);
-    }
-  }, [resolvedValue]);
-
   const handleConfirm = () => {
-    // If a valid range is selected, hide the left placeholder text
-    if (resolvedValue?.from && resolvedValue?.to) {
-      setHideLeftLabel(true);
-    }
     setOpen(false);
   };
 
@@ -148,7 +145,7 @@ export function DateRangePicker({
                 size="sm"
                 variant="secondary"
                 className="rounded-full text-xs"
-                onClick={() => handleSelect(preset.range())}
+                onClick={() => handleSelectRange(preset.range())}
               >
                 {preset.label}
               </Button>
@@ -160,7 +157,7 @@ export function DateRangePicker({
           mode="range"
           numberOfMonths={1}
           selected={resolvedValue}
-          onSelect={handleSelect}
+          onSelect={handleSelectRange}
         />
         <div className="flex items-center justify-between gap-2">
           <Button
