@@ -13,7 +13,6 @@ import type {
   SaleFormProduct,
   PaymentTermType,
 } from "../types";
-import type { SaleItemFormData } from "@/types/sales";
 
 interface ValidationOptions {
   selectedCustomer: SaleFormCustomer | null;
@@ -79,41 +78,15 @@ export function useSaleFormValidation() {
 
         // Check stock
         const product = products.find((p) => p.id === item.productId);
-        if (product && product.stockQuantity !== undefined) {
-          if (product.stockQuantity < item.quantity) {
-            warnings.push(
-              `${product.name}: สต็อกไม่เพียงพอ (มี ${product.stockQuantity} ต้องการ ${item.quantity})`
-            );
-          }
-        }
-
         // Check price modification
         if (item.priceModified) {
           warnings.push(
             `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${
               item.originalPrice
-            } เป็น ${item.unitPrice}`
+            } เป็น ${item.unitPrice}`,
           );
         }
       });
-
-      // Check promotional credit validation
-      if (state.usePromotionalCredit && selectedCustomer) {
-        const creditLimit = selectedCustomer.creditLimits?.[0];
-        const promoAmount = creditLimit?.promoAmount
-          ? Number(creditLimit.promoAmount)
-          : 0;
-
-        if (state.promotionalCreditUsed > promoAmount) {
-          errors.push(
-            `วงเงินส่งเสริมการขายที่ใช้เกินวงเงินคงเหลือ (คงเหลือ: ฿${promoAmount.toLocaleString()})`
-          );
-        }
-
-        if (state.promotionalCreditUsed < 0) {
-          errors.push("วงเงินส่งเสริมการขายที่ใช้ต้องเป็นจำนวนบวก");
-        }
-      }
 
       // Check credit limit for credit-based payment terms
       const isCreditPayment = isCreditBasedPayment(state.paymentTerm);
@@ -131,21 +104,19 @@ export function useSaleFormValidation() {
 
         if (total > availableCredit + promotionalAvailable) {
           errors.push(
-            `ยอดขายเกินวงเงินเครดิต (วงเงินคงเหลือ: ${availableCredit.toLocaleString()}, วงเงินส่งเสริมการขาย: ${promotionalAvailable.toLocaleString()})`
+            `ยอดขายเกินวงเงินเครดิต (วงเงินคงเหลือ: ${availableCredit.toLocaleString()})`,
           );
         }
       }
 
-      // Credit term validation
-      if (isCreditPayment) {
-        if (!state.creditDays || state.creditDays <= 0) {
-          errors.push("กรุณาระบุจำนวนวันเครดิต");
-        }
+      // Net Total validation
+      if (total < 0) {
+        errors.push("ยอดเงินสุทธิ ต้องไม่ติดลบ");
       }
 
       return { errors, warnings, fieldErrors };
     },
-    []
+    [],
   );
 
   return { validateForm };
