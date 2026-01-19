@@ -165,6 +165,15 @@ export default function FulfillmentPage({
       }
     }
 
+    // Validate: If status is DELIVERED, delivery date is required
+    if (status === "DELIVERED") {
+      if (!deliveryDate) {
+        setError("กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น 'จัดส่งแล้ว'");
+        setSubmitting(false);
+        return;
+      }
+    }
+
     // Validate: If status is CANCELLED, notes is required
     if (status === "CANCELLED" && !notes.trim()) {
       setError("กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย");
@@ -196,6 +205,13 @@ export default function FulfillmentPage({
     }
 
     try {
+      // Determine if LOTs are locked (already delivered)
+      const isLotLocked =
+        saleData &&
+        ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(
+          saleData.sale.status,
+        );
+
       const res = await fetch(`/api/sales/${id}/fulfillment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -205,8 +221,9 @@ export default function FulfillmentPage({
           creditDueDate: dueDate,
           paymentDate,
           notes,
-          // Always include LOT allocations if valid
-          lotAllocations: lotAllocationsValid ? lotAllocations : undefined,
+          // Only include LOT allocations if valid and not locked
+          lotAllocations:
+            lotAllocationsValid && !isLotLocked ? lotAllocations : undefined,
         }),
       });
 
@@ -497,7 +514,7 @@ export default function FulfillmentPage({
                     </span>
                     <Truck className="h-4 w-4 text-emerald-600" />
                     วันที่จัดส่งของ
-                    {status === "COMPLETED" && (
+                    {(status === "COMPLETED" || status === "DELIVERED") && (
                       <span className="text-red-500 ml-1">*</span>
                     )}
                   </label>
@@ -509,13 +526,15 @@ export default function FulfillmentPage({
                       placeholder="เลือกวันที่จัดส่ง"
                     />
                   </div>
-                  {status === "COMPLETED" && !deliveryDate && (
-                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                      จำเป็นต้องระบุวันที่จัดส่งของเมื่อสถานะเป็น
-                      &ldquo;เสร็จสิ้น&rdquo;
-                    </p>
-                  )}
+                  {(status === "COMPLETED" || status === "DELIVERED") &&
+                    !deliveryDate && (
+                      <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
+                        จำเป็นต้องระบุวันที่จัดส่งของเมื่อสถานะเป็น &ldquo;
+                        {status === "COMPLETED" ? "เสร็จสิ้น" : "จัดส่งแล้ว"}
+                        &rdquo;
+                      </p>
+                    )}
                 </div>
 
                 {/* 3. Due Date */}
@@ -610,7 +629,13 @@ export default function FulfillmentPage({
                 <LotSelector
                   saleId={id}
                   onAllocationsChange={handleLotAllocationsChange}
-                  disabled={submitting}
+                  disabled={
+                    submitting ||
+                    (saleData &&
+                      ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(
+                        saleData.sale.status,
+                      ))
+                  }
                 />
                 {lotAllocations.length > 0 && !lotAllocationsValid && (
                   <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">

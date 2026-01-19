@@ -63,6 +63,49 @@ export async function POST(
         // Only auto-set if not provided explicitly
         updateData.paymentDate = new Date();
       }
+
+      // Validate: DELIVERED requires delivery date
+      if (status === "DELIVERED") {
+        const finalDeliveryDate =
+          deliveryDate !== undefined ? deliveryDate : sale.deliveryDate;
+        if (!finalDeliveryDate) {
+          return NextResponse.json(
+            { error: "กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น 'จัดส่งแล้ว'" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
+    // Protect against modifying LOTs if already delivered
+    // If the *current* status is DELIVERED (or later), we should not allow modifying LOTs
+    // unless we are also changing the status back to a non-delivered state.
+    const isCurrentlyDelivered = [
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+    ].includes(sale.status);
+
+    // Check if we are staying in a delivered state
+    const targetStatus = status || sale.status;
+    const isStayingDelivered = [
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+    ].includes(targetStatus);
+
+    if (
+      isCurrentlyDelivered &&
+      isStayingDelivered &&
+      lotAllocations !== undefined
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากสถานะเป็น 'จัดส่งแล้ว' หรือ 'เสร็จสิ้น'",
+        },
+        { status: 400 },
+      );
     }
 
     // 2. Delivery Date - with update count tracking
