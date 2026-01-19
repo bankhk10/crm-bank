@@ -529,43 +529,55 @@ export default function SalesTargetsPage() {
         {/* Monthly Targets Tab */}
         <TabsContent value="monthly" className="space-y-6">
           {/* Yearly Target Card */}
-          <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl">
-            <CardHeader className="pb-4">
+          <Card className="relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl">
+            {/* Decorative Gradient Glow */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-indigo-500/10 pointer-events-none" />
+
+            <CardHeader className="relative pb-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-emerald-500/20">
-                    <Sparkles className="w-6 h-6 text-emerald-400" />
+                <div className="flex items-center gap-4">
+                  {/* Icon */}
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-2xl bg-emerald-400 blur-md opacity-30" />
+                    <div className="relative p-3 rounded-2xl bg-emerald-500/20 border border-emerald-400/30">
+                      <Sparkles className="w-6 h-6 text-emerald-400" />
+                    </div>
                   </div>
+
+                  {/* Title */}
                   <div>
-                    <CardTitle className="text-lg text-white">
+                    <CardTitle className="text-lg font-semibold tracking-tight">
                       เป้าหมายรวมทั้งปี {year}
                     </CardTitle>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-sm text-slate-400">
                       กำหนดเป้าหมายยอดขายรวมของปี
                     </p>
                   </div>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="flex-1 w-full">
-                  <Input
-                    type="number"
-                    onWheel={(e) => e.currentTarget.blur()}
-                    value={yearlyTarget || ""}
-                    onChange={(e) =>
-                      setYearlyTarget(parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0"
-                    className="bg-white/10 border-white/20 text-white placeholder:text-slate-400 text-xl font-bold h-14"
-                  />
-                </div>
-                <div className="text-right">
-                  <p className="text-slate-400 text-sm">รวมเป้าหมายรายเดือน</p>
-                  <p className="text-2xl font-bold text-emerald-400">
-                    ฿{formatCurrency(calculateMonthlyTotal())}
+
+            <CardContent className="relative">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                {/* KPI Value */}
+                <div>
+                  <p className="text-sm text-slate-400 mb-1">
+                    รวมเป้าหมายทั้งปี
                   </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-bold text-emerald-400 tracking-tight">
+                      ฿{formatCurrency(calculateMonthlyTotal())}
+                    </span>
+                    <span className="text-xs text-slate-500">THB</span>
+                  </div>
+                </div>
+
+                {/* Hint / Status */}
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                  <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs text-slate-300">
+                    คำนวณจากเป้าหมายรายเดือน
+                  </span>
                 </div>
               </div>
             </CardContent>
