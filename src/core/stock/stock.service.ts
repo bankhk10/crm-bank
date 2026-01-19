@@ -20,7 +20,7 @@ import * as StockRepository from "./stock.repository";
  */
 export async function allocateStock(
   saleId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<StockAllocationResult> {
   const db = tx || prisma;
 
@@ -50,7 +50,7 @@ export async function allocateStock(
       // Fetch available lots to check stock availability
       const lots = await StockRepository.getAvailableLots(
         item.productId,
-        client
+        client,
       );
 
       // Calculate total available
@@ -84,7 +84,7 @@ export async function allocateStock(
             reservedQuantity: requestedQty,
             reservedQuantityIncrement: requestedQty,
           },
-          client
+          client,
         );
       }
     }
@@ -102,7 +102,7 @@ export async function allocateStock(
   console.log(
     `Stock reserved for sale ${saleId}${
       hasBackorders ? ` with ${backorders.length} backorders` : ""
-    }`
+    }`,
   );
 
   return {
@@ -119,7 +119,7 @@ export async function allocateStock(
  */
 export async function releaseStock(
   saleId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -144,7 +144,7 @@ export async function releaseStock(
         // Delivery date was set, so lots were deducted - return stock to lots
         const lot = await StockRepository.getFirstAvailableLot(
           item.productId,
-          client
+          client,
         );
 
         if (lot) {
@@ -152,7 +152,7 @@ export async function releaseStock(
         } else {
           const anyLot = await StockRepository.getAnyLot(
             item.productId,
-            client
+            client,
           );
 
           if (anyLot) {
@@ -166,10 +166,10 @@ export async function releaseStock(
             item.productId,
             {
               availableQuantityIncrement: releaseQty,
-              reservedQuantityIncrement: -releaseQty, // Was already at 0 after confirm, but decrement to handle edge cases
+              // reservedQuantityIncrement: -releaseQty, // Removed: Stock was already deducted, so reserved is 0. No need to decrement.
               physicalBalanceIncrement: releaseQty,
             },
-            client
+            client,
           );
         } catch {
           console.warn(`Could not update product stock for ${item.productId}`);
@@ -182,7 +182,7 @@ export async function releaseStock(
             {
               reservedQuantityIncrement: -releaseQty,
             },
-            client
+            client,
           );
         } catch {
           console.warn(`Could not update product stock for ${item.productId}`);
@@ -200,7 +200,7 @@ export async function releaseStock(
   }
 
   console.log(
-    `Stock released for sale ${saleId} (hadDeliveryDate: ${hadDeliveryDate})`
+    `Stock released for sale ${saleId} (hadDeliveryDate: ${hadDeliveryDate})`,
   );
 }
 
@@ -214,7 +214,7 @@ export async function releaseStock(
  */
 export async function confirmStockDeduction(
   saleId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
   const sale = await db.sale.findUnique({
@@ -231,7 +231,7 @@ export async function confirmStockDeduction(
       // Fetch available lots ordered by lotNumber ASC (FIFO)
       const lots = await StockRepository.getAvailableLots(
         item.productId,
-        client
+        client,
       );
 
       // Deduct from physical lots (FIFO)
@@ -241,7 +241,7 @@ export async function confirmStockDeduction(
 
         const deduction = Math.min(
           lot.quantity,
-          requestedQty - deductedFromLots
+          requestedQty - deductedFromLots,
         );
 
         await StockRepository.updateLotQuantity(lot.id, -deduction, client);
@@ -259,7 +259,7 @@ export async function confirmStockDeduction(
           reservedQuantityIncrement: -requestedQty,
           physicalBalanceIncrement: -requestedQty,
         },
-        client
+        client,
       );
     }
   };
@@ -285,7 +285,7 @@ export async function confirmStockDeduction(
  */
 export async function revertStockDeduction(
   saleId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
   const sale = await db.sale.findUnique({
@@ -302,7 +302,7 @@ export async function revertStockDeduction(
       // Return stock to the first available lot (or reactivate a lot)
       const lot = await StockRepository.getFirstAvailableLot(
         item.productId,
-        client
+        client,
       );
 
       if (lot) {
@@ -327,7 +327,7 @@ export async function revertStockDeduction(
           reservedQuantityIncrement: returnQty,
           physicalBalanceIncrement: returnQty,
         },
-        client
+        client,
       );
     }
   };
