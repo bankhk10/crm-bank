@@ -261,6 +261,26 @@ export default function ApproveSalePage({
               </p>
             </div>
           </div>
+
+          {/* Notes Section */}
+          {sale.notes && (
+            <div className="mt-6 group">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 rounded-2xl p-5 border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2.5 bg-red-600 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-sm text-red-600 font-bold uppercase tracking-wide">
+                    หมายเหตุ
+                  </span>
+                </div>
+
+                <p className="text-red-600 whitespace-pre-wrap text-lg leading-relaxed">
+                  {sale.notes}
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -434,7 +454,7 @@ export default function ApproveSalePage({
               const currentUnitPrice = Number(item.unitPrice ?? 0);
               const quantity = Number(item.quantity ?? 0);
               const currentTotal = Number(
-                item.totalPrice ?? currentUnitPrice * quantity
+                item.totalPrice ?? currentUnitPrice * quantity,
               );
               const priceChanged = Boolean(item.priceModified);
 
@@ -557,12 +577,12 @@ export default function ApproveSalePage({
           <div className="p-6 space-y-3">
             {sale.items.map((item, i) => {
               const originalUnitPrice = Number(
-                item.originalPrice ?? item.unitPrice ?? 0
+                item.originalPrice ?? item.unitPrice ?? 0,
               );
               const currentUnitPrice = Number(item.unitPrice ?? 0);
               const quantity = Number(item.quantity ?? 0);
               const currentTotal = Number(
-                item.totalPrice ?? currentUnitPrice * quantity
+                item.totalPrice ?? currentUnitPrice * quantity,
               );
               const originalTotal = originalUnitPrice * quantity;
               const priceChanged = Boolean(item.priceModified);
