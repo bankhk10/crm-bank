@@ -57,33 +57,6 @@ export const navigationItems: SidebarNavItem[] = [
     label: "รายงาน",
     permissionKey: "menu.reports",
     icon: <ChartPie className="h-4 w-4" />,
-    children: [
-      {
-        href: "/reports/time-sales",
-        label: "รายงานยอดขายตามเวลา",
-        permissionKey: "report.time_sales",
-      },
-      {
-        href: "/reports/product-sales",
-        label: "รายงานตามสินค้า",
-        permissionKey: "report.product_sales",
-      },
-      {
-        href: "/reports/product-group-sales",
-        label: "รายงานตามกลุ่มสินค้า",
-        permissionKey: "report.product_group_sales",
-      },
-      {
-        href: "/reports/customer-sales",
-        label: "รายงานตามลูกค้า",
-        permissionKey: "report.customer_sales",
-      },
-      {
-        href: "/reports/salesperson",
-        label: "รายงานตามพนักงานขาย",
-        permissionKey: "report.salesperson",
-      },
-    ],
   },
   {
     href: "/sales-forecast",
@@ -196,7 +169,7 @@ export default function Sidebar({
   }, [permissions, roles]);
   const [openKey, setOpenKey] = useState<string | null>(() => {
     const parent = items.find((item) =>
-      item.children?.some((c) => pathname.startsWith(c.href))
+      item.children?.some((c) => pathname.startsWith(c.href)),
     );
     return parent?.href ?? null;
   });
@@ -208,7 +181,7 @@ export default function Sidebar({
   // close when navigating away from their children.
   useEffect(() => {
     const parent = items.find((item) =>
-      item.children?.some((c) => pathname.startsWith(c.href))
+      item.children?.some((c) => pathname.startsWith(c.href)),
     );
     setOpenKey(parent?.href ?? null);
   }, [pathname, items]);
