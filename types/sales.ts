@@ -173,7 +173,7 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
-  WAITING_FOR_CORRECTION: "รอแก้ไข",
+  WAITING_FOR_CORRECTION: "แก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
