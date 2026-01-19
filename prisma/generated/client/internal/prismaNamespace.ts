@@ -413,6 +413,7 @@ export const ModelName = {
   ProductGroupSalesTarget: 'ProductGroupSalesTarget',
   MonthlySalesTarget: 'MonthlySalesTarget',
   ProductSalesTarget: 'ProductSalesTarget',
+  EmployeeSalesTarget: 'EmployeeSalesTarget',
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
   ApplicationLog: 'ApplicationLog',
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
+    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "employeeSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2582,6 +2583,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmployeeSalesTarget: {
+      payload: Prisma.$EmployeeSalesTargetPayload<ExtArgs>
+      fields: Prisma.EmployeeSalesTargetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeSalesTargetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeSalesTargetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeSalesTargetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeSalesTargetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeSalesTargetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeSalesTargetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeSalesTargetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmployeeSalesTargetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>[]
+        }
+        delete: {
+          args: Prisma.EmployeeSalesTargetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        update: {
+          args: Prisma.EmployeeSalesTargetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeSalesTargetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeSalesTargetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmployeeSalesTargetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>[]
+        }
+        upsert: {
+          args: Prisma.EmployeeSalesTargetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeSalesTargetPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeSalesTargetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeSalesTarget>
+        }
+        groupBy: {
+          args: Prisma.EmployeeSalesTargetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeSalesTargetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeSalesTargetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeSalesTargetCountAggregateOutputType> | number
+        }
+      }
+    }
     AuditLog: {
       payload: Prisma.$AuditLogPayload<ExtArgs>
       fields: Prisma.AuditLogFieldRefs
@@ -3483,6 +3558,28 @@ export const ProductSalesTargetScalarFieldEnum = {
 export type ProductSalesTargetScalarFieldEnum = (typeof ProductSalesTargetScalarFieldEnum)[keyof typeof ProductSalesTargetScalarFieldEnum]
 
 
+export const EmployeeSalesTargetScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  year: 'year',
+  month: 'month',
+  customerId: 'customerId',
+  customerRegion: 'customerRegion',
+  productId: 'productId',
+  productGroup: 'productGroup',
+  quantity: 'quantity',
+  unitPrice: 'unitPrice',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type EmployeeSalesTargetScalarFieldEnum = (typeof EmployeeSalesTargetScalarFieldEnum)[keyof typeof EmployeeSalesTargetScalarFieldEnum]
+
+
 export const AuditLogScalarFieldEnum = {
   id: 'id',
   timestamp: 'timestamp',
@@ -4058,6 +4155,7 @@ export type GlobalOmitConfig = {
   productGroupSalesTarget?: Prisma.ProductGroupSalesTargetOmit
   monthlySalesTarget?: Prisma.MonthlySalesTargetOmit
   productSalesTarget?: Prisma.ProductSalesTargetOmit
+  employeeSalesTarget?: Prisma.EmployeeSalesTargetOmit
   auditLog?: Prisma.AuditLogOmit
   securityLog?: Prisma.SecurityLogOmit
   applicationLog?: Prisma.ApplicationLogOmit

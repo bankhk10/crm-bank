@@ -70,6 +70,18 @@ export const navigationItems: SidebarNavItem[] = [
     permissionKey: "menu.sales_targets",
     icon: <Target className="h-4 w-4" />,
   },
+  {
+    href: "/my-sales-targets",
+    label: "เป้าหมายส่วนตัว",
+    permissionKey: "menu.sales",
+    icon: <Target className="h-4 w-4" />,
+  },
+  {
+    href: "/admin/employee-sales-targets",
+    label: "ภาพรวมเป้าหมายพนักงาน",
+    permissionKey: "menu.sales_targets",
+    icon: <TrendingUp className="h-4 w-4" />,
+  },
 
   {
     href: "/sales",

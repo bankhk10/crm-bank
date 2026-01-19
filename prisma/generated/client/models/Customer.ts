@@ -660,6 +660,7 @@ export type CustomerWhereInput = {
   responsibleEmployee?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
   sales?: Prisma.SaleListRelationFilter
   dailySalesSummaries?: Prisma.DailySalesSummaryListRelationFilter
+  salesTargets?: Prisma.EmployeeSalesTargetListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -732,6 +733,7 @@ export type CustomerOrderByWithRelationInput = {
   responsibleEmployee?: Prisma.EmployeeOrderByWithRelationInput
   sales?: Prisma.SaleOrderByRelationAggregateInput
   dailySalesSummaries?: Prisma.DailySalesSummaryOrderByRelationAggregateInput
+  salesTargets?: Prisma.EmployeeSalesTargetOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -807,6 +809,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   responsibleEmployee?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
   sales?: Prisma.SaleListRelationFilter
   dailySalesSummaries?: Prisma.DailySalesSummaryListRelationFilter
+  salesTargets?: Prisma.EmployeeSalesTargetListRelationFilter
 }, "id" | "customerCode">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -1013,6 +1016,7 @@ export type CustomerCreateInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -1083,6 +1087,7 @@ export type CustomerUncheckedCreateInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -1153,6 +1158,7 @@ export type CustomerUpdateInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -1223,6 +1229,7 @@ export type CustomerUncheckedUpdateInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -1841,6 +1848,20 @@ export type CustomerUpdateOneRequiredWithoutDailySalesSummariesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutDailySalesSummariesInput, Prisma.CustomerUpdateWithoutDailySalesSummariesInput>, Prisma.CustomerUncheckedUpdateWithoutDailySalesSummariesInput>
 }
 
+export type CustomerCreateNestedOneWithoutSalesTargetsInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutSalesTargetsInput, Prisma.CustomerUncheckedCreateWithoutSalesTargetsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutSalesTargetsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutSalesTargetsNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutSalesTargetsInput, Prisma.CustomerUncheckedCreateWithoutSalesTargetsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutSalesTargetsInput
+  upsert?: Prisma.CustomerUpsertWithoutSalesTargetsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutSalesTargetsInput, Prisma.CustomerUpdateWithoutSalesTargetsInput>, Prisma.CustomerUncheckedUpdateWithoutSalesTargetsInput>
+}
+
 export type CustomerCreateWithoutResponsibleEmployeeInput = {
   id?: string
   customerCode: string
@@ -1908,6 +1929,7 @@ export type CustomerCreateWithoutResponsibleEmployeeInput = {
   subDealers?: Prisma.CustomerCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutResponsibleEmployeeInput = {
@@ -1977,6 +1999,7 @@ export type CustomerUncheckedCreateWithoutResponsibleEmployeeInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutResponsibleEmployeeInput = {
@@ -2139,6 +2162,7 @@ export type CustomerCreateWithoutSubDealersInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutSubDealersInput = {
@@ -2208,6 +2232,7 @@ export type CustomerUncheckedCreateWithoutSubDealersInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedCreateNestedManyWithoutCustomerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutSubDealersInput = {
@@ -2282,6 +2307,7 @@ export type CustomerCreateWithoutParentDealerInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutParentDealerInput = {
@@ -2351,6 +2377,7 @@ export type CustomerUncheckedCreateWithoutParentDealerInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutParentDealerInput = {
@@ -2441,6 +2468,7 @@ export type CustomerUpdateWithoutSubDealersInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutSubDealersInput = {
@@ -2510,6 +2538,7 @@ export type CustomerUncheckedUpdateWithoutSubDealersInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedUpdateManyWithoutCustomerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUpsertWithWhereUniqueWithoutParentDealerInput = {
@@ -2595,6 +2624,7 @@ export type CustomerCreateWithoutCreditLimitsInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutCreditLimitsInput = {
@@ -2664,6 +2694,7 @@ export type CustomerUncheckedCreateWithoutCreditLimitsInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutCreditLimitsInput = {
@@ -2749,6 +2780,7 @@ export type CustomerUpdateWithoutCreditLimitsInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutCreditLimitsInput = {
@@ -2818,6 +2850,7 @@ export type CustomerUncheckedUpdateWithoutCreditLimitsInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutTemporaryCreditLimitsInput = {
@@ -2887,6 +2920,7 @@ export type CustomerCreateWithoutTemporaryCreditLimitsInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutTemporaryCreditLimitsInput = {
@@ -2956,6 +2990,7 @@ export type CustomerUncheckedCreateWithoutTemporaryCreditLimitsInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutTemporaryCreditLimitsInput = {
@@ -3041,6 +3076,7 @@ export type CustomerUpdateWithoutTemporaryCreditLimitsInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutTemporaryCreditLimitsInput = {
@@ -3110,6 +3146,7 @@ export type CustomerUncheckedUpdateWithoutTemporaryCreditLimitsInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutImagesInput = {
@@ -3179,6 +3216,7 @@ export type CustomerCreateWithoutImagesInput = {
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutImagesInput = {
@@ -3248,6 +3286,7 @@ export type CustomerUncheckedCreateWithoutImagesInput = {
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutImagesInput = {
@@ -3333,6 +3372,7 @@ export type CustomerUpdateWithoutImagesInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutImagesInput = {
@@ -3402,6 +3442,7 @@ export type CustomerUncheckedUpdateWithoutImagesInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutSalesInput = {
@@ -3471,6 +3512,7 @@ export type CustomerCreateWithoutSalesInput = {
   subDealers?: Prisma.CustomerCreateNestedManyWithoutParentDealerInput
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutSalesInput = {
@@ -3540,6 +3582,7 @@ export type CustomerUncheckedCreateWithoutSalesInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedCreateNestedManyWithoutCustomerInput
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutSalesInput = {
@@ -3625,6 +3668,7 @@ export type CustomerUpdateWithoutSalesInput = {
   subDealers?: Prisma.CustomerUpdateManyWithoutParentDealerNestedInput
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutSalesInput = {
@@ -3694,6 +3738,7 @@ export type CustomerUncheckedUpdateWithoutSalesInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedUpdateManyWithoutCustomerNestedInput
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutDailySalesSummariesInput = {
@@ -3763,6 +3808,7 @@ export type CustomerCreateWithoutDailySalesSummariesInput = {
   subDealers?: Prisma.CustomerCreateNestedManyWithoutParentDealerInput
   responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
   sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutDailySalesSummariesInput = {
@@ -3832,6 +3878,7 @@ export type CustomerUncheckedCreateWithoutDailySalesSummariesInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedCreateNestedManyWithoutCustomerInput
   subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutDailySalesSummariesInput = {
@@ -3917,6 +3964,7 @@ export type CustomerUpdateWithoutDailySalesSummariesInput = {
   subDealers?: Prisma.CustomerUpdateManyWithoutParentDealerNestedInput
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutDailySalesSummariesInput = {
@@ -3986,6 +4034,303 @@ export type CustomerUncheckedUpdateWithoutDailySalesSummariesInput = {
   temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedUpdateManyWithoutCustomerNestedInput
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerCreateWithoutSalesTargetsInput = {
+  id?: string
+  customerCode: string
+  customerType: $Enums.CustomerType
+  name: string
+  prefix?: string | null
+  firstName?: string | null
+  birthDate?: Date | string | null
+  lastName?: string | null
+  email?: string | null
+  phone?: string | null
+  taxId?: string | null
+  addressLine?: string | null
+  province?: string | null
+  region?: string | null
+  district?: string | null
+  subdistrict?: string | null
+  postalCode?: string | null
+  billingAddressLine?: string | null
+  billingProvince?: string | null
+  billingDistrict?: string | null
+  billingSubdistrict?: string | null
+  billingPostalCode?: string | null
+  shippingAddressLine?: string | null
+  shippingProvince?: string | null
+  shippingDistrict?: string | null
+  shippingSubdistrict?: string | null
+  shippingPostalCode?: string | null
+  status?: $Enums.CustomerStatus
+  contactPerson?: string | null
+  contactPhone?: string | null
+  contactEmail?: string | null
+  notes?: string | null
+  latitude?: string | null
+  longitude?: string | null
+  relationshipScore?: number | null
+  receiveFromDealer?: string | null
+  mainCompetitor?: string | null
+  areaCrops?: string | null
+  averageMonthlyPurchase?: string | null
+  mainProductSold?: Prisma.CustomerCreatemainProductSoldInput | string[]
+  brandsSold?: Prisma.CustomerCreatebrandsSoldInput | string[]
+  areaType?: string | null
+  farmPlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropTypes?: string | null
+  currentYield?: string | null
+  farmerCount?: string | null
+  plotCount?: string | null
+  totalAreaRai?: string | null
+  harvestPerYear?: string | null
+  creditDays?: string | null
+  chemicalValuePerCycle?: string | null
+  chemicalQtyPerCycle?: string | null
+  regularShops?: string | null
+  serviceTypes?: string | null
+  usedBrands?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  images?: Prisma.CustomerImageCreateNestedManyWithoutCustomerInput
+  creditLimits?: Prisma.CreditLimitCreateNestedManyWithoutCustomerInput
+  temporaryCreditLimits?: Prisma.TemporaryCreditLimitCreateNestedManyWithoutCustomerInput
+  parentDealer?: Prisma.CustomerCreateNestedOneWithoutSubDealersInput
+  subDealers?: Prisma.CustomerCreateNestedManyWithoutParentDealerInput
+  responsibleEmployee?: Prisma.EmployeeCreateNestedOneWithoutResponsibleCustomersInput
+  sales?: Prisma.SaleCreateNestedManyWithoutCustomerInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutSalesTargetsInput = {
+  id?: string
+  customerCode: string
+  customerType: $Enums.CustomerType
+  name: string
+  prefix?: string | null
+  firstName?: string | null
+  birthDate?: Date | string | null
+  lastName?: string | null
+  email?: string | null
+  phone?: string | null
+  taxId?: string | null
+  addressLine?: string | null
+  province?: string | null
+  region?: string | null
+  district?: string | null
+  subdistrict?: string | null
+  postalCode?: string | null
+  billingAddressLine?: string | null
+  billingProvince?: string | null
+  billingDistrict?: string | null
+  billingSubdistrict?: string | null
+  billingPostalCode?: string | null
+  shippingAddressLine?: string | null
+  shippingProvince?: string | null
+  shippingDistrict?: string | null
+  shippingSubdistrict?: string | null
+  shippingPostalCode?: string | null
+  status?: $Enums.CustomerStatus
+  contactPerson?: string | null
+  contactPhone?: string | null
+  contactEmail?: string | null
+  notes?: string | null
+  latitude?: string | null
+  longitude?: string | null
+  relationshipScore?: number | null
+  parentDealerId?: string | null
+  responsibleEmployeeId?: string | null
+  receiveFromDealer?: string | null
+  mainCompetitor?: string | null
+  areaCrops?: string | null
+  averageMonthlyPurchase?: string | null
+  mainProductSold?: Prisma.CustomerCreatemainProductSoldInput | string[]
+  brandsSold?: Prisma.CustomerCreatebrandsSoldInput | string[]
+  areaType?: string | null
+  farmPlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropTypes?: string | null
+  currentYield?: string | null
+  farmerCount?: string | null
+  plotCount?: string | null
+  totalAreaRai?: string | null
+  harvestPerYear?: string | null
+  creditDays?: string | null
+  chemicalValuePerCycle?: string | null
+  chemicalQtyPerCycle?: string | null
+  regularShops?: string | null
+  serviceTypes?: string | null
+  usedBrands?: string | null
+  createdById?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  images?: Prisma.CustomerImageUncheckedCreateNestedManyWithoutCustomerInput
+  creditLimits?: Prisma.CreditLimitUncheckedCreateNestedManyWithoutCustomerInput
+  temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedCreateNestedManyWithoutCustomerInput
+  subDealers?: Prisma.CustomerUncheckedCreateNestedManyWithoutParentDealerInput
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutCustomerInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutSalesTargetsInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutSalesTargetsInput, Prisma.CustomerUncheckedCreateWithoutSalesTargetsInput>
+}
+
+export type CustomerUpsertWithoutSalesTargetsInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutSalesTargetsInput, Prisma.CustomerUncheckedUpdateWithoutSalesTargetsInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutSalesTargetsInput, Prisma.CustomerUncheckedCreateWithoutSalesTargetsInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutSalesTargetsInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutSalesTargetsInput, Prisma.CustomerUncheckedUpdateWithoutSalesTargetsInput>
+}
+
+export type CustomerUpdateWithoutSalesTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerCode?: Prisma.StringFieldUpdateOperationsInput | string
+  customerType?: Prisma.EnumCustomerTypeFieldUpdateOperationsInput | $Enums.CustomerType
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  prefix?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingProvince?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingDistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingSubdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingPostalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingProvince?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingDistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingSubdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPostalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  contactPerson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  longitude?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  receiveFromDealer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mainCompetitor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  areaCrops?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  averageMonthlyPurchase?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mainProductSold?: Prisma.CustomerUpdatemainProductSoldInput | string[]
+  brandsSold?: Prisma.CustomerUpdatebrandsSoldInput | string[]
+  areaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  farmPlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentYield?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  farmerCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plotCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totalAreaRai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  harvestPerYear?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chemicalValuePerCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chemicalQtyPerCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regularShops?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usedBrands?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  images?: Prisma.CustomerImageUpdateManyWithoutCustomerNestedInput
+  creditLimits?: Prisma.CreditLimitUpdateManyWithoutCustomerNestedInput
+  temporaryCreditLimits?: Prisma.TemporaryCreditLimitUpdateManyWithoutCustomerNestedInput
+  parentDealer?: Prisma.CustomerUpdateOneWithoutSubDealersNestedInput
+  subDealers?: Prisma.CustomerUpdateManyWithoutParentDealerNestedInput
+  responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutSalesTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerCode?: Prisma.StringFieldUpdateOperationsInput | string
+  customerType?: Prisma.EnumCustomerTypeFieldUpdateOperationsInput | $Enums.CustomerType
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  prefix?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingProvince?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingDistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingSubdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  billingPostalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingAddressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingProvince?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingDistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingSubdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shippingPostalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  contactPerson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  latitude?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  longitude?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parentDealerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibleEmployeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  receiveFromDealer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mainCompetitor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  areaCrops?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  averageMonthlyPurchase?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mainProductSold?: Prisma.CustomerUpdatemainProductSoldInput | string[]
+  brandsSold?: Prisma.CustomerUpdatebrandsSoldInput | string[]
+  areaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  farmPlots?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  cropTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentYield?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  farmerCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plotCount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  totalAreaRai?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  harvestPerYear?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chemicalValuePerCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chemicalQtyPerCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  regularShops?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  serviceTypes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usedBrands?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  images?: Prisma.CustomerImageUncheckedUpdateManyWithoutCustomerNestedInput
+  creditLimits?: Prisma.CreditLimitUncheckedUpdateManyWithoutCustomerNestedInput
+  temporaryCreditLimits?: Prisma.TemporaryCreditLimitUncheckedUpdateManyWithoutCustomerNestedInput
+  subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyResponsibleEmployeeInput = {
@@ -4118,6 +4463,7 @@ export type CustomerUpdateWithoutResponsibleEmployeeInput = {
   subDealers?: Prisma.CustomerUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutResponsibleEmployeeInput = {
@@ -4187,6 +4533,7 @@ export type CustomerUncheckedUpdateWithoutResponsibleEmployeeInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateManyWithoutResponsibleEmployeeInput = {
@@ -4382,6 +4729,7 @@ export type CustomerUpdateWithoutParentDealerInput = {
   responsibleEmployee?: Prisma.EmployeeUpdateOneWithoutResponsibleCustomersNestedInput
   sales?: Prisma.SaleUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutParentDealerInput = {
@@ -4451,6 +4799,7 @@ export type CustomerUncheckedUpdateWithoutParentDealerInput = {
   subDealers?: Prisma.CustomerUncheckedUpdateManyWithoutParentDealerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutCustomerNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutCustomerNestedInput
+  salesTargets?: Prisma.EmployeeSalesTargetUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateManyWithoutParentDealerInput = {
@@ -4528,6 +4877,7 @@ export type CustomerCountOutputType = {
   subDealers: number
   sales: number
   dailySalesSummaries: number
+  salesTargets: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4537,6 +4887,7 @@ export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   subDealers?: boolean | CustomerCountOutputTypeCountSubDealersArgs
   sales?: boolean | CustomerCountOutputTypeCountSalesArgs
   dailySalesSummaries?: boolean | CustomerCountOutputTypeCountDailySalesSummariesArgs
+  salesTargets?: boolean | CustomerCountOutputTypeCountSalesTargetsArgs
 }
 
 /**
@@ -4589,6 +4940,13 @@ export type CustomerCountOutputTypeCountSalesArgs<ExtArgs extends runtime.Types.
  */
 export type CustomerCountOutputTypeCountDailySalesSummariesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DailySalesSummaryWhereInput
+}
+
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountSalesTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeSalesTargetWhereInput
 }
 
 
@@ -4662,6 +5020,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   responsibleEmployee?: boolean | Prisma.Customer$responsibleEmployeeArgs<ExtArgs>
   sales?: boolean | Prisma.Customer$salesArgs<ExtArgs>
   dailySalesSummaries?: boolean | Prisma.Customer$dailySalesSummariesArgs<ExtArgs>
+  salesTargets?: boolean | Prisma.Customer$salesTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -4871,6 +5230,7 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   responsibleEmployee?: boolean | Prisma.Customer$responsibleEmployeeArgs<ExtArgs>
   sales?: boolean | Prisma.Customer$salesArgs<ExtArgs>
   dailySalesSummaries?: boolean | Prisma.Customer$dailySalesSummariesArgs<ExtArgs>
+  salesTargets?: boolean | Prisma.Customer$salesTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4893,6 +5253,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     responsibleEmployee: Prisma.$EmployeePayload<ExtArgs> | null
     sales: Prisma.$SalePayload<ExtArgs>[]
     dailySalesSummaries: Prisma.$DailySalesSummaryPayload<ExtArgs>[]
+    salesTargets: Prisma.$EmployeeSalesTargetPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5358,6 +5719,7 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   responsibleEmployee<T extends Prisma.Customer$responsibleEmployeeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$responsibleEmployeeArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   sales<T extends Prisma.Customer$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailySalesSummaries<T extends Prisma.Customer$dailySalesSummariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$dailySalesSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailySalesSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salesTargets<T extends Prisma.Customer$salesTargetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$salesTargetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeSalesTargetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6023,6 +6385,30 @@ export type Customer$dailySalesSummariesArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.DailySalesSummaryScalarFieldEnum | Prisma.DailySalesSummaryScalarFieldEnum[]
+}
+
+/**
+ * Customer.salesTargets
+ */
+export type Customer$salesTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeSalesTarget
+   */
+  select?: Prisma.EmployeeSalesTargetSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeSalesTarget
+   */
+  omit?: Prisma.EmployeeSalesTargetOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeSalesTargetInclude<ExtArgs> | null
+  where?: Prisma.EmployeeSalesTargetWhereInput
+  orderBy?: Prisma.EmployeeSalesTargetOrderByWithRelationInput | Prisma.EmployeeSalesTargetOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeSalesTargetWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeSalesTargetScalarFieldEnum | Prisma.EmployeeSalesTargetScalarFieldEnum[]
 }
 
 /**
