@@ -534,6 +534,7 @@ enum SaleStatus {
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
   EXPIRED           // หมดอายุ (ไม่ระบุวันส่ง + เลย 3 วัน)
   OVERDUE           // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)
+  WAITING_FOR_CORRECTION // รอแก้ไข
   CANCELLED         // ยกเลิก
   COMPLETED         // เสร็จสิ้น
 }

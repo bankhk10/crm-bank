@@ -40,6 +40,7 @@ import { th } from "date-fns/locale";
 import LotSelector from "@/components/features/fulfillment/lot-selector";
 
 const FULFILLMENT_STATUSES = [
+  "WAITING_FOR_CORRECTION",
   "APPROVED",
   "AWAITING_PAYMENT",
   "PAID",

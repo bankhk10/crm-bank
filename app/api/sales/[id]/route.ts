@@ -16,7 +16,7 @@ import type { RequestContext } from "@/lib/logger/types";
 // GET /api/sales/[id] - Get sale detail
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -108,7 +108,7 @@ export async function GET(
         // Fallback: sum from stockLots
         availableStock = item.product.stockLots.reduce(
           (sum: number, lot: { quantity: number }) => sum + lot.quantity,
-          0
+          0,
         );
       }
 
@@ -219,7 +219,7 @@ export async function GET(
     console.error("Error fetching sale:", error);
     return NextResponse.json(
       { error: "Failed to fetch sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -227,7 +227,7 @@ export async function GET(
 // PUT /api/sales/[id] - Update sale
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const startTime = Date.now();
 
@@ -274,15 +274,21 @@ export async function PUT(
     });
 
     // Check if user has permission to edit this sale
-    // For REJECTED sales, only creator or admin can edit
-    if (existingSale.status === "REJECTED") {
+    // For REJECTED or WAITING_FOR_CORRECTION sales, only creator or admin can edit
+    if (
+      existingSale.status === "REJECTED" ||
+      existingSale.status === "WAITING_FOR_CORRECTION"
+    ) {
       const isCreator = session.user.id === existingSale.createdById;
       // TODO: Check if user is admin - you may need to implement this check based on your permission system
       // For now, we'll allow creator to edit
       if (!isCreator) {
         return NextResponse.json(
-          { error: "Only the creator or admin can edit rejected sales" },
-          { status: 403 }
+          {
+            error:
+              "Only the creator or admin can edit rejected or waiting for correction sales",
+          },
+          { status: 403 },
         );
       }
     }
@@ -302,7 +308,7 @@ export async function PUT(
             error:
               "Maximum number of delivery date updates exceeded (3 times).",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
       newDeliveryUpdateCount++;
@@ -313,7 +319,8 @@ export async function PUT(
       existingSale.status === "APPROVED" ||
       existingSale.status === "AWAITING_PAYMENT" ||
       existingSale.status === "AWAITING_DELIVERY" ||
-      existingSale.status === "REJECTED";
+      existingSale.status === "REJECTED" ||
+      existingSale.status === "WAITING_FOR_CORRECTION";
 
     const sale = await prisma.$transaction(async (tx) => {
       // Return credit limit if sale was approved and used credit
@@ -350,7 +357,7 @@ export async function PUT(
       // Calculate totals
       const subtotal = body.items.reduce(
         (sum, item) => sum + item.quantity * item.unitPrice,
-        0
+        0,
       );
       const total = subtotal - body.shippingCost - body.otherCosts;
 
@@ -453,7 +460,7 @@ export async function PUT(
         entityName: sale.saleNumber,
         module: "sales",
         duration,
-      }
+      },
     );
 
     reqLogger.info("Sale updated successfully", {
@@ -471,7 +478,7 @@ export async function PUT(
     console.error("Error updating sale:", error);
     return NextResponse.json(
       { error: "Failed to update sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -479,7 +486,7 @@ export async function PUT(
 // DELETE /api/sales/[id] - Delete sale (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -564,7 +571,7 @@ export async function DELETE(
     console.error("Error deleting sale:", error);
     return NextResponse.json(
       { error: "Failed to delete sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

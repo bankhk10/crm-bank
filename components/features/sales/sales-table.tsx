@@ -166,6 +166,13 @@ const statusStyle: Record<
       "bg-green-100 text-green-800 ring-1 ring-green-300 dark:bg-green-900/40 dark:text-green-100",
     dot: "bg-green-600",
   },
+  // 🟠 Amber - รอแก้ไข (Correction required)
+  WAITING_FOR_CORRECTION: {
+    label: "รอแก้ไข",
+    className:
+      "bg-amber-100 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-100",
+    dot: "bg-amber-500",
+  },
   // 🔴 Red - ยกเลิก (Cancelled/Error)
   CANCELLED: {
     label: "ยกเลิก",
@@ -216,7 +223,7 @@ function StatusBadge({
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
         info.className,
-        className
+        className,
       )}
     >
       <span
@@ -319,7 +326,7 @@ function SalesToolbar({
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal bg-white mt-1 h-11",
-                  !dateRange && "text-muted-foreground"
+                  !dateRange && "text-muted-foreground",
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -376,7 +383,7 @@ function SalesToolbar({
             value={statusFilter || "ALL"}
             onValueChange={(value) =>
               onStatusFilterChange?.(
-                value === "ALL" ? undefined : (value as SaleStatus)
+                value === "ALL" ? undefined : (value as SaleStatus),
               )
             }
           >
@@ -521,12 +528,17 @@ function SalesCards({
           const isRejected = item.status === "REJECTED";
           const isCreator = currentUserId && item.createdById === currentUserId;
 
-          // Use canEditItem callback if provided, otherwise fallback to simple logic
           const canEditThis = canEditItem
             ? canEditItem(item) &&
-              (isPending || isPendingApproval || isRejected)
+              (isPending ||
+                isPendingApproval ||
+                isRejected ||
+                item.status === "WAITING_FOR_CORRECTION")
             : (canEdit || isCreator) &&
-              (isPending || isPendingApproval || isRejected);
+              (isPending ||
+                isPendingApproval ||
+                isRejected ||
+                item.status === "WAITING_FOR_CORRECTION");
 
           // Use canDeleteItem callback if provided, otherwise fallback to simple logic
           const canDeleteThis = canDeleteItem
@@ -549,12 +561,12 @@ function SalesCards({
                   isPending
                     ? "bg-amber-400"
                     : isPendingApproval
-                    ? "bg-yellow-400"
-                    : isApproved
-                    ? "bg-emerald-500"
-                    : isRejected
-                    ? "bg-red-500"
-                    : "bg-gray-400"
+                      ? "bg-yellow-400"
+                      : isApproved
+                        ? "bg-emerald-500"
+                        : isRejected
+                          ? "bg-red-500"
+                          : "bg-gray-400",
                 )}
               />
               <div className="p-4 space-y-3">
@@ -722,7 +734,7 @@ function useColumns(
   currentUserId: string | undefined,
   onDelete?: (sale: SaleRecord) => void,
   canEditItem?: (item: SaleRecord) => boolean,
-  canDeleteItem?: (item: SaleRecord) => boolean
+  canDeleteItem?: (item: SaleRecord) => boolean,
 ) {
   return React.useMemo<ColumnDef<SaleRecord>[]>(() => {
     return [
@@ -816,14 +828,22 @@ function useColumns(
           const isPending = item.status === "PENDING";
           const isPendingApproval = item.status === "PENDING_APPROVAL";
           const isRejected = item.status === "REJECTED";
+          const isWaitingForCorrection =
+            item.status === "WAITING_FOR_CORRECTION";
           const isCreator = currentUserId && item.createdById === currentUserId;
 
           // Use canEditItem callback if provided, otherwise fallback to simple logic
           const canEditThis = canEditItem
             ? canEditItem(item) &&
-              (isPending || isPendingApproval || isRejected)
+              (isPending ||
+                isPendingApproval ||
+                isRejected ||
+                isWaitingForCorrection)
             : (canEdit || isCreator) &&
-              (isPending || isPendingApproval || isRejected);
+              (isPending ||
+                isPendingApproval ||
+                isRejected ||
+                isWaitingForCorrection);
 
           // Use canDeleteItem callback if provided, otherwise fallback to simple logic
           const canDeleteThis = canDeleteItem
@@ -919,7 +939,7 @@ export function SalesTable(props: SalesTableProps) {
     currentUserId,
     onDelete,
     canEditItem,
-    canDeleteItem
+    canDeleteItem,
   );
 
   const toolbarProps = {

@@ -173,6 +173,7 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
+  WAITING_FOR_CORRECTION: "รอแก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
@@ -210,6 +211,8 @@ export const getSaleStatusColor = (status: SaleStatus): string => {
       "bg-orange-100 text-orange-700 ring-1 ring-orange-300 dark:bg-orange-900/40 dark:text-orange-100",
     COMPLETED:
       "bg-green-100 text-green-800 ring-1 ring-green-300 dark:bg-green-900/40 dark:text-green-100",
+    WAITING_FOR_CORRECTION:
+      "bg-amber-100 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-100",
     CANCELLED:
       "bg-red-100 text-red-700 ring-1 ring-red-300 dark:bg-red-900/40 dark:text-red-200",
   };
@@ -230,6 +233,7 @@ export const getSaleStatusDotColor = (status: SaleStatus): string => {
     EXPIRED: "bg-gray-400",
     OVERDUE: "bg-orange-500",
     COMPLETED: "bg-green-600",
+    WAITING_FOR_CORRECTION: "bg-amber-500",
     CANCELLED: "bg-red-600",
   };
   return dots[status] || "bg-gray-400";
