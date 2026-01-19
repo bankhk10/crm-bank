@@ -453,23 +453,7 @@ export function SaleFormV2({
         </Alert>
       )}
 
-      {/* Errors */}
-      {errors.length > 0 && (
-        <Alert className="border-2 border-red-400 bg-red-50">
-          <AlertDescription>
-            <ul className="list-disc pl-4 space-y-1">
-              {errors.map((error, i) => (
-                <li key={i} className="text-sm sm:text-base text-red-800">
-                  {error}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Customer & Employee Section */}
-
       <SectionHeader
         title="ข้อมูลลูกค้าและพนักงาน"
         color="gray"
