@@ -14,7 +14,7 @@ export default function EditSalePage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("sale.edit");
+  const { allowed, isLoading } = usePermission("sale.edit");
 
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
@@ -31,10 +31,6 @@ export default function EditSalePage({
       })
       .then((data) => {
         const sale = data.sale;
-
-        // Convert to form data format
-        // Use the useCustomShipping flag from database directly
-        // Fallback to old logic for backward compatibility with existing data
         const useCustomShipping =
           sale.useCustomShipping ??
           (sale.deliveryMethod === "SALES_DELIVERY" && !!sale.shippingAddress);
@@ -96,8 +92,7 @@ export default function EditSalePage({
       throw new Error(error.error || "Failed to update sale");
     }
 
-    // Redirect to sale detail page
-    router.push(`/sales/${id}`);
+    router.push(`/sales`);
   };
 
   if (isLoading || loading) {
