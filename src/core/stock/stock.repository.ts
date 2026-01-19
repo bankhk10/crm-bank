@@ -12,7 +12,7 @@ import type { StockLot, ProductStockSummary } from "./stock.types";
  */
 export async function getAvailableLots(
   productId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<StockLot[]> {
   const db = tx || prisma;
 
@@ -31,7 +31,7 @@ export async function getAvailableLots(
  */
 export async function getProductStock(
   productId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ): Promise<ProductStockSummary | null> {
   const db = tx || prisma;
 
@@ -46,7 +46,7 @@ export async function getProductStock(
 export async function updateLotQuantity(
   lotId: string,
   quantityChange: number,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -71,7 +71,7 @@ export async function upsertProductStock(
     availableQuantityIncrement?: number;
     reservedQuantityIncrement?: number;
   },
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -113,7 +113,7 @@ export async function updateProductStock(
     availableQuantityIncrement?: number;
     reservedQuantityIncrement?: number;
   },
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -142,7 +142,7 @@ export async function updateProductStock(
  */
 export async function getFirstAvailableLot(
   productId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -160,7 +160,7 @@ export async function getFirstAvailableLot(
  */
 export async function getAnyLot(
   productId: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -176,7 +176,7 @@ export async function getAnyLot(
 export async function reactivateLot(
   lotId: string,
   quantityIncrement: number,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
@@ -185,6 +185,79 @@ export async function reactivateLot(
     data: {
       quantity: { increment: quantityIncrement },
       isUsed: false,
+    },
+  });
+}
+
+/**
+ * Get a specific lot by ID
+ */
+export async function getLotById(lotId: string, tx?: Prisma.TransactionClient) {
+  const db = tx || prisma;
+
+  return db.productStockLot.findUnique({
+    where: { id: lotId },
+  });
+}
+
+/**
+ * Create a SaleItemLot record to track which LOT was used for which SaleItem
+ */
+export async function createSaleItemLot(
+  data: {
+    saleItemId: string;
+    lotId: string;
+    quantity: number;
+  },
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  return db.saleItemLot.create({
+    data: {
+      saleItemId: data.saleItemId,
+      lotId: data.lotId,
+      quantity: data.quantity,
+    },
+  });
+}
+
+/**
+ * Get all SaleItemLot records for a sale
+ */
+export async function getSaleItemLots(
+  saleId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  return db.saleItemLot.findMany({
+    where: {
+      saleItem: {
+        saleId: saleId,
+      },
+    },
+    include: {
+      lot: true,
+      saleItem: true,
+    },
+  });
+}
+
+/**
+ * Delete all SaleItemLot records for a sale (for reverting stock deduction)
+ */
+export async function deleteSaleItemLots(
+  saleId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  return db.saleItemLot.deleteMany({
+    where: {
+      saleItem: {
+        saleId: saleId,
+      },
     },
   });
 }

@@ -282,6 +282,7 @@ export type SaleItemWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"SaleItem"> | Date | string
   sale?: Prisma.XOR<Prisma.SaleScalarRelationFilter, Prisma.SaleWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  lotAllocations?: Prisma.SaleItemLotListRelationFilter
 }
 
 export type SaleItemOrderByWithRelationInput = {
@@ -298,6 +299,7 @@ export type SaleItemOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   sale?: Prisma.SaleOrderByWithRelationInput
   product?: Prisma.ProductOrderByWithRelationInput
+  lotAllocations?: Prisma.SaleItemLotOrderByRelationAggregateInput
 }
 
 export type SaleItemWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +319,7 @@ export type SaleItemWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"SaleItem"> | Date | string
   sale?: Prisma.XOR<Prisma.SaleScalarRelationFilter, Prisma.SaleWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  lotAllocations?: Prisma.SaleItemLotListRelationFilter
 }, "id">
 
 export type SaleItemOrderByWithAggregationInput = {
@@ -367,6 +370,7 @@ export type SaleItemCreateInput = {
   updatedAt?: Date | string
   sale: Prisma.SaleCreateNestedOneWithoutItemsInput
   product: Prisma.ProductCreateNestedOneWithoutSaleItemsInput
+  lotAllocations?: Prisma.SaleItemLotCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemUncheckedCreateInput = {
@@ -381,6 +385,7 @@ export type SaleItemUncheckedCreateInput = {
   stockAtSale?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemUpdateInput = {
@@ -395,6 +400,7 @@ export type SaleItemUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sale?: Prisma.SaleUpdateOneRequiredWithoutItemsNestedInput
   product?: Prisma.ProductUpdateOneRequiredWithoutSaleItemsNestedInput
+  lotAllocations?: Prisma.SaleItemLotUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemUncheckedUpdateInput = {
@@ -409,6 +415,7 @@ export type SaleItemUncheckedUpdateInput = {
   stockAtSale?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemCreateManyInput = {
@@ -519,6 +526,11 @@ export type SaleItemSumOrderByAggregateInput = {
   stockAtSale?: Prisma.SortOrder
 }
 
+export type SaleItemScalarRelationFilter = {
+  is?: Prisma.SaleItemWhereInput
+  isNot?: Prisma.SaleItemWhereInput
+}
+
 export type SaleItemCreateNestedManyWithoutProductInput = {
   create?: Prisma.XOR<Prisma.SaleItemCreateWithoutProductInput, Prisma.SaleItemUncheckedCreateWithoutProductInput> | Prisma.SaleItemCreateWithoutProductInput[] | Prisma.SaleItemUncheckedCreateWithoutProductInput[]
   connectOrCreate?: Prisma.SaleItemCreateOrConnectWithoutProductInput | Prisma.SaleItemCreateOrConnectWithoutProductInput[]
@@ -603,6 +615,20 @@ export type SaleItemUncheckedUpdateManyWithoutSaleNestedInput = {
   deleteMany?: Prisma.SaleItemScalarWhereInput | Prisma.SaleItemScalarWhereInput[]
 }
 
+export type SaleItemCreateNestedOneWithoutLotAllocationsInput = {
+  create?: Prisma.XOR<Prisma.SaleItemCreateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedCreateWithoutLotAllocationsInput>
+  connectOrCreate?: Prisma.SaleItemCreateOrConnectWithoutLotAllocationsInput
+  connect?: Prisma.SaleItemWhereUniqueInput
+}
+
+export type SaleItemUpdateOneRequiredWithoutLotAllocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.SaleItemCreateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedCreateWithoutLotAllocationsInput>
+  connectOrCreate?: Prisma.SaleItemCreateOrConnectWithoutLotAllocationsInput
+  upsert?: Prisma.SaleItemUpsertWithoutLotAllocationsInput
+  connect?: Prisma.SaleItemWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SaleItemUpdateToOneWithWhereWithoutLotAllocationsInput, Prisma.SaleItemUpdateWithoutLotAllocationsInput>, Prisma.SaleItemUncheckedUpdateWithoutLotAllocationsInput>
+}
+
 export type SaleItemCreateWithoutProductInput = {
   id?: string
   quantity: number
@@ -614,6 +640,7 @@ export type SaleItemCreateWithoutProductInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sale: Prisma.SaleCreateNestedOneWithoutItemsInput
+  lotAllocations?: Prisma.SaleItemLotCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemUncheckedCreateWithoutProductInput = {
@@ -627,6 +654,7 @@ export type SaleItemUncheckedCreateWithoutProductInput = {
   stockAtSale?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemCreateOrConnectWithoutProductInput = {
@@ -683,6 +711,7 @@ export type SaleItemCreateWithoutSaleInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutSaleItemsInput
+  lotAllocations?: Prisma.SaleItemLotCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemUncheckedCreateWithoutSaleInput = {
@@ -696,6 +725,7 @@ export type SaleItemUncheckedCreateWithoutSaleInput = {
   stockAtSale?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedCreateNestedManyWithoutSaleItemInput
 }
 
 export type SaleItemCreateOrConnectWithoutSaleInput = {
@@ -724,6 +754,78 @@ export type SaleItemUpdateManyWithWhereWithoutSaleInput = {
   data: Prisma.XOR<Prisma.SaleItemUpdateManyMutationInput, Prisma.SaleItemUncheckedUpdateManyWithoutSaleInput>
 }
 
+export type SaleItemCreateWithoutLotAllocationsInput = {
+  id?: string
+  quantity: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  originalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceModified?: boolean
+  totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stockAtSale?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sale: Prisma.SaleCreateNestedOneWithoutItemsInput
+  product: Prisma.ProductCreateNestedOneWithoutSaleItemsInput
+}
+
+export type SaleItemUncheckedCreateWithoutLotAllocationsInput = {
+  id?: string
+  saleId: string
+  productId: string
+  quantity: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  originalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceModified?: boolean
+  totalPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stockAtSale?: number | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type SaleItemCreateOrConnectWithoutLotAllocationsInput = {
+  where: Prisma.SaleItemWhereUniqueInput
+  create: Prisma.XOR<Prisma.SaleItemCreateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedCreateWithoutLotAllocationsInput>
+}
+
+export type SaleItemUpsertWithoutLotAllocationsInput = {
+  update: Prisma.XOR<Prisma.SaleItemUpdateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedUpdateWithoutLotAllocationsInput>
+  create: Prisma.XOR<Prisma.SaleItemCreateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedCreateWithoutLotAllocationsInput>
+  where?: Prisma.SaleItemWhereInput
+}
+
+export type SaleItemUpdateToOneWithWhereWithoutLotAllocationsInput = {
+  where?: Prisma.SaleItemWhereInput
+  data: Prisma.XOR<Prisma.SaleItemUpdateWithoutLotAllocationsInput, Prisma.SaleItemUncheckedUpdateWithoutLotAllocationsInput>
+}
+
+export type SaleItemUpdateWithoutLotAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  originalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceModified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stockAtSale?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sale?: Prisma.SaleUpdateOneRequiredWithoutItemsNestedInput
+  product?: Prisma.ProductUpdateOneRequiredWithoutSaleItemsNestedInput
+}
+
+export type SaleItemUncheckedUpdateWithoutLotAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  saleId?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  originalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  priceModified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  totalPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stockAtSale?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type SaleItemCreateManyProductInput = {
   id?: string
   saleId: string
@@ -748,6 +850,7 @@ export type SaleItemUpdateWithoutProductInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sale?: Prisma.SaleUpdateOneRequiredWithoutItemsNestedInput
+  lotAllocations?: Prisma.SaleItemLotUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemUncheckedUpdateWithoutProductInput = {
@@ -761,6 +864,7 @@ export type SaleItemUncheckedUpdateWithoutProductInput = {
   stockAtSale?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemUncheckedUpdateManyWithoutProductInput = {
@@ -800,6 +904,7 @@ export type SaleItemUpdateWithoutSaleInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutSaleItemsNestedInput
+  lotAllocations?: Prisma.SaleItemLotUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemUncheckedUpdateWithoutSaleInput = {
@@ -813,6 +918,7 @@ export type SaleItemUncheckedUpdateWithoutSaleInput = {
   stockAtSale?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lotAllocations?: Prisma.SaleItemLotUncheckedUpdateManyWithoutSaleItemNestedInput
 }
 
 export type SaleItemUncheckedUpdateManyWithoutSaleInput = {
@@ -829,6 +935,35 @@ export type SaleItemUncheckedUpdateManyWithoutSaleInput = {
 }
 
 
+/**
+ * Count Type SaleItemCountOutputType
+ */
+
+export type SaleItemCountOutputType = {
+  lotAllocations: number
+}
+
+export type SaleItemCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  lotAllocations?: boolean | SaleItemCountOutputTypeCountLotAllocationsArgs
+}
+
+/**
+ * SaleItemCountOutputType without action
+ */
+export type SaleItemCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SaleItemCountOutputType
+   */
+  select?: Prisma.SaleItemCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * SaleItemCountOutputType without action
+ */
+export type SaleItemCountOutputTypeCountLotAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SaleItemLotWhereInput
+}
+
 
 export type SaleItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -844,6 +979,8 @@ export type SaleItemSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   sale?: boolean | Prisma.SaleDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  lotAllocations?: boolean | Prisma.SaleItem$lotAllocationsArgs<ExtArgs>
+  _count?: boolean | Prisma.SaleItemCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["saleItem"]>
 
 export type SaleItemSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -896,6 +1033,8 @@ export type SaleItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type SaleItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sale?: boolean | Prisma.SaleDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  lotAllocations?: boolean | Prisma.SaleItem$lotAllocationsArgs<ExtArgs>
+  _count?: boolean | Prisma.SaleItemCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SaleItemIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sale?: boolean | Prisma.SaleDefaultArgs<ExtArgs>
@@ -911,6 +1050,7 @@ export type $SaleItemPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     sale: Prisma.$SalePayload<ExtArgs>
     product: Prisma.$ProductPayload<ExtArgs>
+    lotAllocations: Prisma.$SaleItemLotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1320,6 +1460,7 @@ export interface Prisma__SaleItemClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sale<T extends Prisma.SaleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleDefaultArgs<ExtArgs>>): Prisma.Prisma__SaleClient<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  lotAllocations<T extends Prisma.SaleItem$lotAllocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SaleItem$lotAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleItemLotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1753,6 +1894,30 @@ export type SaleItemDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many SaleItems to delete.
    */
   limit?: number
+}
+
+/**
+ * SaleItem.lotAllocations
+ */
+export type SaleItem$lotAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SaleItemLot
+   */
+  select?: Prisma.SaleItemLotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SaleItemLot
+   */
+  omit?: Prisma.SaleItemLotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SaleItemLotInclude<ExtArgs> | null
+  where?: Prisma.SaleItemLotWhereInput
+  orderBy?: Prisma.SaleItemLotOrderByWithRelationInput | Prisma.SaleItemLotOrderByWithRelationInput[]
+  cursor?: Prisma.SaleItemLotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SaleItemLotScalarFieldEnum | Prisma.SaleItemLotScalarFieldEnum[]
 }
 
 /**

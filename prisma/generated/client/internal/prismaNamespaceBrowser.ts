@@ -73,6 +73,7 @@ export const ModelName = {
   ProductStockLot: 'ProductStockLot',
   Sale: 'Sale',
   SaleItem: 'SaleItem',
+  SaleItemLot: 'SaleItemLot',
   SaleStatusHistory: 'SaleStatusHistory',
   DailySalesSummary: 'DailySalesSummary',
   RegionSalesTarget: 'RegionSalesTarget',
@@ -559,6 +560,18 @@ export const SaleItemScalarFieldEnum = {
 } as const
 
 export type SaleItemScalarFieldEnum = (typeof SaleItemScalarFieldEnum)[keyof typeof SaleItemScalarFieldEnum]
+
+
+export const SaleItemLotScalarFieldEnum = {
+  id: 'id',
+  saleItemId: 'saleItemId',
+  lotId: 'lotId',
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SaleItemLotScalarFieldEnum = (typeof SaleItemLotScalarFieldEnum)[keyof typeof SaleItemLotScalarFieldEnum]
 
 
 export const SaleStatusHistoryScalarFieldEnum = {

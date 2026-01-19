@@ -518,7 +518,8 @@ model ProductStockLot {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  saleItemLots    SaleItemLot[] // การใช้งาน LOT นี้ในการขาย
 }
 
 enum SaleStatus {
@@ -634,6 +635,24 @@ model SaleItem {
   
   sale                  Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product               Product  @relation("SaleItemProduct", fields: [productId], references: [id], onDelete: Restrict)
+  lotAllocations        SaleItemLot[]  // LOT ที่ใช้สำหรับสินค้านี้
+}
+
+// เก็บข้อมูลว่า SaleItem แต่ละรายการใช้ LOT ไหนบ้าง
+model SaleItemLot {
+  id              String    @id @default(cuid())
+  saleItemId      String
+  lotId           String
+  quantity        Int       // จำนวนที่ใช้จาก LOT นี้
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  saleItem        SaleItem        @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+  lot             ProductStockLot @relation(fields: [lotId], references: [id], onDelete: Restrict)
+
+  @@unique([saleItemId, lotId])
+  @@index([saleItemId])
+  @@index([lotId])
 }
 
 model SaleStatusHistory {

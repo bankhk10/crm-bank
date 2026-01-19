@@ -406,6 +406,7 @@ export const ModelName = {
   ProductStockLot: 'ProductStockLot',
   Sale: 'Sale',
   SaleItem: 'SaleItem',
+  SaleItemLot: 'SaleItemLot',
   SaleStatusHistory: 'SaleStatusHistory',
   DailySalesSummary: 'DailySalesSummary',
   RegionSalesTarget: 'RegionSalesTarget',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
+    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2063,6 +2064,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SaleItemLot: {
+      payload: Prisma.$SaleItemLotPayload<ExtArgs>
+      fields: Prisma.SaleItemLotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SaleItemLotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SaleItemLotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        findFirst: {
+          args: Prisma.SaleItemLotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SaleItemLotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        findMany: {
+          args: Prisma.SaleItemLotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>[]
+        }
+        create: {
+          args: Prisma.SaleItemLotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        createMany: {
+          args: Prisma.SaleItemLotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SaleItemLotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>[]
+        }
+        delete: {
+          args: Prisma.SaleItemLotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        update: {
+          args: Prisma.SaleItemLotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        deleteMany: {
+          args: Prisma.SaleItemLotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SaleItemLotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SaleItemLotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>[]
+        }
+        upsert: {
+          args: Prisma.SaleItemLotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SaleItemLotPayload>
+        }
+        aggregate: {
+          args: Prisma.SaleItemLotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSaleItemLot>
+        }
+        groupBy: {
+          args: Prisma.SaleItemLotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaleItemLotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SaleItemLotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SaleItemLotCountAggregateOutputType> | number
+        }
+      }
+    }
     SaleStatusHistory: {
       payload: Prisma.$SaleStatusHistoryPayload<ExtArgs>
       fields: Prisma.SaleStatusHistoryFieldRefs
@@ -3302,6 +3377,18 @@ export const SaleItemScalarFieldEnum = {
 export type SaleItemScalarFieldEnum = (typeof SaleItemScalarFieldEnum)[keyof typeof SaleItemScalarFieldEnum]
 
 
+export const SaleItemLotScalarFieldEnum = {
+  id: 'id',
+  saleItemId: 'saleItemId',
+  lotId: 'lotId',
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SaleItemLotScalarFieldEnum = (typeof SaleItemLotScalarFieldEnum)[keyof typeof SaleItemLotScalarFieldEnum]
+
+
 export const SaleStatusHistoryScalarFieldEnum = {
   id: 'id',
   saleId: 'saleId',
@@ -3964,6 +4051,7 @@ export type GlobalOmitConfig = {
   productStockLot?: Prisma.ProductStockLotOmit
   sale?: Prisma.SaleOmit
   saleItem?: Prisma.SaleItemOmit
+  saleItemLot?: Prisma.SaleItemLotOmit
   saleStatusHistory?: Prisma.SaleStatusHistoryOmit
   dailySalesSummary?: Prisma.DailySalesSummaryOmit
   regionSalesTarget?: Prisma.RegionSalesTargetOmit

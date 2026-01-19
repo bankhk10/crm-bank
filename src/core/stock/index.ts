@@ -9,6 +9,8 @@ export {
   releaseStock,
   confirmStockDeduction,
   revertStockDeduction,
+  confirmStockDeductionWithLots,
+  revertStockDeductionFromLots,
 } from "./stock.service";
 
 // Repository

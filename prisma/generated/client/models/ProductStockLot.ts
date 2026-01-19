@@ -277,6 +277,7 @@ export type ProductStockLotWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  saleItemLots?: Prisma.SaleItemLotListRelationFilter
 }
 
 export type ProductStockLotOrderByWithRelationInput = {
@@ -293,6 +294,7 @@ export type ProductStockLotOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   product?: Prisma.ProductOrderByWithRelationInput
+  saleItemLots?: Prisma.SaleItemLotOrderByRelationAggregateInput
 }
 
 export type ProductStockLotWhereUniqueInput = Prisma.AtLeast<{
@@ -312,6 +314,7 @@ export type ProductStockLotWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
+  saleItemLots?: Prisma.SaleItemLotListRelationFilter
 }, "id">
 
 export type ProductStockLotOrderByWithAggregationInput = {
@@ -365,6 +368,7 @@ export type ProductStockLotCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutStockLotsInput
+  saleItemLots?: Prisma.SaleItemLotCreateNestedManyWithoutLotInput
 }
 
 export type ProductStockLotUncheckedCreateInput = {
@@ -380,6 +384,7 @@ export type ProductStockLotUncheckedCreateInput = {
   isUsed?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  saleItemLots?: Prisma.SaleItemLotUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type ProductStockLotUpdateInput = {
@@ -395,6 +400,7 @@ export type ProductStockLotUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutStockLotsNestedInput
+  saleItemLots?: Prisma.SaleItemLotUpdateManyWithoutLotNestedInput
 }
 
 export type ProductStockLotUncheckedUpdateInput = {
@@ -410,6 +416,7 @@ export type ProductStockLotUncheckedUpdateInput = {
   isUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saleItemLots?: Prisma.SaleItemLotUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type ProductStockLotCreateManyInput = {
@@ -521,6 +528,11 @@ export type ProductStockLotSumOrderByAggregateInput = {
   initialQuantity?: Prisma.SortOrder
 }
 
+export type ProductStockLotScalarRelationFilter = {
+  is?: Prisma.ProductStockLotWhereInput
+  isNot?: Prisma.ProductStockLotWhereInput
+}
+
 export type ProductStockLotCreateNestedManyWithoutProductInput = {
   create?: Prisma.XOR<Prisma.ProductStockLotCreateWithoutProductInput, Prisma.ProductStockLotUncheckedCreateWithoutProductInput> | Prisma.ProductStockLotCreateWithoutProductInput[] | Prisma.ProductStockLotUncheckedCreateWithoutProductInput[]
   connectOrCreate?: Prisma.ProductStockLotCreateOrConnectWithoutProductInput | Prisma.ProductStockLotCreateOrConnectWithoutProductInput[]
@@ -563,6 +575,20 @@ export type ProductStockLotUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.ProductStockLotScalarWhereInput | Prisma.ProductStockLotScalarWhereInput[]
 }
 
+export type ProductStockLotCreateNestedOneWithoutSaleItemLotsInput = {
+  create?: Prisma.XOR<Prisma.ProductStockLotCreateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedCreateWithoutSaleItemLotsInput>
+  connectOrCreate?: Prisma.ProductStockLotCreateOrConnectWithoutSaleItemLotsInput
+  connect?: Prisma.ProductStockLotWhereUniqueInput
+}
+
+export type ProductStockLotUpdateOneRequiredWithoutSaleItemLotsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductStockLotCreateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedCreateWithoutSaleItemLotsInput>
+  connectOrCreate?: Prisma.ProductStockLotCreateOrConnectWithoutSaleItemLotsInput
+  upsert?: Prisma.ProductStockLotUpsertWithoutSaleItemLotsInput
+  connect?: Prisma.ProductStockLotWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductStockLotUpdateToOneWithWhereWithoutSaleItemLotsInput, Prisma.ProductStockLotUpdateWithoutSaleItemLotsInput>, Prisma.ProductStockLotUncheckedUpdateWithoutSaleItemLotsInput>
+}
+
 export type ProductStockLotCreateWithoutProductInput = {
   id?: string
   lotNumber: string
@@ -575,6 +601,7 @@ export type ProductStockLotCreateWithoutProductInput = {
   isUsed?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  saleItemLots?: Prisma.SaleItemLotCreateNestedManyWithoutLotInput
 }
 
 export type ProductStockLotUncheckedCreateWithoutProductInput = {
@@ -589,6 +616,7 @@ export type ProductStockLotUncheckedCreateWithoutProductInput = {
   isUsed?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  saleItemLots?: Prisma.SaleItemLotUncheckedCreateNestedManyWithoutLotInput
 }
 
 export type ProductStockLotCreateOrConnectWithoutProductInput = {
@@ -635,6 +663,82 @@ export type ProductStockLotScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ProductStockLot"> | Date | string
 }
 
+export type ProductStockLotCreateWithoutSaleItemLotsInput = {
+  id?: string
+  lotNumber: string
+  quantity: number
+  initialQuantity?: number
+  importDate: Date | string
+  expiryDate?: Date | string | null
+  storageLocation?: string | null
+  notes?: string | null
+  isUsed?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  product: Prisma.ProductCreateNestedOneWithoutStockLotsInput
+}
+
+export type ProductStockLotUncheckedCreateWithoutSaleItemLotsInput = {
+  id?: string
+  productId: string
+  lotNumber: string
+  quantity: number
+  initialQuantity?: number
+  importDate: Date | string
+  expiryDate?: Date | string | null
+  storageLocation?: string | null
+  notes?: string | null
+  isUsed?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProductStockLotCreateOrConnectWithoutSaleItemLotsInput = {
+  where: Prisma.ProductStockLotWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductStockLotCreateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedCreateWithoutSaleItemLotsInput>
+}
+
+export type ProductStockLotUpsertWithoutSaleItemLotsInput = {
+  update: Prisma.XOR<Prisma.ProductStockLotUpdateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedUpdateWithoutSaleItemLotsInput>
+  create: Prisma.XOR<Prisma.ProductStockLotCreateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedCreateWithoutSaleItemLotsInput>
+  where?: Prisma.ProductStockLotWhereInput
+}
+
+export type ProductStockLotUpdateToOneWithWhereWithoutSaleItemLotsInput = {
+  where?: Prisma.ProductStockLotWhereInput
+  data: Prisma.XOR<Prisma.ProductStockLotUpdateWithoutSaleItemLotsInput, Prisma.ProductStockLotUncheckedUpdateWithoutSaleItemLotsInput>
+}
+
+export type ProductStockLotUpdateWithoutSaleItemLotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
+  importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product?: Prisma.ProductUpdateOneRequiredWithoutStockLotsNestedInput
+}
+
+export type ProductStockLotUncheckedUpdateWithoutSaleItemLotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  productId?: Prisma.StringFieldUpdateOperationsInput | string
+  lotNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  quantity?: Prisma.IntFieldUpdateOperationsInput | number
+  initialQuantity?: Prisma.IntFieldUpdateOperationsInput | number
+  importDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiryDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  storageLocation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type ProductStockLotCreateManyProductInput = {
   id?: string
   lotNumber: string
@@ -661,6 +765,7 @@ export type ProductStockLotUpdateWithoutProductInput = {
   isUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saleItemLots?: Prisma.SaleItemLotUpdateManyWithoutLotNestedInput
 }
 
 export type ProductStockLotUncheckedUpdateWithoutProductInput = {
@@ -675,6 +780,7 @@ export type ProductStockLotUncheckedUpdateWithoutProductInput = {
   isUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  saleItemLots?: Prisma.SaleItemLotUncheckedUpdateManyWithoutLotNestedInput
 }
 
 export type ProductStockLotUncheckedUpdateManyWithoutProductInput = {
@@ -692,6 +798,35 @@ export type ProductStockLotUncheckedUpdateManyWithoutProductInput = {
 }
 
 
+/**
+ * Count Type ProductStockLotCountOutputType
+ */
+
+export type ProductStockLotCountOutputType = {
+  saleItemLots: number
+}
+
+export type ProductStockLotCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  saleItemLots?: boolean | ProductStockLotCountOutputTypeCountSaleItemLotsArgs
+}
+
+/**
+ * ProductStockLotCountOutputType without action
+ */
+export type ProductStockLotCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductStockLotCountOutputType
+   */
+  select?: Prisma.ProductStockLotCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ProductStockLotCountOutputType without action
+ */
+export type ProductStockLotCountOutputTypeCountSaleItemLotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SaleItemLotWhereInput
+}
+
 
 export type ProductStockLotSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -707,6 +842,8 @@ export type ProductStockLotSelect<ExtArgs extends runtime.Types.Extensions.Inter
   createdAt?: boolean
   updatedAt?: boolean
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  saleItemLots?: boolean | Prisma.ProductStockLot$saleItemLotsArgs<ExtArgs>
+  _count?: boolean | Prisma.ProductStockLotCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["productStockLot"]>
 
 export type ProductStockLotSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -759,6 +896,8 @@ export type ProductStockLotSelectScalar = {
 export type ProductStockLotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productId" | "lotNumber" | "quantity" | "initialQuantity" | "importDate" | "expiryDate" | "storageLocation" | "notes" | "isUsed" | "createdAt" | "updatedAt", ExtArgs["result"]["productStockLot"]>
 export type ProductStockLotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  saleItemLots?: boolean | Prisma.ProductStockLot$saleItemLotsArgs<ExtArgs>
+  _count?: boolean | Prisma.ProductStockLotCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductStockLotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
@@ -771,6 +910,7 @@ export type $ProductStockLotPayload<ExtArgs extends runtime.Types.Extensions.Int
   name: "ProductStockLot"
   objects: {
     product: Prisma.$ProductPayload<ExtArgs>
+    saleItemLots: Prisma.$SaleItemLotPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1180,6 +1320,7 @@ readonly fields: ProductStockLotFieldRefs;
 export interface Prisma__ProductStockLotClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  saleItemLots<T extends Prisma.ProductStockLot$saleItemLotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductStockLot$saleItemLotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SaleItemLotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1614,6 +1755,30 @@ export type ProductStockLotDeleteManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many ProductStockLots to delete.
    */
   limit?: number
+}
+
+/**
+ * ProductStockLot.saleItemLots
+ */
+export type ProductStockLot$saleItemLotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SaleItemLot
+   */
+  select?: Prisma.SaleItemLotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SaleItemLot
+   */
+  omit?: Prisma.SaleItemLotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SaleItemLotInclude<ExtArgs> | null
+  where?: Prisma.SaleItemLotWhereInput
+  orderBy?: Prisma.SaleItemLotOrderByWithRelationInput | Prisma.SaleItemLotOrderByWithRelationInput[]
+  cursor?: Prisma.SaleItemLotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SaleItemLotScalarFieldEnum | Prisma.SaleItemLotScalarFieldEnum[]
 }
 
 /**

@@ -4,13 +4,15 @@ import { db as prisma } from "@/src/infrastructure/database";
 import { SaleStatus } from "@/src/infrastructure/database";
 import {
   confirmStockDeduction,
-  revertStockDeduction,
+  confirmStockDeductionWithLots,
+  revertStockDeductionFromLots,
   releaseStock,
 } from "@/src/core/stock";
+import type { LotAllocation } from "@/src/core/stock/stock.types";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -19,8 +21,21 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { status, deliveryDate, creditDueDate, paymentDate, notes } =
-      await request.json();
+    const {
+      status,
+      deliveryDate,
+      creditDueDate,
+      paymentDate,
+      notes,
+      lotAllocations,
+    } = (await request.json()) as {
+      status?: string;
+      deliveryDate?: string | null;
+      creditDueDate?: string | null;
+      paymentDate?: string | null;
+      notes?: string;
+      lotAllocations?: LotAllocation[];
+    };
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -33,12 +48,12 @@ export async function POST(
     const updateData: any = {};
 
     // 1. Status
-    if (status && Object.values(SaleStatus).includes(status)) {
+    if (status && Object.values(SaleStatus).includes(status as SaleStatus)) {
       // Validate: CANCELLED requires notes
       if (status === "CANCELLED" && (!notes || !notes.trim())) {
         return NextResponse.json(
           { error: "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -64,7 +79,7 @@ export async function POST(
       if ((isAddingDate || isChangingDate) && sale.isDeliveryLocked) {
         return NextResponse.json(
           { error: "ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่จัดส่งแล้ว" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -168,10 +183,16 @@ export async function POST(
 
         if (!oldDate && newDate) {
           // Transition: Reserved -> Real Deducted
-          await confirmStockDeduction(id, tx);
+          // Use LOT selection if provided, otherwise use FIFO
+          if (lotAllocations && lotAllocations.length > 0) {
+            await confirmStockDeductionWithLots(id, lotAllocations, tx);
+          } else {
+            await confirmStockDeduction(id, tx);
+          }
         } else if (oldDate && !newDate) {
           // Transition: Real Deducted -> Reserved
-          await revertStockDeduction(id, tx);
+          // Use LOT-aware revert if allocations were saved
+          await revertStockDeductionFromLots(id, tx);
         }
       }
 
@@ -236,12 +257,11 @@ export async function POST(
 
       // If status is COMPLETED, sync the sales summary for this date
       if (updatedSale.status === "COMPLETED") {
-        const { syncSalesSummary } = await import(
-          "@/lib/sales-summary-service"
-        );
+        const { syncSalesSummary } =
+          await import("@/lib/sales-summary-service");
         // Run in background (fire and forget) to avoid delaying response
         syncSalesSummary(updatedSale.saleDate).catch((err) =>
-          console.error("Error syncing sales summary:", err)
+          console.error("Error syncing sales summary:", err),
         );
       }
     } catch (e) {
@@ -253,7 +273,7 @@ export async function POST(
     console.error("Error updating fulfillment:", error);
     return NextResponse.json(
       { error: "Failed to update fulfillment" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

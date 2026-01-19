@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { addDays } from "date-fns";
 import {
@@ -13,6 +13,7 @@ import {
   Loader2,
   ClipboardCheck,
   X,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,7 @@ import {
 import type { SaleDetailResponse, StockWarning } from "@/types/sales";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import LotSelector from "@/components/features/fulfillment/lot-selector";
 
 const FULFILLMENT_STATUSES = [
   "APPROVED",
@@ -71,6 +73,24 @@ export default function FulfillmentPage({
   const [paymentDate, setPaymentDate] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
 
+  // LOT allocation states
+  interface LotAllocation {
+    saleItemId: string;
+    lotId: string;
+    quantity: number;
+  }
+  const [lotAllocations, setLotAllocations] = useState<LotAllocation[]>([]);
+  const [lotAllocationsValid, setLotAllocationsValid] = useState(false);
+
+  // Handler for LOT allocations change from LotSelector
+  const handleLotAllocationsChange = useCallback(
+    (allocations: LotAllocation[], isValid: boolean) => {
+      setLotAllocations(allocations);
+      setLotAllocationsValid(isValid);
+    },
+    [],
+  );
+
   useEffect(() => {
     fetch(`/api/sales/${id}`)
       .then((res) => {
@@ -83,17 +103,17 @@ export default function FulfillmentPage({
         setStatus(data.sale.status);
         if (data.sale.deliveryDate) {
           setDeliveryDate(
-            new Date(data.sale.deliveryDate).toISOString().split("T")[0]
+            new Date(data.sale.deliveryDate).toISOString().split("T")[0],
           );
         }
         if (data.sale.creditDueDate) {
           setDueDate(
-            new Date(data.sale.creditDueDate).toISOString().split("T")[0]
+            new Date(data.sale.creditDueDate).toISOString().split("T")[0],
           );
         }
         if (data.sale.paymentDate) {
           setPaymentDate(
-            new Date(data.sale.paymentDate).toISOString().split("T")[0]
+            new Date(data.sale.paymentDate).toISOString().split("T")[0],
           );
         }
         if (data.sale.notes) {
@@ -161,8 +181,21 @@ export default function FulfillmentPage({
     if (stockWarnings.length > 0 && deliveryStatuses.includes(status)) {
       const productNames = stockWarnings.map((w) => w.productName).join(", ");
       setError(
-        `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งหรือเสร็จสิ้นได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`
+        `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งหรือเสร็จสิ้นได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`,
       );
+      setSubmitting(false);
+      return;
+    }
+
+    // Validate: If delivery date is being set for the first time and LOT allocations are not complete
+    const hadNoDeliveryDate = !saleData?.sale?.deliveryDate;
+    if (
+      deliveryDate &&
+      hadNoDeliveryDate &&
+      lotAllocations.length > 0 &&
+      !lotAllocationsValid
+    ) {
+      setError("กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ");
       setSubmitting(false);
       return;
     }
@@ -177,6 +210,9 @@ export default function FulfillmentPage({
           creditDueDate: dueDate,
           paymentDate,
           notes,
+          // Include LOT allocations only when setting delivery date for first time
+          lotAllocations:
+            deliveryDate && hadNoDeliveryDate ? lotAllocations : undefined,
         }),
       });
 
@@ -298,8 +334,8 @@ export default function FulfillmentPage({
                   {sale.deliveryMethod === "CUSTOMER_PICKUP"
                     ? "วันที่มารับสินค้า"
                     : sale.deliveryMethod === "SALES_DELIVERY"
-                    ? "วันที่ต้องการให้ส่งของ"
-                    : "วันที่ต้องการของ"}
+                      ? "วันที่ต้องการให้ส่งของ"
+                      : "วันที่ต้องการของ"}
                 </span>
               </div>
               <p className="font-bold text-gray-900 text-base sm:text-lg">
@@ -348,7 +384,7 @@ export default function FulfillmentPage({
                 variant="secondary"
                 className={cn(
                   "font-bold px-3 py-1.5",
-                  getSaleStatusColor(sale.status)
+                  getSaleStatusColor(sale.status),
                 )}
               >
                 {SaleStatusLabels[sale.status]}
@@ -565,6 +601,33 @@ export default function FulfillmentPage({
                   </p>
                 )}
               </div>
+
+              {/* 6. LOT Selection - Show only when setting delivery date for first time */}
+              {deliveryDate && !saleData?.sale?.deliveryDate && (
+                <div className="space-y-3 group/field pt-4 border-t border-slate-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
+                      6
+                    </span>
+                    <Package className="h-4 w-4 text-indigo-600" />
+                    <span className="text-sm font-semibold text-slate-700">
+                      เลือก LOT สินค้า
+                    </span>
+                    <span className="text-red-500">*</span>
+                  </div>
+                  <LotSelector
+                    saleId={id}
+                    onAllocationsChange={handleLotAllocationsChange}
+                    disabled={submitting}
+                  />
+                  {lotAllocations.length > 0 && !lotAllocationsValid && (
+                    <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
+                      กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
             {/* Action Buttons */}
             <div className="sm:pt-2 mt-6 sm:mt-8 space-y-6">

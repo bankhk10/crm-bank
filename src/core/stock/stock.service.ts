@@ -10,7 +10,11 @@
 
 import { db as prisma } from "@/src/infrastructure/database";
 import type { Prisma } from "@/src/infrastructure/database";
-import type { StockAllocationResult, BackorderItem } from "./stock.types";
+import type {
+  StockAllocationResult,
+  BackorderItem,
+  LotAllocation,
+} from "./stock.types";
 import * as StockRepository from "./stock.repository";
 
 /**
@@ -341,4 +345,177 @@ export async function revertStockDeduction(
   }
 
   console.log(`Stock deduction reverted for sale ${saleId}`);
+}
+
+/**
+ * Confirms stock deduction with specific LOT selection.
+ * This is the NEW function that allows user to specify which LOTs to use.
+ * - Deducts from specific physical lots as specified
+ * - Saves LOT allocations to SaleItemLot
+ * - Updates ProductStock summary
+ */
+export async function confirmStockDeductionWithLots(
+  saleId: string,
+  lotAllocations: LotAllocation[],
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  const sale = await db.sale.findUnique({
+    where: { id: saleId },
+    include: { items: true },
+  });
+
+  if (!sale) throw new Error("Sale not found");
+
+  const confirm = async (client: Prisma.TransactionClient) => {
+    // Group allocations by saleItemId
+    const allocationsByItem = new Map<string, LotAllocation[]>();
+    for (const alloc of lotAllocations) {
+      const existing = allocationsByItem.get(alloc.saleItemId) || [];
+      existing.push(alloc);
+      allocationsByItem.set(alloc.saleItemId, existing);
+    }
+
+    for (const item of sale.items) {
+      const itemAllocations = allocationsByItem.get(item.id) || [];
+
+      // Calculate total allocated for this item
+      const totalAllocated = itemAllocations.reduce(
+        (sum, a) => sum + a.quantity,
+        0,
+      );
+
+      if (totalAllocated !== item.quantity) {
+        throw new Error(
+          `LOT allocation mismatch for sale item ${item.id}: ` +
+            `required ${item.quantity}, allocated ${totalAllocated}`,
+        );
+      }
+
+      // Deduct from each specified LOT
+      for (const alloc of itemAllocations) {
+        // Verify LOT exists and has enough quantity
+        const lot = await StockRepository.getLotById(alloc.lotId, client);
+        if (!lot) {
+          throw new Error(`LOT ${alloc.lotId} not found`);
+        }
+        if (lot.quantity < alloc.quantity) {
+          throw new Error(
+            `LOT ${lot.lotNumber} has insufficient quantity: ` +
+              `available ${lot.quantity}, requested ${alloc.quantity}`,
+          );
+        }
+        if (lot.productId !== item.productId) {
+          throw new Error(`LOT ${lot.lotNumber} is for a different product`);
+        }
+
+        // Deduct from LOT
+        await StockRepository.updateLotQuantity(
+          lot.id,
+          -alloc.quantity,
+          client,
+        );
+
+        // Save LOT allocation record
+        await StockRepository.createSaleItemLot(
+          {
+            saleItemId: item.id,
+            lotId: alloc.lotId,
+            quantity: alloc.quantity,
+          },
+          client,
+        );
+      }
+
+      // Update ProductStock summary
+      await StockRepository.updateProductStock(
+        item.productId,
+        {
+          availableQuantityIncrement: -item.quantity,
+          reservedQuantityIncrement: -item.quantity,
+          physicalBalanceIncrement: -item.quantity,
+        },
+        client,
+      );
+    }
+  };
+
+  if (tx) {
+    await confirm(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await confirm(client);
+    });
+  }
+
+  console.log(`Stock deducted with LOT selection for sale ${saleId}`);
+}
+
+/**
+ * Reverts stock deduction and restores LOT allocations.
+ * This version uses saved SaleItemLot records to know exactly which LOTs to restore.
+ */
+export async function revertStockDeductionFromLots(
+  saleId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  // Get saved LOT allocations for this sale
+  const saleItemLots = await StockRepository.getSaleItemLots(saleId, db);
+
+  if (!saleItemLots || saleItemLots.length === 0) {
+    // No LOT allocations found - fall back to regular revert
+    console.log(
+      `No LOT allocations found for sale ${saleId}, using fallback revert`,
+    );
+    return revertStockDeduction(saleId, tx);
+  }
+
+  const sale = await db.sale.findUnique({
+    where: { id: saleId },
+    include: { items: true },
+  });
+
+  if (!sale) throw new Error("Sale not found");
+
+  const revert = async (client: Prisma.TransactionClient) => {
+    // Restore stock to each LOT based on saved allocations
+    for (const saleItemLot of saleItemLots) {
+      await StockRepository.updateLotQuantity(
+        saleItemLot.lotId,
+        saleItemLot.quantity, // Add back to LOT
+        client,
+      );
+    }
+
+    // Update ProductStock summary for each item
+    for (const item of sale.items) {
+      await StockRepository.updateProductStock(
+        item.productId,
+        {
+          availableQuantityIncrement: item.quantity,
+          reservedQuantityIncrement: item.quantity,
+          physicalBalanceIncrement: item.quantity,
+        },
+        client,
+      );
+    }
+
+    // Delete saved LOT allocations
+    await StockRepository.deleteSaleItemLots(saleId, client);
+  };
+
+  if (tx) {
+    await revert(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await revert(client);
+    });
+  }
+
+  console.log(
+    `Stock deduction reverted from LOT allocations for sale ${saleId}`,
+  );
 }

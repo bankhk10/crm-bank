@@ -80,3 +80,44 @@ export interface StockWarning {
   requestedQuantity: number;
   shortfall: number;
 }
+
+/**
+ * LOT allocation for a sale item - used when confirming stock deduction
+ */
+export interface LotAllocation {
+  saleItemId: string;
+  lotId: string;
+  quantity: number;
+}
+
+/**
+ * Input for confirming stock deduction with LOT selection
+ */
+export interface ConfirmStockDeductionInput {
+  saleId: string;
+  lotAllocations: LotAllocation[];
+}
+
+/**
+ * LOT info for display in UI
+ */
+export interface LotInfo {
+  id: string;
+  lotNumber: string;
+  quantity: number; // available quantity in this lot
+  expiryDate?: Date | null;
+  storageLocation?: string | null;
+  productId: string;
+}
+
+/**
+ * Available LOTs for a sale item
+ */
+export interface SaleItemLotOptions {
+  saleItemId: string;
+  productId: string;
+  productCode: string;
+  productName: string;
+  requiredQuantity: number;
+  availableLots: LotInfo[];
+}

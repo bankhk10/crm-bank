@@ -150,6 +150,11 @@ export type Sale = Prisma.SaleModel
  */
 export type SaleItem = Prisma.SaleItemModel
 /**
+ * Model SaleItemLot
+ * 
+ */
+export type SaleItemLot = Prisma.SaleItemLotModel
+/**
  * Model SaleStatusHistory
  * 
  */
