@@ -2,11 +2,58 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
 import { StockRepository } from "@/src/core/stock";
-import type { SaleItemLotOptions, LotInfo } from "@/src/core/stock/stock.types";
+import type { LotInfo } from "@/src/core/stock/stock.types";
+
+interface SuggestedAllocation {
+  lotId: string;
+  lotNumber: string;
+  quantity: number;
+}
+
+interface SaleItemLotOptionsExtended {
+  saleItemId: string;
+  productId: string;
+  productCode: string;
+  productName: string;
+  requiredQuantity: number;
+  availableLots: LotInfo[];
+  existingAllocations: SuggestedAllocation[];
+  suggestedAllocations: SuggestedAllocation[]; // Auto-calculated allocations
+}
+
+/**
+ * Calculate suggested allocations based on required quantity
+ * Uses LOTs with least stock first (ascending order)
+ */
+function calculateSuggestedAllocations(
+  availableLots: LotInfo[],
+  requiredQuantity: number,
+): SuggestedAllocation[] {
+  const allocations: SuggestedAllocation[] = [];
+  let remaining = requiredQuantity;
+
+  // LOTs are already sorted by quantity ascending from the repository
+  for (const lot of availableLots) {
+    if (remaining <= 0) break;
+
+    const allocQty = Math.min(lot.quantity, remaining);
+    if (allocQty > 0) {
+      allocations.push({
+        lotId: lot.id,
+        lotNumber: lot.lotNumber,
+        quantity: allocQty,
+      });
+      remaining -= allocQty;
+    }
+  }
+
+  return allocations;
+}
 
 /**
  * GET /api/sales/[id]/lot-options
  * Get available LOT options for each sale item
+ * Returns LOTs sorted by quantity (least first) with auto-suggested allocations
  */
 export async function GET(
   request: NextRequest,
@@ -46,12 +93,12 @@ export async function GET(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    // Get available LOTs for each sale item
-    const lotOptions: SaleItemLotOptions[] = await Promise.all(
+    // Get available LOTs for each sale item (sorted by quantity ascending)
+    const lotOptions: SaleItemLotOptionsExtended[] = await Promise.all(
       sale.items.map(async (item) => {
-        const availableLots = await StockRepository.getAvailableLots(
-          item.productId,
-        );
+        // Use the new function that sorts by quantity ascending
+        const availableLots =
+          await StockRepository.getAvailableLotsOrderByQuantity(item.productId);
 
         const lotInfos: LotInfo[] = availableLots.map((lot) => ({
           id: lot.id,
@@ -63,12 +110,18 @@ export async function GET(
         }));
 
         // Check if this sale already has LOT allocations
-        const existingAllocations =
+        const existingAllocations: SuggestedAllocation[] =
           item.lotAllocations?.map((la) => ({
             lotId: la.lotId,
             lotNumber: la.lot.lotNumber,
             quantity: la.quantity,
           })) || [];
+
+        // Calculate suggested allocations if no existing allocations
+        const suggestedAllocations =
+          existingAllocations.length > 0
+            ? existingAllocations
+            : calculateSuggestedAllocations(lotInfos, item.quantity);
 
         return {
           saleItemId: item.id,
@@ -77,7 +130,8 @@ export async function GET(
           productName: item.product.name,
           requiredQuantity: item.quantity,
           availableLots: lotInfos,
-          existingAllocations, // Include existing allocations if any
+          existingAllocations,
+          suggestedAllocations,
         };
       }),
     );

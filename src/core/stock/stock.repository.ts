@@ -27,6 +27,26 @@ export async function getAvailableLots(
 }
 
 /**
+ * Get stock lots for a product ordered by quantity ascending (least stock first)
+ * This is used to prioritize using lots with less stock first
+ */
+export async function getAvailableLotsOrderByQuantity(
+  productId: string,
+  tx?: Prisma.TransactionClient,
+): Promise<StockLot[]> {
+  const db = tx || prisma;
+
+  return db.productStockLot.findMany({
+    where: {
+      productId,
+      isUsed: false,
+      quantity: { gt: 0 },
+    },
+    orderBy: { lotNumber: "asc" },
+  });
+}
+
+/**
  * Get product stock summary
  */
 export async function getProductStock(

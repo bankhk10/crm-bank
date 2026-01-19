@@ -25,6 +25,12 @@ interface ExistingAllocation {
   quantity: number;
 }
 
+interface SuggestedAllocation {
+  lotId: string;
+  lotNumber: string;
+  quantity: number;
+}
+
 interface SaleItemLotOption {
   saleItemId: string;
   productId: string;
@@ -33,6 +39,7 @@ interface SaleItemLotOption {
   requiredQuantity: number;
   availableLots: LotInfo[];
   existingAllocations?: ExistingAllocation[];
+  suggestedAllocations?: SuggestedAllocation[]; // Auto-calculated allocations from API
 }
 
 interface LotAllocation {
@@ -73,14 +80,15 @@ export function LotSelector({
         setLotOptions(data.items || []);
         setHasExistingAllocations(data.hasExistingAllocations || false);
 
-        // Initialize allocations from existing or empty
+        // Initialize allocations from suggestedAllocations (auto-filled from API)
         const initialAllocations = new Map<string, Map<string, number>>();
         for (const item of data.items || []) {
           const itemAllocs = new Map<string, number>();
-          if (item.existingAllocations && item.existingAllocations.length > 0) {
-            for (const alloc of item.existingAllocations) {
-              itemAllocs.set(alloc.lotId, alloc.quantity);
-            }
+          // Use suggestedAllocations which already includes existing or auto-calculated
+          const source =
+            item.suggestedAllocations || item.existingAllocations || [];
+          for (const alloc of source) {
+            itemAllocs.set(alloc.lotId, alloc.quantity);
           }
           initialAllocations.set(item.saleItemId, itemAllocs);
         }

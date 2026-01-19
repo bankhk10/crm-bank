@@ -182,18 +182,37 @@ export async function POST(
         const oldDate = sale.deliveryDate;
 
         if (!oldDate && newDate) {
-          // Transition: Reserved -> Real Deducted
-          // Use LOT selection if provided, otherwise use FIFO
+          // FIRST TIME setting delivery date - create stock deduction
           if (lotAllocations && lotAllocations.length > 0) {
             await confirmStockDeductionWithLots(id, lotAllocations, tx);
           } else {
             await confirmStockDeduction(id, tx);
           }
         } else if (oldDate && !newDate) {
-          // Transition: Real Deducted -> Reserved
-          // Use LOT-aware revert if allocations were saved
+          // Removing delivery date - revert stock
           await revertStockDeductionFromLots(id, tx);
+        } else if (
+          oldDate &&
+          newDate &&
+          lotAllocations &&
+          lotAllocations.length > 0
+        ) {
+          // Delivery date already exists AND LOT allocations provided
+          // This means user wants to UPDATE LOT allocations
+          // Revert existing allocations first, then apply new ones
+          await revertStockDeductionFromLots(id, tx);
+          await confirmStockDeductionWithLots(id, lotAllocations, tx);
         }
+      } else if (
+        lotAllocations &&
+        lotAllocations.length > 0 &&
+        sale.deliveryDate &&
+        status !== "CANCELLED"
+      ) {
+        // LOT allocations provided but deliveryDate not being changed
+        // This means user is only updating LOT allocations
+        await revertStockDeductionFromLots(id, tx);
+        await confirmStockDeductionWithLots(id, lotAllocations, tx);
       }
 
       // Handle Credit Limit restoration on Payment (for non-PREPAID)

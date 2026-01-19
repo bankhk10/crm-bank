@@ -187,14 +187,8 @@ export default function FulfillmentPage({
       return;
     }
 
-    // Validate: If delivery date is being set for the first time and LOT allocations are not complete
-    const hadNoDeliveryDate = !saleData?.sale?.deliveryDate;
-    if (
-      deliveryDate &&
-      hadNoDeliveryDate &&
-      lotAllocations.length > 0 &&
-      !lotAllocationsValid
-    ) {
+    // Validate: If LOT allocations have been started but not complete
+    if (lotAllocations.length > 0 && !lotAllocationsValid) {
       setError("กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ");
       setSubmitting(false);
       return;
@@ -210,9 +204,8 @@ export default function FulfillmentPage({
           creditDueDate: dueDate,
           paymentDate,
           notes,
-          // Include LOT allocations only when setting delivery date for first time
-          lotAllocations:
-            deliveryDate && hadNoDeliveryDate ? lotAllocations : undefined,
+          // Always include LOT allocations if valid
+          lotAllocations: lotAllocationsValid ? lotAllocations : undefined,
         }),
       });
 
@@ -602,32 +595,29 @@ export default function FulfillmentPage({
                 )}
               </div>
 
-              {/* 6. LOT Selection - Show only when setting delivery date for first time */}
-              {deliveryDate && !saleData?.sale?.deliveryDate && (
-                <div className="space-y-3 group/field pt-4 border-t border-slate-200">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
-                      6
-                    </span>
-                    <Package className="h-4 w-4 text-indigo-600" />
-                    <span className="text-sm font-semibold text-slate-700">
-                      เลือก LOT สินค้า
-                    </span>
-                    <span className="text-red-500">*</span>
-                  </div>
-                  <LotSelector
-                    saleId={id}
-                    onAllocationsChange={handleLotAllocationsChange}
-                    disabled={submitting}
-                  />
-                  {lotAllocations.length > 0 && !lotAllocationsValid && (
-                    <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
-                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
-                      กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
-                    </p>
-                  )}
+              {/* 6. LOT Selection - Always show for selecting stock lots */}
+              <div className="space-y-3 group/field pt-4 border-t border-slate-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
+                    6
+                  </span>
+                  <Package className="h-4 w-4 text-indigo-600" />
+                  <span className="text-sm font-semibold text-slate-700">
+                    เลือก LOT สินค้า
+                  </span>
                 </div>
-              )}
+                <LotSelector
+                  saleId={id}
+                  onAllocationsChange={handleLotAllocationsChange}
+                  disabled={submitting}
+                />
+                {lotAllocations.length > 0 && !lotAllocationsValid && (
+                  <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
+                    กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
+                  </p>
+                )}
+              </div>
             </CardContent>
             {/* Action Buttons */}
             <div className="sm:pt-2 mt-6 sm:mt-8 space-y-6">
