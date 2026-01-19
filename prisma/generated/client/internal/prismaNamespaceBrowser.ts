@@ -80,7 +80,6 @@ export const ModelName = {
   ProductGroupSalesTarget: 'ProductGroupSalesTarget',
   MonthlySalesTarget: 'MonthlySalesTarget',
   ProductSalesTarget: 'ProductSalesTarget',
-  EmployeeSalesTarget: 'EmployeeSalesTarget',
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
   ApplicationLog: 'ApplicationLog',
@@ -667,28 +666,6 @@ export const ProductSalesTargetScalarFieldEnum = {
 } as const
 
 export type ProductSalesTargetScalarFieldEnum = (typeof ProductSalesTargetScalarFieldEnum)[keyof typeof ProductSalesTargetScalarFieldEnum]
-
-
-export const EmployeeSalesTargetScalarFieldEnum = {
-  id: 'id',
-  employeeId: 'employeeId',
-  year: 'year',
-  month: 'month',
-  customerId: 'customerId',
-  customerRegion: 'customerRegion',
-  productId: 'productId',
-  productGroup: 'productGroup',
-  quantity: 'quantity',
-  unitPrice: 'unitPrice',
-  totalAmount: 'totalAmount',
-  notes: 'notes',
-  createdById: 'createdById',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
-} as const
-
-export type EmployeeSalesTargetScalarFieldEnum = (typeof EmployeeSalesTargetScalarFieldEnum)[keyof typeof EmployeeSalesTargetScalarFieldEnum]
 
 
 export const AuditLogScalarFieldEnum = {

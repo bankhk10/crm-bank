@@ -162,7 +162,6 @@ model Employee {
   responsibleCustomers Customer[]  @relation("EmployeeResponsible")
   sales                Sale[]      @relation("SaleEmployee")
   dailySalesSummaries  DailySalesSummary[]
-  salesTargets         EmployeeSalesTarget[] @relation("EmployeeSalesTargets")
 }
 
 model Department {
@@ -358,7 +357,6 @@ model Customer {
   responsibleEmployee     Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
   sales                   Sale[]        @relation("SaleCustomer")
   dailySalesSummaries     DailySalesSummary[]
-  salesTargets            EmployeeSalesTarget[] @relation("CustomerSalesTargets")
 }
 
 model CreditLimit {
@@ -445,7 +443,6 @@ model Product {
   stock                 ProductStock?
   dailySalesSummaries   DailySalesSummary[]
   salesTargets          ProductSalesTarget[] @relation("ProductSalesTargets")
-  employeeSalesTargets  EmployeeSalesTarget[] @relation("ProductEmployeeSalesTargets")
 }
 
 model ProductStock {
@@ -782,44 +779,6 @@ model ProductSalesTarget {
   @@unique([productId, year, month]) // ป้องกันข้อมูลซ้ำซ้อน
   @@index([year, month])
   @@index([productId])
-}
-
-// เป้ายอดขายรายพนักงาน - แต่ละ entry คือเป้าสำหรับ 1 สินค้า 1 ร้านค้า ในเดือนนั้น
-model EmployeeSalesTarget {
-  id              String   @id @default(cuid())
-  employeeId      String   // FK to Employee
-  year            Int      // ปี ค.ศ.
-  month           Int      // เดือน (1-12)
-  
-  // ร้านค้าที่จะขาย
-  customerId      String   // FK to Customer
-  customerRegion  String?  // Denormalized: ภาคของลูกค้า (สำหรับ Dashboard)
-  
-  // สินค้าที่จะขาย
-  productId       String   // FK to Product
-  productGroup    String?  // Denormalized: กลุ่มสินค้า (สำหรับ Dashboard)
-  
-  // จำนวนและราคา
-  quantity        Int      // จำนวนลัง
-  unitPrice       Decimal  @db.Decimal(15, 2) // ราคาต่อลัง ณ เวลาที่บันทึก
-  totalAmount     Decimal  @db.Decimal(15, 2) // quantity * unitPrice
-  
-  notes           String?  // หมายเหตุ
-  
-  createdById     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deletedAt       DateTime?
-  
-  employee        Employee @relation("EmployeeSalesTargets", fields: [employeeId], references: [id], onDelete: Cascade)
-  customer        Customer @relation("CustomerSalesTargets", fields: [customerId], references: [id], onDelete: Cascade)
-  product         Product  @relation("ProductEmployeeSalesTargets", fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, year, month, customerId, productId]) // ป้องกันข้อมูลซ้ำซ้อน
-  @@index([employeeId, year, month])
-  @@index([year, month])
-  @@index([customerRegion])
-  @@index([productGroup])
 }
 
 // ==========================================
