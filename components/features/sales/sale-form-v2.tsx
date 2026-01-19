@@ -82,47 +82,47 @@ export function SaleFormV2({
   // Form state
   const [customerId, setCustomerId] = useState(initialData?.customerId || "");
   const [employeeId, setEmployeeId] = useState(
-    initialData?.employeeId || (!isEdit ? currentUser?.employeeId : "") || ""
+    initialData?.employeeId || (!isEdit ? currentUser?.employeeId : "") || "",
   );
   const [pickupCompanyId, setPickupCompanyId] = useState(
-    initialData?.pickupCompanyId || ""
+    initialData?.pickupCompanyId || "",
   );
   const [paymentTerm, setPaymentTerm] = useState<PaymentTermType>(
-    initialData?.paymentTerm || "CREDIT_90"
+    initialData?.paymentTerm || "CREDIT_90",
   );
   const [creditDays, setCreditDays] = useState(initialData?.creditDays || 90);
   const [creditDueDate, setCreditDueDate] = useState(
-    initialData?.creditDueDate || ""
+    initialData?.creditDueDate || "",
   );
   const [saleDate, setSaleDate] = useState(
-    initialData?.saleDate || new Date().toISOString().split("T")[0]
+    initialData?.saleDate || new Date().toISOString().split("T")[0],
   );
   const [usePromotionalCredit, setUsePromotionalCredit] = useState(
-    initialData?.usePromotionalCredit || false
+    initialData?.usePromotionalCredit || false,
   );
   const [promotionalCreditUsed, setPromotionalCreditUsed] = useState(
-    initialData?.promotionalCreditUsed || 0
+    initialData?.promotionalCreditUsed || 0,
   );
   const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
-    initialData?.requestedDeliveryDate || ""
+    initialData?.requestedDeliveryDate || "",
   );
   const [deliveryDate, setDeliveryDate] = useState(
-    initialData?.deliveryDate || ""
+    initialData?.deliveryDate || "",
   );
 
   // Address state
   const [parsedBilling] = useState(() =>
-    parseAddress(initialData?.billingAddress || "")
+    parseAddress(initialData?.billingAddress || ""),
   );
   const [billingAddress, setBillingAddress] = useState(
-    initialData?.billingAddress || ""
+    initialData?.billingAddress || "",
   );
   const [billingStreet, setBillingStreet] = useState(parsedBilling.street);
   const [billingThaiAddress, setBillingThaiAddress] = useState(
-    parsedBilling.thaiAddress
+    parsedBilling.thaiAddress,
   );
   const [shippingAddress, setShippingAddress] = useState(
-    initialData?.shippingAddress || ""
+    initialData?.shippingAddress || "",
   );
   const [useCustomShippingAddress, setUseCustomShippingAddress] = useState(
     () => {
@@ -136,22 +136,22 @@ export function SaleFormV2({
         return true;
       }
       return false;
-    }
+    },
   );
   const [customShippingAddress, setCustomShippingAddress] = useState(
-    initialData?.shippingAddress || ""
+    initialData?.shippingAddress || "",
   );
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodType>(
-    initialData?.deliveryMethod || "SALES_DELIVERY"
+    initialData?.deliveryMethod || "SALES_DELIVERY",
   );
 
   // Discounts and notes
   const [shippingCost, setShippingCost] = useState(
-    initialData?.shippingCost || 0
+    initialData?.shippingCost || 0,
   );
   const [otherCosts, setOtherCosts] = useState(initialData?.otherCosts || 0);
   const [otherCostsDescription, setOtherCostsDescription] = useState(
-    initialData?.otherCostsDescription || ""
+    initialData?.otherCostsDescription || "",
   );
   const [notes, setNotes] = useState(initialData?.notes || "");
 
@@ -353,7 +353,7 @@ export function SaleFormV2({
           day,
           now.getHours(),
           now.getMinutes(),
-          now.getSeconds()
+          now.getSeconds(),
         );
         return dateWithTime.toISOString();
       })();
@@ -378,12 +378,12 @@ export function SaleFormV2({
           deliveryMethod === "COURIER"
             ? customShippingAddress
             : deliveryMethod === "SALES_DELIVERY"
-            ? useCustomShippingAddress
-              ? customShippingAddress
-              : undefined
-            : useCustomShippingAddress
-            ? customShippingAddress
-            : shippingAddress,
+              ? useCustomShippingAddress
+                ? customShippingAddress
+                : undefined
+              : useCustomShippingAddress
+                ? customShippingAddress
+                : shippingAddress,
         useCustomShipping:
           deliveryMethod === "COURIER" ||
           (deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress),
@@ -469,7 +469,12 @@ export function SaleFormV2({
       )}
 
       {/* Customer & Employee Section */}
-      <SectionHeader title="ข้อมูลลูกค้าและพนักงาน" color="gray" />
+
+      <SectionHeader
+        title="ข้อมูลลูกค้าและพนักงาน"
+        color="gray"
+        className="mt-6"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
         <FormCombobox
