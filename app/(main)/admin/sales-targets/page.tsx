@@ -6,6 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Target,
@@ -19,6 +28,7 @@ import {
   Loader2,
   Sparkles,
   ShoppingBag,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { PRODUCT_GROUP_OPTIONS } from "@/types/product";
@@ -86,6 +96,8 @@ export default function SalesTargetsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("monthly");
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Monthly targets state
   const [monthlyTargets, setMonthlyTargets] = useState<
@@ -129,7 +141,7 @@ export default function SalesTargetsPage() {
           } else {
             monthlyMap[t.month] = Number(t.targetAmount);
           }
-        }
+        },
       );
       setMonthlyTargets(monthlyMap);
 
@@ -145,7 +157,7 @@ export default function SalesTargetsPage() {
           if (t.month !== null) {
             pgMap[t.productGroup][t.month] = Number(t.targetAmount);
           }
-        }
+        },
       );
       setProductGroupTargets(pgMap);
 
@@ -157,7 +169,7 @@ export default function SalesTargetsPage() {
           if (t.month !== null) {
             regionMap[t.region][t.month] = Number(t.targetAmount);
           }
-        }
+        },
       );
       setRegionTargets(regionMap);
 
@@ -180,7 +192,7 @@ export default function SalesTargetsPage() {
             seenProducts.add(t.productId);
             productList.push(t.product);
           }
-        }
+        },
       );
       setProductTargets(productMap);
       if (productList.length > 0) {
@@ -238,7 +250,8 @@ export default function SalesTargetsPage() {
 
       if (!response.ok) throw new Error("Failed to save");
 
-      toast.success("บันทึกเป้าหมายรายเดือนสำเร็จ");
+      setSuccessMessage("บันทึกเป้าหมายรายเดือนสำเร็จ");
+      setSuccessDialogOpen(true);
     } catch (error) {
       console.error("Error saving monthly targets:", error);
       toast.error("ไม่สามารถบันทึกเป้าหมายได้");
@@ -276,7 +289,8 @@ export default function SalesTargetsPage() {
 
       if (!response.ok) throw new Error("Failed to save");
 
-      toast.success("บันทึกเป้าหมายกลุ่มสินค้าสำเร็จ");
+      setSuccessMessage("บันทึกเป้าหมายกลุ่มสินค้าสำเร็จ");
+      setSuccessDialogOpen(true);
     } catch (error) {
       console.error("Error saving product group targets:", error);
       toast.error("ไม่สามารถบันทึกเป้าหมายได้");
@@ -314,7 +328,8 @@ export default function SalesTargetsPage() {
 
       if (!response.ok) throw new Error("Failed to save");
 
-      toast.success("บันทึกเป้าหมายรายภาคสำเร็จ");
+      setSuccessMessage("บันทึกเป้าหมายรายภาคสำเร็จ");
+      setSuccessDialogOpen(true);
     } catch (error) {
       console.error("Error saving region targets:", error);
       toast.error("ไม่สามารถบันทึกเป้าหมายได้");
@@ -330,28 +345,28 @@ export default function SalesTargetsPage() {
   const calculateMonthlyTotal = () => {
     return Object.values(monthlyTargets).reduce(
       (sum, val) => sum + (val || 0),
-      0
+      0,
     );
   };
 
   const calculateProductGroupTotal = (productGroup: string) => {
     return Object.values(productGroupTargets[productGroup] || {}).reduce(
       (sum, val) => sum + (val || 0),
-      0
+      0,
     );
   };
 
   const calculateRegionTotal = (region: string) => {
     return Object.values(regionTargets[region] || {}).reduce(
       (sum, val) => sum + (val || 0),
-      0
+      0,
     );
   };
 
   const calculateProductTotal = (productId: string) => {
     return Object.values(productTargets[productId] || {}).reduce(
       (sum, val) => sum + (val || 0),
-      0
+      0,
     );
   };
 
@@ -402,7 +417,8 @@ export default function SalesTargetsPage() {
 
       if (!response.ok) throw new Error("Failed to save");
 
-      toast.success("บันทึกเป้าหมายรายสินค้าสำเร็จ");
+      setSuccessMessage("บันทึกเป้าหมายรายสินค้าสำเร็จ");
+      setSuccessDialogOpen(true);
     } catch (error) {
       console.error("Error saving product targets:", error);
       toast.error("ไม่สามารถบันทึกเป้าหมายได้");
@@ -536,6 +552,7 @@ export default function SalesTargetsPage() {
                 <div className="flex-1 w-full">
                   <Input
                     type="number"
+                    onWheel={(e) => e.currentTarget.blur()}
                     value={yearlyTarget || ""}
                     onChange={(e) =>
                       setYearlyTarget(parseFloat(e.target.value) || 0)
@@ -594,6 +611,7 @@ export default function SalesTargetsPage() {
                       </span>
                       <Input
                         type="number"
+                        onWheel={(e) => e.currentTarget.blur()}
                         value={monthlyTargets[month.value] || ""}
                         onChange={(e) =>
                           setMonthlyTargets((prev) => ({
@@ -649,7 +667,7 @@ export default function SalesTargetsPage() {
                       <span className="text-sm font-medium text-purple-600">
                         รวม: ฿
                         {formatCurrency(
-                          calculateProductGroupTotal(group.value)
+                          calculateProductGroupTotal(group.value),
                         )}
                       </span>
                     </div>
@@ -664,6 +682,7 @@ export default function SalesTargetsPage() {
                           </Label>
                           <Input
                             type="number"
+                            onWheel={(e) => e.currentTarget.blur()}
                             value={
                               productGroupTargets[group.value]?.[month.value] ||
                               ""
@@ -749,7 +768,7 @@ export default function SalesTargetsPage() {
                       // Add all found products
                       const newProducts = results.filter(
                         (p: ProductInfo) =>
-                          !products.find((ep) => ep.id === p.id)
+                          !products.find((ep) => ep.id === p.id),
                       );
                       if (newProducts.length === 0) {
                         toast.info("สินค้าที่ค้นหาถูกเพิ่มแล้ว");
@@ -809,6 +828,7 @@ export default function SalesTargetsPage() {
                             </Label>
                             <Input
                               type="number"
+                              onWheel={(e) => e.currentTarget.blur()}
                               value={
                                 productTargets[product.id]?.[month.value] || ""
                               }
@@ -885,6 +905,7 @@ export default function SalesTargetsPage() {
                           </Label>
                           <Input
                             type="number"
+                            onWheel={(e) => e.currentTarget.blur()}
                             value={regionTargets[region]?.[month.value] || ""}
                             onChange={(e) =>
                               setRegionTargets((prev) => ({
@@ -909,6 +930,32 @@ export default function SalesTargetsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+        <AlertDialogContent className="max-w-[400px] rounded-2xl">
+          <AlertDialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-green-100 animate-in zoom-in-50 duration-300">
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              </div>
+            </div>
+            <AlertDialogTitle className="text-center text-xl font-bold text-slate-800">
+              บันทึกสำเร็จ
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-slate-600">
+              {successMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction
+              onClick={() => setSuccessDialogOpen(false)}
+              className="w-full sm:w-auto min-w-[120px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white"
+            >
+              ตกลง
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
