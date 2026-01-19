@@ -15,7 +15,7 @@ function randNumber(min = 1, max = 10) {
 export function generateRandomSaleClient(
   customers: Array<any>,
   employees: Array<any>,
-  products: Array<any>
+  products: Array<any>,
 ): SaleFormData {
   const customer = rand(customers);
   const employee = rand(employees);
@@ -78,10 +78,10 @@ export function generateRandomSaleClient(
     billingAddress: customer.billingAddress ?? "",
     shippingAddress: customer.shippingAddress ?? "",
     items,
-    shippingCost: Number((Math.random() * 200).toFixed(2)),
-    otherCosts: Number((Math.random() * 100).toFixed(2)),
-    otherCostsDescription: RANDOM_OTHER_COSTS_DESCRIPTION,
-    notes: RANDOM_NOTE,
+    shippingCost: 0,
+    otherCosts: 0,
+    otherCostsDescription: "",
+    notes: "",
   };
 
   return payload;
