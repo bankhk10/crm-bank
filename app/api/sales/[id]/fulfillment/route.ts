@@ -64,13 +64,17 @@ export async function POST(
         updateData.paymentDate = new Date();
       }
 
-      // Validate: DELIVERED requires delivery date
-      if (status === "DELIVERED") {
+      // Validate: DELIVERED or DELIVERY_COMPLETED requires delivery date
+      if (status === "DELIVERED" || status === "DELIVERY_COMPLETED") {
         const finalDeliveryDate =
           deliveryDate !== undefined ? deliveryDate : sale.deliveryDate;
         if (!finalDeliveryDate) {
           return NextResponse.json(
-            { error: "กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น 'จัดส่งแล้ว'" },
+            {
+              error: `กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น '${
+                status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
+              }'`,
+            },
             { status: 400 },
           );
         }

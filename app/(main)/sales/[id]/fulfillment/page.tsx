@@ -165,10 +165,14 @@ export default function FulfillmentPage({
       }
     }
 
-    // Validate: If status is DELIVERED, delivery date is required
-    if (status === "DELIVERED") {
+    // Validate: If status is DELIVERED or DELIVERY_COMPLETED, delivery date is required
+    if (status === "DELIVERED" || status === "DELIVERY_COMPLETED") {
       if (!deliveryDate) {
-        setError("กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น 'จัดส่งแล้ว'");
+        setError(
+          `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${
+            status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
+          }'`,
+        );
         setSubmitting(false);
         return;
       }
@@ -514,7 +518,9 @@ export default function FulfillmentPage({
                     </span>
                     <Truck className="h-4 w-4 text-emerald-600" />
                     วันที่จัดส่งของ
-                    {(status === "COMPLETED" || status === "DELIVERED") && (
+                    {(status === "COMPLETED" ||
+                      status === "DELIVERED" ||
+                      status === "DELIVERY_COMPLETED") && (
                       <span className="text-red-500 ml-1">*</span>
                     )}
                   </label>
@@ -526,12 +532,18 @@ export default function FulfillmentPage({
                       placeholder="เลือกวันที่จัดส่ง"
                     />
                   </div>
-                  {(status === "COMPLETED" || status === "DELIVERED") &&
+                  {(status === "COMPLETED" ||
+                    status === "DELIVERED" ||
+                    status === "DELIVERY_COMPLETED") &&
                     !deliveryDate && (
                       <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
                         <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
                         จำเป็นต้องระบุวันที่จัดส่งของเมื่อสถานะเป็น &ldquo;
-                        {status === "COMPLETED" ? "เสร็จสิ้น" : "จัดส่งแล้ว"}
+                        {status === "COMPLETED"
+                          ? "เสร็จสิ้น"
+                          : status === "DELIVERED"
+                            ? "จัดส่งแล้ว"
+                            : "ส่งเสร็จแล้ว"}
                         &rdquo;
                       </p>
                     )}
