@@ -18,22 +18,21 @@ import Link from "next/link";
 const reportCategories = [
   {
     id: "time",
-    title: "รายงานยอดขายตามเวลา",
-    description: "ยอดขายรายวัน / รายเดือน / รายปี, ฤดูกาล",
+    title: "รายงานยอดขาย",
+    description: "ยอดขายรายวัน / รายเดือน / รายปี / ไตรมาส / ตามภูมิภาค",
     icon: Calendar,
     href: "/reports/time-sales",
     permissionKey: "report.time_sales",
     color: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-50 dark:bg-blue-950/30",
     features: [
-      "ยอดขายรายวัน / รายเดือน / รายปี",
-      "ฤดูกาล (Seasonality)",
+      "ยอดขายรายวัน / รายเดือน / รายปี ...",
       "จำนวนออเดอร์ที่ขายได้ทั้งหมด",
     ],
   },
   {
     id: "product",
-    title: "รายงานตามสินค้า",
+    title: "รายงานยอดขายสินค้า",
     description: "สินค้าขายดี / ขายช้า, ยอดขายต่อสินค้า, สต๊อกใกล้หมด",
     icon: Package,
     href: "/reports/product-sales",

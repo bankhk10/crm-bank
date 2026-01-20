@@ -180,7 +180,7 @@ export default function TimeSalesReportPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                รายงานยอดขายตามเวลา
+                รายงานยอดขาย
               </h1>
               <p className="text-muted-foreground text-sm">
                 วิเคราะห์ยอดขายรายวัน รายเดือน รายปี และช่วงเวลาขายดี
