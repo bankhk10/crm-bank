@@ -219,74 +219,6 @@ export default function CustomerSalesReportPage() {
           </div>
         ) : reportData ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-500 to-amber-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-amber-100 text-sm">ลูกค้าอันดับ 1</p>
-                      <p className="text-lg font-bold mt-1 truncate max-w-[150px]">
-                        {reportData.topCustomers[0]?.name || "-"}
-                      </p>
-                    </div>
-                    <Crown className="h-10 w-10 text-amber-200" />
-                  </div>
-                  <p className="mt-4 text-sm text-amber-100">
-                    {formatTHB(reportData.topCustomers[0]?.totalSales || 0)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-emerald-100 text-sm">ลูกค้าใหม่</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {reportData.customerAcquisition.newCustomers}
-                      </p>
-                    </div>
-                    <UserPlus className="h-10 w-10 text-emerald-200" />
-                  </div>
-                  <p className="mt-4 text-sm text-emerald-100">
-                    {formatTHB(
-                      reportData.customerAcquisition.newCustomersSales,
-                    )}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-blue-100 text-sm">ลูกค้าเดิม</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {reportData.customerAcquisition.returningCustomers}
-                      </p>
-                    </div>
-                    <Repeat className="h-10 w-10 text-blue-200" />
-                  </div>
-                  <p className="mt-4 text-sm text-blue-100">
-                    {formatTHB(
-                      reportData.customerAcquisition.returningCustomersSales,
-                    )}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-red-500 to-rose-500">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-red-100 text-sm">ลูกค้าไม่ Active</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {reportData.inactiveCustomers.length}
-                      </p>
-                    </div>
-                    <UserX className="h-10 w-10 text-red-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 p-1 rounded-xl">
                 <TabsTrigger value="top-customers" className="rounded-lg">
@@ -298,9 +230,6 @@ export default function CustomerSalesReportPage() {
                 <TabsTrigger value="by-region" className="rounded-lg">
                   ตามภูมิภาค
                 </TabsTrigger>
-                <TabsTrigger value="inactive" className="rounded-lg">
-                  ไม่ Active
-                </TabsTrigger>
               </TabsList>
               <TabsContent value="top-customers" className="mt-6">
                 <Card className="border-0 shadow-lg">
@@ -308,44 +237,6 @@ export default function CustomerSalesReportPage() {
                     <CardTitle>Top ลูกค้า</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={reportData.topCustomers
-                            .slice(0, 10)
-                            .map((c) => ({
-                              name: c.name.slice(0, 15),
-                              sales: c.totalSales,
-                            }))}
-                          layout="vertical"
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis
-                            type="number"
-                            tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="name"
-                            width={120}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <Tooltip
-                            formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
-                          />
-                          <Bar dataKey="sales" radius={[0, 4, 4, 0]}>
-                            {reportData.topCustomers
-                              .slice(0, 10)
-                              .map((_, i) => (
-                                <Cell
-                                  key={i}
-                                  fill={COLORS[i % COLORS.length]}
-                                />
-                              ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
                     <Table className="mt-4">
                       <TableHeader>
                         <TableRow>
@@ -575,66 +466,6 @@ export default function CustomerSalesReportPage() {
                         ))}
                       </TableBody>
                     </Table>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              <TabsContent value="inactive" className="mt-6">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <UserX className="h-5 w-5 text-red-500" />
-                      ลูกค้าไม่ Active
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {reportData.inactiveCustomers.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>ทุกคน Active!</p>
-                      </div>
-                    ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>รหัส</TableHead>
-                            <TableHead>ชื่อ</TableHead>
-                            <TableHead className="text-right">
-                              ไม่ซื้อมา
-                            </TableHead>
-                            <TableHead className="text-right">
-                              Lifetime
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.inactiveCustomers.map((c) => (
-                            <TableRow key={c.id}>
-                              <TableCell className="font-mono text-sm">
-                                {c.code}
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {c.name}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    c.daysSinceLastPurchase > 180
-                                      ? "bg-red-100 text-red-800"
-                                      : ""
-                                  }
-                                >
-                                  {c.daysSinceLastPurchase} วัน
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right text-blue-600">
-                                {formatTHB(c.lifetimeValue)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
