@@ -38,7 +38,6 @@ import {
   FileText,
   MessageSquare,
   Paperclip,
-  X,
   ExternalLink,
   ArrowUpRight,
   Building2,
@@ -323,14 +322,6 @@ export function CustomerDetailPanel({
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={onClose}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 mt-4">
