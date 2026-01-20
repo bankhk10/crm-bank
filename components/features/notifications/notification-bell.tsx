@@ -133,7 +133,7 @@ export default function NotificationBell() {
     try {
       await fetch(`/api/notifications/${id}/read`, { method: "POST" });
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
     } catch (error) {
       console.error("Failed to mark as read", error);
@@ -155,16 +155,17 @@ export default function NotificationBell() {
     if (canApproveSale && n.link) {
       // Check if this is a sale-related notification that needs approval
       const saleMatch = n.link.match(/\/sales\/([^/]+)$/);
+
       if (saleMatch) {
         const saleId = saleMatch[1];
         // Check if notification indicates pending status (waiting for approval)
         const isPendingApproval =
-          n.title.toLowerCase().includes("pending") ||
+          n.title.toLowerCase().includes("PENDING_APPROVAL") ||
           n.title.includes("รออนุมัติ") ||
-          n.message.toLowerCase().includes("pending") ||
+          n.message.toLowerCase().includes("PENDING_APPROVAL") ||
           n.message.includes("รออนุมัติ") ||
           n.type === "WARNING";
-
+        console.log("isPendingApproval", n.message);
         if (isPendingApproval) {
           return `/sales/${saleId}/approve`;
         }
@@ -295,7 +296,7 @@ export default function NotificationBell() {
                         group-hover:scale-110 transition-transform duration-300
                       `}
                       >
-                        <Icon className={`h-4 w-4 ${config.iconColor}`} />
+                        <Icon className={`h-4 w-4 mt-6 ${config.iconColor}`} />
                       </div>
 
                       {/* Content */}
@@ -328,7 +329,7 @@ export default function NotificationBell() {
                                 {
                                   addSuffix: true,
                                   locale: th,
-                                }
+                                },
                               )}
                             </span>
                           </div>

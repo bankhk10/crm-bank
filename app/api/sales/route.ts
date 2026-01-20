@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching sales:", error);
     return NextResponse.json(
       { error: "Failed to fetch sales" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: "Session expired or invalid. Please sign in again." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
     if (!body.customerId || !body.employeeId || !body.items?.length) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -238,14 +238,14 @@ export async function POST(request: NextRequest) {
     if (!customer) {
       return NextResponse.json(
         { error: "Customer not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Calculate totals
     const subtotal = body.items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
-      0
+      0,
     );
     const total = subtotal - body.shippingCost - body.otherCosts;
 
@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
       if (!creditLimit) {
         return NextResponse.json(
           { error: "Customer does not have an active credit limit" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
               required: total,
             },
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
       if (product) {
         const totalStock = product.stockLots.reduce(
           (sum, lot) => sum + lot.quantity,
-          0
+          0,
         );
         if (totalStock < item.quantity) {
           stockWarnings.push({
@@ -419,8 +419,8 @@ export async function POST(request: NextRequest) {
       if (employee?.manager?.userId) {
         await sendNotification({
           userId: employee.manager.userId,
-          title: "New Sale Request",
-          message: `New Sale Order ${saleNumber} from ${employee.name} requires approval.`,
+          title: "รออนุมัติ",
+          message: `รายการ ${saleNumber} จาก ${employee.name} ต้องการอนุมัติ`,
           type: "INFO",
           link: `/sales/${sale.id}`,
         });
@@ -450,7 +450,7 @@ export async function POST(request: NextRequest) {
       {
         entityName: sale.saleNumber,
         module: "sales",
-      }
+      },
     );
 
     reqLogger.info("Sale created successfully", {
@@ -466,7 +466,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating sale:", error);
     return NextResponse.json(
       { error: "Failed to create sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
