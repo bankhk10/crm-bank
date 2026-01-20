@@ -64,6 +64,9 @@ export const ModelName = {
   Customer: 'Customer',
   CreditLimit: 'CreditLimit',
   TemporaryCreditLimit: 'TemporaryCreditLimit',
+  ProductCategory: 'ProductCategory',
+  ProductGroupMaster: 'ProductGroupMaster',
+  Unit: 'Unit',
   Product: 'Product',
   ProductStock: 'ProductStock',
   CustomerImage: 'CustomerImage',
@@ -390,6 +393,43 @@ export const TemporaryCreditLimitScalarFieldEnum = {
 } as const
 
 export type TemporaryCreditLimitScalarFieldEnum = (typeof TemporaryCreditLimitScalarFieldEnum)[keyof typeof TemporaryCreditLimitScalarFieldEnum]
+
+
+export const ProductCategoryScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ProductCategoryScalarFieldEnum = (typeof ProductCategoryScalarFieldEnum)[keyof typeof ProductCategoryScalarFieldEnum]
+
+
+export const ProductGroupMasterScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ProductGroupMasterScalarFieldEnum = (typeof ProductGroupMasterScalarFieldEnum)[keyof typeof ProductGroupMasterScalarFieldEnum]
+
+
+export const UnitScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type UnitScalarFieldEnum = (typeof UnitScalarFieldEnum)[keyof typeof UnitScalarFieldEnum]
 
 
 export const ProductScalarFieldEnum = {

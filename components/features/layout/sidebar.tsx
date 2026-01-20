@@ -88,6 +88,12 @@ export const navigationItems: SidebarNavItem[] = [
     label: "สินค้า",
     permissionKey: "menu.products",
     icon: <Package className="h-4 w-4" />,
+    children: [
+      { href: "/products", label: "ข้อมูลสินค้า" },
+      { href: "/products/groups", label: "กลุ่มสินค้า" },
+      { href: "/products/categories", label: "หมวดสินค้า" },
+      { href: "/products/units", label: "หน่วยนับ" },
+    ],
   },
   {
     href: "/employee",

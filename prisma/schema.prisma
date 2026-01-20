@@ -410,6 +410,41 @@ model TemporaryCreditLimit {
   approvedBy      User?    @relation("TemporaryCreditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
 }
 
+// หมวดสินค้า (Product Category)
+model ProductCategory {
+  id          String    @id @default(cuid())
+  code        String    @unique        // รหัสหมวดสินค้า
+  description String                   // คำอธิบายหมวดสินค้า
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  productGroups ProductGroupMaster[]
+}
+
+// กลุ่มสินค้า (Product Group)
+model ProductGroupMaster {
+  id          String    @id @default(cuid())
+  code        String    @unique        // รหัสกลุ่มสินค้า
+  description String                   // คำอธิบายกลุ่มสินค้า
+  categoryId  String?                  // FK to ProductCategory
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  category    ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+// หน่วยนับ (Unit)
+model Unit {
+  id          String    @id @default(cuid())
+  code        String    @unique        // รหัสหน่วยนับ
+  description String                   // คำอธิบายหน่วยนับ
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
 enum ProductStatus {
   ACTIVE
   INACTIVE

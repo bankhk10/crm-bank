@@ -105,6 +105,21 @@ export type CreditLimit = Prisma.CreditLimitModel
  */
 export type TemporaryCreditLimit = Prisma.TemporaryCreditLimitModel
 /**
+ * Model ProductCategory
+ * 
+ */
+export type ProductCategory = Prisma.ProductCategoryModel
+/**
+ * Model ProductGroupMaster
+ * 
+ */
+export type ProductGroupMaster = Prisma.ProductGroupMasterModel
+/**
+ * Model Unit
+ * 
+ */
+export type Unit = Prisma.UnitModel
+/**
  * Model Product
  * 
  */
