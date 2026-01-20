@@ -80,6 +80,13 @@ export interface TimeSalesReportData {
     orders: number;
     percentage: number;
   }[];
+
+  // Sales by region
+  salesByRegion: {
+    region: string;
+    totalSales: number;
+    orderCount: number;
+  }[];
 }
 
 export interface ProductSalesReportData {
@@ -416,7 +423,7 @@ function getRegionFromProvince(province: string | null): string {
 // ============================================
 
 export async function getTimeSalesReport(
-  filter: DateRangeFilter
+  filter: DateRangeFilter,
 ): Promise<TimeSalesReportData> {
   const { start, end } = getDateRange(filter);
   const durationInDays = differenceInDays(end, start) + 1; // +1 to include both start and end dates
@@ -450,8 +457,17 @@ export async function getTimeSalesReport(
       saleDate: true,
       totalAmount: true,
       createdAt: true,
+      customerId: true,
     },
   });
+
+  // Get customer provinces for region calculation
+  const customerIds = [...new Set(sales.map((s) => s.customerId))];
+  const customers = await prisma.customer.findMany({
+    where: { id: { in: customerIds } },
+    select: { id: true, province: true },
+  });
+  const customerProvinceMap = new Map(customers.map((c) => [c.id, c.province]));
 
   // Get previous period sales for growth calculation
   const previousSales = await prisma.sale.aggregate({
@@ -587,6 +603,28 @@ export async function getTimeSalesReport(
     };
   });
 
+  // Sales by region
+  const regionMap = new Map<string, { sales: number; orders: number }>();
+  for (const sale of sales) {
+    const province = customerProvinceMap.get(sale.customerId) ?? null;
+    const region = getRegionFromProvince(province);
+
+    if (!regionMap.has(region)) {
+      regionMap.set(region, { sales: 0, orders: 0 });
+    }
+    const rd = regionMap.get(region)!;
+    rd.sales += Number(sale.totalAmount);
+    rd.orders += 1;
+  }
+
+  const salesByRegion = Array.from(regionMap.entries())
+    .map(([region, data]) => ({
+      region,
+      totalSales: data.sales,
+      orderCount: data.orders,
+    }))
+    .sort((a, b) => b.totalSales - a.totalSales);
+
   return {
     totalSales,
     totalOrders,
@@ -598,6 +636,7 @@ export async function getTimeSalesReport(
     bestSellingDay: bestDay,
     bestSellingMonth: bestMonth,
     seasonalityData,
+    salesByRegion,
   };
 }
 
@@ -606,7 +645,7 @@ export async function getTimeSalesReport(
 // ============================================
 
 export async function getProductSalesReport(
-  filter: DateRangeFilter
+  filter: DateRangeFilter,
 ): Promise<ProductSalesReportData> {
   const { start, end } = getDateRange(filter);
 
@@ -709,7 +748,7 @@ export async function getProductSalesReport(
         peakMonth: peakMonth.month,
         peakSales: peakMonth.sales,
       };
-    })
+    }),
   );
 
   // Low stock products (available < 50)
@@ -807,7 +846,7 @@ export async function getProductSalesReport(
     productPeakPeriods,
     lowStockProducts: lowStock,
     stagnantProducts: stagnant.sort(
-      (a, b) => b.daysSinceLastSale - a.daysSinceLastSale
+      (a, b) => b.daysSinceLastSale - a.daysSinceLastSale,
     ),
   };
 }
@@ -817,7 +856,7 @@ export async function getProductSalesReport(
 // ============================================
 
 export async function getProductGroupSalesReport(
-  filter: DateRangeFilter
+  filter: DateRangeFilter,
 ): Promise<ProductGroupSalesReportData> {
   const { start, end } = getDateRange(filter);
   const { PRODUCT_GROUP_OPTIONS } = await import("@/types/product");
@@ -885,12 +924,12 @@ export async function getProductGroupSalesReport(
         avgSalesPerProduct:
           productIds.length > 0 ? totalSales / productIds.length : 0,
       };
-    })
+    }),
   );
 
   // Sort to find top and worst
   const sortedGroups = [...groupPerformance].sort(
-    (a, b) => b.totalSales - a.totalSales
+    (a, b) => b.totalSales - a.totalSales,
   );
   const topGroup = sortedGroups[0] || { group: "-", sales: 0 };
   const worstGroupData = sortedGroups.filter((g) => g.totalSales > 0).pop() || {
@@ -928,7 +967,7 @@ export async function getProductGroupSalesReport(
         peakMonth: peakMonth.month,
         sales: peakMonth.sales,
       };
-    })
+    }),
   );
 
   // Monthly trend per group
@@ -979,14 +1018,14 @@ export async function getProductGroupSalesReport(
             sales: Number(data._sum.totalPrice || 0),
             orders: orderCount.length,
           };
-        })
+        }),
       );
 
       return {
         month: format(monthDate, "MMM yyyy", { locale: th }),
         groups: groupsData,
       };
-    })
+    }),
   );
 
   return {
@@ -1006,7 +1045,7 @@ export async function getProductGroupSalesReport(
 // ============================================
 
 export async function getCustomerSalesReport(
-  filter: DateRangeFilter
+  filter: DateRangeFilter,
 ): Promise<CustomerSalesReportData> {
   const { start, end } = getDateRange(filter);
   const dayCount = differenceInDays(end, start) + 1;
@@ -1070,7 +1109,7 @@ export async function getCustomerSalesReport(
     _sum: { totalAmount: true },
   });
   const lifetimeMap = new Map(
-    lifetimeValues.map((l) => [l.customerId, Number(l._sum.totalAmount || 0)])
+    lifetimeValues.map((l) => [l.customerId, Number(l._sum.totalAmount || 0)]),
   );
 
   const customerMap = new Map(customers.map((c) => [c.id, c]));
@@ -1135,7 +1174,7 @@ export async function getCustomerSalesReport(
       totalSales: data.sales,
       avgSalesPerCustomer:
         data.count.size > 0 ? data.sales / data.count.size : 0,
-    })
+    }),
   );
 
   // New vs returning customers
@@ -1171,7 +1210,7 @@ export async function getCustomerSalesReport(
   for (const customer of customersWithFirstPurchase) {
     const firstPurchase = customer.sales[0]?.saleDate;
     const customerData = allCustomerSales.find(
-      (cs) => cs.customerId === customer.id
+      (cs) => cs.customerId === customer.id,
     );
     const sales = Number(customerData?._sum.totalAmount || 0);
 
@@ -1190,7 +1229,7 @@ export async function getCustomerSalesReport(
     select: { id: true, province: true },
   });
   const provinceMap = new Map(
-    customersWithProvince.map((c) => [c.id, c.province])
+    customersWithProvince.map((c) => [c.id, c.province]),
   );
 
   const regionData = new Map<string, { count: Set<string>; sales: number }>();
@@ -1263,7 +1302,7 @@ export async function getCustomerSalesReport(
     inactiveLifetimeValues.map((l) => [
       l.customerId,
       Number(l._sum.totalAmount || 0),
-    ])
+    ]),
   );
 
   const inactiveCustomers = inactiveCustomersData
@@ -1297,7 +1336,7 @@ export async function getCustomerSalesReport(
 // ============================================
 
 export async function getSalespersonSalesReport(
-  filter: DateRangeFilter
+  filter: DateRangeFilter,
 ): Promise<SalespersonReportData> {
   const { start, end } = getDateRange(filter);
 
@@ -1398,7 +1437,7 @@ export async function getSalespersonSalesReport(
         select: { id: true, productGroup: true },
       });
       const productGroupMap = new Map(
-        products.map((p) => [p.id, p.productGroup])
+        products.map((p) => [p.id, p.productGroup]),
       );
 
       const groupAgg = new Map<string, { sales: number; quantity: number }>();
@@ -1423,7 +1462,7 @@ export async function getSalespersonSalesReport(
           }))
           .sort((a, b) => b.sales - a.sales),
       };
-    })
+    }),
   );
 
   // Products sold per salesperson (top 5 each)
@@ -1466,7 +1505,7 @@ export async function getSalespersonSalesReport(
           quantity: Number(pd._sum.quantity || 0),
         })),
       };
-    })
+    }),
   );
 
   // Monthly trend per salesperson
@@ -1501,7 +1540,7 @@ export async function getSalespersonSalesReport(
           })
           .sort((a, b) => b.sales - a.sales),
       };
-    })
+    }),
   );
 
   return {

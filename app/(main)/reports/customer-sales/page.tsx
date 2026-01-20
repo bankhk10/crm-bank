@@ -23,32 +23,15 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import {
-  Users,
-  ArrowLeft,
-  BarChart3,
-  Loader2,
-  Crown,
-  UserPlus,
-  Repeat,
-  UserX,
-  MapPin,
-  UserCheck,
-  Eye,
-} from "lucide-react";
+import { Users, ArrowLeft, BarChart3, Loader2, Eye } from "lucide-react";
 import Link from "next/link";
 import { CustomerDetailPanel } from "@/components/features/customers/customer-detail-panel";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  Tooltip,
+  ResponsiveContainer,
   Legend,
 } from "recharts";
 import {
@@ -227,9 +210,6 @@ export default function CustomerSalesReportPage() {
                 <TabsTrigger value="by-type" className="rounded-lg">
                   ตามประเภท
                 </TabsTrigger>
-                <TabsTrigger value="by-region" className="rounded-lg">
-                  ตามภูมิภาค
-                </TabsTrigger>
               </TabsList>
               <TabsContent value="top-customers" className="mt-6">
                 <Card className="border-0 shadow-lg">
@@ -403,71 +383,6 @@ export default function CustomerSalesReportPage() {
                     </CardContent>
                   </Card>
                 </div>
-              </TabsContent>
-              <TabsContent value="by-region" className="mt-6">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-amber-500" />
-                      ตามภูมิภาค
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.customerByRegion}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="region" tick={{ fontSize: 10 }} />
-                          <YAxis
-                            tickFormatter={(v) =>
-                              `${(v / 1000000).toFixed(1)}M`
-                            }
-                          />
-                          <Tooltip
-                            formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
-                          />
-                          <Bar dataKey="totalSales" radius={[4, 4, 0, 0]}>
-                            {reportData.customerByRegion.map((_, i) => (
-                              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <Table className="mt-4">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ภูมิภาค</TableHead>
-                          <TableHead className="text-right">ลูกค้า</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reportData.customerByRegion.map((r, i) => (
-                          <TableRow key={r.region}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{
-                                    backgroundColor: COLORS[i % COLORS.length],
-                                  }}
-                                />
-                                {r.region}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {r.customerCount}
-                            </TableCell>
-                            <TableCell className="text-right text-emerald-600 font-semibold">
-                              {formatTHB(r.totalSales)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
               </TabsContent>
             </Tabs>
           </div>

@@ -49,6 +49,7 @@ import {
   Clock,
   Sun,
   Loader2,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -334,6 +335,9 @@ export default function TimeSalesReportPage() {
                 </TabsTrigger>
                 <TabsTrigger value="seasonality" className="rounded-lg">
                   ฤดูกาล
+                </TabsTrigger>
+                <TabsTrigger value="by-region" className="rounded-lg">
+                  ตามภูมิภาค
                 </TabsTrigger>
               </TabsList>
 
@@ -736,6 +740,91 @@ export default function TimeSalesReportPage() {
                   </Card>
                 </div>
               </TabsContent>
+
+              <TabsContent value="by-region" className="mt-6">
+                <Card className="border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      ตามภูมิภาค
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={reportData.salesByRegion}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e2e8f0"
+                          />
+                          <XAxis dataKey="region" tick={{ fontSize: 10 }} />
+                          <YAxis
+                            tickFormatter={(v) =>
+                              `${(v / 1000000).toFixed(1)}M`
+                            }
+                            tick={{ fontSize: 11 }}
+                          />
+                          <Tooltip
+                            formatter={(value: number) => [
+                              formatTHB(value),
+                              "ยอดขาย",
+                            ]}
+                            contentStyle={{
+                              borderRadius: "12px",
+                              border: "none",
+                              boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
+                            }}
+                          />
+                          <Bar
+                            dataKey="totalSales"
+                            name="ยอดขาย"
+                            radius={[4, 4, 0, 0]}
+                          >
+                            {reportData.salesByRegion.map((_, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <Table className="mt-6">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ภูมิภาค</TableHead>
+                          <TableHead className="text-right">ออเดอร์</TableHead>
+                          <TableHead className="text-right">ยอดขาย</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {reportData.salesByRegion.map((r, i) => (
+                          <TableRow key={r.region}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: COLORS[i % COLORS.length],
+                                  }}
+                                />
+                                {r.region}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(r.orderCount)}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600 font-semibold">
+                              {formatTHB(r.totalSales)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </div>
         ) : (
@@ -746,7 +835,7 @@ export default function TimeSalesReportPage() {
                 เลือกช่วงเวลาและกดดูรายงาน
               </h3>
               <p className="text-muted-foreground text-sm mt-2">
-                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม "ดูรายงาน"
+                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม &quot;ดูรายงาน&quot;
               </p>
             </CardContent>
           </Card>
