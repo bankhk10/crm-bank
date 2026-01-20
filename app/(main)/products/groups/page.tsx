@@ -213,8 +213,8 @@ export default function ProductGroupsPage() {
 
   return (
     <section className="space-y-6 p-6">
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50">
-        <CardHeader className="border-b bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-t-lg">
+      <Card className="shadow-lg border-0 overflow-hidden !py-0 !gap-0">
+        <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white !px-6 !py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <FolderTree className="w-8 h-8" />

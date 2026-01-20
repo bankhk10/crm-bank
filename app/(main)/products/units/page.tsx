@@ -169,8 +169,8 @@ export default function UnitsPage() {
 
   return (
     <section className="space-y-6 p-6">
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-white to-slate-50">
-        <CardHeader className="border-b bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-t-lg">
+      <Card className="shadow-lg border-0 overflow-hidden !py-0 !gap-0">
+        <CardHeader className="bg-gradient-to-r from-amber-500 to-orange-500 text-white !px-6 !py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <Ruler className="w-8 h-8" />
