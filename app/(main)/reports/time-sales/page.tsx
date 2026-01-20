@@ -515,12 +515,20 @@ export default function TimeSalesReportPage() {
                             tick={{ fontSize: 11 }}
                           />
                           <Tooltip
-                            formatter={(value: number, name: string) => [
-                              name === "sales"
-                                ? formatTHB(value)
-                                : formatNumber(value),
-                              name === "sales" ? "ยอดขาย" : "ออเดอร์",
-                            ]}
+                            formatter={(
+                              value: number,
+                              name: string,
+                              props: any,
+                            ) => {
+                              const key = props?.dataKey;
+
+                              return [
+                                key === "sales"
+                                  ? formatTHB(value)
+                                  : formatNumber(value),
+                                key === "sales" ? "ยอดขาย" : "ออเดอร์",
+                              ];
+                            }}
                             contentStyle={{
                               borderRadius: "12px",
                               border: "none",
