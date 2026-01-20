@@ -34,8 +34,10 @@ import {
   UserX,
   MapPin,
   UserCheck,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
+import { CustomerDetailPanel } from "@/components/features/customers/customer-detail-panel";
 import {
   BarChart,
   Bar,
@@ -97,9 +99,23 @@ export default function CustomerSalesReportPage() {
     to: endOfMonth(new Date()),
   });
   const [reportData, setReportData] = useState<CustomerSalesReportData | null>(
-    null
+    null,
   );
   const [activeTab, setActiveTab] = useState("top-customers");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null,
+  );
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+
+  const handleViewCustomer = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setIsDetailPanelOpen(true);
+  };
+
+  const handleCloseDetailPanel = () => {
+    setIsDetailPanelOpen(false);
+    setSelectedCustomerId(null);
+  };
 
   const handleFetchReport = () => {
     startTransition(async () => {
@@ -118,7 +134,6 @@ export default function CustomerSalesReportPage() {
       currency: "THB",
       minimumFractionDigits: 0,
     }).format(n);
-  const formatNumber = (n: number) => new Intl.NumberFormat("th-TH").format(n);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -234,7 +249,7 @@ export default function CustomerSalesReportPage() {
                   </div>
                   <p className="mt-4 text-sm text-emerald-100">
                     {formatTHB(
-                      reportData.customerAcquisition.newCustomersSales
+                      reportData.customerAcquisition.newCustomersSales,
                     )}
                   </p>
                 </CardContent>
@@ -252,7 +267,7 @@ export default function CustomerSalesReportPage() {
                   </div>
                   <p className="mt-4 text-sm text-blue-100">
                     {formatTHB(
-                      reportData.customerAcquisition.returningCustomersSales
+                      reportData.customerAcquisition.returningCustomersSales,
                     )}
                   </p>
                 </CardContent>
@@ -345,6 +360,9 @@ export default function CustomerSalesReportPage() {
                           <TableHead className="text-right">
                             Lifetime Value
                           </TableHead>
+                          <TableHead className="text-center">
+                            ดูรายละเอียด
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -385,6 +403,17 @@ export default function CustomerSalesReportPage() {
                             <TableCell className="text-right text-blue-600">
                               {formatTHB(c.lifetimeValue)}
                             </TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewCustomer(c.id)}
+                                className="hover:bg-amber-100 dark:hover:bg-amber-900"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                ดู
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -407,7 +436,7 @@ export default function CustomerSalesReportPage() {
                                 (ct) => ({
                                   name: customerTypeLabels[ct.type] || ct.type,
                                   value: ct.totalSales,
-                                })
+                                }),
                               )}
                               dataKey="value"
                               nameKey="name"
@@ -622,6 +651,15 @@ export default function CustomerSalesReportPage() {
           </Card>
         )}
       </div>
+
+      {/* Customer Detail Panel */}
+      <CustomerDetailPanel
+        customerId={selectedCustomerId}
+        isOpen={isDetailPanelOpen}
+        onClose={handleCloseDetailPanel}
+        startDate={format(dateRange.from, "yyyy-MM-dd")}
+        endDate={format(dateRange.to, "yyyy-MM-dd")}
+      />
     </div>
   );
 }
