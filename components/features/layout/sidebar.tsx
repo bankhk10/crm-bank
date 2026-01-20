@@ -93,6 +93,7 @@ export const navigationItems: SidebarNavItem[] = [
       { href: "/products/groups", label: "กลุ่มสินค้า" },
       { href: "/products/categories", label: "หมวดสินค้า" },
       { href: "/products/units", label: "หน่วยนับ" },
+      { href: "/products/brands", label: "แบรนด์" },
     ],
   },
   {

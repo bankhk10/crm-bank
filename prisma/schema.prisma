@@ -445,6 +445,16 @@ model Unit {
   deletedAt   DateTime?
 }
 
+// แบรนด์สินค้า (Brand)
+model Brand {
+  id          String    @id @default(cuid())
+  code        String    @unique        // รหัสแบรนด์
+  description String                   // คำอธิบายแบรนด์
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
 enum ProductStatus {
   ACTIVE
   INACTIVE

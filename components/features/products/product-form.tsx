@@ -32,6 +32,11 @@ import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
 import { ProductFormProps } from "./types";
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 export function ProductForm({
   initialData,
   productId,
@@ -87,6 +92,74 @@ export function ProductForm({
   }, [initialData]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Dynamic options from database
+  const [unitOptions, setUnitOptions] = useState<SelectOption[]>(UNIT_OPTIONS);
+  const [groupOptions, setGroupOptions] = useState<SelectOption[]>(
+    PRODUCT_GROUP_OPTIONS,
+  );
+  const [brandOptions, setBrandOptions] =
+    useState<SelectOption[]>(BRAND_OPTIONS);
+
+  // Fetch dynamic options from database
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        // Fetch units
+        const unitsRes = await fetch("/api/products/units?perPage=100");
+        if (unitsRes.ok) {
+          const unitsData = await unitsRes.json();
+          if (unitsData.units && unitsData.units.length > 0) {
+            setUnitOptions(
+              unitsData.units.map(
+                (u: { code: string; description: string }) => ({
+                  value: u.description,
+                  label: u.description,
+                }),
+              ),
+            );
+          }
+        }
+
+        // Fetch product groups
+        const groupsRes = await fetch("/api/products/groups?perPage=100");
+        if (groupsRes.ok) {
+          const groupsData = await groupsRes.json();
+          if (groupsData.groups && groupsData.groups.length > 0) {
+            setGroupOptions(
+              groupsData.groups.map(
+                (g: { code: string; description: string }) => ({
+                  value: g.code,
+                  label: g.description,
+                }),
+              ),
+            );
+          }
+        }
+
+        // Fetch brands
+        const brandsRes = await fetch("/api/products/brands?perPage=100");
+        if (brandsRes.ok) {
+          const brandsData = await brandsRes.json();
+          if (brandsData.brands && brandsData.brands.length > 0) {
+            setBrandOptions(
+              brandsData.brands.map(
+                (b: { code: string; description: string }) => ({
+                  value: b.description,
+                  label: b.description,
+                }),
+              ),
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch options:", err);
+        // Keep default options if fetch fails
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -151,7 +224,7 @@ export function ProductForm({
           setError(
             result.error ??
               Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error"
+              "Server error",
           );
         } else {
           // Handle images (delete removed, upload new, reorder)
@@ -186,7 +259,7 @@ export function ProductForm({
                 setUploadProgress(0);
                 const uploadRes = await uploadImages(
                   targetProductId,
-                  filesToUpload
+                  filesToUpload,
                 );
                 if (uploadRes.created) {
                   uploadedImages = uploadRes.created;
@@ -266,7 +339,7 @@ export function ProductForm({
               setUploadProgress(0);
               const uploadRes = await uploadImages(
                 targetProductId,
-                filesToUpload
+                filesToUpload,
               );
               if (uploadRes.created) {
                 uploadedImages = uploadRes.created;
@@ -349,7 +422,7 @@ export function ProductForm({
           (payload.properties as string | undefined) ?? prev.properties,
       }));
     },
-    []
+    [],
   );
 
   const {
@@ -406,7 +479,7 @@ export function ProductForm({
 
   const deleteImages = (
     productId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/products/${productId}/images`, {
@@ -424,7 +497,7 @@ export function ProductForm({
 
   const reorderImages = (
     productId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/products/${productId}/images`, {
@@ -511,7 +584,7 @@ export function ProductForm({
           value={formData.unit || ""}
           onChange={(v) => updateField("unit", v)}
           required
-          options={UNIT_OPTIONS}
+          options={unitOptions}
           placeholder="เลือกหน่วยนับ"
           groupLabel="หน่วยนับ"
           disabled={loading}
@@ -523,7 +596,7 @@ export function ProductForm({
           value={formData.productGroup || ""}
           onChange={(v) => updateField("productGroup", v)}
           required
-          options={PRODUCT_GROUP_OPTIONS}
+          options={groupOptions}
           placeholder="เลือกกลุ่มสินค้า"
           groupLabel="กลุ่มสินค้า"
           disabled={loading}
@@ -539,7 +612,7 @@ export function ProductForm({
               brand: v,
             }))
           }
-          options={BRAND_OPTIONS}
+          options={brandOptions}
           placeholder="เลือกแบรนด์"
           groupLabel="แบรนด์"
           disabled={loading}

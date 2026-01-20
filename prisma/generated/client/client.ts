@@ -120,6 +120,11 @@ export type ProductGroupMaster = Prisma.ProductGroupMasterModel
  */
 export type Unit = Prisma.UnitModel
 /**
+ * Model Brand
+ * 
+ */
+export type Brand = Prisma.BrandModel
+/**
  * Model Product
  * 
  */

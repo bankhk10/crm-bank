@@ -400,6 +400,7 @@ export const ModelName = {
   ProductCategory: 'ProductCategory',
   ProductGroupMaster: 'ProductGroupMaster',
   Unit: 'Unit',
+  Brand: 'Brand',
   Product: 'Product',
   ProductStock: 'ProductStock',
   CustomerImage: 'CustomerImage',
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
+    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "brand" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1620,6 +1621,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UnitCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UnitCountAggregateOutputType> | number
+        }
+      }
+    }
+    Brand: {
+      payload: Prisma.$BrandPayload<ExtArgs>
+      fields: Prisma.BrandFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BrandFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BrandFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        findFirst: {
+          args: Prisma.BrandFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BrandFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        findMany: {
+          args: Prisma.BrandFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>[]
+        }
+        create: {
+          args: Prisma.BrandCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        createMany: {
+          args: Prisma.BrandCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BrandCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>[]
+        }
+        delete: {
+          args: Prisma.BrandDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        update: {
+          args: Prisma.BrandUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        deleteMany: {
+          args: Prisma.BrandDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BrandUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BrandUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>[]
+        }
+        upsert: {
+          args: Prisma.BrandUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BrandPayload>
+        }
+        aggregate: {
+          args: Prisma.BrandAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBrand>
+        }
+        groupBy: {
+          args: Prisma.BrandGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrandGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BrandCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BrandCountAggregateOutputType> | number
         }
       }
     }
@@ -3469,6 +3544,18 @@ export const UnitScalarFieldEnum = {
 export type UnitScalarFieldEnum = (typeof UnitScalarFieldEnum)[keyof typeof UnitScalarFieldEnum]
 
 
+export const BrandScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
+
+
 export const ProductScalarFieldEnum = {
   id: 'id',
   productCode: 'productCode',
@@ -4307,6 +4394,7 @@ export type GlobalOmitConfig = {
   productCategory?: Prisma.ProductCategoryOmit
   productGroupMaster?: Prisma.ProductGroupMasterOmit
   unit?: Prisma.UnitOmit
+  brand?: Prisma.BrandOmit
   product?: Prisma.ProductOmit
   productStock?: Prisma.ProductStockOmit
   customerImage?: Prisma.CustomerImageOmit
