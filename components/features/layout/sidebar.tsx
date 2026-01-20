@@ -268,11 +268,16 @@ export default function Sidebar({
                 </button>
                 {open && (
                   <div className="mx-2 mb-1 bg-[#991b1b] rounded-lg">
-                    {item.children.map((child) => {
-                      const childActive = isActive(child.href);
+                    {item.children.map((child, index) => {
+                      // For the first child with same href as parent, use exact match
+                      // to avoid highlighting it when on sub-pages
+                      const childActive =
+                        child.href === item.href
+                          ? pathname === child.href
+                          : isActive(child.href);
                       return (
                         <Link
-                          key={child.href}
+                          key={`${child.href}-${index}`}
                           href={child.href}
                           className={
                             "flex items-center justify-between rounded px-4 py-2 transition " +
