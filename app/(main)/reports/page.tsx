@@ -18,7 +18,7 @@ import Link from "next/link";
 const reportCategories = [
   {
     id: "time",
-    title: "รายงานยอดขาย",
+    title: "รายงานยอดขายตามช่วงเวลา",
     description: "ยอดขายรายวัน / รายเดือน / รายปี / ไตรมาส / ตามภูมิภาค",
     icon: Calendar,
     href: "/reports/time-sales",
@@ -32,7 +32,7 @@ const reportCategories = [
   },
   {
     id: "product",
-    title: "รายงานยอดขายสินค้า",
+    title: "รายงานยอดขายตามสินค้า",
     description: "สินค้าขายดี / ขายช้า, ยอดขายต่อสินค้า, สต๊อกใกล้หมด",
     icon: Package,
     href: "/reports/product-sales",
@@ -135,7 +135,7 @@ export default function ReportsPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                ศูนย์รายงาน
+                หมวดรายงาน
               </h1>
               <p className="text-muted-foreground">
                 วิเคราะห์ข้อมูลการขายครบทุกมิติ
