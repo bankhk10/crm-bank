@@ -304,16 +304,28 @@ export default function ProductGroupSalesReportPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl">
-                <TabsTrigger value="overview" className="rounded-lg">
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ภาพรวม
                 </TabsTrigger>
-                <TabsTrigger value="performance" className="rounded-lg">
+                <TabsTrigger
+                  value="performance"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ผลงานกลุ่ม
                 </TabsTrigger>
-                <TabsTrigger value="trend" className="rounded-lg">
+                <TabsTrigger
+                  value="trend"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   แนวโน้มรายเดือน
                 </TabsTrigger>
-                <TabsTrigger value="peak" className="rounded-lg">
+                <TabsTrigger
+                  value="peak"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
               </TabsList>
@@ -513,7 +525,7 @@ export default function ProductGroupSalesReportPage() {
                                 dataKey={(data) =>
                                   data.groups.find(
                                     (g: { group: string }) =>
-                                      g.group === group.group
+                                      g.group === group.group,
                                   )?.sales || 0
                                 }
                                 name={group.group}

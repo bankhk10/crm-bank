@@ -204,10 +204,16 @@ export default function CustomerSalesReportPage() {
           <div className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 p-1 rounded-xl">
-                <TabsTrigger value="top-customers" className="rounded-lg">
+                <TabsTrigger
+                  value="top-customers"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ลูกค้าซื้อสูงสุด
                 </TabsTrigger>
-                <TabsTrigger value="by-type" className="rounded-lg">
+                <TabsTrigger
+                  value="by-type"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ตามประเภท
                 </TabsTrigger>
               </TabsList>

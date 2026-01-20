@@ -324,19 +324,34 @@ export default function TimeSalesReportPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl">
-                <TabsTrigger value="overview" className="rounded-lg">
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ภาพรวม
                 </TabsTrigger>
-                <TabsTrigger value="daily" className="rounded-lg">
+                <TabsTrigger
+                  value="daily"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   รายวัน
                 </TabsTrigger>
-                <TabsTrigger value="monthly" className="rounded-lg">
+                <TabsTrigger
+                  value="monthly"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   รายเดือน
                 </TabsTrigger>
-                <TabsTrigger value="seasonality" className="rounded-lg">
+                <TabsTrigger
+                  value="seasonality"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ฤดูกาล
                 </TabsTrigger>
-                <TabsTrigger value="by-region" className="rounded-lg">
+                <TabsTrigger
+                  value="by-region"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ตามภูมิภาค
                 </TabsTrigger>
               </TabsList>

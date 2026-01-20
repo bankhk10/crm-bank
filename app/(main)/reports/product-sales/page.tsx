@@ -105,7 +105,7 @@ export default function ProductSalesReportPage() {
     to: endOfMonth(new Date()),
   });
   const [reportData, setReportData] = useState<ProductSalesReportData | null>(
-    null
+    null,
   );
   const [activeTab, setActiveTab] = useState("top-products");
 
@@ -320,19 +320,34 @@ export default function ProductSalesReportPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl flex-wrap h-auto gap-1">
-                <TabsTrigger value="top-products" className="rounded-lg">
+                <TabsTrigger
+                  value="top-products"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   สินค้าขายดี
                 </TabsTrigger>
-                <TabsTrigger value="slow-products" className="rounded-lg">
+                <TabsTrigger
+                  value="slow-products"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   สินค้าขายช้า
                 </TabsTrigger>
-                <TabsTrigger value="peak-periods" className="rounded-lg">
+                <TabsTrigger
+                  value="peak-periods"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
-                <TabsTrigger value="low-stock" className="rounded-lg">
+                <TabsTrigger
+                  value="low-stock"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   สินค้าใกล้หมด
                 </TabsTrigger>
-                <TabsTrigger value="stagnant" className="rounded-lg">
+                <TabsTrigger
+                  value="stagnant"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ค้างสต๊อก
                 </TabsTrigger>
               </TabsList>
@@ -536,10 +551,10 @@ export default function ProductSalesReportPage() {
                                   idx === 0
                                     ? "bg-amber-500"
                                     : idx === 1
-                                    ? "bg-slate-400"
-                                    : idx === 2
-                                    ? "bg-amber-700"
-                                    : "bg-slate-500"
+                                      ? "bg-slate-400"
+                                      : idx === 2
+                                        ? "bg-amber-700"
+                                        : "bg-slate-500"
                                 }`}
                               >
                                 {idx + 1}
@@ -621,8 +636,8 @@ export default function ProductSalesReportPage() {
                                     product.availableQuantity <= 10
                                       ? "bg-red-100 text-red-800 border-red-300"
                                       : product.availableQuantity <= 30
-                                      ? "bg-amber-100 text-amber-800 border-amber-300"
-                                      : ""
+                                        ? "bg-amber-100 text-amber-800 border-amber-300"
+                                        : ""
                                   }
                                 >
                                   {formatNumber(product.availableQuantity)}

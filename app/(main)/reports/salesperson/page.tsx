@@ -89,7 +89,7 @@ export default function SalespersonReportPage() {
     to: endOfMonth(new Date()),
   });
   const [reportData, setReportData] = useState<SalespersonReportData | null>(
-    null
+    null,
   );
   const [activeTab, setActiveTab] = useState("performance");
 
@@ -264,16 +264,28 @@ export default function SalespersonReportPage() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-white/50 dark:bg-slate-800/50 p-1 rounded-xl">
-                <TabsTrigger value="performance" className="rounded-lg">
+                <TabsTrigger
+                  value="performance"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   ผลงาน
                 </TabsTrigger>
-                <TabsTrigger value="groups" className="rounded-lg">
+                <TabsTrigger
+                  value="groups"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   กลุ่มสินค้า
                 </TabsTrigger>
-                <TabsTrigger value="products" className="rounded-lg">
+                <TabsTrigger
+                  value="products"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   สินค้า
                 </TabsTrigger>
-                <TabsTrigger value="trend" className="rounded-lg">
+                <TabsTrigger
+                  value="trend"
+                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
                   แนวโน้ม
                 </TabsTrigger>
               </TabsList>
