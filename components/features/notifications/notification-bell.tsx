@@ -165,7 +165,6 @@ export default function NotificationBell() {
           n.message.toLowerCase().includes("PENDING_APPROVAL") ||
           n.message.includes("รออนุมัติ") ||
           n.type === "WARNING";
-        console.log("isPendingApproval", n.message);
         if (isPendingApproval) {
           return `/sales/${saleId}/approve`;
         }

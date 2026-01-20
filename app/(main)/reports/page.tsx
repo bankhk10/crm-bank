@@ -19,7 +19,7 @@ const reportCategories = [
   {
     id: "time",
     title: "รายงานยอดขายตามเวลา",
-    description: "ยอดขายรายวัน / รายเดือน / รายปี, ช่วงเวลาขายดี, ฤดูกาล",
+    description: "ยอดขายรายวัน / รายเดือน / รายปี, ฤดูกาล",
     icon: Calendar,
     href: "/reports/time-sales",
     permissionKey: "report.time_sales",
@@ -27,7 +27,6 @@ const reportCategories = [
     bgColor: "bg-blue-50 dark:bg-blue-950/30",
     features: [
       "ยอดขายรายวัน / รายเดือน / รายปี",
-      "ช่วงเวลาขายดีที่สุด",
       "ฤดูกาล (Seasonality)",
       "จำนวนออเดอร์ที่ขายได้ทั้งหมด",
     ],

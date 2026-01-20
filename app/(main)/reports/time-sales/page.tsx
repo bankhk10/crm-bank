@@ -129,7 +129,7 @@ export default function TimeSalesReportPage() {
     to: endOfMonth(new Date()),
   });
   const [reportData, setReportData] = useState<TimeSalesReportData | null>(
-    null
+    null,
   );
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -416,7 +416,7 @@ export default function TimeSalesReportPage() {
                           <PieChart>
                             <Pie
                               data={reportData.seasonalityData.filter(
-                                (d) => d.percentage > 0
+                                (d) => d.percentage > 0,
                               )}
                               dataKey="sales"
                               nameKey="quarter"
@@ -602,12 +602,20 @@ export default function TimeSalesReportPage() {
                             tick={{ fontSize: 11 }}
                           />
                           <Tooltip
-                            formatter={(value: number, name: string) => [
-                              name === "sales"
-                                ? formatTHB(value)
-                                : formatNumber(value),
-                              name === "sales" ? "ยอดขาย" : "ออเดอร์",
-                            ]}
+                            formatter={(
+                              value: number,
+                              name: string,
+                              props: any,
+                            ) => {
+                              const key = props?.dataKey;
+
+                              return [
+                                key === "sales"
+                                  ? formatTHB(value)
+                                  : formatNumber(value),
+                                key === "sales" ? "ยอดขาย" : "ออเดอร์",
+                              ];
+                            }}
                             contentStyle={{
                               borderRadius: "12px",
                               border: "none",
