@@ -57,7 +57,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
   // State for managing visible product groups
   const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
-    () => new Set(productGroupData.map((p) => p.group))
+    () => new Set(productGroupData.map((p) => p.group)),
   );
 
   // Toggle group visibility
@@ -85,7 +85,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   // Filter product group data based on visible groups
   const filteredProductGroupData = useMemo(
     () => productGroupData.filter((p) => visibleGroups.has(p.group)),
-    [productGroupData, visibleGroups]
+    [productGroupData, visibleGroups],
   );
 
   const percent =
@@ -201,7 +201,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
           <CardHeader className="pb-2 sm:pb-3 relative">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold">
+              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-200 font-semibold">
                 เป้ายอดขายเดือนปัจจุบัน
               </CardTitle>
               <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
@@ -221,7 +221,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
-                <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">
+                <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
                   ยอดขายเทียบกับเป้าหมาย
                 </p>
                 <div className="text-sm sm:text-base font-bold text-white">
@@ -245,7 +245,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
               </div>
               <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
-                <p className="text-[10px] sm:text-xs text-slate-500 mb-0.5">
+                <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
                   % ยอดขายเทียบกับเป้าหมาย
                 </p>
                 <div
