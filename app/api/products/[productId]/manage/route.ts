@@ -18,7 +18,7 @@ const managementSchema = z.object({
         freeQty: z.number().min(0),
         netPrice: z.number().optional(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .optional(),
   promotionItems: z
@@ -29,27 +29,28 @@ const managementSchema = z.object({
         quantity: z.number().min(0),
         price: z.number().optional(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .optional(),
   stockLots: z
     .array(
       z.object({
         id: z.string().optional(),
+        lotNumber: z.string().optional(), // เลข LOT ที่ผู้ใช้กรอก
         quantity: z.number().min(0),
         initialQuantity: z.number().min(0).optional(),
         importDate: z.string().or(z.date()),
         expiryDate: z.string().or(z.date()).optional(),
         storageLocation: z.string().optional(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .optional(),
 });
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string }> },
 ) {
   const { productId } = await params;
   const session = await auth();
@@ -65,7 +66,7 @@ export async function PATCH(
   if (!session.user.permissions?.["product.manage"]?.allow) {
     return NextResponse.json(
       { error: "Forbidden - missing product.manage" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -75,7 +76,7 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -193,7 +194,7 @@ export async function PATCH(
 
         // Delete removed stock lots (only if not used)
         const lotsToDelete = existingLots.filter(
-          (lot) => !stockLotsToKeep.includes(lot.id) && !lot.isUsed
+          (lot) => !stockLotsToKeep.includes(lot.id) && !lot.isUsed,
         );
 
         if (lotsToDelete.length > 0) {
@@ -228,8 +229,10 @@ export async function PATCH(
               });
             }
           } else {
-            // Create new lot with auto-generated lot number
-            const newLotNumber = `LOT-${String(lotCount + newLotIndex + 1)}`;
+            // Create new lot - use user's lotNumber if provided, otherwise auto-generate
+            const newLotNumber =
+              item.lotNumber?.trim() ||
+              `LOT-${String(lotCount + newLotIndex + 1)}`;
             newLotIndex++;
             await tx.productStockLot.create({
               data: {
@@ -257,7 +260,7 @@ export async function PATCH(
         // Physical balance = sum of all lot quantities (actual physical stock)
         const physicalBalance = allLots.reduce(
           (sum, lot) => sum + lot.quantity,
-          0
+          0,
         );
 
         const currentStock = await tx.productStock.findUnique({

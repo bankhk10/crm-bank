@@ -167,7 +167,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
     setFormData((prev) => ({
       ...prev,
       freeItems: prev.freeItems.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
+        i === index ? { ...item, [field]: value } : item,
       ),
     }));
   };
@@ -223,7 +223,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
                         updateFreeItem(
                           index,
                           "purchaseQty",
-                          Number(e.target.value)
+                          Number(e.target.value),
                         )
                       }
                       disabled={saving}
@@ -261,7 +261,7 @@ const FreeItemsSection: React.FC<SectionProps> = ({
                         updateFreeItem(
                           index,
                           "netPrice",
-                          e.target.value ? Number(e.target.value) : undefined
+                          e.target.value ? Number(e.target.value) : undefined,
                         )
                       }
                       disabled={saving}
@@ -356,7 +356,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
     setFormData((prev) => ({
       ...prev,
       promotionItems: prev.promotionItems.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
+        i === index ? { ...item, [field]: value } : item,
       ),
     }));
   };
@@ -428,7 +428,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
                         updatePromotionItem(
                           index,
                           "quantity",
-                          Number(e.target.value)
+                          Number(e.target.value),
                         )
                       }
                       disabled={saving}
@@ -448,7 +448,7 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
                         updatePromotionItem(
                           index,
                           "price",
-                          e.target.value ? Number(e.target.value) : undefined
+                          e.target.value ? Number(e.target.value) : undefined,
                         )
                       }
                       disabled={saving}
@@ -539,7 +539,7 @@ const StockLotsSection: React.FC<
     setFormData((prev) => ({
       ...prev,
       stockLots: prev.stockLots.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
+        i === index ? { ...item, [field]: value } : item,
       ),
     }));
   };
@@ -547,7 +547,7 @@ const StockLotsSection: React.FC<
   const getTotalStock = () => {
     return formData.stockLots.reduce(
       (sum, lot) => sum + (lot.quantity || 0),
-      0
+      0,
     );
   };
 
@@ -621,7 +621,20 @@ const StockLotsSection: React.FC<
             </div>
 
             {/* Content Form */}
-            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">เลข LOT</Label>
+                <Input
+                  type="text"
+                  placeholder={lot.id ? "" : "กรอกเลข LOT..."}
+                  value={lot.lotNumber || ""}
+                  onChange={(e) =>
+                    updateStockLot(index, "lotNumber", e.target.value)
+                  }
+                  disabled={saving || !!lot.id}
+                  className={`h-10 ${lot.id ? "bg-muted cursor-not-allowed" : ""}`}
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   จำนวนนำเข้า
