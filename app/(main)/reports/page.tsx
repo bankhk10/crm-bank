@@ -48,7 +48,7 @@ const reportCategories = [
   },
   {
     id: "product-group",
-    title: "รายงานตามกลุ่มสินค้า",
+    title: "รายงานยอดขายตามกลุ่มสินค้า",
     description: "กลุ่มสินค้าขายดี / ขายช้า, ยอดขายต่อกลุ่ม",
     icon: Layers,
     href: "/reports/product-group-sales",
@@ -64,7 +64,7 @@ const reportCategories = [
   },
   {
     id: "customer",
-    title: "รายงานตามลูกค้า",
+    title: "รายงานยอดขายตามลูกค้า",
     description: "ลูกค้าซื้อสูงสุด, ความถี่ในการซื้อ, มูลค่าตลอดอายุลูกค้า",
     icon: Users,
     href: "/reports/customer-sales",
@@ -80,7 +80,7 @@ const reportCategories = [
   },
   {
     id: "salesperson",
-    title: "รายงานตามพนักงานขาย",
+    title: "รายงานยอดขายตามพนักงานขาย",
     description: "ยอดขายต่อพนักงาน, จำนวนออเดอร์, สินค้าที่ขายได้",
     icon: UserCheck,
     href: "/reports/salesperson",
