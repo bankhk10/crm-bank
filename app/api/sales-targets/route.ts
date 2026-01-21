@@ -307,3 +307,31 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+// DELETE: Delete a sales target
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
+
+    await prisma.salesTarget.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting sales target:", error);
+    return NextResponse.json(
+      { error: "Failed to delete sales target" },
+      { status: 500 },
+    );
+  }
+}

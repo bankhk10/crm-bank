@@ -6,15 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   Target,
@@ -32,7 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PRODUCT_GROUP_OPTIONS } from "@/types/product";
-import { SalesTargetDialog } from "./SalesTargetDialog";
 import {
   Table,
   TableBody,
@@ -41,8 +31,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PlusCircle, Pencil } from "lucide-react";
-
+import { PlusCircle, Pencil, Trash2, Eye } from "lucide-react";
+import { SalesTargetDialog } from "./SalesTargetDialog";
+import { SalesTargetDetailDialog } from "./SalesTargetDetailDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 const MONTHS = [
   { value: 1, label: "มกราคม" },
   { value: 2, label: "กุมภาพันธ์" },
@@ -129,6 +130,13 @@ export default function SalesTargetsPage() {
   const [detailedTargets, setDetailedTargets] = useState<any[]>([]);
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
   const [editingTarget, setEditingTarget] = useState<any>(null);
+
+  // Detail View State
+  const [viewingTarget, setViewingTarget] = useState<any>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  // Delete State
+  const [deletingTargetId, setDeletingTargetId] = useState<string | null>(null);
 
   // Fetch existing targets
   const fetchTargets = useCallback(async () => {
@@ -302,6 +310,28 @@ export default function SalesTargetsPage() {
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("th-TH").format(value);
+  };
+
+  const handleDeleteTarget = async () => {
+    if (!deletingTargetId) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/sales-targets?id=${deletingTargetId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete");
+
+      toast.success("ลบข้อมูลสำเร็จ");
+      fetchTargets();
+    } catch (error) {
+      toast.error("ไม่สามารถลบข้อมูลได้");
+      console.error(error);
+    } finally {
+      setSaving(false);
+      setDeletingTargetId(null);
+    }
   };
 
   const calculateMonthlyTotal = () => {
@@ -649,11 +679,29 @@ export default function SalesTargetsPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => {
+                                setViewingTarget(target);
+                                setIsDetailDialogOpen(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 text-slate-500" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
                                 setEditingTarget(target);
                                 setIsTargetDialogOpen(true);
                               }}
                             >
-                              <Pencil className="w-4 h-4 text-slate-500" />
+                              <Pencil className="w-4 h-4 text-blue-500" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                              onClick={() => setDeletingTargetId(target.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -675,6 +723,35 @@ export default function SalesTargetsPage() {
               setEditingTarget(null);
             }}
           />
+
+          <SalesTargetDetailDialog
+            open={isDetailDialogOpen}
+            onOpenChange={setIsDetailDialogOpen}
+            target={viewingTarget}
+          />
+
+          <AlertDialog
+            open={!!deletingTargetId}
+            onOpenChange={(open) => !open && setDeletingTargetId(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
+                <AlertDialogDescription>
+                  คุณต้องการลบเป้าหมายการขายรายการนี้ใช่หรือไม่?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteTarget}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  ลบข้อมูล
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
 
         {/* Product Group Targets Tab */}
