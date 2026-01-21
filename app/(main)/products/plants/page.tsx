@@ -184,8 +184,8 @@ export default function PlantsPage() {
 
   return (
     <section className="space-y-6 p-6">
-      <Card className="shadow-lg border-0 overflow-hidden !py-0 !gap-0">
-        <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-600 text-white !px-6 !py-4">
+      <Card className="overflow-hidden border-0 shadow-xl bg-white/70 backdrop-blur-sm py-0! gap-0!">
+        <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-600 px-6! py-4! text-white shadow-lg">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <Sprout className="w-8 h-8" />

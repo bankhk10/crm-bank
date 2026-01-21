@@ -22,7 +22,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
-import { PRODUCT_GROUP_OPTIONS } from "@/types/product";
+// Removed PRODUCT_GROUP_OPTIONS import
 import {
   Table,
   TableBody,
@@ -118,6 +118,9 @@ export default function SalesTargetsPage() {
   const [regionTargets, setRegionTargets] = useState<
     Record<string, Record<number, number>>
   >({});
+  const [productGroups, setProductGroups] = useState<
+    { value: string; label: string }[]
+  >([]);
 
   // Product targets state
   const [products, setProducts] = useState<ProductInfo[]>([]);
@@ -218,6 +221,18 @@ export default function SalesTargetsPage() {
 
       // Process detailed targets
       setDetailedTargets(data.detailedTargets || []);
+
+      // Fetch product groups
+      const groupsRes = await fetch("/api/products/groups?perPage=100");
+      if (groupsRes.ok) {
+        const groupsData = await groupsRes.json();
+        setProductGroups(
+          groupsData.groups.map((g: { code: string; description: string }) => ({
+            value: g.code,
+            label: g.description,
+          })),
+        );
+      }
     } catch (error) {
       console.error("Error fetching targets:", error);
       toast.error("ไม่สามารถโหลดข้อมูลเป้าหมายได้");
@@ -781,7 +796,7 @@ export default function SalesTargetsPage() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-6">
-                {PRODUCT_GROUP_OPTIONS.map((group) => (
+                {productGroups.map((group) => (
                   <div key={group.value} className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-slate-800 flex items-center gap-2">

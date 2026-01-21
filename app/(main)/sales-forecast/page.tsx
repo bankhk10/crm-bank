@@ -29,7 +29,11 @@ import {
   Bar,
   Legend,
 } from "recharts";
-import { PRODUCT_GROUP_OPTIONS } from "@/types/product";
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 interface SalesData {
   month: string;
@@ -84,8 +88,11 @@ export default function SalesForecastPage() {
     ProductGroupForecast[]
   >([]);
   const [productForecasts, setProductForecasts] = useState<ProductForecast[]>(
-    []
+    [],
   );
+  const [productGroupOptions, setProductGroupOptions] = useState<
+    SelectOption[]
+  >([]);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch sales data and generate forecast
@@ -94,7 +101,7 @@ export default function SalesForecastPage() {
     try {
       // Fetch actual sales
       const salesResponse = await fetch(
-        `/api/sales/summary?year=${year}&groupBy=month`
+        `/api/sales/summary?year=${year}&groupBy=month`,
       );
 
       // Fetch targets
@@ -109,7 +116,7 @@ export default function SalesForecastPage() {
           salesResult.data.forEach(
             (item: { month: number; totalAmount: number }) => {
               actualSalesMap[item.month] = item.totalAmount || 0;
-            }
+            },
           );
         }
       }
@@ -129,7 +136,6 @@ export default function SalesForecastPage() {
           };
         }>;
       } | null = null;
-
       if (targetsResponse.ok) {
         targetsResult = await targetsResponse.json();
         if (targetsResult?.monthlyTargets) {
@@ -138,9 +144,23 @@ export default function SalesForecastPage() {
               if (t.month !== null) {
                 targetMap[t.month] = Number(t.targetAmount);
               }
-            }
+            },
           );
         }
+      }
+
+      // Fetch product groups
+      const groupsResponse = await fetch("/api/products/groups?perPage=100");
+      let pgOptions: { value: string; label: string }[] = [];
+      if (groupsResponse.ok) {
+        const groupsData = await groupsResponse.json();
+        pgOptions = groupsData.groups.map(
+          (g: { code: string; description: string }) => ({
+            value: g.code,
+            label: g.description,
+          }),
+        );
+        setProductGroupOptions(pgOptions);
       }
 
       // Generate forecast using simple moving average
@@ -182,28 +202,26 @@ export default function SalesForecastPage() {
       setSalesData(data);
 
       // Generate product group forecasts
-      const pgForecasts: ProductGroupForecast[] = PRODUCT_GROUP_OPTIONS.map(
-        (pg) => {
-          // Mock data for now - in production, fetch from API
-          const currentMonthSales = Math.random() * 1000000 + 500000;
-          const lastMonthSales = Math.random() * 1000000 + 500000;
-          const growthRate =
-            lastMonthSales > 0
-              ? (currentMonthSales - lastMonthSales) / lastMonthSales
-              : 0;
-          const forecastNextMonth = currentMonthSales * (1 + growthRate * 0.5);
+      const pgForecasts: ProductGroupForecast[] = pgOptions.map((pg) => {
+        // Mock data for now - in production, fetch from API
+        const currentMonthSales = Math.random() * 1000000 + 500000;
+        const lastMonthSales = Math.random() * 1000000 + 500000;
+        const growthRate =
+          lastMonthSales > 0
+            ? (currentMonthSales - lastMonthSales) / lastMonthSales
+            : 0;
+        const forecastNextMonth = currentMonthSales * (1 + growthRate * 0.5);
 
-          return {
-            productGroup: pg.value,
-            label: pg.label,
-            currentMonthSales: Math.round(currentMonthSales),
-            lastMonthSales: Math.round(lastMonthSales),
-            forecastNextMonth: Math.round(forecastNextMonth),
-            trend:
-              growthRate > 0.05 ? "up" : growthRate < -0.05 ? "down" : "stable",
-          };
-        }
-      );
+        return {
+          productGroup: pg.value,
+          label: pg.label,
+          currentMonthSales: Math.round(currentMonthSales),
+          lastMonthSales: Math.round(lastMonthSales),
+          forecastNextMonth: Math.round(forecastNextMonth),
+          trend:
+            growthRate > 0.05 ? "up" : growthRate < -0.05 ? "down" : "stable",
+        };
+      });
 
       setProductGroupForecasts(pgForecasts);
 
@@ -249,10 +267,10 @@ export default function SalesForecastPage() {
             }
             if (t.month !== null) {
               productDataMap[t.productId].targets[t.month] = Number(
-                t.targetAmount
+                t.targetAmount,
               );
             }
-          }
+          },
         );
 
         const pForecasts: ProductForecast[] = Object.values(productDataMap).map(
@@ -261,7 +279,7 @@ export default function SalesForecastPage() {
             const lastMonthTarget = data.targets[lastMonth] || 0;
             const yearlyTarget = Object.values(data.targets).reduce(
               (sum, val) => sum + val,
-              0
+              0,
             );
 
             // For actual sales, we would fetch from sales summary - using target as placeholder
@@ -291,10 +309,10 @@ export default function SalesForecastPage() {
                 growthRate > 0.05
                   ? "up"
                   : growthRate < -0.05
-                  ? "down"
-                  : ("stable" as const),
+                    ? "down"
+                    : ("stable" as const),
             };
-          }
+          },
         );
 
         setProductForecasts(pForecasts);
@@ -641,8 +659,8 @@ export default function SalesForecastPage() {
                         pg.trend === "up"
                           ? "bg-emerald-100 text-emerald-600"
                           : pg.trend === "down"
-                          ? "bg-red-100 text-red-600"
-                          : "bg-slate-100 text-slate-600"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-slate-100 text-slate-600"
                       }`}
                     >
                       {pg.trend === "up" ? (
@@ -735,8 +753,8 @@ export default function SalesForecastPage() {
                           pf.trend === "up"
                             ? "bg-emerald-100 text-emerald-600"
                             : pf.trend === "down"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-slate-100 text-slate-600"
+                              ? "bg-red-100 text-red-600"
+                              : "bg-slate-100 text-slate-600"
                         }`}
                       >
                         {pf.trend === "up" ? (

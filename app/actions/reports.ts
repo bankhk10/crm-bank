@@ -6,8 +6,6 @@ import {
   endOfDay,
   startOfMonth,
   endOfMonth,
-  startOfYear,
-  endOfYear,
   format,
   parseISO,
   eachMonthOfInterval,
@@ -859,11 +857,21 @@ export async function getProductGroupSalesReport(
   filter: DateRangeFilter,
 ): Promise<ProductGroupSalesReportData> {
   const { start, end } = getDateRange(filter);
-  const { PRODUCT_GROUP_OPTIONS } = await import("@/types/product");
+  // Get all product groups from database
+  const productGroups = await prisma.productGroupMaster.findMany({
+    where: { deletedAt: null },
+    select: { code: true, description: true },
+    orderBy: { code: "asc" },
+  });
+
+  const productGroupOptions = productGroups.map((g) => ({
+    value: g.code,
+    label: g.description,
+  }));
 
   // Get group performance
   const groupPerformance = await Promise.all(
-    PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
+    productGroupOptions.map(async (groupOption) => {
       const group = groupOption.value;
 
       // Get products in this group
@@ -931,15 +939,15 @@ export async function getProductGroupSalesReport(
   const sortedGroups = [...groupPerformance].sort(
     (a, b) => b.totalSales - a.totalSales,
   );
-  const topGroup = sortedGroups[0] || { group: "-", sales: 0 };
+  const topGroup = sortedGroups[0] || { group: "-", totalSales: 0 };
   const worstGroupData = sortedGroups.filter((g) => g.totalSales > 0).pop() || {
     group: "-",
-    sales: 0,
+    totalSales: 0,
   };
 
   // Group peak periods
   const groupPeakPeriods = await Promise.all(
-    PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
+    productGroupOptions.map(async (groupOption) => {
       const monthlyData = await prisma.dailySalesSummary.groupBy({
         by: ["month", "year"],
         where: {
@@ -978,7 +986,7 @@ export async function getProductGroupSalesReport(
       const monthEnd = endOfMonth(monthDate);
 
       const groupsData = await Promise.all(
-        PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
+        productGroupOptions.map(async (groupOption) => {
           const products = await prisma.product.findMany({
             where: { productGroup: groupOption.value, deletedAt: null },
             select: { id: true },
@@ -1234,7 +1242,7 @@ export async function getCustomerSalesReport(
 
   const regionData = new Map<string, { count: Set<string>; sales: number }>();
   for (const cs of allCustomerSales) {
-    const province = provinceMap.get(cs.customerId);
+    const province = provinceMap.get(cs.customerId) || null;
     const region = getRegionFromProvince(province);
 
     if (!regionData.has(region)) {
@@ -1254,7 +1262,6 @@ export async function getCustomerSalesReport(
     .sort((a, b) => b.totalSales - a.totalSales);
 
   // Inactive customers (no purchase in selected period but had previous purchases)
-  const sixMonthsAgo = subMonths(start, 6);
   const inactiveCustomersData = await prisma.customer.findMany({
     where: {
       sales: {
@@ -1577,7 +1584,15 @@ export async function getReportFilterOptions() {
       select: { id: true, name: true, productCode: true, productGroup: true },
       orderBy: { name: "asc" },
     }),
-    import("@/types/product").then((m) => m.PRODUCT_GROUP_OPTIONS),
+    prisma.productGroupMaster
+      .findMany({
+        where: { deletedAt: null },
+        select: { code: true, description: true },
+        orderBy: { code: "asc" },
+      })
+      .then((groups) =>
+        groups.map((g) => ({ value: g.code, label: g.description })),
+      ),
   ]);
 
   // Get available years from sales data

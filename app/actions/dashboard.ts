@@ -104,10 +104,10 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   // Last month for comparison
   const lastMonthStart = startOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    new Date(now.getFullYear(), now.getMonth() - 1, 1),
   );
   const lastMonthEnd = endOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    new Date(now.getFullYear(), now.getMonth() - 1, 1),
   );
 
   const lastMonthSales = await prisma.sale.aggregate({
@@ -151,8 +151,17 @@ export async function getDashboardData(): Promise<DashboardData> {
     lastYtdTotal > 0 ? ((ytdTotal - lastYtdTotal) / lastYtdTotal) * 100 : 0;
 
   // === 3. Product Group Sales (This Month) ===
-  // Use predefined PRODUCT_GROUP_OPTIONS as the source of truth
-  const { PRODUCT_GROUP_OPTIONS } = await import("@/types/product");
+  // Get all product groups from database
+  const productGroups = await prisma.productGroupMaster.findMany({
+    where: { deletedAt: null },
+    select: { code: true, description: true },
+    orderBy: { code: "asc" },
+  });
+
+  const productGroupOptions = productGroups.map((g) => ({
+    value: g.code,
+    label: g.description,
+  }));
 
   // Get product group targets from database
   const productGroupTargets = await prisma.productGroupSalesTarget.findMany({
@@ -165,11 +174,11 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   // Create a map for quick lookup
   const productGroupTargetMap = new Map(
-    productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)])
+    productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)]),
   );
 
   const productGroupData = await Promise.all(
-    PRODUCT_GROUP_OPTIONS.map(async (groupOption) => {
+    productGroupOptions.map(async (groupOption) => {
       const group = groupOption.value;
 
       // Get target from database, fallback to default
@@ -236,13 +245,12 @@ export async function getDashboardData(): Promise<DashboardData> {
         salesNote: salesNoteAmt,
         invoice: invoiceAmt,
       };
-    })
+    }),
   );
 
   // === 4. Region Sales (This Month) ===
-  const { getAllRegions, getRegionByProvince } = await import(
-    "@/lib/province-region-mapping"
-  );
+  const { getAllRegions, getRegionByProvince } =
+    await import("@/lib/province-region-mapping");
   const regions = getAllRegions();
 
   // Get region targets from database
@@ -255,7 +263,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   });
 
   const regionTargetMap = new Map(
-    regionTargets.map((t) => [t.region, Number(t.targetAmount)])
+    regionTargets.map((t) => [t.region, Number(t.targetAmount)]),
   );
 
   // Initialize accumulators

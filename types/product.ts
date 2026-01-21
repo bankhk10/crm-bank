@@ -149,67 +149,12 @@ export interface ProductManagementFormData {
   }>;
 }
 
-export const UNIT_OPTIONS = [
-  { value: "ขวด", label: "ขวด" },
-  { value: "กล่อง", label: "กล่อง" },
-  { value: "ถัง", label: "ถัง" },
-  { value: "แกลลอน", label: "แกลลอน" },
-  { value: "กรัม", label: "กรัม" },
-  { value: "กล่องใน", label: "กล่องใน" },
-  { value: "กระปุก", label: "กระปุก" },
-  { value: "กิโลกรัม", label: "กิโลกรัม" },
-  { value: "ลิตร", label: "ลิตร" },
-  { value: "ชิ้น", label: "ชิ้น" },
-  { value: "ม้วน", label: "ม้วน" },
-  { value: "กระสอบ", label: "กระสอบ" },
-  { value: "ชุด", label: "ชุด" },
-  { value: "ซอง", label: "ซอง" },
-];
-
-export const PRODUCT_GROUP_OPTIONS = [
-  { value: "SEP", label: "SEP" },
-  { value: "AMN", label: "AMN" },
-  { value: "ISPI", label: "ISPI" },
-  { value: "24D", label: "24D" },
-  { value: "ABA", label: "ABA" },
-  { value: "OTH", label: "OTH" },
-];
-
-export const BRAND_OPTIONS = [
-  { value: "แบรนด์ X", label: "แบรนด์ X" },
-  { value: "แบรนด์ Y", label: "แบรนด์ Y" },
-  { value: "แบรนด์ Z", label: "แบรนด์ Z" },
-];
-
 export const STATUS_OPTIONS = [
   { value: "ACTIVE", label: "ใช้งาน" },
   { value: "INACTIVE", label: "ไม่ใช้งาน" },
 ];
 
-export const PLANT_OPTIONS = [
-  { value: "ยางพารา", label: "ยางพารา" },
-  { value: "ข้าวโพดเลี้ยงสัตว์", label: "ข้าวโพดเลี้ยงสัตว์" },
-  { value: "ทุเรียน", label: "ทุเรียน" },
-  { value: "มังคุด", label: "มังคุด" },
-  { value: "ลำไย", label: "ลำไย" },
-  { value: "สับปะรด", label: "สับปะรด" },
-  { value: "มะพร้าว", label: "มะพร้าว" },
-  { value: "เงาะ", label: "เงาะ" },
-  { value: "ลิ้นจี่", label: "ลิ้นจี่" },
-  { value: "ลองกอง", label: "ลองกอง" },
-  { value: "กาแฟ", label: "กาแฟ" },
-  { value: "ส้มโอ", label: "ส้มโอ" },
-  { value: "ส้มเขียวหวาน", label: "ส้มเขียวหวาน" },
-  { value: "ถั่วเหลือง", label: "ถั่วเหลือง" },
-  { value: "กระเทียม", label: "กระเทียม" },
-  { value: "หอมแดง", label: "หอมแดง" },
-  { value: "หอมหัวใหญ่", label: "หอมหัวใหญ่" },
-  { value: "มะม่วง", label: "มะม่วง" },
-  { value: "มะนาว", label: "มะนาว" },
-  { value: "พริก", label: "พริก" },
-];
-
 export const STORAGE_LOCATION_OPTIONS = [
-  { value: "คลังบางเลน A", label: "คลังบางเลน A" },
-  { value: "คลังบางเลน B", label: "คลังบางเลน B" },
+  { value: "คลังบางเลน", label: "คลังบางเลน" },
+  // { value: "คลังบางเลน B", label: "คลังบางเลน B" },
 ];

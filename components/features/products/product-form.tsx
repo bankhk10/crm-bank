@@ -19,14 +19,7 @@ import {
   FormTextarea,
 } from "@/components/custom/form-components";
 import { MultiSelect } from "@/components/custom/multi-select";
-import {
-  UNIT_OPTIONS,
-  PRODUCT_GROUP_OPTIONS,
-  BRAND_OPTIONS,
-  STATUS_OPTIONS,
-  PLANT_OPTIONS,
-  type ProductFormData,
-} from "@/types/product";
+import { STATUS_OPTIONS, type ProductFormData } from "@/types/product";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
@@ -92,12 +85,10 @@ export function ProductForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Dynamic options from database
-  const [unitOptions, setUnitOptions] = useState<SelectOption[]>(UNIT_OPTIONS);
-  const [groupOptions, setGroupOptions] = useState<SelectOption[]>(
-    PRODUCT_GROUP_OPTIONS,
-  );
-  const [brandOptions, setBrandOptions] =
-    useState<SelectOption[]>(BRAND_OPTIONS);
+  const [unitOptions, setUnitOptions] = useState<SelectOption[]>([]);
+  const [groupOptions, setGroupOptions] = useState<SelectOption[]>([]);
+  const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
+  const [plantOptions, setPlantOptions] = useState<SelectOption[]>([]);
 
   // Fetch dynamic options from database
   useEffect(() => {
@@ -150,9 +141,22 @@ export function ProductForm({
             );
           }
         }
+
+        // Fetch plants
+        const plantsRes = await fetch("/api/products/plants?perPage=100");
+        if (plantsRes.ok) {
+          const plantsData = await plantsRes.json();
+          if (plantsData.plants && plantsData.plants.length > 0) {
+            setPlantOptions(
+              plantsData.plants.map((p: { code: string; name: string }) => ({
+                value: p.name,
+                label: p.name,
+              })),
+            );
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch options:", err);
-        // Keep default options if fetch fails
       }
     };
 
@@ -645,7 +649,7 @@ export function ProductForm({
         <div className="space-y-2">
           <label className="text-base font-medium mx-2">ใช้กับพืช</label>
           <MultiSelect
-            options={PLANT_OPTIONS}
+            options={plantOptions}
             onValueChange={(values: string[]) =>
               setFormData((prev) => ({
                 ...prev,
