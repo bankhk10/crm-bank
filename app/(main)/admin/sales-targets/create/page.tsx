@@ -12,34 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import {
   Loader2,
-  Plus,
   Trash2,
-  Check,
-  ChevronsUpDown,
   ChevronLeft,
   Target,
   ShoppingCart,
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 
 interface ProductItem {
   productId: string;
@@ -78,12 +63,8 @@ export default function CreateSalesTargetPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [customersOpen, setCustomersOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
 
   // Search State
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [productSearch, setProductSearch] = useState("");
 
   useEffect(() => {
     fetchInitialData();
@@ -116,36 +97,6 @@ export default function CreateSalesTargetPage() {
     }
   };
 
-  const handleSearchCustomers = async (query: string) => {
-    setCustomerSearch(query);
-    if (query.length < 2) return;
-    try {
-      const res = await fetch(`/api/customers?q=${query}&perPage=10`);
-      if (res.ok) {
-        const data = await res.json();
-        setCustomers(data.customers || data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleSearchProducts = async (query: string) => {
-    setProductSearch(query);
-    if (query.length < 2) return;
-    try {
-      const res = await fetch(
-        `/api/products?q=${query}&perPage=10&status=ACTIVE`,
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data.products || data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const handleAddItem = (product: any) => {
     if (items.some((i) => i.productId === product.id)) {
       toast.info("สินค้านี้ถูกเพิ่มแล้ว");
@@ -160,7 +111,6 @@ export default function CreateSalesTargetPage() {
         amount: Number(product.price || 0),
       },
     ]);
-    setProductsOpen(false);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -233,7 +183,7 @@ export default function CreateSalesTargetPage() {
               >
                 <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
               </Link>
-              
+
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
@@ -267,7 +217,19 @@ export default function CreateSalesTargetPage() {
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-5">
+                  <div className="grid grid-cols-[140px_1fr] gap-5">
+                    <div className="space-y-2.5">
+                      <Label className="text-sm font-semibold text-slate-700">
+                        ปี
+                      </Label>
+                      <Input
+                        disabled
+                        type="number"
+                        value={year}
+                        onChange={(e) => setYear(Number(e.target.value))}
+                        className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
+                      />
+                    </div>
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold text-slate-700">
                         เดือน
@@ -276,13 +238,14 @@ export default function CreateSalesTargetPage() {
                         value={month.toString()}
                         onValueChange={(v) => setMonth(Number(v))}
                       >
-                        <SelectTrigger className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
+                        <SelectTrigger className="w-full h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
                           <SelectValue />
                         </SelectTrigger>
+
                         <SelectContent className="rounded-xl">
                           {MONTHS.map((m) => (
-                            <SelectItem 
-                              key={m.value} 
+                            <SelectItem
+                              key={m.value}
                               value={m.value.toString()}
                               className="rounded-lg"
                             >
@@ -292,111 +255,36 @@ export default function CreateSalesTargetPage() {
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div className="space-y-2.5">
-                      <Label className="text-sm font-semibold text-slate-700">
-                        ปี
-                      </Label>
-                      <Input
-                        type="number"
-                        value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
-                        className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
-                      />
-                    </div>
                   </div>
 
                   <div className="space-y-2.5">
-                    <Label className="text-sm font-semibold text-slate-700">
-                      พนักงานขาย
-                    </Label>
-                    <Select value={employeeId} onValueChange={setEmployeeId}>
-                      <SelectTrigger className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
-                        <SelectValue placeholder="เลือกพนักงาน" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {employees.map((emp) => (
-                          <SelectItem 
-                            key={emp.id} 
-                            value={emp.id}
-                            className="rounded-lg"
-                          >
-                            {emp.name} ({emp.employeeCode || "-"})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormCombobox
+                      label="พนักงานขาย"
+                      value={employeeId}
+                      onChange={(val) => setEmployeeId(val)}
+                      options={employees.map((emp) => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.employeeCode || "-"})`,
+                      }))}
+                      placeholder="เลือกพนักงาน"
+                      searchPlaceholder="ค้นหาพนักงาน..."
+                      emptyText="ไม่พบพนักงาน"
+                    />
                   </div>
 
                   <div className="space-y-2.5">
-                    <Label className="text-sm font-semibold text-slate-700">
-                      ลูกค้า/ร้านค้า
-                    </Label>
-                    <Popover open={customersOpen} onOpenChange={setCustomersOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 hover:bg-slate-100/50 transition-all duration-200 text-left font-medium",
-                            !customerId && "text-slate-500",
-                          )}
-                        >
-                          {customerId
-                            ? customers.find((c) => c.id === customerId)?.name ||
-                              customers.find((c) => c.id === customerId)
-                                ?.customerCode ||
-                              "เลือกลูกค้า"
-                            : "ค้นหาลูกค้า..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[400px] p-0 rounded-2xl shadow-2xl border-slate-200/60">
-                        <Command shouldFilter={false}>
-                          <CommandInput
-                            placeholder="พิมพ์ชื่อร้านค้า..."
-                            value={customerSearch}
-                            onValueChange={handleSearchCustomers}
-                            className="h-12 border-b"
-                          />
-                          <CommandList>
-                            <CommandEmpty className="py-6 text-center text-sm text-slate-500">
-                              ไม่พบข้อมูล
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {customers.map((customer) => (
-                                <CommandItem
-                                  value={customer.name}
-                                  key={customer.id}
-                                  onSelect={() => {
-                                    setCustomerId(customer.id);
-                                    setCustomersOpen(false);
-                                  }}
-                                  className="cursor-pointer py-3 px-4 rounded-lg mx-2 my-1"
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-3 h-4 w-4 text-emerald-500",
-                                      customer.id === customerId
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  <div>
-                                    <div className="font-medium text-slate-800">
-                                      {customer.name}
-                                    </div>
-                                    <div className="text-xs text-slate-500">
-                                      {customer.customerCode}
-                                    </div>
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <FormCombobox
+                      label="ลูกค้า/ร้านค้า"
+                      value={customerId}
+                      onChange={(val) => setCustomerId(val)}
+                      options={customers.map((customer) => ({
+                        value: customer.id,
+                        label: `${customer.name} (${customer.customerCode || "-"})`,
+                      }))}
+                      placeholder="เลือกลูกค้า"
+                      searchPlaceholder="ค้นหาลูกค้า..."
+                      emptyText="ไม่พบลูกค้า"
+                    />
                   </div>
                 </div>
 
@@ -411,54 +299,23 @@ export default function CreateSalesTargetPage() {
                         รายการสินค้า
                       </h3>
                     </div>
-                    <Popover open={productsOpen} onOpenChange={setProductsOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          size="sm"
-                          className="h-10 gap-2 bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 hover:from-emerald-600 hover:via-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/25 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 font-medium"
-                        >
-                          <Plus className="w-4 h-4" />
-                          เพิ่มสินค้า
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-[340px] p-0 rounded-2xl shadow-2xl border-slate-200/60"
-                        align="end"
-                      >
-                        <Command shouldFilter={false}>
-                          <CommandInput
-                            placeholder="ค้นหาสินค้า..."
-                            value={productSearch}
-                            onValueChange={handleSearchProducts}
-                            className="h-12 border-b"
-                          />
-                          <CommandList>
-                            <CommandEmpty className="py-6 text-center text-sm text-slate-500">
-                              ไม่พบสินค้า
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {products.map((p) => (
-                                <CommandItem
-                                  key={p.id}
-                                  value={p.name}
-                                  onSelect={() => handleAddItem(p)}
-                                  className="cursor-pointer py-3 px-4 rounded-lg mx-2 my-1"
-                                >
-                                  <div>
-                                    <div className="font-medium text-slate-800">
-                                      {p.name}
-                                    </div>
-                                    <div className="text-xs text-slate-500">
-                                      {p.productCode}
-                                    </div>
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <div className="w-[300px]">
+                      <FormCombobox
+                        label=""
+                        value=""
+                        onChange={(val) => {
+                          const p = products.find((x) => x.id === val);
+                          if (p) handleAddItem(p);
+                        }}
+                        options={products.map((p) => ({
+                          value: p.id,
+                          label: `${p.name} (${p.productCode || "-"})`,
+                        }))}
+                        placeholder="เพิ่มสินค้า..."
+                        searchPlaceholder="ค้นหาสินค้า..."
+                        emptyText="ไม่พบสินค้า"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-3 min-h-[350px] bg-gradient-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed border-slate-200/80">
@@ -474,7 +331,8 @@ export default function CreateSalesTargetPage() {
                           ยังไม่มีรายการสินค้า
                         </p>
                         <p className="text-sm text-slate-500 max-w-xs">
-                          กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มเพิ่มรายการเป้าหมายการขาย
+                          กดปุ่ม &quot;เพิ่มสินค้า&quot;
+                          เพื่อเริ่มเพิ่มรายการเป้าหมายการขาย
                         </p>
                       </div>
                     )}
@@ -484,7 +342,7 @@ export default function CreateSalesTargetPage() {
                         className="group relative bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl transition-all duration-300 hover:border-blue-300/60 hover:-translate-y-1"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                        
+
                         <div className="relative space-y-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 pr-4">
@@ -552,7 +410,7 @@ export default function CreateSalesTargetPage() {
                     <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
                       <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-                      
+
                       <div className="relative space-y-4">
                         <div className="flex items-center justify-between pb-3 border-b border-white/10">
                           <span className="text-slate-400 text-sm font-medium">
@@ -562,7 +420,7 @@ export default function CreateSalesTargetPage() {
                             {items.length} รายการ
                           </span>
                         </div>
-                        
+
                         <div className="flex items-end justify-between pt-2">
                           <div>
                             <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
