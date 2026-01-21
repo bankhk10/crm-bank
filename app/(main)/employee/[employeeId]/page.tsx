@@ -233,31 +233,6 @@ export default function EmployeeDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               กลับไปหน้ารายการพนักงาน
             </Link>
-
-            <div className="flex gap-2">
-              {canEdit && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md rounded-xl"
-                  onClick={() => router.push(`/employee/${employeeId}/edit`)}
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  แก้ไขข้อมูล
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="bg-red-500/80 hover:bg-red-600 text-white border-none backdrop-blur-md rounded-xl"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  ลบพนักงาน
-                </Button>
-              )}
-            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
