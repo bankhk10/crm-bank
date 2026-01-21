@@ -30,11 +30,6 @@ import {
   Legend,
 } from "recharts";
 
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
 interface SalesData {
   month: string;
   monthNumber: number;
@@ -90,12 +85,8 @@ export default function SalesForecastPage() {
   const [productForecasts, setProductForecasts] = useState<ProductForecast[]>(
     [],
   );
-  const [productGroupOptions, setProductGroupOptions] = useState<
-    SelectOption[]
-  >([]);
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Fetch sales data and generate forecast
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -135,17 +126,87 @@ export default function SalesForecastPage() {
             productGroup: string | null;
           };
         }>;
+        detailedTargets?: Array<{
+          month: number;
+          items: Array<{
+            productId: string;
+            amount: number;
+            product: {
+              id: string;
+              productCode: string;
+              name: string;
+              productGroup: string | null;
+            };
+          }>;
+        }>;
       } | null = null;
+
+      const productDataMap: Record<
+        string,
+        {
+          product: {
+            id: string;
+            productCode: string;
+            name: string;
+            productGroup: string | null;
+          };
+          targets: Record<number, number>;
+        }
+      > = {};
+
       if (targetsResponse.ok) {
         targetsResult = await targetsResponse.json();
+
+        // 1. Process Legacy Monthly Targets
         if (targetsResult?.monthlyTargets) {
           targetsResult.monthlyTargets.forEach(
             (t: { month: number | null; targetAmount: string }) => {
               if (t.month !== null) {
-                targetMap[t.month] = Number(t.targetAmount);
+                targetMap[t.month] =
+                  (targetMap[t.month] || 0) + Number(t.targetAmount);
               }
             },
           );
+        }
+
+        // 2. Process Legacy Product Targets
+        if (targetsResult?.productTargets) {
+          targetsResult.productTargets.forEach((t) => {
+            if (!productDataMap[t.productId]) {
+              productDataMap[t.productId] = {
+                product: t.product,
+                targets: {},
+              };
+            }
+            if (t.month !== null) {
+              productDataMap[t.productId].targets[t.month] =
+                (productDataMap[t.productId].targets[t.month] || 0) +
+                Number(t.targetAmount);
+            }
+          });
+        }
+
+        // 3. Process New Detailed Targets (Aggregating items)
+        if (targetsResult?.detailedTargets) {
+          targetsResult.detailedTargets.forEach((target) => {
+            const month = target.month;
+            if (target.items) {
+              target.items.forEach((item) => {
+                // Add to total monthly target
+                targetMap[month] = (targetMap[month] || 0) + item.amount;
+
+                // Add to product specific target
+                if (!productDataMap[item.productId]) {
+                  productDataMap[item.productId] = {
+                    product: item.product,
+                    targets: {},
+                  };
+                }
+                const pt = productDataMap[item.productId];
+                pt.targets[month] = (pt.targets[month] || 0) + item.amount;
+              });
+            }
+          });
         }
       }
 
@@ -160,7 +221,6 @@ export default function SalesForecastPage() {
             label: g.description,
           }),
         );
-        setProductGroupOptions(pgOptions);
       }
 
       // Generate forecast using simple moving average
@@ -225,98 +285,52 @@ export default function SalesForecastPage() {
 
       setProductGroupForecasts(pgForecasts);
 
-      // Generate product forecasts from product targets
-      if (
-        targetsResult?.productTargets &&
-        targetsResult.productTargets.length > 0
-      ) {
-        const currentMonth = new Date().getMonth() + 1;
-        const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+      // Generate product forecasts from product targets (Aggregated Map)
+      const currentMonthVal = new Date().getMonth() + 1;
+      const lastMonthVal = currentMonthVal === 1 ? 12 : currentMonthVal - 1;
 
-        // Group by productId
-        const productDataMap: Record<
-          string,
-          {
-            product: {
-              id: string;
-              productCode: string;
-              name: string;
-              productGroup: string | null;
-            };
-            targets: Record<number, number>;
-          }
-        > = {};
+      const pForecasts: ProductForecast[] = Object.values(productDataMap).map(
+        (data) => {
+          const currentMonthTarget = data.targets[currentMonthVal] || 0;
+          const lastMonthTarget = data.targets[lastMonthVal] || 0;
+          const yearlyTarget = Object.values(data.targets).reduce(
+            (sum, val) => sum + val,
+            0,
+          );
 
-        targetsResult.productTargets.forEach(
-          (t: {
-            productId: string;
-            month: number | null;
-            targetAmount: string;
-            product: {
-              id: string;
-              productCode: string;
-              name: string;
-              productGroup: string | null;
-            };
-          }) => {
-            if (!productDataMap[t.productId]) {
-              productDataMap[t.productId] = {
-                product: t.product,
-                targets: {},
-              };
-            }
-            if (t.month !== null) {
-              productDataMap[t.productId].targets[t.month] = Number(
-                t.targetAmount,
-              );
-            }
-          },
-        );
+          // For actual sales, we would fetch from sales summary - using target as placeholder
+          // Note: Logic simplified for demonstration as per original code
+          const currentMonthActual =
+            currentMonthTarget * (0.7 + Math.random() * 0.4);
+          const lastMonthActual = lastMonthTarget * (0.7 + Math.random() * 0.4);
 
-        const pForecasts: ProductForecast[] = Object.values(productDataMap).map(
-          (data) => {
-            const currentMonthTarget = data.targets[currentMonth] || 0;
-            const lastMonthTarget = data.targets[lastMonth] || 0;
-            const yearlyTarget = Object.values(data.targets).reduce(
-              (sum, val) => sum + val,
-              0,
-            );
+          const growthRate =
+            lastMonthActual > 0
+              ? (currentMonthActual - lastMonthActual) / lastMonthActual
+              : 0;
+          const forecastNextMonth = currentMonthActual * (1 + growthRate * 0.5);
 
-            // For actual sales, we would fetch from sales summary - using target as placeholder
-            const currentMonthActual =
-              currentMonthTarget * (0.7 + Math.random() * 0.4);
-            const lastMonthActual =
-              lastMonthTarget * (0.7 + Math.random() * 0.4);
+          return {
+            productId: data.product.id,
+            productCode: data.product.productCode,
+            productName: data.product.name,
+            productGroup: data.product.productGroup,
+            currentMonthTarget,
+            yearlyTarget,
+            currentMonthActual: Math.round(currentMonthActual),
+            lastMonthActual: Math.round(lastMonthActual),
+            forecastNextMonth: Math.round(forecastNextMonth),
+            trend:
+              growthRate > 0.05
+                ? "up"
+                : growthRate < -0.05
+                  ? "down"
+                  : ("stable" as const),
+          };
+        },
+      );
 
-            const growthRate =
-              lastMonthActual > 0
-                ? (currentMonthActual - lastMonthActual) / lastMonthActual
-                : 0;
-            const forecastNextMonth =
-              currentMonthActual * (1 + growthRate * 0.5);
-
-            return {
-              productId: data.product.id,
-              productCode: data.product.productCode,
-              productName: data.product.name,
-              productGroup: data.product.productGroup,
-              currentMonthTarget,
-              yearlyTarget,
-              currentMonthActual: Math.round(currentMonthActual),
-              lastMonthActual: Math.round(lastMonthActual),
-              forecastNextMonth: Math.round(forecastNextMonth),
-              trend:
-                growthRate > 0.05
-                  ? "up"
-                  : growthRate < -0.05
-                    ? "down"
-                    : ("stable" as const),
-            };
-          },
-        );
-
-        setProductForecasts(pForecasts);
-      }
+      setProductForecasts(pForecasts);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
