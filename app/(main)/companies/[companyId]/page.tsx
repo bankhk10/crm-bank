@@ -236,7 +236,7 @@ export default function CompanyDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* General Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-blue-100">
+            <div className="p-6 border-b border-gray-100 bg-blue-300">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-600" />
                 ข้อมูลทั่วไป
@@ -268,7 +268,7 @@ export default function CompanyDetailPage() {
 
           {/* Contact Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-purple-100">
+            <div className="p-6 border-b border-gray-100 bg-purple-300">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Phone className="h-6 w-6 text-purple-600" />
                 ข้อมูลการติดต่อ
@@ -290,7 +290,7 @@ export default function CompanyDetailPage() {
 
           {/* Address Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-            <div className="p-6 border-b border-gray-100 bg-emerald-100">
+            <div className="p-6 border-b border-gray-100 bg-emerald-300">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <MapPin className="h-6 w-6 text-emerald-600" />
                 ที่อยู่
