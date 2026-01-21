@@ -10,7 +10,7 @@ export async function GET(
   _request: Request,
   {
     params,
-  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } },
 ) {
   const session = await auth();
 
@@ -30,6 +30,16 @@ export async function GET(
       company: { select: { id: true, name: true } },
       department: { select: { id: true, name: true } },
       manager: { select: { id: true, name: true } },
+      responsibleCustomers: {
+        select: {
+          id: true,
+          customerCode: true,
+          name: true,
+          province: true,
+          region: true,
+          status: true,
+        },
+      },
       // include linked user and their active roles so callers (edit page) can
       // prefill login/role information
       user: {
@@ -56,7 +66,7 @@ export async function DELETE(
   _request: Request,
   {
     params,
-  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } },
 ) {
   const session = await auth();
 
@@ -79,7 +89,7 @@ export async function DELETE(
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message ?? "Delete failed" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }
@@ -88,7 +98,7 @@ export async function PUT(
   request: Request,
   {
     params,
-  }: { params: Promise<{ employeeId: string }> | { employeeId: string } }
+  }: { params: Promise<{ employeeId: string }> | { employeeId: string } },
 ) {
   const session = await auth();
 
@@ -153,7 +163,7 @@ export async function PUT(
   if (!parseResult.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -164,7 +174,7 @@ export async function PUT(
         error: "User validation failed",
         details: userParseResult.error.flatten(),
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -290,7 +300,7 @@ export async function PUT(
             });
 
             const target = existingRoles.find(
-              (r) => r.roleId === userPayload.roleId
+              (r) => r.roleId === userPayload.roleId,
             );
             if (target) {
               // Reactivate if previously soft-deleted
@@ -325,7 +335,7 @@ export async function PUT(
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message ?? "Update failed" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 }

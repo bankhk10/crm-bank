@@ -19,21 +19,20 @@ import {
   Mail,
   Building2,
   Briefcase,
-  Hash,
-  FileText,
-  UserCheck,
-  Pencil,
-  Trash2,
   AlertTriangle,
   BadgeCheck,
   MapPin,
-  Calendar,
   Layers,
   Map,
   CheckCircle2,
   XCircle,
-  Clock,
   Cake,
+  Store,
+  ExternalLink,
+  Search,
+  FileText,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { cn } from "@/lib/utils";
@@ -63,6 +62,14 @@ type EmployeeDetail = {
   department?: { id: string; name?: string | null } | null; // Relation
   roleTitle?: string | null;
   createdAt?: string | null;
+  responsibleCustomers?: {
+    id: string;
+    customerCode: string;
+    name: string;
+    province?: string | null;
+    region?: string | null;
+    status: string;
+  }[];
 };
 
 function DetailItem({
@@ -80,13 +87,13 @@ function DetailItem({
     <div
       className={cn(
         "flex gap-3 py-3 border-b border-gray-100 last:border-0",
-        fullWidth && "col-span-full"
+        fullWidth && "col-span-full",
       )}
     >
       {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
       <div className="flex-1 min-w-0">
         <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
-        <dd className="text-base text-gray-900 font-medium break-words">
+        <dd className="text-base text-gray-900 font-medium wrap-break-word">
           {value || "-"}
         </dd>
       </div>
@@ -99,14 +106,24 @@ export default function EmployeeDetailPage() {
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("menu.employees");
   const canView = !isLoading && allowed;
-  const canEdit = hasPermission("employee.edit");
-  const canDelete = hasPermission("employee.delete");
+  const canEdit =
+    hasPermission("employee.edit") || hasPermission("employee.manage");
+  const canDelete =
+    hasPermission("employee.delete") || hasPermission("employee.manage");
 
   const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredCustomers = employee?.responsibleCustomers?.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.customerCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.province?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -207,7 +224,7 @@ export default function EmployeeDetailPage() {
     <div className="min-h-screen from-slate-50 to-blue-50 bg-slate-50/50 pb-12">
       {/* Hero Header Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
+        <div className="bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
             <Link
               href="/employee"
@@ -216,6 +233,31 @@ export default function EmployeeDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               กลับไปหน้ารายการพนักงาน
             </Link>
+
+            <div className="flex gap-2">
+              {canEdit && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md rounded-xl"
+                  onClick={() => router.push(`/employee/${employeeId}/edit`)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  แก้ไขข้อมูล
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="bg-red-500/80 hover:bg-red-600 text-white border-none backdrop-blur-md rounded-xl"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  ลบพนักงาน
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
@@ -370,6 +412,112 @@ export default function EmployeeDetailPage() {
                   )
                 }
               />
+            </div>
+          </div>
+
+          {/* Responsible Stores Section */}
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
+            <div className="p-6 border-b border-gray-100 bg-linear-to-r from-orange-50 to-amber-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Store className="h-6 w-6 text-orange-600" />
+                ร้านค้าที่รับผิดชอบ
+                <span className="ml-2 px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-sm font-semibold">
+                  {employee.responsibleCustomers?.length || 0}
+                </span>
+              </h2>
+
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="ค้นหาชื่อร้าน, รหัส หรือจังหวัด..."
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="p-6">
+              {!employee.responsibleCustomers ||
+              employee.responsibleCustomers.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <Store className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">
+                    ไม่มีร้านค้าในความดูแล
+                  </p>
+                </div>
+              ) : filteredCustomers && filteredCustomers.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCustomers.map((customer) => (
+                    <Link
+                      key={customer.id}
+                      href={`/customers/${customer.id}`}
+                      className="group p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all duration-200"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-orange-100 transition-colors text-orange-600 shadow-sm">
+                          <Store className="h-5 w-5" />
+                        </div>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[10px] font-medium text-gray-400">
+                            ดูรายละเอียด
+                          </span>
+                          <ExternalLink className="h-4 w-4 text-gray-400" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs font-bold text-orange-600 uppercase tracking-widest flex items-center gap-1.5">
+                          <div className="w-1 h-1 bg-orange-600 rounded-full" />
+                          {customer.customerCode}
+                        </div>
+                        <h3 className="font-bold text-gray-900 group-hover:text-orange-700 transition-colors line-clamp-1 text-lg">
+                          {customer.name}
+                        </h3>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {customer.province && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {customer.province}
+                            </span>
+                          )}
+                          {customer.region && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
+                              {customer.region}
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border",
+                              customer.status === "ACTIVE"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                : "bg-slate-50 text-slate-700 border-slate-100",
+                            )}
+                          >
+                            {customer.status === "ACTIVE"
+                              ? "ปกติ"
+                              : customer.status}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">
+                    ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;
+                  </p>
+                  <Button
+                    variant="link"
+                    className="mt-2 text-orange-600"
+                    onClick={() => setSearchTerm("")}
+                  >
+                    ล้างการค้นหา
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
