@@ -201,7 +201,11 @@ export default function FulfillmentPage({
     }
 
     // Validate: If LOT allocations have been started but not complete
-    if (lotAllocations.length > 0 && !lotAllocationsValid) {
+    if (
+      lotAllocations.length > 0 &&
+      !lotAllocationsValid &&
+      status !== "WAITING_FOR_CORRECTION"
+    ) {
       setError("กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการ");
       setSubmitting(false);
       return;
@@ -529,6 +533,7 @@ export default function FulfillmentPage({
                       onChange={(val) => setDeliveryDate(val || "")}
                       label=""
                       placeholder="เลือกวันที่จัดส่ง"
+                      disabled={status === "WAITING_FOR_CORRECTION"}
                     />
                   </div>
                   {(status === "COMPLETED" ||
@@ -563,6 +568,7 @@ export default function FulfillmentPage({
                       onChange={(val) => setDueDate(val || "")}
                       label=""
                       placeholder="เลือกวันครบกำหนด"
+                      disabled={status === "WAITING_FOR_CORRECTION"}
                     />
                   </div>
                   <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-2 rounded-lg">
@@ -589,6 +595,7 @@ export default function FulfillmentPage({
                       onChange={(val) => setPaymentDate(val || "")}
                       label=""
                       placeholder="เลือกวันที่ชำระเงิน"
+                      disabled={status === "WAITING_FOR_CORRECTION"}
                     />
                   </div>
                   {status === "COMPLETED" && !paymentDate && (
@@ -642,6 +649,7 @@ export default function FulfillmentPage({
                   onAllocationsChange={handleLotAllocationsChange}
                   disabled={
                     submitting ||
+                    status === "WAITING_FOR_CORRECTION" ||
                     (saleData &&
                       ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(
                         saleData.sale.status,
