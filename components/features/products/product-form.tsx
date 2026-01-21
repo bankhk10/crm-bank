@@ -100,14 +100,18 @@ export function ProductForm({
         if (unitsRes.ok) {
           const unitsData = await unitsRes.json();
           if (unitsData.units && unitsData.units.length > 0) {
-            setUnitOptions(
-              unitsData.units.map(
-                (u: { code: string; description: string }) => ({
-                  value: u.description,
-                  label: u.description,
-                }),
-              ),
+            const options = unitsData.units.map(
+              (u: { code: string; description: string }) => ({
+                value: u.description,
+                label: u.description,
+              }),
             );
+            // Deduplicate to prevent key errors
+            const uniqueOptions = options.filter(
+              (opt: any, index: number, self: any[]) =>
+                index === self.findIndex((t) => t.value === opt.value),
+            );
+            setUnitOptions(uniqueOptions);
           }
         }
 
@@ -120,7 +124,7 @@ export function ProductForm({
               groupsData.groups.map(
                 (g: { code: string; description: string }) => ({
                   value: g.code,
-                  label: g.description,
+                  label: g.code + " - " + g.description,
                 }),
               ),
             );
@@ -132,14 +136,18 @@ export function ProductForm({
         if (brandsRes.ok) {
           const brandsData = await brandsRes.json();
           if (brandsData.brands && brandsData.brands.length > 0) {
-            setBrandOptions(
-              brandsData.brands.map(
-                (b: { code: string; description: string }) => ({
-                  value: b.description,
-                  label: b.description,
-                }),
-              ),
+            const options = brandsData.brands.map(
+              (b: { code: string; description: string }) => ({
+                value: b.description,
+                label: b.description,
+              }),
             );
+            // Deduplicate
+            const uniqueOptions = options.filter(
+              (opt: any, index: number, self: any[]) =>
+                index === self.findIndex((t) => t.value === opt.value),
+            );
+            setBrandOptions(uniqueOptions);
           }
         }
 
@@ -148,12 +156,18 @@ export function ProductForm({
         if (plantsRes.ok) {
           const plantsData = await plantsRes.json();
           if (plantsData.plants && plantsData.plants.length > 0) {
-            setPlantOptions(
-              plantsData.plants.map((p: { code: string; name: string }) => ({
+            const options = plantsData.plants.map(
+              (p: { code: string; name: string }) => ({
                 value: p.name,
                 label: p.name,
-              })),
+              }),
             );
+            // Deduplicate
+            const uniqueOptions = options.filter(
+              (opt: any, index: number, self: any[]) =>
+                index === self.findIndex((t) => t.value === opt.value),
+            );
+            setPlantOptions(uniqueOptions);
           }
         }
       } catch (err) {
