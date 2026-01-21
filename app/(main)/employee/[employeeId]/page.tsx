@@ -280,7 +280,7 @@ export default function EmployeeDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-blue-100">
+            <div className="p-6 border-b border-gray-100 bg-blue-300">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-600" />
                 ข้อมูลส่วนตัว
@@ -311,7 +311,7 @@ export default function EmployeeDetailPage() {
 
           {/* Work / Organization Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-            <div className="p-6 border-b border-gray-100 bg-purple-100">
+            <div className="p-6 border-b border-gray-100 bg-purple-300">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Building2 className="h-6 w-6 text-purple-600" />
                 ข้อมูลการทำงาน
@@ -354,7 +354,7 @@ export default function EmployeeDetailPage() {
 
           {/* Address Information Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-            <div className="p-6 border-b border-gray-100 bg-emerald-50">
+            <div className="p-6 border-b border-gray-100 bg-emerald-200">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <MapPin className="h-6 w-6 text-emerald-600" />
                 ที่อยู่ติดต่อ
@@ -392,11 +392,11 @@ export default function EmployeeDetailPage() {
 
           {/* Responsible Stores Section */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-            <div className="p-6 border-b border-gray-100 bg-linear-to-r from-orange-50 to-amber-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-6 border-b border-gray-100 bg-linear-to-r from-orange-200 to-amber-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Store className="h-6 w-6 text-orange-600" />
                 ร้านค้าที่รับผิดชอบ
-                <span className="ml-2 px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-sm font-semibold">
+                <span className="ml-2 px-2.5 py-0.5 rounded-full bg-orange-300 text-orange-700 text-sm font-semibold">
                   {employee.responsibleCustomers?.length || 0}
                 </span>
               </h2>
@@ -428,7 +428,7 @@ export default function EmployeeDetailPage() {
                     <Link
                       key={customer.id}
                       href={`/customers/${customer.id}`}
-                      className="group p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all duration-200"
+                      className="group p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all duration-200"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-orange-100 transition-colors text-orange-600 shadow-sm">
