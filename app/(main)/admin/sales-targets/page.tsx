@@ -612,16 +612,12 @@ export default function SalesTargetsPage() {
                   </div>
                   <CardTitle>รายการเป้าหมายรายเดือน</CardTitle>
                 </div>
-                <Button
-                  onClick={() => {
-                    setEditingTarget(null);
-                    setIsTargetDialogOpen(true);
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25"
-                >
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  เพิ่มเป้าหมาย
-                </Button>
+                <Link href="/admin/sales-targets/create">
+                  <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    เพิ่มเป้าหมาย
+                  </Button>
+                </Link>
               </div>
             </CardHeader>
             <CardContent className="p-0">
