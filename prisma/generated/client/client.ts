@@ -224,3 +224,13 @@ export type ApplicationLog = Prisma.ApplicationLogModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model SalesTarget
+ * 
+ */
+export type SalesTarget = Prisma.SalesTargetModel
+/**
+ * Model SalesTargetItem
+ * 
+ */
+export type SalesTargetItem = Prisma.SalesTargetItemModel

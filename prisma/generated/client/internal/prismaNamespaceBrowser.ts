@@ -87,7 +87,9 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
   ApplicationLog: 'ApplicationLog',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  SalesTarget: 'SalesTarget',
+  SalesTargetItem: 'SalesTargetItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -809,6 +811,31 @@ export const NotificationScalarFieldEnum = {
 } as const
 
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const SalesTargetScalarFieldEnum = {
+  id: 'id',
+  year: 'year',
+  month: 'month',
+  employeeId: 'employeeId',
+  customerId: 'customerId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SalesTargetScalarFieldEnum = (typeof SalesTargetScalarFieldEnum)[keyof typeof SalesTargetScalarFieldEnum]
+
+
+export const SalesTargetItemScalarFieldEnum = {
+  id: 'id',
+  salesTargetId: 'salesTargetId',
+  productId: 'productId',
+  quantity: 'quantity',
+  amount: 'amount'
+} as const
+
+export type SalesTargetItemScalarFieldEnum = (typeof SalesTargetItemScalarFieldEnum)[keyof typeof SalesTargetItemScalarFieldEnum]
 
 
 export const SortOrder = {

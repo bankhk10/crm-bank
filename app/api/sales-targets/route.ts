@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const year = parseInt(
-      searchParams.get("year") || new Date().getFullYear().toString()
+      searchParams.get("year") || new Date().getFullYear().toString(),
     );
 
-    // Fetch monthly targets
+    // Fetch monthly targets (legacy/global)
     const monthlyTargets = await prisma.monthlySalesTarget.findMany({
       where: {
         year,
@@ -61,17 +61,35 @@ export async function GET(request: NextRequest) {
       orderBy: [{ productId: "asc" }, { month: "asc" }],
     });
 
+    // Fetch Detailed Sales Targets
+    const detailedTargets = await prisma.salesTarget.findMany({
+      where: {
+        year,
+      },
+      include: {
+        employee: true,
+        customer: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: [{ month: "asc" }, { createdAt: "desc" }],
+    });
+
     return NextResponse.json({
       monthlyTargets,
       productGroupTargets,
       regionTargets,
       productTargets,
+      detailedTargets,
     });
   } catch (error) {
     console.error("Error fetching sales targets:", error);
     return NextResponse.json(
       { error: "Failed to fetch sales targets" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -96,121 +114,186 @@ export async function POST(request: NextRequest) {
     if (!type || !targets || !Array.isArray(targets)) {
       return NextResponse.json(
         { error: "Invalid request body" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const results = [];
 
-    for (const target of targets) {
-      const {
-        year,
-        month,
-        targetAmount,
-        productGroup,
-        region,
-        productId,
-        notes,
-      } = target;
+    // Transaction? Maybe too heavy for loop.
+    // We'll do it sequentially or promise.all
 
-      if (type === "monthly") {
-        // Upsert monthly target
-        const existing = await prisma.monthlySalesTarget.findFirst({
-          where: { year, month, deletedAt: null },
-        });
+    if (type === "detailed") {
+      // Handle Detailed Sales Targets
+      for (const target of targets) {
+        const {
+          id, // If ID is present, we update
+          year,
+          month,
+          employeeId,
+          customerId,
+          items, // Array of { productId, quantity, amount }
+        } = target;
 
-        if (existing) {
-          const updated = await prisma.monthlySalesTarget.update({
-            where: { id: existing.id },
-            data: { targetAmount, notes },
+        if (id) {
+          // Update existing
+          // First delete existing items? Or update them? Easier to delete and recreate items.
+          await prisma.salesTargetItem.deleteMany({
+            where: { salesTargetId: id },
           });
-          results.push(updated);
-        } else {
-          const created = await prisma.monthlySalesTarget.create({
+
+          const updated = await prisma.salesTarget.update({
+            where: { id },
             data: {
               year,
               month,
-              targetAmount,
-              notes,
-              createdById: session.user.id,
+              employeeId,
+              customerId,
+              items: {
+                create: items.map((item: any) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  amount: item.amount,
+                })),
+              },
             },
+            include: { items: true },
+          });
+          results.push(updated);
+        } else {
+          // Create new
+          const created = await prisma.salesTarget.create({
+            data: {
+              year,
+              month,
+              employeeId,
+              customerId,
+              createdById: session.user.id,
+              items: {
+                create: items.map((item: any) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  amount: item.amount,
+                })),
+              },
+            },
+            include: { items: true },
           });
           results.push(created);
         }
-      } else if (type === "productGroup") {
-        // Upsert product group target
-        const existing = await prisma.productGroupSalesTarget.findFirst({
-          where: { productGroup, year, month, deletedAt: null },
-        });
+      }
+    } else {
+      // Handle Legacy Types
+      for (const target of targets) {
+        const {
+          year,
+          month,
+          targetAmount,
+          productGroup,
+          region,
+          productId,
+          notes,
+        } = target;
 
-        if (existing) {
-          const updated = await prisma.productGroupSalesTarget.update({
-            where: { id: existing.id },
-            data: { targetAmount, notes },
+        if (type === "monthly") {
+          // Upsert monthly target
+          const existing = await prisma.monthlySalesTarget.findFirst({
+            where: { year, month, deletedAt: null },
           });
-          results.push(updated);
-        } else {
-          const created = await prisma.productGroupSalesTarget.create({
-            data: {
-              productGroup,
-              year,
-              month,
-              targetAmount,
-              notes,
-              createdById: session.user.id,
-            },
-          });
-          results.push(created);
-        }
-      } else if (type === "region") {
-        // Upsert region target
-        const existing = await prisma.regionSalesTarget.findFirst({
-          where: { region, year, month, deletedAt: null },
-        });
 
-        if (existing) {
-          const updated = await prisma.regionSalesTarget.update({
-            where: { id: existing.id },
-            data: { targetAmount, notes },
+          if (existing) {
+            const updated = await prisma.monthlySalesTarget.update({
+              where: { id: existing.id },
+              data: { targetAmount, notes },
+            });
+            results.push(updated);
+          } else {
+            const created = await prisma.monthlySalesTarget.create({
+              data: {
+                year,
+                month,
+                targetAmount,
+                notes,
+                createdById: session.user.id,
+              },
+            });
+            results.push(created);
+          }
+        } else if (type === "productGroup") {
+          // Upsert product group target
+          const existing = await prisma.productGroupSalesTarget.findFirst({
+            where: { productGroup, year, month, deletedAt: null },
           });
-          results.push(updated);
-        } else {
-          const created = await prisma.regionSalesTarget.create({
-            data: {
-              region,
-              year,
-              month,
-              targetAmount,
-              notes,
-              createdById: session.user.id,
-            },
-          });
-          results.push(created);
-        }
-      } else if (type === "product") {
-        // Upsert product target
-        const existing = await prisma.productSalesTarget.findFirst({
-          where: { productId, year, month, deletedAt: null },
-        });
 
-        if (existing) {
-          const updated = await prisma.productSalesTarget.update({
-            where: { id: existing.id },
-            data: { targetAmount, notes },
+          if (existing) {
+            const updated = await prisma.productGroupSalesTarget.update({
+              where: { id: existing.id },
+              data: { targetAmount, notes },
+            });
+            results.push(updated);
+          } else {
+            const created = await prisma.productGroupSalesTarget.create({
+              data: {
+                productGroup,
+                year,
+                month,
+                targetAmount,
+                notes,
+                createdById: session.user.id,
+              },
+            });
+            results.push(created);
+          }
+        } else if (type === "region") {
+          // Upsert region target
+          const existing = await prisma.regionSalesTarget.findFirst({
+            where: { region, year, month, deletedAt: null },
           });
-          results.push(updated);
-        } else {
-          const created = await prisma.productSalesTarget.create({
-            data: {
-              productId,
-              year,
-              month,
-              targetAmount,
-              notes,
-              createdById: session.user.id,
-            },
+
+          if (existing) {
+            const updated = await prisma.regionSalesTarget.update({
+              where: { id: existing.id },
+              data: { targetAmount, notes },
+            });
+            results.push(updated);
+          } else {
+            const created = await prisma.regionSalesTarget.create({
+              data: {
+                region,
+                year,
+                month,
+                targetAmount,
+                notes,
+                createdById: session.user.id,
+              },
+            });
+            results.push(created);
+          }
+        } else if (type === "product") {
+          // Upsert product target
+          const existing = await prisma.productSalesTarget.findFirst({
+            where: { productId, year, month, deletedAt: null },
           });
-          results.push(created);
+
+          if (existing) {
+            const updated = await prisma.productSalesTarget.update({
+              where: { id: existing.id },
+              data: { targetAmount, notes },
+            });
+            results.push(updated);
+          } else {
+            const created = await prisma.productSalesTarget.create({
+              data: {
+                productId,
+                year,
+                month,
+                targetAmount,
+                notes,
+                createdById: session.user.id,
+              },
+            });
+            results.push(created);
+          }
         }
       }
     }
@@ -220,7 +303,7 @@ export async function POST(request: NextRequest) {
     console.error("Error saving sales targets:", error);
     return NextResponse.json(
       { error: "Failed to save sales targets" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -32,6 +32,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PRODUCT_GROUP_OPTIONS } from "@/types/product";
+import { SalesTargetDialog } from "./SalesTargetDialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { PlusCircle, Pencil } from "lucide-react";
 
 const MONTHS = [
   { value: 1, label: "มกราคม" },
@@ -56,12 +66,6 @@ const REGIONS = [
   "ภาคกลาง",
   "ภาคใต้",
 ];
-
-interface MonthlyTarget {
-  month: number | null;
-  targetAmount: number;
-  notes?: string;
-}
 
 interface ProductGroupTarget {
   productGroup: string;
@@ -103,7 +107,6 @@ export default function SalesTargetsPage() {
   const [monthlyTargets, setMonthlyTargets] = useState<
     Record<number | string, number>
   >({});
-  const [yearlyTarget, setYearlyTarget] = useState<number>(0);
 
   // Product group targets state
   const [productGroupTargets, setProductGroupTargets] = useState<
@@ -122,6 +125,11 @@ export default function SalesTargetsPage() {
   >({});
   const [productSearch, setProductSearch] = useState("");
 
+  // Detailed targets state
+  const [detailedTargets, setDetailedTargets] = useState<any[]>([]);
+  const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
+  const [editingTarget, setEditingTarget] = useState<any>(null);
+
   // Fetch existing targets
   const fetchTargets = useCallback(async () => {
     setLoading(true);
@@ -135,10 +143,7 @@ export default function SalesTargetsPage() {
       const monthlyMap: Record<number | string, number> = {};
       data.monthlyTargets?.forEach(
         (t: { month: number | null; targetAmount: string }) => {
-          if (t.month === null) {
-            // Yearly target
-            setYearlyTarget(Number(t.targetAmount));
-          } else {
+          if (t.month !== null) {
             monthlyMap[t.month] = Number(t.targetAmount);
           }
         },
@@ -202,6 +207,9 @@ export default function SalesTargetsPage() {
           return [...prev, ...newProducts];
         });
       }
+
+      // Process detailed targets
+      setDetailedTargets(data.detailedTargets || []);
     } catch (error) {
       console.error("Error fetching targets:", error);
       toast.error("ไม่สามารถโหลดข้อมูลเป้าหมายได้");
@@ -213,52 +221,6 @@ export default function SalesTargetsPage() {
   useEffect(() => {
     fetchTargets();
   }, [fetchTargets]);
-
-  // Save monthly targets
-  const saveMonthlyTargets = async () => {
-    setSaving(true);
-    try {
-      const targets: MonthlyTarget[] = [];
-
-      // Add yearly target
-      if (yearlyTarget > 0) {
-        targets.push({
-          month: null,
-          targetAmount: yearlyTarget,
-        });
-      }
-
-      // Add monthly targets
-      MONTHS.forEach((m) => {
-        const amount = monthlyTargets[m.value] || 0;
-        if (amount > 0) {
-          targets.push({
-            month: m.value,
-            targetAmount: amount,
-          });
-        }
-      });
-
-      const response = await fetch("/api/sales-targets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "monthly",
-          targets: targets.map((t) => ({ ...t, year })),
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to save");
-
-      setSuccessMessage("บันทึกเป้าหมายรายเดือนสำเร็จ");
-      setSuccessDialogOpen(true);
-    } catch (error) {
-      console.error("Error saving monthly targets:", error);
-      toast.error("ไม่สามารถบันทึกเป้าหมายได้");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   // Save product group targets
   const saveProductGroupTargets = async () => {
@@ -343,6 +305,17 @@ export default function SalesTargetsPage() {
   };
 
   const calculateMonthlyTotal = () => {
+    if (detailedTargets.length > 0) {
+      return detailedTargets.reduce((sum, target) => {
+        return (
+          sum +
+          (target.items?.reduce(
+            (s: number, i: any) => s + Number(i.amount),
+            0,
+          ) || 0)
+        );
+      }, 0);
+    }
     return Object.values(monthlyTargets).reduce(
       (sum, val) => sum + (val || 0),
       0,
@@ -584,6 +557,7 @@ export default function SalesTargetsPage() {
           </Card>
 
           {/* Monthly Targets Grid */}
+          {/* Monthly Targets List (Detailed) */}
           <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
             <CardHeader className="border-b border-slate-100">
               <div className="flex items-center justify-between">
@@ -591,55 +565,116 @@ export default function SalesTargetsPage() {
                   <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100">
                     <Calendar className="w-5 h-5 text-blue-600" />
                   </div>
-                  <CardTitle>เป้าหมายรายเดือน</CardTitle>
+                  <CardTitle>รายการเป้าหมายรายเดือน</CardTitle>
                 </div>
                 <Button
-                  onClick={saveMonthlyTargets}
-                  disabled={saving}
+                  onClick={() => {
+                    setEditingTarget(null);
+                    setIsTargetDialogOpen(true);
+                  }}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25"
                 >
-                  {saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  บันทึก
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  เพิ่มเป้าหมาย
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {MONTHS.map((month) => (
-                  <div
-                    key={month.value}
-                    className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200/60 hover:shadow-md transition-all"
-                  >
-                    <Label className="text-sm font-semibold text-slate-700 mb-2 block">
-                      {month.label}
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                        ฿
-                      </span>
-                      <Input
-                        type="number"
-                        onWheel={(e) => e.currentTarget.blur()}
-                        value={monthlyTargets[month.value] || ""}
-                        onChange={(e) =>
-                          setMonthlyTargets((prev) => ({
-                            ...prev,
-                            [month.value]: parseFloat(e.target.value) || 0,
-                          }))
-                        }
-                        placeholder="0"
-                        className="pl-8 bg-white border-slate-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>เดือน</TableHead>
+                    <TableHead>พนักงาน</TableHead>
+                    <TableHead>ร้านค้า</TableHead>
+                    <TableHead className="text-right">
+                      จำนวนสินค้า (รายการ)
+                    </TableHead>
+                    <TableHead className="text-right">ยอดรวม (บาท)</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {detailedTargets.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-8 text-slate-500"
+                      >
+                        ยังไม่มีข้อมูลเป้าหมาย
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    detailedTargets.map((target) => (
+                      <TableRow key={target.id}>
+                        <TableCell>
+                          {MONTHS.find((m) => m.value === target.month)?.label}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {target.employee?.name}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {target.employee?.employeeCode}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {target.customer?.name}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {target.customer?.customerCode}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {target.items?.reduce(
+                            (s: number, i: any) => s + i.quantity,
+                            0,
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-emerald-600">
+                          {formatCurrency(
+                            target.items?.reduce(
+                              (s: number, i: any) => s + Number(i.amount),
+                              0,
+                            ),
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingTarget(target);
+                                setIsTargetDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="w-4 h-4 text-slate-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
+
+          <SalesTargetDialog
+            open={isTargetDialogOpen}
+            onOpenChange={setIsTargetDialogOpen}
+            year={year}
+            initialData={editingTarget}
+            onSuccess={() => {
+              fetchTargets();
+              setEditingTarget(null);
+            }}
+          />
         </TabsContent>
 
         {/* Product Group Targets Tab */}

@@ -162,6 +162,7 @@ model Employee {
   responsibleCustomers Customer[]  @relation("EmployeeResponsible")
   sales                Sale[]      @relation("SaleEmployee")
   dailySalesSummaries  DailySalesSummary[]
+  salesTargets         SalesTarget[]
 }
 
 model Department {
@@ -357,6 +358,7 @@ model Customer {
   responsibleEmployee     Employee?     @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
   sales                   Sale[]        @relation("SaleCustomer")
   dailySalesSummaries     DailySalesSummary[]
+  salesTargets            SalesTarget[]
 }
 
 model CreditLimit {
@@ -488,6 +490,7 @@ model Product {
   stock                 ProductStock?
   dailySalesSummaries   DailySalesSummary[]
   salesTargets          ProductSalesTarget[] @relation("ProductSalesTargets")
+  detailedSalesTargets  SalesTargetItem[]
 }
 
 model ProductStock {
@@ -1025,4 +1028,42 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([createdAt])
+}
+
+// ==========================================
+// NEW SALES TARGETS (DETAILED)
+// ==========================================
+
+model SalesTarget {
+  id          String   @id @default(cuid())
+  year        Int
+  month       Int
+  employeeId  String // พนักงาน
+  customerId  String // ร้านค้า
+  
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id])
+  items       SalesTargetItem[]
+  
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([year, month])
+  @@index([employeeId])
+  @@index([customerId])
+}
+
+model SalesTargetItem {
+  id            String   @id @default(cuid())
+  salesTargetId String
+  productId     String
+  quantity      Int      @default(0)
+  amount        Decimal  @db.Decimal(15, 2)
+  
+  salesTarget   SalesTarget @relation(fields: [salesTargetId], references: [id], onDelete: Cascade)
+  product       Product     @relation(fields: [productId], references: [id])
+  
+  @@index([salesTargetId])
+  @@index([productId])
 }

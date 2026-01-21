@@ -420,7 +420,9 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   SecurityLog: 'SecurityLog',
   ApplicationLog: 'ApplicationLog',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  SalesTarget: 'SalesTarget',
+  SalesTargetItem: 'SalesTargetItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -436,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "brand" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification"
+    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "brand" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification" | "salesTarget" | "salesTargetItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3178,6 +3180,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SalesTarget: {
+      payload: Prisma.$SalesTargetPayload<ExtArgs>
+      fields: Prisma.SalesTargetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SalesTargetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SalesTargetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        findFirst: {
+          args: Prisma.SalesTargetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SalesTargetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        findMany: {
+          args: Prisma.SalesTargetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>[]
+        }
+        create: {
+          args: Prisma.SalesTargetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        createMany: {
+          args: Prisma.SalesTargetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SalesTargetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>[]
+        }
+        delete: {
+          args: Prisma.SalesTargetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        update: {
+          args: Prisma.SalesTargetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        deleteMany: {
+          args: Prisma.SalesTargetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SalesTargetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SalesTargetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>[]
+        }
+        upsert: {
+          args: Prisma.SalesTargetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetPayload>
+        }
+        aggregate: {
+          args: Prisma.SalesTargetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSalesTarget>
+        }
+        groupBy: {
+          args: Prisma.SalesTargetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalesTargetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SalesTargetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalesTargetCountAggregateOutputType> | number
+        }
+      }
+    }
+    SalesTargetItem: {
+      payload: Prisma.$SalesTargetItemPayload<ExtArgs>
+      fields: Prisma.SalesTargetItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SalesTargetItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SalesTargetItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        findFirst: {
+          args: Prisma.SalesTargetItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SalesTargetItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        findMany: {
+          args: Prisma.SalesTargetItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>[]
+        }
+        create: {
+          args: Prisma.SalesTargetItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        createMany: {
+          args: Prisma.SalesTargetItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SalesTargetItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>[]
+        }
+        delete: {
+          args: Prisma.SalesTargetItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        update: {
+          args: Prisma.SalesTargetItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.SalesTargetItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SalesTargetItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SalesTargetItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.SalesTargetItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalesTargetItemPayload>
+        }
+        aggregate: {
+          args: Prisma.SalesTargetItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSalesTargetItem>
+        }
+        groupBy: {
+          args: Prisma.SalesTargetItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalesTargetItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SalesTargetItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalesTargetItemCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3922,6 +4072,31 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const SalesTargetScalarFieldEnum = {
+  id: 'id',
+  year: 'year',
+  month: 'month',
+  employeeId: 'employeeId',
+  customerId: 'customerId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SalesTargetScalarFieldEnum = (typeof SalesTargetScalarFieldEnum)[keyof typeof SalesTargetScalarFieldEnum]
+
+
+export const SalesTargetItemScalarFieldEnum = {
+  id: 'id',
+  salesTargetId: 'salesTargetId',
+  productId: 'productId',
+  quantity: 'quantity',
+  amount: 'amount'
+} as const
+
+export type SalesTargetItemScalarFieldEnum = (typeof SalesTargetItemScalarFieldEnum)[keyof typeof SalesTargetItemScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4415,6 +4590,8 @@ export type GlobalOmitConfig = {
   securityLog?: Prisma.SecurityLogOmit
   applicationLog?: Prisma.ApplicationLogOmit
   notification?: Prisma.NotificationOmit
+  salesTarget?: Prisma.SalesTargetOmit
+  salesTargetItem?: Prisma.SalesTargetItemOmit
 }
 
 /* Types for Logging */

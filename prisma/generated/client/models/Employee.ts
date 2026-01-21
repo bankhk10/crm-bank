@@ -367,6 +367,7 @@ export type EmployeeWhereInput = {
   responsibleCustomers?: Prisma.CustomerListRelationFilter
   sales?: Prisma.SaleListRelationFilter
   dailySalesSummaries?: Prisma.DailySalesSummaryListRelationFilter
+  salesTargets?: Prisma.SalesTargetListRelationFilter
 }
 
 export type EmployeeOrderByWithRelationInput = {
@@ -406,6 +407,7 @@ export type EmployeeOrderByWithRelationInput = {
   responsibleCustomers?: Prisma.CustomerOrderByRelationAggregateInput
   sales?: Prisma.SaleOrderByRelationAggregateInput
   dailySalesSummaries?: Prisma.DailySalesSummaryOrderByRelationAggregateInput
+  salesTargets?: Prisma.SalesTargetOrderByRelationAggregateInput
 }
 
 export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
@@ -448,6 +450,7 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   responsibleCustomers?: Prisma.CustomerListRelationFilter
   sales?: Prisma.SaleListRelationFilter
   dailySalesSummaries?: Prisma.DailySalesSummaryListRelationFilter
+  salesTargets?: Prisma.SalesTargetListRelationFilter
 }, "id" | "email" | "userId">
 
 export type EmployeeOrderByWithAggregationInput = {
@@ -548,6 +551,7 @@ export type EmployeeCreateInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateInput = {
@@ -582,6 +586,7 @@ export type EmployeeUncheckedCreateInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUpdateInput = {
@@ -616,6 +621,7 @@ export type EmployeeUpdateInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateInput = {
@@ -650,6 +656,7 @@ export type EmployeeUncheckedUpdateInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyInput = {
@@ -1107,6 +1114,20 @@ export type EmployeeUpdateOneRequiredWithoutDailySalesSummariesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutDailySalesSummariesInput, Prisma.EmployeeUpdateWithoutDailySalesSummariesInput>, Prisma.EmployeeUncheckedUpdateWithoutDailySalesSummariesInput>
 }
 
+export type EmployeeCreateNestedOneWithoutSalesTargetsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedCreateWithoutSalesTargetsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutSalesTargetsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutSalesTargetsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedCreateWithoutSalesTargetsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutSalesTargetsInput
+  upsert?: Prisma.EmployeeUpsertWithoutSalesTargetsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutSalesTargetsInput, Prisma.EmployeeUpdateWithoutSalesTargetsInput>, Prisma.EmployeeUncheckedUpdateWithoutSalesTargetsInput>
+}
+
 export type EmployeeCreateWithoutUserInput = {
   id?: string
   name: string
@@ -1138,6 +1159,7 @@ export type EmployeeCreateWithoutUserInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutUserInput = {
@@ -1171,6 +1193,7 @@ export type EmployeeUncheckedCreateWithoutUserInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutUserInput = {
@@ -1220,6 +1243,7 @@ export type EmployeeUpdateWithoutUserInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutUserInput = {
@@ -1253,6 +1277,7 @@ export type EmployeeUncheckedUpdateWithoutUserInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutCompanyInput = {
@@ -1286,6 +1311,7 @@ export type EmployeeCreateWithoutCompanyInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutCompanyInput = {
@@ -1319,6 +1345,7 @@ export type EmployeeUncheckedCreateWithoutCompanyInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutCompanyInput = {
@@ -1411,6 +1438,7 @@ export type EmployeeCreateWithoutManagerInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutManagerInput = {
@@ -1444,6 +1472,7 @@ export type EmployeeUncheckedCreateWithoutManagerInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutManagerInput = {
@@ -1487,6 +1516,7 @@ export type EmployeeCreateWithoutReportsInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutReportsInput = {
@@ -1520,6 +1550,7 @@ export type EmployeeUncheckedCreateWithoutReportsInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutReportsInput = {
@@ -1585,6 +1616,7 @@ export type EmployeeUpdateWithoutReportsInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutReportsInput = {
@@ -1618,6 +1650,7 @@ export type EmployeeUncheckedUpdateWithoutReportsInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutDepartmentInput = {
@@ -1651,6 +1684,7 @@ export type EmployeeCreateWithoutDepartmentInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutDepartmentInput = {
@@ -1684,6 +1718,7 @@ export type EmployeeUncheckedCreateWithoutDepartmentInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutDepartmentInput = {
@@ -1743,6 +1778,7 @@ export type EmployeeCreateWithoutPositionInput = {
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutPositionInput = {
@@ -1776,6 +1812,7 @@ export type EmployeeUncheckedCreateWithoutPositionInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutPositionInput = {
@@ -1835,6 +1872,7 @@ export type EmployeeCreateWithoutResponsibleCustomersInput = {
   manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutResponsibleCustomersInput = {
@@ -1868,6 +1906,7 @@ export type EmployeeUncheckedCreateWithoutResponsibleCustomersInput = {
   reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutResponsibleCustomersInput = {
@@ -1917,6 +1956,7 @@ export type EmployeeUpdateWithoutResponsibleCustomersInput = {
   manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutResponsibleCustomersInput = {
@@ -1950,6 +1990,7 @@ export type EmployeeUncheckedUpdateWithoutResponsibleCustomersInput = {
   reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutSalesInput = {
@@ -1983,6 +2024,7 @@ export type EmployeeCreateWithoutSalesInput = {
   manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutSalesInput = {
@@ -2016,6 +2058,7 @@ export type EmployeeUncheckedCreateWithoutSalesInput = {
   reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutSalesInput = {
@@ -2065,6 +2108,7 @@ export type EmployeeUpdateWithoutSalesInput = {
   manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutSalesInput = {
@@ -2098,6 +2142,7 @@ export type EmployeeUncheckedUpdateWithoutSalesInput = {
   reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutDailySalesSummariesInput = {
@@ -2131,6 +2176,7 @@ export type EmployeeCreateWithoutDailySalesSummariesInput = {
   manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
   responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutDailySalesSummariesInput = {
@@ -2164,6 +2210,7 @@ export type EmployeeUncheckedCreateWithoutDailySalesSummariesInput = {
   reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
   responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
   sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
+  salesTargets?: Prisma.SalesTargetUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutDailySalesSummariesInput = {
@@ -2213,6 +2260,7 @@ export type EmployeeUpdateWithoutDailySalesSummariesInput = {
   manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutDailySalesSummariesInput = {
@@ -2246,6 +2294,159 @@ export type EmployeeUncheckedUpdateWithoutDailySalesSummariesInput = {
   reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutSalesTargetsInput = {
+  id?: string
+  name: string
+  email: string
+  prefix?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  employeeCode?: string | null
+  birthDate?: Date | string | null
+  addressLine?: string | null
+  province?: string | null
+  district?: string | null
+  subdistrict?: string | null
+  postalCode?: string | null
+  responsibilityArea?: string | null
+  status?: string | null
+  positionTitle?: string | null
+  departmentName?: string | null
+  roleTitle?: string | null
+  phone?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
+  company?: Prisma.CompanyCreateNestedOneWithoutEmployeesInput
+  department?: Prisma.DepartmentCreateNestedOneWithoutEmployeesInput
+  position?: Prisma.PositionCreateNestedOneWithoutEmployeesInput
+  reports?: Prisma.EmployeeCreateNestedManyWithoutManagerInput
+  manager?: Prisma.EmployeeCreateNestedOneWithoutReportsInput
+  responsibleCustomers?: Prisma.CustomerCreateNestedManyWithoutResponsibleEmployeeInput
+  sales?: Prisma.SaleCreateNestedManyWithoutEmployeeInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutSalesTargetsInput = {
+  id?: string
+  name: string
+  email: string
+  prefix?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  employeeCode?: string | null
+  birthDate?: Date | string | null
+  addressLine?: string | null
+  province?: string | null
+  district?: string | null
+  subdistrict?: string | null
+  postalCode?: string | null
+  responsibilityArea?: string | null
+  status?: string | null
+  positionTitle?: string | null
+  departmentName?: string | null
+  roleTitle?: string | null
+  phone?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  userId?: string | null
+  companyId?: string | null
+  departmentId?: string | null
+  positionId?: string | null
+  managerId?: string | null
+  reports?: Prisma.EmployeeUncheckedCreateNestedManyWithoutManagerInput
+  responsibleCustomers?: Prisma.CustomerUncheckedCreateNestedManyWithoutResponsibleEmployeeInput
+  sales?: Prisma.SaleUncheckedCreateNestedManyWithoutEmployeeInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutSalesTargetsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedCreateWithoutSalesTargetsInput>
+}
+
+export type EmployeeUpsertWithoutSalesTargetsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedUpdateWithoutSalesTargetsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedCreateWithoutSalesTargetsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutSalesTargetsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutSalesTargetsInput, Prisma.EmployeeUncheckedUpdateWithoutSalesTargetsInput>
+}
+
+export type EmployeeUpdateWithoutSalesTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  prefix?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibilityArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  positionTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  departmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roleTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user?: Prisma.UserUpdateOneWithoutEmployeeProfileNestedInput
+  company?: Prisma.CompanyUpdateOneWithoutEmployeesNestedInput
+  department?: Prisma.DepartmentUpdateOneWithoutEmployeesNestedInput
+  position?: Prisma.PositionUpdateOneWithoutEmployeesNestedInput
+  reports?: Prisma.EmployeeUpdateManyWithoutManagerNestedInput
+  manager?: Prisma.EmployeeUpdateOneWithoutReportsNestedInput
+  responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
+  sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutSalesTargetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  prefix?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  addressLine?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  province?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  district?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subdistrict?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  postalCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsibilityArea?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  positionTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  departmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roleTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  companyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  positionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reports?: Prisma.EmployeeUncheckedUpdateManyWithoutManagerNestedInput
+  responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
+  sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
+  dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyCompanyInput = {
@@ -2308,6 +2509,7 @@ export type EmployeeUpdateWithoutCompanyInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutCompanyInput = {
@@ -2341,6 +2543,7 @@ export type EmployeeUncheckedUpdateWithoutCompanyInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutCompanyInput = {
@@ -2432,6 +2635,7 @@ export type EmployeeUpdateWithoutManagerInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutManagerInput = {
@@ -2465,6 +2669,7 @@ export type EmployeeUncheckedUpdateWithoutManagerInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutManagerInput = {
@@ -2556,6 +2761,7 @@ export type EmployeeUpdateWithoutDepartmentInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutDepartmentInput = {
@@ -2589,6 +2795,7 @@ export type EmployeeUncheckedUpdateWithoutDepartmentInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutDepartmentInput = {
@@ -2680,6 +2887,7 @@ export type EmployeeUpdateWithoutPositionInput = {
   responsibleCustomers?: Prisma.CustomerUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutPositionInput = {
@@ -2713,6 +2921,7 @@ export type EmployeeUncheckedUpdateWithoutPositionInput = {
   responsibleCustomers?: Prisma.CustomerUncheckedUpdateManyWithoutResponsibleEmployeeNestedInput
   sales?: Prisma.SaleUncheckedUpdateManyWithoutEmployeeNestedInput
   dailySalesSummaries?: Prisma.DailySalesSummaryUncheckedUpdateManyWithoutEmployeeNestedInput
+  salesTargets?: Prisma.SalesTargetUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutPositionInput = {
@@ -2754,6 +2963,7 @@ export type EmployeeCountOutputType = {
   responsibleCustomers: number
   sales: number
   dailySalesSummaries: number
+  salesTargets: number
 }
 
 export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2761,6 +2971,7 @@ export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   responsibleCustomers?: boolean | EmployeeCountOutputTypeCountResponsibleCustomersArgs
   sales?: boolean | EmployeeCountOutputTypeCountSalesArgs
   dailySalesSummaries?: boolean | EmployeeCountOutputTypeCountDailySalesSummariesArgs
+  salesTargets?: boolean | EmployeeCountOutputTypeCountSalesTargetsArgs
 }
 
 /**
@@ -2801,6 +3012,13 @@ export type EmployeeCountOutputTypeCountDailySalesSummariesArgs<ExtArgs extends 
   where?: Prisma.DailySalesSummaryWhereInput
 }
 
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountSalesTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SalesTargetWhereInput
+}
+
 
 export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2839,6 +3057,7 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   responsibleCustomers?: boolean | Prisma.Employee$responsibleCustomersArgs<ExtArgs>
   sales?: boolean | Prisma.Employee$salesArgs<ExtArgs>
   dailySalesSummaries?: boolean | Prisma.Employee$dailySalesSummariesArgs<ExtArgs>
+  salesTargets?: boolean | Prisma.Employee$salesTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
@@ -2953,6 +3172,7 @@ export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   responsibleCustomers?: boolean | Prisma.Employee$responsibleCustomersArgs<ExtArgs>
   sales?: boolean | Prisma.Employee$salesArgs<ExtArgs>
   dailySalesSummaries?: boolean | Prisma.Employee$dailySalesSummariesArgs<ExtArgs>
+  salesTargets?: boolean | Prisma.Employee$salesTargetsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EmployeeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2982,6 +3202,7 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     responsibleCustomers: Prisma.$CustomerPayload<ExtArgs>[]
     sales: Prisma.$SalePayload<ExtArgs>[]
     dailySalesSummaries: Prisma.$DailySalesSummaryPayload<ExtArgs>[]
+    salesTargets: Prisma.$SalesTargetPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3414,6 +3635,7 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   responsibleCustomers<T extends Prisma.Employee$responsibleCustomersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$responsibleCustomersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sales<T extends Prisma.Employee$salesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$salesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dailySalesSummaries<T extends Prisma.Employee$dailySalesSummariesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$dailySalesSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailySalesSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  salesTargets<T extends Prisma.Employee$salesTargetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$salesTargetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalesTargetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4054,6 +4276,30 @@ export type Employee$dailySalesSummariesArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.DailySalesSummaryScalarFieldEnum | Prisma.DailySalesSummaryScalarFieldEnum[]
+}
+
+/**
+ * Employee.salesTargets
+ */
+export type Employee$salesTargetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SalesTarget
+   */
+  select?: Prisma.SalesTargetSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SalesTarget
+   */
+  omit?: Prisma.SalesTargetOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SalesTargetInclude<ExtArgs> | null
+  where?: Prisma.SalesTargetWhereInput
+  orderBy?: Prisma.SalesTargetOrderByWithRelationInput | Prisma.SalesTargetOrderByWithRelationInput[]
+  cursor?: Prisma.SalesTargetWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SalesTargetScalarFieldEnum | Prisma.SalesTargetScalarFieldEnum[]
 }
 
 /**
