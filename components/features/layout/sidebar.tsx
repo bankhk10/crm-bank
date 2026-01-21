@@ -79,7 +79,7 @@ export const navigationItems: SidebarNavItem[] = [
   },
   {
     href: "/fulfillment",
-    label: "จัดการคำสั่งซื้อ",
+    label: "จัดการคำสั่งขาย",
     permissionKey: "menu.fulfillment",
     icon: <ClipboardList className="h-4 w-4" />,
   },

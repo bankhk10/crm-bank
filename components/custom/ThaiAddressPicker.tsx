@@ -3,15 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormCombobox } from "./FormCombobox";
 
 type AddressValue = {
   province?: string;
@@ -33,10 +25,10 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   const [province, setProvince] = useState<string | undefined>(value?.province);
   const [district, setDistrict] = useState<string | undefined>(value?.district);
   const [subdistrict, setSubdistrict] = useState<string | undefined>(
-    value?.subdistrict
+    value?.subdistrict,
   );
   const [postalCode, setPostalCode] = useState<string | undefined>(
-    value?.postalCode
+    value?.postalCode,
   );
 
   // Store latest onChange callback
@@ -134,90 +126,60 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       {/* จังหวัด */}
-      <div className="w-full">
-        <Label className={labelTextClass}>จังหวัด</Label>
-        <Select
-          value={province || ""}
-          onValueChange={(v) => {
-            setProvince(v || undefined);
-            if (province !== prevValueRef.current?.province) {
-              setDistrict(undefined);
-              setSubdistrict(undefined);
-            }
-          }}
-        >
-          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
-            <SelectValue placeholder="เลือกจังหวัด" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectGroup>
-              <SelectLabel>จังหวัด</SelectLabel>
-              {provinces.map((p: any) => (
-                <SelectItem key={p.id} value={p.name}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormCombobox
+        label="จังหวัด"
+        value={province || ""}
+        onChange={(v) => {
+          setProvince(v || undefined);
+          if (v !== province) {
+            setDistrict(undefined);
+            setSubdistrict(undefined);
+          }
+        }}
+        options={provinces.map((p: any) => ({
+          value: p.name,
+          label: p.name,
+        }))}
+        placeholder="เลือกจังหวัด"
+        searchPlaceholder="ค้นหาจังหวัด..."
+        emptyText="ไม่พบจังหวัด"
+        containerClassName="w-full"
+      />
 
       {/* อำเภอ/เขต */}
-      <div className="w-full">
-        <Label className={labelTextClass}>อำเภอ/เขต</Label>
-        <Select
-          value={district || ""}
-          onValueChange={(v) => {
-            setDistrict(v || undefined);
-            setSubdistrict(undefined);
-          }}
-          disabled={!province}
-        >
-          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
-            <SelectValue
-              placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"}
-            />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectGroup>
-              <SelectLabel>อำเภอ/เขต</SelectLabel>
-              {districts.map((d: any) => (
-                <SelectItem key={d.id} value={d.name}>
-                  {d.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormCombobox
+        label="อำเภอ/เขต"
+        value={district || ""}
+        onChange={(v) => {
+          setDistrict(v || undefined);
+          setSubdistrict(undefined);
+        }}
+        disabled={!province}
+        options={districts.map((d: any) => ({
+          value: d.name,
+          label: d.name,
+        }))}
+        placeholder={province ? "เลือกอำเภอ/เขต" : "เลือกจังหวัดก่อน"}
+        searchPlaceholder="ค้นหาอำเภอ/เขต..."
+        emptyText="ไม่พบอำเภอ/เขต"
+        containerClassName="w-full"
+      />
 
       {/* ตำบล/แขวง */}
-      <div className="w-full">
-        <Label className={labelTextClass}>ตำบล/แขวง</Label>
-        <Select
-          value={subdistrict || ""}
-          onValueChange={(v) => {
-            setSubdistrict(v || undefined);
-          }}
-          disabled={!district}
-        >
-          <SelectTrigger className={`w-full font-normal ${inputTextClass}`}>
-            <SelectValue
-              placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"}
-            />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectGroup>
-              <SelectLabel>ตำบล/แขวง</SelectLabel>
-              {subdistricts.map((s: any) => (
-                <SelectItem key={s.id} value={s.name}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <FormCombobox
+        label="ตำบล/แขวง"
+        value={subdistrict || ""}
+        onChange={(v) => setSubdistrict(v || undefined)}
+        disabled={!district}
+        options={subdistricts.map((s: any) => ({
+          value: s.name,
+          label: s.name,
+        }))}
+        placeholder={district ? "เลือกตำบล/แขวง" : "เลือกอำเภอก่อน"}
+        searchPlaceholder="ค้นหาตำบล/แขวง..."
+        emptyText="ไม่พบตำบล/แขวง"
+        containerClassName="w-full"
+      />
 
       {/* รหัสไปรษณีย์ */}
       <div className="w-full">

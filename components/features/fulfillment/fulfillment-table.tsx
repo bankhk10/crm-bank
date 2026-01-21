@@ -197,7 +197,7 @@ function StatusBadge({
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
         info.className,
-        className
+        className,
       )}
     >
       <span
@@ -292,7 +292,7 @@ function FulfillmentToolbar({
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal bg-white mt-1 h-11",
-                  !dateRange && "text-muted-foreground"
+                  !dateRange && "text-muted-foreground",
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -423,10 +423,10 @@ function FulfillmentCards({
                   isPending
                     ? "bg-yellow-400"
                     : isApproved
-                    ? "bg-emerald-500"
-                    : isRejected
-                    ? "bg-red-500"
-                    : "bg-gray-400"
+                      ? "bg-emerald-500"
+                      : isRejected
+                        ? "bg-red-500"
+                        : "bg-gray-400",
                 )}
               />
               <div className="p-4 space-y-3">
@@ -701,7 +701,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
           <div className="flex items-center gap-3">
             <ClipboardList className="w-9 h-9 text-blue-600" />
             <h1 className="text-3xl font-bold tracking-tight">
-              จัดการคำสั่งซื้อ
+              จัดการคำสั่งขาย
             </h1>
           </div>
         </div>
