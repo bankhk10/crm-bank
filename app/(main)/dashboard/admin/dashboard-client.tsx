@@ -504,7 +504,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                           <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
                         )}
                       </span>
-                      {group.group}
+                      {group.code}
                     </button>
                   );
                 })}
@@ -531,7 +531,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     stroke="#E2E8F0"
                   />
                   <XAxis
-                    dataKey="group"
+                    dataKey="code"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}

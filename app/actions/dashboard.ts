@@ -34,6 +34,7 @@ export interface DashboardData {
   // Product Group Chart
   productGroupData: {
     group: string;
+    code: string;
     target: number;
     salesNote: number;
     invoice: number;
@@ -195,6 +196,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       if (productIds.length === 0) {
         return {
           group: groupOption.label,
+          code: groupOption.value,
           target,
           salesNote: 0,
           invoice: 0,
@@ -241,6 +243,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       return {
         group: groupOption.label,
+        code: groupOption.value,
         target,
         salesNote: salesNoteAmt,
         invoice: invoiceAmt,
