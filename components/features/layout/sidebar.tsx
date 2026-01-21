@@ -60,7 +60,7 @@ export const navigationItems: SidebarNavItem[] = [
   },
   {
     href: "/sales-forecast",
-    label: "การคาดการณ์ยอดขาย",
+    label: "คาดการณ์ยอดขาย",
     permissionKey: "menu.sales_forecast",
     icon: <TrendingUp className="h-4 w-4" />,
   },

@@ -393,7 +393,7 @@ export default function SalesForecastPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-                การคาดการณ์ยอดขาย
+                คาดการณ์ยอดขาย
               </h1>
               <p className="text-slate-500 text-sm">
                 วิเคราะห์และคาดการณ์ยอดขายตามข้อมูลย้อนหลัง
