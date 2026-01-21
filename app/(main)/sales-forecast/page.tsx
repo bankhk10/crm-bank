@@ -192,8 +192,9 @@ export default function SalesForecastPage() {
             const month = target.month;
             if (target.items) {
               target.items.forEach((item) => {
+                const amount = Number(item.amount);
                 // Add to total monthly target
-                targetMap[month] = (targetMap[month] || 0) + item.amount;
+                targetMap[month] = (targetMap[month] || 0) + amount;
 
                 // Add to product specific target
                 if (!productDataMap[item.productId]) {
@@ -203,7 +204,7 @@ export default function SalesForecastPage() {
                   };
                 }
                 const pt = productDataMap[item.productId];
-                pt.targets[month] = (pt.targets[month] || 0) + item.amount;
+                pt.targets[month] = (pt.targets[month] || 0) + amount;
               });
             }
           });
