@@ -43,9 +43,7 @@ export function ProductForm({
   isEdit = false,
   onSubmit,
   onCancel,
-  hideBorder,
   canEdit = true,
-  permissionHint = "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่",
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
