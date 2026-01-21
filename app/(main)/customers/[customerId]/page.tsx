@@ -51,15 +51,11 @@ import {
   Briefcase,
   Tag,
   Tractor,
+  MapPlus,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 type Customer = {
   id: string;
@@ -73,6 +69,7 @@ type Customer = {
   phone?: string | null;
   taxId?: string | null;
   addressLine?: string | null;
+  region?: string | null;
   province?: string | null;
   district?: string | null;
   subdistrict?: string | null;
@@ -297,6 +294,16 @@ const AddressBlock: React.FC<{
   );
 };
 
+const InfoChip: React.FC<{
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ icon, children }) => (
+  <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+    {icon}
+    <span className="font-medium">{children}</span>
+  </div>
+);
+
 export default function CustomerDetailPage() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
@@ -307,7 +314,7 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
-    null
+    null,
   );
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -317,7 +324,7 @@ export default function CustomerDetailPage() {
   const handleNextImage = () => {
     if (selectedImageIndex === null || !customer?.images) return;
     setSelectedImageIndex((prev) =>
-      prev === null ? null : (prev + 1) % customer.images!.length
+      prev === null ? null : (prev + 1) % customer.images!.length,
     );
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -328,7 +335,7 @@ export default function CustomerDetailPage() {
     setSelectedImageIndex((prev) =>
       prev === null
         ? null
-        : (prev - 1 + customer.images!.length) % customer.images!.length
+        : (prev - 1 + customer.images!.length) % customer.images!.length,
     );
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -489,27 +496,27 @@ export default function CustomerDetailPage() {
   const age = customer.birthDate
     ? Math.floor(
         (Date.now() - new Date(customer.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25),
       )
     : null;
 
   const relationshipLevel = !customer.relationshipScore
     ? "ไม่ระบุ"
     : customer.relationshipScore === 1
-    ? "แย่"
-    : customer.relationshipScore === 2
-    ? "ปานกลาง"
-    : customer.relationshipScore === 3
-    ? "ดี"
-    : "-";
+      ? "แย่"
+      : customer.relationshipScore === 2
+        ? "ปานกลาง"
+        : customer.relationshipScore === 3
+          ? "ดี"
+          : "-";
 
   const relationshipColor = !customer.relationshipScore
     ? "text-gray-400"
     : customer.relationshipScore === 1
-    ? "text-red-500"
-    : customer.relationshipScore === 2
-    ? "text-amber-500"
-    : "text-emerald-500";
+      ? "text-red-500"
+      : customer.relationshipScore === 2
+        ? "text-amber-500"
+        : "text-emerald-500";
 
   return (
     <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -519,21 +526,23 @@ export default function CustomerDetailPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl animate-pulse pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl animate-pulse delay-700 pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-400/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse delay-1000 pointer-events-none" />
-
-        <div className="relative p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-          <div className="space-y-5 max-w-3xl flex-1">
+        <div className="relative p-8 md:p-12 flex flex-col xl:flex-row justify-between gap-10">
+          {/* ================= Left Content ================= */}
+          <div className="space-y-6 max-w-4xl flex-1">
+            {/* Badges */}
             <div className="flex flex-wrap items-center gap-3">
               {customerTypeInfo && (
                 <Badge
-                  className={`bg-gradient-to-r ${customerTypeInfo.gradient} text-white border-0 backdrop-blur-md px-4 py-1.5 shadow-lg text-sm font-semibold`}
+                  className={`bg-gradient-to-r ${customerTypeInfo.gradient} text-white border-0 px-4 py-1.5 shadow-lg font-semibold`}
                 >
                   <span className="mr-1.5">{customerTypeInfo.icon}</span>
                   {customerTypeInfo.label}
                 </Badge>
               )}
+
               {statusInfo && (
                 <Badge
-                  className={`${statusInfo.className} px-4 py-1.5 text-sm font-semibold`}
+                  className={`${statusInfo.className} px-4 py-1.5 font-semibold`}
                 >
                   <Sparkles className="mr-1.5 h-3.5 w-3.5" />
                   {statusInfo.label}
@@ -541,42 +550,44 @@ export default function CustomerDetailPage() {
               )}
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white drop-shadow-lg">
+            {/* Customer Name */}
+            <h1 className="text-4xl md:text-5xl xl:text-6xl font-black tracking-tight text-white drop-shadow-xl">
               {customer.name}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-white/90 text-base">
-              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                <Building className="h-4 w-4" />
-                <span className="font-semibold">{customer.customerCode}</span>
-              </div>
-              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                <MapPin className="h-4 w-4" />
-                <span className="font-medium">
-                  {customer.province || "ไม่ระบุจังหวัด"}
-                </span>
-              </div>
+            {/* Info Row */}
+            <div className="flex flex-wrap gap-3 text-white/90 text-sm md:text-base">
+              <InfoChip icon={<Building className="h-4 w-4" />}>
+                รหัสลูกค้า: {customer.customerCode}
+              </InfoChip>
+
+              <InfoChip icon={<MapPin className="h-4 w-4" />}>
+                {customer.province || "ไม่ระบุจังหวัด"}
+              </InfoChip>
+
+              <InfoChip icon={<MapPlus className="h-4 w-4" />}>
+                เขต: {customer.region}
+              </InfoChip>
+
               {customer.responsibleEmployee && (
-                <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-                  <UserCheck className="h-4 w-4" />
-                  <span className="font-medium">
-                    {customer.responsibleEmployee.firstName}{" "}
-                    {customer.responsibleEmployee.lastName}
-                  </span>
-                </div>
+                <InfoChip icon={<UserCheck className="h-4 w-4" />}>
+                  ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName}{" "}
+                  {customer.responsibleEmployee.lastName}
+                </InfoChip>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {/* ================= Right Actions ================= */}
+          <div className="flex flex-col sm:flex-row gap-3 self-start xl:self-end">
             {customer.latitude && customer.longitude && (
               <Button
                 size="lg"
-                className="bg-white text-indigo-600 hover:bg-white/90 border-0 shadow-2xl font-semibold px-6 py-6 rounded-2xl transition-all hover:scale-105"
+                className="bg-white text-indigo-600 hover:bg-white/90 shadow-2xl font-semibold px-7 py-6 rounded-2xl transition-all hover:scale-[1.03]"
                 onClick={() =>
                   window.open(
                     `https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`,
-                    "_blank"
+                    "_blank",
                   )
                 }
               >
@@ -724,7 +735,7 @@ export default function CustomerDetailPage() {
                   value={
                     customer.averageMonthlyPurchase
                       ? `${Number(
-                          customer.averageMonthlyPurchase
+                          customer.averageMonthlyPurchase,
                         ).toLocaleString()} บาท`
                       : "-"
                   }
@@ -952,7 +963,7 @@ export default function CustomerDetailPage() {
                         value={
                           customer.chemicalValuePerCycle
                             ? `${Number(
-                                customer.chemicalValuePerCycle
+                                customer.chemicalValuePerCycle,
                               ).toLocaleString()} บาท`
                             : "-"
                         }
@@ -1057,7 +1068,7 @@ export default function CustomerDetailPage() {
                       🎂{" "}
                       {new Date(customer.birthDate).toLocaleDateString(
                         "th-TH",
-                        { day: "numeric", month: "long", year: "numeric" }
+                        { day: "numeric", month: "long", year: "numeric" },
                       )}
                       {age !== null && (
                         <span className="text-pink-600">({age} ปี)</span>
