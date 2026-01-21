@@ -15,6 +15,7 @@ const productSchema = z.object({
   unit: z.string().optional(),
   productGroup: z.string().optional(),
   brand: z.string().optional(),
+  chemicalGroup: z.string().optional(),
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const status = (url.searchParams.get("status") || "").trim().toUpperCase();
@@ -121,7 +122,7 @@ export async function GET(request: Request) {
     // Fallback to calculation if sync hasn't run yet
     const availableQuantity = product.stockLots.reduce(
       (sum, lot) => sum + lot.quantity,
-      0
+      0,
     );
 
     // Reserved quantity can't be easily calculated without the heavy query we just removed.
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
   if (!session.user.permissions?.["product.create"]?.allow) {
     return NextResponse.json(
       { error: "Forbidden - missing product.create" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -164,7 +165,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -177,6 +178,7 @@ export async function POST(request: Request) {
         unit: parsed.data.unit,
         productGroup: parsed.data.productGroup,
         brand: parsed.data.brand,
+        chemicalGroup: parsed.data.chemicalGroup,
         packageSize: parsed.data.packageSize,
         packageSizePerBox: parsed.data.packageSizePerBox,
         status: parsed.data.status,
@@ -199,7 +201,7 @@ export async function POST(request: Request) {
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
         { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
-        { status: 409 }
+        { status: 409 },
       );
     }
 

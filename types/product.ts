@@ -76,6 +76,7 @@ export interface Product {
   unit: string | null;
   productGroup: string | null;
   brand: string | null;
+  chemicalGroup: string | null;
   packageSize: string | null;
   packageSizePerBox: string | null;
   status: ProductStatus;
@@ -100,6 +101,7 @@ export interface ProductFormData {
   unit?: string;
   productGroup?: string;
   brand?: string;
+  chemicalGroup?: string;
   packageSize?: string;
   packageSizePerBox?: string;
   status: ProductStatus;

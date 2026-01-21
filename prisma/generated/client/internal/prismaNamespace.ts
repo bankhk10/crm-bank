@@ -403,6 +403,7 @@ export const ModelName = {
   Brand: 'Brand',
   Plant: 'Plant',
   Product: 'Product',
+  ChemicalGroup: 'ChemicalGroup',
   ProductStock: 'ProductStock',
   CustomerImage: 'CustomerImage',
   ProductImage: 'ProductImage',
@@ -439,7 +440,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "brand" | "plant" | "product" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification" | "salesTarget" | "salesTargetItem"
+    modelProps: "user" | "company" | "employee" | "department" | "position" | "role" | "permission" | "rolePermission" | "userRole" | "userPermissionOverride" | "customer" | "creditLimit" | "temporaryCreditLimit" | "productCategory" | "productGroupMaster" | "unit" | "brand" | "plant" | "product" | "chemicalGroup" | "productStock" | "customerImage" | "productImage" | "productFreeItem" | "productPromotionItem" | "productStockLot" | "sale" | "saleItem" | "saleItemLot" | "saleStatusHistory" | "dailySalesSummary" | "regionSalesTarget" | "productGroupSalesTarget" | "monthlySalesTarget" | "productSalesTarget" | "auditLog" | "securityLog" | "applicationLog" | "notification" | "salesTarget" | "salesTargetItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1846,6 +1847,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProductCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProductCountAggregateOutputType> | number
+        }
+      }
+    }
+    ChemicalGroup: {
+      payload: Prisma.$ChemicalGroupPayload<ExtArgs>
+      fields: Prisma.ChemicalGroupFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ChemicalGroupFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ChemicalGroupFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        findFirst: {
+          args: Prisma.ChemicalGroupFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ChemicalGroupFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        findMany: {
+          args: Prisma.ChemicalGroupFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>[]
+        }
+        create: {
+          args: Prisma.ChemicalGroupCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        createMany: {
+          args: Prisma.ChemicalGroupCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ChemicalGroupCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>[]
+        }
+        delete: {
+          args: Prisma.ChemicalGroupDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        update: {
+          args: Prisma.ChemicalGroupUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        deleteMany: {
+          args: Prisma.ChemicalGroupDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ChemicalGroupUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ChemicalGroupUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>[]
+        }
+        upsert: {
+          args: Prisma.ChemicalGroupUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChemicalGroupPayload>
+        }
+        aggregate: {
+          args: Prisma.ChemicalGroupAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateChemicalGroup>
+        }
+        groupBy: {
+          args: Prisma.ChemicalGroupGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChemicalGroupGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ChemicalGroupCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChemicalGroupCountAggregateOutputType> | number
         }
       }
     }
@@ -3815,10 +3890,23 @@ export const ProductScalarFieldEnum = {
   promotionBudget: 'promotionBudget',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
+  deletedAt: 'deletedAt',
+  chemicalGroup: 'chemicalGroup'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
+export const ChemicalGroupScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ChemicalGroupScalarFieldEnum = (typeof ChemicalGroupScalarFieldEnum)[keyof typeof ChemicalGroupScalarFieldEnum]
 
 
 export const ProductStockScalarFieldEnum = {
@@ -4663,6 +4751,7 @@ export type GlobalOmitConfig = {
   brand?: Prisma.BrandOmit
   plant?: Prisma.PlantOmit
   product?: Prisma.ProductOmit
+  chemicalGroup?: Prisma.ChemicalGroupOmit
   productStock?: Prisma.ProductStockOmit
   customerImage?: Prisma.CustomerImageOmit
   productImage?: Prisma.ProductImageOmit

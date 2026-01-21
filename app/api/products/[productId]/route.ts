@@ -22,6 +22,7 @@ const productSchema = z.object({
   unit: z.string().optional(),
   productGroup: z.string().optional(),
   brand: z.string().optional(),
+  chemicalGroup: z.string().optional(),
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
@@ -70,7 +71,7 @@ export async function GET(request: Request, { params }: { params: any }) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ productId: string }> }
+  { params }: { params: Promise<{ productId: string }> },
 ) {
   const startTime = Date.now();
   const session = await auth();
@@ -86,7 +87,7 @@ export async function PATCH(
   if (!session.user.permissions?.["product.update"]?.allow) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -111,7 +112,7 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -153,6 +154,7 @@ export async function PATCH(
         unit: existing.unit,
         productGroup: existing.productGroup,
         brand: existing.brand,
+        chemicalGroup: existing.chemicalGroup,
         status: existing.status,
         price: existing.price?.toString(),
       },
@@ -163,6 +165,7 @@ export async function PATCH(
         unit: product.unit,
         productGroup: product.productGroup,
         brand: product.brand,
+        chemicalGroup: product.chemicalGroup,
         status: product.status,
         price: product.price?.toString(),
       },
@@ -171,7 +174,7 @@ export async function PATCH(
         entityName: product.name,
         module: "products",
         duration,
-      }
+      },
     );
 
     reqLogger.info("Product updated successfully", {
@@ -204,7 +207,7 @@ export async function PATCH(
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
         { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -226,7 +229,7 @@ export async function DELETE(request: Request, { params }: { params: any }) {
   if (!session.user.permissions?.["product.delete"]?.allow) {
     return NextResponse.json(
       { error: "Forbidden - missing product.delete" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 

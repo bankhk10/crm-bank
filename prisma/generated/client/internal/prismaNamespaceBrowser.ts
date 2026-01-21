@@ -70,6 +70,7 @@ export const ModelName = {
   Brand: 'Brand',
   Plant: 'Plant',
   Product: 'Product',
+  ChemicalGroup: 'ChemicalGroup',
   ProductStock: 'ProductStock',
   CustomerImage: 'CustomerImage',
   ProductImage: 'ProductImage',
@@ -482,10 +483,23 @@ export const ProductScalarFieldEnum = {
   promotionBudget: 'promotionBudget',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  deletedAt: 'deletedAt'
+  deletedAt: 'deletedAt',
+  chemicalGroup: 'chemicalGroup'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
+export const ChemicalGroupScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ChemicalGroupScalarFieldEnum = (typeof ChemicalGroupScalarFieldEnum)[keyof typeof ChemicalGroupScalarFieldEnum]
 
 
 export const ProductStockScalarFieldEnum = {

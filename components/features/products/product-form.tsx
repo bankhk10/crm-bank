@@ -52,6 +52,7 @@ export function ProductForm({
     unit: initialData?.unit || "",
     productGroup: initialData?.productGroup || "",
     brand: initialData?.brand || "",
+    chemicalGroup: initialData?.chemicalGroup || "",
     packageSize: initialData?.packageSize || "",
     packageSizePerBox: initialData?.packageSizePerBox || "",
     status: initialData?.status || "ACTIVE",
@@ -89,6 +90,9 @@ export function ProductForm({
   const [unitOptions, setUnitOptions] = useState<SelectOption[]>([]);
   const [groupOptions, setGroupOptions] = useState<SelectOption[]>([]);
   const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
+  const [chemicalGroupOptions, setChemicalGroupOptions] = useState<
+    SelectOption[]
+  >([]);
   const [plantOptions, setPlantOptions] = useState<SelectOption[]>([]);
 
   // Fetch dynamic options from database
@@ -148,6 +152,27 @@ export function ProductForm({
                 index === self.findIndex((t) => t.value === opt.value),
             );
             setBrandOptions(uniqueOptions);
+          }
+        }
+
+        // Fetch chemical groups
+        const chemicalGroupsRes = await fetch(
+          "/api/products/chemical-groups?perPage=100",
+        );
+        if (chemicalGroupsRes.ok) {
+          const chemicalGroupsData = await chemicalGroupsRes.json();
+          if (
+            chemicalGroupsData.groups &&
+            chemicalGroupsData.groups.length > 0
+          ) {
+            setChemicalGroupOptions(
+              chemicalGroupsData.groups.map(
+                (g: { code: string; description: string }) => ({
+                  value: g.code,
+                  label: g.code + " - " + g.description,
+                }),
+              ),
+            );
           }
         }
 
@@ -223,6 +248,7 @@ export function ProductForm({
         unit: formData.unit || undefined,
         productGroup: formData.productGroup || undefined,
         brand: formData.brand || undefined,
+        chemicalGroup: formData.chemicalGroup || undefined,
         packageSize: formData.packageSize || undefined,
         packageSizePerBox: formData.packageSizePerBox || undefined,
         status: formData.status,
@@ -424,6 +450,8 @@ export function ProductForm({
         productGroup:
           (payload.productGroup as string | undefined) ?? prev.productGroup,
         brand: (payload.brand as string | undefined) ?? prev.brand,
+        chemicalGroup:
+          (payload.chemicalGroup as string | undefined) ?? prev.chemicalGroup,
         packageSize:
           (payload.packageSize as string | undefined) ?? prev.packageSize,
         packageSizePerBox:
@@ -610,16 +638,14 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="กลุ่มสินค้า"
-          value={formData.productGroup || ""}
-          onChange={(v) => updateField("productGroup", v)}
-          required
+          label="กลุ่มสาร"
+          value={formData.chemicalGroup || ""}
+          onChange={(v) => updateField("chemicalGroup", v)}
           options={groupOptions}
-          placeholder="เลือกกลุ่มสินค้า"
-          searchPlaceholder="ค้นหากลุ่มสินค้า..."
-          emptyText="ไม่พบกลุ่มสินค้า"
+          placeholder="เลือกกลุ่มสาร"
+          searchPlaceholder="ค้นหากลุ่มสาร..."
+          emptyText="ไม่พบกลุ่มสาร"
           disabled={loading}
-          error={errors.productGroup}
         />
 
         <FormCombobox
@@ -631,6 +657,19 @@ export function ProductForm({
           searchPlaceholder="ค้นหาแบรนด์..."
           emptyText="ไม่พบแบรนด์"
           disabled={loading}
+        />
+
+        <FormCombobox
+          label="กลุ่มสินค้า"
+          value={formData.productGroup || ""}
+          onChange={(v) => updateField("productGroup", v)}
+          required
+          options={chemicalGroupOptions}
+          placeholder="เลือกกลุ่มสินค้า"
+          searchPlaceholder="ค้นหากลุ่มสินค้า..."
+          emptyText="ไม่พบกลุ่มสินค้า"
+          disabled={loading}
+          error={errors.productGroup}
         />
 
         <FormInput

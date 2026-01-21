@@ -54,6 +54,7 @@ export type ProductMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  chemicalGroup: string | null
 }
 
 export type ProductMaxAggregateOutputType = {
@@ -74,6 +75,7 @@ export type ProductMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  chemicalGroup: string | null
 }
 
 export type ProductCountAggregateOutputType = {
@@ -95,6 +97,7 @@ export type ProductCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   deletedAt: number
+  chemicalGroup: number
   _all: number
 }
 
@@ -127,6 +130,7 @@ export type ProductMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  chemicalGroup?: true
 }
 
 export type ProductMaxAggregateInputType = {
@@ -147,6 +151,7 @@ export type ProductMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  chemicalGroup?: true
 }
 
 export type ProductCountAggregateInputType = {
@@ -168,6 +173,7 @@ export type ProductCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  chemicalGroup?: true
   _all?: true
 }
 
@@ -276,6 +282,7 @@ export type ProductGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  chemicalGroup: string | null
   _count: ProductCountAggregateOutputType | null
   _avg: ProductAvgAggregateOutputType | null
   _sum: ProductSumAggregateOutputType | null
@@ -320,6 +327,7 @@ export type ProductWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  chemicalGroup?: Prisma.StringNullableFilter<"Product"> | string | null
   images?: Prisma.ProductImageListRelationFilter
   promotionItems?: Prisma.ProductPromotionItemListRelationFilter
   freeItems?: Prisma.ProductFreeItemListRelationFilter
@@ -350,6 +358,7 @@ export type ProductOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  chemicalGroup?: Prisma.SortOrderInput | Prisma.SortOrder
   images?: Prisma.ProductImageOrderByRelationAggregateInput
   promotionItems?: Prisma.ProductPromotionItemOrderByRelationAggregateInput
   freeItems?: Prisma.ProductFreeItemOrderByRelationAggregateInput
@@ -383,6 +392,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Product"> | Date | string | null
+  chemicalGroup?: Prisma.StringNullableFilter<"Product"> | string | null
   images?: Prisma.ProductImageListRelationFilter
   promotionItems?: Prisma.ProductPromotionItemListRelationFilter
   freeItems?: Prisma.ProductFreeItemListRelationFilter
@@ -413,6 +423,7 @@ export type ProductOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  chemicalGroup?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ProductCountOrderByAggregateInput
   _avg?: Prisma.ProductAvgOrderByAggregateInput
   _max?: Prisma.ProductMaxOrderByAggregateInput
@@ -442,6 +453,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Product"> | Date | string | null
+  chemicalGroup?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
 }
 
 export type ProductCreateInput = {
@@ -463,6 +475,7 @@ export type ProductCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -493,6 +506,7 @@ export type ProductUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -523,6 +537,7 @@ export type ProductUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -553,6 +568,7 @@ export type ProductUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -583,6 +599,7 @@ export type ProductCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
 }
 
 export type ProductUpdateManyMutationInput = {
@@ -604,6 +621,7 @@ export type ProductUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProductUncheckedUpdateManyInput = {
@@ -625,6 +643,7 @@ export type ProductUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProductCountOrderByAggregateInput = {
@@ -646,6 +665,7 @@ export type ProductCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  chemicalGroup?: Prisma.SortOrder
 }
 
 export type ProductAvgOrderByAggregateInput = {
@@ -671,6 +691,7 @@ export type ProductMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  chemicalGroup?: Prisma.SortOrder
 }
 
 export type ProductMinOrderByAggregateInput = {
@@ -691,6 +712,7 @@ export type ProductMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  chemicalGroup?: Prisma.SortOrder
 }
 
 export type ProductSumOrderByAggregateInput = {
@@ -861,6 +883,7 @@ export type ProductCreateWithoutStockInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -890,6 +913,7 @@ export type ProductUncheckedCreateWithoutStockInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -935,6 +959,7 @@ export type ProductUpdateWithoutStockInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -964,6 +989,7 @@ export type ProductUncheckedUpdateWithoutStockInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -993,6 +1019,7 @@ export type ProductCreateWithoutImagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotCreateNestedManyWithoutProductInput
@@ -1022,6 +1049,7 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotUncheckedCreateNestedManyWithoutProductInput
@@ -1067,6 +1095,7 @@ export type ProductUpdateWithoutImagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUpdateManyWithoutProductNestedInput
@@ -1096,6 +1125,7 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUncheckedUpdateManyWithoutProductNestedInput
@@ -1125,6 +1155,7 @@ export type ProductCreateWithoutFreeItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotCreateNestedManyWithoutProductInput
@@ -1154,6 +1185,7 @@ export type ProductUncheckedCreateWithoutFreeItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotUncheckedCreateNestedManyWithoutProductInput
@@ -1199,6 +1231,7 @@ export type ProductUpdateWithoutFreeItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUpdateManyWithoutProductNestedInput
@@ -1228,6 +1261,7 @@ export type ProductUncheckedUpdateWithoutFreeItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUncheckedUpdateManyWithoutProductNestedInput
@@ -1257,6 +1291,7 @@ export type ProductCreateWithoutPromotionItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotCreateNestedManyWithoutProductInput
@@ -1286,6 +1321,7 @@ export type ProductUncheckedCreateWithoutPromotionItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
   stockLots?: Prisma.ProductStockLotUncheckedCreateNestedManyWithoutProductInput
@@ -1331,6 +1367,7 @@ export type ProductUpdateWithoutPromotionItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUpdateManyWithoutProductNestedInput
@@ -1360,6 +1397,7 @@ export type ProductUncheckedUpdateWithoutPromotionItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
   stockLots?: Prisma.ProductStockLotUncheckedUpdateManyWithoutProductNestedInput
@@ -1389,6 +1427,7 @@ export type ProductCreateWithoutStockLotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -1418,6 +1457,7 @@ export type ProductUncheckedCreateWithoutStockLotsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -1463,6 +1503,7 @@ export type ProductUpdateWithoutStockLotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -1492,6 +1533,7 @@ export type ProductUncheckedUpdateWithoutStockLotsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1521,6 +1563,7 @@ export type ProductCreateWithoutSaleItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -1550,6 +1593,7 @@ export type ProductUncheckedCreateWithoutSaleItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -1595,6 +1639,7 @@ export type ProductUpdateWithoutSaleItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -1624,6 +1669,7 @@ export type ProductUncheckedUpdateWithoutSaleItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1653,6 +1699,7 @@ export type ProductCreateWithoutDailySalesSummariesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -1682,6 +1729,7 @@ export type ProductUncheckedCreateWithoutDailySalesSummariesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -1727,6 +1775,7 @@ export type ProductUpdateWithoutDailySalesSummariesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -1756,6 +1805,7 @@ export type ProductUncheckedUpdateWithoutDailySalesSummariesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1785,6 +1835,7 @@ export type ProductCreateWithoutSalesTargetsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -1814,6 +1865,7 @@ export type ProductUncheckedCreateWithoutSalesTargetsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -1859,6 +1911,7 @@ export type ProductUpdateWithoutSalesTargetsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -1888,6 +1941,7 @@ export type ProductUncheckedUpdateWithoutSalesTargetsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -1917,6 +1971,7 @@ export type ProductCreateWithoutDetailedSalesTargetsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemCreateNestedManyWithoutProductInput
@@ -1946,6 +2001,7 @@ export type ProductUncheckedCreateWithoutDetailedSalesTargetsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  chemicalGroup?: string | null
   images?: Prisma.ProductImageUncheckedCreateNestedManyWithoutProductInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedCreateNestedManyWithoutProductInput
   freeItems?: Prisma.ProductFreeItemUncheckedCreateNestedManyWithoutProductInput
@@ -1991,6 +2047,7 @@ export type ProductUpdateWithoutDetailedSalesTargetsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUpdateManyWithoutProductNestedInput
@@ -2020,6 +2077,7 @@ export type ProductUncheckedUpdateWithoutDetailedSalesTargetsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  chemicalGroup?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   images?: Prisma.ProductImageUncheckedUpdateManyWithoutProductNestedInput
   promotionItems?: Prisma.ProductPromotionItemUncheckedUpdateManyWithoutProductNestedInput
   freeItems?: Prisma.ProductFreeItemUncheckedUpdateManyWithoutProductNestedInput
@@ -2143,6 +2201,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  chemicalGroup?: boolean
   images?: boolean | Prisma.Product$imagesArgs<ExtArgs>
   promotionItems?: boolean | Prisma.Product$promotionItemsArgs<ExtArgs>
   freeItems?: boolean | Prisma.Product$freeItemsArgs<ExtArgs>
@@ -2174,6 +2233,7 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  chemicalGroup?: boolean
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2195,6 +2255,7 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  chemicalGroup?: boolean
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectScalar = {
@@ -2216,9 +2277,10 @@ export type ProductSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  chemicalGroup?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productCode" | "name" | "commonName" | "unit" | "productGroup" | "brand" | "packageSize" | "packageSizePerBox" | "status" | "usedForPlants" | "salesPoint" | "properties" | "price" | "promotionBudget" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productCode" | "name" | "commonName" | "unit" | "productGroup" | "brand" | "packageSize" | "packageSizePerBox" | "status" | "usedForPlants" | "salesPoint" | "properties" | "price" | "promotionBudget" | "createdAt" | "updatedAt" | "deletedAt" | "chemicalGroup", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   images?: boolean | Prisma.Product$imagesArgs<ExtArgs>
   promotionItems?: boolean | Prisma.Product$promotionItemsArgs<ExtArgs>
@@ -2266,6 +2328,7 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
+    chemicalGroup: string | null
   }, ExtArgs["result"]["product"]>
   composites: {}
 }
@@ -2716,6 +2779,7 @@ export interface ProductFieldRefs {
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Product", 'DateTime'>
+  readonly chemicalGroup: Prisma.FieldRef<"Product", 'String'>
 }
     
 

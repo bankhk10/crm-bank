@@ -113,6 +113,11 @@ export type Plant = Prisma.PlantModel
  */
 export type Product = Prisma.ProductModel
 /**
+ * Model ChemicalGroup
+ * 
+ */
+export type ChemicalGroup = Prisma.ChemicalGroupModel
+/**
  * Model ProductStock
  * 
  */
