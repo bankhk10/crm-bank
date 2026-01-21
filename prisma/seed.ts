@@ -26,6 +26,11 @@ async function main() {
   await prisma.department.deleteMany();
   await prisma.company.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.plant.deleteMany();
+  await prisma.brand.deleteMany();
+  await prisma.unit.deleteMany();
+  await prisma.productGroupMaster.deleteMany();
+  await prisma.productCategory.deleteMany();
 
   // Create companies
   await prisma.company.createMany({
@@ -768,7 +773,7 @@ async function main() {
   ]);
 
   const permissionMap = Object.fromEntries(
-    permissions.map((permission) => [permission.key, permission])
+    permissions.map((permission) => [permission.key, permission]),
   );
 
   const allowAll = Object.values(permissionMap).map((permission) => ({
@@ -1063,7 +1068,493 @@ async function main() {
       })),
   });
 
+  // Create Units
+  await prisma.unit.createMany({
+    data: [
+      { code: "BOT", description: "ขวด" },
+      { code: "BOX", description: "กล่อง" },
+      { code: "CTN", description: "ลัง" },
+      { code: "DRUM", description: "ถัง" },
+      { code: "GAL", description: "แกลลอน" },
+      { code: "GM", description: "กรัม" },
+      { code: "INNERBOX", description: "กล่องใน" },
+      { code: "JAR", description: "กระปุก" },
+      { code: "KG", description: "กิโลกรัม" },
+      { code: "LTR", description: "ลิตร" },
+      { code: "PCS", description: "ชิ้น" },
+      { code: "ROLL", description: "ม้วน" },
+      { code: "SACK", description: "กระสอบ" },
+      { code: "SBOX", description: "กล่องใน" },
+      { code: "SET", description: "ชุด" },
+      { code: "STAL", description: "ซอง" },
+    ],
+  });
 
+  // Create Categories
+  const cat1 = await prisma.productCategory.create({
+    data: { code: "INS", description: "ยาฆ่าแมลง" },
+  });
+  const cat2 = await prisma.productCategory.create({
+    data: { code: "SUP", description: "ยาบำรุง" },
+  });
+
+  // Create Product Groups
+  await prisma.productGroupMaster.createMany({
+    data: [
+      {
+        code: "ACE",
+        description: "ACETOCHLOR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "ACT",
+        description: "ACETAMIPRID : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "AGN",
+        description: "AGNIQUE : Adjuvant",
+        categoryId: null,
+      },
+      {
+        code: "ALA",
+        description: "ALACHLOR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "AME",
+        description: "AMETRYN : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "AMI",
+        description: "AMITRAZ : Acaricide",
+        categoryId: null,
+      },
+      {
+        code: "AMN",
+        description: "AMINO / CHELANT : Plant Nutrient",
+        categoryId: null,
+      },
+      {
+        code: "ATR",
+        description: "ATRAZINE : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "BAC",
+        description: "BACILLUS THURINGIENSIS KURSTAKI",
+        categoryId: null,
+      },
+      { code: "BB5", description: "BB-5 : Adjuvant", categoryId: null },
+      {
+        code: "BIS",
+        description: "BISPYRIBAC-SODIUM : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "BPR",
+        description: "BUTACHLOR + PROPANIL : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "BUP",
+        description: "BUPROFEZIN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "BUT",
+        description: "BUTACHLOR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "CAB",
+        description: "CALCIUM BORON : Plant Nutrient",
+        categoryId: null,
+      },
+      {
+        code: "CAR",
+        description: "CARBENDAZIM : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "CBR",
+        description: "CARBARYL : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "CHC",
+        description: "CHLORPYRIFOS + CYPERMETHRIN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "CHL",
+        description: "CHLORPYRIFOS : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "CPR",
+        description: "CLOMAZONE + PROPANIL : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "CYP",
+        description: "CYPERMETHRIN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "CYR",
+        description: "CYPERMETHRIN + PROFENOFOS : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "DAZ",
+        description: "DIFENOCONAZOLE + AZOXYSTROBIN : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "DEE",
+        description: "DEEORNIC (SODIUM COMPLEX) : PLG",
+        categoryId: null,
+      },
+      {
+        code: "DIP",
+        description: "DIFENOCONAZOLE + PROPICONAZOLE : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "DIU",
+        description: "DIURON : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "EMA",
+        description: "EMAMECTIN : Insecticide",
+        categoryId: null,
+      },
+      { code: "ETH", description: "ETHEPHON : PGR", categoryId: null },
+      {
+        code: "ETI",
+        description: "ETHION : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "FDMP",
+        description: "DIMETHOMORPH + PYRACLOSTROBIN : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FEN",
+        description: "FENOBUCARB : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "FFAZ",
+        description: "AZOXYSTROBIN : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FIP",
+        description: "FIPRONIL : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "FISO",
+        description: "ISOPROTHIOLANE : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FOM",
+        description: "FOMESAFEN : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "FOS",
+        description: "FOSETYL ALUMINIUM : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FPHA",
+        description: "PHOSPHONIC ACID : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FPRM",
+        description: "PROPAMOCARB + METALAXYL : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FPRY",
+        description: "PROCYMIDONE : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "FTRC",
+        description: "TRICYCLAZOLE : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "GIB",
+        description: "GIBBERELLIC ACID : PGR",
+        categoryId: null,
+      },
+      {
+        code: "GLU",
+        description: "GLUFOSINATE : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "GLY",
+        description: "GLYPHOSATE : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "HFEO",
+        description: "FENOXAPROP-P-ETHYL : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "HFLU",
+        description: "FLUMIOXAZIN : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "HPIM",
+        description: "PENDIMETHALIN + IMAZAPIC : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "HSME",
+        description: "S-METOLACHLOR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "HTRL",
+        description: "TRICLOPYR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "ICHO",
+        description: "CHLORFENAPYR : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "IDIF",
+        description: "DIFLUBENZURON : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "ILAM",
+        description: "LAMBDA-CYHALOTHRIN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "IMA",
+        description: "IMAZAPIC : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "IMI",
+        description: "IMIDACLOPRID : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "INE",
+        description: "INDOXACARB + EMAMECTIN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "ISPI",
+        description: "SPIROMESIFEN : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "MAC",
+        description: "MANCOZEB + CARBENDAZIM : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "MAN",
+        description: "MANCOZEB : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "MES",
+        description: "METSULFURON-METHYL : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "MET",
+        description: "METHOMYL : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "MTL",
+        description: "METALAXYL : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "NIC",
+        description: "NICLOSAMIDE-OLAMINE : Insecticide",
+        categoryId: null,
+      },
+      { code: "OTH", description: "OTHER (อื่นๆ)", categoryId: null },
+      { code: "PAC", description: "PACLOBUTRAZOL : PGR", categoryId: null },
+      {
+        code: "PAR",
+        description: "PARAQUAT : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "PEN",
+        description: "PENDIMETHALIN : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "PIR",
+        description: "PIRIMIPHOS-METHYL : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "PPN",
+        description: "PROPINEB : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "PRC",
+        description: "PROCHLORAZ : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "PRE",
+        description: "PRETILACHLOR : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "PRF",
+        description: "PROFENOFOS : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "PRI",
+        description: "PROPICONAZOLE : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "PYI",
+        description: "PYRIDABEN : Acaricide",
+        categoryId: null,
+      },
+      {
+        code: "PYM",
+        description: "PYMETROZINE : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "PYR",
+        description: "PYRAZOSULFURON : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "QUI",
+        description: "QUIZALOFOP-P-TEFURYL : Herbicide",
+        categoryId: null,
+      },
+      {
+        code: "SEA",
+        description: "SEARIDE : SEAWEED",
+        categoryId: null,
+      },
+      {
+        code: "SEP",
+        description: "SEAPLANT : SEAWEED",
+        categoryId: null,
+      },
+      { code: "SEW", description: "SEAWEED", categoryId: null },
+      {
+        code: "SLVS",
+        description: "EMULANT LVS : SURFACTANT",
+        categoryId: null,
+      },
+      {
+        code: "SUL",
+        description: "SULPHUR : Fungicide",
+        categoryId: null,
+      },
+      {
+        code: "TER",
+        description: "TERASORB FOLIAR / 4 MACRO : Plant Nutrient",
+        categoryId: null,
+      },
+      { code: "THI", description: "THIOUREA : PGR", categoryId: null },
+      {
+        code: "TRI",
+        description: "TRIAZOPHOS : Insecticide",
+        categoryId: null,
+      },
+      {
+        code: "VAL",
+        description: "VALIDAMYCIN : Fungicide",
+        categoryId: null,
+      },
+    ],
+  });
+
+  // Create Brands
+  await prisma.brand.createMany({
+    data: [
+      { code: "BRAND_A", description: "แบรนด์ A" },
+      { code: "BRAND_B", description: "แบรนด์ B" },
+    ],
+  });
+
+  // Create Plants
+  await prisma.plant.createMany({
+    data: [
+      { code: "RICE", name: "ข้าว", abbreviation: "RIC", group: "พืชไร่" },
+      { code: "CORN", name: "ข้าวโพด", abbreviation: "CRN", group: "พืชไร่" },
+      {
+        code: "CASSAVA",
+        name: "มันสำปะหลัง",
+        abbreviation: "CAS",
+        group: "พืชไร่",
+      },
+      { code: "SUGARCANE", name: "อ้อย", abbreviation: "SUG", group: "พืชไร่" },
+      {
+        code: "SOYBEAN",
+        name: "ถั่วเหลือง",
+        abbreviation: "SOY",
+        group: "พืชไร่",
+      },
+      {
+        code: "PEANUT",
+        name: "ถั่วลิสง",
+        abbreviation: "PEA",
+        group: "พืชไร่",
+      },
+      {
+        code: "SUNFLOWER",
+        name: "ทานตะวัน",
+        abbreviation: "SUN",
+        group: "พืชไร่",
+      },
+      { code: "COTTON", name: "ฝ้าย", abbreviation: "COT", group: "พืชไร่" },
+      { code: "SESAME", name: "งา", abbreviation: "SES", group: "พืชไร่" },
+      {
+        code: "SORGHUM",
+        name: "ข้าวฟ่าง",
+        abbreviation: "SOR",
+        group: "พืชไร่",
+      },
+      {
+        code: "MUNGBEAN",
+        name: "ถั่วเขียว",
+        abbreviation: "MUN",
+        group: "พืชไร่",
+      },
+      { code: "CHILI", name: "พริก", abbreviation: "CHL", group: "พืชไร่" },
+    ],
+  });
 }
 
 main()

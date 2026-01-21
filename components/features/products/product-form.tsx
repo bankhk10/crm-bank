@@ -16,6 +16,7 @@ import { CheckCircle, X, Save } from "lucide-react";
 import {
   FormInput,
   FormSelect,
+  FormCombobox,
   FormTextarea,
 } from "@/components/custom/form-components";
 import { MultiSelect } from "@/components/custom/multi-select";
@@ -581,42 +582,40 @@ export function ProductForm({
           error={errors.commonName}
         />
 
-        <FormSelect
+        <FormCombobox
           label="หน่วยนับ"
           value={formData.unit || ""}
           onChange={(v) => updateField("unit", v)}
           required
           options={unitOptions}
           placeholder="เลือกหน่วยนับ"
-          groupLabel="หน่วยนับ"
+          searchPlaceholder="ค้นหาหน่วยนับ..."
+          emptyText="ไม่พบหน่วยนับ"
           disabled={loading}
           error={errors.unit}
         />
 
-        <FormSelect
+        <FormCombobox
           label="กลุ่มสินค้า"
           value={formData.productGroup || ""}
           onChange={(v) => updateField("productGroup", v)}
           required
           options={groupOptions}
           placeholder="เลือกกลุ่มสินค้า"
-          groupLabel="กลุ่มสินค้า"
+          searchPlaceholder="ค้นหากลุ่มสินค้า..."
+          emptyText="ไม่พบกลุ่มสินค้า"
           disabled={loading}
           error={errors.productGroup}
         />
 
-        <FormSelect
+        <FormCombobox
           label="แบรนด์สินค้า"
           value={formData.brand || ""}
-          onChange={(v) =>
-            setFormData((prev) => ({
-              ...prev,
-              brand: v,
-            }))
-          }
+          onChange={(v) => updateField("brand", v)}
           options={brandOptions}
           placeholder="เลือกแบรนด์"
-          groupLabel="แบรนด์"
+          searchPlaceholder="ค้นหาแบรนด์..."
+          emptyText="ไม่พบแบรนด์"
           disabled={loading}
         />
 
