@@ -457,6 +457,21 @@ model Brand {
   deletedAt   DateTime?
 }
 
+model Plant {
+  id                   String    @id @default(cuid())
+  code                 String    @unique        // รหัสพืช
+  name                 String                   // ชื่อพืช
+  abbreviation         String?                  // ตัวย่อพืช
+  group                String?                  // กลุ่มพืช
+  recommendedMedicines String?                  // ใช้กับตัวยาที่แนะนำ
+  description          String?                  // คำอธิบายพืช
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+
+  @@index([code])
+}
+
 enum ProductStatus {
   ACTIVE
   INACTIVE

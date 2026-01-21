@@ -103,6 +103,11 @@ export type Unit = Prisma.UnitModel
  */
 export type Brand = Prisma.BrandModel
 /**
+ * Model Plant
+ * 
+ */
+export type Plant = Prisma.PlantModel
+/**
  * Model Product
  * 
  */

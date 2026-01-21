@@ -90,6 +90,7 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Package className="h-4 w-4" />,
     children: [
       { href: "/products", label: "ข้อมูลสินค้า" },
+      { href: "/products/plants", label: "พืช" },
       { href: "/products/groups", label: "กลุ่มสินค้า" },
       { href: "/products/categories", label: "หมวดสินค้า" },
       { href: "/products/units", label: "หน่วยนับ" },

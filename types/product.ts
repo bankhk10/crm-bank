@@ -1,5 +1,27 @@
 export type ProductStatus = "ACTIVE" | "INACTIVE";
 
+export interface Plant {
+  id: string;
+  code: string;
+  name: string;
+  abbreviation: string | null;
+  group: string | null;
+  recommendedMedicines: string | null;
+  description: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  deletedAt: Date | string | null;
+}
+
+export interface PlantFormData {
+  code: string;
+  name: string;
+  abbreviation?: string;
+  group?: string;
+  recommendedMedicines?: string;
+  description?: string;
+}
+
 export interface ProductImage {
   id: string;
   productId: string;
