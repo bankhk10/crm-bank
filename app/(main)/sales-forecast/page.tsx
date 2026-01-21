@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Calendar,
   Package,
-  Target,
   ArrowUp,
   ArrowDown,
   Loader2,
@@ -34,7 +33,6 @@ interface SalesData {
   month: string;
   monthNumber: number;
   actual: number;
-  forecast: number;
   target: number;
 }
 
@@ -43,7 +41,6 @@ interface ProductGroupForecast {
   label: string;
   currentMonthSales: number;
   lastMonthSales: number;
-  forecastNextMonth: number;
   trend: "up" | "down" | "stable";
 }
 
@@ -56,7 +53,6 @@ interface ProductForecast {
   yearlyTarget: number;
   currentMonthActual: number;
   lastMonthActual: number;
-  forecastNextMonth: number;
   trend: "up" | "down" | "stable";
 }
 
@@ -224,38 +220,17 @@ export default function SalesForecastPage() {
         );
       }
 
-      // Generate forecast using simple moving average
-      const currentMonth = new Date().getMonth() + 1;
+      // Generate data
+
       const data: SalesData[] = MONTHS.map((month, index) => {
         const monthNumber = index + 1;
         const actual = actualSalesMap[monthNumber] || 0;
         const target = targetMap[monthNumber] || 0;
 
-        // Simple forecast: if future month, use average of past months or last month * growth factor
-        let forecast = actual;
-        if (monthNumber > currentMonth) {
-          // Use average of last 3 months for forecast
-          const pastMonths = [
-            actualSalesMap[monthNumber - 1] || 0,
-            actualSalesMap[monthNumber - 2] || 0,
-            actualSalesMap[monthNumber - 3] || 0,
-          ].filter((v) => v > 0);
-
-          if (pastMonths.length > 0) {
-            const avg =
-              pastMonths.reduce((a, b) => a + b, 0) / pastMonths.length;
-            // Add a small growth factor (2%)
-            forecast = avg * 1.02;
-          } else {
-            forecast = target || 0;
-          }
-        }
-
         return {
           month,
           monthNumber,
           actual,
-          forecast: Math.round(forecast),
           target,
         };
       });
@@ -271,14 +246,12 @@ export default function SalesForecastPage() {
           lastMonthSales > 0
             ? (currentMonthSales - lastMonthSales) / lastMonthSales
             : 0;
-        const forecastNextMonth = currentMonthSales * (1 + growthRate * 0.5);
 
         return {
           productGroup: pg.value,
           label: pg.label,
           currentMonthSales: Math.round(currentMonthSales),
           lastMonthSales: Math.round(lastMonthSales),
-          forecastNextMonth: Math.round(forecastNextMonth),
           trend:
             growthRate > 0.05 ? "up" : growthRate < -0.05 ? "down" : "stable",
         };
@@ -309,7 +282,6 @@ export default function SalesForecastPage() {
             lastMonthActual > 0
               ? (currentMonthActual - lastMonthActual) / lastMonthActual
               : 0;
-          const forecastNextMonth = currentMonthActual * (1 + growthRate * 0.5);
 
           return {
             productId: data.product.id,
@@ -320,7 +292,6 @@ export default function SalesForecastPage() {
             yearlyTarget,
             currentMonthActual: Math.round(currentMonthActual),
             lastMonthActual: Math.round(lastMonthActual),
-            forecastNextMonth: Math.round(forecastNextMonth),
             trend:
               growthRate > 0.05
                 ? "up"
@@ -366,10 +337,9 @@ export default function SalesForecastPage() {
   const totalActual = salesData
     .filter((d) => d.monthNumber <= currentMonth)
     .reduce((sum, d) => sum + d.actual, 0);
-  const totalForecast = salesData.reduce((sum, d) => sum + d.forecast, 0);
   const totalTarget = salesData.reduce((sum, d) => sum + d.target, 0);
-  const forecastVsTarget =
-    totalTarget > 0 ? ((totalForecast / totalTarget) * 100).toFixed(1) : "0";
+  const actualVsTarget =
+    totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
 
   if (loading) {
     return (
@@ -451,22 +421,6 @@ export default function SalesForecastPage() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-emerald-100 text-sm">คาดการณ์ทั้งปี</p>
-                <p className="text-2xl font-bold mt-1">
-                  {formatFullCurrency(totalForecast)}
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/20">
-                <Target className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-xl">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -487,11 +441,11 @@ export default function SalesForecastPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-amber-100 text-sm">คาดการณ์ vs เป้าหมาย</p>
-                <p className="text-2xl font-bold mt-1">{forecastVsTarget}%</p>
+                <p className="text-amber-100 text-sm">ยอดขาย vs เป้าหมาย</p>
+                <p className="text-2xl font-bold mt-1">{actualVsTarget}%</p>
               </div>
               <div className="p-3 rounded-xl bg-white/20">
-                {Number(forecastVsTarget) >= 100 ? (
+                {Number(actualVsTarget) >= 100 ? (
                   <ArrowUp className="w-6 h-6" />
                 ) : (
                   <ArrowDown className="w-6 h-6" />
@@ -578,15 +532,6 @@ export default function SalesForecastPage() {
                     />
                     <Line
                       type="monotone"
-                      dataKey="forecast"
-                      name="คาดการณ์"
-                      stroke="#10b981"
-                      strokeWidth={3}
-                      strokeDasharray="5 5"
-                      dot={{ fill: "#10b981", strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
                       dataKey="target"
                       name="เป้าหมาย"
                       stroke="#f59e0b"
@@ -637,12 +582,6 @@ export default function SalesForecastPage() {
                       dataKey="actual"
                       name="ยอดขายจริง"
                       fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="forecast"
-                      name="คาดการณ์"
-                      fill="#10b981"
                       radius={[4, 4, 0, 0]}
                     />
                     <Bar
@@ -703,16 +642,6 @@ export default function SalesForecastPage() {
                       <span className="font-medium text-slate-600">
                         {formatFullCurrency(pg.lastMonthSales)}
                       </span>
-                    </div>
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-blue-600">
-                          คาดการณ์เดือนหน้า
-                        </span>
-                        <span className="font-bold text-blue-600">
-                          {formatFullCurrency(pg.forecastNextMonth)}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -815,16 +744,6 @@ export default function SalesForecastPage() {
                         <span className="font-medium text-purple-600">
                           {formatFullCurrency(pf.yearlyTarget)}
                         </span>
-                      </div>
-                      <div className="border-t pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-blue-600">
-                            คาดการณ์เดือนหน้า
-                          </span>
-                          <span className="font-bold text-blue-600">
-                            {formatFullCurrency(pf.forecastNextMonth)}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </CardContent>
