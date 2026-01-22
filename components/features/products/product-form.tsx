@@ -625,16 +625,14 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="หน่วยนับ"
-          value={formData.unit || ""}
-          onChange={(v) => updateField("unit", v)}
-          required
-          options={unitOptions}
-          placeholder="เลือกหน่วยนับ"
-          searchPlaceholder="ค้นหาหน่วยนับ..."
-          emptyText="ไม่พบหน่วยนับ"
+          label="แบรนด์สินค้า"
+          value={formData.brand || ""}
+          onChange={(v) => updateField("brand", v)}
+          options={brandOptions}
+          placeholder="เลือกแบรนด์"
+          searchPlaceholder="ค้นหาแบรนด์..."
+          emptyText="ไม่พบแบรนด์"
           disabled={loading}
-          error={errors.unit}
         />
 
         <FormCombobox
@@ -649,17 +647,6 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="แบรนด์สินค้า"
-          value={formData.brand || ""}
-          onChange={(v) => updateField("brand", v)}
-          options={brandOptions}
-          placeholder="เลือกแบรนด์"
-          searchPlaceholder="ค้นหาแบรนด์..."
-          emptyText="ไม่พบแบรนด์"
-          disabled={loading}
-        />
-
-        <FormCombobox
           label="กลุ่มสินค้า"
           value={formData.productGroup || ""}
           onChange={(v) => updateField("productGroup", v)}
@@ -670,6 +657,19 @@ export function ProductForm({
           emptyText="ไม่พบกลุ่มสินค้า"
           disabled={loading}
           error={errors.productGroup}
+        />
+
+        <FormCombobox
+          label="หน่วยนับ"
+          value={formData.unit || ""}
+          onChange={(v) => updateField("unit", v)}
+          required
+          options={unitOptions}
+          placeholder="เลือกหน่วยนับ"
+          searchPlaceholder="ค้นหาหน่วยนับ..."
+          emptyText="ไม่พบหน่วยนับ"
+          disabled={loading}
+          error={errors.unit}
         />
 
         <FormInput
