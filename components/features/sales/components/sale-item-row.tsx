@@ -59,40 +59,40 @@ export function SaleItemRow({
         </Button>
       </div>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
-        {/* Product Select */}
-        <div className="md:col-span-2 min-w-0">
-          <FormCombobox
-            label="สินค้า"
-            value={item.productId}
-            onChange={handleProductChange}
-            options={products.map((p) => ({
-              value: p.id,
-              label: `${p.name} - ${p.productCode}`,
-            }))}
-            placeholder="เลือกสินค้า"
-            searchPlaceholder="ค้นหาสินค้า..."
-            emptyText="ไม่พบสินค้า"
-            required
-            error={fieldError}
-          />
-        </div>
+     <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+  {/* Product Select + Detail Button */}
+  <div className="md:col-span-3 flex items-end gap-2 min-w-0">
+    <div className="flex-1">
+      <FormCombobox
+        label="สินค้า"
+        value={item.productId}
+        onChange={handleProductChange}
+        options={products.map((p) => ({
+          value: p.id,
+          label: `${p.name} - ${p.productCode}`,
+        }))}
+        placeholder="เลือกสินค้า"
+        searchPlaceholder="ค้นหาสินค้า..."
+        emptyText="ไม่พบสินค้า"
+        required
+        error={fieldError}
+      />
+    </div>
 
-        {/* Stock Quantity & Details */}
-        {product && (
-          <div className="md:col-span-2 flex justify-end mb-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onShowDetails(product)}
-            >
-              <Info className="h-4 w-4 mr-2" />
-              รายละเอียด
-            </Button>
-          </div>
-        )}
-      </div>
+    {product && (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="h-10 mt-6 flex items-center"
+        onClick={() => onShowDetails(product)}
+      >
+        <Info className="h-4 w-4 mr-2" />
+        รายละเอียด
+      </Button>
+    )}
+  </div>
+</div>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-5">
         <FormInput
