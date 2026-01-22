@@ -141,10 +141,17 @@ export function SaleItemRow({
         />
         <FormInput
           label="ราคารวม (บาท)"
-          value={(item.quantity * item.unitPrice).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
+          value={(() => {
+            const packSize = parseFloat(product?.packageSizePerBox || "1");
+            const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+            return (item.quantity * item.unitPrice * multiplier).toLocaleString(
+              undefined,
+              {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              },
+            );
+          })()}
           onChange={() => {}}
           disabled
           readOnly

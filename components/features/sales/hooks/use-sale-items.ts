@@ -21,7 +21,7 @@ interface UseSaleItemsResult {
   updateItem: (
     index: number,
     field: keyof SaleItemFormData,
-    value: unknown
+    value: unknown,
   ) => void;
   setItems: (items: SaleItemFormData[]) => void;
   subtotal: number;
@@ -86,7 +86,7 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
         return newItems;
       });
     },
-    [products]
+    [products],
   );
 
   /**
@@ -100,8 +100,13 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
    * Calculate subtotal
    */
   const subtotal = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-  }, [items]);
+    return items.reduce((sum, item) => {
+      const product = products.find((p) => p.id === item.productId);
+      const packSize = parseFloat(product?.packageSizePerBox || "1");
+      const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+      return sum + item.quantity * item.unitPrice * multiplier;
+    }, 0);
+  }, [items, products]);
 
   return {
     items,
