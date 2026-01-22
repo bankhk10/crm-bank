@@ -28,11 +28,13 @@ export type AggregateProduct = {
 
 export type ProductAvgAggregateOutputType = {
   price: runtime.Decimal | null
+  cartonPrice: runtime.Decimal | null
   promotionBudget: runtime.Decimal | null
 }
 
 export type ProductSumAggregateOutputType = {
   price: runtime.Decimal | null
+  cartonPrice: runtime.Decimal | null
   promotionBudget: runtime.Decimal | null
 }
 
@@ -50,6 +52,7 @@ export type ProductMinAggregateOutputType = {
   salesPoint: string | null
   properties: string | null
   price: runtime.Decimal | null
+  cartonPrice: runtime.Decimal | null
   promotionBudget: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -71,6 +74,7 @@ export type ProductMaxAggregateOutputType = {
   salesPoint: string | null
   properties: string | null
   price: runtime.Decimal | null
+  cartonPrice: runtime.Decimal | null
   promotionBudget: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -93,6 +97,7 @@ export type ProductCountAggregateOutputType = {
   salesPoint: number
   properties: number
   price: number
+  cartonPrice: number
   promotionBudget: number
   createdAt: number
   updatedAt: number
@@ -104,11 +109,13 @@ export type ProductCountAggregateOutputType = {
 
 export type ProductAvgAggregateInputType = {
   price?: true
+  cartonPrice?: true
   promotionBudget?: true
 }
 
 export type ProductSumAggregateInputType = {
   price?: true
+  cartonPrice?: true
   promotionBudget?: true
 }
 
@@ -126,6 +133,7 @@ export type ProductMinAggregateInputType = {
   salesPoint?: true
   properties?: true
   price?: true
+  cartonPrice?: true
   promotionBudget?: true
   createdAt?: true
   updatedAt?: true
@@ -147,6 +155,7 @@ export type ProductMaxAggregateInputType = {
   salesPoint?: true
   properties?: true
   price?: true
+  cartonPrice?: true
   promotionBudget?: true
   createdAt?: true
   updatedAt?: true
@@ -169,6 +178,7 @@ export type ProductCountAggregateInputType = {
   salesPoint?: true
   properties?: true
   price?: true
+  cartonPrice?: true
   promotionBudget?: true
   createdAt?: true
   updatedAt?: true
@@ -278,6 +288,7 @@ export type ProductGroupByOutputType = {
   salesPoint: string | null
   properties: string | null
   price: runtime.Decimal | null
+  cartonPrice: runtime.Decimal | null
   promotionBudget: runtime.Decimal | null
   createdAt: Date
   updatedAt: Date
@@ -323,6 +334,7 @@ export type ProductWhereInput = {
   salesPoint?: Prisma.StringNullableFilter<"Product"> | string | null
   properties?: Prisma.StringNullableFilter<"Product"> | string | null
   price?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -354,6 +366,7 @@ export type ProductOrderByWithRelationInput = {
   salesPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   properties?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   promotionBudget?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -388,6 +401,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   salesPoint?: Prisma.StringNullableFilter<"Product"> | string | null
   properties?: Prisma.StringNullableFilter<"Product"> | string | null
   price?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -419,6 +433,7 @@ export type ProductOrderByWithAggregationInput = {
   salesPoint?: Prisma.SortOrderInput | Prisma.SortOrder
   properties?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrderInput | Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   promotionBudget?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -449,6 +464,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   salesPoint?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   properties?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   price?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
@@ -471,6 +487,7 @@ export type ProductCreateInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -502,6 +519,7 @@ export type ProductUncheckedCreateInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -533,6 +551,7 @@ export type ProductUpdateInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -564,6 +583,7 @@ export type ProductUncheckedUpdateInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -595,6 +615,7 @@ export type ProductCreateManyInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -617,6 +638,7 @@ export type ProductUpdateManyMutationInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -639,6 +661,7 @@ export type ProductUncheckedUpdateManyInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -661,6 +684,7 @@ export type ProductCountOrderByAggregateInput = {
   salesPoint?: Prisma.SortOrder
   properties?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrder
   promotionBudget?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -670,6 +694,7 @@ export type ProductCountOrderByAggregateInput = {
 
 export type ProductAvgOrderByAggregateInput = {
   price?: Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrder
   promotionBudget?: Prisma.SortOrder
 }
 
@@ -687,6 +712,7 @@ export type ProductMaxOrderByAggregateInput = {
   salesPoint?: Prisma.SortOrder
   properties?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrder
   promotionBudget?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -708,6 +734,7 @@ export type ProductMinOrderByAggregateInput = {
   salesPoint?: Prisma.SortOrder
   properties?: Prisma.SortOrder
   price?: Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrder
   promotionBudget?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -717,6 +744,7 @@ export type ProductMinOrderByAggregateInput = {
 
 export type ProductSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
+  cartonPrice?: Prisma.SortOrder
   promotionBudget?: Prisma.SortOrder
 }
 
@@ -879,6 +907,7 @@ export type ProductCreateWithoutStockInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -909,6 +938,7 @@ export type ProductUncheckedCreateWithoutStockInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -955,6 +985,7 @@ export type ProductUpdateWithoutStockInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -985,6 +1016,7 @@ export type ProductUncheckedUpdateWithoutStockInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1015,6 +1047,7 @@ export type ProductCreateWithoutImagesInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1045,6 +1078,7 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1091,6 +1125,7 @@ export type ProductUpdateWithoutImagesInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1121,6 +1156,7 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1151,6 +1187,7 @@ export type ProductCreateWithoutFreeItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1181,6 +1218,7 @@ export type ProductUncheckedCreateWithoutFreeItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1227,6 +1265,7 @@ export type ProductUpdateWithoutFreeItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1257,6 +1296,7 @@ export type ProductUncheckedUpdateWithoutFreeItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1287,6 +1327,7 @@ export type ProductCreateWithoutPromotionItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1317,6 +1358,7 @@ export type ProductUncheckedCreateWithoutPromotionItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1363,6 +1405,7 @@ export type ProductUpdateWithoutPromotionItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1393,6 +1436,7 @@ export type ProductUncheckedUpdateWithoutPromotionItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1423,6 +1467,7 @@ export type ProductCreateWithoutStockLotsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1453,6 +1498,7 @@ export type ProductUncheckedCreateWithoutStockLotsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1499,6 +1545,7 @@ export type ProductUpdateWithoutStockLotsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1529,6 +1576,7 @@ export type ProductUncheckedUpdateWithoutStockLotsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1559,6 +1607,7 @@ export type ProductCreateWithoutSaleItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1589,6 +1638,7 @@ export type ProductUncheckedCreateWithoutSaleItemsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1635,6 +1685,7 @@ export type ProductUpdateWithoutSaleItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1665,6 +1716,7 @@ export type ProductUncheckedUpdateWithoutSaleItemsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1695,6 +1747,7 @@ export type ProductCreateWithoutDailySalesSummariesInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1725,6 +1778,7 @@ export type ProductUncheckedCreateWithoutDailySalesSummariesInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1771,6 +1825,7 @@ export type ProductUpdateWithoutDailySalesSummariesInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1801,6 +1856,7 @@ export type ProductUncheckedUpdateWithoutDailySalesSummariesInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1831,6 +1887,7 @@ export type ProductCreateWithoutSalesTargetsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1861,6 +1918,7 @@ export type ProductUncheckedCreateWithoutSalesTargetsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1907,6 +1965,7 @@ export type ProductUpdateWithoutSalesTargetsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1937,6 +1996,7 @@ export type ProductUncheckedUpdateWithoutSalesTargetsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1967,6 +2027,7 @@ export type ProductCreateWithoutDetailedSalesTargetsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1997,6 +2058,7 @@ export type ProductUncheckedCreateWithoutDetailedSalesTargetsInput = {
   salesPoint?: string | null
   properties?: string | null
   price?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2043,6 +2105,7 @@ export type ProductUpdateWithoutDetailedSalesTargetsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2073,6 +2136,7 @@ export type ProductUncheckedUpdateWithoutDetailedSalesTargetsInput = {
   salesPoint?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   properties?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  cartonPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   promotionBudget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2197,6 +2261,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   salesPoint?: boolean
   properties?: boolean
   price?: boolean
+  cartonPrice?: boolean
   promotionBudget?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2229,6 +2294,7 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   salesPoint?: boolean
   properties?: boolean
   price?: boolean
+  cartonPrice?: boolean
   promotionBudget?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2251,6 +2317,7 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   salesPoint?: boolean
   properties?: boolean
   price?: boolean
+  cartonPrice?: boolean
   promotionBudget?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2273,6 +2340,7 @@ export type ProductSelectScalar = {
   salesPoint?: boolean
   properties?: boolean
   price?: boolean
+  cartonPrice?: boolean
   promotionBudget?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2280,7 +2348,7 @@ export type ProductSelectScalar = {
   chemicalGroup?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productCode" | "name" | "commonName" | "unit" | "productGroup" | "brand" | "packageSize" | "packageSizePerBox" | "status" | "usedForPlants" | "salesPoint" | "properties" | "price" | "promotionBudget" | "createdAt" | "updatedAt" | "deletedAt" | "chemicalGroup", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "productCode" | "name" | "commonName" | "unit" | "productGroup" | "brand" | "packageSize" | "packageSizePerBox" | "status" | "usedForPlants" | "salesPoint" | "properties" | "price" | "cartonPrice" | "promotionBudget" | "createdAt" | "updatedAt" | "deletedAt" | "chemicalGroup", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   images?: boolean | Prisma.Product$imagesArgs<ExtArgs>
   promotionItems?: boolean | Prisma.Product$promotionItemsArgs<ExtArgs>
@@ -2324,6 +2392,7 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     salesPoint: string | null
     properties: string | null
     price: runtime.Decimal | null
+    cartonPrice: runtime.Decimal | null
     promotionBudget: runtime.Decimal | null
     createdAt: Date
     updatedAt: Date
@@ -2775,6 +2844,7 @@ export interface ProductFieldRefs {
   readonly salesPoint: Prisma.FieldRef<"Product", 'String'>
   readonly properties: Prisma.FieldRef<"Product", 'String'>
   readonly price: Prisma.FieldRef<"Product", 'Decimal'>
+  readonly cartonPrice: Prisma.FieldRef<"Product", 'Decimal'>
   readonly promotionBudget: Prisma.FieldRef<"Product", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Product", 'DateTime'>

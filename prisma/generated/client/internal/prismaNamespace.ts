@@ -3887,6 +3887,7 @@ export const ProductScalarFieldEnum = {
   salesPoint: 'salesPoint',
   properties: 'properties',
   price: 'price',
+  cartonPrice: 'cartonPrice',
   promotionBudget: 'promotionBudget',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

@@ -84,6 +84,7 @@ export interface Product {
   salesPoint: string | null;
   properties: string | null;
   price: number | null;
+  cartonPrice: number | null;
   promotionBudget: number | null;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -123,6 +124,8 @@ export interface ProductFormData {
 
 export interface ProductManagementFormData {
   price?: number;
+  cartonPrice?: number;
+  packageSizePerBox?: string;
   promotionBudget?: number;
   freeItems: Array<{
     id?: string;

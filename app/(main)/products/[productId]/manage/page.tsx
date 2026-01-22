@@ -86,12 +86,25 @@ const PriceManagementSection: React.FC<SectionProps> = ({
   setFormData,
   saving,
 }) => {
+  // Auto-calculate carton price when unit price or package size changes
+  useEffect(() => {
+    if (formData.price && formData.packageSizePerBox) {
+      const itemsPerBox = parseInt(formData.packageSizePerBox);
+      if (!isNaN(itemsPerBox) && itemsPerBox > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          cartonPrice: (prev.price || 0) * itemsPerBox,
+        }));
+      }
+    }
+  }, [formData.price, formData.packageSizePerBox]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <Card>
       <SectionHeader title="จัดการราคาสินค้า" icon={Banknote} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">ราคาสินค้า (บาท)</Label>
+          <Label className="text-sm font-medium">ราคาต่อหน่วย (บาท)</Label>
           <div className="relative">
             <Input
               type="number"
@@ -112,6 +125,52 @@ const PriceManagementSection: React.FC<SectionProps> = ({
             </div>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">จำนวนบรรจุต่อลัง (ชิ้น)</Label>
+          <Input
+            type="text"
+            placeholder="ระบุจำนวน (เช่น 12, 24)"
+            value={formData.packageSizePerBox || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                packageSizePerBox: e.target.value,
+              }))
+            }
+            disabled
+            className="h-12 text-lg"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">ราคาต่อลัง (บาท)</Label>
+          <div className="relative">
+            <Input
+              type="number"
+              placeholder="0.00"
+              value={formData.cartonPrice || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  cartonPrice: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                }))
+              }
+              disabled={saving}
+              className="pl-10 h-12 text-lg font-bold text-green-700"
+              onWheel={(e) => e.currentTarget.blur()}
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              ฿
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            *คำนวณอัตโนมัติจาก ราคาต่อหน่วย x จำนวนบรรจุต่อลัง
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label className="text-sm font-medium">งบส่งเสริมการขาย (บาท)</Label>
           <div className="relative">
@@ -771,6 +830,8 @@ export default function ProductManagementPage() {
 
   const [formData, setFormData] = useState<ProductManagementFormData>({
     price: undefined,
+    cartonPrice: undefined,
+    packageSizePerBox: undefined,
     promotionBudget: undefined,
     freeItems: [],
     promotionItems: [],
@@ -792,6 +853,10 @@ export default function ProductManagementPage() {
 
         setFormData({
           price: data.product.price ? Number(data.product.price) : undefined,
+          cartonPrice: data.product.cartonPrice
+            ? Number(data.product.cartonPrice)
+            : undefined,
+          packageSizePerBox: data.product.packageSizePerBox || undefined,
           promotionBudget: data.product.promotionBudget
             ? Number(data.product.promotionBudget)
             : undefined,

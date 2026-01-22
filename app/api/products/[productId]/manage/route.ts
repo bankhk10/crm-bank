@@ -9,6 +9,8 @@ const resourcePath = "/api/products";
 
 const managementSchema = z.object({
   price: z.number().optional(),
+  cartonPrice: z.number().optional(),
+  packageSizePerBox: z.string().optional(),
   promotionBudget: z.number().optional(),
   freeItems: z
     .array(
@@ -88,6 +90,8 @@ export async function PATCH(
         where: { id: productId, deletedAt: null },
         data: {
           price: parsed.data.price,
+          cartonPrice: parsed.data.cartonPrice,
+          packageSizePerBox: parsed.data.packageSizePerBox,
           promotionBudget: parsed.data.promotionBudget,
         },
       });
