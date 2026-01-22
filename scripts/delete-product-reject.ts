@@ -1,6 +1,8 @@
-import { PrismaClient } from "./prisma/generated/client";
-
-const prisma = new PrismaClient();
+/**
+ * Script to delete 'product.reject' permission
+ * Run with: npx tsx scripts/delete-product-reject.ts
+ */
+import { prisma } from "../src/infrastructure/database";
 
 async function main() {
   console.log("Deleting 'product.reject' permission...");

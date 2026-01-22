@@ -23,7 +23,6 @@ export {
   verifyUserSession,
   createSale,
   applyDataAccessFilters,
-  type StockWarning,
   type CreateSaleInput,
 } from "./sales.service";
 
@@ -41,7 +40,6 @@ export {
   getProductWithStock,
   verifyUserExists,
   type SalesQueryFilters,
-  type PaginationParams,
 } from "./sales.repository";
 
 // Types

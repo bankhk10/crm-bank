@@ -15,6 +15,4 @@ export {
   statusStyle,
   customerTypeStyle,
   DEFAULT_BADGE_STYLE,
-  getStatusStyle,
-  getCustomerTypeStyle,
 } from "./customer-styles.utils";

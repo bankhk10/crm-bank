@@ -1,25 +1,31 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
+/**
+ * Health Check Endpoint
+ * ใช้สำหรับ Docker health check และ monitoring
+ */
 export async function GET() {
+  const healthCheck = {
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
+    checks: {
+      database: "unknown",
+    },
+  };
+
   try {
-    // Basic health check
-    return NextResponse.json(
-      {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: "unhealthy",
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 503 }
-    );
+    // ตรวจสอบการเชื่อมต่อ Database
+    await prisma.$queryRaw`SELECT 1`;
+    healthCheck.checks.database = "connected";
+  } catch {
+    healthCheck.checks.database = "disconnected";
+    healthCheck.status = "unhealthy";
+
+    return NextResponse.json(healthCheck, { status: 503 });
   }
+
+  return NextResponse.json(healthCheck, { status: 200 });
 }

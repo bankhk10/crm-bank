@@ -20,6 +20,7 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
+  WAITING_FOR_CORRECTION: "รอแก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
@@ -105,6 +106,13 @@ export const SALE_STATUS_STYLES: Record<
     className:
       "bg-green-100 text-green-800 ring-1 ring-green-300 dark:bg-green-900/40 dark:text-green-100",
     dot: "bg-green-600",
+  },
+  // 🟠 Amber - รอแก้ไข (Waiting for correction)
+  WAITING_FOR_CORRECTION: {
+    label: "รอแก้ไข",
+    className:
+      "bg-amber-100 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-100",
+    dot: "bg-amber-500",
   },
   // 🔴 Red - ยกเลิก (Cancelled/Error)
   CANCELLED: {

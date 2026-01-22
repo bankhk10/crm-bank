@@ -2,9 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  experimental: {
-    // @ts-expect-error allowedDevOrigins is not yet in the type definition
-    allowedDevOrigins: ["9fc391f6677b.ngrok-free.app"],
+  // Remove images domain config if using Cloudinary
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+    ],
   },
 };
 

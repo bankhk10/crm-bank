@@ -1,6 +1,8 @@
-import { PrismaClient } from "./prisma/generated/client";
-
-const prisma = new PrismaClient();
+/**
+ * Script to sync ProductStock table
+ * Run with: npx tsx scripts/sync-stock-table.ts
+ */
+import { prisma } from "../src/infrastructure/database";
 
 async function main() {
   console.log("Starting ProductStock sync...");
@@ -29,18 +31,18 @@ async function main() {
   for (const product of products) {
     const availableQuantity = product.stockLots.reduce(
       (sum, lot) => sum + lot.quantity,
-      0
+      0,
     );
 
     const reservedQuantity = product.saleItems.reduce(
       (sum, item) => sum + item.quantity,
-      0
+      0,
     );
 
     const physicalBalance = availableQuantity + reservedQuantity;
 
     console.log(
-      `Syncing Product ${product.productCode}: Available=${availableQuantity}, Reserved=${reservedQuantity}, Physical=${physicalBalance}`
+      `Syncing Product ${product.productCode}: Available=${availableQuantity}, Reserved=${reservedQuantity}, Physical=${physicalBalance}`,
     );
 
     await prisma.productStock.upsert({

@@ -1,4 +1,7 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/generated/client/client";
+
+// Use Prisma.Decimal type directly or create compatible alias
+type Decimal = Prisma.Decimal;
 
 export enum SalesForecastStatus {
   DRAFT = "DRAFT",
