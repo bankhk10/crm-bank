@@ -41,9 +41,11 @@ interface SelectOption {
 }
 
 const PACKAGE_UNIT_OPTIONS = [
+  { value: "mg", label: "mg (มิลลิกรัม)" },
   { value: "g", label: "g (กรัม)" },
   { value: "kg", label: "kg (กิโลกรัม)" },
   { value: "ml", label: "ml (มิลลิลิตร)" },
+  { value: "cc", label: "cc (ซีซี)" },
   { value: "L", label: "L (ลิตร)" },
 ];
 
@@ -718,7 +720,12 @@ export function ProductForm({
               value={(() => {
                 // Try to find a matching unit from the end of the string
                 const str = formData.packageSize || "";
-                for (const opt of PACKAGE_UNIT_OPTIONS) {
+                // Sort options by length desc to prioritize longer matches (e.g. kg over g)
+                const sortedOptions = [...PACKAGE_UNIT_OPTIONS].sort(
+                  (a, b) => b.value.length - a.value.length,
+                );
+
+                for (const opt of sortedOptions) {
                   if (
                     str.endsWith(opt.value) ||
                     str.endsWith(" " + opt.value)
