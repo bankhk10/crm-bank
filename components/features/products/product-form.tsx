@@ -13,6 +13,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { CheckCircle, X, Save } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   FormInput,
   FormSelect,
@@ -30,6 +39,13 @@ interface SelectOption {
   value: string;
   label: string;
 }
+
+const PACKAGE_UNIT_OPTIONS = [
+  { value: "g", label: "g (กรัม)" },
+  { value: "kg", label: "kg (กิโลกรัม)" },
+  { value: "ml", label: "ml (มิลลิลิตร)" },
+  { value: "L", label: "L (ลิตร)" },
+];
 
 export function ProductForm({
   initialData,
@@ -672,17 +688,71 @@ export function ProductForm({
           error={errors.unit}
         />
 
-        <FormInput
-          label="ขนาดบรรจุ"
-          value={formData.packageSize || ""}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              packageSize: e.target.value,
-            }))
-          }
-          disabled={loading}
-        />
+        <div className="space-y-2">
+          <Label>ขนาดบรรจุ</Label>
+          <div className="flex gap-2">
+            <Input
+              value={(() => {
+                const match = (formData.packageSize || "").match(/^([\d.]+)/);
+                return match ? match[1] : formData.packageSize || "";
+              })()}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                const currentUnit =
+                  (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] ||
+                  (PACKAGE_UNIT_OPTIONS.find((opt) =>
+                    (formData.packageSize || "").endsWith(opt.value),
+                  )?.value ??
+                    "g");
+                updateField(
+                  "packageSize",
+                  newValue ? `${newValue} ${currentUnit}` : "",
+                );
+              }}
+              placeholder="ระบุขนาด"
+              className="flex-1"
+              disabled={loading}
+              type="number"
+            />
+            <Select
+              value={(() => {
+                // Try to find a matching unit from the end of the string
+                const str = formData.packageSize || "";
+                for (const opt of PACKAGE_UNIT_OPTIONS) {
+                  if (
+                    str.endsWith(opt.value) ||
+                    str.endsWith(" " + opt.value)
+                  ) {
+                    return opt.value;
+                  }
+                }
+                const match = str.match(/[a-zA-Z]+$/);
+                return match ? match[0] : "g";
+              })()}
+              onValueChange={(newUnit) => {
+                const match = (formData.packageSize || "").match(/^([\d.]+)/);
+                const currentValue = match
+                  ? match[1]
+                  : formData.packageSize || "";
+                if (currentValue) {
+                  updateField("packageSize", `${currentValue} ${newUnit}`);
+                }
+              }}
+              disabled={loading}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="หน่วย" />
+              </SelectTrigger>
+              <SelectContent>
+                {PACKAGE_UNIT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <FormInput
           label="ขนาดบรรจุต่อลัง"
