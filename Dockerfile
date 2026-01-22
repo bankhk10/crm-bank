@@ -15,13 +15,16 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # ===========================================
 # Stage 2: Builder
 # ===========================================
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Dummy DATABASE_URL สำหรับช่วง build (prisma generate / next build ต้องการค่านี้)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -67,8 +70,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma files for runtime
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+
+# คัดลอก Prisma CLI และ Engines (ใช้วิธีเจาะจงเพื่อให้รัน npx prisma ได้)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+
+# คัดลอก engines และ client จาก .pnpm (สำหรับ pnpm)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.pnpm
 
 # Switch to non-root user
 USER nextjs

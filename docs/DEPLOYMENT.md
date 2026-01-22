@@ -150,6 +150,9 @@ cd /opt/crm-bank
 # สร้าง directories
 mkdir -p nginx/ssl nginx/logs nginx/conf.d
 
+# สำรองไฟล์ config หลักออกไปก่อน (เพราะมันต้องการ SSL cert ถึงจะรันผ่าน)
+mv nginx/conf.d/default.conf nginx/conf.d/default.conf.bak
+
 # สร้าง temp config สำหรับ ACME challenge
 cat > nginx/conf.d/temp.conf << 'EOF'
 server {
@@ -167,27 +170,25 @@ server {
 }
 EOF
 
-# Start nginx
-docker compose up -d nginx
+# Start nginx (ต้องระบุ --env-file เพราะ docker-compose.yml มีการอ้างอิง variables)
+docker compose --env-file .env.production up -d --no-deps nginx
 
-# ขอ certificate
-docker compose run --rm certbot certonly \
+# ขอ certificate (ต้องระบุ --no-deps และ --entrypoint)
+docker compose --env-file .env.production run --rm --no-deps --entrypoint certbot certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
-    --email admin@cropsciences.co.th \
+    --email atthapol@intercrop.co.th \
     --agree-tos \
     --no-eff-email \
     -d csone.cropsciences.co.th \
     -d www.csone.cropsciences.co.th
 
-# ลบ temp config
+# ลบ temp config และนำ full config กลับมา
 rm nginx/conf.d/temp.conf
+mv nginx/conf.d/default.conf.bak nginx/conf.d/default.conf
 
-# คัดลอก full config กลับมา (ถ้าถูกลบ)
-# (config จะอยู่ใน git แล้ว)
-
-# Restart nginx
-docker compose down
+# Restart nginx เพื่อเตรียมรันจริง
+docker compose --env-file .env.production down
 ```
 
 ### ขั้นตอนที่ 6: Build และ Deploy
@@ -196,10 +197,15 @@ docker compose down
 cd /opt/crm-bank
 
 # Build images
-docker compose build
+docker compose --env-file .env.production build
 
 # Start ทุก services
 docker compose --env-file .env.production up -d
+
+> [!TIP]
+> หากเจอ error `ERR_PNPM_OUTDATED_LOCKFILE`:
+> 1. รัน `pnpm install` บนเครื่อง Local เพื่ออัปเดต `pnpm-lock.yaml` แล้ว commit/push ใหม่
+> 2. หรือแก้ไข `Dockerfile` ชั่วคราวโดยเปลี่ยนเป็น `RUN pnpm install --no-frozen-lockfile`
 
 # ตรวจสอบ logs
 docker compose logs -f
@@ -218,7 +224,7 @@ docker compose exec app npx prisma db seed
 
 ```bash
 # ตรวจสอบ container status
-docker compose ps
+docker compose --env-file .env.production ps
 
 # ตรวจสอบ health check
 curl http://localhost:3000/api/health
@@ -230,7 +236,7 @@ curl https://csone.cropsciences.co.th/api/health
 docker stats
 
 # ดู logs
-docker compose logs -f app
+docker compose --env-file .env.production logs -f app
 ```
 
 ---
@@ -255,13 +261,13 @@ chmod +x scripts/update.sh
 ./scripts/backup-db.sh
 
 # Build image ใหม่
-docker compose build app
+docker compose --env-file .env.production build app
 
 # Update container (rolling update)
-docker compose up -d --no-deps app
+docker compose --env-file .env.production up -d --no-deps app
 
 # Run migrations
-docker compose exec app npx prisma migrate deploy
+docker compose --env-file .env.production exec app npx prisma migrate deploy
 ```
 
 ---
@@ -302,15 +308,15 @@ chmod +x scripts/restore-db.sh
 
 ```bash
 # ดู logs ทั้งหมด
-docker compose logs -f
+docker compose --env-file .env.production logs -f
 
 # ดู logs เฉพาะ service
-docker compose logs -f app
-docker compose logs -f postgres
-docker compose logs -f nginx
+docker compose --env-file .env.production logs -f app
+docker compose --env-file .env.production logs -f postgres
+docker compose --env-file .env.production logs -f nginx
 
 # ดู logs ย้อนหลัง 100 บรรทัด
-docker compose logs --tail=100 app
+docker compose --env-file .env.production logs --tail=100 app
 ```
 
 ### ตรวจสอบ Resources
@@ -410,41 +416,51 @@ services:
 
 ```bash
 # ดู logs
-docker compose logs app
+docker compose --env-file .env.production logs app
 
 # ตรวจสอบ env
-docker compose config
+docker compose --env-file .env.production config
 ```
 
 ### Database Connection Error
 
 ```bash
 # ตรวจสอบ postgres
-docker compose exec postgres pg_isready
+docker compose --env-file .env.production exec postgres pg_isready
 
 # ตรวจสอบ connection string
-docker compose exec app printenv DATABASE_URL
+docker compose --env-file .env.production exec app printenv DATABASE_URL
 ```
 
 ### SSL Certificate Error
 
 ```bash
 # ตรวจสอบ certificate
-docker compose run --rm certbot certificates
+docker compose --env-file .env.production run --rm certbot certificates
 
 # Force renew
-docker compose run --rm certbot renew --force-renewal
+docker compose --env-file .env.production run --rm certbot renew --force-renewal
 ```
 
-### Disk Full
+### Port 80/443 Already in Use
 
-```bash
-# ตรวจสอบ
-df -h
+หากเจอ Runtime Error: `failed to bind host port 0.0.0.0:80/tcp: address already in use`
 
-# Clean docker
-docker system prune -a --volumes
-```
+1. ตรวจสอบว่ามี process อะไรใช้งานอยู่:
+   ```bash
+   sudo lsof -i :80
+   # หรือ
+   sudo ss -lptn 'sport = :80'
+   ```
+2. หากเป็น `nginx` หรือ `apache2` ที่รันบน host ให้หยุดและปิดการใช้งาน:
+   ```bash
+   sudo systemctl stop nginx
+   sudo systemctl disable nginx
+   # หรือ
+   sudo systemctl stop apache2
+   sudo systemctl disable apache2
+   ```
+3. ลองรันคำสั่ง Docker อีกครั้ง
 
 ---
 

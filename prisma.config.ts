@@ -1,15 +1,13 @@
 import { defineConfig, env } from "prisma/config";
-import dotenv from "dotenv";
 
-// Load .env when running prisma CLI so env("DATABASE_URL") is available
-dotenv.config({ path: ".env" });
-
+// Note: Removed dotenv for production compatibility.
+// Prisma CLI automatically loads .env in dev, and Docker provides env vars in production.
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: env("DATABASE_URL"),
+    url: env("DATABASE_URL") || process.env.DATABASE_URL,
   },
 });
