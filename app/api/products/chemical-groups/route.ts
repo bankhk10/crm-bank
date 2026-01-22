@@ -9,12 +9,13 @@ export async function GET(request: NextRequest) {
     const perPage = Number(searchParams.get("perPage") || "20");
     const q = searchParams.get("q") || "";
 
-    const where: any = {
+    const where: Prisma.ChemicalGroupWhereInput = {
       deletedAt: null,
       ...(q && {
         OR: [
-          { code: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
+          { code: { contains: q, mode: "insensitive" as const } },
+          { name: { contains: q, mode: "insensitive" as const } },
+          { description: { contains: q, mode: "insensitive" as const } },
         ],
       }),
     };
@@ -43,11 +44,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { code, description } = body;
+    const { code, name, abbreviation, description } = body;
 
-    if (!code || !description) {
+    // description and abbreviation are optional based on schema update, but name is now required (with default "" handled in schema, but we should enforce it here)
+    if (!code || !name) {
       return NextResponse.json(
-        { error: "รหัสและคำอธิบายจำเป็นต้องระบุ" },
+        { error: "รหัสและชื่อกลุ่มสารจำเป็นต้องระบุ" },
         { status: 400 },
       );
     }
@@ -65,7 +67,12 @@ export async function POST(request: NextRequest) {
     }
 
     const group = await db.chemicalGroup.create({
-      data: { code, description },
+      data: {
+        code,
+        name,
+        abbreviation: abbreviation || null,
+        description: description || null,
+      },
     });
 
     return NextResponse.json({ group }, { status: 201 });

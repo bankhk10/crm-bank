@@ -641,7 +641,7 @@ export function ProductForm({
           label="กลุ่มสาร"
           value={formData.chemicalGroup || ""}
           onChange={(v) => updateField("chemicalGroup", v)}
-          options={groupOptions}
+          options={chemicalGroupOptions}
           placeholder="เลือกกลุ่มสาร"
           searchPlaceholder="ค้นหากลุ่มสาร..."
           emptyText="ไม่พบกลุ่มสาร"
@@ -664,7 +664,7 @@ export function ProductForm({
           value={formData.productGroup || ""}
           onChange={(v) => updateField("productGroup", v)}
           required
-          options={chemicalGroupOptions}
+          options={groupOptions}
           placeholder="เลือกกลุ่มสินค้า"
           searchPlaceholder="ค้นหากลุ่มสินค้า..."
           emptyText="ไม่พบกลุ่มสินค้า"

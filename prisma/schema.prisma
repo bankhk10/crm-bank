@@ -511,12 +511,14 @@ model Product {
 
 // กลุ่มสาร (Chemical Group)
 model ChemicalGroup {
-  id          String    @id @default(cuid())
-  code        String    @unique        // รหัสกลุ่มสาร
-  description String                   // คำอธิบายกลุ่มสาร
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  id           String    @id @default(cuid())
+  code         String    @unique        // รหัสกลุ่มสาร
+  name         String    @default("")               // ชื่อกลุ่มสาร
+  abbreviation String?                  // ตัวย่อกลุ่มสาร
+  description  String?                  // คำอธิบายกลุ่มสาร
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 }
 
 model ProductStock {

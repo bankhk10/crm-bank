@@ -493,6 +493,8 @@ export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeo
 export const ChemicalGroupScalarFieldEnum = {
   id: 'id',
   code: 'code',
+  name: 'name',
+  abbreviation: 'abbreviation',
   description: 'description',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

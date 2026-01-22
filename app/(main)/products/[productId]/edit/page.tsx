@@ -93,6 +93,7 @@ export default function EditProductPage() {
               unit: product.unit || "",
               productGroup: product.productGroup || "",
               brand: product.brand || "",
+              chemicalGroup: product.chemicalGroup || "",
               packageSize: product.packageSize || "",
               packageSizePerBox: product.packageSizePerBox || "",
               status: product.status,

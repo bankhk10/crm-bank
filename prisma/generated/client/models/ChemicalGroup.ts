@@ -27,6 +27,8 @@ export type AggregateChemicalGroup = {
 export type ChemicalGroupMinAggregateOutputType = {
   id: string | null
   code: string | null
+  name: string | null
+  abbreviation: string | null
   description: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -36,6 +38,8 @@ export type ChemicalGroupMinAggregateOutputType = {
 export type ChemicalGroupMaxAggregateOutputType = {
   id: string | null
   code: string | null
+  name: string | null
+  abbreviation: string | null
   description: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -45,6 +49,8 @@ export type ChemicalGroupMaxAggregateOutputType = {
 export type ChemicalGroupCountAggregateOutputType = {
   id: number
   code: number
+  name: number
+  abbreviation: number
   description: number
   createdAt: number
   updatedAt: number
@@ -56,6 +62,8 @@ export type ChemicalGroupCountAggregateOutputType = {
 export type ChemicalGroupMinAggregateInputType = {
   id?: true
   code?: true
+  name?: true
+  abbreviation?: true
   description?: true
   createdAt?: true
   updatedAt?: true
@@ -65,6 +73,8 @@ export type ChemicalGroupMinAggregateInputType = {
 export type ChemicalGroupMaxAggregateInputType = {
   id?: true
   code?: true
+  name?: true
+  abbreviation?: true
   description?: true
   createdAt?: true
   updatedAt?: true
@@ -74,6 +84,8 @@ export type ChemicalGroupMaxAggregateInputType = {
 export type ChemicalGroupCountAggregateInputType = {
   id?: true
   code?: true
+  name?: true
+  abbreviation?: true
   description?: true
   createdAt?: true
   updatedAt?: true
@@ -156,7 +168,9 @@ export type ChemicalGroupGroupByArgs<ExtArgs extends runtime.Types.Extensions.In
 export type ChemicalGroupGroupByOutputType = {
   id: string
   code: string
-  description: string
+  name: string
+  abbreviation: string | null
+  description: string | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -186,7 +200,9 @@ export type ChemicalGroupWhereInput = {
   NOT?: Prisma.ChemicalGroupWhereInput | Prisma.ChemicalGroupWhereInput[]
   id?: Prisma.StringFilter<"ChemicalGroup"> | string
   code?: Prisma.StringFilter<"ChemicalGroup"> | string
-  description?: Prisma.StringFilter<"ChemicalGroup"> | string
+  name?: Prisma.StringFilter<"ChemicalGroup"> | string
+  abbreviation?: Prisma.StringNullableFilter<"ChemicalGroup"> | string | null
+  description?: Prisma.StringNullableFilter<"ChemicalGroup"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ChemicalGroup"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChemicalGroup"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"ChemicalGroup"> | Date | string | null
@@ -195,7 +211,9 @@ export type ChemicalGroupWhereInput = {
 export type ChemicalGroupOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  abbreviation?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -207,7 +225,9 @@ export type ChemicalGroupWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ChemicalGroupWhereInput | Prisma.ChemicalGroupWhereInput[]
   OR?: Prisma.ChemicalGroupWhereInput[]
   NOT?: Prisma.ChemicalGroupWhereInput | Prisma.ChemicalGroupWhereInput[]
-  description?: Prisma.StringFilter<"ChemicalGroup"> | string
+  name?: Prisma.StringFilter<"ChemicalGroup"> | string
+  abbreviation?: Prisma.StringNullableFilter<"ChemicalGroup"> | string | null
+  description?: Prisma.StringNullableFilter<"ChemicalGroup"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ChemicalGroup"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChemicalGroup"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"ChemicalGroup"> | Date | string | null
@@ -216,7 +236,9 @@ export type ChemicalGroupWhereUniqueInput = Prisma.AtLeast<{
 export type ChemicalGroupOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  description?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  abbreviation?: Prisma.SortOrderInput | Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -231,7 +253,9 @@ export type ChemicalGroupScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ChemicalGroupScalarWhereWithAggregatesInput | Prisma.ChemicalGroupScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"ChemicalGroup"> | string
   code?: Prisma.StringWithAggregatesFilter<"ChemicalGroup"> | string
-  description?: Prisma.StringWithAggregatesFilter<"ChemicalGroup"> | string
+  name?: Prisma.StringWithAggregatesFilter<"ChemicalGroup"> | string
+  abbreviation?: Prisma.StringNullableWithAggregatesFilter<"ChemicalGroup"> | string | null
+  description?: Prisma.StringNullableWithAggregatesFilter<"ChemicalGroup"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ChemicalGroup"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ChemicalGroup"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ChemicalGroup"> | Date | string | null
@@ -240,7 +264,9 @@ export type ChemicalGroupScalarWhereWithAggregatesInput = {
 export type ChemicalGroupCreateInput = {
   id?: string
   code: string
-  description: string
+  name?: string
+  abbreviation?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -249,7 +275,9 @@ export type ChemicalGroupCreateInput = {
 export type ChemicalGroupUncheckedCreateInput = {
   id?: string
   code: string
-  description: string
+  name?: string
+  abbreviation?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -258,7 +286,9 @@ export type ChemicalGroupUncheckedCreateInput = {
 export type ChemicalGroupUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  abbreviation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -267,7 +297,9 @@ export type ChemicalGroupUpdateInput = {
 export type ChemicalGroupUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  abbreviation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -276,7 +308,9 @@ export type ChemicalGroupUncheckedUpdateInput = {
 export type ChemicalGroupCreateManyInput = {
   id?: string
   code: string
-  description: string
+  name?: string
+  abbreviation?: string | null
+  description?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -285,7 +319,9 @@ export type ChemicalGroupCreateManyInput = {
 export type ChemicalGroupUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  abbreviation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -294,7 +330,9 @@ export type ChemicalGroupUpdateManyMutationInput = {
 export type ChemicalGroupUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  abbreviation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -303,6 +341,8 @@ export type ChemicalGroupUncheckedUpdateManyInput = {
 export type ChemicalGroupCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  abbreviation?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -312,6 +352,8 @@ export type ChemicalGroupCountOrderByAggregateInput = {
 export type ChemicalGroupMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  abbreviation?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -321,6 +363,8 @@ export type ChemicalGroupMaxOrderByAggregateInput = {
 export type ChemicalGroupMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
+  name?: Prisma.SortOrder
+  abbreviation?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -332,6 +376,8 @@ export type ChemicalGroupMinOrderByAggregateInput = {
 export type ChemicalGroupSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
+  name?: boolean
+  abbreviation?: boolean
   description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -341,6 +387,8 @@ export type ChemicalGroupSelect<ExtArgs extends runtime.Types.Extensions.Interna
 export type ChemicalGroupSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
+  name?: boolean
+  abbreviation?: boolean
   description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -350,6 +398,8 @@ export type ChemicalGroupSelectCreateManyAndReturn<ExtArgs extends runtime.Types
 export type ChemicalGroupSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
+  name?: boolean
+  abbreviation?: boolean
   description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -359,13 +409,15 @@ export type ChemicalGroupSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
 export type ChemicalGroupSelectScalar = {
   id?: boolean
   code?: boolean
+  name?: boolean
+  abbreviation?: boolean
   description?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type ChemicalGroupOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "description" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["chemicalGroup"]>
+export type ChemicalGroupOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "name" | "abbreviation" | "description" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["chemicalGroup"]>
 
 export type $ChemicalGroupPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ChemicalGroup"
@@ -373,7 +425,9 @@ export type $ChemicalGroupPayload<ExtArgs extends runtime.Types.Extensions.Inter
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     code: string
-    description: string
+    name: string
+    abbreviation: string | null
+    description: string | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -802,6 +856,8 @@ export interface Prisma__ChemicalGroupClient<T, Null = never, ExtArgs extends ru
 export interface ChemicalGroupFieldRefs {
   readonly id: Prisma.FieldRef<"ChemicalGroup", 'String'>
   readonly code: Prisma.FieldRef<"ChemicalGroup", 'String'>
+  readonly name: Prisma.FieldRef<"ChemicalGroup", 'String'>
+  readonly abbreviation: Prisma.FieldRef<"ChemicalGroup", 'String'>
   readonly description: Prisma.FieldRef<"ChemicalGroup", 'String'>
   readonly createdAt: Prisma.FieldRef<"ChemicalGroup", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ChemicalGroup", 'DateTime'>
