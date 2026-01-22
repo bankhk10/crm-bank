@@ -20,7 +20,7 @@ interface SaleItemRowProps {
   onUpdate: (
     index: number,
     field: keyof SaleItemFormData,
-    value: unknown
+    value: unknown,
   ) => void;
   onRemove: (index: number) => void;
   onShowDetails: (product: SaleFormProduct) => void;
@@ -80,7 +80,7 @@ export function SaleItemRow({
 
         {/* Stock Quantity & Details */}
         {product && (
-          <div className="flex items-end justify-between mb-2">
+          <div className="md:col-span-2 flex justify-end mb-1">
             <Button
               type="button"
               variant="outline"
@@ -94,7 +94,7 @@ export function SaleItemRow({
         )}
       </div>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-5">
         <FormInput
           label="จำนวน"
           type="number"
@@ -110,9 +110,41 @@ export function SaleItemRow({
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         <FormInput
+          label="ขนาดบรรจุ"
+          value={product?.packageSizePerBox || "-"}
+          onChange={() => {}}
+          disabled
+          readOnly
+          className="bg-gray-100 text-gray-500"
+        />
+        <FormInput
+          label="ราคาต่อลัง"
+          value={(() => {
+            // Try to parse pack size (e.g. "12", "12x1L")
+            const packSize = parseFloat(product?.packageSizePerBox || "0");
+
+            // If we have a valid pack size, calculate carton price based on current unit price
+            if (!isNaN(packSize) && packSize > 0) {
+              const calculatedCartonPrice = item.unitPrice * packSize;
+              return `฿${calculatedCartonPrice.toLocaleString()}`;
+            }
+
+            // Fallback to master data or standard dash
+            return product?.cartonPrice
+              ? `฿${Number(product.cartonPrice).toLocaleString()}`
+              : "-";
+          })()}
+          onChange={() => {}}
+          disabled
+          readOnly
+          className="bg-gray-100 text-gray-500"
+        />
+        <FormInput
           label="ราคารวม (บาท)"
-          type="number"
-          value={String(item.quantity * item.unitPrice)}
+          value={(item.quantity * item.unitPrice).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
           onChange={() => {}}
           disabled
           readOnly

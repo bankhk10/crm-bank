@@ -63,6 +63,8 @@ export interface SaleFormProduct {
     netPrice?: number;
     notes?: string;
   }>;
+  cartonPrice?: number;
+  packageSizePerBox?: string;
 }
 
 /**
@@ -209,7 +211,7 @@ export interface SaleItemRowProps {
   onUpdate: (
     index: number,
     field: keyof SaleItemFormData,
-    value: unknown
+    value: unknown,
   ) => void;
   onRemove: (index: number) => void;
   onShowDetails: (product: SaleFormProduct) => void;
