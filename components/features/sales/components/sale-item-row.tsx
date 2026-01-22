@@ -110,7 +110,7 @@ export function SaleItemRow({
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
         />
         <FormInput
-          label="ขนาดบรรจุ"
+          label="จำนวนบรรจุในลัง"
           value={product?.packageSizePerBox || "-"}
           onChange={() => {}}
           disabled
