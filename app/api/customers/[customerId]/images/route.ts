@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { guardPermission } from "@/lib/api-guard";
 import { db } from "@/lib/db";
-import cloudinary from "@/lib/cloudinary";
+import { uploadFile, deleteFile } from "@/lib/file-storage";
 
 export async function POST(request: Request, { params }: { params: any }) {
   // Read formData BEFORE calling auth to avoid body being locked
@@ -11,7 +11,7 @@ export async function POST(request: Request, { params }: { params: any }) {
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to parse form data" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -38,30 +38,18 @@ export async function POST(request: Request, { params }: { params: any }) {
       const buffer = Buffer.from(arrayBuffer);
       const originalName = file.name || `file-${Date.now()}`;
 
-      // Upload to Cloudinary
-      const uploadResult: any = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: `crm-bank/customers/${customerId}`,
-            resource_type: "auto",
-            transformation: [
-              { width: 1280, crop: "limit" }, // Resize if larger than 1280px
-              { quality: "auto:good" }, // Reduce quality to efficient level (roughly equivalent to 80-90%)
-            ],
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(buffer);
+      // Upload to local storage
+      const uploadResult = await uploadFile(buffer, originalName, {
+        folder: `customers/${customerId}`,
+        maxWidth: 1280,
+        quality: 85,
       });
 
       // Save to DB
       const rec = await db.customerImage.create({
         data: {
           customerId,
-          url: uploadResult.secure_url,
+          url: uploadResult.url,
           filename: originalName, // Store original name for display
           order: i,
         },
@@ -69,7 +57,7 @@ export async function POST(request: Request, { params }: { params: any }) {
 
       created.push({
         id: rec.id,
-        url: uploadResult.secure_url,
+        url: uploadResult.url,
         filename: originalName,
       });
     }
@@ -81,7 +69,7 @@ export async function POST(request: Request, { params }: { params: any }) {
 
     return NextResponse.json({ images: result, created });
   } catch (err) {
-    console.error("Cloudinary upload error:", err);
+    console.error("Upload error:", err);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
@@ -94,7 +82,7 @@ export async function DELETE(request: Request, { params }: { params: any }) {
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to parse body" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -113,7 +101,7 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     if (imageIds.length === 0) {
       return NextResponse.json(
         { error: "No imageIds provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -122,37 +110,12 @@ export async function DELETE(request: Request, { params }: { params: any }) {
       where: { id: { in: imageIds }, customerId },
     });
 
-    // Delete from Cloudinary
+    // Delete from local storage
     for (const r of recs) {
       try {
-        // Extract public_id from URL
-        // Example: https://res.cloudinary.com/cloudname/image/upload/v1234/crm-bank/customers/123/filename.jpg
-        // We need: crm-bank/customers/123/filename (no extension)
-        const urlParts = r.url.split("/");
-        const versionIndex = urlParts.findIndex(
-          (part: string) =>
-            part.startsWith("v") && !isNaN(Number(part.substring(1)))
-        );
-
-        if (versionIndex !== -1) {
-          const publicIdWithExt = urlParts.slice(versionIndex + 1).join("/");
-          const publicId = publicIdWithExt.replace(/\.[^/.]+$/, ""); // remove extension
-
-          await cloudinary.uploader.destroy(publicId);
-        } else {
-          // Try to guess if version is missing or structured differently
-          // Sometimes Cloudinary URLs don't have version if not transformed?
-          // But usually upload returns versioned url.
-          // Fallback: look for 'crm-bank' folder start?
-          const folderIndex = urlParts.indexOf("crm-bank");
-          if (folderIndex !== -1) {
-            const publicIdWithExt = urlParts.slice(folderIndex).join("/");
-            const publicId = publicIdWithExt.replace(/\.[^/.]+$/, "");
-            await cloudinary.uploader.destroy(publicId);
-          }
-        }
+        await deleteFile(r.url);
       } catch (err) {
-        console.error("Failed to delete from Cloudinary", r.id, err);
+        console.error("Failed to delete file", r.id, err);
       }
     }
 
@@ -181,7 +144,7 @@ export async function PUT(request: Request, { params }: { params: any }) {
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to parse body" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -200,7 +163,7 @@ export async function PUT(request: Request, { params }: { params: any }) {
     if (imageIds.length === 0) {
       return NextResponse.json(
         { error: "No imageIds provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
