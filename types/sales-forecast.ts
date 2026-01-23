@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/generated/client/client";
+import type { Prisma } from "@prisma/client";
 
 // Use Prisma.Decimal type directly or create compatible alias
 type Decimal = Prisma.Decimal;
