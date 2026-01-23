@@ -1,0 +1,29 @@
+# ===========================================
+# CRM-Bank Database Migration & Seed Dockerfile
+# สำหรับรัน prisma migrate และ seed
+# ===========================================
+
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install all dependencies (including devDependencies for prisma)
+RUN pnpm install --no-frozen-lockfile
+
+# Copy application files
+COPY . .
+
+# Dummy DATABASE_URL สำหรับช่วง build (prisma generate ต้องการค่านี้)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
+# Generate Prisma Client
+RUN pnpm prisma generate
+
+# Default command
+CMD ["echo", "Use: docker compose --profile migrate up migrate OR docker compose --profile seed up seed"]

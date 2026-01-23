@@ -213,11 +213,11 @@ docker compose logs -f
 # รอให้ทุก service พร้อม (~60 วินาที)
 sleep 60
 
-# Run database migrations
-docker compose exec app npx prisma migrate deploy
+# Run database migrations (ใช้ profile migrate เพื่อความปลอดภัยและแยกส่วน)
+docker compose --env-file .env.production --profile migrate up migrate
 
 # (Optional) Seed ข้อมูลเริ่มต้น
-docker compose exec app npx prisma db seed
+docker compose --env-file .env.production --profile seed up seed
 ```
 
 ### ขั้นตอนที่ 7: ตรวจสอบการทำงาน
@@ -267,7 +267,7 @@ docker compose --env-file .env.production build app
 docker compose --env-file .env.production up -d --no-deps app
 
 # Run migrations
-docker compose --env-file .env.production exec app npx prisma migrate deploy
+docker compose --env-file .env.production --profile migrate up migrate
 ```
 
 ---

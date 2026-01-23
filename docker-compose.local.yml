@@ -1,0 +1,142 @@
+# ===========================================
+# CRM-Bank Local Docker Compose
+# สำหรับทดสอบบน localhost ให้เหมือน production
+# ===========================================
+
+services:
+  # ===========================================
+  # PostgreSQL Database (Local)
+  # ===========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: crm-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_password_123}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_bank}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_local_data:/var/lib/postgresql/data
+    networks:
+      - crm-local-network
+    ports:
+      # Expose port สำหรับ development/debugging (ปิดไว้สำหรับ production)
+      - "5433:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-crm_admin} -d ${POSTGRES_DB:-crm_bank}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ===========================================
+  # Next.js Application (Local)
+  # ===========================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crm-app-local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD:-local_password_123}@postgres:5432/${POSTGRES_DB:-crm_bank}
+      AUTH_SECRET: ${AUTH_SECRET:-local_auth_secret_for_testing_only_12345}
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-demo}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      NEXT_PUBLIC_SHOW_RANDOM_FILL: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-local-network
+    ports:
+      # Expose ตรงไป localhost:3000
+      - "3000:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================
+  # Database Migration (One-time job)
+  # ===========================================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: crm-migrate-local
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD:-local_password_123}@postgres:5432/${POSTGRES_DB:-crm_bank}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-local-network
+    # รัน migration แล้วจบ
+    # รัน db push เพื่อสร้าง table ตาม schema (เหมาะสำหรับ local testing ที่ยังไม่มี migration files)
+    command: pnpm exec prisma db push --accept-data-loss
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: "no"
+    profiles:
+      - migrate
+
+  # ===========================================
+  # Database Seed (One-time job)
+  # ===========================================
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: crm-seed-local
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD:-local_password_123}@postgres:5432/${POSTGRES_DB:-crm_bank}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-local-network
+    # รัน prisma generate ก่อน แล้วค่อยรัน seed
+    command: sh -c "pnpm exec prisma generate && node prisma/seed.js"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: "no"
+    profiles:
+      - seed
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  crm-local-network:
+    driver: bridge
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_local_data:
+    driver: local

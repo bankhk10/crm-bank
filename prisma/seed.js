@@ -1,7 +1,9 @@
 require("dotenv/config");
+const path = require("path");
 const { hash } = require("bcryptjs");
 const { PrismaPg } = require("@prisma/adapter-pg");
-const { PrismaClient } = require("@prisma/generated/client/client");
+
+const { PrismaClient } = require("@prisma/client");
 
 // Create Prisma client with pg adapter
 const connectionString = process.env.DATABASE_URL;
@@ -12,6 +14,7 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  console.log("🌱 Starting seed process...");
   // Delete in correct order to avoid foreign key constraints
   await prisma.saleStatusHistory.deleteMany();
   await prisma.saleItem.deleteMany();
@@ -1479,6 +1482,9 @@ async function main() {
 }
 
 main()
+  .then(() => {
+    console.log("✅ Seeding completed successfully!");
+  })
   .catch((error) => {
     console.error("Seed failed", error);
     process.exit(1);

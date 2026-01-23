@@ -118,6 +118,50 @@ services:
     # รัน renewal ทุก 12 ชั่วโมง
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
+  # ===========================================
+  # Database Migration (One-time job)
+  # ===========================================
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: crm-migrate
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-crm_bank}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+    # รัน db push เพื่อความสะดวก (หรือเปลี่ยนเป็น migrate deploy หากต้องการใช้ migration files)
+    command: pnpm exec prisma db push --accept-data-loss
+    restart: "no"
+    profiles:
+      - migrate
+
+  # ===========================================
+  # Database Seed (One-time job)
+  # ===========================================
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: crm-seed
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-crm_bank}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+    # รัน prisma generate ก่อน แล้วค่อยรัน seed
+    command: sh -c "pnpm exec prisma generate && node prisma/seed.js"
+    restart: "no"
+    profiles:
+      - seed
+
 # ===========================================
 # Networks
 # ===========================================
