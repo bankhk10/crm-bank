@@ -1103,7 +1103,33 @@ async function main() {
     data: { code: "SUP", description: "ยาบำรุง" },
   });
 
-  // Create Product Groups
+  // Create Product Groups A, B, C, D
+  await prisma.productGroupMaster.createMany({
+    data: [
+      {
+        code: "A",
+        description: "กลุ่มสินค้า A - ยาฆ่าแมลง",
+        categoryId: cat1.id,
+      },
+      {
+        code: "B",
+        description: "กลุ่มสินค้า B - ยาฆ่าเชื้อรา",
+        categoryId: cat1.id,
+      },
+      {
+        code: "C",
+        description: "กลุ่มสินค้า C - ยาฆ่าวัชพืช",
+        categoryId: cat1.id,
+      },
+      {
+        code: "D",
+        description: "กลุ่มสินค้า D - ยาบำรุงพืช",
+        categoryId: cat2.id,
+      },
+    ],
+  });
+
+  // Create Chemical Groups
   await prisma.chemicalGroup.createMany({
     data: [
       {
