@@ -1,4 +1,8 @@
 export { prisma, db } from "./prisma";
 
-// Re-export Prisma types, enums and namespace for backward compatibility
-export * from "@prisma/client";
+// Re-export commonly used Prisma types and utilities explicitly
+export {
+  Prisma,
+  PrismaClient,
+  // Add other specific exports you need from @prisma/client
+} from "@prisma/client";
