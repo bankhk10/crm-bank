@@ -79,6 +79,7 @@ export interface Product {
   chemicalGroup: string | null;
   packageSize: string | null;
   packageSizePerBox: string | null;
+  totalPackageSizePerBox: string | null;
   status: ProductStatus;
   usedForPlants: string[];
   salesPoint: string | null;
@@ -105,6 +106,7 @@ export interface ProductFormData {
   chemicalGroup?: string;
   packageSize?: string;
   packageSizePerBox?: string;
+  totalPackageSizePerBox?: string;
   status: ProductStatus;
   usedForPlants: string[];
   salesPoint?: string;

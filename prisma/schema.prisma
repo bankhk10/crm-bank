@@ -486,6 +486,7 @@ model Product {
   brand                 String?
   packageSize           String?
   packageSizePerBox     String?
+  totalPackageSizePerBox String?     @map("total_package_size_per_box")
   status                ProductStatus @default(ACTIVE)
   usedForPlants         String[]
   salesPoint            String?

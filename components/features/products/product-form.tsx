@@ -41,11 +41,9 @@ interface SelectOption {
 }
 
 const PACKAGE_UNIT_OPTIONS = [
-  { value: "mg", label: "mg (มิลลิกรัม)" },
   { value: "g", label: "g (กรัม)" },
   { value: "kg", label: "kg (กิโลกรัม)" },
   { value: "ml", label: "ml (มิลลิลิตร)" },
-  { value: "cc", label: "cc (ซีซี)" },
   { value: "L", label: "L (ลิตร)" },
 ];
 
@@ -221,6 +219,32 @@ export function ProductForm({
     fetchOptions();
   }, []);
 
+  // Calculate total package size per box when packageSize or packageSizePerBox changes
+  useEffect(() => {
+    const packageSizeMatch = (formData.packageSize || "").match(/^([\d.]+)/);
+    const packageSizeValue = packageSizeMatch
+      ? parseFloat(packageSizeMatch[1])
+      : 0;
+    const packageSizePerBox = parseFloat(formData.packageSizePerBox || "0");
+    const packageSizeUnit =
+      (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] || "g";
+
+    if (packageSizeValue && packageSizePerBox) {
+      const total = packageSizeValue * packageSizePerBox;
+      const totalValue = `${total} ${packageSizeUnit}`;
+
+      setFormData((prev) => ({
+        ...prev,
+        totalPackageSizePerBox: totalValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        totalPackageSizePerBox: "",
+      }));
+    }
+  }, [formData.packageSize, formData.packageSizePerBox]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -269,6 +293,7 @@ export function ProductForm({
         chemicalGroup: formData.chemicalGroup || undefined,
         packageSize: formData.packageSize || undefined,
         packageSizePerBox: formData.packageSizePerBox || undefined,
+        totalPackageSizePerBox: formData.totalPackageSizePerBox || undefined,
         status: formData.status,
         usedForPlants: formData.usedForPlants,
         salesPoint: formData.salesPoint || undefined,
@@ -773,6 +798,16 @@ export function ProductForm({
           }
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
           disabled={loading}
+        />
+
+        <FormInput
+          label="ขนาดบรรจุรวมต่อลัง"
+          type="text"
+          value={formData.totalPackageSizePerBox || ""}
+          onChange={() => {}}
+          disabled={true}
+          placeholder="คำนวณอัตโนมัติจาก (ขนาดบรรจุ × ขนาดบรรจุต่อลัง)"
+          className="bg-gray-50"
         />
 
         <div className="space-y-2">
