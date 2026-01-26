@@ -122,8 +122,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       {/* ================= Header - Mobile First ================= */}
       <div className="flex flex-col gap-3 sm:gap-4">
         {/* Title */}
-        <div className="text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
+        <div className="flex flex-col items-center justify-center text-center w-full">
+          {" "}
+          {/* เพิ่ม items-center และ text-center */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            {" "}
+            {/* แก้เป็น justify-center */}
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
               <div className="relative p-2.5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
@@ -136,7 +140,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </h1>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-3 justify-center sm:justify-start max-w-xs">
+          {/* เส้นประดับด้านล่าง ปรับให้กว้างขึ้นและอยู่กลาง */}
+          <div className="mt-4 flex items-center gap-3 justify-center w-full max-w-sm">
             <div className="h-[3px] flex-1 bg-gradient-to-r from-transparent via-blue-300 to-blue-500 rounded-full" />
             <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 animate-pulse" />
             <div className="h-[3px] flex-1 bg-gradient-to-l from-transparent via-blue-300 to-blue-500 rounded-full" />
@@ -144,22 +149,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end">
-          <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/80 px-2 py-1 text-[10px] sm:text-xs shadow-sm">
-            {periodOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setOverviewPeriod(option.value)}
-                className={`rounded-full px-2.5 py-1 font-medium transition-all ${
-                  overviewPeriod === option.value
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end px-4 sm:px-4">
           {/* Last Updated Badge */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
@@ -414,27 +404,9 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                    ยอดขายรายภาค
+                    ยอดขายรายภาคเดือนนี้
                   </CardTitle>
-                  <p className="text-[10px] sm:text-xs text-slate-500">
-                    แยกตามภูมิภาคทั่วประเทศ
-                  </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-2 py-1 text-[10px] sm:text-xs shadow-sm">
-                {periodOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setRegionPeriod(option.value)}
-                    className={`rounded-full px-2.5 py-1 font-medium transition-all ${
-                      regionPeriod === option.value
-                        ? "bg-orange-500 text-white shadow"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
               </div>
             </div>
           </CardHeader>
@@ -509,29 +481,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                    ยอดขายตามกลุ่มสินค้า
+                    ยอดขายตามกลุ่มสินค้าเดือนนี้
                   </CardTitle>
-                  <p className="text-[10px] sm:text-xs text-slate-500">
-                    เปรียบเทียบเป้าหมายและยอดขายจริง
-                  </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-2 py-1 text-[10px] sm:text-xs shadow-sm">
-                  {periodOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => setProductGroupPeriod(option.value)}
-                      className={`rounded-full px-2.5 py-1 font-medium transition-all ${
-                        productGroupPeriod === option.value
-                          ? "bg-purple-500 text-white shadow"
-                          : "text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
                 {/* Group Filter Toggle Info */}
                 <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
                   {visibleGroups.size}/{productGroupData.length} กลุ่ม
