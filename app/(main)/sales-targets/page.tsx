@@ -697,7 +697,17 @@ export default function SalesTargetsPage() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="h-11 rounded-xl px-4 border-slate-200 bg-white shadow-sm hover:shadow transition-shadow text-slate-700 hover:bg-slate-50"
+                      className="
+      h-11 rounded-xl px-4
+      border-red-200
+      bg-red-50
+      text-red-600
+      hover:bg-red-100
+      hover:text-red-700
+      hover:border-red-300
+      shadow-sm hover:shadow
+      transition-all
+    "
                       onClick={handleClearFilters}
                     >
                       ล้างตัวกรอง
