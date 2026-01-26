@@ -40,6 +40,7 @@ interface SidebarChildItem {
   href: string;
   label: string;
   permissionKey?: string;
+  children?: SidebarChildItem[];
 }
 
 interface SidebarNavItem {
@@ -90,12 +91,18 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Package className="h-4 w-4" />,
     children: [
       { href: "/products", label: "ข้อมูลสินค้า" },
-      { href: "/products/plants", label: "พืช" },
-      { href: "/products/groups", label: "กลุ่มสินค้า" },
-      { href: "/products/chemical-groups", label: "กลุ่มสาร" },
-      { href: "/products/categories", label: "หมวดสินค้า" },
-      { href: "/products/units", label: "หน่วยนับ" },
-      { href: "/products/brands", label: "แบรนด์" },
+      {
+        href: "#attributes",
+        label: "หมวดหมู่และคุณลักษณะ",
+        children: [
+          { href: "/products/plants", label: "พืช" },
+          { href: "/products/groups", label: "กลุ่มสินค้า" },
+          { href: "/products/chemical-groups", label: "กลุ่มสาร" },
+          { href: "/products/categories", label: "หมวดสินค้า" },
+          { href: "/products/units", label: "หน่วยนับ" },
+          { href: "/products/brands", label: "แบรนด์" },
+        ],
+      },
     ],
   },
   {
@@ -136,6 +143,125 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+// Recursive helper to filter items based on permissions
+const filterNavItems = <T extends SidebarChildItem | SidebarNavItem>(
+  items: T[],
+  permissions: Record<string, SessionPermission>,
+): T[] => {
+  return items
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: filterNavItems(item.children, permissions),
+        };
+      }
+      return item;
+    })
+    .filter((item) => {
+      if (item.permissionKey) {
+        return permissions[item.permissionKey]?.allow;
+      }
+      return true;
+    });
+};
+
+// Check if a route is active deeply
+const isRouteActive = (href: string, pathname: string): boolean => {
+  if (href.startsWith("#")) return false; // Non-link headers
+  return pathname === href || pathname.startsWith(href + "/");
+};
+
+// Check if any child of an item is active
+const isChildActive = (item: SidebarChildItem, pathname: string): boolean => {
+  if (isRouteActive(item.href, pathname)) return true;
+  if (item.children) {
+    return item.children.some((child) => isChildActive(child, pathname));
+  }
+  return false;
+};
+
+// Reusable recursive menu item component
+const SidebarMenuItem = ({
+  item,
+  pathname,
+  onClose,
+  nested = false,
+}: {
+  item: SidebarChildItem;
+  pathname: string;
+  onClose?: () => void;
+  nested?: boolean;
+}) => {
+  const hasChildren = item.children && item.children.length > 0;
+  // If it has children, check if any child is active to determine default open state
+  const active = isChildActive(item, pathname);
+
+  // Local state for toggling children
+  // Should default to open if a child is active
+  const [isOpen, setIsOpen] = useState(active);
+
+  // Update isOpen when pathname changes if it becomes active
+  useEffect(() => {
+    if (active) setIsOpen(true);
+  }, [active]);
+
+  if (hasChildren) {
+    return (
+      <div className="mb-1">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={`flex w-full items-center justify-between rounded px-4 py-2 transition text-white/80 hover:text-white hover:bg-white/5 ${
+            nested ? "pl-8" : "pl-4"
+          } ${active ? "text-white font-medium" : ""}`}
+        >
+          <span>{item.label}</span>
+          {isOpen ? (
+            <ChevronDown className="h-3 w-3" />
+          ) : (
+            <ChevronRight className="h-3 w-3" />
+          )}
+        </button>
+        {isOpen && (
+          <div className="mt-1">
+            {item.children!.map((child, index) => (
+              <SidebarMenuItem
+                key={`${child.href}-${index}`}
+                item={child}
+                pathname={pathname}
+                onClose={onClose}
+                nested={true}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Leaf node
+  // Handle special highlighting logic (from original code)
+  const isSelfActive = isRouteActive(item.href, pathname);
+
+  return (
+    <Link
+      href={item.href}
+      className={`flex items-center justify-between rounded px-4 py-2 transition ${
+        isSelfActive
+          ? "font-semibold text-white"
+          : "text-white/80 hover:text-white"
+      } ${nested ? "pl-8" : "pl-4"}`}
+      onClick={() => onClose?.()}
+    >
+      <span className={nested ? "pl-4" : ""}>{item.label}</span>
+      {isSelfActive && (
+        <span className="ml-2 h-2 w-2 rounded-full bg-white shrink-0" />
+      )}
+    </Link>
+  );
+};
+
 export default function Sidebar({
   permissions,
   roles,
@@ -145,22 +271,7 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const items = useMemo(() => {
-    const navs = navigationItems
-      .filter((item) => permissions[item.permissionKey]?.allow)
-      .map((item) => {
-        // Filter children based on permissions
-        if (item.children) {
-          const filteredChildren = item.children.filter((child) => {
-            // If child has permissionKey, check it; otherwise, show it
-            if (child.permissionKey) {
-              return permissions[child.permissionKey]?.allow;
-            }
-            return true;
-          });
-          return { ...item, children: filteredChildren };
-        }
-        return item;
-      });
+    const navs = filterNavItems(navigationItems, permissions);
 
     const dashboardHref = getDefaultRouteForRoles(roles);
     const isDashboard = isAdministrator(roles) || isManager(roles);
@@ -176,22 +287,18 @@ export default function Sidebar({
 
     return [mainDashboardItem, ...navs];
   }, [permissions, roles]);
+
+  // Main sidebar 'accordion' logic for top-level items
   const [openKey, setOpenKey] = useState<string | null>(() => {
-    const parent = items.find((item) =>
-      item.children?.some((c) => pathname.startsWith(c.href)),
-    );
+    const parent = items.find((item) => isChildActive(item, pathname));
     return parent?.href ?? null;
   });
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string) => isRouteActive(href, pathname);
 
-  // Keep openKey in sync with the current pathname so parent menus
-  // close when navigating away from their children.
+  // Keep openKey in sync
   useEffect(() => {
-    const parent = items.find((item) =>
-      item.children?.some((c) => pathname.startsWith(c.href)),
-    );
+    const parent = items.find((item) => isChildActive(item, pathname));
     setOpenKey(parent?.href ?? null);
   }, [pathname, items]);
 
@@ -228,19 +335,18 @@ export default function Sidebar({
         {items.map((item) => {
           let isItemActive = isActive(item.href);
 
-          // Special handling: if we are in a fulfillment sub-route (even under sales),
-          // we want the Fulfillment menu to be active, not Sales.
+          // Special handling for fulfillment
           if (pathname.includes("/fulfillment")) {
             if (item.href === "/sales") isItemActive = false;
-            // Only set fulfillment active if it matches the item href exactly or logic dictates
             if (item.href === "/fulfillment") isItemActive = true;
           }
 
-          const activeParent = item.children
-            ? item.children.some((c) => isActive(c.href)) || isItemActive
+          const hasChildren = item.children && item.children.length > 0;
+          const activeParent = hasChildren
+            ? isChildActive(item, pathname) || isItemActive
             : isItemActive;
 
-          if (item.children && item.children.length > 0) {
+          if (hasChildren) {
             const open = openKey === item.href;
             return (
               <Fragment key={item.href}>
@@ -269,33 +375,15 @@ export default function Sidebar({
                   )}
                 </button>
                 {open && (
-                  <div className="mx-2 mb-1 bg-[#991b1b] rounded-lg">
-                    {item.children.map((child, index) => {
-                      // For the first child with same href as parent, use exact match
-                      // to avoid highlighting it when on sub-pages
-                      const childActive =
-                        child.href === item.href
-                          ? pathname === child.href
-                          : isActive(child.href);
-                      return (
-                        <Link
-                          key={`${child.href}-${index}`}
-                          href={child.href}
-                          className={
-                            "flex items-center justify-between rounded px-4 py-2 transition " +
-                            (childActive
-                              ? "font-semibold text-white"
-                              : "text-white/80")
-                          }
-                          onClick={() => onClose?.()}
-                        >
-                          <span className="pl-4">{child.label}</span>
-                          {childActive && (
-                            <span className="ml-2 h-2 w-2 rounded-full bg-white" />
-                          )}
-                        </Link>
-                      );
-                    })}
+                  <div className="mx-2 mb-1 bg-[#991b1b] rounded-lg pt-1 pb-1">
+                    {item.children!.map((child, index) => (
+                      <SidebarMenuItem
+                        key={`${child.href}-${index}`}
+                        item={child}
+                        pathname={pathname}
+                        onClose={onClose}
+                      />
+                    ))}
                   </div>
                 )}
               </Fragment>
