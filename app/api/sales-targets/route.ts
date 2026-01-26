@@ -470,9 +470,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
+    const target = await prisma.salesTarget.findUnique({
+      where: { id },
+      select: { year: true, month: true },
+    });
+
     await prisma.salesTarget.delete({
       where: { id },
     });
+
+    if (target?.year && target?.month) {
+      await syncDerivedTargets(target.year, target.month);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
