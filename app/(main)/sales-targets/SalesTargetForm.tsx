@@ -29,6 +29,7 @@ interface ProductItem {
   productId: string;
   name: string;
   quantity: number;
+  price: number;
   amount: number;
 }
 
@@ -46,6 +47,9 @@ const MONTHS = [
   { value: 11, label: "พฤศจิกายน" },
   { value: 12, label: "ธันวาคม" },
 ];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 interface SalesTargetFormProps {
   mode: "create" | "edit";
@@ -86,12 +90,17 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
       setEmployeeId(initialData.employeeId);
       setCustomerId(initialData.customerId);
       setItems(
-        initialData.items?.map((i: any) => ({
-          productId: i.productId,
-          name: i.product?.name || i.name,
-          quantity: i.quantity,
-          amount: Number(i.amount),
-        })) || [],
+        initialData.items?.map((i: any) => {
+          const qty = i.quantity || 1;
+          const amt = Number(i.amount || 0);
+          return {
+            productId: i.productId,
+            name: i.product?.name || i.name,
+            quantity: qty,
+            price: amt / qty, // Derive price from amount and quantity
+            amount: amt,
+          };
+        }) || [],
       );
     } else if (!isEdit) {
       setYear(new Date().getFullYear());
@@ -134,13 +143,15 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
       toast.info("สินค้านี้ถูกเพิ่มแล้ว");
       return;
     }
+    const price = Number(product.price || 0);
     setItems([
       ...items,
       {
         productId: product.id,
         name: product.name,
         quantity: 1,
-        amount: Number(product.price || 0),
+        price: price,
+        amount: price, // 1 * price
       },
     ]);
   };
@@ -155,7 +166,26 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     value: number,
   ) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    const item = { ...newItems[index] };
+
+    if (field === "quantity") {
+      item.quantity = value;
+      item.amount = item.price * value;
+    } else if (field === "price") {
+      item.price = value;
+      item.amount = value * item.quantity;
+    } else if (field === "amount") {
+      // If amount is edited directly (optional, but requested logic implies derived)
+      // We can keep it or disable editing amount.
+      // User said "Target (Baht) derived from Price * Quantity"
+      // But usually "Target (Baht) ... can edit Price".
+      // If they edit amount directly, we might update price?
+      // Let's stick to the prompt's implied flow: Edit Price/Qty -> Amount updates.
+      // If we allowed editing amount, we'd do: item.amount = value; item.price = value / item.quantity;
+      item.amount = value;
+    }
+
+    newItems[index] = item;
     setItems(newItems);
   };
 
@@ -253,13 +283,25 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                       <Label className="text-sm font-semibold text-slate-700">
                         ปี
                       </Label>
-                      <Input
-                        disabled
-                        type="number"
-                        value={year}
-                        onChange={(e) => setYear(Number(e.target.value))}
-                        className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium"
-                      />
+                      <Select
+                        value={year.toString()}
+                        onValueChange={(v) => setYear(Number(v))}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {YEARS.map((y) => (
+                            <SelectItem
+                              key={y}
+                              value={y.toString()}
+                              className="rounded-lg"
+                            >
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold text-slate-700">
@@ -394,7 +436,25 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                             </Button>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                                ราคา/หน่วย
+                              </Label>
+                              <Input
+                                type="number"
+                                className="h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all"
+                                value={item.price}
+                                onChange={(e) =>
+                                  handleUpdateItem(
+                                    index,
+                                    "price",
+                                    Number(e.target.value),
+                                  )
+                                }
+                                onWheel={(e) => e.currentTarget.blur()}
+                              />
+                            </div>
                             <div className="space-y-2">
                               <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 จำนวน
@@ -418,17 +478,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 เป้าหมาย (บาท)
                               </Label>
                               <Input
+                                readOnly
                                 type="number"
-                                className="h-11 bg-emerald-50/80 border-emerald-200/80 hover:border-emerald-300/60 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-right font-bold text-emerald-700 transition-all"
+                                className="h-11 bg-emerald-50/80 border-emerald-200/80 hover:border-emerald-300/60 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-right font-bold text-emerald-700 transition-all cursor-not-allowed opacity-90"
                                 value={item.amount}
-                                onChange={(e) =>
-                                  handleUpdateItem(
-                                    index,
-                                    "amount",
-                                    Number(e.target.value),
-                                  )
-                                }
-                                onWheel={(e) => e.currentTarget.blur()}
+                                tabIndex={-1}
                               />
                             </div>
                           </div>
