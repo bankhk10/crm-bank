@@ -194,7 +194,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
       if (!res.ok) throw new Error("Failed");
 
       toast.success("บันทึกสำเร็จ");
-      router.push("/admin/sales-targets");
+      router.push("/sales-targets");
       router.refresh();
     } catch {
       toast.error("เกิดข้อผิดพลาดในการบันทึก");
@@ -212,7 +212,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
           <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
             <div className="flex items-center gap-4">
               <Link
-                href="/admin/sales-targets"
+                href="/sales-targets"
                 className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
               >
                 <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
@@ -485,7 +485,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-slate-100">
-                <Link href="/admin/sales-targets" className="w-full sm:w-auto">
+                <Link href="/sales-targets" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
                     className="w-full h-12 px-8 rounded-xl border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold transition-all duration-200 hover:scale-105 active:scale-95"

@@ -65,7 +65,7 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <TrendingUp className="h-4 w-4" />,
   },
   {
-    href: "/admin/sales-targets",
+    href: "/sales-targets",
     label: "ตั้งเป้าหมายยอดขาย",
     permissionKey: "menu.sales_targets",
     icon: <Target className="h-4 w-4" />,

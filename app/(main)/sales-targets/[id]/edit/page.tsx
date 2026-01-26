@@ -56,7 +56,7 @@ export default function EditSalesTargetPage() {
           <p className="text-slate-500 mb-6">
             โปรดลองใหม่อีกครั้งหรือกลับไปยังหน้ารายการเป้าหมาย
           </p>
-          <Link href="/admin/sales-targets">
+          <Link href="/sales-targets">
             <Button className="rounded-xl px-6">กลับไปยังรายการ</Button>
           </Link>
         </div>

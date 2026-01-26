@@ -739,7 +739,7 @@ async function main() {
         key: "menu.sales_targets",
         name: "เมนูตั้งเป้าหมายยอดขาย",
         category: "MENU",
-        menuPath: "/admin/sales-targets",
+        menuPath: "/sales-targets",
       },
     }),
     // Report Permissions

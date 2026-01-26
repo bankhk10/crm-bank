@@ -128,9 +128,7 @@ export default function SalesTargetsPage() {
   const [monthFilter, setMonthFilter] = useState<number | "all">(
     queryFilters.month,
   );
-  const [employeeFilter, setEmployeeFilter] = useState(
-    queryFilters.employeeId,
-  );
+  const [employeeFilter, setEmployeeFilter] = useState(queryFilters.employeeId);
   const [shopFilter, setShopFilter] = useState(queryFilters.shopId);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -197,16 +195,9 @@ export default function SalesTargetsPage() {
     const nextQuery = params.toString();
     const currentQuery = searchParams.toString();
     if (nextQuery !== currentQuery) {
-      router.replace(`/admin/sales-targets?${nextQuery}`, { scroll: false });
+      router.replace(`/sales-targets?${nextQuery}`, { scroll: false });
     }
-  }, [
-    employeeFilter,
-    monthFilter,
-    router,
-    searchParams,
-    shopFilter,
-    year,
-  ]);
+  }, [employeeFilter, monthFilter, router, searchParams, shopFilter, year]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -599,7 +590,9 @@ export default function SalesTargetsPage() {
                 <Calendar className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <CardTitle className="text-lg">ตัวกรองเป้าหมายรายเดือน</CardTitle>
+                <CardTitle className="text-lg">
+                  ตัวกรองเป้าหมายรายเดือน
+                </CardTitle>
                 <p className="text-xs text-slate-500">
                   เลือกเงื่อนไขเพื่อค้นหาเป้าหมายรายพนักงานและร้านค้า
                 </p>
@@ -617,9 +610,7 @@ export default function SalesTargetsPage() {
         <CardContent className="p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700">
-                ปี
-              </Label>
+              <Label className="text-sm font-semibold text-slate-700">ปี</Label>
               <Input
                 type="number"
                 value={year}
@@ -766,7 +757,7 @@ export default function SalesTargetsPage() {
                   </div>
                   <CardTitle>รายการเป้าหมายรายเดือน</CardTitle>
                 </div>
-                <Link href="/admin/sales-targets/create">
+                <Link href="/sales-targets/create">
                   <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25">
                     <PlusCircle className="w-4 h-4 mr-2" />
                     เพิ่มเป้าหมาย
@@ -805,7 +796,7 @@ export default function SalesTargetsPage() {
                             >
                               <Eye className="w-4 h-4 text-slate-500" />
                             </Button>
-                            <Link href={`/admin/sales-targets/${target.id}/edit`}>
+                            <Link href={`/sales-targets/${target.id}/edit`}>
                               <Button variant="ghost" size="icon">
                                 <Pencil className="w-4 h-4 text-blue-500" />
                               </Button>
@@ -873,7 +864,9 @@ export default function SalesTargetsPage() {
                         <TableHead className="text-right">
                           จำนวนสินค้า (รายการ)
                         </TableHead>
-                        <TableHead className="text-right">ยอดรวม (บาท)</TableHead>
+                        <TableHead className="text-right">
+                          ยอดรวม (บาท)
+                        </TableHead>
                         <TableHead className="w-[120px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -942,9 +935,7 @@ export default function SalesTargetsPage() {
                                 >
                                   <Eye className="w-4 h-4 text-slate-500" />
                                 </Button>
-                                <Link
-                                  href={`/admin/sales-targets/${target.id}/edit`}
-                                >
+                                <Link href={`/sales-targets/${target.id}/edit`}>
                                   <Button variant="ghost" size="icon">
                                     <Pencil className="w-4 h-4 text-blue-500" />
                                   </Button>
