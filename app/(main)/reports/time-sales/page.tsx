@@ -270,16 +270,6 @@ export default function TimeSalesReportPage() {
                     </div>
                     <DollarSign className="h-10 w-10 text-blue-200" />
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    {reportData.growthPercentage >= 0 ? (
-                      <TrendingUp className="h-4 w-4" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4" />
-                    )}
-                    <span className="text-sm">
-                      {formatPercent(reportData.growthPercentage)} vs ก่อนหน้า
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
 
