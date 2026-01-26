@@ -25,6 +25,7 @@ const productSchema = z.object({
   chemicalGroup: z.string().optional(),
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
+  totalPackageSizePerBox: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
   usedForPlants: z.array(z.string()).default([]),
   salesPoint: z.string().optional(),

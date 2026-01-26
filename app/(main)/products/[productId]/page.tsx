@@ -14,14 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   ArrowLeft,
-  Edit,
-  Trash2,
-  Settings,
   Package,
   Tag,
   Layers,
   Box,
   Ruler,
+  Beaker,
   CheckCircle2,
   XCircle,
   Leaf,
@@ -41,9 +39,6 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const productId = params.productId as string;
   const { hasPermission, isLoading: permissionLoading } = usePermission("product.view");
-  const canUpdate = hasPermission("product.update");
-  const canDelete = hasPermission("product.delete");
-  const canManage = hasPermission("product.manage");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -306,6 +301,7 @@ export default function ProductDetailPage() {
                 <DetailItem icon={<Ruler className="h-5 w-5" />} label="หน่วยนับ" value={product.unit} />
                 <DetailItem icon={<Layers className="h-5 w-5" />} label="กลุ่มสินค้า" value={product.productGroup} />
                 <DetailItem icon={<Tag className="h-5 w-5" />} label="แบรนด์สินค้า" value={product.brand} />
+                <DetailItem icon={<Beaker className="h-5 w-5" />} label="กลุ่มสาร" value={product.chemicalGroup} />
               </div>
             </div>
 
@@ -320,6 +316,7 @@ export default function ProductDetailPage() {
               <div className="p-6 space-y-4">
                 <DetailItem icon={<Box className="h-5 w-5" />} label="ขนาดบรรจุ" value={product.packageSize} />
                 <DetailItem icon={<Layers className="h-5 w-5" />} label="ขนาดบรรจุต่อลัง" value={product.packageSizePerBox} />
+                <DetailItem icon={<Ruler className="h-5 w-5" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
                 <DetailItem
                   icon={<Leaf className="h-5 w-5" />}
                   label="ใช้กับพืช"
