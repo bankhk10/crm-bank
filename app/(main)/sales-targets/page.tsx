@@ -789,7 +789,6 @@ export default function SalesTargetsPage() {
             </CardContent>
           </Card>
 
-          {/* Monthly Targets Grid */}
           {/* Monthly Targets List (Detailed) */}
           <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
             <CardHeader className="border-b border-slate-100">
