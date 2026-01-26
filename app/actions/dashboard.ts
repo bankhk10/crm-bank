@@ -386,9 +386,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       deletedAt: null,
     },
   });
-  const monthlyTarget = monthlyTargetRecord
-    ? Number(monthlyTargetRecord.targetAmount)
-    : 0;
 
   const yearlyTargetRecord = await prisma.monthlySalesTarget.findFirst({
     where: {
@@ -397,10 +394,45 @@ export async function getDashboardData(): Promise<DashboardData> {
       deletedAt: null,
     },
   });
-  const yearlyTarget = yearlyTargetRecord
-    ? Number(yearlyTargetRecord.targetAmount)
-    : 0;
+  const detailedMonthlyTargetAgg = await prisma.salesTargetItem.aggregate({
+    where: {
+      salesTarget: {
+        year: currentYear,
+        month: currentMonth,
+      },
+    },
+    _sum: { amount: true },
+  });
 
+  const detailedYearlyTargetAgg = await prisma.salesTargetItem.aggregate({
+    where: {
+      salesTarget: {
+        year: currentYear,
+      },
+    },
+    _sum: { amount: true },
+  });
+
+  const detailedMonthlyTarget = Number(
+    detailedMonthlyTargetAgg._sum.amount || 0,
+  );
+  const detailedYearlyTarget = Number(
+    detailedYearlyTargetAgg._sum.amount || 0,
+  );
+
+  const monthlyTarget =
+    detailedMonthlyTarget > 0
+      ? detailedMonthlyTarget
+      : monthlyTargetRecord
+        ? Number(monthlyTargetRecord.targetAmount)
+        : 0;
+
+  const yearlyTarget =
+    detailedYearlyTarget > 0
+      ? detailedYearlyTarget
+      : yearlyTargetRecord
+        ? Number(yearlyTargetRecord.targetAmount)
+        : 0;
   return {
     monthlySales: {
       total: currentMonthTotal,

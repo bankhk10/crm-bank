@@ -1,17 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Target,
   Save,
   ChevronLeft,
-  ChevronRight,
   Calendar,
   Package,
   Map,
@@ -32,7 +39,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusCircle, Pencil, Trash2, Eye } from "lucide-react";
-import { SalesTargetDialog } from "./SalesTargetDialog";
 import { SalesTargetDetailDialog } from "./SalesTargetDetailDialog";
 import {
   AlertDialog,
@@ -44,6 +50,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 const MONTHS = [
   { value: 1, label: "มกราคม" },
   { value: 2, label: "กุมภาพันธ์" },
@@ -97,7 +104,34 @@ interface ProductInfo {
 }
 
 export default function SalesTargetsPage() {
-  const [year, setYear] = useState(new Date().getFullYear());
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const queryFilters = useMemo(() => {
+    const yearParam = Number(searchParams.get("year") || currentYear);
+    const monthParam = searchParams.get("month");
+    const parsedMonth =
+      monthParam && monthParam !== "all" ? Number(monthParam) : "all";
+
+    return {
+      year: Number.isNaN(yearParam) ? currentYear : yearParam,
+      month:
+        parsedMonth === "all" || Number.isNaN(parsedMonth as number)
+          ? "all"
+          : (parsedMonth as number),
+      employeeId: searchParams.get("employeeId") || "",
+      shopId: searchParams.get("shopId") || "",
+    };
+  }, [currentYear, searchParams]);
+
+  const [year, setYear] = useState(queryFilters.year);
+  const [monthFilter, setMonthFilter] = useState<number | "all">(
+    queryFilters.month,
+  );
+  const [employeeFilter, setEmployeeFilter] = useState(
+    queryFilters.employeeId,
+  );
+  const [shopFilter, setShopFilter] = useState(queryFilters.shopId);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("monthly");
@@ -131,8 +165,6 @@ export default function SalesTargetsPage() {
 
   // Detailed targets state
   const [detailedTargets, setDetailedTargets] = useState<any[]>([]);
-  const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
-  const [editingTarget, setEditingTarget] = useState<any>(null);
 
   // Detail View State
   const [viewingTarget, setViewingTarget] = useState<any>(null);
@@ -140,12 +172,87 @@ export default function SalesTargetsPage() {
 
   // Delete State
   const [deletingTargetId, setDeletingTargetId] = useState<string | null>(null);
+  const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
+  const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    setYear(queryFilters.year);
+    setMonthFilter(queryFilters.month);
+    setEmployeeFilter(queryFilters.employeeId);
+    setShopFilter(queryFilters.shopId);
+  }, [queryFilters]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("year", year.toString());
+    if (monthFilter !== "all") {
+      params.set("month", monthFilter.toString());
+    }
+    if (employeeFilter) {
+      params.set("employeeId", employeeFilter);
+    }
+    if (shopFilter) {
+      params.set("shopId", shopFilter);
+    }
+    const nextQuery = params.toString();
+    const currentQuery = searchParams.toString();
+    if (nextQuery !== currentQuery) {
+      router.replace(`/admin/sales-targets?${nextQuery}`, { scroll: false });
+    }
+  }, [
+    employeeFilter,
+    monthFilter,
+    router,
+    searchParams,
+    shopFilter,
+    year,
+  ]);
+
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const [empRes, custRes] = await Promise.all([
+          fetch("/api/employee"),
+          fetch("/api/customers?perPage=100"),
+        ]);
+        if (empRes.ok) {
+          const data = await empRes.json();
+          setFilterEmployees(data.employees || data);
+        }
+        if (custRes.ok) {
+          const data = await custRes.json();
+          setFilterCustomers(data.customers || data);
+        }
+      } catch (error) {
+        console.error("Error fetching filter options:", error);
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
+
+  const handleClearFilters = () => {
+    setYear(currentYear);
+    setMonthFilter("all");
+    setEmployeeFilter("");
+    setShopFilter("");
+  };
 
   // Fetch existing targets
   const fetchTargets = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/sales-targets?year=${year}`);
+      const params = new URLSearchParams({ year: year.toString() });
+      if (monthFilter !== "all") {
+        params.set("month", monthFilter.toString());
+      }
+      if (employeeFilter) {
+        params.set("employeeId", employeeFilter);
+      }
+      if (shopFilter) {
+        params.set("shopId", shopFilter);
+      }
+      const response = await fetch(`/api/sales-targets?${params.toString()}`);
       if (!response.ok) throw new Error("Failed to fetch targets");
 
       const data = await response.json();
@@ -239,7 +346,7 @@ export default function SalesTargetsPage() {
     } finally {
       setLoading(false);
     }
-  }, [year]);
+  }, [employeeFilter, monthFilter, shopFilter, year]);
 
   useEffect(() => {
     fetchTargets();
@@ -481,27 +588,110 @@ export default function SalesTargetsPage() {
             </div>
           </div>
         </div>
-
-        {/* Year Selector */}
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-2 shadow-sm border border-slate-200/60">
-          <button
-            onClick={() => setYear((y) => y - 1)}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-slate-600" />
-          </button>
-          <div className="flex items-center gap-2 px-3">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            <span className="font-bold text-slate-800 text-lg">{year}</span>
-          </div>
-          <button
-            onClick={() => setYear((y) => y + 1)}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <ChevronRight className="w-5 h-5 text-slate-600" />
-          </button>
-        </div>
       </div>
+
+      {/* Filters */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl">
+        <CardHeader className="border-b border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">ตัวกรองเป้าหมายรายเดือน</CardTitle>
+                <p className="text-xs text-slate-500">
+                  เลือกเงื่อนไขเพื่อค้นหาเป้าหมายรายพนักงานและร้านค้า
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={handleClearFilters}
+            >
+              ล้างตัวกรอง
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-slate-700">
+                ปี
+              </Label>
+              <Input
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="h-11 rounded-xl border-slate-200/80"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-slate-700">
+                เดือน
+              </Label>
+              <Select
+                value={monthFilter === "all" ? "all" : monthFilter.toString()}
+                onValueChange={(value) =>
+                  setMonthFilter(value === "all" ? "all" : Number(value))
+                }
+              >
+                <SelectTrigger className="h-11 rounded-xl border-slate-200/80">
+                  <SelectValue placeholder="ทั้งหมด" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  {MONTHS.map((m) => (
+                    <SelectItem key={m.value} value={m.value.toString()}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <FormCombobox
+                label="พนักงาน"
+                value={employeeFilter}
+                onChange={(val) => setEmployeeFilter(val)}
+                options={filterEmployees.map((emp) => ({
+                  value: emp.id,
+                  label: `${emp.name} (${emp.employeeCode || "-"})`,
+                }))}
+                placeholder="พนักงานทั้งหมด"
+                searchPlaceholder="ค้นหาพนักงาน..."
+                emptyText="ไม่พบพนักงาน"
+              />
+            </div>
+            <div className="space-y-2">
+              <FormCombobox
+                label="ร้านค้า"
+                value={shopFilter}
+                onChange={(val) => setShopFilter(val)}
+                options={filterCustomers.map((customer) => ({
+                  value: customer.id,
+                  label: `${customer.name} (${customer.customerCode || "-"})`,
+                }))}
+                placeholder="ร้านค้าทั้งหมด"
+                searchPlaceholder="ค้นหาร้านค้า..."
+                emptyText="ไม่พบร้านค้า"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
+            <span>
+              แสดงผลทั้งหมด {detailedTargets.length} รายการตามเงื่อนไข
+            </span>
+            {loading && (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                กำลังโหลดข้อมูล...
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <Tabs
@@ -585,71 +775,26 @@ export default function SalesTargetsPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>เดือน</TableHead>
-                    <TableHead>พนักงาน</TableHead>
-                    <TableHead>ร้านค้า</TableHead>
-                    <TableHead className="text-right">
-                      จำนวนสินค้า (รายการ)
-                    </TableHead>
-                    <TableHead className="text-right">ยอดรวม (บาท)</TableHead>
-                    <TableHead className="w-[100px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {detailedTargets.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center py-8 text-slate-500"
-                      >
-                        ยังไม่มีข้อมูลเป้าหมาย
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    detailedTargets.map((target) => (
-                      <TableRow key={target.id}>
-                        <TableCell>
-                          {MONTHS.find((m) => m.value === target.month)?.label}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {target.employee?.name}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {target.employee?.employeeCode}
-                            </span>
+              <div className="sm:hidden">
+                {detailedTargets.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500">
+                    ยังไม่มีข้อมูลเป้าหมาย
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {detailedTargets.map((target) => (
+                      <div key={target.id} className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-slate-500">เดือน</p>
+                            <p className="font-semibold text-slate-800">
+                              {
+                                MONTHS.find((m) => m.value === target.month)
+                                  ?.label
+                              }
+                            </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {target.customer?.name}
-                            </span>
-                            <span className="text-xs text-slate-500">
-                              {target.customer?.customerCode}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {target.items?.reduce(
-                            (s: number, i: any) => s + i.quantity,
-                            0,
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right font-medium text-emerald-600">
-                          {formatCurrency(
-                            target.items?.reduce(
-                              (s: number, i: any) => s + Number(i.amount),
-                              0,
-                            ),
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end gap-2">
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -660,16 +805,11 @@ export default function SalesTargetsPage() {
                             >
                               <Eye className="w-4 h-4 text-slate-500" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setEditingTarget(target);
-                                setIsTargetDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="w-4 h-4 text-blue-500" />
-                            </Button>
+                            <Link href={`/admin/sales-targets/${target.id}/edit`}>
+                              <Button variant="ghost" size="icon">
+                                <Pencil className="w-4 h-4 text-blue-500" />
+                              </Button>
+                            </Link>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -679,25 +819,155 @@ export default function SalesTargetsPage() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
-                        </TableCell>
+                        </div>
+                        <div className="bg-slate-50 rounded-xl p-3 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">พนักงาน</span>
+                            <span className="font-medium text-slate-800">
+                              {target.employee?.name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">ร้านค้า</span>
+                            <span className="font-medium text-slate-800">
+                              {target.customer?.name}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">
+                              จำนวนสินค้า (รายการ)
+                            </span>
+                            <span className="font-semibold text-slate-800">
+                              {target.items?.reduce(
+                                (s: number, i: any) => s + i.quantity,
+                                0,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-500">ยอดรวม (บาท)</span>
+                            <span className="font-semibold text-emerald-600">
+                              {formatCurrency(
+                                target.items?.reduce(
+                                  (s: number, i: any) => s + Number(i.amount),
+                                  0,
+                                ),
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="hidden sm:block">
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[720px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>เดือน</TableHead>
+                        <TableHead>พนักงาน</TableHead>
+                        <TableHead>ร้านค้า</TableHead>
+                        <TableHead className="text-right">
+                          จำนวนสินค้า (รายการ)
+                        </TableHead>
+                        <TableHead className="text-right">ยอดรวม (บาท)</TableHead>
+                        <TableHead className="w-[120px]"></TableHead>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {detailedTargets.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            className="text-center py-8 text-slate-500"
+                          >
+                            ยังไม่มีข้อมูลเป้าหมาย
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        detailedTargets.map((target) => (
+                          <TableRow key={target.id}>
+                            <TableCell>
+                              {
+                                MONTHS.find((m) => m.value === target.month)
+                                  ?.label
+                              }
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {target.employee?.name}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  {target.employee?.employeeCode}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {target.customer?.name}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  {target.customer?.customerCode}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {target.items?.reduce(
+                                (s: number, i: any) => s + i.quantity,
+                                0,
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-emerald-600">
+                              {formatCurrency(
+                                target.items?.reduce(
+                                  (s: number, i: any) => s + Number(i.amount),
+                                  0,
+                                ),
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setViewingTarget(target);
+                                    setIsDetailDialogOpen(true);
+                                  }}
+                                >
+                                  <Eye className="w-4 h-4 text-slate-500" />
+                                </Button>
+                                <Link
+                                  href={`/admin/sales-targets/${target.id}/edit`}
+                                >
+                                  <Button variant="ghost" size="icon">
+                                    <Pencil className="w-4 h-4 text-blue-500" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => setDeletingTargetId(target.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </CardContent>
           </Card>
-
-          <SalesTargetDialog
-            open={isTargetDialogOpen}
-            onOpenChange={setIsTargetDialogOpen}
-            year={year}
-            initialData={editingTarget}
-            onSuccess={() => {
-              fetchTargets();
-              setEditingTarget(null);
-            }}
-          />
 
           <SalesTargetDetailDialog
             open={isDetailDialogOpen}

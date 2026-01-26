@@ -11,9 +11,42 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const year = parseInt(
-      searchParams.get("year") || new Date().getFullYear().toString(),
+    const targetId = searchParams.get("id");
+    const fallbackYear = new Date().getFullYear();
+    const parsedYear = parseInt(
+      searchParams.get("year") || fallbackYear.toString(),
     );
+    const year = Number.isNaN(parsedYear) ? fallbackYear : parsedYear;
+    const monthParam = searchParams.get("month");
+    const employeeId = searchParams.get("employeeId") || undefined;
+    const shopId =
+      searchParams.get("shopId") || searchParams.get("customerId") || undefined;
+    const parsedMonth =
+      monthParam && monthParam !== "all" ? Number(monthParam) : undefined;
+
+    if (targetId) {
+      const detailedTarget = await prisma.salesTarget.findUnique({
+        where: { id: targetId },
+        include: {
+          employee: true,
+          customer: true,
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (!detailedTarget) {
+        return NextResponse.json(
+          { error: "Sales target not found" },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({ detailedTarget });
+    }
 
     // Fetch monthly targets (legacy/global)
     const monthlyTargets = await prisma.monthlySalesTarget.findMany({
@@ -65,6 +98,9 @@ export async function GET(request: NextRequest) {
     const detailedTargets = await prisma.salesTarget.findMany({
       where: {
         year,
+        ...(parsedMonth ? { month: parsedMonth } : {}),
+        ...(employeeId ? { employeeId } : {}),
+        ...(shopId ? { customerId: shopId } : {}),
       },
       include: {
         employee: true,
