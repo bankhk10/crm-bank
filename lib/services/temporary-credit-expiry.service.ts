@@ -13,7 +13,7 @@ export class TemporaryCreditExpiryService {
   private isRunning = false;
 
   // ตั้งค่าให้รันทุก 5 นาที (300000 ms)
-  private readonly INTERVAL_MS = 50 * 60 * 1000;
+  private readonly INTERVAL_MS = 60 * 60 * 1000;
   // private readonly INTERVAL_MS = 50 * 1000;
 
   /**
@@ -39,7 +39,7 @@ export class TemporaryCreditExpiryService {
     console.log(
       `TemporaryCreditExpiryService started (interval: ${
         this.INTERVAL_MS / 1000
-      }s)`
+      }s)`,
     );
   }
 
@@ -61,7 +61,7 @@ export class TemporaryCreditExpiryService {
   private async processExpiredCredits() {
     const startTime = Date.now();
     console.log(
-      `[${new Date().toISOString()}] Processing expired temporary credits...`
+      `[${new Date().toISOString()}] Processing expired temporary credits...`,
     );
 
     try {
@@ -97,7 +97,7 @@ export class TemporaryCreditExpiryService {
       }
 
       console.log(
-        `Found ${expiredTemporaryCredits.length} expired temporary credits to process`
+        `Found ${expiredTemporaryCredits.length} expired temporary credits to process`,
       );
 
       // Process each expired temporary credit
@@ -114,7 +114,7 @@ export class TemporaryCreditExpiryService {
 
             if (!creditLimit) {
               console.error(
-                `Credit limit not found for temporary credit ${tempCredit.id}`
+                `Credit limit not found for temporary credit ${tempCredit.id}`,
               );
               failureCount++;
               return;
@@ -123,24 +123,24 @@ export class TemporaryCreditExpiryService {
             // คำนวณวงเงินใหม่ (ลบวงเงินชั่วคราวออก)
             const newLimitAmount = (creditLimit.limitAmount as any).sub
               ? (creditLimit.limitAmount as any).sub(
-                  tempCredit.requestedAmount as any
+                  tempCredit.requestedAmount as any,
                 )
               : new Prisma.Decimal(String(creditLimit.limitAmount)).sub(
-                  new Prisma.Decimal(String(tempCredit.requestedAmount))
+                  new Prisma.Decimal(String(tempCredit.requestedAmount)),
                 );
 
             const newAvailableAmount = (creditLimit.availableAmount as any).sub
               ? (creditLimit.availableAmount as any).sub(
-                  tempCredit.requestedAmount as any
+                  tempCredit.requestedAmount as any,
                 )
               : new Prisma.Decimal(String(creditLimit.availableAmount)).sub(
-                  new Prisma.Decimal(String(tempCredit.requestedAmount))
+                  new Prisma.Decimal(String(tempCredit.requestedAmount)),
                 );
 
             // ตรวจสอบว่า availableAmount ไม่ติดลบ
             if (newAvailableAmount.lessThan(0)) {
               console.warn(
-                `Cannot revert temporary credit ${tempCredit.id}: would result in negative available amount`
+                `Cannot revert temporary credit ${tempCredit.id}: would result in negative available amount`,
               );
               failureCount++;
               return;
@@ -171,15 +171,15 @@ export class TemporaryCreditExpiryService {
               `✓ Reverted temporary credit ${tempCredit.id} for customer ${
                 tempCredit.customer.customerCode
               } (${tempCredit.customer.name}): -${String(
-                tempCredit.requestedAmount
-              )}`
+                tempCredit.requestedAmount,
+              )}`,
             );
             successCount++;
           });
         } catch (error) {
           console.error(
             `Error processing temporary credit ${tempCredit.id}:`,
-            error
+            error,
           );
           failureCount++;
         }
@@ -187,7 +187,7 @@ export class TemporaryCreditExpiryService {
 
       const duration = Date.now() - startTime;
       console.log(
-        `[${new Date().toISOString()}] Completed processing expired temporary credits in ${duration}ms`
+        `[${new Date().toISOString()}] Completed processing expired temporary credits in ${duration}ms`,
       );
       console.log(`  Success: ${successCount}, Failed: ${failureCount}`);
     } catch (error) {
