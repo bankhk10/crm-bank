@@ -664,9 +664,6 @@ export default function SalesTargetsPage() {
                       placeholder="พนักงานทั้งหมด"
                       searchPlaceholder="ค้นหาพนักงาน..."
                       emptyText="ไม่พบพนักงาน"
-                      // ✅ ถ้าคอมโพเนนต์รองรับ className/triggerClassName ให้ใส่:
-                      // className="w-full"
-                      // triggerClassName="h-11 rounded-xl"
                     />
                   </div>
 
