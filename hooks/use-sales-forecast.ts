@@ -31,10 +31,8 @@ export interface SalesForecastResponse {
   personal: PersonalForecastEntry[];
   group: GroupForecastEntry[];
   product: ProductForecastEntry[];
-}
-
-interface ProductGroupResponse {
-  groups: Array<{ code: string; description: string }>;
+  actualSales: Array<{ month: number; totalAmount: number }>;
+  groupLabels: Record<string, string>;
 }
 
 export const useSalesForecast = (year: number) => {
@@ -47,32 +45,14 @@ export const useSalesForecast = (year: number) => {
     setLoading(true);
     setError(null);
     try {
-      const [forecastResponse, groupResponse] = await Promise.all([
-        fetch(`/api/sales-forecast?year=${year}`),
-        fetch("/api/products/groups?perPage=200"),
-      ]);
-
-      if (!forecastResponse.ok) {
+      const response = await fetch(`/api/sales-forecast?year=${year}`);
+      if (!response.ok) {
         throw new Error("Failed to fetch forecast data");
       }
 
-      const forecastData: SalesForecastResponse =
-        await forecastResponse.json();
+      const forecastData: SalesForecastResponse = await response.json();
       setData(forecastData);
-
-      if (groupResponse.ok) {
-        const groupData: ProductGroupResponse = await groupResponse.json();
-        const labels = groupData.groups.reduce<Record<string, string>>(
-          (acc, group) => {
-            acc[group.code] = group.description;
-            return acc;
-          },
-          {},
-        );
-        setGroupLabels(labels);
-      } else {
-        setGroupLabels({});
-      }
+      setGroupLabels(forecastData.groupLabels);
     } catch (err) {
       console.error("Error fetching sales forecast:", err);
       setError("ไม่สามารถโหลดข้อมูลคาดการณ์ยอดขายได้");

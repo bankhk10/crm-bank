@@ -57,10 +57,6 @@ export default function SalesForecastPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [salesData, setSalesData] = useState<SalesData[]>([]);
-  const [actualSalesMap, setActualSalesMap] = useState<Record<number, number>>(
-    {},
-  );
-  const [salesError, setSalesError] = useState<string | null>(null);
   const [personalMonth, setPersonalMonth] = useState<string>("all");
   const {
     data: forecastData,
@@ -70,51 +66,30 @@ export default function SalesForecastPage() {
     refresh: refreshForecast,
   } = useSalesForecast(year);
 
-  const fetchSalesSummary = useCallback(async () => {
-    setSalesError(null);
-    try {
-      const response = await fetch(
-        `/api/sales/summary?year=${year}&groupBy=month`,
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch sales summary");
-      }
-      const result = await response.json();
-      const actualMap: Record<number, number> = {};
-      if (result.data) {
-        result.data.forEach(
-          (item: { month: number; totalAmount: number }) => {
-            actualMap[item.month] = item.totalAmount || 0;
-          },
-        );
-      }
-      setActualSalesMap(actualMap);
-    } catch (error) {
-      console.error("Error fetching sales summary:", error);
-      setSalesError("ไม่สามารถโหลดข้อมูลยอดขายจริงได้");
-    }
-  }, [year]);
-
   useEffect(() => {
-    fetchSalesSummary();
-  }, [fetchSalesSummary]);
+    if (!forecastData?.actualSales) return;
 
-  useEffect(() => {
     const targetMap: Record<number, number> = {};
     forecastData?.personal.forEach((entry) => {
-      targetMap[entry.month] = (targetMap[entry.month] || 0) + entry.totalAmount;
+      targetMap[entry.month] =
+        (targetMap[entry.month] || 0) + entry.totalAmount;
+    });
+
+    const actualMap: Record<number, number> = {};
+    forecastData.actualSales.forEach((item) => {
+      actualMap[item.month] = item.totalAmount || 0;
     });
 
     const data: SalesData[] = MONTHS.map((monthLabel, index) => {
       const monthNumber = index + 1;
-      const actual = actualSalesMap[monthNumber] || 0;
+      const actual = actualMap[monthNumber] || 0;
       const target = targetMap[monthNumber] || 0;
       return { month: monthLabel, monthNumber, actual, target };
     });
 
     setSalesData(data);
     setLoading(false);
-  }, [forecastData, actualSalesMap]);
+  }, [forecastData]);
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
@@ -135,7 +110,7 @@ export default function SalesForecastPage() {
   };
 
   const loadingState = loading || forecastLoading;
-  const forecastSectionError = forecastError || salesError;
+  const forecastSectionError = forecastError;
 
   const monthOptions = useMemo(
     () => [
@@ -157,7 +132,8 @@ export default function SalesForecastPage() {
             (entry) => entry.month === Number(personalMonth),
           );
 
-    const map = new Map<
+    // Use object for faster lookups instead of Map
+    const map: Record<
       string,
       {
         employeeId: string;
@@ -165,33 +141,32 @@ export default function SalesForecastPage() {
         totalAmount: number;
         totalQuantity: number;
       }
-    >();
+    > = {};
 
     filtered.forEach((entry) => {
       const key = entry.employeeId;
-      if (!map.has(key)) {
-        map.set(key, {
+      if (!map[key]) {
+        map[key] = {
           employeeId: entry.employeeId,
           employeeName: entry.employeeName,
           totalAmount: 0,
           totalQuantity: 0,
-        });
+        };
       }
-      const current = map.get(key);
-      if (current) {
-        current.totalAmount += entry.totalAmount;
-        current.totalQuantity += entry.totalQuantity;
-      }
+      map[key].totalAmount += entry.totalAmount;
+      map[key].totalQuantity += entry.totalQuantity;
     });
 
-    return Array.from(map.values()).sort((a, b) =>
+    return Object.values(map).sort((a, b) =>
       a.employeeName.localeCompare(b.employeeName),
     );
-  }, [forecastData, personalMonth]);
+  }, [forecastData?.personal, personalMonth]);
 
   const groupForecastRows = useMemo(() => {
     if (!forecastData?.group) return [];
-    const map = new Map<
+
+    // Use object for faster lookups
+    const map: Record<
       string,
       {
         productGroup: string;
@@ -199,34 +174,31 @@ export default function SalesForecastPage() {
         totalAmount: number;
         totalQuantity: number;
       }
-    >();
+    > = {};
 
     forecastData.group.forEach((entry) => {
       const code = entry.productGroup;
       const label = groupLabels[code] || code || "ไม่ระบุ";
-      if (!map.has(code)) {
-        map.set(code, {
+      if (!map[code]) {
+        map[code] = {
           productGroup: code,
           label,
           totalAmount: 0,
           totalQuantity: 0,
-        });
+        };
       }
-      const current = map.get(code);
-      if (current) {
-        current.totalAmount += entry.totalAmount;
-        current.totalQuantity += entry.totalQuantity;
-      }
+      map[code].totalAmount += entry.totalAmount;
+      map[code].totalQuantity += entry.totalQuantity;
     });
 
-    return Array.from(map.values()).sort((a, b) =>
-      a.label.localeCompare(b.label),
-    );
-  }, [forecastData, groupLabels]);
+    return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
+  }, [forecastData?.group, groupLabels]);
 
   const productForecastRows = useMemo(() => {
     if (!forecastData?.product) return [];
-    const map = new Map<
+
+    // Use object for faster lookups
+    const map: Record<
       string,
       {
         productId: string;
@@ -236,30 +208,27 @@ export default function SalesForecastPage() {
         totalAmount: number;
         totalQuantity: number;
       }
-    >();
+    > = {};
 
     forecastData.product.forEach((entry) => {
-      if (!map.has(entry.productId)) {
-        map.set(entry.productId, {
+      if (!map[entry.productId]) {
+        map[entry.productId] = {
           productId: entry.productId,
           productCode: entry.productCode,
           productName: entry.productName,
           productGroup: entry.productGroup,
           totalAmount: 0,
           totalQuantity: 0,
-        });
+        };
       }
-      const current = map.get(entry.productId);
-      if (current) {
-        current.totalAmount += entry.totalAmount;
-        current.totalQuantity += entry.totalQuantity;
-      }
+      map[entry.productId].totalAmount += entry.totalAmount;
+      map[entry.productId].totalQuantity += entry.totalQuantity;
     });
 
-    return Array.from(map.values()).sort((a, b) =>
+    return Object.values(map).sort((a, b) =>
       a.productName.localeCompare(b.productName),
     );
-  }, [forecastData]);
+  }, [forecastData?.product]);
 
   // Calculate summary stats
   const currentMonth = new Date().getMonth() + 1;
@@ -324,7 +293,6 @@ export default function SalesForecastPage() {
           <Button
             onClick={() => {
               refreshForecast();
-              fetchSalesSummary();
             }}
             variant="outline"
             size="icon"
@@ -417,7 +385,10 @@ export default function SalesForecastPage() {
                       borderRadius: "12px",
                       color: "#fff",
                     }}
-                    formatter={(value: number) => [formatFullCurrency(value), ""]}
+                    formatter={(value: number) => [
+                      formatFullCurrency(value),
+                      "",
+                    ]}
                   />
                   <Legend />
                   <Line
@@ -469,7 +440,10 @@ export default function SalesForecastPage() {
                       borderRadius: "12px",
                       color: "#fff",
                     }}
-                    formatter={(value: number) => [formatFullCurrency(value), ""]}
+                    formatter={(value: number) => [
+                      formatFullCurrency(value),
+                      "",
+                    ]}
                   />
                   <Legend />
                   <Bar

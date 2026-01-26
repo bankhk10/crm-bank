@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     const monthParam = searchParams.get("month");
     const month = monthParam ? Number(monthParam) : null;
 
+    // Get sales targets with all related data
     const targets = await prisma.salesTarget.findMany({
       where: {
         year,
@@ -61,43 +62,61 @@ export async function GET(request: NextRequest) {
       orderBy: [{ month: "asc" }, { createdAt: "desc" }],
     });
 
-    const personalMap = new Map<
-      string,
-      {
-        employeeId: string;
-        employeeName: string;
-        month: number;
-        totalAmount: number;
-        totalQuantity: number;
-      }
-    >();
+    // Get actual sales summary in parallel
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31, 23, 59, 59);
+    const validStatuses = ["APPROVED", "PAID", "DELIVERED"];
 
-    const groupMap = new Map<
-      string,
-      {
-        productGroup: string;
-        month: number;
-        totalAmount: number;
-        totalQuantity: number;
-      }
-    >();
+    const salesPromise = prisma.sale.findMany({
+      where: {
+        saleDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+        status: {
+          in: validStatuses,
+        },
+      },
+      select: {
+        saleDate: true,
+        totalAmount: true,
+      },
+    });
 
-    const productMap = new Map<
-      string,
-      {
-        productId: string;
-        productCode: string;
-        productName: string;
-        productGroup: string | null;
-        month: number;
-        totalAmount: number;
-        totalQuantity: number;
-      }
-    >();
+    // Get product groups in parallel
+    const groupsPromise = prisma.productGroupMaster.findMany({
+      where: { deletedAt: null },
+      select: { code: true, description: true },
+      orderBy: { code: "asc" },
+    });
+
+    const [sales, groups] = await Promise.all([salesPromise, groupsPromise]);
+
+    // Process sales summary
+    const monthlyData: Record<number, number> = {};
+    for (let i = 1; i <= 12; i++) {
+      monthlyData[i] = 0;
+    }
+    sales.forEach((sale) => {
+      const month = new Date(sale.saleDate).getMonth() + 1;
+      monthlyData[month] += Number(sale.totalAmount) || 0;
+    });
+    const actualSales = Object.entries(monthlyData).map(
+      ([month, totalAmount]) => ({
+        month: parseInt(month),
+        totalAmount,
+      }),
+    );
+
+    // Process forecast data (existing logic)
+    const personalMap = new Map<string, any>();
+    const groupMap = new Map<string, any>();
+    const productMap = new Map<string, any>();
 
     targets.forEach((target) => {
       const employeeName = buildEmployeeName(target.employee);
       const personalKey = `${target.employeeId}-${target.month}`;
+
       if (!personalMap.has(personalKey)) {
         personalMap.set(personalKey, {
           employeeId: target.employeeId,
@@ -118,9 +137,7 @@ export async function GET(request: NextRequest) {
           personalEntry.totalQuantity += quantity;
         }
 
-        const groupKey = `${item.product.productGroup || "unassigned"}-${
-          target.month
-        }`;
+        const groupKey = `${item.product.productGroup || "unassigned"}-${target.month}`;
         if (!groupMap.has(groupKey)) {
           groupMap.set(groupKey, {
             productGroup: item.product.productGroup || "unassigned",
@@ -167,7 +184,19 @@ export async function GET(request: NextRequest) {
       a.productName.localeCompare(b.productName),
     );
 
-    return NextResponse.json({ personal, group, product });
+    // Create group labels map
+    const groupLabels = groups.reduce<Record<string, string>>((acc, group) => {
+      acc[group.code] = group.description;
+      return acc;
+    }, {});
+
+    return NextResponse.json({
+      personal,
+      group,
+      product,
+      actualSales,
+      groupLabels,
+    });
   } catch (error) {
     console.error("Error fetching sales forecast:", error);
     return NextResponse.json(
