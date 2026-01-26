@@ -509,48 +509,12 @@ export default function SalesTargetsPage() {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-4 h-14 p-1 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200/60">
-          <TabsTrigger
-            value="monthly"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span className="hidden sm:inline">เป้าหมายรายเดือน</span>
-            <span className="sm:hidden">รายเดือน</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="productGroup"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <Package className="w-4 h-4" />
-            <span className="hidden sm:inline">เป้าหมายกลุ่มสินค้า</span>
-            <span className="sm:hidden">กลุ่มสินค้า</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="product"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span className="hidden sm:inline">เป้าหมายรายสินค้า</span>
-            <span className="sm:hidden">รายสินค้า</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="region"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <Map className="w-4 h-4" />
-            <span className="hidden sm:inline">เป้าหมายรายภาค</span>
-            <span className="sm:hidden">รายภาค</span>
-          </TabsTrigger>
-        </TabsList>
-
         {/* Monthly Targets Tab */}
         <TabsContent value="monthly" className="space-y-6">
           {/* Yearly Target Card */}
           <Card className="relative overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl">
             {/* Decorative Gradient Glow */}
             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-indigo-500/10 pointer-events-none" />
-
             <CardHeader className="relative pb-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
