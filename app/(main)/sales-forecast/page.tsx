@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp,
   Calendar,
-  Package,
   ArrowUp,
   ArrowDown,
   Loader2,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  ShoppingBag,
+  AlertTriangle,
 } from "lucide-react";
 import {
   LineChart,
@@ -28,32 +26,16 @@ import {
   Bar,
   Legend,
 } from "recharts";
+import { useSalesForecast } from "@/hooks/use-sales-forecast";
+import { PersonalForecastSection } from "./components/PersonalForecastSection";
+import { GroupForecastSection } from "./components/GroupForecastSection";
+import { ProductForecastSection } from "./components/ProductForecastSection";
 
 interface SalesData {
   month: string;
   monthNumber: number;
   actual: number;
   target: number;
-}
-
-interface ProductGroupForecast {
-  productGroup: string;
-  label: string;
-  currentMonthSales: number;
-  lastMonthSales: number;
-  trend: "up" | "down" | "stable";
-}
-
-interface ProductForecast {
-  productId: string;
-  productCode: string;
-  productName: string;
-  productGroup: string | null;
-  currentMonthTarget: number;
-  yearlyTarget: number;
-  currentMonthActual: number;
-  lastMonthActual: number;
-  trend: "up" | "down" | "stable";
 }
 
 const MONTHS = [
@@ -75,244 +57,64 @@ export default function SalesForecastPage() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [salesData, setSalesData] = useState<SalesData[]>([]);
-  const [productGroupForecasts, setProductGroupForecasts] = useState<
-    ProductGroupForecast[]
-  >([]);
-  const [productForecasts, setProductForecasts] = useState<ProductForecast[]>(
-    [],
+  const [actualSalesMap, setActualSalesMap] = useState<Record<number, number>>(
+    {},
   );
-  const [activeTab, setActiveTab] = useState("overview");
+  const [salesError, setSalesError] = useState<string | null>(null);
+  const [personalMonth, setPersonalMonth] = useState<string>("all");
+  const {
+    data: forecastData,
+    groupLabels,
+    loading: forecastLoading,
+    error: forecastError,
+    refresh: refreshForecast,
+  } = useSalesForecast(year);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchSalesSummary = useCallback(async () => {
+    setSalesError(null);
     try {
-      // Fetch actual sales
-      const salesResponse = await fetch(
+      const response = await fetch(
         `/api/sales/summary?year=${year}&groupBy=month`,
       );
-
-      // Fetch targets
-      const targetsResponse = await fetch(`/api/sales-targets?year=${year}`);
-
-      const actualSalesMap: Record<number, number> = {};
-      const targetMap: Record<number, number> = {};
-
-      if (salesResponse.ok) {
-        const salesResult = await salesResponse.json();
-        if (salesResult.data) {
-          salesResult.data.forEach(
-            (item: { month: number; totalAmount: number }) => {
-              actualSalesMap[item.month] = item.totalAmount || 0;
-            },
-          );
-        }
+      if (!response.ok) {
+        throw new Error("Failed to fetch sales summary");
       }
-
-      // Parse targets response once and reuse
-      let targetsResult: {
-        monthlyTargets?: Array<{ month: number | null; targetAmount: string }>;
-        productTargets?: Array<{
-          productId: string;
-          month: number | null;
-          targetAmount: string;
-          product: {
-            id: string;
-            productCode: string;
-            name: string;
-            productGroup: string | null;
-          };
-        }>;
-        detailedTargets?: Array<{
-          month: number;
-          items: Array<{
-            productId: string;
-            amount: number;
-            product: {
-              id: string;
-              productCode: string;
-              name: string;
-              productGroup: string | null;
-            };
-          }>;
-        }>;
-      } | null = null;
-
-      const productDataMap: Record<
-        string,
-        {
-          product: {
-            id: string;
-            productCode: string;
-            name: string;
-            productGroup: string | null;
-          };
-          targets: Record<number, number>;
-        }
-      > = {};
-
-      if (targetsResponse.ok) {
-        targetsResult = await targetsResponse.json();
-
-        // 1. Process Legacy Monthly Targets
-        if (targetsResult?.monthlyTargets) {
-          targetsResult.monthlyTargets.forEach(
-            (t: { month: number | null; targetAmount: string }) => {
-              if (t.month !== null) {
-                targetMap[t.month] =
-                  (targetMap[t.month] || 0) + Number(t.targetAmount);
-              }
-            },
-          );
-        }
-
-        // 2. Process Legacy Product Targets
-        if (targetsResult?.productTargets) {
-          targetsResult.productTargets.forEach((t) => {
-            if (!productDataMap[t.productId]) {
-              productDataMap[t.productId] = {
-                product: t.product,
-                targets: {},
-              };
-            }
-            if (t.month !== null) {
-              productDataMap[t.productId].targets[t.month] =
-                (productDataMap[t.productId].targets[t.month] || 0) +
-                Number(t.targetAmount);
-            }
-          });
-        }
-
-        // 3. Process New Detailed Targets (Aggregating items)
-        if (targetsResult?.detailedTargets) {
-          targetsResult.detailedTargets.forEach((target) => {
-            const month = target.month;
-            if (target.items) {
-              target.items.forEach((item) => {
-                const amount = Number(item.amount);
-                // Add to total monthly target
-                targetMap[month] = (targetMap[month] || 0) + amount;
-
-                // Add to product specific target
-                if (!productDataMap[item.productId]) {
-                  productDataMap[item.productId] = {
-                    product: item.product,
-                    targets: {},
-                  };
-                }
-                const pt = productDataMap[item.productId];
-                pt.targets[month] = (pt.targets[month] || 0) + amount;
-              });
-            }
-          });
-        }
-      }
-
-      // Fetch product groups
-      const groupsResponse = await fetch("/api/products/groups?perPage=100");
-      let pgOptions: { value: string; label: string }[] = [];
-      if (groupsResponse.ok) {
-        const groupsData = await groupsResponse.json();
-        pgOptions = groupsData.groups.map(
-          (g: { code: string; description: string }) => ({
-            value: g.code,
-            label: g.description,
-          }),
+      const result = await response.json();
+      const actualMap: Record<number, number> = {};
+      if (result.data) {
+        result.data.forEach(
+          (item: { month: number; totalAmount: number }) => {
+            actualMap[item.month] = item.totalAmount || 0;
+          },
         );
       }
-
-      // Generate data
-
-      const data: SalesData[] = MONTHS.map((month, index) => {
-        const monthNumber = index + 1;
-        const actual = actualSalesMap[monthNumber] || 0;
-        const target = targetMap[monthNumber] || 0;
-
-        return {
-          month,
-          monthNumber,
-          actual,
-          target,
-        };
-      });
-
-      setSalesData(data);
-
-      // Generate product group forecasts
-      const pgForecasts: ProductGroupForecast[] = pgOptions.map((pg) => {
-        // Mock data for now - in production, fetch from API
-        const currentMonthSales = Math.random() * 1000000 + 500000;
-        const lastMonthSales = Math.random() * 1000000 + 500000;
-        const growthRate =
-          lastMonthSales > 0
-            ? (currentMonthSales - lastMonthSales) / lastMonthSales
-            : 0;
-
-        return {
-          productGroup: pg.value,
-          label: pg.label,
-          currentMonthSales: Math.round(currentMonthSales),
-          lastMonthSales: Math.round(lastMonthSales),
-          trend:
-            growthRate > 0.05 ? "up" : growthRate < -0.05 ? "down" : "stable",
-        };
-      });
-
-      setProductGroupForecasts(pgForecasts);
-
-      // Generate product forecasts from product targets (Aggregated Map)
-      const currentMonthVal = new Date().getMonth() + 1;
-      const lastMonthVal = currentMonthVal === 1 ? 12 : currentMonthVal - 1;
-
-      const pForecasts: ProductForecast[] = Object.values(productDataMap).map(
-        (data) => {
-          const currentMonthTarget = data.targets[currentMonthVal] || 0;
-          const lastMonthTarget = data.targets[lastMonthVal] || 0;
-          const yearlyTarget = Object.values(data.targets).reduce(
-            (sum, val) => sum + val,
-            0,
-          );
-
-          // For actual sales, we would fetch from sales summary - using target as placeholder
-          // Note: Logic simplified for demonstration as per original code
-          const currentMonthActual =
-            currentMonthTarget * (0.7 + Math.random() * 0.4);
-          const lastMonthActual = lastMonthTarget * (0.7 + Math.random() * 0.4);
-
-          const growthRate =
-            lastMonthActual > 0
-              ? (currentMonthActual - lastMonthActual) / lastMonthActual
-              : 0;
-
-          return {
-            productId: data.product.id,
-            productCode: data.product.productCode,
-            productName: data.product.name,
-            productGroup: data.product.productGroup,
-            currentMonthTarget,
-            yearlyTarget,
-            currentMonthActual: Math.round(currentMonthActual),
-            lastMonthActual: Math.round(lastMonthActual),
-            trend:
-              growthRate > 0.05
-                ? "up"
-                : growthRate < -0.05
-                  ? "down"
-                  : ("stable" as const),
-          };
-        },
-      );
-
-      setProductForecasts(pForecasts);
+      setActualSalesMap(actualMap);
     } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching sales summary:", error);
+      setSalesError("ไม่สามารถโหลดข้อมูลยอดขายจริงได้");
     }
   }, [year]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchSalesSummary();
+  }, [fetchSalesSummary]);
+
+  useEffect(() => {
+    const targetMap: Record<number, number> = {};
+    forecastData?.personal.forEach((entry) => {
+      targetMap[entry.month] = (targetMap[entry.month] || 0) + entry.totalAmount;
+    });
+
+    const data: SalesData[] = MONTHS.map((monthLabel, index) => {
+      const monthNumber = index + 1;
+      const actual = actualSalesMap[monthNumber] || 0;
+      const target = targetMap[monthNumber] || 0;
+      return { month: monthLabel, monthNumber, actual, target };
+    });
+
+    setSalesData(data);
+    setLoading(false);
+  }, [forecastData, actualSalesMap]);
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
@@ -332,6 +134,133 @@ export default function SalesForecastPage() {
     }).format(value);
   };
 
+  const loadingState = loading || forecastLoading;
+  const forecastSectionError = forecastError || salesError;
+
+  const monthOptions = useMemo(
+    () => [
+      { value: "all", label: "ทุกเดือน" },
+      ...MONTHS.map((label, index) => ({
+        value: String(index + 1),
+        label,
+      })),
+    ],
+    [],
+  );
+
+  const personalForecastRows = useMemo(() => {
+    if (!forecastData?.personal) return [];
+    const filtered =
+      personalMonth === "all"
+        ? forecastData.personal
+        : forecastData.personal.filter(
+            (entry) => entry.month === Number(personalMonth),
+          );
+
+    const map = new Map<
+      string,
+      {
+        employeeId: string;
+        employeeName: string;
+        totalAmount: number;
+        totalQuantity: number;
+      }
+    >();
+
+    filtered.forEach((entry) => {
+      const key = entry.employeeId;
+      if (!map.has(key)) {
+        map.set(key, {
+          employeeId: entry.employeeId,
+          employeeName: entry.employeeName,
+          totalAmount: 0,
+          totalQuantity: 0,
+        });
+      }
+      const current = map.get(key);
+      if (current) {
+        current.totalAmount += entry.totalAmount;
+        current.totalQuantity += entry.totalQuantity;
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.employeeName.localeCompare(b.employeeName),
+    );
+  }, [forecastData, personalMonth]);
+
+  const groupForecastRows = useMemo(() => {
+    if (!forecastData?.group) return [];
+    const map = new Map<
+      string,
+      {
+        productGroup: string;
+        label: string;
+        totalAmount: number;
+        totalQuantity: number;
+      }
+    >();
+
+    forecastData.group.forEach((entry) => {
+      const code = entry.productGroup;
+      const label = groupLabels[code] || code || "ไม่ระบุ";
+      if (!map.has(code)) {
+        map.set(code, {
+          productGroup: code,
+          label,
+          totalAmount: 0,
+          totalQuantity: 0,
+        });
+      }
+      const current = map.get(code);
+      if (current) {
+        current.totalAmount += entry.totalAmount;
+        current.totalQuantity += entry.totalQuantity;
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.label.localeCompare(b.label),
+    );
+  }, [forecastData, groupLabels]);
+
+  const productForecastRows = useMemo(() => {
+    if (!forecastData?.product) return [];
+    const map = new Map<
+      string,
+      {
+        productId: string;
+        productCode: string;
+        productName: string;
+        productGroup: string | null;
+        totalAmount: number;
+        totalQuantity: number;
+      }
+    >();
+
+    forecastData.product.forEach((entry) => {
+      if (!map.has(entry.productId)) {
+        map.set(entry.productId, {
+          productId: entry.productId,
+          productCode: entry.productCode,
+          productName: entry.productName,
+          productGroup: entry.productGroup,
+          totalAmount: 0,
+          totalQuantity: 0,
+        });
+      }
+      const current = map.get(entry.productId);
+      if (current) {
+        current.totalAmount += entry.totalAmount;
+        current.totalQuantity += entry.totalQuantity;
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.productName.localeCompare(b.productName),
+    );
+  }, [forecastData]);
+
   // Calculate summary stats
   const currentMonth = new Date().getMonth() + 1;
   const totalActual = salesData
@@ -341,7 +270,7 @@ export default function SalesForecastPage() {
   const actualVsTarget =
     totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
 
-  if (loading) {
+  if (loadingState) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
         <div className="text-center">
@@ -393,7 +322,10 @@ export default function SalesForecastPage() {
             </button>
           </div>
           <Button
-            onClick={fetchData}
+            onClick={() => {
+              refreshForecast();
+              fetchSalesSummary();
+            }}
             variant="outline"
             size="icon"
             className="rounded-xl"
@@ -456,303 +388,141 @@ export default function SalesForecastPage() {
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
-        <TabsList className="grid w-full grid-cols-3 h-14 p-1 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200/60">
-          <TabsTrigger
-            value="overview"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>ภาพรวมคาดการณ์</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="productGroup"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <Package className="w-4 h-4" />
-            <span>คาดการณ์ตามกลุ่มสินค้า</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="product"
-            className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-xl transition-all"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            <span>คาดการณ์ตามสินค้า</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Line Chart */}
-          <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardHeader className="border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                </div>
-                <CardTitle>แนวโน้มยอดขายและคาดการณ์</CardTitle>
+      {/* Overview Charts */}
+      <div className="space-y-6">
+        <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+          <CardHeader className="border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                    <YAxis
-                      stroke="#64748b"
-                      fontSize={12}
-                      tickFormatter={formatCurrency}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#1e293b",
-                        border: "none",
-                        borderRadius: "12px",
-                        color: "#fff",
-                      }}
-                      formatter={(value: number) => [
-                        formatFullCurrency(value),
-                        "",
-                      ]}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="actual"
-                      name="ยอดขายจริง"
-                      stroke="#3b82f6"
-                      strokeWidth={3}
-                      dot={{ fill: "#3b82f6", strokeWidth: 2 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="target"
-                      name="เป้าหมาย"
-                      stroke="#f59e0b"
-                      strokeWidth={2}
-                      dot={{ fill: "#f59e0b", strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Monthly Comparison */}
-          <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardHeader className="border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100">
-                  <Calendar className="w-5 h-5 text-emerald-600" />
-                </div>
-                <CardTitle>เปรียบเทียบรายเดือน</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                    <YAxis
-                      stroke="#64748b"
-                      fontSize={12}
-                      tickFormatter={formatCurrency}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#1e293b",
-                        border: "none",
-                        borderRadius: "12px",
-                        color: "#fff",
-                      }}
-                      formatter={(value: number) => [
-                        formatFullCurrency(value),
-                        "",
-                      ]}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="actual"
-                      name="ยอดขายจริง"
-                      fill="#3b82f6"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="target"
-                      name="เป้าหมาย"
-                      fill="#f59e0b"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Product Group Tab */}
-        <TabsContent value="productGroup" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {productGroupForecasts.map((pg) => (
-              <Card
-                key={pg.productGroup}
-                className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{pg.label}</CardTitle>
-                    <div
-                      className={`p-2 rounded-lg ${
-                        pg.trend === "up"
-                          ? "bg-emerald-100 text-emerald-600"
-                          : pg.trend === "down"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {pg.trend === "up" ? (
-                        <ArrowUp className="w-4 h-4" />
-                      ) : pg.trend === "down" ? (
-                        <ArrowDown className="w-4 h-4" />
-                      ) : (
-                        <TrendingUp className="w-4 h-4" />
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-500">
-                        เดือนปัจจุบัน
-                      </span>
-                      <span className="font-semibold text-slate-800">
-                        {formatFullCurrency(pg.currentMonthSales)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-500">เดือนก่อน</span>
-                      <span className="font-medium text-slate-600">
-                        {formatFullCurrency(pg.lastMonthSales)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Product Tab */}
-        <TabsContent value="product" className="space-y-6">
-          {productForecasts.length === 0 ? (
-            <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-              <CardContent className="p-12 text-center">
-                <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                  ยังไม่มีข้อมูลเป้าหมายรายสินค้า
-                </h3>
-                <p className="text-slate-500">
-                  กรุณาตั้งเป้าหมายรายสินค้าในหน้า
-                  &quot;ตั้งเป้าหมายยอดขาย&quot;
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {productForecasts.map((pf) => (
-                <Card
-                  key={pf.productId}
-                  className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-mono bg-teal-100 text-teal-700 px-2 py-0.5 rounded">
-                            {pf.productCode}
-                          </span>
-                          {pf.productGroup && (
-                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                              {pf.productGroup}
-                            </span>
-                          )}
-                        </div>
-                        <CardTitle
-                          className="text-base truncate"
-                          title={pf.productName}
-                        >
-                          {pf.productName}
-                        </CardTitle>
-                      </div>
-                      <div
-                        className={`p-2 rounded-lg ${
-                          pf.trend === "up"
-                            ? "bg-emerald-100 text-emerald-600"
-                            : pf.trend === "down"
-                              ? "bg-red-100 text-red-600"
-                              : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {pf.trend === "up" ? (
-                          <ArrowUp className="w-4 h-4" />
-                        ) : pf.trend === "down" ? (
-                          <ArrowDown className="w-4 h-4" />
-                        ) : (
-                          <TrendingUp className="w-4 h-4" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">
-                          เป้าหมายเดือนนี้
-                        </span>
-                        <span className="font-semibold text-teal-600">
-                          {formatFullCurrency(pf.currentMonthTarget)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">
-                          ยอดขายเดือนนี้
-                        </span>
-                        <span className="font-semibold text-slate-800">
-                          {formatFullCurrency(pf.currentMonthActual)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">
-                          เดือนก่อน
-                        </span>
-                        <span className="font-medium text-slate-600">
-                          {formatFullCurrency(pf.lastMonthActual)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">
-                          เป้าหมายทั้งปี
-                        </span>
-                        <span className="font-medium text-purple-600">
-                          {formatFullCurrency(pf.yearlyTarget)}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <CardTitle>แนวโน้มยอดขายและคาดการณ์</CardTitle>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                  <YAxis
+                    stroke="#64748b"
+                    fontSize={12}
+                    tickFormatter={formatCurrency}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      border: "none",
+                      borderRadius: "12px",
+                      color: "#fff",
+                    }}
+                    formatter={(value: number) => [formatFullCurrency(value), ""]}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="actual"
+                    name="ยอดขายจริง"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ fill: "#3b82f6", strokeWidth: 2 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="target"
+                    name="เป้าหมาย"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    dot={{ fill: "#f59e0b", strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+          <CardHeader className="border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100">
+                <Calendar className="w-5 h-5 text-emerald-600" />
+              </div>
+              <CardTitle>เปรียบเทียบรายเดือน</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                  <YAxis
+                    stroke="#64748b"
+                    fontSize={12}
+                    tickFormatter={formatCurrency}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      border: "none",
+                      borderRadius: "12px",
+                      color: "#fff",
+                    }}
+                    formatter={(value: number) => [formatFullCurrency(value), ""]}
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="actual"
+                    name="ยอดขายจริง"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="target"
+                    name="เป้าหมาย"
+                    fill="#f59e0b"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {forecastSectionError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {forecastSectionError}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        <PersonalForecastSection
+          data={personalForecastRows}
+          monthOptions={monthOptions}
+          selectedMonth={personalMonth}
+          onMonthChange={setPersonalMonth}
+          formatCurrency={formatFullCurrency}
+          loading={forecastLoading}
+          error={forecastError}
+        />
+        <GroupForecastSection
+          data={groupForecastRows}
+          formatCurrency={formatFullCurrency}
+          loading={forecastLoading}
+          error={forecastError}
+        />
+        <ProductForecastSection
+          data={productForecastRows}
+          formatCurrency={formatFullCurrency}
+          loading={forecastLoading}
+          error={forecastError}
+        />
+      </div>
     </div>
   );
 }
