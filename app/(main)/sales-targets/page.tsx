@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -22,7 +22,6 @@ import {
   Calendar,
   Package,
   Map,
-  TrendingUp,
   Loader2,
   Sparkles,
   ShoppingBag,
@@ -107,6 +106,9 @@ export default function SalesTargetsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const years = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => currentYear - 2 + i);
+  }, [currentYear]);
   const queryFilters = useMemo(() => {
     const yearParam = Number(searchParams.get("year") || currentYear);
     const monthParam = searchParams.get("month");
@@ -593,30 +595,29 @@ export default function SalesTargetsPage() {
                 <CardTitle className="text-lg">
                   ตัวกรองเป้าหมายรายเดือน
                 </CardTitle>
-                <p className="text-xs text-slate-500">
-                  เลือกเงื่อนไขเพื่อค้นหาเป้าหมายรายพนักงานและร้านค้า
-                </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={handleClearFilters}
-            >
-              ล้างตัวกรอง
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-slate-700">ปี</Label>
-              <Input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                className="h-11 rounded-xl border-slate-200/80"
-              />
+              <Select
+                value={year.toString()}
+                onValueChange={(value) => setYear(Number(value))}
+              >
+                <SelectTrigger className="h-11 rounded-xl border-slate-200/80 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-slate-700">
@@ -628,7 +629,7 @@ export default function SalesTargetsPage() {
                   setMonthFilter(value === "all" ? "all" : Number(value))
                 }
               >
-                <SelectTrigger className="h-11 rounded-xl border-slate-200/80">
+                <SelectTrigger className="h-11 rounded-xl border-slate-200/80 w-full">
                   <SelectValue placeholder="ทั้งหมด" />
                 </SelectTrigger>
                 <SelectContent>
@@ -669,6 +670,13 @@ export default function SalesTargetsPage() {
                 emptyText="ไม่พบร้านค้า"
               />
             </div>
+            <Button
+              variant="outline"
+              className="w-full h-11"
+              onClick={handleClearFilters}
+            >
+              ล้างตัวกรอง
+            </Button>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
             <span>
