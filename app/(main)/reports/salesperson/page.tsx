@@ -263,28 +263,28 @@ export default function SalespersonReportPage() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-1 rounded-xl">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-2 rounded-xl h-auto">
                 <TabsTrigger
                   value="performance"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ผลงาน
                 </TabsTrigger>
                 <TabsTrigger
                   value="groups"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   กลุ่มสินค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="products"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   สินค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="trend"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   แนวโน้ม
                 </TabsTrigger>
@@ -297,7 +297,7 @@ export default function SalespersonReportPage() {
                       <CardTitle>ยอดขายต่อพนักงาน</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={reportData.salespersonPerformance
@@ -345,7 +345,7 @@ export default function SalespersonReportPage() {
                       <CardTitle>รายละเอียด</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="max-h-80 overflow-auto">
+                      <div className="max-h-[450px] overflow-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -524,7 +524,7 @@ export default function SalespersonReportPage() {
                     <CardTitle>แนวโน้มยอดขายรายเดือน</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-96">
+                    <div className="h-[550px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={reportData.salespersonMonthlyTrend}>
                           <CartesianGrid strokeDasharray="3 3" />

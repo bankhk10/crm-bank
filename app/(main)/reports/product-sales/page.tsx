@@ -319,34 +319,34 @@ export default function ProductSalesReportPage() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl flex-wrap h-auto gap-1">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl flex-wrap h-auto gap-1">
                 <TabsTrigger
                   value="top-products"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   สินค้าขายดี
                 </TabsTrigger>
                 <TabsTrigger
                   value="slow-products"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   สินค้าขายช้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="peak-periods"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
                 <TabsTrigger
                   value="low-stock"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   สินค้าใกล้หมด
                 </TabsTrigger>
                 <TabsTrigger
                   value="stagnant"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ค้างสต๊อก
                 </TabsTrigger>
@@ -362,7 +362,7 @@ export default function ProductSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={topProductsChartData}
@@ -415,7 +415,7 @@ export default function ProductSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="max-h-80 overflow-auto">
+                      <div className="max-h-[450px] overflow-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>

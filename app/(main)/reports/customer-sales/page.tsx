@@ -203,16 +203,16 @@ export default function CustomerSalesReportPage() {
         ) : reportData ? (
           <div className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-1 rounded-xl">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-2 rounded-xl h-auto">
                 <TabsTrigger
                   value="top-customers"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ลูกค้าซื้อสูงสุด
                 </TabsTrigger>
                 <TabsTrigger
                   value="by-type"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ตามประเภท
                 </TabsTrigger>
@@ -305,7 +305,7 @@ export default function CustomerSalesReportPage() {
                       <CardTitle>ตามประเภทลูกค้า</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -319,8 +319,8 @@ export default function CustomerSalesReportPage() {
                               nameKey="name"
                               cx="50%"
                               cy="50%"
-                              outerRadius={100}
-                              innerRadius={60}
+                              outerRadius={140}
+                              innerRadius={80}
                               label={({ name, percent }) =>
                                 `${name}:${(percent * 100).toFixed(0)}%`
                               }

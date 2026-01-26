@@ -303,28 +303,28 @@ export default function ProductGroupSalesReportPage() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ภาพรวม
                 </TabsTrigger>
                 <TabsTrigger
                   value="performance"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ผลงานกลุ่ม
                 </TabsTrigger>
                 <TabsTrigger
                   value="trend"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   แนวโน้มรายเดือน
                 </TabsTrigger>
                 <TabsTrigger
                   value="peak"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
@@ -340,7 +340,7 @@ export default function ProductGroupSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={sortedGroups} layout="vertical">
                             <CartesianGrid
@@ -388,7 +388,7 @@ export default function ProductGroupSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <RadarChart data={radarData}>
                             <PolarGrid />
@@ -490,7 +490,7 @@ export default function ProductGroupSalesReportPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-96">
+                    <div className="h-[550px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={reportData.groupMonthlyTrend}>
                           <CartesianGrid
