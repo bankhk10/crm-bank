@@ -790,210 +790,294 @@ export default function SalesTargetsPage() {
           </Card>
 
           {/* Monthly Targets List (Detailed) */}
-          <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-            <CardHeader className="border-b border-slate-100">
-              <div className="flex items-center justify-between">
+          <Card className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-[0_10px_30px_-12px_rgba(2,6,23,0.25)]">
+            <CardHeader className="border-b border-slate-200/60 bg-gradient-to-r from-white/40 to-slate-50/40">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100">
-                    <Calendar className="w-5 h-5 text-blue-600" />
+                  <div className="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/15 ring-1 ring-blue-500/15">
+                    <Calendar className="h-5 w-5 text-blue-700" />
                   </div>
-                  <CardTitle>รายการเป้าหมายรายเดือน</CardTitle>
+                  <div className="leading-tight">
+                    <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+                      รายการเป้าหมายรายเดือน
+                    </CardTitle>
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      สรุปเป้าหมายรายเดือนแยกตามพนักงานและร้านค้า
+                    </p>
+                  </div>
                 </div>
-                <Link href="/sales-targets/create">
-                  <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25">
-                    <PlusCircle className="w-4 h-4 mr-2" />
+
+                <Link href="/sales-targets/create" className="shrink-0">
+                  <Button className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20 hover:from-blue-700 hover:to-indigo-700 focus-visible:ring-2 focus-visible:ring-blue-500/40">
+                    <PlusCircle className="mr-2 h-4 w-4" />
                     เพิ่มเป้าหมาย
                   </Button>
                 </Link>
               </div>
             </CardHeader>
+
             <CardContent className="p-0">
+              {/* ===== Mobile ===== */}
               <div className="sm:hidden">
                 {detailedTargets.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500">
-                    ยังไม่มีข้อมูลเป้าหมาย
+                  <div className="py-14 text-center">
+                    <div className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-slate-100">
+                      <Calendar className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-900">
+                      ยังไม่มีข้อมูลเป้าหมาย
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      กด “เพิ่มเป้าหมาย” เพื่อเริ่มต้น
+                    </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
-                    {detailedTargets.map((target) => (
-                      <div key={target.id} className="p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-slate-500">เดือน</p>
-                            <p className="font-semibold text-slate-800">
-                              {
-                                MONTHS.find((m) => m.value === target.month)
-                                  ?.label
-                              }
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setViewingTarget(target);
-                                setIsDetailDialogOpen(true);
-                              }}
-                            >
-                              <Eye className="w-4 h-4 text-slate-500" />
-                            </Button>
-                            <Link href={`/sales-targets/${target.id}/edit`}>
-                              <Button variant="ghost" size="icon">
-                                <Pencil className="w-4 h-4 text-blue-500" />
+                  <div className="divide-y divide-slate-200/60">
+                    {detailedTargets.map((target) => {
+                      const totalQty =
+                        target.items?.reduce(
+                          (s: number, i: any) => s + i.quantity,
+                          0,
+                        ) ?? 0;
+                      const totalAmount =
+                        target.items?.reduce(
+                          (s: number, i: any) => s + Number(i.amount),
+                          0,
+                        ) ?? 0;
+
+                      return (
+                        <div key={target.id} className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-xs text-slate-500">เดือน</p>
+                              <p className="mt-0.5 truncate text-sm font-semibold text-slate-900">
+                                {
+                                  MONTHS.find((m) => m.value === target.month)
+                                    ?.label
+                                }
+                              </p>
+
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                                  👤 {target.employee?.name}
+                                </span>
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-700">
+                                  🏪 {target.customer?.name}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-xl hover:bg-slate-100"
+                                onClick={() => {
+                                  setViewingTarget(target);
+                                  setIsDetailDialogOpen(true);
+                                }}
+                                aria-label="ดูรายละเอียด"
+                              >
+                                <Eye className="h-4 w-4 text-slate-600" />
                               </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => setDeletingTargetId(target.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+
+                              <Link href={`/sales-targets/${target.id}/edit`}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="rounded-xl hover:bg-blue-50"
+                                  aria-label="แก้ไข"
+                                >
+                                  <Pencil className="h-4 w-4 text-blue-600" />
+                                </Button>
+                              </Link>
+
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                onClick={() => setDeletingTargetId(target.id)}
+                                aria-label="ลบ"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 rounded-2xl bg-slate-50/80 p-3 ring-1 ring-slate-200/60">
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="text-slate-500">จำนวนสินค้า</div>
+                              <div className="text-right font-semibold text-slate-900">
+                                {totalQty}
+                                <span className="ml-1 text-xs font-normal text-slate-500">
+                                  รายการ
+                                </span>
+                              </div>
+
+                              <div className="text-slate-500">ยอดรวม</div>
+                              <div className="text-right font-semibold text-emerald-700">
+                                {formatCurrency(totalAmount)}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="bg-slate-50 rounded-xl p-3 space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-500">พนักงาน</span>
-                            <span className="font-medium text-slate-800">
-                              {target.employee?.name}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-500">ร้านค้า</span>
-                            <span className="font-medium text-slate-800">
-                              {target.customer?.name}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-500">
-                              จำนวนสินค้า (รายการ)
-                            </span>
-                            <span className="font-semibold text-slate-800">
-                              {target.items?.reduce(
-                                (s: number, i: any) => s + i.quantity,
-                                0,
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-500">ยอดรวม (บาท)</span>
-                            <span className="font-semibold text-emerald-600">
-                              {formatCurrency(
-                                target.items?.reduce(
-                                  (s: number, i: any) => s + Number(i.amount),
-                                  0,
-                                ),
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
+              {/* ===== Desktop ===== */}
               <div className="hidden sm:block">
                 <div className="overflow-x-auto">
-                  <Table className="min-w-[720px]">
+                  <Table className="min-w-[760px]">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>เดือน</TableHead>
-                        <TableHead>พนักงาน</TableHead>
-                        <TableHead>ร้านค้า</TableHead>
-                        <TableHead className="text-right">
-                          จำนวนสินค้า (รายการ)
+                      <TableRow className="bg-slate-50/60">
+                        <TableHead className="text-base font-semibold  pl-6">
+                          เดือน
                         </TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-base font-semibold ">
+                          พนักงาน
+                        </TableHead>
+                        <TableHead className="text-base font-semibold">
+                          ร้านค้า
+                        </TableHead>
+                        <TableHead className="text-right text-base font-semibold">
+                          จำนวนสินค้า
+                        </TableHead>
+                        <TableHead className="text-right text-base font-semibold">
                           ยอดรวม (บาท)
                         </TableHead>
-                        <TableHead className="w-[120px]"></TableHead>
+                        <TableHead className="w-[132px]" />
                       </TableRow>
                     </TableHeader>
+
                     <TableBody>
                       {detailedTargets.length === 0 ? (
                         <TableRow>
-                          <TableCell
-                            colSpan={6}
-                            className="text-center py-8 text-slate-500"
-                          >
-                            ยังไม่มีข้อมูลเป้าหมาย
+                          <TableCell colSpan={6} className="py-10 text-center">
+                            <div className="mx-auto mb-2 grid size-12 place-items-center rounded-2xl bg-slate-100">
+                              <Calendar className="h-5 w-5 text-slate-500" />
+                            </div>
+                            <p className="text-sm font-medium text-slate-900">
+                              ยังไม่มีข้อมูลเป้าหมาย
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              กด “เพิ่มเป้าหมาย” เพื่อเริ่มต้น
+                            </p>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        detailedTargets.map((target) => (
-                          <TableRow key={target.id}>
-                            <TableCell>
-                              {
-                                MONTHS.find((m) => m.value === target.month)
-                                  ?.label
-                              }
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium">
-                                  {target.employee?.name}
+                        detailedTargets.map((target) => {
+                          const totalQty =
+                            target.items?.reduce(
+                              (s: number, i: any) => s + i.quantity,
+                              0,
+                            ) ?? 0;
+                          const totalAmount =
+                            target.items?.reduce(
+                              (s: number, i: any) => s + Number(i.amount),
+                              0,
+                            ) ?? 0;
+
+                          return (
+                            <TableRow
+                              key={target.id}
+                              className="transition-colors hover:bg-slate-50/70"
+                            >
+                              <TableCell className="font-medium text-slate-900 pl-6">
+                                {
+                                  MONTHS.find((m) => m.value === target.month)
+                                    ?.label
+                                }
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="grid size-9 place-items-center rounded-xl bg-blue-500/10 ring-1 ring-blue-500/10">
+                                    <span className="text-xs font-semibold text-blue-700">
+                                      {(target.employee?.name ?? "?").slice(
+                                        0,
+                                        1,
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium text-slate-900">
+                                      {target.employee?.name}
+                                    </span>
+                                    <span className="text-xs text-slate-500">
+                                      {target.employee?.employeeCode}
+                                    </span>
+                                  </div>
+                                </div>
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-slate-900">
+                                    {target.customer?.name}
+                                  </span>
+                                  <span className="text-xs text-slate-500">
+                                    {target.customer?.customerCode}
+                                  </span>
+                                </div>
+                              </TableCell>
+
+                              <TableCell className="text-right">
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
+                                  {totalQty} รายการ
                                 </span>
-                                <span className="text-xs text-slate-500">
-                                  {target.employee?.employeeCode}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col">
-                                <span className="font-medium">
-                                  {target.customer?.name}
-                                </span>
-                                <span className="text-xs text-slate-500">
-                                  {target.customer?.customerCode}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {target.items?.reduce(
-                                (s: number, i: any) => s + i.quantity,
-                                0,
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-medium text-emerald-600">
-                              {formatCurrency(
-                                target.items?.reduce(
-                                  (s: number, i: any) => s + Number(i.amount),
-                                  0,
-                                ),
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    setViewingTarget(target);
-                                    setIsDetailDialogOpen(true);
-                                  }}
-                                >
-                                  <Eye className="w-4 h-4 text-slate-500" />
-                                </Button>
-                                <Link href={`/sales-targets/${target.id}/edit`}>
-                                  <Button variant="ghost" size="icon">
-                                    <Pencil className="w-4 h-4 text-blue-500" />
+                              </TableCell>
+
+                              <TableCell className="text-right font-semibold text-emerald-700">
+                                {formatCurrency(totalAmount)}
+                              </TableCell>
+
+                              <TableCell>
+                                <div className="flex justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-xl hover:bg-slate-100"
+                                    onClick={() => {
+                                      setViewingTarget(target);
+                                      setIsDetailDialogOpen(true);
+                                    }}
+                                    aria-label="ดูรายละเอียด"
+                                  >
+                                    <Eye className="h-4 w-4 text-slate-600" />
                                   </Button>
-                                </Link>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  onClick={() => setDeletingTargetId(target.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
+
+                                  <Link
+                                    href={`/sales-targets/${target.id}/edit`}
+                                  >
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="rounded-xl hover:bg-blue-50"
+                                      aria-label="แก้ไข"
+                                    >
+                                      <Pencil className="h-4 w-4 text-blue-600" />
+                                    </Button>
+                                  </Link>
+
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                    onClick={() =>
+                                      setDeletingTargetId(target.id)
+                                    }
+                                    aria-label="ลบ"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                       )}
                     </TableBody>
                   </Table>
