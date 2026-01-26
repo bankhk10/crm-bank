@@ -575,9 +575,6 @@ export default function SalesTargetsPage() {
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
                 ตั้งเป้าหมายยอดขาย
               </h1>
-              <p className="text-slate-500 text-sm">
-                กำหนดเป้าหมายยอดขายรายเดือน กลุ่มสินค้า และภาค
-              </p>
             </div>
           </div>
         </div>
