@@ -278,7 +278,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold text-slate-700">
                         ปี
@@ -287,7 +287,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         value={year.toString()}
                         onValueChange={(v) => setYear(Number(v))}
                       >
-                        <SelectTrigger className="h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
+                        <SelectTrigger className="w-full h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
@@ -303,6 +303,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div className="space-y-2.5">
                       <Label className="text-sm font-semibold text-slate-700">
                         เดือน
@@ -314,7 +315,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         <SelectTrigger className="w-full h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
                           <SelectValue />
                         </SelectTrigger>
-
                         <SelectContent className="rounded-xl">
                           {MONTHS.map((m) => (
                             <SelectItem
@@ -533,7 +533,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-end gap-4 pt-8 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8 border-t border-slate-100">
                 <Link href="/sales-targets" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
