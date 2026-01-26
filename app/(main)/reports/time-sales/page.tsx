@@ -319,34 +319,34 @@ export default function TimeSalesReportPage() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-1 rounded-xl">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ภาพรวม
                 </TabsTrigger>
                 <TabsTrigger
                   value="daily"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   รายวัน
                 </TabsTrigger>
                 <TabsTrigger
                   value="monthly"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   รายเดือน
                 </TabsTrigger>
                 <TabsTrigger
                   value="seasonality"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ฤดูกาล
                 </TabsTrigger>
                 <TabsTrigger
                   value="by-region"
-                  className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ตามภูมิภาค
                 </TabsTrigger>
@@ -362,7 +362,7 @@ export default function TimeSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={reportData.dailyData}>
                             <defs>
@@ -426,7 +426,7 @@ export default function TimeSalesReportPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -437,8 +437,8 @@ export default function TimeSalesReportPage() {
                               nameKey="quarter"
                               cx="50%"
                               cy="50%"
-                              outerRadius={100}
-                              innerRadius={60}
+                              outerRadius={140}
+                              innerRadius={80}
                               label={({ quarter, percentage }) =>
                                 `${quarter}: ${percentage.toFixed(1)}%`
                               }
@@ -517,7 +517,7 @@ export default function TimeSalesReportPage() {
                     <CardTitle>ยอดขายรายวัน</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-96">
+                    <div className="h-[550px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={reportData.dailyData}>
                           <CartesianGrid
@@ -610,7 +610,7 @@ export default function TimeSalesReportPage() {
                     <CardTitle>ยอดขายรายเดือน</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-96">
+                    <div className="h-[550px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={reportData.monthlyData}>
                           <CartesianGrid
@@ -672,7 +672,7 @@ export default function TimeSalesReportPage() {
                       <CardTitle>ยอดขายตามไตรมาส</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-80">
+                      <div className="h-[450px]">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={reportData.seasonalityData}
@@ -761,7 +761,7 @@ export default function TimeSalesReportPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-80">
+                    <div className="h-[450px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={reportData.salesByRegion}>
                           <CartesianGrid
