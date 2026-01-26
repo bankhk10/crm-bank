@@ -715,14 +715,6 @@ export default function SalesTargetsPage() {
 
               {/* Footer info */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-slate-200/70 px-4 sm:px-5 py-3">
-                <span className="text-sm text-slate-500">
-                  แสดงผลทั้งหมด{" "}
-                  <span className="font-semibold text-slate-700">
-                    {detailedTargets.length}
-                  </span>{" "}
-                  รายการตามเงื่อนไข
-                </span>
-
                 {loading && (
                   <span className="inline-flex items-center gap-2 text-sm text-slate-500">
                     <Loader2 className="w-4 h-4 animate-spin" />
