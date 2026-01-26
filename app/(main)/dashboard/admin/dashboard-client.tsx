@@ -52,7 +52,9 @@ const formatCompact = (value: number) =>
 
 /* ================= Component ================= */
 export default function DashboardClient({ data }: DashboardClientProps) {
-  const { periodData, ytd } = data;
+  const [dashboardData, setDashboardData] = useState<DashboardData>(data);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date>(new Date());
+  const { periodData, ytd } = dashboardData;
   const [overviewPeriod, setOverviewPeriod] =
     useState<DashboardPeriod>("month");
   const [regionPeriod, setRegionPeriod] = useState<DashboardPeriod>("month");
@@ -117,6 +119,36 @@ export default function DashboardClient({ data }: DashboardClientProps) {
     target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
   const remaining = target.target - target.current;
 
+  useEffect(() => {
+    let isActive = true;
+    const refreshDashboard = async () => {
+      try {
+        const response = await fetch("/api/dashboard/admin", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+        const nextData: DashboardData = await response.json();
+        if (!isActive) {
+          return;
+        }
+        setDashboardData(nextData);
+        setLastUpdatedAt(new Date());
+      } catch (error) {
+        console.error("Failed to refresh dashboard data", error);
+      }
+    };
+
+    setLastUpdatedAt(new Date());
+    const intervalId = window.setInterval(refreshDashboard, 30000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 px-3 py-4 sm:p-6 md:p-8 lg:p-10 space-y-4 sm:space-y-6 lg:space-y-8 animate-in fade-in duration-500">
       {/* ================= Header - Mobile First ================= */}
@@ -156,7 +188,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">อัปเดตล่าสุด </span>
             <span className="font-medium">
-              {new Date().toLocaleString("th-TH", {
+              {lastUpdatedAt.toLocaleString("th-TH", {
                 day: "numeric",
                 month: "short",
                 hour: "2-digit",
