@@ -2,6 +2,107 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
 
+const syncDerivedTargets = async (year: number, month: number) => {
+  const { getRegionByProvince } = await import(
+    "@/lib/province-region-mapping"
+  );
+  const detailedTargets = await prisma.salesTarget.findMany({
+    where: { year, month },
+    include: {
+      customer: {
+        select: {
+          region: true,
+          province: true,
+        },
+      },
+      items: {
+        include: {
+          product: {
+            select: {
+              productGroup: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const regionTotals = new Map<string, number>();
+  const productGroupTotals = new Map<string, number>();
+
+  detailedTargets.forEach((target) => {
+    const region =
+      target.customer.region?.trim() ||
+      getRegionByProvince(target.customer.province);
+
+    target.items.forEach((item) => {
+      const amount = Number(item.amount || 0);
+
+      if (region) {
+        regionTotals.set(region, (regionTotals.get(region) || 0) + amount);
+      }
+
+      const productGroup = item.product?.productGroup?.trim();
+      if (productGroup) {
+        productGroupTotals.set(
+          productGroup,
+          (productGroupTotals.get(productGroup) || 0) + amount,
+        );
+      }
+    });
+  });
+
+  const regionKeys = [...regionTotals.keys()];
+  const productGroupKeys = [...productGroupTotals.keys()];
+
+  const regionOps = regionKeys.map((region) =>
+    prisma.regionSalesTarget.upsert({
+      where: { region_year_month: { region, year, month } },
+      update: { targetAmount: regionTotals.get(region) || 0 },
+      create: {
+        region,
+        year,
+        month,
+        targetAmount: regionTotals.get(region) || 0,
+      },
+    }),
+  );
+
+  const productGroupOps = productGroupKeys.map((productGroup) =>
+    prisma.productGroupSalesTarget.upsert({
+      where: { productGroup_year_month: { productGroup, year, month } },
+      update: { targetAmount: productGroupTotals.get(productGroup) || 0 },
+      create: {
+        productGroup,
+        year,
+        month,
+        targetAmount: productGroupTotals.get(productGroup) || 0,
+      },
+    }),
+  );
+
+  await prisma.$transaction([
+    prisma.regionSalesTarget.deleteMany({
+      where: {
+        year,
+        month,
+        ...(regionKeys.length > 0 ? { region: { notIn: regionKeys } } : {}),
+      },
+    }),
+    prisma.productGroupSalesTarget.deleteMany({
+      where: {
+        year,
+        month,
+        ...(productGroupKeys.length > 0
+          ? { productGroup: { notIn: productGroupKeys } }
+          : {}),
+      },
+    }),
+    ...regionOps,
+    ...productGroupOps,
+  ]);
+};
+
 // GET: Fetch all sales targets for a specific year
 export async function GET(request: NextRequest) {
   try {
@@ -160,6 +261,7 @@ export async function POST(request: NextRequest) {
     // We'll do it sequentially or promise.all
 
     if (type === "detailed") {
+      const syncKeys = new Map<string, { year: number; month: number }>();
       // Handle Detailed Sales Targets
       for (const target of targets) {
         const {
@@ -217,7 +319,17 @@ export async function POST(request: NextRequest) {
           });
           results.push(created);
         }
+
+        if (year && month) {
+          syncKeys.set(`${year}-${month}`, { year, month });
+        }
       }
+
+      await Promise.all(
+        Array.from(syncKeys.values()).map(({ year, month }) =>
+          syncDerivedTargets(year, month),
+        ),
+      );
     } else {
       // Handle Legacy Types
       for (const target of targets) {
