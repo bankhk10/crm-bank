@@ -599,95 +599,131 @@ export default function SalesTargetsPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700">ปี</Label>
-              <Select
-                value={year.toString()}
-                onValueChange={(value) => setYear(Number(value))}
-              >
-                <SelectTrigger className="h-11 rounded-xl border-slate-200/80 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((y) => (
-                    <SelectItem key={y} value={y.toString()}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <CardContent className="p-6 sm:p-7">
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+              <div className="p-4 sm:p-5">
+                {/* ✅ one row on lg, equal height, clean alignment */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[140px_160px_1.2fr_1.2fr_auto] gap-4 lg:gap-5 items-end">
+                  {/* Year */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold tracking-wide text-slate-600">
+                      ปี
+                    </Label>
+                    <Select
+                      value={year.toString()}
+                      onValueChange={(value) => setYear(Number(value))}
+                    >
+                      <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white shadow-sm hover:shadow transition-shadow focus:ring-2 focus:ring-slate-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {years.map((y) => (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Month */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold tracking-wide text-slate-600">
+                      เดือน
+                    </Label>
+                    <Select
+                      value={
+                        monthFilter === "all" ? "all" : monthFilter.toString()
+                      }
+                      onValueChange={(value) =>
+                        setMonthFilter(value === "all" ? "all" : Number(value))
+                      }
+                    >
+                      <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white shadow-sm hover:shadow transition-shadow focus:ring-2 focus:ring-slate-200">
+                        <SelectValue placeholder="ทั้งหมด" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                        {MONTHS.map((m) => (
+                          <SelectItem key={m.value} value={m.value.toString()}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Employee */}
+                  <div className="space-y-2">
+                    <FormCombobox
+                      label="พนักงาน"
+                      value={employeeFilter}
+                      onChange={(val) => setEmployeeFilter(val)}
+                      options={filterEmployees.map((emp) => ({
+                        value: emp.id,
+                        label: `${emp.name} (${emp.employeeCode || "-"})`,
+                      }))}
+                      placeholder="พนักงานทั้งหมด"
+                      searchPlaceholder="ค้นหาพนักงาน..."
+                      emptyText="ไม่พบพนักงาน"
+                      // ✅ ถ้าคอมโพเนนต์รองรับ className/triggerClassName ให้ใส่:
+                      // className="w-full"
+                      // triggerClassName="h-11 rounded-xl"
+                    />
+                  </div>
+
+                  {/* Shop */}
+                  <div className="space-y-2">
+                    <FormCombobox
+                      label="ร้านค้า"
+                      value={shopFilter}
+                      onChange={(val) => setShopFilter(val)}
+                      options={filterCustomers.map((customer) => ({
+                        value: customer.id,
+                        label: `${customer.name} (${customer.customerCode || "-"})`,
+                      }))}
+                      placeholder="ร้านค้าทั้งหมด"
+                      searchPlaceholder="ค้นหาร้านค้า..."
+                      emptyText="ไม่พบร้านค้า"
+                      // ✅ ถ้ารองรับ:
+                      // className="w-full"
+                      // triggerClassName="h-11 rounded-xl"
+                    />
+                  </div>
+
+                  {/* Clear */}
+                  <div className="flex lg:justify-end">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="h-11 rounded-xl px-4 border-slate-200 bg-white shadow-sm hover:shadow transition-shadow text-slate-700 hover:bg-slate-50"
+                      onClick={handleClearFilters}
+                    >
+                      ล้างตัวกรอง
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer info */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-t border-slate-200/70 px-4 sm:px-5 py-3">
+                <span className="text-sm text-slate-500">
+                  แสดงผลทั้งหมด{" "}
+                  <span className="font-semibold text-slate-700">
+                    {detailedTargets.length}
+                  </span>{" "}
+                  รายการตามเงื่อนไข
+                </span>
+
+                {loading && (
+                  <span className="inline-flex items-center gap-2 text-sm text-slate-500">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    กำลังโหลดข้อมูล...
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700">
-                เดือน
-              </Label>
-              <Select
-                value={monthFilter === "all" ? "all" : monthFilter.toString()}
-                onValueChange={(value) =>
-                  setMonthFilter(value === "all" ? "all" : Number(value))
-                }
-              >
-                <SelectTrigger className="h-11 rounded-xl border-slate-200/80 w-full">
-                  <SelectValue placeholder="ทั้งหมด" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {MONTHS.map((m) => (
-                    <SelectItem key={m.value} value={m.value.toString()}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <FormCombobox
-                label="พนักงาน"
-                value={employeeFilter}
-                onChange={(val) => setEmployeeFilter(val)}
-                options={filterEmployees.map((emp) => ({
-                  value: emp.id,
-                  label: `${emp.name} (${emp.employeeCode || "-"})`,
-                }))}
-                placeholder="พนักงานทั้งหมด"
-                searchPlaceholder="ค้นหาพนักงาน..."
-                emptyText="ไม่พบพนักงาน"
-              />
-            </div>
-            <div className="space-y-2">
-              <FormCombobox
-                label="ร้านค้า"
-                value={shopFilter}
-                onChange={(val) => setShopFilter(val)}
-                options={filterCustomers.map((customer) => ({
-                  value: customer.id,
-                  label: `${customer.name} (${customer.customerCode || "-"})`,
-                }))}
-                placeholder="ร้านค้าทั้งหมด"
-                searchPlaceholder="ค้นหาร้านค้า..."
-                emptyText="ไม่พบร้านค้า"
-              />
-            </div>
-            <Button
-              variant="outline"
-              className="w-full h-11"
-              onClick={handleClearFilters}
-            >
-              ล้างตัวกรอง
-            </Button>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-slate-500">
-            <span>
-              แสดงผลทั้งหมด {detailedTargets.length} รายการตามเงื่อนไข
-            </span>
-            {loading && (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                กำลังโหลดข้อมูล...
-              </span>
-            )}
           </div>
         </CardContent>
       </Card>
