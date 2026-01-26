@@ -100,45 +100,52 @@ export default function ReportsPage() {
   const { data: session, status } = useSession();
 
   // Filter report categories based on user permissions
+  const permissions = session?.user?.permissions;
+
   const filteredCategories = useMemo(() => {
-    if (!session?.user?.permissions) {
+    if (!permissions) {
       // If no permissions available, show all (for backward compatibility)
       return reportCategories;
     }
 
     return reportCategories.filter((category) => {
       // Check if user has permission for this report
-      return session.user.permissions[category.permissionKey]?.allow !== false;
+      return permissions[category.permissionKey]?.allow !== false;
     });
-  }, [session?.user?.permissions]);
+  }, [permissions]);
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen ">
       {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl mb-8">
+        {/* Background effects */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-blue-500/10" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
 
-        <div className="relative px-6 py-12 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-              <TrendingUp className="h-8 w-8 text-white" />
+        {/* Content */}
+        <div className="relative px-8 py-14 max-w-7xl mx-auto">
+          <div className="flex items-center gap-5">
+            {/* Icon */}
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/30">
+              <TrendingUp className="h-7 w-7 text-white" />
             </div>
+
+            {/* Title */}
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
                 หมวดรายงาน
               </h1>
-              <p className="text-muted-foreground">
-                วิเคราะห์ข้อมูลการขายครบทุกมิติ
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                วิเคราะห์ข้อมูลการขาย
               </p>
             </div>
           </div>
