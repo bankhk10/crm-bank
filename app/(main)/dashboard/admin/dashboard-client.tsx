@@ -55,8 +55,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   const { periodData, ytd } = data;
   const [overviewPeriod, setOverviewPeriod] =
     useState<DashboardPeriod>("month");
-  const [regionPeriod, setRegionPeriod] =
-    useState<DashboardPeriod>("month");
+  const [regionPeriod, setRegionPeriod] = useState<DashboardPeriod>("month");
   const [productGroupPeriod, setProductGroupPeriod] =
     useState<DashboardPeriod>("month");
 
@@ -124,20 +123,24 @@ export default function DashboardClient({ data }: DashboardClientProps) {
       <div className="flex flex-col gap-3 sm:gap-4">
         {/* Title */}
         <div className="text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
+              <div className="relative p-2.5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <span className="text-xs sm:text-sm font-medium text-blue-600 uppercase tracking-wider">
-              Dashboard
-            </span>
+            <div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 bg-clip-text text-transparent leading-tight">
+                ภาพรวมแดชบอร์ด
+              </h1>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-            ภาพรวมแดชบอร์ดแอดมิน
-          </h1>
-          <p className="text-slate-500 mt-1 text-xs sm:text-sm">
-            ภาพรวมยอดขายและสถานะงานตามช่วงเวลา
-          </p>
+          <div className="mt-4 flex items-center gap-3 justify-center sm:justify-start max-w-xs">
+            <div className="h-[3px] flex-1 bg-gradient-to-r from-transparent via-blue-300 to-blue-500 rounded-full" />
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 animate-pulse" />
+            <div className="h-[3px] flex-1 bg-gradient-to-l from-transparent via-blue-300 to-blue-500 rounded-full" />
+          </div>
         </div>
 
         {/* Actions */}
