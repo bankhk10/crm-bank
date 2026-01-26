@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -26,7 +26,7 @@ import {
   Sparkles,
   BarChart3,
 } from "lucide-react";
-import type { DashboardData } from "@/app/actions/dashboard";
+import type { DashboardData, DashboardPeriod } from "@/app/actions/dashboard";
 
 /* ================= Props ================= */
 interface DashboardClientProps {
@@ -52,13 +52,39 @@ const formatCompact = (value: number) =>
 
 /* ================= Component ================= */
 export default function DashboardClient({ data }: DashboardClientProps) {
-  const { monthlySales, target, ytd, productGroupData, regionData, jobStatus } =
-    data;
+  const { periodData, ytd } = data;
+  const [overviewPeriod, setOverviewPeriod] =
+    useState<DashboardPeriod>("month");
+  const [regionPeriod, setRegionPeriod] =
+    useState<DashboardPeriod>("month");
+  const [productGroupPeriod, setProductGroupPeriod] =
+    useState<DashboardPeriod>("month");
+
+  const periodOptions: { value: DashboardPeriod; label: string }[] = [
+    { value: "day", label: "วัน" },
+    { value: "month", label: "เดือน" },
+    { value: "year", label: "ปี" },
+  ];
+
+  const periodLabels: Record<DashboardPeriod, string> = {
+    day: "วันนี้",
+    month: "เดือนนี้",
+    year: "ปีนี้",
+  };
+
+  const monthlySales = periodData[overviewPeriod].monthlySales;
+  const target = periodData[overviewPeriod].target;
+  const regionData = periodData[regionPeriod].regionData;
+  const productGroupData = periodData[productGroupPeriod].productGroupData;
 
   // State for managing visible product groups
   const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
     () => new Set(productGroupData.map((p) => p.group)),
   );
+
+  useEffect(() => {
+    setVisibleGroups(new Set(productGroupData.map((p) => p.group)));
+  }, [productGroupData]);
 
   // Toggle group visibility
   const toggleGroup = (group: string) => {
@@ -110,12 +136,27 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             ภาพรวมแดชบอร์ดแอดมิน
           </h1>
           <p className="text-slate-500 mt-1 text-xs sm:text-sm">
-            ภาพรวมยอดขายและสถานะงานประจำเดือน
+            ภาพรวมยอดขายและสถานะงานตามช่วงเวลา
           </p>
         </div>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end">
+          <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/80 px-2 py-1 text-[10px] sm:text-xs shadow-sm">
+            {periodOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setOverviewPeriod(option.value)}
+                className={`rounded-full px-2.5 py-1 font-medium transition-all ${
+                  overviewPeriod === option.value
+                    ? "bg-blue-600 text-white shadow"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
           {/* Last Updated Badge */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
@@ -145,7 +186,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <CardHeader className="pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                ยอดขายเดือนปัจจุบัน
+                ยอดขาย{periodLabels[overviewPeriod]}
               </CardTitle>
               <div
                 className={`flex items-center gap-1 ${
@@ -202,7 +243,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <CardHeader className="pb-2 sm:pb-3 relative">
             <div className="flex justify-between items-center">
               <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-200 font-semibold">
-                เป้ายอดขายเดือนปัจจุบัน
+                เป้ายอดขาย{periodLabels[overviewPeriod]}
               </CardTitle>
               <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
                 <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
@@ -363,17 +404,34 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         {/* Region Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
           <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-100 to-amber-100">
-                <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-100 to-amber-100">
+                  <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                    ยอดขายรายภาค
+                  </CardTitle>
+                  <p className="text-[10px] sm:text-xs text-slate-500">
+                    แยกตามภูมิภาคทั่วประเทศ
+                  </p>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                  ยอดขายรายภาค
-                </CardTitle>
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  แยกตามภูมิภาคทั่วประเทศ
-                </p>
+              <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-2 py-1 text-[10px] sm:text-xs shadow-sm">
+                {periodOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setRegionPeriod(option.value)}
+                    className={`rounded-full px-2.5 py-1 font-medium transition-all ${
+                      regionPeriod === option.value
+                        ? "bg-orange-500 text-white shadow"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
             </div>
           </CardHeader>
@@ -441,7 +499,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         {/* Product Group Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
           <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">
                   <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
@@ -455,9 +513,26 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   </p>
                 </div>
               </div>
-              {/* Group Filter Toggle Info */}
-              <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                {visibleGroups.size}/{productGroupData.length} กลุ่ม
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-2 py-1 text-[10px] sm:text-xs shadow-sm">
+                  {periodOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setProductGroupPeriod(option.value)}
+                      className={`rounded-full px-2.5 py-1 font-medium transition-all ${
+                        productGroupPeriod === option.value
+                          ? "bg-purple-500 text-white shadow"
+                          : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Group Filter Toggle Info */}
+                <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                  {visibleGroups.size}/{productGroupData.length} กลุ่ม
+                </div>
               </div>
             </div>
 

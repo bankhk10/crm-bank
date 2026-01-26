@@ -2,36 +2,31 @@
 
 import { db as prisma } from "@/src/infrastructure/database";
 import {
+  startOfDay,
+  endOfDay,
   startOfMonth,
   endOfMonth,
   startOfYear,
   endOfYear,
+  getDaysInMonth,
+  subDays,
+  subMonths,
   subYears,
 } from "date-fns";
 
-export interface DashboardData {
-  // Monthly Sales
+export type DashboardPeriod = "day" | "month" | "year";
+
+interface PeriodData {
   monthlySales: {
     total: number;
-    salesNote: number; // PENDING, APPROVED
-    invoice: number; // COMPLETED
+    salesNote: number;
+    invoice: number;
     growthPercent: number;
   };
-
-  // Target
   target: {
     target: number;
     current: number;
   };
-
-  // YTD
-  ytd: {
-    total: number;
-    target: number;
-    growthPercent: number;
-  };
-
-  // Product Group Chart
   productGroupData: {
     group: string;
     code: string;
@@ -39,21 +34,28 @@ export interface DashboardData {
     salesNote: number;
     invoice: number;
   }[];
-
-  // Region Chart
   regionData: {
     region: string;
     target: number;
     salesNote: number;
     invoice: number;
   }[];
-
-  // Job Status
   jobStatus: {
     total: number;
     success: number;
     fail: number;
     progress: number;
+  };
+}
+
+export interface DashboardData {
+  periodData: Record<DashboardPeriod, PeriodData>;
+
+  // YTD (always yearly)
+  ytd: {
+    total: number;
+    target: number;
+    growthPercent: number;
   };
 }
 
@@ -63,71 +65,81 @@ export async function getDashboardData(): Promise<DashboardData> {
   const currentMonth = now.getMonth() + 1;
 
   // Date ranges
+  const dayStart = startOfDay(now);
+  const dayEnd = endOfDay(now);
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
   const yearStart = startOfYear(now);
   const yearEnd = endOfYear(now);
+  const lastDayStart = startOfDay(subDays(now, 1));
+  const lastDayEnd = endOfDay(subDays(now, 1));
+  const lastMonthStart = startOfMonth(subMonths(now, 1));
+  const lastMonthEnd = endOfMonth(subMonths(now, 1));
   const lastYearStart = startOfYear(subYears(now, 1));
   const lastYearEnd = endOfYear(subYears(now, 1));
 
-  // === 1. Monthly Sales ===
-  const monthlySalesRaw = await prisma.sale.aggregate({
-    where: {
-      saleDate: { gte: monthStart, lte: monthEnd },
-      deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-    },
-    _sum: { totalAmount: true },
-    _count: true,
-  });
-
-  // Sales Note = PENDING, APPROVED, AWAITING_PAYMENT, AWAITING_DELIVERY (ยังไม่จบกระบวนการ)
-  const salesNoteRaw = await prisma.sale.aggregate({
-    where: {
-      saleDate: { gte: monthStart, lte: monthEnd },
-      deletedAt: null,
-      status: {
-        in: ["PENDING", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"],
+  const aggregateSales = async (start: Date, end: Date) => {
+    const salesRaw = await prisma.sale.aggregate({
+      where: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
       },
-    },
-    _sum: { totalAmount: true },
-  });
+      _sum: { totalAmount: true },
+    });
 
-  // Invoice = PAID, DELIVERED, DELIVERY_COMPLETED, COMPLETED
-  const invoiceRaw = await prisma.sale.aggregate({
-    where: {
-      saleDate: { gte: monthStart, lte: monthEnd },
-      deletedAt: null,
-      status: { in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"] },
-    },
-    _sum: { totalAmount: true },
-  });
+    const salesNoteRaw = await prisma.sale.aggregate({
+      where: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: {
+          in: ["PENDING", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"],
+        },
+      },
+      _sum: { totalAmount: true },
+    });
 
-  // Last month for comparison
-  const lastMonthStart = startOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1),
-  );
-  const lastMonthEnd = endOfMonth(
-    new Date(now.getFullYear(), now.getMonth() - 1, 1),
-  );
+    const invoiceRaw = await prisma.sale.aggregate({
+      where: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"] },
+      },
+      _sum: { totalAmount: true },
+    });
 
-  const lastMonthSales = await prisma.sale.aggregate({
-    where: {
-      saleDate: { gte: lastMonthStart, lte: lastMonthEnd },
-      deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-    },
-    _sum: { totalAmount: true },
-  });
+    return {
+      total: Number(salesRaw._sum.totalAmount || 0),
+      salesNote: Number(salesNoteRaw._sum.totalAmount || 0),
+      invoice: Number(invoiceRaw._sum.totalAmount || 0),
+    };
+  };
 
-  const currentMonthTotal = Number(monthlySalesRaw._sum.totalAmount || 0);
-  const lastMonthTotal = Number(lastMonthSales._sum.totalAmount || 0);
-  const monthlyGrowth =
-    lastMonthTotal > 0
-      ? ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100
+  const [daySales, monthSales, yearSales, lastDaySales, lastMonthSales] =
+    await Promise.all([
+      aggregateSales(dayStart, dayEnd),
+      aggregateSales(monthStart, monthEnd),
+      aggregateSales(yearStart, yearEnd),
+      aggregateSales(lastDayStart, lastDayEnd),
+      aggregateSales(lastMonthStart, lastMonthEnd),
+    ]);
+
+  const lastYearSales = await aggregateSales(lastYearStart, lastYearEnd);
+
+  const dayGrowth =
+    lastDaySales.total > 0
+      ? ((daySales.total - lastDaySales.total) / lastDaySales.total) * 100
+      : 0;
+  const monthGrowth =
+    lastMonthSales.total > 0
+      ? ((monthSales.total - lastMonthSales.total) / lastMonthSales.total) * 100
+      : 0;
+  const yearGrowth =
+    lastYearSales.total > 0
+      ? ((yearSales.total - lastYearSales.total) / lastYearSales.total) * 100
       : 0;
 
-  // === 2. YTD ===
+  // === 1. YTD ===
   const ytdRaw = await prisma.sale.aggregate({
     where: {
       saleDate: { gte: yearStart, lte: yearEnd },
@@ -151,7 +163,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const ytdGrowth =
     lastYtdTotal > 0 ? ((ytdTotal - lastYtdTotal) / lastYtdTotal) * 100 : 0;
 
-  // === 3. Product Group Sales (This Month) ===
+  // === 2. Product Group Sales (This Month) ===
   // Get all product groups from database
   const productGroups = await prisma.productGroupMaster.findMany({
     where: { deletedAt: null },
@@ -178,80 +190,88 @@ export async function getDashboardData(): Promise<DashboardData> {
     productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)]),
   );
 
-  const productGroupData = await Promise.all(
-    productGroupOptions.map(async (groupOption) => {
-      const group = groupOption.value;
+  const getProductGroupData = async (start: Date, end: Date) =>
+    Promise.all(
+      productGroupOptions.map(async (groupOption) => {
+        const group = groupOption.value;
 
-      // Get target from database, fallback to default
-      const target = productGroupTargetMap.get(group) || 0;
+        // Get target from database, fallback to default
+        const target = productGroupTargetMap.get(group) || 0;
 
-      // Get product IDs for this group
-      const products = await prisma.product.findMany({
-        where: { productGroup: group, deletedAt: null },
-        select: { id: true },
-      });
-      const productIds = products.map((p) => p.id);
+        // Get product IDs for this group
+        const products = await prisma.product.findMany({
+          where: { productGroup: group, deletedAt: null },
+          select: { id: true },
+        });
+        const productIds = products.map((p) => p.id);
 
-      // If no products in this group, return zeros
-      if (productIds.length === 0) {
+        // If no products in this group, return zeros
+        if (productIds.length === 0) {
+          return {
+            group: groupOption.label,
+            code: groupOption.value,
+            target,
+            salesNote: 0,
+            invoice: 0,
+          };
+        }
+
+        // Sales Note amounts
+        const salesNoteAgg = await prisma.saleItem.aggregate({
+          where: {
+            productId: { in: productIds },
+            sale: {
+              saleDate: { gte: start, lte: end },
+              deletedAt: null,
+              status: {
+                in: [
+                  "PENDING",
+                  "APPROVED",
+                  "AWAITING_PAYMENT",
+                  "AWAITING_DELIVERY",
+                ],
+              },
+            },
+          },
+          _sum: { totalPrice: true },
+        });
+
+        // Invoice amounts
+        const invoiceAgg = await prisma.saleItem.aggregate({
+          where: {
+            productId: { in: productIds },
+            sale: {
+              saleDate: { gte: start, lte: end },
+              deletedAt: null,
+              status: {
+                in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+              },
+            },
+          },
+          _sum: { totalPrice: true },
+        });
+
+        const salesNoteAmt = Number(salesNoteAgg._sum.totalPrice || 0);
+        const invoiceAmt = Number(invoiceAgg._sum.totalPrice || 0);
+
         return {
           group: groupOption.label,
           code: groupOption.value,
           target,
-          salesNote: 0,
-          invoice: 0,
+          salesNote: salesNoteAmt,
+          invoice: invoiceAmt,
         };
-      }
+      }),
+    );
 
-      // Sales Note amounts
-      const salesNoteAgg = await prisma.saleItem.aggregate({
-        where: {
-          productId: { in: productIds },
-          sale: {
-            saleDate: { gte: monthStart, lte: monthEnd },
-            deletedAt: null,
-            status: {
-              in: [
-                "PENDING",
-                "APPROVED",
-                "AWAITING_PAYMENT",
-                "AWAITING_DELIVERY",
-              ],
-            },
-          },
-        },
-        _sum: { totalPrice: true },
-      });
+  const [productGroupDay, productGroupMonth, productGroupYear] =
+    await Promise.all([
+      getProductGroupData(dayStart, dayEnd),
+      getProductGroupData(monthStart, monthEnd),
+      getProductGroupData(yearStart, yearEnd),
+    ]);
 
-      // Invoice amounts
-      const invoiceAgg = await prisma.saleItem.aggregate({
-        where: {
-          productId: { in: productIds },
-          sale: {
-            saleDate: { gte: monthStart, lte: monthEnd },
-            deletedAt: null,
-            status: {
-              in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-            },
-          },
-        },
-        _sum: { totalPrice: true },
-      });
-
-      const salesNoteAmt = Number(salesNoteAgg._sum.totalPrice || 0);
-      const invoiceAmt = Number(invoiceAgg._sum.totalPrice || 0);
-
-      return {
-        group: groupOption.label,
-        code: groupOption.value,
-        target,
-        salesNote: salesNoteAmt,
-        invoice: invoiceAmt,
-      };
-    }),
-  );
-
-  // === 4. Region Sales (This Month) ===
+  // === 3. Region Sales (This Month) ===
   const { getAllRegions, getRegionByProvince } =
     await import("@/lib/province-region-mapping");
   const regions = getAllRegions();
@@ -269,116 +289,139 @@ export async function getDashboardData(): Promise<DashboardData> {
     regionTargets.map((t) => [t.region, Number(t.targetAmount)]),
   );
 
-  // Initialize accumulators
-  const regionSalesMap = new Map<
-    string,
-    { salesNote: number; invoice: number }
-  >();
+  const getRegionData = async (start: Date, end: Date) => {
+    // Initialize accumulators
+    const regionSalesMap = new Map<
+      string,
+      { salesNote: number; invoice: number }
+    >();
 
-  regions.forEach((r) => {
-    regionSalesMap.set(r, { salesNote: 0, invoice: 0 });
-  });
+    regions.forEach((r) => {
+      regionSalesMap.set(r, { salesNote: 0, invoice: 0 });
+    });
 
-  // Fetch all sales for this month with customer province
-  const salesThisMonth = await prisma.sale.findMany({
-    where: {
-      saleDate: { gte: monthStart, lte: monthEnd },
-      deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-    },
-    select: {
-      totalAmount: true,
-      status: true,
-      customer: {
-        select: {
-          province: true,
+    // Fetch all sales for this range with customer province
+    const salesInRange = await prisma.sale.findMany({
+      where: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      },
+      select: {
+        totalAmount: true,
+        status: true,
+        customer: {
+          select: {
+            province: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  // Process sales in memory
-  for (const sale of salesThisMonth) {
-    const province = sale.customer.province;
-    const region = getRegionByProvince(province);
+    // Process sales in memory
+    for (const sale of salesInRange) {
+      const province = sale.customer.province;
+      const region = getRegionByProvince(province);
 
-    if (region && regionSalesMap.has(region)) {
-      const entry = regionSalesMap.get(region)!;
-      const amount = Number(sale.totalAmount);
+      if (region && regionSalesMap.has(region)) {
+        const entry = regionSalesMap.get(region)!;
+        const amount = Number(sale.totalAmount);
 
-      const isInvoice = [
-        "PAID",
-        "DELIVERED",
-        "DELIVERY_COMPLETED",
-        "COMPLETED",
-      ].includes(sale.status);
-      const isSalesNote = [
-        "PENDING",
-        "APPROVED",
-        "AWAITING_PAYMENT",
-        "AWAITING_DELIVERY",
-      ].includes(sale.status);
+        const isInvoice = [
+          "PAID",
+          "DELIVERED",
+          "DELIVERY_COMPLETED",
+          "COMPLETED",
+        ].includes(sale.status);
+        const isSalesNote = [
+          "PENDING",
+          "APPROVED",
+          "AWAITING_PAYMENT",
+          "AWAITING_DELIVERY",
+        ].includes(sale.status);
 
-      if (isInvoice) {
-        entry.invoice += amount;
-      } else if (isSalesNote) {
-        entry.salesNote += amount;
+        if (isInvoice) {
+          entry.invoice += amount;
+        } else if (isSalesNote) {
+          entry.salesNote += amount;
+        }
       }
     }
-  }
 
-  const validRegionData = regions.map((region) => {
-    const target = regionTargetMap.get(region) || 0;
-    const sales = regionSalesMap.get(region) || { salesNote: 0, invoice: 0 };
+    return regions.map((region) => {
+      const target = regionTargetMap.get(region) || 0;
+      const sales = regionSalesMap.get(region) || { salesNote: 0, invoice: 0 };
+
+      return {
+        region,
+        target,
+        salesNote: sales.salesNote,
+        invoice: sales.invoice,
+      };
+    });
+  };
+
+  const [regionDay, regionMonth, regionYear] = await Promise.all([
+    getRegionData(dayStart, dayEnd),
+    getRegionData(monthStart, monthEnd),
+    getRegionData(yearStart, yearEnd),
+  ]);
+
+  // === 4. Job Status (Sales in this period) ===
+  const getJobStatus = async (start: Date, end: Date) => {
+    const statusCounts = await prisma.sale.groupBy({
+      by: ["status"],
+      where: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+      },
+      _count: true,
+    });
+
+    const successStatuses = [
+      "COMPLETED",
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "PAID",
+    ];
+    const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED"];
+    const progressStatuses = [
+      "PENDING",
+      "APPROVED",
+      "AWAITING_PAYMENT",
+      "AWAITING_DELIVERY",
+    ];
+
+    let success = 0,
+      fail = 0,
+      progress = 0;
+    for (const item of statusCounts) {
+      if (successStatuses.includes(item.status)) {
+        success += item._count;
+      } else if (failStatuses.includes(item.status)) {
+        fail += item._count;
+      } else if (progressStatuses.includes(item.status)) {
+        progress += item._count;
+      }
+    }
+
+    const total = success + fail + progress;
 
     return {
-      region,
-      target,
-      salesNote: sales.salesNote,
-      invoice: sales.invoice,
+      total: total || 120,
+      success: success || 70,
+      fail: fail || 20,
+      progress: progress || 30,
     };
-  });
+  };
 
-  // === 5. Job Status (Sales in this month) ===
-  const statusCounts = await prisma.sale.groupBy({
-    by: ["status"],
-    where: {
-      saleDate: { gte: monthStart, lte: monthEnd },
-      deletedAt: null,
-    },
-    _count: true,
-  });
+  const [jobStatusDay, jobStatusMonth, jobStatusYear] = await Promise.all([
+    getJobStatus(dayStart, dayEnd),
+    getJobStatus(monthStart, monthEnd),
+    getJobStatus(yearStart, yearEnd),
+  ]);
 
-  const successStatuses = [
-    "COMPLETED",
-    "DELIVERED",
-    "DELIVERY_COMPLETED",
-    "PAID",
-  ];
-  const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED"];
-  const progressStatuses = [
-    "PENDING",
-    "APPROVED",
-    "AWAITING_PAYMENT",
-    "AWAITING_DELIVERY",
-  ];
-
-  let success = 0,
-    fail = 0,
-    progress = 0;
-  for (const item of statusCounts) {
-    if (successStatuses.includes(item.status)) {
-      success += item._count;
-    } else if (failStatuses.includes(item.status)) {
-      fail += item._count;
-    } else if (progressStatuses.includes(item.status)) {
-      progress += item._count;
-    }
-  }
-
-  const total = success + fail + progress;
-
-  // === 6. Target - Fetch from database ===
+  // === 5. Target - Fetch from database ===
   const monthlyTargetRecord = await prisma.monthlySalesTarget.findFirst({
     where: {
       year: currentYear,
@@ -433,29 +476,64 @@ export async function getDashboardData(): Promise<DashboardData> {
       : yearlyTargetRecord
         ? Number(yearlyTargetRecord.targetAmount)
         : 0;
+
+  const daysInMonth = getDaysInMonth(now);
+  const dailyTarget = monthlyTarget > 0 ? monthlyTarget / daysInMonth : 0;
+
+  const periodData: Record<DashboardPeriod, PeriodData> = {
+    day: {
+      monthlySales: {
+        total: daySales.total,
+        salesNote: daySales.salesNote,
+        invoice: daySales.invoice,
+        growthPercent: Math.round(dayGrowth * 10) / 10,
+      },
+      target: {
+        target: dailyTarget,
+        current: daySales.total,
+      },
+      productGroupData: productGroupDay.length > 0 ? productGroupDay : [],
+      regionData: regionDay.length > 0 ? regionDay : [],
+      jobStatus: jobStatusDay,
+    },
+    month: {
+      monthlySales: {
+        total: monthSales.total,
+        salesNote: monthSales.salesNote,
+        invoice: monthSales.invoice,
+        growthPercent: Math.round(monthGrowth * 10) / 10,
+      },
+      target: {
+        target: monthlyTarget,
+        current: monthSales.total,
+      },
+      productGroupData: productGroupMonth.length > 0 ? productGroupMonth : [],
+      regionData: regionMonth.length > 0 ? regionMonth : [],
+      jobStatus: jobStatusMonth,
+    },
+    year: {
+      monthlySales: {
+        total: yearSales.total,
+        salesNote: yearSales.salesNote,
+        invoice: yearSales.invoice,
+        growthPercent: Math.round(yearGrowth * 10) / 10,
+      },
+      target: {
+        target: yearlyTarget,
+        current: yearSales.total,
+      },
+      productGroupData: productGroupYear.length > 0 ? productGroupYear : [],
+      regionData: regionYear.length > 0 ? regionYear : [],
+      jobStatus: jobStatusYear,
+    },
+  };
+
   return {
-    monthlySales: {
-      total: currentMonthTotal,
-      salesNote: Number(salesNoteRaw._sum.totalAmount || 0),
-      invoice: Number(invoiceRaw._sum.totalAmount || 0),
-      growthPercent: Math.round(monthlyGrowth * 10) / 10,
-    },
-    target: {
-      target: monthlyTarget,
-      current: currentMonthTotal,
-    },
+    periodData,
     ytd: {
       total: ytdTotal,
       target: yearlyTarget,
       growthPercent: Math.round(ytdGrowth * 10) / 10,
-    },
-    productGroupData: productGroupData.length > 0 ? productGroupData : [],
-    regionData: validRegionData.length > 0 ? validRegionData : [],
-    jobStatus: {
-      total: total || 120,
-      success: success || 70,
-      fail: fail || 20,
-      progress: progress || 30,
     },
   };
 }
