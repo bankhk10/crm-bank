@@ -227,11 +227,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                     {isEdit ? "แก้ไขเป้าหมายการขาย" : "เพิ่มเป้าหมายการขาย"}
                   </h1>
                 </div>
-                <p className="text-slate-600 text-sm sm:text-base ml-13">
-                  {isEdit
-                    ? "แก้ไขเป้าหมายยอดขายสำหรับพนักงาน"
-                    : "สร้างเป้าหมายยอดขายใหม่สำหรับพนักงาน"}
-                </p>
               </div>
             </div>
           </div>
