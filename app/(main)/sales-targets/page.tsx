@@ -50,6 +50,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 const MONTHS = [
   { value: 1, label: "มกราคม" },
   { value: 2, label: "กุมภาพันธ์" },
@@ -174,6 +183,97 @@ export default function SalesTargetsPage() {
   const [deletingTargetId, setDeletingTargetId] = useState<string | null>(null);
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [detailedTargets]);
+
+  const totalPages = Math.ceil(detailedTargets.length / itemsPerPage);
+  const paginatedTargets = detailedTargets.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const renderPaginationItems = () => {
+    const items = [];
+    const maxVisible = 5;
+
+    let startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage(1);
+            }}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>,
+      );
+      if (startPage > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-1">
+            <PaginationEllipsis />
+          </PaginationItem>,
+        );
+      }
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+      items.push(
+        <PaginationItem key={page}>
+          <PaginationLink
+            href="#"
+            isActive={currentPage === page}
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage(page);
+            }}
+          >
+            {page}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(
+          <PaginationItem key="ellipsis-2">
+            <PaginationEllipsis />
+          </PaginationItem>,
+        );
+      }
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage(totalPages);
+            }}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+    }
+
+    return items;
+  };
 
   useEffect(() => {
     setYear(queryFilters.year);
@@ -830,7 +930,7 @@ export default function SalesTargetsPage() {
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-200/60">
-                    {detailedTargets.map((target) => {
+                    {paginatedTargets.map((target) => {
                       const totalQty =
                         target.items?.reduce(
                           (s: number, i: any) => s + i.quantity,
@@ -965,7 +1065,7 @@ export default function SalesTargetsPage() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        detailedTargets.map((target) => {
+                        paginatedTargets.map((target) => {
                           const totalQty =
                             target.items?.reduce(
                               (s: number, i: any) => s + i.quantity,
@@ -1080,6 +1180,48 @@ export default function SalesTargetsPage() {
                   </Table>
                 </div>
               </div>
+              {/* Pagination Controls */}
+              {detailedTargets.length > 0 && totalPages > 1 && (
+                <div className="border-t border-slate-200/60 px-4 py-4 sm:px-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1)
+                              setCurrentPage(currentPage - 1);
+                          }}
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+
+                      {renderPaginationItems()}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages)
+                              setCurrentPage(currentPage + 1);
+                          }}
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
 
