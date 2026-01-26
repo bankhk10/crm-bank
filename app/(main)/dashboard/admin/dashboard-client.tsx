@@ -482,7 +482,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 />
                 <Bar
                   dataKey="target"
-                  name="เป้าหมาย"
+                  name="Target"
                   fill="#3b82f6"
                   radius={[4, 4, 0, 0]}
                 />
@@ -623,7 +623,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   />
                   <Bar
                     dataKey="target"
-                    name="เป้าหมาย"
+                    name="Target"
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
