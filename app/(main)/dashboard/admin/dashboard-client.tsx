@@ -226,7 +226,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           </CardContent>
         </Card>
 
-        {/* Target Card - Dark Theme */}
+        {/* Target Card */}
         <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/25 hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
           <div className="absolute -right-4 -top-4 opacity-5">
             <Target className="w-28 h-28 sm:w-36 sm:h-36" />
@@ -256,7 +256,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
                 <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
-                  ยอดขายเทียบกับเป้าหมาย
+                  ส่วนต่าง
                 </p>
                 <div className="text-sm sm:text-base font-bold text-white">
                   <span
@@ -280,7 +280,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
               <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
                 <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
-                  % ยอดขายเทียบกับเป้าหมาย
+                  เปอร์เซ็นต์
                 </p>
                 <div
                   className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
