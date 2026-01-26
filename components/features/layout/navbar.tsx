@@ -18,7 +18,7 @@ const NotificationBell = dynamic(
         <Bell className="h-5 w-5 text-white" />
       </Button>
     ),
-  }
+  },
 );
 
 interface NavbarProps {
@@ -51,25 +51,20 @@ export default function Navbar({ user, onMenuClick }: NavbarProps) {
       {/* Right: controls */}
       <div className="flex items-center gap-1 text-sm">
         <NotificationBell />
-        <Button
-          variant="ghost"
-          className="p-2 rounded hover:bg-white/10"
-          aria-label="Language"
-        >
-          <Globe className="h-5 w-5 text-white" />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="text-white hover:bg-white/10"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-        </Button>
+
         <div className="ml-2 pl-2 border-l border-white/30 hidden flex-col text-right text-white sm:flex">
           <span className="flex items-center justify-end gap-1 font-medium text-white">
             <User className="h-4 w-4" /> {displayName}
           </span>
         </div>
+
+        <Button
+          variant="ghost"
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="ml-2 p-2 text-white hover:text-white hover:bg-red-600 rounded-full transition-colors"
+        >
+          <LogOut className="h-6 w-6" />
+        </Button>
       </div>
     </nav>
   );
