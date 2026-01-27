@@ -20,8 +20,8 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "CRM",
-  description: "CRM for Bank",
+  title: "CSONE : คร็อพ ซายน์ ตราปืนใหญ่",
+  description: "CSONE : คร็อพ ซายน์ ตราปืนใหญ่",
   icons: {
     icon: "/images/logo.png",
     shortcut: "/images/logo.png",
