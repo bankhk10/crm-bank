@@ -12,6 +12,7 @@ import {
   extractUserAgent,
 } from "@/lib/logger";
 import type { RequestContext } from "@/lib/logger/types";
+import { deleteFile, deleteFolder } from "@/lib/file-storage";
 
 const resourcePath = "/api/products";
 
@@ -184,6 +185,35 @@ export async function PATCH(
       metadata: { productId, productCode: product.productCode },
     });
 
+    // IMAGE CLEANUP LOGIC:
+    // If the client sends 'images' array, we assume it's the definitive list of images to keep.
+    // Any existing images NOT in this list should be deleted.
+    if (body.images && Array.isArray(body.images)) {
+      const keepIds = body.images
+        .map((img: any) => img.id)
+        .filter((id: any) => typeof id === "string");
+
+      const currentImages = await (db as any).productImage.findMany({
+        where: { productId },
+      });
+
+      const toDelete = currentImages.filter(
+        (img: any) => !keepIds.includes(img.id),
+      );
+
+      for (const img of toDelete) {
+        try {
+          await deleteFile(img.url);
+        } catch (err) {
+          reqLogger.error("Failed to delete image file during update", err, {
+            module: "products",
+            imageId: img.id,
+          });
+        }
+        await (db as any).productImage.delete({ where: { id: img.id } });
+      }
+    }
+
     return NextResponse.json({ product });
   } catch (err) {
     const duration = Date.now() - startTime;
@@ -237,14 +267,31 @@ export async function DELETE(request: Request, { params }: { params: any }) {
   try {
     const { productId } = await params;
 
-    const result = await (db as any).product.updateMany({
+    const existing = await (db as any).product.findFirst({
       where: { id: productId, deletedAt: null },
-      data: { deletedAt: new Date() },
     });
 
-    if (result.count === 0) {
+    if (!existing) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    // 1. Delete all images physically
+    try {
+      await deleteFolder(`products/${productId}`);
+    } catch (err) {
+      console.error("Failed to delete product folder:", err);
+    }
+
+    // 2. Delete image records from DB
+    await (db as any).productImage.deleteMany({
+      where: { productId },
+    });
+
+    // 3. Soft delete the product
+    await (db as any).product.update({
+      where: { id: productId },
+      data: { deletedAt: new Date() },
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
