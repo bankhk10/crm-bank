@@ -343,7 +343,7 @@ export default function TimeSalesReportPage() {
               </TabsList>
 
               <TabsContent value="overview" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Daily Trend */}
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
@@ -407,9 +407,12 @@ export default function TimeSalesReportPage() {
                       </div>
                     </CardContent>
                   </Card>
+                </div>
 
-                  {/* Seasonality Pie */}
-                  <Card className="border-0 shadow-lg">
+                {/* Container หลักที่แบ่งเป็น 2 คอลัมน์เมื่อจอใหญ่ */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-6">
+                  {/* ฝั่งซ้าย: Seasonality Pie */}
+                  <Card className="border-0 shadow-lg lg:col-span-2 h-full">
                     <CardHeader>
                       <CardTitle className="text-lg">
                         สัดส่วนยอดขายตามไตรมาส
@@ -454,50 +457,46 @@ export default function TimeSalesReportPage() {
                       </div>
                     </CardContent>
                   </Card>
-                </div>
 
-                {/* Best Selling Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                          <Sun className="h-5 w-5 text-emerald-600" />
+                  {/* ฝั่งขวา: Best Selling Info (วางซ้อนกันแนวตั้งในคอลัมน์ขวา) */}
+                  <div className="flex flex-col gap-4">
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+                            <Sun className="h-5 w-5 text-emerald-600" />
+                          </div>
+                          <h3 className="font-semibold">เดือนขายดีที่สุด</h3>
                         </div>
-                        <h3 className="font-semibold">เดือนขายดีที่สุด</h3>
-                      </div>
-                      <p className="text-2xl font-bold text-emerald-600">
-                        {reportData.bestSellingMonth.month}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatTHB(reportData.bestSellingMonth.sales)} (
-                        {reportData.bestSellingMonth.orders} ออเดอร์)
-                      </p>
-                    </CardContent>
-                  </Card>
+                        <p className="text-2xl font-bold text-emerald-600">
+                          {reportData.bestSellingMonth.month}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatTHB(reportData.bestSellingMonth.sales)} (
+                          {reportData.bestSellingMonth.orders} ออเดอร์)
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                  <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
-                          <TrendingUp className="h-5 w-5 text-purple-600" />
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                            <TrendingUp className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <h3 className="font-semibold">การเติบโต</h3>
                         </div>
-                        <h3 className="font-semibold">การเติบโต</h3>
-                      </div>
-                      <p
-                        className={`text-2xl font-bold ${
-                          reportData.growthPercentage >= 0
-                            ? "text-emerald-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {formatPercent(reportData.growthPercentage)}
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        เทียบกับช่วงก่อนหน้า
-                      </p>
-                    </CardContent>
-                  </Card>
+                        <p
+                          className={`text-2xl font-bold ${reportData.growthPercentage >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                        >
+                          {formatPercent(reportData.growthPercentage)}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          เทียบกับช่วงก่อนหน้า
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </TabsContent>
 
