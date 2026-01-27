@@ -137,7 +137,7 @@ export default function SalesTargetsPage() {
 
   const [year, setYear] = useState(queryFilters.year);
   const [monthFilter, setMonthFilter] = useState<number | "all">(
-    queryFilters.month,
+    queryFilters.month as number | "all",
   );
   const [employeeFilter, setEmployeeFilter] = useState(queryFilters.employeeId);
   const [shopFilter, setShopFilter] = useState(queryFilters.shopId);
@@ -277,7 +277,7 @@ export default function SalesTargetsPage() {
 
   useEffect(() => {
     setYear(queryFilters.year);
-    setMonthFilter(queryFilters.month);
+    setMonthFilter(queryFilters.month as number | "all");
     setEmployeeFilter(queryFilters.employeeId);
     setShopFilter(queryFilters.shopId);
   }, [queryFilters]);

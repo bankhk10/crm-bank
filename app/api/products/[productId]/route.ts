@@ -207,7 +207,7 @@ export async function PATCH(
         } catch (err) {
           reqLogger.error("Failed to delete image file during update", err, {
             module: "products",
-            imageId: img.id,
+            metadata: { imageId: img.id },
           });
         }
         await (db as any).productImage.delete({ where: { id: img.id } });

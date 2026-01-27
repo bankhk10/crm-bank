@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     // Get actual sales summary in parallel
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31, 23, 59, 59);
-    const validStatuses = ["APPROVED", "PAID", "DELIVERED"];
+    const validStatuses: any[] = ["APPROVED", "PAID", "DELIVERED"];
 
     const salesPromise = prisma.sale.findMany({
       where: {
