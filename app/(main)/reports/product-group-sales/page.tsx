@@ -141,88 +141,84 @@ export default function ProductGroupSalesReportPage() {
     })) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="relative overflow-hidden border-b bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-violet-500/5" />
-
-        <div className="relative px-6 py-8 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <Link href="/reports">
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 shadow-lg shadow-purple-500/25">
-              <Layers className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                รายงานตามกลุ่มสินค้า
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                กลุ่มสินค้าขายดี / ขายช้า, ยอดขายต่อกลุ่ม, ช่วงเวลาขายดี
-              </p>
-            </div>
+      <div className="relative px-6 py-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/reports">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 shadow-lg shadow-purple-500/25">
+            <Layers className="h-7 w-7 text-white" />
           </div>
-
-          {/* Date Range Filter */}
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[280px]">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
-                    เลือกช่วงเวลา
-                  </label>
-                  <DateRangePicker
-                    from={dateRange.from}
-                    to={dateRange.to}
-                    onSelect={(range) => {
-                      if (range?.from && range?.to) {
-                        setDateRange({ from: range.from, to: range.to });
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {quickDateRanges.map((range) => (
-                    <Button
-                      key={range.label}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => {
-                        const { from, to } = range.getValue();
-                        setDateRange({ from, to });
-                      }}
-                    >
-                      {range.label}
-                    </Button>
-                  ))}
-                </div>
-
-                <Button
-                  onClick={handleFetchReport}
-                  disabled={isPending}
-                  className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      กำลังโหลด...
-                    </>
-                  ) : (
-                    <>
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      ดูรายงาน
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              รายงานตามกลุ่มสินค้า
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              กลุ่มสินค้าขายดี / ขายช้า, ยอดขายต่อกลุ่ม, ช่วงเวลาขายดี
+            </p>
+          </div>
         </div>
+
+        {/* Date Range Filter */}
+        <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1 min-w-[280px]">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+                  เลือกช่วงเวลา
+                </label>
+                <DateRangePicker
+                  from={dateRange.from}
+                  to={dateRange.to}
+                  onSelect={(range) => {
+                    if (range?.from && range?.to) {
+                      setDateRange({ from: range.from, to: range.to });
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {quickDateRanges.map((range) => (
+                  <Button
+                    key={range.label}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      const { from, to } = range.getValue();
+                      setDateRange({ from, to });
+                    }}
+                  >
+                    {range.label}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                onClick={handleFetchReport}
+                disabled={isPending}
+                className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    กำลังโหลด...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    ดูรายงาน
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Report Content */}

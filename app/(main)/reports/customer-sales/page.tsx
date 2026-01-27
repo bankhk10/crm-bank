@@ -119,75 +119,71 @@ export default function CustomerSalesReportPage() {
     }).format(n);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-      <div className="relative overflow-hidden border-b bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="relative px-6 py-8 max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <Link href="/reports">
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
-              <Users className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">รายงานตามลูกค้า</h1>
-              <p className="text-muted-foreground text-sm">
-                ลูกค้าซื้อสูงสุด, ความถี่, มูลค่าตลอดอายุ
-              </p>
-            </div>
+    <div className="min-h-screen">
+      <div className="relative px-6 py-8 max-w-7xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/reports">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
+            <Users className="h-7 w-7 text-white" />
           </div>
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80">
-            <CardContent className="p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[280px]">
-                  <label className="text-sm font-medium mb-2 block">
-                    เลือกช่วงเวลา
-                  </label>
-                  <DateRangePicker
-                    from={dateRange.from}
-                    to={dateRange.to}
-                    onSelect={(r) =>
-                      r?.from &&
-                      r?.to &&
-                      setDateRange({ from: r.from, to: r.to })
-                    }
-                  />
-                </div>
-                <div className="flex gap-2">
-                  {quickDateRanges.map((r) => (
-                    <Button
-                      key={r.label}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDateRange(r.getValue())}
-                    >
-                      {r.label}
-                    </Button>
-                  ))}
-                </div>
-                <Button
-                  onClick={handleFetchReport}
-                  disabled={isPending}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500"
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      โหลด...
-                    </>
-                  ) : (
-                    <>
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      ดูรายงาน
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <h1 className="text-2xl font-bold">รายงานตามลูกค้า</h1>
+            <p className="text-muted-foreground text-sm">
+              ลูกค้าซื้อสูงสุด, ความถี่, มูลค่าตลอดอายุ
+            </p>
+          </div>
         </div>
+        <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex-1 min-w-[280px]">
+                <label className="text-sm font-medium mb-2 block">
+                  เลือกช่วงเวลา
+                </label>
+                <DateRangePicker
+                  from={dateRange.from}
+                  to={dateRange.to}
+                  onSelect={(r) =>
+                    r?.from && r?.to && setDateRange({ from: r.from, to: r.to })
+                  }
+                />
+              </div>
+              <div className="flex gap-2">
+                {quickDateRanges.map((r) => (
+                  <Button
+                    key={r.label}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDateRange(r.getValue())}
+                  >
+                    {r.label}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                onClick={handleFetchReport}
+                disabled={isPending}
+                className="bg-gradient-to-r from-amber-500 to-orange-500"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    โหลด...
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    ดูรายงาน
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="px-6 py-8 max-w-7xl mx-auto">
