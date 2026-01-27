@@ -56,6 +56,8 @@ services:
         condition: service_healthy
     networks:
       - crm-network
+    volumes:
+      - ./public/uploads:/app/public/uploads
     # Internal port only - Nginx จะ proxy มาที่นี่
     expose:
       - "3000"

@@ -51,17 +51,24 @@ export async function uploadFile(
 
   // Create the full directory path
   const uploadDir = path.join(UPLOADS_DIR, folder);
+  console.log(`[Upload] Preparing to upload to: ${uploadDir}`);
+
   await ensureDir(uploadDir);
 
   // Generate unique filename
   const filename = generateFilename(originalFilename);
   const filepath = path.join(uploadDir, filename);
 
+  console.log(`[Upload] Writing file to: ${filepath}`);
+
   // Save the file as-is
   await fs.writeFile(filepath, buffer);
+  console.log(`[Upload] File written successfully`);
 
   // Return the public URL path
+  // Ensure we use forward slashes for URL
   const publicPath = `/uploads/${folder}/${filename}`;
+  console.log(`[Upload] Public path: ${publicPath}`);
 
   return {
     url: publicPath,

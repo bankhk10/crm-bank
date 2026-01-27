@@ -36,11 +36,17 @@ export async function POST(request: Request, { params }: { params: any }) {
       const originalName = file.name || `file-${Date.now()}`;
 
       // Upload to local storage
+      console.log(
+        `[API] Processing file: ${originalName}, size: ${buffer.length}`,
+      );
+
       const uploadResult = await uploadFile(buffer, originalName, {
         folder: `products/${productId}`,
         maxWidth: 1280,
         quality: 85,
       });
+
+      console.log(`[API] Upload success, url: ${uploadResult.url}`);
 
       // Save to DB
       const rec = await (db as any).productImage.create({
@@ -51,6 +57,7 @@ export async function POST(request: Request, { params }: { params: any }) {
           order: i,
         },
       });
+      console.log(`[API] DB Record created: ${rec.id}`);
 
       created.push({
         id: rec.id,
