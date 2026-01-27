@@ -49,9 +49,6 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:-local_auth_secret_for_testing_only_12345}
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-demo}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
       NEXT_PUBLIC_SHOW_RANDOM_FILL: "true"
     depends_on:
       postgres:

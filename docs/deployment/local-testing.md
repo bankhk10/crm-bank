@@ -38,9 +38,6 @@ DATABASE_URL="postgresql://postgres:postgres@postgres:5432/crm_bank"
 AUTH_SECRET="your-secret-key"
 AUTH_TRUST_HOST="true"
 NEXT_PUBLIC_SHOW_RANDOM_FILL="true"
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
 > **หมายเหตุ:** สำหรับการทดสอบ local, `DATABASE_URL` จะถูก override ใน `docker-compose.yml` ให้ชี้ไปที่ PostgreSQL container
@@ -279,7 +276,6 @@ docker system prune -a --volumes
 
 - อัพโหลดรูปภาพ Customer
 - อัพโหลดรูปภาพ Product
-- ตรวจสอบว่ารูปแสดงผลถูกต้อง (ผ่าน Cloudinary)
 
 ### 4. ทดสอบ Permissions
 

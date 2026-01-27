@@ -6,7 +6,7 @@
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    // Suppress DEP0169 (url.parse deprecation) usually from 3rd party libs like cloudinary or next-cloudinary
+    // Suppress DEP0169 (url.parse deprecation) warnings from legacy dependencies
     const originalEmitWarning = process.emitWarning;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     process.emitWarning = (warning: string | Error, ...args: any[]) => {

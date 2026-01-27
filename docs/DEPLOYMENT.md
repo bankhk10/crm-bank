@@ -136,10 +136,6 @@ openssl rand -base64 64
 
 AUTH_SECRET=ค่าที่ได้จากคำสั่งด้านบน
 
-# Cloudinary (ใส่ค่าจริงจาก Cloudinary Dashboard)
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 ### ขั้นตอนที่ 5: ขอ SSL Certificate (ครั้งแรก)

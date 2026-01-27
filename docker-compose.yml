@@ -50,9 +50,6 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:?Auth secret is required}
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.cropsciences.co.th}
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       NEXT_PUBLIC_SHOW_RANDOM_FILL: "false"
     depends_on:
       postgres:

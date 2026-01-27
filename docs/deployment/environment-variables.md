@@ -78,41 +78,6 @@
   NEXTAUTH_URL="https://crm.yourdomain.com"
   ```
 
-### Cloudinary (File Storage)
-
-#### `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
-
-- **Type:** String
-- **Required:** ✅ Yes
-- **Description:** Cloudinary cloud name
-- **Public:** ✅ Yes (accessible in browser)
-- **Example:**
-  ```env
-  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
-  ```
-
-#### `CLOUDINARY_API_KEY`
-
-- **Type:** String
-- **Required:** ✅ Yes
-- **Description:** Cloudinary API key
-- **Security:** ⚠️ Server-side only
-- **Example:**
-  ```env
-  CLOUDINARY_API_KEY="123456789012345"
-  ```
-
-#### `CLOUDINARY_API_SECRET`
-
-- **Type:** String
-- **Required:** ✅ Yes
-- **Description:** Cloudinary API secret
-- **Security:** ⚠️ **CRITICAL** - Server-side only
-- **Example:**
-  ```env
-  CLOUDINARY_API_SECRET="abcdefghijklmnopqrstuvwxyz123456"
-  ```
-
 ## Optional Variables
 
 ### Application
@@ -170,10 +135,6 @@ AUTH_TRUST_HOST="true"
 # Application
 NEXT_PUBLIC_SHOW_RANDOM_FILL="true"
 
-# Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-dev-cloud"
-CLOUDINARY_API_KEY="dev-api-key"
-CLOUDINARY_API_SECRET="dev-api-secret"
 ```
 
 ### Local Docker Testing (`.env.local`)
@@ -190,10 +151,6 @@ AUTH_TRUST_HOST="true"
 # Application
 NEXT_PUBLIC_SHOW_RANDOM_FILL="true"
 
-# Cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
 ### Production (`.env.production`)
@@ -211,10 +168,6 @@ NEXTAUTH_URL="https://crm.yourdomain.com"
 NODE_ENV="production"
 NEXT_PUBLIC_SHOW_RANDOM_FILL="false"
 
-# Cloudinary - Production credentials
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-prod-cloud"
-CLOUDINARY_API_KEY="prod-api-key"
-CLOUDINARY_API_SECRET="prod-api-secret"
 
 # Performance
 NEXT_TELEMETRY_DISABLED="1"
@@ -254,7 +207,6 @@ NEXT_TELEMETRY_DISABLED="1"
    const apiKey = "abc123";
 
    // GOOD
-   const apiKey = process.env.CLOUDINARY_API_KEY;
    ```
 
 2. ❌ **Exposing server-side secrets to client**
@@ -285,7 +237,6 @@ Before deploying, verify:
 - [ ] ✅ `DATABASE_URL` is correct and accessible
 - [ ] ✅ `AUTH_SECRET` is strong and unique
 - [ ] ✅ `NEXTAUTH_URL` matches your domain
-- [ ] ✅ Cloudinary credentials are correct
 - [ ] ✅ No development values in production
 - [ ] ✅ No secrets committed to Git
 - [ ] ✅ `.env.production` has correct permissions (read-only)
@@ -300,14 +251,6 @@ npx prisma db pull
 
 # Using psql
 psql "$DATABASE_URL" -c "SELECT version();"
-```
-
-### Test Cloudinary Connection
-
-```bash
-# Using curl
-curl -u "$CLOUDINARY_API_KEY:$CLOUDINARY_API_SECRET" \
-  "https://api.cloudinary.com/v1_1/$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME/resources/image"
 ```
 
 ### Test Application
@@ -351,20 +294,8 @@ openssl rand -base64 32
 AUTH_SECRET="<generated-value>"
 ```
 
-### Issue: "Cloudinary upload failed"
-
-**Cause:** Invalid Cloudinary credentials
-
-**Solution:**
-
-1. Verify credentials in Cloudinary dashboard
-2. Check that `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` matches exactly
-3. Ensure `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` are correct
-4. Test with curl command above
-
 ## References
 
 - [Next.js Environment Variables](https://nextjs.org/docs/app/building-your-application/configuring/environment-variables)
 - [NextAuth.js Configuration](https://next-auth.js.org/configuration/options)
 - [Prisma Connection URLs](https://www.prisma.io/docs/reference/database-reference/connection-urls)
-- [Cloudinary API](https://cloudinary.com/documentation/cloudinary_sdks)
