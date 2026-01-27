@@ -190,10 +190,6 @@ NEXTAUTH_URL="https://your-subdomain.ngrok.io"
 # Feature Flags
 NEXT_PUBLIC_SHOW_RANDOM_FILL="false"
 
-# Cloudinary - ใช้ค่าเดียวกับ development
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
 
 # Node Environment
 NODE_ENV="production"
@@ -613,7 +609,6 @@ DATABASE_URL="postgresql://user:password@host:5432/db?connection_limit=10&pool_t
 - [ ] ✅ Database พร้อมใช้งานและ migrate แล้ว
 - [ ] ✅ `.env.production` ครบถ้วนและถูกต้อง
 - [ ] ✅ `AUTH_SECRET` สร้างใหม่และปลอดภัย
-- [ ] ✅ Cloudinary credentials ถูกต้อง
 - [ ] ✅ Backup database เก่า (ถ้ามี)
 - [ ] ✅ Firewall rules ตั้งค่าแล้ว
 - [ ] ✅ SSL certificate พร้อม (ถ้าใช้)
