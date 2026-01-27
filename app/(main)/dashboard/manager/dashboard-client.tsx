@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -16,10 +15,8 @@ import {
 } from "recharts";
 import {
   TrendingUp,
-  AlertCircle,
   CheckCircle2,
   Clock,
-  Briefcase,
   Map,
   Package,
   DollarSign,
@@ -29,7 +26,7 @@ import {
   Sparkles,
   BarChart3,
 } from "lucide-react";
-import type { DashboardData } from "@/app/actions/dashboard";
+import type { DashboardData, DashboardPeriod } from "@/app/actions/dashboard";
 
 /* ================= Props ================= */
 interface DashboardClientProps {
@@ -55,13 +52,40 @@ const formatCompact = (value: number) =>
 
 /* ================= Component ================= */
 export default function DashboardClient({ data }: DashboardClientProps) {
-  const { monthlySales, target, ytd, productGroupData, regionData, jobStatus } =
-    data;
+  const [dashboardData, setDashboardData] = useState<DashboardData>(data);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date>(new Date());
+  const { periodData, ytd } = dashboardData;
+  const [overviewPeriod, setOverviewPeriod] =
+    useState<DashboardPeriod>("month");
+  const [regionPeriod, setRegionPeriod] = useState<DashboardPeriod>("month");
+  const [productGroupPeriod, setProductGroupPeriod] =
+    useState<DashboardPeriod>("month");
+
+  const periodOptions: { value: DashboardPeriod; label: string }[] = [
+    { value: "day", label: "วัน" },
+    { value: "month", label: "เดือน" },
+    { value: "year", label: "ปี" },
+  ];
+
+  const periodLabels: Record<DashboardPeriod, string> = {
+    day: "วันนี้",
+    month: "เดือนนี้",
+    year: "ปีนี้",
+  };
+
+  const monthlySales = periodData[overviewPeriod].monthlySales;
+  const target = periodData[overviewPeriod].target;
+  const regionData = periodData[regionPeriod].regionData;
+  const productGroupData = periodData[productGroupPeriod].productGroupData;
 
   // State for managing visible product groups
   const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
-    () => new Set(productGroupData.map((p) => p.group))
+    () => new Set(productGroupData.map((p) => p.group)),
   );
+
+  useEffect(() => {
+    setVisibleGroups(new Set(productGroupData.map((p) => p.group)));
+  }, [productGroupData]);
 
   // Toggle group visibility
   const toggleGroup = (group: string) => {
@@ -88,43 +112,83 @@ export default function DashboardClient({ data }: DashboardClientProps) {
   // Filter product group data based on visible groups
   const filteredProductGroupData = useMemo(
     () => productGroupData.filter((p) => visibleGroups.has(p.group)),
-    [productGroupData, visibleGroups]
+    [productGroupData, visibleGroups],
   );
 
   const percent =
     target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
   const remaining = target.target - target.current;
 
+  useEffect(() => {
+    let isActive = true;
+    const refreshDashboard = async () => {
+      try {
+        const response = await fetch("/api/dashboard/admin", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+        const nextData: DashboardData = await response.json();
+        if (!isActive) {
+          return;
+        }
+        setDashboardData(nextData);
+        setLastUpdatedAt(new Date());
+      } catch (error) {
+        console.error("Failed to refresh dashboard data", error);
+      }
+    };
+
+    setLastUpdatedAt(new Date());
+    const intervalId = window.setInterval(refreshDashboard, 30000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 px-3 py-4 sm:p-6 md:p-8 lg:p-10 space-y-4 sm:space-y-6 lg:space-y-8 animate-in fade-in duration-500">
       {/* ================= Header - Mobile First ================= */}
       <div className="flex flex-col gap-3 sm:gap-4">
         {/* Title */}
-        <div className="text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+        <div className="flex flex-col items-center justify-center text-center w-full">
+          {" "}
+          {/* เพิ่ม items-center และ text-center */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            {" "}
+            {/* แก้เป็น justify-center */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
+              <div className="relative p-2.5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <span className="text-xs sm:text-sm font-medium text-blue-600 uppercase tracking-wider">
-              Dashboard
-            </span>
+            <div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 bg-clip-text text-transparent leading-tight">
+                ภาพรวมแดชบอร์ด
+              </h1>
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-            ภาพรวมแดชบอร์ด
-          </h1>
-          <p className="text-slate-500 mt-1 text-xs sm:text-sm">
-            ภาพรวมยอดขายและสถานะงานประจำเดือน
-          </p>
+          {/* เส้นประดับด้านล่าง ปรับให้กว้างขึ้นและอยู่กลาง */}
+          <div className="mt-4 flex items-center gap-3 justify-center w-full max-w-sm">
+            <div className="h-[3px] flex-1 bg-gradient-to-r from-transparent via-blue-300 to-blue-500 rounded-full" />
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 animate-pulse" />
+            <div className="h-[3px] flex-1 bg-gradient-to-l from-transparent via-blue-300 to-blue-500 rounded-full" />
+          </div>
         </div>
 
-        {/* Last Updated Badge */}
-        <div className="flex justify-center sm:justify-end">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end px-4 sm:px-4">
+          {/* Last Updated Badge */}
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">อัปเดตล่าสุด </span>
             <span className="font-medium">
-              {new Date().toLocaleString("th-TH", {
+              {lastUpdatedAt.toLocaleString("th-TH", {
                 day: "numeric",
                 month: "short",
                 hour: "2-digit",
@@ -147,7 +211,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <CardHeader className="pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                ยอดขายเดือนปัจจุบัน
+                ยอดขาย{periodLabels[overviewPeriod]}
               </CardTitle>
               <div
                 className={`flex items-center gap-1 ${
@@ -183,7 +247,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </p>
               </div>
               <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-100">
-                <p className="text-[10px] sm:text-xs font-semibold text-indigo-600 uppercase tracking-wide">
+                <p className="text-[10px] sm:text-xs font-semibold text-green-600 uppercase tracking-wide">
                   Invoice
                 </p>
                 <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
@@ -194,7 +258,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           </CardContent>
         </Card>
 
-        {/* Target Card - Dark Theme */}
+        {/* Target Card */}
         <Card className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/25 hover:shadow-2xl hover:scale-[1.01] transition-all duration-300">
           <div className="absolute -right-4 -top-4 opacity-5">
             <Target className="w-28 h-28 sm:w-36 sm:h-36" />
@@ -203,8 +267,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
           <CardHeader className="pb-2 sm:pb-3 relative">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-400 font-semibold">
-                เป้ายอดขาย
+              <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-200 font-semibold">
+                เป้ายอดขาย{periodLabels[overviewPeriod]}
               </CardTitle>
               <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
                 <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
@@ -213,53 +277,60 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           </CardHeader>
 
           <CardContent className="relative">
-            <div className="flex justify-between items-end mb-2 sm:mb-3">
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl sm:text-4xl md:text-5xl font-black">
-                  {percent}
-                </span>
-                <span className="text-lg sm:text-xl font-bold text-slate-400">
-                  %
-                </span>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  เป้าหมาย
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-slate-300">
-                  {formatCompact(target.target)}
-                </p>
+            {/* Main Amount Display */}
+            <div className="text-center mb-3 sm:mb-4">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white">
+                {formatCurrency(target.target)}
               </div>
             </div>
 
-            <div className="relative">
-              <Progress
-                value={percent > 100 ? 100 : percent}
-                className="h-2 sm:h-3 rounded-full bg-slate-700/70 [&>div]:bg-gradient-to-r [&>div]:from-emerald-400 [&>div]:to-lime-400 [&>div]:rounded-full"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
-              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm">
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  ยอดปัจจุบัน
-                </p>
-                <p className="text-sm sm:text-base font-bold text-white">
-                  {formatCompact(target.current)}
-                </p>
-              </div>
-              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-right">
-                <p className="text-[10px] sm:text-xs text-slate-500">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
+                <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
                   ส่วนต่าง
                 </p>
-                <p
-                  className={`text-sm sm:text-base font-bold ${
-                    remaining <= 0 ? "text-emerald-400" : "text-amber-400"
+                <div className="text-sm sm:text-base font-bold text-white">
+                  <span
+                    className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
+                      remaining <= 0
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-amber-500/20 text-amber-400"
+                    }`}
+                  >
+                    {remaining <= 0 ? (
+                      <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    )}
+                    <span>
+                      {remaining <= 0 ? "+" : "-"}
+                      {formatCompact(Math.abs(remaining))} บาท
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div className="p-2 sm:p-3 rounded-xl bg-slate-800/50 backdrop-blur-sm text-center">
+                <p className="text-[10px] sm:text-xs text-slate-200 mb-0.5">
+                  เปอร์เซ็นต์
+                </p>
+                <div
+                  className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
+                    remaining <= 0
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-amber-500/20 text-amber-400"
                   }`}
                 >
-                  {remaining <= 0 ? "+" : "-"}
-                  {formatCompact(Math.abs(remaining))}
-                </p>
+                  {remaining <= 0 ? (
+                    <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  )}
+                  <span>
+                    {remaining <= 0 ? "+" : "-"}
+                    {Math.abs(percent - 100)}%
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -274,11 +345,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-semibold">
-              ยอดขายสะสม (YTD)
+              ยอดขายสะสมทั้งปี (YTD)
             </CardTitle>
           </CardHeader>
 
           <CardContent>
+            {/* Main Amount */}
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 shadow-inner">
                 <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" />
@@ -293,7 +365,29 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
             </div>
 
-            <div className="mt-4 sm:mt-6 flex items-center gap-2">
+            {/* Progress to Target */}
+            <div className="mt-3 sm:mt-4">
+              <div className="flex justify-between text-[10px] sm:text-xs text-slate-500 mb-1 sm:mb-1.5">
+                <span>
+                  {ytd.target > 0
+                    ? Math.round((ytd.total / ytd.target) * 100)
+                    : 0}
+                  %
+                </span>
+                <span>เป้าหมาย: {formatCompact(ytd.target)}</span>
+              </div>
+              <Progress
+                value={
+                  ytd.target > 0
+                    ? Math.min((ytd.total / ytd.target) * 100, 100)
+                    : 0
+                }
+                className="h-2 sm:h-2.5 rounded-full bg-amber-100 [&>div]:bg-gradient-to-r [&>div]:from-amber-400 [&>div]:to-orange-500 [&>div]:rounded-full"
+              />
+            </div>
+
+            {/* Growth & Remaining Info */}
+            <div className="mt-3 sm:mt-4 flex items-center justify-between">
               <div
                 className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold ${
                   ytd.growthPercent >= 0
@@ -308,37 +402,126 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 )}
                 {ytd.growthPercent >= 0 ? "+" : ""}
                 {ytd.growthPercent}%
+                <span className="text-slate-400 font-normal ml-1">
+                  จากปีที่แล้ว
+                </span>
               </div>
-              <span className="text-[10px] sm:text-xs text-slate-500">
-                จากปีที่แล้ว
-              </span>
+              <div className="text-right">
+                <p className="text-[10px] sm:text-xs text-slate-500">คงเหลือ</p>
+                <p
+                  className={`text-xs sm:text-sm font-bold ${
+                    ytd.total >= ytd.target
+                      ? "text-emerald-600"
+                      : "text-amber-600"
+                  }`}
+                >
+                  {ytd.total >= ytd.target ? "+" : "-"}
+                  {formatCompact(Math.abs(ytd.target - ytd.total))}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* ================= Charts - Responsive ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:gap-6">
+        {/* Region Chart */}
+        <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
+          <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-100 to-amber-100">
+                  <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                    ยอดขายรายภาคเดือนนี้
+                  </CardTitle>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={regionData}
+                margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E2E8F0"
+                />
+                <XAxis
+                  dataKey="region"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickFormatter={(v) => `${v / 1000}k`}
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  width={50}
+                />
+                <Tooltip
+                  cursor={{ fill: "#F5F5F5" }}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "none",
+                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                    fontSize: 12,
+                  }}
+                  formatter={(value: number) => formatNumber(value)}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
+                  iconSize={8}
+                />
+                <Bar
+                  dataKey="target"
+                  name="Target"
+                  fill="#3b82f6"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="salesNote"
+                  name="Sales Note"
+                  fill="#f97316"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="invoice"
+                  name="Invoice"
+                  fill="#22c55e"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
         {/* Product Group Chart */}
         <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
           <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-100 to-violet-100">
                   <Package className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                    ยอดขายตามกลุ่มสินค้า
+                    ยอดขายตามกลุ่มสินค้าเดือนนี้
                   </CardTitle>
-                  <p className="text-[10px] sm:text-xs text-slate-500">
-                    เปรียบเทียบเป้าหมายและยอดขายจริง
-                  </p>
                 </div>
               </div>
-              {/* Group Filter Toggle Info */}
-              <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                {visibleGroups.size}/{productGroupData.length} กลุ่ม
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Group Filter Toggle Info */}
+                <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                  {visibleGroups.size}/{productGroupData.length} กลุ่ม
+                </div>
               </div>
             </div>
 
@@ -385,7 +568,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                           <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
                         )}
                       </span>
-                      {group.group}
+                      {group.code}
                     </button>
                   );
                 })}
@@ -404,7 +587,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={filteredProductGroupData}
-                  margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
+                  margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -412,7 +595,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     stroke="#E2E8F0"
                   />
                   <XAxis
-                    dataKey="group"
+                    dataKey="code"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
@@ -422,9 +605,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
-                    width={40}
+                    width={50}
                   />
                   <Tooltip
+                    cursor={{ fill: "#F5F5F5" }}
                     contentStyle={{
                       borderRadius: 12,
                       border: "none",
@@ -439,102 +623,25 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   />
                   <Bar
                     dataKey="target"
-                    name="เป้าหมาย"
-                    fill="#E2E8F0"
+                    name="Target"
+                    fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="salesNote"
                     name="Sales Note"
-                    fill="#818cf8"
+                    fill="#f97316"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="invoice"
                     name="Invoice"
-                    fill="#4f46e5"
+                    fill="#22c55e"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Region Chart */}
-        <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white/70 backdrop-blur-sm shadow-lg overflow-hidden">
-          <CardHeader className="pb-2 sm:pb-4 border-b border-slate-100">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-100 to-amber-100">
-                <Map className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-              </div>
-              <div>
-                <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                  ยอดขายรายภาค
-                </CardTitle>
-                <p className="text-[10px] sm:text-xs text-slate-500">
-                  แยกตามภูมิภาคทั่วประเทศ
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={regionData}
-                margin={{ left: -15, right: 5, top: 5, bottom: 5 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E2E8F0"
-                />
-                <XAxis
-                  dataKey="region"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tickFormatter={(v) => `${v / 1000}k`}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  width={40}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: "none",
-                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                    fontSize: 12,
-                  }}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                  iconSize={8}
-                />
-                <Bar
-                  dataKey="target"
-                  name="เป้าหมาย"
-                  fill="#E2E8F0"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="salesNote"
-                  name="Sales Note"
-                  fill="#fb923c"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="invoice"
-                  name="Invoice"
-                  fill="#ea580c"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
