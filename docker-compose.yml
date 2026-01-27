@@ -56,6 +56,7 @@ services:
         condition: service_healthy
     networks:
       - crm-network
+    user: root
     volumes:
       - ./public/uploads:/app/public/uploads
     # Internal port only - Nginx จะ proxy มาที่นี่
