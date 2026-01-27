@@ -62,7 +62,7 @@ export const ProductForecastSection = ({
               <PackageSearch className="w-5 h-5 text-teal-600" />
             </div>
             <div>
-              <CardTitle>Product Forecast</CardTitle>
+              <CardTitle>ยอดคาดการณ์รายสินค้า</CardTitle>
               <p className="text-sm text-slate-500">
                 รายการยอดคาดการณ์ตามสินค้า
               </p>

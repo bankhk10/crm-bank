@@ -65,7 +65,7 @@ export const PersonalForecastSection = ({
               <UserRound className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle>Personal Forecast</CardTitle>
+              <CardTitle>ยอดคาดการณ์รายบุคคล</CardTitle>
               <p className="text-sm text-slate-500">
                 สรุปยอดคาดการณ์รายบุคคลจากเป้าหมายที่บันทึกไว้
               </p>

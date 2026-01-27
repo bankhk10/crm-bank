@@ -59,7 +59,7 @@ export const GroupForecastSection = ({
               <Layers className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <CardTitle>Group / Category Forecast</CardTitle>
+              <CardTitle>ยอดคาดการณ์ตามกลุ่มสินค้า</CardTitle>
               <p className="text-sm text-slate-500">
                 ภาพรวมยอดคาดการณ์ตามกลุ่มสินค้า
               </p>
