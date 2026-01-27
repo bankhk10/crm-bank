@@ -8,6 +8,8 @@ export {
   EditAccessLevel,
   DeleteAccessLevel,
   PermissionType,
+  SaleStatus,
+  PaymentTerm,
   // Add other specific exports you need from @prisma/client
 } from "@prisma/client";
 
