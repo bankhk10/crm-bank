@@ -18,4 +18,6 @@ export type {
   Permission,
   RolePermission,
   UserPermissionOverride,
+  Sale,
+  SaleItem,
 } from "@prisma/client";
