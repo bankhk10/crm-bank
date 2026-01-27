@@ -144,7 +144,7 @@ export function ProductForm({
               groupsData.groups.map(
                 (g: { code: string; description: string }) => ({
                   value: g.code,
-                  label: g.code + " - " + g.description,
+                  label: g.description,
                 }),
               ),
             );
