@@ -547,7 +547,7 @@ export default function ProductGroupSalesReportPage() {
                       <Table className="min-w-[760px]">
                         <TableHeader>
                           <TableRow>
-                            <TableHead>#</TableHead>
+                            <TableHead>ลำดับ</TableHead>
                             <TableHead>กลุ่มสินค้า</TableHead>
                             <TableHead className="text-right">ยอดขาย</TableHead>
                             <TableHead className="text-right">
