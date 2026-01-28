@@ -23,7 +23,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Search, FlaskConical } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  FlaskConical,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface ChemicalGroup {
@@ -191,6 +199,8 @@ export default function ChemicalGroupsPage() {
     );
   }
 
+  const totalPages = Math.ceil(total / perPage);
+
   return (
     <section className="space-y-6 p-6">
       <Card className="shadow-lg border-0 overflow-hidden !py-0 !gap-0">
@@ -299,10 +309,39 @@ export default function ChemicalGroupsPage() {
             </Table>
           </div>
 
-          {/* Pagination info */}
+          {/* Pagination */}
           {total > 0 && (
-            <div className="mt-4 text-sm text-slate-500">
-              แสดง {groups.length} จาก {total} รายการ
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
+              <div className="text-sm text-slate-500">
+                แสดง {(page - 1) * perPage + 1} ถึง{" "}
+                {Math.min(page * perPage, total)} จาก {total} รายการ
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="h-9 w-9"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1 mx-2">
+                  <span className="text-sm font-medium">หน้า {page}</span>
+                  <span className="text-sm text-slate-400">
+                    จาก {totalPages || 1}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || totalPages === 0 || loading}
+                  className="h-9 w-9"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
