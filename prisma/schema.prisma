@@ -162,6 +162,8 @@ model Employee {
   sales                Sale[]      @relation("SaleEmployee")
   dailySalesSummaries  DailySalesSummary[]
   salesTargets         SalesTarget[]
+  pointSummary         EmployeePointSummary?
+  pointHistories       EmployeePointHistory[]
 }
 
 model Department {
@@ -494,6 +496,7 @@ model Product {
   price                 Decimal?      @db.Decimal(15, 2)
   cartonPrice           Decimal?      @db.Decimal(15, 2)
   promotionBudget       Decimal?      @db.Decimal(15, 2)
+  pointPerUnit          Int           @default(0)
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   deletedAt             DateTime?
@@ -508,6 +511,7 @@ model Product {
   salesTargets          ProductSalesTarget[] @relation("ProductSalesTargets")
   detailedSalesTargets  SalesTargetItem[]
   chemicalGroup         String?       // กลุ่มสาร
+  pointHistories        EmployeePointHistory[]
 }
 
 // กลุ่มสาร (Chemical Group)
@@ -693,6 +697,7 @@ model Sale {
   
   items                 SaleItem[]
   statusHistory         SaleStatusHistory[]
+  pointHistories        EmployeePointHistory[]
 
   @@index([customerId, saleDate])
   @@index([employeeId, saleDate])
@@ -714,6 +719,36 @@ model SaleItem {
   sale                  Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product               Product  @relation("SaleItemProduct", fields: [productId], references: [id], onDelete: Restrict)
   lotAllocations        SaleItemLot[]  // LOT ที่ใช้สำหรับสินค้านี้
+  pointHistory          EmployeePointHistory?
+}
+
+model EmployeePointHistory {
+  id            String   @id @default(cuid())
+  employeeId    String
+  saleId        String
+  saleItemId    String
+  productId     String
+  quantity      Int
+  pointPerUnit  Int
+  totalPoints   Int
+  createdAt     DateTime @default(now())
+
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleItem      SaleItem @relation(fields: [saleItemId], references: [id], onDelete: Restrict)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([saleItemId])
+  @@index([employeeId, createdAt])
+  @@index([saleId])
+}
+
+model EmployeePointSummary {
+  employeeId  String   @id
+  totalPoints Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
 
 // เก็บข้อมูลว่า SaleItem แต่ละรายการใช้ LOT ไหนบ้าง

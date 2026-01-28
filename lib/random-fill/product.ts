@@ -11,6 +11,7 @@ export type ProductRandomPayload = {
   usedForPlants?: string[];
   salesPoint?: string;
   properties?: string;
+  pointPerUnit?: number;
 };
 
 const units = [
