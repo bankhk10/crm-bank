@@ -12,6 +12,7 @@ const managementSchema = z.object({
   cartonPrice: z.number().optional(),
   packageSizePerBox: z.string().optional(),
   promotionBudget: z.number().optional(),
+  pointPerUnit: z.number().int().min(0).optional(),
   freeItems: z
     .array(
       z.object({
@@ -93,6 +94,7 @@ export async function PATCH(
           cartonPrice: parsed.data.cartonPrice,
           packageSizePerBox: parsed.data.packageSizePerBox,
           promotionBudget: parsed.data.promotionBudget,
+          pointPerUnit: parsed.data.pointPerUnit,
         },
       });
 
