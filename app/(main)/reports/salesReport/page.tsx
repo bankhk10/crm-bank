@@ -7,20 +7,18 @@ export default async function SalesReportPage() {
   const { customers, employees, years } = await getFilterOptions();
 
   return (
-    <div className="h-full p-6 space-y-6 bg-white rounded-2xl min-h-screen">
-      <Suspense
-        fallback={
-          <div className="flex h-[50vh] w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        }
-      >
-        <SalesReportClient
-          customers={customers}
-          employees={employees}
-          years={years}
-        />
-      </Suspense>
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <Suspense
+          fallback={
+            <div className="flex h-[50vh] w-full items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          }
+        >
+          <SalesReportClient customers={customers} employees={employees} years={years} />
+        </Suspense>
+      </div>
     </div>
   );
 }
