@@ -341,6 +341,53 @@ model TemporaryCreditLimit {
 
 ---
 
+## ADR-011: JWT Token Optimization (Permission Keys)
+
+### Decision
+เก็บ permission keys เป็น array แทน full permission objects ใน JWT token
+
+### Context
+- เมื่อเพิ่ม permissions จำนวนมาก (90+ permissions)
+- JWT token ขนาดใหญ่เก็บใน cookie
+- เกิด HTTP 431 "Request Header Fields Too Large" error
+
+### Rationale
+```typescript
+// Before (v1.1.0) - ~5KB+
+{
+  permissions: {
+    "sale.create": { key: "...", category: "ACTION", allow: true, dataAccess: "VIEW_ALL", ... },
+    // ... 90+ full objects
+  }
+}
+
+// After (v1.2.0) - ~1KB
+{
+  permissionKeys: ["sale.create", "sale.view", ...],  // Just an array of strings
+  dataAccessByResource: { "sale": "VIEW_ALL" },       // Separate compact maps
+  editAccessByResource: { "sale": "EDIT_ALL" },
+  deleteAccessByResource: { "sale": "DELETE_ALL" }
+}
+```
+
+### Implementation
+```typescript
+// Permission check: Before
+session.user.permissions?.["sale.create"]?.allow
+
+// Permission check: After
+session.user.permissionKeys?.includes("sale.create")
+```
+
+### Consequences
+- ✅ ลดขนาด JWT token ~80%
+- ✅ แก้ไข HTTP 431 error
+- ✅ เร็วขึ้นในการ parse/serialize
+- ⚠️ Breaking change ต้อง migrate code
+- ⚠️ ต้องล้าง session เก่าเมื่อ deploy
+
+---
+
 ## Decision Log
 
 | ID | Title | Date | Status |
@@ -355,7 +402,8 @@ model TemporaryCreditLimit {
 | ADR-008 | Daily Sales Summary | 2026-01-28 | Accepted |
 | ADR-009 | Credit System Design | 2026-01-28 | Accepted |
 | ADR-010 | Tailwind Mobile-First | 2026-01-28 | Accepted |
+| ADR-011 | JWT Token Optimization | 2026-01-28 | Accepted |
 
 ---
 
-**See Also**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md)
+**See Also**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md) | [RBAC_POLICY.md](./RBAC_POLICY.md)

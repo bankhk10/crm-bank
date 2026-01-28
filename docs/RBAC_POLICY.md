@@ -1,6 +1,6 @@
 # RBAC Policy - CRM System
 
-> **Version**: 1.1.0 | **Updated**: 2026-01-28  
+> **Version**: 1.2.0 | **Updated**: 2026-01-28  
 > **Source of Truth**: `prisma/seed.js`  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
@@ -323,52 +323,136 @@ Note: allow = false always wins (explicit deny)
 
 ---
 
-## 8. Permission Check Flow
+## 8. Session Permission Storage
+
+### JWT Token Optimization (v1.2.0)
+
+เพื่อหลีกเลี่ยง HTTP 431 (Request Header Fields Too Large) error เนื่องจาก cookie มีขนาดใหญ่เกินไป ระบบใช้ **compact permission storage**:
 
 ```typescript
-async function checkPermission(userId: string, key: string): boolean {
-  // 1. Check user overrides first
-  const override = await getOverride(userId, key);
-  if (override) return override.allow;
-  
-  // 2. Check role permissions
-  const roles = await getUserRoles(userId);
-  for (const role of roles) {
-    const perm = await getRolePermission(role.id, key);
-    if (perm?.allow) return true;
+// ก่อน (v1.1.0) - เก็บ full object (~5KB+)
+{
+  permissions: {
+    "sale.create": { key: "sale.create", category: "ACTION", allow: true, ... },
+    "sale.view": { key: "sale.view", category: "ACTION", allow: true, ... },
+    // ... 90+ objects
   }
-  
-  // 3. Default deny
-  return false;
+}
+
+// หลัง (v1.2.0) - เก็บเฉพาะ keys (~1KB)
+{
+  permissionKeys: ["sale.create", "sale.view", "menu.sales", ...],
+  dataAccessByResource: { "sale": "VIEW_ALL", "customer": "VIEW_DEPARTMENT" },
+  editAccessByResource: { "sale": "EDIT_ALL", "customer": "EDIT_OWN" },
+  deleteAccessByResource: { "sale": "DELETE_ALL", "customer": "DELETE_OWN" }
+}
+```
+
+### Session User Interface
+
+```typescript
+interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  roles: string[];
+  permissionKeys: string[];  // Array of allowed permission keys
+  departmentId?: string | null;
+  positionId?: string | null;
+  dataAccessByResource: Record<string, DataAccessLevel>;
+  editAccessByResource: Record<string, EditAccessLevel>;
+  deleteAccessByResource: Record<string, DeleteAccessLevel>;
+  employeeId?: string | null;
 }
 ```
 
 ---
 
-## 9. API Guard Pattern
+## 9. Permission Check Flow
+
+### Client-Side (React Hook)
+
+```typescript
+// hooks/use-permission.ts
+const { hasPermission, canView, canEdit, canDelete } = usePermission();
+
+// Check permission
+if (hasPermission("sale.create")) {
+  // Can create sale
+}
+
+// Check data scope
+if (canView("sale", { resourceOwnerId: sale.createdById })) {
+  // Can view this sale
+}
+```
+
+### Server-Side (API Route)
+
+```typescript
+async function checkPermission(session: Session, key: string): boolean {
+  // 1. Check if permission key exists in array
+  return session.user.permissionKeys?.includes(key) ?? false;
+}
+```
+
+---
+
+## 10. API Guard Pattern
 
 ```typescript
 // Example: app/api/sales/route.ts
+import { auth } from "@/lib/auth";
+import { isAuthorized } from "@/src/core/rbac";
+
 export async function POST(req) {
-  const session = await getServerSession(authOptions);
-  if (!session) return unauthorized();
+  const session = await auth();
   
-  // Check action permission
-  if (!hasPermission(session, 'sale.create')) {
-    return forbidden();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   
-  // For DATA permission, apply filter
-  const dataAccess = getDataAccess(session, 'sale');
+  // Check route authorization
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized("/api/sales", permissionKeys)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  
+  // Check action permission
+  if (!permissionKeys.includes("sale.create")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  
+  // For DATA permission, use the access maps directly
+  const dataAccess = session.user.dataAccessByResource?.["sale"];
   const filter = buildFilter(dataAccess, session.user);
   
   // Continue with business logic...
 }
 ```
 
+### Helper Function
+
+```typescript
+// lib/permission-check.ts
+export function hasPermission(session: Session | null, key: string): boolean {
+  return session?.user?.permissionKeys?.includes(key) ?? false;
+}
+
+export function hasAnyPermission(session: Session | null, keys: string[]): boolean {
+  const permissionKeys = session?.user?.permissionKeys ?? [];
+  return keys.some((key) => permissionKeys.includes(key));
+}
+
+export function hasAllPermissions(session: Session | null, keys: string[]): boolean {
+  const permissionKeys = session?.user?.permissionKeys ?? [];
+  return keys.every((key) => permissionKeys.includes(key));
+}
+```
+
 ---
 
-## 10. Route Rules
+## 11. Route Rules
 
 ```typescript
 const routeRules = [
@@ -384,18 +468,25 @@ const routeRules = [
   { pattern: /^\/rbac/, required: ['rbac.manage'] },
   { pattern: /^\/admin/, required: ['menu.admin'] },
 ];
+
+// Usage in middleware
+function isAuthorized(pathname: string, permissionKeys: string[]): boolean {
+  const rule = routeRules.find((r) => r.pattern.test(pathname));
+  if (!rule) return true; // No rule = public
+  return rule.required.every((key) => permissionKeys.includes(key));
+}
 ```
 
 ---
 
-## 11. Adding New Permissions
+## 12. Adding New Permissions
 
 ### Checklist
 1. Add to `prisma/seed.js` in permissions array
 2. Update documentation in `docs/RBAC_POLICY.md`
 3. Assign to appropriate roles in seed config
 4. Add route rule if MENU permission
-5. Implement check in API route
+5. Implement check in API route using `permissionKeys.includes("key")`
 
 ### Template
 ```javascript
@@ -416,10 +507,28 @@ prisma.permission.create({
 
 ---
 
-## 12. Changelog
+## 13. Migration Notes
+
+### v1.1.0 → v1.2.0 Migration
+
+เมื่อ migrate จาก v1.1.0 ไป v1.2.0 ต้องอัปเดต:
+
+1. **Session types**: เปลี่ยน `permissions: object` เป็น `permissionKeys: string[]`
+2. **Permission checks**: เปลี่ยน `permissions[key]?.allow` เป็น `permissionKeys.includes(key)`
+3. **isAuthorized function**: รับ `string[]` แทน `Record`
+
+```bash
+# Run migration script
+node scripts/migrate-permissions.js
+```
+
+---
+
+## 14. Changelog
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-28 | 1.2.0 | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |
 | 2026-01-28 | 1.1.0 | Added comprehensive permission list |
 | 2026-01-28 | 1.0.0 | Initial RBAC policy |
 
