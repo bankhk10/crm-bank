@@ -81,10 +81,6 @@ const COLORS = [
 
 const quickDateRanges = [
   {
-    label: "7 วันล่าสุด",
-    getValue: () => ({ from: subMonths(new Date(), 0.25), to: new Date() }),
-  },
-  {
     label: "30 วันล่าสุด",
     getValue: () => ({ from: subMonths(new Date(), 1), to: new Date() }),
   },
@@ -597,7 +593,10 @@ export default function TimeSalesReportPage() {
                         {reportData.dailyData
                           .filter((d) => d.sales > 0)
                           .map((day, idx) => (
-                            <div key={idx} className="rounded-xl border bg-white/80 p-3">
+                            <div
+                              key={idx}
+                              className="rounded-xl border bg-white/80 p-3"
+                            >
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-semibold text-slate-700">
                                   {day.date}
@@ -610,7 +609,9 @@ export default function TimeSalesReportPage() {
                                 <div>ออเดอร์: {formatNumber(day.orders)}</div>
                                 <div>
                                   เฉลี่ย:{" "}
-                                  {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
+                                  {day.orders > 0
+                                    ? formatTHB(day.sales / day.orders)
+                                    : "-"}
                                 </div>
                               </div>
                             </div>
@@ -621,9 +622,15 @@ export default function TimeSalesReportPage() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>วันที่</TableHead>
-                              <TableHead className="text-right">ยอดขาย</TableHead>
-                              <TableHead className="text-right">จำนวนออเดอร์</TableHead>
-                              <TableHead className="text-right">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="text-right">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนออเดอร์
+                              </TableHead>
+                              <TableHead className="text-right">
+                                เฉลี่ย/ออเดอร์
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -717,58 +724,7 @@ export default function TimeSalesReportPage() {
               </TabsContent>
 
               <TabsContent value="seasonality" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                    <CardHeader>
-                      <CardTitle>ยอดขายตามไตรมาส</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[450px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={reportData.seasonalityData}
-                            layout="vertical"
-                          >
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#e2e8f0"
-                            />
-                            <XAxis
-                              type="number"
-                              tickFormatter={(v) =>
-                                `${(v / 1000000).toFixed(1)}M`
-                              }
-                            />
-                            <YAxis
-                              type="category"
-                              dataKey="quarter"
-                              width={80}
-                            />
-                            <Tooltip
-                              formatter={(value: number) => [
-                                formatTHB(value),
-                                "ยอดขาย",
-                              ]}
-                              contentStyle={{
-                                borderRadius: "12px",
-                                border: "none",
-                                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                              }}
-                            />
-                            <Bar dataKey="sales" radius={[0, 4, 4, 0]}>
-                              {reportData.seasonalityData.map((_, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
-                                />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
                       <CardTitle>สัดส่วนยอดขาย</CardTitle>
@@ -855,12 +811,17 @@ export default function TimeSalesReportPage() {
                     <div className="mt-6">
                       <div className="space-y-3 sm:hidden">
                         {reportData.salesByRegion.map((region, i) => (
-                          <div key={region.region} className="rounded-xl border bg-white/80 p-3">
+                          <div
+                            key={region.region}
+                            className="rounded-xl border bg-white/80 p-3"
+                          >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2 text-sm font-medium">
                                 <span
                                   className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                                  style={{
+                                    backgroundColor: COLORS[i % COLORS.length],
+                                  }}
                                 />
                                 {region.region}
                               </div>
@@ -879,8 +840,12 @@ export default function TimeSalesReportPage() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>ภูมิภาค</TableHead>
-                              <TableHead className="text-right">ออเดอร์</TableHead>
-                              <TableHead className="text-right">ยอดขาย</TableHead>
+                              <TableHead className="text-right">
+                                ออเดอร์
+                              </TableHead>
+                              <TableHead className="text-right">
+                                ยอดขาย
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -891,7 +856,8 @@ export default function TimeSalesReportPage() {
                                     <div
                                       className="w-3 h-3 rounded-full"
                                       style={{
-                                        backgroundColor: COLORS[i % COLORS.length],
+                                        backgroundColor:
+                                          COLORS[i % COLORS.length],
                                       }}
                                     />
                                     {r.region}
