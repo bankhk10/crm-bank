@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import {
   format,
   subMonths,
@@ -9,7 +9,6 @@ import {
   startOfYear,
   endOfYear,
 } from "date-fns";
-import { th } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,6 +102,8 @@ export default function ProductGroupSalesReportPage() {
   const [reportData, setReportData] =
     useState<ProductGroupSalesReportData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersPanelId = useId();
 
   const handleFetchReport = () => {
     startTransition(async () => {
@@ -141,157 +142,195 @@ export default function ProductGroupSalesReportPage() {
     })) || [];
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="relative px-6 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/reports">
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 shadow-lg shadow-purple-500/25">
-            <Layers className="h-7 w-7 text-white" />
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Header: mobile stack, sm row */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/reports">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 shadow-lg shadow-purple-500/25">
+              <Layers className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100">
               รายงานตามกลุ่มสินค้า
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm sm:text-base">
               กลุ่มสินค้าขายดี / ขายช้า, ยอดขายต่อกลุ่ม, ช่วงเวลาขายดี
             </p>
           </div>
         </div>
 
-        {/* Date Range Filter */}
-        <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex-1 min-w-[280px]">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+        {/* Filters: mobile collapsible, sm=2 cols, lg=3 cols */}
+        <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm backdrop-blur-sm">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between sm:justify-start gap-2">
+              <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                ตัวกรองช่วงเวลา
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="sm:hidden h-9 px-3 text-xs focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+                aria-expanded={filtersOpen}
+                aria-controls={filtersPanelId}
+                onClick={() => setFiltersOpen((prev) => !prev)}
+              >
+                {filtersOpen ? "ซ่อนตัวกรอง" : "แสดงตัวกรอง"}
+              </Button>
+            </div>
+
+            <div
+              id={filtersPanelId}
+              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${
+                filtersOpen ? "block" : "hidden"
+              } sm:block`}
+            >
+              <div className="grid gap-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
                   เลือกช่วงเวลา
                 </label>
-                <DateRangePicker
-                  from={dateRange.from}
-                  to={dateRange.to}
-                  onSelect={(range) => {
-                    if (range?.from && range?.to) {
-                      setDateRange({ from: range.from, to: range.to });
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {quickDateRanges.map((range) => (
-                  <Button
-                    key={range.label}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => {
-                      const { from, to } = range.getValue();
-                      setDateRange({ from, to });
+                <div className="h-11">
+                  <DateRangePicker
+                    from={dateRange.from}
+                    to={dateRange.to}
+                    onSelect={(range) => {
+                      if (range?.from && range?.to) {
+                        setDateRange({ from: range.from, to: range.to });
+                      }
                     }}
-                  >
-                    {range.label}
-                  </Button>
-                ))}
+                  />
+                </div>
               </div>
 
-              <Button
-                onClick={handleFetchReport}
-                disabled={isPending}
-                className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    กำลังโหลด...
-                  </>
-                ) : (
-                  <>
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    ดูรายงาน
-                  </>
-                )}
-              </Button>
+              <div className="grid gap-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
+                  ช่วงเวลาแนะนำ
+                </label>
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                  {quickDateRanges.map((range) => (
+                    <Button
+                      key={range.label}
+                      variant="outline"
+                      size="sm"
+                      className="h-9 text-xs w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+                      onClick={() => {
+                        const { from, to } = range.getValue();
+                        setDateRange({ from, to });
+                      }}
+                    >
+                      {range.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  onClick={handleFetchReport}
+                  disabled={isPending}
+                  className="w-full h-11 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25 text-sm sm:text-base focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      กำลังโหลด...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      ดูรายงาน
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Report Content */}
-      <div className="px-6 py-8 max-w-7xl mx-auto">
+        {/* Report Content */}
         {isPending ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
+                <Skeleton key={i} className="h-28 sm:h-32 rounded-2xl" />
               ))}
             </div>
-            <Skeleton className="h-96 rounded-xl" />
+            <Skeleton className="h-80 sm:h-96 rounded-2xl" />
           </div>
         ) : reportData ? (
-          <div className="space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
-                <CardContent className="p-6 text-white">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Summary Cards: mobile=1 col, sm=2 cols, lg=3 cols */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-emerald-100 text-sm">
+                      <p className="text-muted-foreground text-xs sm:text-sm">
                         กลุ่มสินค้าขายดีที่สุด
                       </p>
-                      <p className="text-xl font-bold mt-1">
+                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
                         {reportData.topGroup.group}
                       </p>
+                      <p className="text-xs sm:text-sm text-emerald-600 mt-1">
+                        {formatTHB(reportData.topGroup.sales)}
+                      </p>
                     </div>
-                    <Award className="h-10 w-10 text-emerald-200" />
-                  </div>
-                  <div className="mt-4 text-sm text-emerald-100">
-                    {formatTHB(reportData.topGroup.sales)}
+                    <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
+                      <Award className="h-6 w-6 text-emerald-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-amber-500 to-orange-500">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
-                <CardContent className="p-6 text-white">
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-amber-100 text-sm">
+                      <p className="text-muted-foreground text-xs sm:text-sm">
                         กลุ่มสินค้าขายช้าที่สุด
                       </p>
-                      <p className="text-xl font-bold mt-1">
+                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
                         {reportData.worstGroup.group}
                       </p>
+                      <p className="text-xs sm:text-sm text-amber-600 mt-1">
+                        {formatTHB(reportData.worstGroup.sales)}
+                      </p>
                     </div>
-                    <TrendingDown className="h-10 w-10 text-amber-200" />
-                  </div>
-                  <div className="mt-4 text-sm text-amber-100">
-                    {formatTHB(reportData.worstGroup.sales)}
+                    <div className="p-2 sm:p-3 rounded-xl bg-amber-50">
+                      <TrendingDown className="h-6 w-6 text-amber-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-500 to-violet-500">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-8 -translate-y-8" />
-                <CardContent className="p-6 text-white">
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-100 text-sm">
+                      <p className="text-muted-foreground text-xs sm:text-sm">
                         จำนวนกลุ่มสินค้า
                       </p>
-                      <p className="text-2xl font-bold mt-1">
+                      <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
                         {reportData.groupPerformance.length}
                       </p>
+                      <p className="text-xs sm:text-sm text-purple-600 mt-1">
+                        กลุ่มที่มียอดขาย
+                      </p>
                     </div>
-                    <Layers className="h-10 w-10 text-purple-200" />
-                  </div>
-                  <div className="mt-4 text-sm text-purple-100">
-                    กลุ่มที่มียอดขาย
+                    <div className="p-2 sm:p-3 rounded-xl bg-purple-50">
+                      <Layers className="h-6 w-6 text-purple-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -299,28 +338,28 @@ export default function ProductGroupSalesReportPage() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto grid grid-cols-2 sm:flex gap-2 sm:gap-0">
                 <TabsTrigger
                   value="overview"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ภาพรวม
                 </TabsTrigger>
                 <TabsTrigger
                   value="performance"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ผลงานกลุ่ม
                 </TabsTrigger>
                 <TabsTrigger
                   value="trend"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   แนวโน้มรายเดือน
                 </TabsTrigger>
                 <TabsTrigger
                   value="peak"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-violet-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
@@ -329,7 +368,7 @@ export default function ProductGroupSalesReportPage() {
               <TabsContent value="overview" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Bar Chart */}
-                  <Card className="border-0 shadow-lg">
+                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-lg">
                         ยอดขายตามกลุ่มสินค้า
@@ -377,7 +416,7 @@ export default function ProductGroupSalesReportPage() {
                   </Card>
 
                   {/* Radar Chart */}
-                  <Card className="border-0 shadow-lg">
+                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
                       <CardTitle className="text-lg">
                         เปรียบเทียบกลุ่มสินค้า
@@ -410,76 +449,78 @@ export default function ProductGroupSalesReportPage() {
               </TabsContent>
 
               <TabsContent value="performance" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-lg">
                       ผลงานแต่ละกลุ่มสินค้า
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>#</TableHead>
-                          <TableHead>กลุ่มสินค้า</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-right">
-                            จำนวนที่ขาย
-                          </TableHead>
-                          <TableHead className="text-right">
-                            จำนวนออเดอร์
-                          </TableHead>
-                          <TableHead className="text-right">
-                            จำนวนสินค้า
-                          </TableHead>
-                          <TableHead className="text-right">
-                            เฉลี่ย/สินค้า
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sortedGroups.map((group, idx) => (
-                          <TableRow key={group.group}>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  idx < 3
-                                    ? "bg-purple-100 text-purple-800 border-purple-300"
-                                    : ""
-                                }
-                              >
-                                {idx + 1}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {group.group}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold text-emerald-600">
-                              {formatTHB(group.totalSales)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatNumber(group.totalQuantity)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatNumber(group.orderCount)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {group.productCount}
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {formatTHB(group.avgSalesPerProduct)}
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[760px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>#</TableHead>
+                            <TableHead>กลุ่มสินค้า</TableHead>
+                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-right">
+                              จำนวนที่ขาย
+                            </TableHead>
+                            <TableHead className="text-right">
+                              จำนวนออเดอร์
+                            </TableHead>
+                            <TableHead className="text-right">
+                              จำนวนสินค้า
+                            </TableHead>
+                            <TableHead className="text-right">
+                              เฉลี่ย/สินค้า
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {sortedGroups.map((group, idx) => (
+                            <TableRow key={group.group}>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    idx < 3
+                                      ? "bg-purple-100 text-purple-800 border-purple-300"
+                                      : ""
+                                  }
+                                >
+                                  {idx + 1}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {group.group}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold text-emerald-600">
+                                {formatTHB(group.totalSales)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatNumber(group.totalQuantity)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatNumber(group.orderCount)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {group.productCount}
+                              </TableCell>
+                              <TableCell className="text-right text-muted-foreground">
+                                {formatTHB(group.avgSalesPerProduct)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
               <TabsContent value="trend" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-lg">
                       แนวโน้มยอดขายรายเดือนแต่ละกลุ่ม
@@ -538,7 +579,7 @@ export default function ProductGroupSalesReportPage() {
               </TabsContent>
 
               <TabsContent value="peak" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Clock className="h-5 w-5 text-purple-500" />
@@ -585,7 +626,7 @@ export default function ProductGroupSalesReportPage() {
             </Tabs>
           </div>
         ) : (
-          <Card className="border-0 shadow-lg">
+          <Card className="rounded-2xl border bg-white/70 shadow-sm">
             <CardContent className="flex flex-col items-center justify-center py-20">
               <Layers className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">

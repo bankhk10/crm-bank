@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import {
   format,
   subMonths,
@@ -92,6 +92,8 @@ export default function SalespersonReportPage() {
     null,
   );
   const [activeTab, setActiveTab] = useState("performance");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersPanelId = useId();
 
   const handleFetchReport = () => {
     startTransition(async () => {
@@ -119,168 +121,224 @@ export default function SalespersonReportPage() {
     0;
 
   return (
-    <div className="min-h-screen">
-      <div className="relative px-6 py-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/reports">
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg">
-            <UserCheck className="h-7 w-7 text-white" />
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Header: mobile stack, sm row */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/reports">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg">
+              <UserCheck className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">รายงานตามพนักงานขาย</h1>
-            <p className="text-muted-foreground text-sm">
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+              รายงานตามพนักงานขาย
+            </h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               ยอดขาย, ออเดอร์, กลุ่มสินค้า, สินค้าที่ขายได้
             </p>
           </div>
         </div>
-        <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex-1 min-w-[280px]">
-                <label className="text-sm font-medium mb-2 block">
-                  เลือกช่วงเวลา
-                </label>
-                <DateRangePicker
-                  from={dateRange.from}
-                  to={dateRange.to}
-                  onSelect={(r) =>
-                    r?.from && r?.to && setDateRange({ from: r.from, to: r.to })
-                  }
-                />
-              </div>
-              <div className="flex gap-2">
-                {quickDateRanges.map((r) => (
-                  <Button
-                    key={r.label}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDateRange(r.getValue())}
-                  >
-                    {r.label}
-                  </Button>
-                ))}
+
+        {/* Filters: mobile collapsible, sm=2 cols, lg=3 cols */}
+        <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between sm:justify-start gap-2">
+              <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                ตัวกรองช่วงเวลา
               </div>
               <Button
-                onClick={handleFetchReport}
-                disabled={isPending}
-                className="bg-gradient-to-r from-rose-500 to-pink-500"
+                type="button"
+                variant="outline"
+                size="sm"
+                className="sm:hidden h-9 px-3 text-xs focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                aria-expanded={filtersOpen}
+                aria-controls={filtersPanelId}
+                onClick={() => setFiltersOpen((prev) => !prev)}
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    โหลด...
-                  </>
-                ) : (
-                  <>
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    ดูรายงาน
-                  </>
-                )}
+                {filtersOpen ? "ซ่อนตัวกรอง" : "แสดงตัวกรอง"}
               </Button>
+            </div>
+
+            <div
+              id={filtersPanelId}
+              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${
+                filtersOpen ? "block" : "hidden"
+              } sm:block`}
+            >
+              <div className="grid gap-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
+                  เลือกช่วงเวลา
+                </label>
+                <div className="h-11">
+                  <DateRangePicker
+                    from={dateRange.from}
+                    to={dateRange.to}
+                    onSelect={(r) =>
+                      r?.from && r?.to && setDateRange({ from: r.from, to: r.to })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <label className="text-xs font-semibold uppercase text-muted-foreground">
+                  ช่วงเวลาแนะนำ
+                </label>
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                  {quickDateRanges.map((r) => (
+                    <Button
+                      key={r.label}
+                      variant="outline"
+                      size="sm"
+                      className="h-9 text-xs w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                      onClick={() => setDateRange(r.getValue())}
+                    >
+                      {r.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={handleFetchReport}
+                  disabled={isPending}
+                  className="w-full h-11 bg-gradient-to-r from-rose-500 to-pink-500 text-sm sm:text-base focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      โหลด...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      ดูรายงาน
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {isPending ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
-              ))}
+        <div>
+          {isPending ? (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-28 sm:h-32 rounded-2xl" />
+                ))}
+              </div>
+              <Skeleton className="h-80 sm:h-96 rounded-2xl" />
             </div>
-            <Skeleton className="h-96 rounded-xl" />
-          </div>
-        ) : reportData ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-rose-500 to-rose-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-rose-100 text-sm">
-                        พนักงานขายดีที่สุด
-                      </p>
-                      <p className="text-lg font-bold mt-1">
-                        {reportData.topSalesperson.name}
-                      </p>
+          ) : reportData ? (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs sm:text-sm">
+                          พนักงานขายดีที่สุด
+                        </p>
+                        <p className="text-base sm:text-lg font-bold mt-1 text-slate-900">
+                          {reportData.topSalesperson.name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-rose-600 mt-1">
+                          {formatTHB(reportData.topSalesperson.sales)}
+                        </p>
+                      </div>
+                      <div className="p-2 sm:p-3 rounded-xl bg-rose-50">
+                        <Award className="h-6 w-6 text-rose-600" />
+                      </div>
                     </div>
-                    <Award className="h-10 w-10 text-rose-200" />
-                  </div>
-                  <p className="mt-4 text-sm text-rose-100">
-                    {formatTHB(reportData.topSalesperson.sales)}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-blue-100 text-sm">ยอดขายรวม</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {formatTHB(totalSales)}
-                      </p>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs sm:text-sm">
+                          ยอดขายรวม
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
+                          {formatTHB(totalSales)}
+                        </p>
+                      </div>
+                      <div className="p-2 sm:p-3 rounded-xl bg-blue-50">
+                        <TrendingUp className="h-6 w-6 text-blue-600" />
+                      </div>
                     </div>
-                    <TrendingUp className="h-10 w-10 text-blue-200" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-emerald-100 text-sm">ออเดอร์รวม</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {formatNumber(totalOrders)}
-                      </p>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs sm:text-sm">
+                          ออเดอร์รวม
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
+                          {formatNumber(totalOrders)}
+                        </p>
+                      </div>
+                      <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
+                        <Package className="h-6 w-6 text-emerald-600" />
+                      </div>
                     </div>
-                    <Package className="h-10 w-10 text-emerald-200" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-purple-600">
-                <CardContent className="p-6 text-white">
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="text-purple-100 text-sm">จำนวนพนักงาน</p>
-                      <p className="text-2xl font-bold mt-1">
-                        {reportData.salespersonPerformance.length}
-                      </p>
+                  </CardContent>
+                </Card>
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs sm:text-sm">
+                          จำนวนพนักงาน
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
+                          {reportData.salespersonPerformance.length}
+                        </p>
+                      </div>
+                      <div className="p-2 sm:p-3 rounded-xl bg-purple-50">
+                        <UserCheck className="h-6 w-6 text-purple-600" />
+                      </div>
                     </div>
-                    <UserCheck className="h-10 w-10 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-2 rounded-xl h-auto">
+              <TabsList className="bg-white/50 dark:bg-slate-800/50 p-2 rounded-xl h-auto grid grid-cols-2 sm:flex gap-2 sm:gap-0">
                 <TabsTrigger
                   value="performance"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ผลงาน
                 </TabsTrigger>
                 <TabsTrigger
                   value="groups"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   กลุ่มสินค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="products"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   สินค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="trend"
-                  className="rounded-lg py-3 px-6 text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   แนวโน้ม
                 </TabsTrigger>
@@ -288,7 +346,7 @@ export default function SalespersonReportPage() {
 
               <TabsContent value="performance" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card className="border-0 shadow-lg">
+                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
                       <CardTitle>ยอดขายต่อพนักงาน</CardTitle>
                     </CardHeader>
@@ -336,13 +394,14 @@ export default function SalespersonReportPage() {
                       </div>
                     </CardContent>
                   </Card>
-                  <Card className="border-0 shadow-lg">
+                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
                       <CardTitle>รายละเอียด</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="max-h-[450px] overflow-auto">
-                        <Table>
+                        <div className="overflow-x-auto">
+                          <Table className="min-w-[640px]">
                           <TableHeader>
                             <TableRow>
                               <TableHead>#</TableHead>
@@ -391,7 +450,8 @@ export default function SalespersonReportPage() {
                               </TableRow>
                             ))}
                           </TableBody>
-                        </Table>
+                          </Table>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -399,7 +459,7 @@ export default function SalespersonReportPage() {
               </TabsContent>
 
               <TabsContent value="groups" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Layers className="h-5 w-5 text-purple-500" />
@@ -450,7 +510,7 @@ export default function SalespersonReportPage() {
               </TabsContent>
 
               <TabsContent value="products" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-blue-500" />
@@ -479,34 +539,36 @@ export default function SalespersonReportPage() {
                                 {sp.salespersonName}
                               </span>
                             </div>
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>สินค้า</TableHead>
-                                  <TableHead className="text-right">
-                                    ยอดขาย
-                                  </TableHead>
-                                  <TableHead className="text-right">
-                                    จำนวน
-                                  </TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {sp.products.map((p) => (
-                                  <TableRow key={p.productId}>
-                                    <TableCell className="font-medium">
-                                      {p.productName}
-                                    </TableCell>
-                                    <TableCell className="text-right text-emerald-600">
-                                      {formatTHB(p.sales)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {formatNumber(p.quantity)}
-                                    </TableCell>
+                            <div className="overflow-x-auto">
+                              <Table className="min-w-[420px]">
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>สินค้า</TableHead>
+                                    <TableHead className="text-right">
+                                      ยอดขาย
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                      จำนวน
+                                    </TableHead>
                                   </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                                </TableHeader>
+                                <TableBody>
+                                  {sp.products.map((p) => (
+                                    <TableRow key={p.productId}>
+                                      <TableCell className="font-medium">
+                                        {p.productName}
+                                      </TableCell>
+                                      <TableCell className="text-right text-emerald-600">
+                                        {formatTHB(p.sales)}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        {formatNumber(p.quantity)}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
                           </div>
                         ))}
                     </div>
@@ -515,7 +577,7 @@ export default function SalespersonReportPage() {
               </TabsContent>
 
               <TabsContent value="trend" className="mt-6">
-                <Card className="border-0 shadow-lg">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
                   <CardHeader>
                     <CardTitle>แนวโน้มยอดขายรายเดือน</CardTitle>
                   </CardHeader>
@@ -561,7 +623,7 @@ export default function SalespersonReportPage() {
             </Tabs>
           </div>
         ) : (
-          <Card className="border-0 shadow-lg">
+          <Card className="rounded-2xl border bg-white/70 shadow-sm">
             <CardContent className="flex flex-col items-center justify-center py-20">
               <UserCheck className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold">
