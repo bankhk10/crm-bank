@@ -4,21 +4,22 @@ import { fetchCustomerSalesShopDetail } from "@/lib/data/report-customer-sales";
 
 interface CustomerSalesDetailPageProps {
   params: { shopId: string };
-  searchParams?: {
+  searchParams?: Promise<{
     from?: string;
     to?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function CustomerSalesDetailPage({
   params,
   searchParams,
 }: CustomerSalesDetailPageProps) {
-  const page = searchParams?.page ? Number(searchParams.page) : 1;
+  const resolvedSearchParams = await searchParams;
+  const page = resolvedSearchParams?.page ? Number(resolvedSearchParams.page) : 1;
   const data = await fetchCustomerSalesShopDetail(params.shopId, {
-    from: searchParams?.from,
-    to: searchParams?.to,
+    from: resolvedSearchParams?.from,
+    to: resolvedSearchParams?.to,
     page: Number.isNaN(page) ? 1 : page,
   });
 

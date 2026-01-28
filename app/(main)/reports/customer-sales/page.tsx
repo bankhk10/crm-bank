@@ -2,18 +2,19 @@ import { CustomerSalesList } from "@/components/reports/customer-sales/customer-
 import { fetchCustomerSalesShops } from "@/lib/data/report-customer-sales";
 
 interface CustomerSalesPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     from?: string;
     to?: string;
-  };
+  }>;
 }
 
 export default async function CustomerSalesPage({
   searchParams,
 }: CustomerSalesPageProps) {
+  const resolvedSearchParams = await searchParams;
   const { range, shops } = await fetchCustomerSalesShops({
-    from: searchParams?.from,
-    to: searchParams?.to,
+    from: resolvedSearchParams?.from,
+    to: resolvedSearchParams?.to,
   });
 
   return (
