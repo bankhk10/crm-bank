@@ -1619,3 +1619,117 @@ export async function getReportFilterOptions() {
     years: years.reverse(),
   };
 }
+
+// ============================================
+// CUSTOMER LIST FOR CUSTOMER REPORT PAGE
+// ============================================
+
+export interface CustomerListItem {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  province: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+  purchaseFrequency: number;
+  lifetimeValue: number;
+  lastPurchaseDate?: string;
+}
+
+export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
+  // Get all customers with their sales data
+  const customers = await prisma.customer.findMany({
+    where: {
+      deletedAt: null,
+      status: "ACTIVE",
+    },
+    select: {
+      id: true,
+      customerCode: true,
+      name: true,
+      customerType: true,
+      province: true,
+      createdAt: true,
+      sales: {
+        where: {
+          deletedAt: null,
+          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        },
+        orderBy: { saleDate: "desc" },
+        take: 1,
+        select: { saleDate: true },
+      },
+      _count: {
+        select: {
+          sales: {
+            where: {
+              deletedAt: null,
+              status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  const customerIds = customers.map((c) => c.id);
+
+  // Get lifetime sales for all customers
+  const lifetimeSales = await prisma.sale.groupBy({
+    by: ["customerId"],
+    where: {
+      customerId: { in: customerIds },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    _sum: { totalAmount: true },
+    _count: true,
+  });
+
+  const salesMap = new Map(
+    lifetimeSales.map((s) => [
+      s.customerId,
+      {
+        totalSales: Number(s._sum.totalAmount || 0),
+        orderCount: s._count,
+      },
+    ])
+  );
+
+  // Calculate months since customer creation for purchase frequency
+  const now = new Date();
+
+  return customers.map((customer) => {
+    const salesData = salesMap.get(customer.id) || {
+      totalSales: 0,
+      orderCount: 0,
+    };
+
+    const monthsSinceCreation = Math.max(
+      1,
+      differenceInDays(now, customer.createdAt) / 30
+    );
+
+    return {
+      id: customer.id,
+      code: customer.customerCode,
+      name: customer.name,
+      type: customer.customerType,
+      province: customer.province || "-",
+      totalSales: salesData.totalSales,
+      orderCount: salesData.orderCount,
+      avgOrderValue:
+        salesData.orderCount > 0
+          ? salesData.totalSales / salesData.orderCount
+          : 0,
+      purchaseFrequency: salesData.orderCount / monthsSinceCreation,
+      lifetimeValue: salesData.totalSales,
+      lastPurchaseDate: customer.sales[0]?.saleDate
+        ? format(customer.sales[0].saleDate, "dd/MM/yyyy")
+        : undefined,
+    };
+  });
+}

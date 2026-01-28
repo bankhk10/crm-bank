@@ -1,18 +1,10 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
-import {
-  format,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  startOfYear,
-  endOfYear,
-} from "date-fns";
+import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -22,53 +14,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Users, ArrowLeft, BarChart3, Loader2, Eye } from "lucide-react";
+import { Users, ArrowLeft, Eye, Search, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { CustomerDetailPanel } from "@/components/features/customers/customer-detail-panel";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import {
-  getCustomerSalesReport,
-  type CustomerSalesReportData,
-  type DateRangeFilter,
+  getAllCustomersForReport,
+  type CustomerListItem,
 } from "@/app/actions/reports";
-
-const COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
-];
-
-const quickDateRanges = [
-  {
-    label: "เดือนนี้",
-    getValue: () => ({
-      from: startOfMonth(new Date()),
-      to: endOfMonth(new Date()),
-    }),
-  },
-  {
-    label: "3 เดือน",
-    getValue: () => ({ from: subMonths(new Date(), 3), to: new Date() }),
-  },
-  {
-    label: "ปีนี้",
-    getValue: () => ({
-      from: startOfYear(new Date()),
-      to: endOfYear(new Date()),
-    }),
-  },
-];
 
 const customerTypeLabels: Record<string, string> = {
   DEALER: "ดีลเลอร์",
@@ -79,41 +30,24 @@ const customerTypeLabels: Record<string, string> = {
 
 export default function CustomerSalesReportPage() {
   const [isPending, startTransition] = useTransition();
-  const [dateRange, setDateRange] = useState({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date()),
-  });
-  const [reportData, setReportData] = useState<CustomerSalesReportData | null>(
-    null,
-  );
-  const [activeTab, setActiveTab] = useState("top-customers");
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
-    null,
-  );
-  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const filtersPanelId = useId();
+  const [customers, setCustomers] = useState<CustomerListItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleViewCustomer = (customerId: string) => {
-    setSelectedCustomerId(customerId);
-    setIsDetailPanelOpen(true);
-  };
-
-  const handleCloseDetailPanel = () => {
-    setIsDetailPanelOpen(false);
-    setSelectedCustomerId(null);
-  };
-
-  const handleFetchReport = () => {
+  // Fetch all customers on mount
+  useEffect(() => {
     startTransition(async () => {
-      const filter: DateRangeFilter = {
-        startDate: format(dateRange.from, "yyyy-MM-dd"),
-        endDate: format(dateRange.to, "yyyy-MM-dd"),
-      };
-      const data = await getCustomerSalesReport(filter);
-      setReportData(data);
+      setIsLoading(true);
+      try {
+        const data = await getAllCustomersForReport();
+        setCustomers(data);
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+      } finally {
+        setIsLoading(false);
+      }
     });
-  };
+  }, []);
 
   const formatTHB = (n: number) =>
     new Intl.NumberFormat("th-TH", {
@@ -121,6 +55,14 @@ export default function CustomerSalesReportPage() {
       currency: "THB",
       minimumFractionDigits: 0,
     }).format(n);
+
+  // Filter customers by search query
+  const filteredCustomers = customers.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.province && c.province.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-slate-50/60">
@@ -142,79 +84,28 @@ export default function CustomerSalesReportPage() {
               รายงานตามลูกค้า
             </h1>
             <p className="text-muted-foreground text-sm">
-              ลูกค้า, มูลค่ารวมทั้งหมด
+              รายชื่อลูกค้าทั้งหมด และมูลค่ารวม
             </p>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Search Bar */}
         <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between sm:justify-start gap-2">
-              <div className="text-sm font-semibold">ตัวกรองช่วงเวลา</div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="sm:hidden"
-                onClick={() => setFiltersOpen(!filtersOpen)}
-              >
-                {filtersOpen ? "ซ่อนตัวกรอง" : "แสดงตัวกรอง"}
-              </Button>
-            </div>
-
-            <div
-              id={filtersPanelId}
-              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"} sm:block`}
-            >
-              <div className="grid gap-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  เลือกช่วงเวลา
-                </label>
-                <DateRangePicker
-                  from={dateRange.from}
-                  to={dateRange.to}
-                  onSelect={(r) =>
-                    r?.from && r?.to && setDateRange({ from: r.from, to: r.to })
-                  }
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  ช่วงเวลาแนะนำ
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {quickDateRanges.map((r) => (
-                    <Button
-                      key={r.label}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDateRange(r.getValue())}
-                    >
-                      {r.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-end">
-                <Button
-                  onClick={handleFetchReport}
-                  disabled={isPending}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500"
-                >
-                  {isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                  )}
-                  ดูรายงาน
-                </Button>
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="ค้นหาลูกค้า (ชื่อ, รหัส, จังหวัด)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </CardContent>
         </Card>
 
         {/* Report Content */}
-        {isPending ? (
+        {isLoading || isPending ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
@@ -223,109 +114,105 @@ export default function CustomerSalesReportPage() {
             </div>
             <Skeleton className="h-96 rounded-2xl" />
           </div>
-        ) : reportData ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsContent value="top-customers" className="mt-6">
-              <Card className="rounded-2xl border bg-white/70">
-                <CardHeader>
-                  <CardTitle>รายชื่อลูกค้า</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ลำดับ</TableHead>
-                          <TableHead>ลูกค้า</TableHead>
-                          <TableHead>ประเภท</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-right">ออเดอร์</TableHead>
-                          <TableHead className="text-right">
-                            ความถี่/เดือน
-                          </TableHead>
-                          <TableHead className="text-right">
-                            มูลค่ารวมทั้งหมด
-                          </TableHead>
-                          <TableHead className="text-center">
-                            ดูรายละเอียด
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reportData.topCustomers.slice(0, 20).map((c, i) => (
-                          <TableRow key={c.id}>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  i < 3 ? "bg-amber-100 text-amber-800" : ""
-                                }
-                              >
-                                {i + 1}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{c.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {c.code}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {customerTypeLabels[c.type] || c.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right font-semibold text-emerald-600">
-                              {formatTHB(c.totalSales)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {c.orderCount}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {c.purchaseFrequency.toFixed(1)}
-                            </TableCell>
-                            <TableCell className="text-right text-blue-600">
-                              {formatTHB(c.lifetimeValue)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewCustomer(c.id)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" /> ดู
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         ) : (
           <Card className="rounded-2xl border bg-white/70">
-            <CardContent className="flex flex-col items-center justify-center py-20">
-              <Users className="h-16 w-16 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold">
-                เลือกช่วงเวลาและกดดูรายงาน
-              </h3>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-amber-500" />
+                รายชื่อลูกค้า
+              </CardTitle>
+              <Badge variant="secondary" className="text-sm">
+                {filteredCustomers.length} ลูกค้า
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ลำดับ</TableHead>
+                      <TableHead>ลูกค้า</TableHead>
+                      <TableHead>ประเภท</TableHead>
+                      <TableHead>จังหวัด</TableHead>
+                      <TableHead className="text-right">ยอดขายรวม</TableHead>
+                      <TableHead className="text-right">ออเดอร์</TableHead>
+                      <TableHead className="text-right">
+                        ความถี่/เดือน
+                      </TableHead>
+                      <TableHead className="text-right">
+                        มูลค่ารวมทั้งหมด
+                      </TableHead>
+                      <TableHead className="text-center">
+                        ดูรายละเอียด
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-10">
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <Users className="h-10 w-10" />
+                            <p>ไม่พบข้อมูลลูกค้า</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredCustomers.map((c, i) => (
+                        <TableRow key={c.id}>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                i < 3 ? "bg-amber-100 text-amber-800" : ""
+                              }
+                            >
+                              {i + 1}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{c.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {c.code}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {customerTypeLabels[c.type] || c.type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{c.province}</TableCell>
+                          <TableCell className="text-right font-semibold text-emerald-600">
+                            {formatTHB(c.totalSales)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {c.orderCount}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {c.purchaseFrequency.toFixed(1)}
+                          </TableCell>
+                          <TableCell className="text-right text-blue-600">
+                            {formatTHB(c.lifetimeValue)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Link href={`/reports/customer-sales/${c.id}`}>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="h-4 w-4 mr-1" /> ดู
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
-
-      <CustomerDetailPanel
-        customerId={selectedCustomerId}
-        isOpen={isDetailPanelOpen}
-        onClose={handleCloseDetailPanel}
-        startDate={format(dateRange.from, "yyyy-MM-dd")}
-        endDate={format(dateRange.to, "yyyy-MM-dd")}
-      />
     </div>
   );
 }

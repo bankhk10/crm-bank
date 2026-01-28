@@ -6,6 +6,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: "postgresql://admin:secret@localhost:5432/crm2",
+    url: "postgresql://postgres:bank@localhost:5432/crm",
   },
 });
