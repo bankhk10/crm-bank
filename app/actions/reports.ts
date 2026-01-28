@@ -1733,3 +1733,99 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
     };
   });
 }
+
+// ============================================
+// SALESPERSON LIST FOR SALESPERSON REPORT PAGE
+// ============================================
+
+export interface SalespersonListItem {
+  id: string;
+  name: string;
+  employeeCode: string;
+  department: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+  customerCount: number;
+  lastSaleDate?: string;
+}
+
+export async function getAllSalespersonsForReport(): Promise<SalespersonListItem[]> {
+  // Get all employees who have made sales
+  const employeeSales = await prisma.sale.groupBy({
+    by: ["employeeId"],
+    where: {
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    _sum: { totalAmount: true },
+    _count: true,
+    orderBy: { _sum: { totalAmount: "desc" } },
+  });
+
+  const employeeIds = employeeSales.map((e) => e.employeeId);
+
+  // Get employee details
+  const employees = await prisma.employee.findMany({
+    where: { 
+      id: { in: employeeIds },
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+      employeeCode: true,
+      department: { select: { name: true } },
+      sales: {
+        where: {
+          deletedAt: null,
+          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        },
+        orderBy: { saleDate: "desc" },
+        take: 1,
+        select: { saleDate: true },
+      },
+    },
+  });
+
+  const employeeMap = new Map(employees.map((e) => [e.id, e]));
+
+  // Get customer count per employee
+  const customerCounts = await prisma.sale.groupBy({
+    by: ["employeeId", "customerId"],
+    where: {
+      employeeId: { in: employeeIds },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+  });
+
+  const customerCountMap = new Map<string, Set<string>>();
+  for (const cc of customerCounts) {
+    if (!customerCountMap.has(cc.employeeId)) {
+      customerCountMap.set(cc.employeeId, new Set());
+    }
+    customerCountMap.get(cc.employeeId)!.add(cc.customerId);
+  }
+
+  return employeeSales.map((es) => {
+    const employee = employeeMap.get(es.employeeId);
+    const totalSales = Number(es._sum.totalAmount || 0);
+    const orderCount = es._count;
+
+    return {
+      id: es.employeeId,
+      name: employee?.name || "Unknown",
+      employeeCode: employee?.employeeCode || "-",
+      department: employee?.department?.name || "-",
+      totalSales,
+      orderCount,
+      avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
+      customerCount: customerCountMap.get(es.employeeId)?.size || 0,
+      lastSaleDate: employee?.sales[0]?.saleDate
+        ? format(employee.sales[0].saleDate, "dd/MM/yyyy")
+        : undefined,
+    };
+  });
+}
+
