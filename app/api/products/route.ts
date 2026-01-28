@@ -23,6 +23,7 @@ const productSchema = z.object({
   usedForPlants: z.array(z.string()).default([]),
   salesPoint: z.string().optional(),
   properties: z.string().optional(),
+  pointPerUnit: z.number().int().min(0).optional(),
 });
 
 export async function GET(request: Request) {
@@ -187,6 +188,7 @@ export async function POST(request: Request) {
         usedForPlants: parsed.data.usedForPlants,
         salesPoint: parsed.data.salesPoint,
         properties: parsed.data.properties,
+        pointPerUnit: parsed.data.pointPerUnit ?? 0,
       },
       include: {
         images: true,

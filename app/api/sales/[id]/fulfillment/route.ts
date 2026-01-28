@@ -8,6 +8,7 @@ import {
   revertStockDeductionFromLots,
   releaseStock,
 } from "@/src/core/stock";
+import { finalizePointsForSale } from "@/src/core/points";
 import type { LotAllocation } from "@/src/core/stock/stock.types";
 
 export async function POST(
@@ -315,6 +316,18 @@ export async function POST(
         data: updateData,
       });
     });
+
+    const shouldFinalizePoints =
+      updatedSale.status !== sale.status &&
+      ["COMPLETED", "DELIVERY_COMPLETED"].includes(updatedSale.status);
+
+    if (shouldFinalizePoints) {
+      try {
+        await finalizePointsForSale(updatedSale.id);
+      } catch (error) {
+        console.error("Error finalizing sale points:", error);
+      }
+    }
 
     // Revalidate the sale detail page
     try {

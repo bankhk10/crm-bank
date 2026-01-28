@@ -15,6 +15,7 @@ export interface ProductSummary {
   commonName?: string;
   unit?: string;
   price?: number;
+  pointPerUnit?: number;
   status: ProductStatus;
   stockQuantity?: number;
 }
@@ -115,4 +116,5 @@ export interface CreateProductInput {
   properties?: string;
   price?: number;
   promotionBudget?: number;
+  pointPerUnit?: number;
 }
