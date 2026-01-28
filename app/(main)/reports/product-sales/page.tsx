@@ -65,10 +65,6 @@ const COLORS = [
 
 const quickDateRanges = [
   {
-    label: "7 วันล่าสุด",
-    getValue: () => ({ from: subMonths(new Date(), 0.25), to: new Date() }),
-  },
-  {
     label: "30 วันล่าสุด",
     getValue: () => ({ from: subMonths(new Date(), 1), to: new Date() }),
   },
@@ -388,60 +384,7 @@ export default function ProductSalesReportPage() {
               </TabsList>
 
               <TabsContent value="top-products" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Chart */}
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        Top 10 สินค้าขายดี
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[450px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={topProductsChartData}
-                            layout="vertical"
-                          >
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#e2e8f0"
-                            />
-                            <XAxis
-                              type="number"
-                              tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
-                            />
-                            <YAxis
-                              type="category"
-                              dataKey="name"
-                              width={150}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip
-                              formatter={(value: number) => [
-                                formatTHB(value),
-                                "ยอดขาย",
-                              ]}
-                              contentStyle={{
-                                borderRadius: "12px",
-                                border: "none",
-                                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                              }}
-                            />
-                            <Bar dataKey="sales" radius={[0, 4, 4, 0]}>
-                              {topProductsChartData.map((_, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
-                                />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-
+                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Table */}
                   <Card className="rounded-2xl border bg-white/70 shadow-sm">
                     <CardHeader>
@@ -453,54 +396,54 @@ export default function ProductSalesReportPage() {
                       <div className="max-h-[450px] overflow-auto">
                         <div className="overflow-x-auto">
                           <Table className="min-w-[520px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>#</TableHead>
-                              <TableHead>สินค้า</TableHead>
-                              <TableHead className="text-right">
-                                ยอดขาย
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวน
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportData.topProducts
-                              .slice(0, 20)
-                              .map((product, idx) => (
-                                <TableRow key={product.id}>
-                                  <TableCell>
-                                    <Badge
-                                      variant="outline"
-                                      className={
-                                        idx < 3
-                                          ? "bg-amber-100 text-amber-800 border-amber-300"
-                                          : ""
-                                      }
-                                    >
-                                      {idx + 1}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div>
-                                      <p className="font-medium text-sm">
-                                        {product.name}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {product.code}
-                                      </p>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-right font-medium">
-                                    {formatTHB(product.totalSales)}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    {formatNumber(product.totalQuantity)}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                          </TableBody>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>ลำดับ</TableHead>
+                                <TableHead>สินค้า</TableHead>
+                                <TableHead className="text-right">
+                                  ยอดขาย
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  จำนวน
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {reportData.topProducts
+                                .slice(0, 20)
+                                .map((product, idx) => (
+                                  <TableRow key={product.id}>
+                                    <TableCell>
+                                      <Badge
+                                        variant="outline"
+                                        className={
+                                          idx < 3
+                                            ? "bg-amber-100 text-amber-800 border-amber-300"
+                                            : ""
+                                        }
+                                      >
+                                        {idx + 1}
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div>
+                                        <p className="font-medium text-sm">
+                                          {product.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {product.code}
+                                        </p>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">
+                                      {formatTHB(product.totalSales)}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      {formatNumber(product.totalQuantity)}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
                           </Table>
                         </div>
                       </div>
@@ -520,48 +463,48 @@ export default function ProductSalesReportPage() {
                   <CardContent>
                     <div className="overflow-x-auto">
                       <Table className="min-w-[720px]">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>#</TableHead>
-                          <TableHead>รหัส</TableHead>
-                          <TableHead>ชื่อสินค้า</TableHead>
-                          <TableHead>กลุ่มสินค้า</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-right">
-                            จำนวนที่ขาย
-                          </TableHead>
-                          <TableHead className="text-right">
-                            จำนวนออเดอร์
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reportData.slowProducts.map((product, idx) => (
-                          <TableRow key={product.id}>
-                            <TableCell>{idx + 1}</TableCell>
-                            <TableCell className="font-mono text-sm">
-                              {product.code}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.name}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {product.productGroup || "-"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right text-amber-600 font-medium">
-                              {formatTHB(product.totalSales)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatNumber(product.totalQuantity)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {product.orderCount}
-                            </TableCell>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>#</TableHead>
+                            <TableHead>รหัส</TableHead>
+                            <TableHead>ชื่อสินค้า</TableHead>
+                            <TableHead>กลุ่มสินค้า</TableHead>
+                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-right">
+                              จำนวนที่ขาย
+                            </TableHead>
+                            <TableHead className="text-right">
+                              จำนวนออเดอร์
+                            </TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
+                        </TableHeader>
+                        <TableBody>
+                          {reportData.slowProducts.map((product, idx) => (
+                            <TableRow key={product.id}>
+                              <TableCell>{idx + 1}</TableCell>
+                              <TableCell className="font-mono text-sm">
+                                {product.code}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {product.name}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {product.productGroup || "-"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right text-amber-600 font-medium">
+                                {formatTHB(product.totalSales)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {formatNumber(product.totalQuantity)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {product.orderCount}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
                       </Table>
                     </div>
                   </CardContent>
@@ -579,7 +522,10 @@ export default function ProductSalesReportPage() {
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                       {reportData.productPeakPeriods.map((item, idx) => (
-                        <Card key={item.productId} className="rounded-2xl border bg-white/70 shadow-sm">
+                        <Card
+                          key={item.productId}
+                          className="rounded-2xl border bg-white/70 shadow-sm"
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <Badge
@@ -637,61 +583,61 @@ export default function ProductSalesReportPage() {
                     ) : (
                       <div className="overflow-x-auto">
                         <Table className="min-w-[780px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>รหัส</TableHead>
-                            <TableHead>ชื่อสินค้า</TableHead>
-                            <TableHead className="text-right">
-                              คงเหลือจริง
-                            </TableHead>
-                            <TableHead className="text-right">จอง</TableHead>
-                            <TableHead className="text-right">
-                              พร้อมขาย
-                            </TableHead>
-                            <TableHead>วันหมดอายุ</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.lowStockProducts.map((product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-mono text-sm">
-                                {product.code}
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {product.name}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {formatNumber(product.physicalBalance)}
-                              </TableCell>
-                              <TableCell className="text-right text-amber-600">
-                                {formatNumber(product.reservedQuantity)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    product.availableQuantity <= 10
-                                      ? "bg-red-100 text-red-800 border-red-300"
-                                      : product.availableQuantity <= 30
-                                        ? "bg-amber-100 text-amber-800 border-amber-300"
-                                        : ""
-                                  }
-                                >
-                                  {formatNumber(product.availableQuantity)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {product.upcomingExpiry ? (
-                                  <span className="text-sm text-muted-foreground">
-                                    {product.upcomingExpiry}
-                                  </span>
-                                ) : (
-                                  "-"
-                                )}
-                              </TableCell>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>รหัส</TableHead>
+                              <TableHead>ชื่อสินค้า</TableHead>
+                              <TableHead className="text-right">
+                                คงเหลือจริง
+                              </TableHead>
+                              <TableHead className="text-right">จอง</TableHead>
+                              <TableHead className="text-right">
+                                พร้อมขาย
+                              </TableHead>
+                              <TableHead>วันหมดอายุ</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
+                          </TableHeader>
+                          <TableBody>
+                            {reportData.lowStockProducts.map((product) => (
+                              <TableRow key={product.id}>
+                                <TableCell className="font-mono text-sm">
+                                  {product.code}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {product.name}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(product.physicalBalance)}
+                                </TableCell>
+                                <TableCell className="text-right text-amber-600">
+                                  {formatNumber(product.reservedQuantity)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      product.availableQuantity <= 10
+                                        ? "bg-red-100 text-red-800 border-red-300"
+                                        : product.availableQuantity <= 30
+                                          ? "bg-amber-100 text-amber-800 border-amber-300"
+                                          : ""
+                                    }
+                                  >
+                                    {formatNumber(product.availableQuantity)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {product.upcomingExpiry ? (
+                                    <span className="text-sm text-muted-foreground">
+                                      {product.upcomingExpiry}
+                                    </span>
+                                  ) : (
+                                    "-"
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
                         </Table>
                       </div>
                     )}
@@ -716,49 +662,49 @@ export default function ProductSalesReportPage() {
                     ) : (
                       <div className="overflow-x-auto">
                         <Table className="min-w-[720px]">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>รหัส</TableHead>
-                            <TableHead>ชื่อสินค้า</TableHead>
-                            <TableHead className="text-right">
-                              สต๊อกคงเหลือ
-                            </TableHead>
-                            <TableHead className="text-right">
-                              จำนวนวัน
-                            </TableHead>
-                            <TableHead>ขายล่าสุด</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.stagnantProducts.map((product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-mono text-sm">
-                                {product.code}
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {product.name}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Badge
-                                  variant="outline"
-                                  className="bg-purple-50 text-purple-700 border-purple-200"
-                                >
-                                  {formatNumber(product.stock)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <span className="text-red-600 font-medium">
-                                  {product.daysSinceLastSale === 999
-                                    ? "ไม่เคยขาย"
-                                    : `${product.daysSinceLastSale} วัน`}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {product.lastSoldDate || "-"}
-                              </TableCell>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>รหัส</TableHead>
+                              <TableHead>ชื่อสินค้า</TableHead>
+                              <TableHead className="text-right">
+                                สต๊อกคงเหลือ
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนวัน
+                              </TableHead>
+                              <TableHead>ขายล่าสุด</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
+                          </TableHeader>
+                          <TableBody>
+                            {reportData.stagnantProducts.map((product) => (
+                              <TableRow key={product.id}>
+                                <TableCell className="font-mono text-sm">
+                                  {product.code}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {product.name}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-purple-50 text-purple-700 border-purple-200"
+                                  >
+                                    {formatNumber(product.stock)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <span className="text-red-600 font-medium">
+                                    {product.daysSinceLastSale === 999
+                                      ? "ไม่เคยขาย"
+                                      : `${product.daysSinceLastSale} วัน`}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                  {product.lastSoldDate || "-"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
                         </Table>
                       </div>
                     )}
