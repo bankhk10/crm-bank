@@ -24,7 +24,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Search, Sprout } from "lucide-react";
+import { 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Search, 
+  Sprout, 
+  ChevronLeft, 
+  ChevronRight 
+} from "lucide-react";
 import { toast } from "sonner";
 import { Plant, PlantFormData } from "@/types/product";
 
@@ -182,10 +190,12 @@ export default function PlantsPage() {
     );
   }
 
+  const totalPages = Math.ceil(total / perPage);
+
   return (
     <section className="space-y-6 p-6">
-      <Card className="overflow-hidden border-0 shadow-xl bg-white/70 backdrop-blur-sm py-0! gap-0!">
-        <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-600 px-6! py-4! text-white shadow-lg">
+      <Card className="overflow-hidden border-0 shadow-xl bg-white/70 backdrop-blur-sm !py-0 !gap-0">
+        <CardHeader className="bg-gradient-to-r from-emerald-600 to-green-600 !px-6 !py-4 text-white shadow-lg">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <Sprout className="w-8 h-8" />
@@ -294,9 +304,39 @@ export default function PlantsPage() {
             </Table>
           </div>
 
+          {/* Pagination Section */}
           {total > 0 && (
-            <div className="mt-4 text-sm text-slate-500">
-              แสดง {plants.length} จาก {total} รายการ
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
+              <div className="text-sm text-slate-500">
+                แสดง {((page - 1) * perPage) + 1} ถึง {Math.min(page * perPage, total)} จาก {total} รายการ
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="h-9 w-9"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex items-center gap-1 mx-2">
+                  <span className="text-sm font-medium">หน้า {page}</span>
+                  <span className="text-sm text-slate-400">จาก {totalPages || 1}</span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages || totalPages === 0 || loading}
+                  className="h-9 w-9"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
