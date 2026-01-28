@@ -87,6 +87,7 @@ export interface Product {
   price: number | null;
   cartonPrice: number | null;
   promotionBudget: number | null;
+  pointPerUnit: number | null;
   createdAt: Date | string;
   updatedAt: Date | string;
   deletedAt: Date | string | null;
@@ -129,6 +130,7 @@ export interface ProductManagementFormData {
   cartonPrice?: number;
   packageSizePerBox?: string;
   promotionBudget?: number;
+  pointPerUnit?: number;
   freeItems: Array<{
     id?: string;
     purchaseQty: number;

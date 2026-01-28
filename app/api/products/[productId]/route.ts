@@ -31,6 +31,7 @@ const productSchema = z.object({
   usedForPlants: z.array(z.string()).default([]),
   salesPoint: z.string().optional(),
   properties: z.string().optional(),
+  pointPerUnit: z.number().int().min(0).optional(),
 });
 
 export async function GET(request: Request, { params }: { params: any }) {
@@ -159,6 +160,7 @@ export async function PATCH(
         chemicalGroup: existing.chemicalGroup,
         status: existing.status,
         price: existing.price?.toString(),
+        pointPerUnit: existing.pointPerUnit,
       },
       {
         productCode: product.productCode,
@@ -170,6 +172,7 @@ export async function PATCH(
         chemicalGroup: product.chemicalGroup,
         status: product.status,
         price: product.price?.toString(),
+        pointPerUnit: product.pointPerUnit,
       },
       context,
       {

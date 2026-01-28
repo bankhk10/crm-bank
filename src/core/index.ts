@@ -20,3 +20,6 @@ export * from "./customers";
 
 // Products domain
 export * from "./products";
+
+// Points domain
+export * from "./points";
