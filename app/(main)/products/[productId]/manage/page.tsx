@@ -706,10 +706,12 @@ const StockLotsSection: React.FC<
             {/* Content Form */}
             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">เลข LOT</Label>
+                <Label className="text-xs text-muted-foreground">
+                  เลขที่นำเข้า
+                </Label>
                 <Input
                   type="text"
-                  placeholder={lot.id ? "" : "กรอกเลข LOT..."}
+                  placeholder={lot.id ? "" : ""}
                   value={lot.lotNumber || ""}
                   onChange={(e) =>
                     updateStockLot(index, "lotNumber", e.target.value)
