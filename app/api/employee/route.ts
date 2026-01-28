@@ -21,13 +21,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     // Allow if user has sale.create permission (needed for sale form dropdowns)
-    if (session.user.permissions["sale.create"]?.allow) {
+    if ((session.user.permissionKeys ?? []).includes("sale.create")) {
       // Allowed
     }
     // If exact route match fails, check if they have general management permission
-    else if (!session.user.permissions["employee.manage"]?.allow) {
+    else if (!(session.user.permissionKeys ?? []).includes("employee.manage")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

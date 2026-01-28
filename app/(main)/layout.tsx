@@ -21,7 +21,7 @@ export default async function MainLayout({ children }: MainLayoutProps) {
     <DashboardShell
       displayName={user.name ?? user.email ?? null}
       roles={user.roles ?? []}
-      permissions={user.permissions ?? {}}
+      permissionKeys={user.permissionKeys ?? []}
     >
       {children}
     </DashboardShell>

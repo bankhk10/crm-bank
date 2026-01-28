@@ -190,14 +190,14 @@ export function isRoutePublic(pathname: string): boolean {
  */
 export function isAuthorized(
   pathname: string,
-  permissionMap: Record<string, SessionPermission>
+  permissionKeys: string[]
 ): boolean {
   const rule = routeRules.find((candidate) => candidate.pattern.test(pathname));
   if (!rule) {
     return true;
   }
 
-  return rule.required.every((key) => permissionMap[key]?.allow);
+  return rule.required.every((key) => permissionKeys.includes(key));
 }
 
 /**

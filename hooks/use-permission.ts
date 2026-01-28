@@ -64,7 +64,7 @@ export function usePermission(
     }
 
     const hasPermission = (key: string): boolean =>
-      Boolean(currentUser.permissions[key]?.allow);
+      currentUser.permissionKeys?.includes(key) ?? false;
     const allowed = requirements.length
       ? requirements.every((key) => hasPermission(key))
       : true;

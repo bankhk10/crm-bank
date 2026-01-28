@@ -31,7 +31,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -122,11 +122,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["temporary_creditlimit.create"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("temporary_creditlimit.create")) {
     return NextResponse.json(
       { error: "Forbidden - missing temporary_creditlimit.create" },
       { status: 403 }

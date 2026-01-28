@@ -23,8 +23,8 @@ export async function guardPermission(
     };
   }
 
-  const permissions = session.user.permissions ?? {};
-  const allowed = requirements.every((key) => permissions[key]?.allow);
+  const permissionKeys: string[] = session.user.permissionKeys ?? [];
+  const allowed = requirements.every((key) => permissionKeys.includes(key));
 
   if (!allowed) {
     return {

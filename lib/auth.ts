@@ -21,26 +21,37 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 });
 
-// Helper to create a minimal permission map (remove redundant fields to reduce token size)
-function createMinimalPermissionMap(
+// Helper to create a compact permission storage (only essential data)
+// Store only the permission keys that are allowed to reduce token size significantly
+function createCompactPermissions(
   permissionMap: Record<string, SessionPermission>
-): Record<string, SessionPermission> {
-  const minimal: Record<string, SessionPermission> = {};
+): {
+  keys: string[];
+  data: Record<string, DataAccessLevel>;
+  edit: Record<string, EditAccessLevel>;
+  del: Record<string, DeleteAccessLevel>;
+} {
+  const keys: string[] = [];
+  const data: Record<string, DataAccessLevel> = {};
+  const edit: Record<string, EditAccessLevel> = {};
+  const del: Record<string, DeleteAccessLevel> = {};
+
   for (const [key, perm] of Object.entries(permissionMap)) {
-    minimal[key] = {
-      key: perm.key,
-      category: perm.category,
-      allow: perm.allow,
-      // Only include non-null optional fields
-      ...(perm.menuPath && { menuPath: perm.menuPath }),
-      ...(perm.action && { action: perm.action }),
-      ...(perm.resource && { resource: perm.resource }),
-      ...(perm.dataAccess && { dataAccess: perm.dataAccess }),
-      ...(perm.editAccess && { editAccess: perm.editAccess }),
-      ...(perm.deleteAccess && { deleteAccess: perm.deleteAccess }),
-    };
+    if (perm.allow) {
+      keys.push(key);
+      if (perm.dataAccess && perm.resource) {
+        data[perm.resource] = perm.dataAccess;
+      }
+      if (perm.editAccess && perm.resource) {
+        edit[perm.resource] = perm.editAccess;
+      }
+      if (perm.deleteAccess && perm.resource) {
+        del[perm.resource] = perm.deleteAccess;
+      }
+    }
   }
-  return minimal;
+
+  return { keys, data, edit, del };
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -100,14 +111,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.permissionOverrides
         );
 
-        // Create minimal permission map to reduce token size
-        const minimalPermissions = createMinimalPermissionMap(permissionMap);
-
-        // Build access maps
-        const dataAccessByResource = buildDataAccessByResource(permissionMap);
-        const editAccessByResource = buildEditAccessByResource(permissionMap);
-        const deleteAccessByResource =
-          buildDeleteAccessByResource(permissionMap);
+        // Create compact permission storage to reduce token size
+        const compact = createCompactPermissions(permissionMap);
         const roles = user.userRoles.map((userRole) => userRole.role.slug);
 
         return {
@@ -115,19 +120,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           email: user.email,
           roles,
-          permissions: minimalPermissions,
+          permissionKeys: compact.keys, // Only store keys, not full objects
           departmentId: user.departmentId,
           positionId: user.positionId,
-          dataAccessByResource,
-          editAccessByResource,
-          deleteAccessByResource,
+          dataAccessByResource: compact.data,
+          editAccessByResource: compact.edit,
+          deleteAccessByResource: compact.del,
           employeeId: user.employeeProfile?.id ?? null,
         } satisfies {
           id: string;
           name: string;
           email: string;
           roles: string[];
-          permissions: Record<string, SessionPermission>;
+          permissionKeys: string[];
           departmentId?: string | null;
           positionId?: string | null;
           dataAccessByResource: Record<string, DataAccessLevel>;
@@ -147,7 +152,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Initial login: take enriched data directly
         const enriched = user as unknown as {
           roles: string[];
-          permissions: Record<string, SessionPermission>;
+          permissionKeys: string[];
           departmentId?: string | null;
           positionId?: string | null;
           dataAccessByResource?: Record<string, DataAccessLevel>;
@@ -156,7 +161,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           employeeId?: string | null;
         };
         token.roles = enriched.roles;
-        token.permissions = enriched.permissions;
+        token.permissionKeys = enriched.permissionKeys;
         token.departmentId = enriched.departmentId ?? null;
         token.positionId = enriched.positionId ?? null;
         token.dataAccessByResource = enriched.dataAccessByResource ?? {};
@@ -199,23 +204,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               fresh.permissionOverrides
             );
 
-            // Create minimal permission map
-            const minimalPermissions =
-              createMinimalPermissionMap(permissionMap);
+            // Create compact permission storage
+            const compact = createCompactPermissions(permissionMap);
 
-            const dataAccessByResource =
-              buildDataAccessByResource(permissionMap);
-            const editAccessByResource =
-              buildEditAccessByResource(permissionMap);
-            const deleteAccessByResource =
-              buildDeleteAccessByResource(permissionMap);
             token.roles = fresh.userRoles.map((ur) => ur.role.slug);
-            token.permissions = minimalPermissions;
+            token.permissionKeys = compact.keys;
             token.departmentId = fresh.departmentId ?? null;
             token.positionId = fresh.positionId ?? null;
-            token.dataAccessByResource = dataAccessByResource;
-            token.editAccessByResource = editAccessByResource;
-            token.deleteAccessByResource = deleteAccessByResource;
+            token.dataAccessByResource = compact.data;
+            token.editAccessByResource = compact.edit;
+            token.deleteAccessByResource = compact.del;
             token.employeeId = fresh.employeeProfile?.id ?? null;
           }
         } catch {
@@ -228,8 +226,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.sub ?? "";
         session.user.roles = (token.roles as string[]) ?? [];
-        session.user.permissions =
-          (token.permissions as Record<string, SessionPermission>) ?? {};
+        session.user.permissionKeys = (token.permissionKeys as string[]) ?? [];
         session.user.departmentId =
           (token.departmentId as string | null) ?? null;
         session.user.positionId = (token.positionId as string | null) ?? null;

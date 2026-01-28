@@ -62,11 +62,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["product.manage"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("product.manage")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.manage" },
       { status: 403 },

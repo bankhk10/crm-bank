@@ -23,7 +23,7 @@ async function requireAdminAccess(): Promise<void> {
   const isAdmin =
     session.user.roles?.includes("administrator") ||
     session.user.roles?.includes("admin") ||
-    session.user.permissions?.["logs.view"]?.allow;
+    session.user.permissionKeys?.includes("logs.view");
 
   if (!isAdmin) {
     throw new Error("Access denied: Admin role required");

@@ -18,7 +18,7 @@ export function useCurrentUser(): CurrentUser | null {
     roles: sessionUser.roles ?? [],
     departmentId: sessionUser.departmentId,
     positionId: sessionUser.positionId,
-    permissions: sessionUser.permissions ?? {},
+    permissionKeys: sessionUser.permissionKeys ?? [],
     dataAccessByResource: sessionUser.dataAccessByResource ?? {},
     editAccessByResource: sessionUser.editAccessByResource ?? {},
     deleteAccessByResource: sessionUser.deleteAccessByResource ?? {},

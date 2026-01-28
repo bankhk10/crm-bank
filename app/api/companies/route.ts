@@ -30,9 +30,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     // Allow if user has sale.create permission (needed for sale form dropdowns)
-    if (session.user.permissions["sale.create"]?.allow) {
+    if ((session.user.permissionKeys ?? []).includes("sale.create")) {
       // Allowed
     } else {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -94,12 +94,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Ensure caller has explicit create permission for companies
-  if (!session.user.permissions?.["company.create"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("company.create")) {
     return NextResponse.json(
       { error: "Forbidden - missing company.create" },
       { status: 403 }

@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!session.user.permissions?.["product.update"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!session.user.permissions?.["product.delete"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("product.delete")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

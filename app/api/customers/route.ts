@@ -77,7 +77,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -186,7 +186,7 @@ export async function POST(request: Request) {
   const customerType = body?.customerType;
   if (customerType) {
     const typePermissionKey = `customer.create.${customerType.toLowerCase()}`;
-    if (!session.user.permissions?.[typePermissionKey]?.allow) {
+    if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
       return NextResponse.json(
         { error: `Forbidden - missing ${typePermissionKey}` },
         { status: 403 }

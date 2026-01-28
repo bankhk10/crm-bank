@@ -33,7 +33,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized(resourcePath, permissionKeys)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -150,11 +151,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized(resourcePath, permissionKeys)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["product.create"]?.allow) {
+  if (!permissionKeys.includes("product.create")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.create" },
       { status: 403 },

@@ -19,7 +19,7 @@ export default async function LogViewerPage() {
   const isAdmin =
     session.user.roles?.includes("administrator") ||
     session.user.roles?.includes("admin") ||
-    session.user.permissions?.["logs.view"]?.allow;
+    session.user.permissionKeys?.includes("logs.view");
 
   if (!isAdmin) {
     redirect("/sales");

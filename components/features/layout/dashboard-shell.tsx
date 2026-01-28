@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import type { SessionPermission } from "@/types/next-auth";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
 
@@ -10,14 +9,14 @@ type DashboardShellProps = {
   children: ReactNode;
   displayName?: string | null;
   roles: string[];
-  permissions: Record<string, SessionPermission>;
+  permissionKeys: string[];
 };
 
 export default function DashboardShell({
   children,
   displayName,
   roles,
-  permissions,
+  permissionKeys,
 }: DashboardShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -25,7 +24,7 @@ export default function DashboardShell({
     <div className="fixed inset-0 flex min-h-screen bg-[#b92626]">
       {/* Desktop Sidebar */}
       <Sidebar
-        permissions={permissions}
+        permissionKeys={permissionKeys}
         roles={roles}
         className="hidden md:block"
       />
@@ -69,7 +68,7 @@ export default function DashboardShell({
             }`}
           >
             <Sidebar
-              permissions={permissions}
+              permissionKeys={permissionKeys}
               roles={roles}
               className="block md:hidden"
               onClose={() => setIsSidebarOpen(false)}

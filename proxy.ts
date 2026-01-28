@@ -28,13 +28,13 @@ export async function proxy(request: NextRequest) {
 
   if (session?.user) {
     const roles = session.user.roles ?? [];
-    const permissions = session.user.permissions ?? {};
+    const permissionKeys = session.user.permissionKeys ?? [];
 
     if (isPublic && pathname.startsWith("/login")) {
       return NextResponse.redirect(new URL(getDefaultRouteForRoles(roles), nextUrl.origin));
     }
 
-    if (!isPublic && !isAuthorized(pathname, permissions)) {
+    if (!isPublic && !isAuthorized(pathname, permissionKeys)) {
       return NextResponse.redirect(new URL(DEFAULT_AUTH_REDIRECT, nextUrl.origin));
     }
   }

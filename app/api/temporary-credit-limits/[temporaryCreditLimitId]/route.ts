@@ -25,7 +25,7 @@ export async function GET(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -65,11 +65,11 @@ export async function PUT(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["temporary_creditlimit.edit"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("temporary_creditlimit.edit")) {
     return NextResponse.json({ error: "Forbidden - missing temporary_creditlimit.edit" }, { status: 403 });
   }
 
@@ -135,11 +135,11 @@ export async function DELETE(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["temporary_creditlimit.delete"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("temporary_creditlimit.delete")) {
     return NextResponse.json({ error: "Forbidden - missing temporary_creditlimit.delete" }, { status: 403 });
   }
 

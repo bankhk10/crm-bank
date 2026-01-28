@@ -13,7 +13,7 @@ export async function POST(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -85,11 +85,11 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["product.update"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },
@@ -148,11 +148,11 @@ export async function PUT(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["product.update"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },

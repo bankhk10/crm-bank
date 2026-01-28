@@ -29,7 +29,6 @@ import {
   Target,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
-import type { SessionPermission } from "@/types/next-auth";
 import {
   getDefaultRouteForRoles,
   isAdministrator,
@@ -137,30 +136,30 @@ export const navigationItems: SidebarNavItem[] = [
 ];
 
 interface SidebarProps {
-  permissions: Record<string, SessionPermission>;
+  permissionKeys: string[];
   roles: string[];
   className?: string;
   onClose?: () => void;
 }
 
-// Recursive helper to filter items based on permissions
+// Recursive helper to filter items based on permission keys
 const filterNavItems = <T extends SidebarChildItem | SidebarNavItem>(
   items: T[],
-  permissions: Record<string, SessionPermission>,
+  permissionKeys: string[],
 ): T[] => {
   return items
     .map((item) => {
       if (item.children) {
         return {
           ...item,
-          children: filterNavItems(item.children, permissions),
+          children: filterNavItems(item.children, permissionKeys),
         };
       }
       return item;
     })
     .filter((item) => {
       if (item.permissionKey) {
-        return permissions[item.permissionKey]?.allow;
+        return permissionKeys.includes(item.permissionKey);
       }
       return true;
     });
@@ -263,7 +262,7 @@ const SidebarMenuItem = ({
 };
 
 export default function Sidebar({
-  permissions,
+  permissionKeys,
   roles,
   className,
   onClose,
@@ -271,7 +270,7 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const items = useMemo(() => {
-    const navs = filterNavItems(navigationItems, permissions);
+    const navs = filterNavItems(navigationItems, permissionKeys);
 
     const dashboardHref = getDefaultRouteForRoles(roles);
     const isDashboard = isAdministrator(roles) || isManager(roles);
@@ -286,7 +285,7 @@ export default function Sidebar({
     };
 
     return [mainDashboardItem, ...navs];
-  }, [permissions, roles]);
+  }, [permissionKeys, roles]);
 
   // Main sidebar 'accordion' logic for top-level items
   const [openKey, setOpenKey] = useState<string | null>(() => {

@@ -23,7 +23,7 @@ declare module "next-auth" {
     user: {
       id: string;
       roles: string[];
-      permissions: Record<string, SessionPermission>;
+      permissionKeys: string[]; // Changed from permissions object to simple key array
       departmentId?: string | null;
       positionId?: string | null;
       dataAccessByResource: Record<string, DataAccessLevel>;
@@ -43,7 +43,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     roles?: string[];
-    permissions?: Record<string, SessionPermission>;
+    permissionKeys?: string[]; // Changed from permissions object to simple key array
     departmentId?: string | null;
     positionId?: string | null;
     dataAccessByResource?: Record<string, DataAccessLevel>;

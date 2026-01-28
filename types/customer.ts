@@ -3,7 +3,6 @@ import type {
   EditAccessLevel,
   DeleteAccessLevel,
 } from "@/src/infrastructure/database";
-import type { SessionPermission } from "./next-auth";
 
 export interface CurrentUser {
   id: string;
@@ -12,7 +11,7 @@ export interface CurrentUser {
   roles: string[];
   departmentId?: string | null;
   positionId?: string | null;
-  permissions: Record<string, SessionPermission>;
+  permissionKeys: string[]; // Changed from permissions object to array of keys
   dataAccessByResource: Record<string, DataAccessLevel>;
   editAccessByResource?: Record<string, EditAccessLevel>;
   deleteAccessByResource?: Record<string, DeleteAccessLevel>;

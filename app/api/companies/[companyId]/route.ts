@@ -32,7 +32,7 @@ export async function GET(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -56,11 +56,11 @@ export async function PUT(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["company.edit"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("company.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing company.edit" },
       { status: 403 }
@@ -108,11 +108,11 @@ export async function DELETE(request: Request, context: any) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissions)) {
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!session.user.permissions?.["company.delete"]?.allow) {
+  if (!(session.user.permissionKeys ?? []).includes("company.delete")) {
     return NextResponse.json(
       { error: "Forbidden - missing company.delete" },
       { status: 403 }

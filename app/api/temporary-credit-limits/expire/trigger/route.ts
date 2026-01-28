@@ -16,12 +16,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!isAuthorized(resourcePath, session.user.permissions)) {
+    if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Check if user has admin permission
-    if (!session.user.permissions?.["temporary_creditlimit.approve"]?.allow) {
+    if (!(session.user.permissionKeys ?? []).includes("temporary_creditlimit.approve")) {
         return NextResponse.json(
             { error: "Forbidden - requires temporary_creditlimit.approve permission" },
             { status: 403 }
