@@ -5,6 +5,9 @@ export async function GET(
   request: Request,
   { params }: { params: { shopId: string } },
 ) {
+  if (!params.shopId) {
+    return NextResponse.json({ message: "shopId is required" }, { status: 400 });
+  }
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from") ?? undefined;
   const to = searchParams.get("to") ?? undefined;

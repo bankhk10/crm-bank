@@ -175,6 +175,9 @@ export const fetchCustomerSalesShopDetail = async (
   shopId: string,
   params: DateRangeParams & { page?: number; pageSize?: number },
 ): Promise<CustomerSalesShopDetail | null> => {
+  if (!shopId) {
+    return null;
+  }
   const range = normalizeDateRange(params);
   const page = params.page && params.page > 0 ? params.page : 1;
   const pageSize = params.pageSize && params.pageSize > 0 ? params.pageSize : 10;
