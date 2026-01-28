@@ -142,7 +142,7 @@ export default function CustomerSalesReportPage() {
               รายงานตามลูกค้า
             </h1>
             <p className="text-muted-foreground text-sm">
-              ลูกค้าซื้อสูงสุด, ความถี่, มูลค่าตลอดอายุ
+              ลูกค้า, มูลค่ารวมทั้งหมด
             </p>
           </div>
         </div>
@@ -225,29 +225,17 @@ export default function CustomerSalesReportPage() {
           </div>
         ) : reportData ? (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-white/50 p-2 rounded-xl h-auto">
-              <TabsTrigger
-                value="top-customers"
-                className="rounded-lg px-6 py-2"
-              >
-                ลูกค้าซื้อสูงสุด
-              </TabsTrigger>
-              <TabsTrigger value="by-type" className="rounded-lg px-6 py-2">
-                ตามประเภท
-              </TabsTrigger>
-            </TabsList>
-
             <TabsContent value="top-customers" className="mt-6">
               <Card className="rounded-2xl border bg-white/70">
                 <CardHeader>
-                  <CardTitle>Top ลูกค้า</CardTitle>
+                  <CardTitle>รายชื่อลูกค้า</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>#</TableHead>
+                          <TableHead>ลำดับ</TableHead>
                           <TableHead>ลูกค้า</TableHead>
                           <TableHead>ประเภท</TableHead>
                           <TableHead className="text-right">ยอดขาย</TableHead>
@@ -317,90 +305,6 @@ export default function CustomerSalesReportPage() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="by-type" className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="rounded-2xl border bg-white/70">
-                  <CardHeader>
-                    <CardTitle>ตามประเภทลูกค้า</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[450px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={reportData.customerTypeBreakdown.map(
-                              (ct) => ({
-                                name: customerTypeLabels[ct.type] || ct.type,
-                                value: ct.totalSales,
-                              }),
-                            )}
-                            dataKey="value"
-                            outerRadius={140}
-                            innerRadius={80}
-                            label={({ name, percent }) =>
-                              `${name}:${(percent * 100).toFixed(0)}%`
-                            }
-                          >
-                            {reportData.customerTypeBreakdown.map((_, i) => (
-                              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
-                          />
-                          <Legend />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border bg-white/70">
-                  <CardHeader>
-                    <CardTitle>รายละเอียด</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ประเภท</TableHead>
-                          <TableHead className="text-right">จำนวน</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-right">เฉลี่ย</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reportData.customerTypeBreakdown.map((ct, i) => (
-                          <TableRow key={ct.type}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{
-                                    backgroundColor: COLORS[i % COLORS.length],
-                                  }}
-                                />
-                                {customerTypeLabels[ct.type] || ct.type}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {ct.customerCount}
-                            </TableCell>
-                            <TableCell className="text-right text-emerald-600 font-semibold">
-                              {formatTHB(ct.totalSales)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatTHB(ct.avgSalesPerCustomer)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
             </TabsContent>
           </Tabs>
         ) : (

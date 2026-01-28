@@ -465,13 +465,7 @@ export function CustomerDetailPanel({
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       ประวัติการซื้อ
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="contact-notes"
-                      className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      การติดต่อ & หมายเหตุ
-                    </TabsTrigger>
+
                     <TabsTrigger
                       value="finance"
                       className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -480,11 +474,11 @@ export function CustomerDetailPanel({
                       การเงิน
                     </TabsTrigger>
                     <TabsTrigger
-                      value="attachments"
+                      value="contact-notes"
                       className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
                     >
-                      <Paperclip className="h-4 w-4 mr-2" />
-                      เอกสารแนบ
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      การติดต่อ & หมายเหตุ
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -1013,41 +1007,6 @@ export function CustomerDetailPanel({
                           <div className="text-center py-8 text-muted-foreground">
                             <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
                             <p>ไม่มีข้อมูลวงเงินเครดิต</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Attachments Tab */}
-                  <TabsContent value="attachments" className="m-0 p-4">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Paperclip className="h-4 w-4" />
-                          รูปภาพ / เอกสารแนบ
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {customer?.images && customer.images.length > 0 ? (
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {customer.images.map((image) => (
-                              <div
-                                key={image.id}
-                                className="relative aspect-square rounded-lg overflow-hidden border bg-muted"
-                              >
-                                <img
-                                  src={image.url}
-                                  alt={image.filename}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <Paperclip className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                            <p>ไม่มีเอกสารแนบ</p>
                           </div>
                         )}
                       </CardContent>
