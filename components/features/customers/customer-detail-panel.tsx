@@ -397,7 +397,7 @@ export function CustomerDetailPanel({
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          Lifetime Value
+                          มูลค่ารวมทั้งหมด
                         </p>
                         <p className="text-lg font-bold text-purple-600">
                           {formatTHB(kpi?.lifetimeValue || 0)}
