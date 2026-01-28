@@ -783,6 +783,342 @@ async function main() {
         menuPath: "/reports/salesperson",
       },
     }),
+    // ======================================
+    // NEW PERMISSIONS - Added 2026-01-28
+    // ======================================
+    
+    // Menu Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "menu.rbac",
+        name: "เมนูจัดการสิทธิ์",
+        category: "MENU",
+        menuPath: "/rbac",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "menu.admin",
+        name: "เมนูตั้งค่าระบบ",
+        category: "MENU",
+        menuPath: "/admin",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "menu.notifications",
+        name: "เมนูแจ้งเตือน",
+        category: "MENU",
+        menuPath: "/notifications",
+      },
+    }),
+    
+    // Report Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "report.export",
+        name: "ส่งออกรายงาน",
+        category: "ACTION",
+        resource: "report",
+        action: "export",
+      },
+    }),
+    
+    // Sale Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "sale.cancel",
+        name: "ยกเลิกใบขาย",
+        category: "ACTION",
+        resource: "sale",
+        action: "cancel",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sale.update_delivery",
+        name: "แก้ไขวันส่ง",
+        category: "ACTION",
+        resource: "sale",
+        action: "update_delivery",
+      },
+    }),
+    
+    // Product Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "product.import",
+        name: "นำเข้าสินค้า",
+        category: "ACTION",
+        resource: "product",
+        action: "import",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "product.export",
+        name: "ส่งออกสินค้า",
+        category: "ACTION",
+        resource: "product",
+        action: "export",
+      },
+    }),
+    
+    // Customer Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "customer.import",
+        name: "นำเข้าข้อมูลลูกค้า",
+        category: "ACTION",
+        resource: "customer",
+        action: "import",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.export",
+        name: "ส่งออกข้อมูลลูกค้า",
+        category: "ACTION",
+        resource: "customer",
+        action: "export",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "customer.assign",
+        name: "กำหนดพนักงานดูแลลูกค้า",
+        category: "ACTION",
+        resource: "customer",
+        action: "assign",
+      },
+    }),
+    
+    // Employee Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "employee.create",
+        name: "สร้างพนักงาน",
+        category: "ACTION",
+        resource: "employee",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "employee.delete",
+        name: "ลบพนักงาน",
+        category: "ACTION",
+        resource: "employee",
+        action: "delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "employee.assign_manager",
+        name: "กำหนดหัวหน้าพนักงาน",
+        category: "ACTION",
+        resource: "employee",
+        action: "assign_manager",
+      },
+    }),
+    
+    // Company Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "company.view",
+        name: "ดูรายละเอียดบริษัท",
+        category: "ACTION",
+        resource: "company",
+        action: "view",
+      },
+    }),
+    
+    // RBAC Management Permissions
+    prisma.permission.create({
+      data: {
+        key: "rbac.role.create",
+        name: "สร้าง Role",
+        category: "ACTION",
+        resource: "rbac",
+        action: "role_create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "rbac.role.edit",
+        name: "แก้ไข Role",
+        category: "ACTION",
+        resource: "rbac",
+        action: "role_edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "rbac.role.delete",
+        name: "ลบ Role",
+        category: "ACTION",
+        resource: "rbac",
+        action: "role_delete",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "rbac.permission.assign",
+        name: "กำหนด Permission ให้ Role",
+        category: "ACTION",
+        resource: "rbac",
+        action: "permission_assign",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "rbac.user.override",
+        name: "Override สิทธิ์ผู้ใช้",
+        category: "ACTION",
+        resource: "rbac",
+        action: "user_override",
+      },
+    }),
+    
+    // Sales Target Permissions
+    prisma.permission.create({
+      data: {
+        key: "sales_target.view",
+        name: "ดูเป้าหมายยอดขาย",
+        category: "ACTION",
+        resource: "sales_target",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sales_target.create",
+        name: "สร้างเป้าหมายยอดขาย",
+        category: "ACTION",
+        resource: "sales_target",
+        action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sales_target.edit",
+        name: "แก้ไขเป้าหมายยอดขาย",
+        category: "ACTION",
+        resource: "sales_target",
+        action: "edit",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "sales_target.delete",
+        name: "ลบเป้าหมายยอดขาย",
+        category: "ACTION",
+        resource: "sales_target",
+        action: "delete",
+      },
+    }),
+    
+    // Stock/Inventory Permissions
+    prisma.permission.create({
+      data: {
+        key: "stock.view",
+        name: "ดูสต็อกสินค้า",
+        category: "ACTION",
+        resource: "stock",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "stock.adjust",
+        name: "ปรับปรุงสต็อก",
+        category: "ACTION",
+        resource: "stock",
+        action: "adjust",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "stock.lot.manage",
+        name: "จัดการ LOT สินค้า",
+        category: "ACTION",
+        resource: "stock",
+        action: "lot_manage",
+      },
+    }),
+    
+    // Notification Permissions
+    prisma.permission.create({
+      data: {
+        key: "notification.view",
+        name: "ดูการแจ้งเตือน",
+        category: "ACTION",
+        resource: "notification",
+        action: "view",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "notification.manage",
+        name: "จัดการการแจ้งเตือน",
+        category: "ACTION",
+        resource: "notification",
+        action: "manage",
+      },
+    }),
+    
+    // System Permissions
+    prisma.permission.create({
+      data: {
+        key: "system.audit_log",
+        name: "ดู Audit Log",
+        category: "ACTION",
+        resource: "system",
+        action: "audit_log",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "system.security_log",
+        name: "ดู Security Log",
+        category: "ACTION",
+        resource: "system",
+        action: "security_log",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "system.settings",
+        name: "ตั้งค่าระบบ",
+        category: "ACTION",
+        resource: "system",
+        action: "settings",
+      },
+    }),
+    
+    // DATA Permissions - Additional
+    prisma.permission.create({
+      data: {
+        key: "data.companies",
+        name: "ขอบเขตข้อมูลบริษัท",
+        category: "DATA",
+        resource: "company",
+        defaultDataAccess: "VIEW_ALL",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "data.sales_targets",
+        name: "ขอบเขตข้อมูลเป้าหมายยอดขาย",
+        category: "DATA",
+        resource: "sales_target",
+        defaultDataAccess: "VIEW_DEPARTMENT",
+        defaultEditAccess: "EDIT_OWN",
+        defaultDeleteAccess: "DELETE_OWN",
+      },
+    }),
   ]);
 
   const permissionMap = Object.fromEntries(
@@ -891,6 +1227,24 @@ async function main() {
       editAccess: "EDIT_OWN",
       deleteAccess: "DELETE_OWN",
     },
+    // New permissions added 2026-01-28
+    { key: "notification.view" },
+    { key: "stock.view" },
+    { key: "customer.create.subdealer" },
+    { key: "customer.create.farmer" },
+    { key: "customer.create.broker" },
+    {
+      key: "data.customers",
+      dataAccess: "VIEW_OWN",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.temporary_creditlimits",
+      dataAccess: "VIEW_OWN",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
+    },
   ];
 
   await prisma.rolePermission.createMany({
@@ -937,6 +1291,31 @@ async function main() {
     // DATA permission - can view department but only edit/delete own
     {
       key: "data.sales",
+      dataAccess: "VIEW_DEPARTMENT",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
+    },
+    // New permissions added 2026-01-28
+    { key: "menu.reports" },
+    { key: "report.time_sales" },
+    { key: "report.product_sales" },
+    { key: "report.customer_sales" },
+    { key: "report.salesperson" },
+    { key: "menu.temporary_credit_limits" },
+    { key: "temporary_creditlimit.create" },
+    { key: "temporary_creditlimit.edit" },
+    { key: "temporary_creditlimit.view" },
+    { key: "temporary_creditlimit.delete" },
+    { key: "temporary_creditlimit.approve" },
+    { key: "temporary_creditlimit.reject" },
+    { key: "sale.cancel" },
+    { key: "customer.assign" },
+    { key: "employee.manage" },
+    { key: "stock.view" },
+    { key: "notification.view" },
+    { key: "sales_target.view" },
+    {
+      key: "data.customers",
       dataAccess: "VIEW_DEPARTMENT",
       editAccess: "EDIT_OWN",
       deleteAccess: "DELETE_OWN",
@@ -1057,7 +1436,44 @@ async function main() {
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
     },
-    // Note: rbac.manage is excluded to differentiate from Administrator
+    // New permissions added 2026-01-28
+    { key: "menu.notifications" },
+    { key: "report.export" },
+    { key: "sale.cancel" },
+    { key: "sale.update_delivery" },
+    { key: "product.import" },
+    { key: "product.export" },
+    { key: "customer.import" },
+    { key: "customer.export" },
+    { key: "customer.assign" },
+    { key: "employee.create" },
+    { key: "employee.delete" },
+    { key: "employee.assign_manager" },
+    { key: "company.view" },
+    { key: "sales_target.view" },
+    { key: "sales_target.create" },
+    { key: "sales_target.edit" },
+    { key: "sales_target.delete" },
+    { key: "stock.view" },
+    { key: "stock.adjust" },
+    { key: "stock.lot.manage" },
+    { key: "notification.view" },
+    { key: "notification.manage" },
+    { key: "system.audit_log" },
+    { key: "system.security_log" },
+    {
+      key: "data.companies",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.sales_targets",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    // Note: rbac.manage, menu.rbac, menu.admin, system.settings are excluded to differentiate from Administrator
   ];
 
   await prisma.rolePermission.createMany({

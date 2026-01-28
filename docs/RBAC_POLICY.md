@@ -1,6 +1,7 @@
 # RBAC Policy - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-01-28  
+> **Source of Truth**: `prisma/seed.js`  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -21,130 +22,282 @@ User ─────N:N─────▶ Role ─────N:N─────
 
 | Role | Slug | Description | Is System |
 |------|------|-------------|-----------|
-| Admin | `admin` | Full system access | Yes |
-| Manager | `manager` | Department management | Yes |
-| Sales | `sales` | Sales operations | Yes |
-| Viewer | `viewer` | Read-only access | Yes |
+| Administrator | `administrator` | Full system access (RBAC included) | Yes |
+| Admin | `admin` | High-level access (excludes RBAC) | Yes |
+| ผู้จัดการขาย | `sales_manager` | Department management + approval | No |
+| พนักงานขาย | `sales_employee` | Basic sales operations | No |
 
 ### Role Hierarchy
 ```
-admin > manager > sales > viewer
+Administrator > Admin > sales_manager > sales_employee
 ```
 
 ---
 
-## 3. Permission Types
+## 3. Permission Categories
 
-### 3.1 Categories
 ```prisma
 enum PermissionType {
-  MENU    // Access to menu/page
-  ACTION  // Perform specific action
-  DATA    // Data access level
+  MENU    // Access to menu/page navigation
+  ACTION  // Perform specific CRUD/business action
+  DATA    // Data access scope (VIEW/EDIT/DELETE levels)
 }
 ```
 
-### 3.2 Naming Convention
-```
-{resource}.{action}
+---
 
-Examples:
-- customer.read
-- customer.create
-- customer.update
-- customer.delete
-- sale.approve
-- sale.reject
-- report.export
-```
+## 4. Complete Permission List
 
-### 3.3 Resources
-| Resource | Actions |
-|----------|---------|
-| customer | read, create, update, delete |
-| product | read, create, update, delete |
-| sale | read, create, update, delete, approve, reject |
-| employee | read, create, update, delete |
-| credit | read, create, update, approve |
-| report | read, export |
-| role | read, create, update, delete |
-| permission | read, assign |
+### 4.1 MENU Permissions (การเข้าถึงเมนู)
+
+| Key | Name (TH) | Menu Path |
+|-----|-----------|-----------|
+| `menu.dashboard` | เมนูแดชบอร์ด | /dashboard |
+| `menu.reports` | เมนูรายงาน | /reports |
+| `menu.sales` | เมนูการขาย | /sales |
+| `menu.products` | เมนูสินค้า | /products |
+| `menu.customers` | เมนูลูกค้า | /customers |
+| `menu.employees` | เมนูพนักงาน | /employee |
+| `menu.companies` | เมนูบริษัท | /companies |
+| `menu.credit_limits` | เมนูวงเงินสินเชื่อ | /credit-limits |
+| `menu.temporary_credit_limits` | เมนูวงเงินสินเชื่อชั่วคราว | /temporary-credit-limits |
+| `menu.fulfillment` | เมนูจัดส่งสินค้า | /fulfillment |
+| `menu.sales_forecast` | เมนูคาดการณ์ยอดขาย | /sales-forecast |
+| `menu.sales_targets` | เมนูตั้งเป้าหมายยอดขาย | /sales-targets |
+| `menu.rbac` | เมนูจัดการสิทธิ์ | /rbac |
+| `menu.admin` | เมนูตั้งค่าระบบ | /admin |
+| `menu.notifications` | เมนูแจ้งเตือน | /notifications |
+
+### 4.2 Report Permissions (รายงาน)
+
+| Key | Name (TH) | Menu Path |
+|-----|-----------|-----------|
+| `report.time_sales` | รายงานยอดขายตามเวลา | /reports/time-sales |
+| `report.product_sales` | รายงานตามสินค้า | /reports/product-sales |
+| `report.product_group_sales` | รายงานตามกลุ่มสินค้า | /reports/product-group-sales |
+| `report.customer_sales` | รายงานตามลูกค้า | /reports/customer-sales |
+| `report.salesperson` | รายงานตามพนักงานขาย | /reports/salesperson |
+| `report.export` | ส่งออกรายงาน | - |
+
+### 4.3 Sale Permissions (การขาย)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `sale.create` | สร้างใบขาย | create |
+| `sale.edit` | แก้ไขใบขาย | edit |
+| `sale.view` | ดูรายละเอียดใบขาย | view |
+| `sale.delete` | ลบใบขาย | delete |
+| `sale.approve` | อนุมัติใบขาย | approve |
+| `sale.reject` | ปฏิเสธใบขาย | reject |
+| `sale.confirm-payment` | ยืนยันการชำระเงิน | confirm_payment |
+| `sale.manage_fulfillment` | จัดการการจัดส่งสินค้า | manage_fulfillment |
+| `sale.cancel` | ยกเลิกใบขาย | cancel |
+| `sale.update_delivery` | แก้ไขวันส่ง | update_delivery |
+
+### 4.4 Product Permissions (สินค้า)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `product.create` | สร้างสินค้า | create |
+| `product.update` | แก้ไขสินค้า | update |
+| `product.delete` | ลบสินค้า | delete |
+| `product.view` | ดูรายละเอียดสินค้า | view |
+| `product.manage` | จัดการสินค้า (ราคา, สต็อก, โปรโมชั่น) | manage |
+| `product.import` | นำเข้าสินค้า | import |
+| `product.export` | ส่งออกสินค้า | export |
+
+### 4.5 Customer Permissions (ลูกค้า)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `customer.create.dealer` | สร้างลูกค้าตัวแทนจำหน่าย | create |
+| `customer.create.subdealer` | สร้างลูกค้าตัวแทนจำหน่ายย่อย | create |
+| `customer.create.farmer` | สร้างลูกค้าเกษตรกร | create |
+| `customer.create.broker` | สร้างลูกค้านายหน้า | create |
+| `customer.edit` | แก้ไขลูกค้า | edit |
+| `customer.delete` | ลบลูกค้า | delete |
+| `customer.view` | ดูรายละเอียดลูกค้า | view |
+| `customer.import` | นำเข้าข้อมูลลูกค้า | import |
+| `customer.export` | ส่งออกข้อมูลลูกค้า | export |
+| `customer.assign` | กำหนดพนักงานดูแล | assign |
+
+### 4.6 Credit Limit Permissions (วงเงินเครดิต)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `creditlimit.create` | สร้างวงเงินสินเชื่อ | create |
+| `creditlimit.edit` | แก้ไขวงเงินสินเชื่อ | edit |
+| `creditlimit.delete` | ลบวงเงินสินเชื่อ | delete |
+| `creditlimit.view` | ดูรายละเอียดวงเงินสินเชื่อ | view |
+| `creditlimit.approve` | อนุมัติวงเงินสินเชื่อ | approve |
+| `creditlimit.reject` | ปฏิเสธวงเงินสินเชื่อ | reject |
+
+### 4.7 Temporary Credit Limit Permissions (วงเงินชั่วคราว)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `temporary_creditlimit.create` | สร้างวงเงินสินเชื่อชั่วคราว | create |
+| `temporary_creditlimit.edit` | แก้ไขวงเงินสินเชื่อชั่วคราว | edit |
+| `temporary_creditlimit.delete` | ลบวงเงินสินเชื่อชั่วคราว | delete |
+| `temporary_creditlimit.view` | ดูรายละเอียดวงเงินสินเชื่อชั่วคราว | view |
+| `temporary_creditlimit.approve` | อนุมัติวงเงินสินเชื่อชั่วคราว | approve |
+| `temporary_creditlimit.reject` | ปฏิเสธวงเงินสินเชื่อชั่วคราว | reject |
+
+### 4.8 Employee Permissions (พนักงาน)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `employee.view` | ดูรายละเอียดพนักงาน | view |
+| `employee.manage` | จัดการพนักงาน | edit |
+| `employee.create` | สร้างพนักงาน | create |
+| `employee.delete` | ลบพนักงาน | delete |
+| `employee.assign_manager` | กำหนดหัวหน้า | assign |
+
+### 4.9 Company Permissions (บริษัท)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `company.create` | สร้างบริษัท | create |
+| `company.edit` | แก้ไขบริษัท | edit |
+| `company.delete` | ลบบริษัท | delete |
+| `company.view` | ดูรายละเอียดบริษัท | view |
+
+### 4.10 RBAC Management Permissions (จัดการสิทธิ์)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `rbac.manage` | จัดการสิทธิ์ผู้ใช้ | manage |
+| `rbac.role.create` | สร้าง Role | create |
+| `rbac.role.edit` | แก้ไข Role | edit |
+| `rbac.role.delete` | ลบ Role | delete |
+| `rbac.permission.assign` | กำหนด Permission | assign |
+| `rbac.user.override` | Override สิทธิ์ผู้ใช้ | override |
+
+### 4.11 Sales Target Permissions (เป้าหมายยอดขาย)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `sales_target.view` | ดูเป้าหมายยอดขาย | view |
+| `sales_target.create` | สร้างเป้าหมายยอดขาย | create |
+| `sales_target.edit` | แก้ไขเป้าหมายยอดขาย | edit |
+| `sales_target.delete` | ลบเป้าหมายยอดขาย | delete |
+
+### 4.12 Stock/Inventory Permissions (คลังสินค้า)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `stock.view` | ดูสต็อกสินค้า | view |
+| `stock.adjust` | ปรับปรุงสต็อก | adjust |
+| `stock.lot.manage` | จัดการ LOT | manage |
+
+### 4.13 Notification Permissions (แจ้งเตือน)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `notification.view` | ดูการแจ้งเตือน | view |
+| `notification.manage` | จัดการการแจ้งเตือน | manage |
+
+### 4.14 System Permissions (ระบบ)
+
+| Key | Name (TH) | Action |
+|-----|-----------|--------|
+| `system.audit_log` | ดู Audit Log | view |
+| `system.security_log` | ดู Security Log | view |
+| `system.settings` | ตั้งค่าระบบ | manage |
+| `randomize` | สุ่มข้อมูล (Dev only) | randomize |
+
+### 4.15 DATA Permissions (ขอบเขตข้อมูล)
+
+| Key | Name (TH) | Resource |
+|-----|-----------|----------|
+| `data.sales` | ขอบเขตข้อมูลการขาย | sale |
+| `data.products` | ขอบเขตข้อมูลสินค้า | product |
+| `data.customers` | ขอบเขตข้อมูลลูกค้า | customer |
+| `data.employees` | ขอบเขตข้อมูลพนักงาน | employee |
+| `data.creditlimits` | ขอบเขตข้อมูลวงเงินสินเชื่อ | creditlimit |
+| `data.temporary_creditlimits` | ขอบเขตข้อมูลวงเงินชั่วคราว | temporary_creditlimit |
 
 ---
 
-## 4. Data Access Levels
+## 5. Data Access Levels
 
-### 4.1 View Access
-```prisma
+### 5.1 View Access
+```typescript
 enum DataAccessLevel {
-  VIEW_OWN         // See only own records
-  VIEW_DEPARTMENT  // See department records
-  VIEW_ALL         // See all records
+  VIEW_OWN         // ดูได้เฉพาะของตัวเอง
+  VIEW_DEPARTMENT  // ดูได้เฉพาะแผนกตัวเอง
+  VIEW_ALL         // ดูได้ทั้งหมด
 }
 ```
 
-### 4.2 Edit Access
-```prisma
+### 5.2 Edit Access
+```typescript
 enum EditAccessLevel {
-  EDIT_NONE        // Cannot edit
-  EDIT_OWN         // Edit only own records
-  EDIT_DEPARTMENT  // Edit department records
-  EDIT_ALL         // Edit all records
+  EDIT_NONE        // แก้ไขไม่ได้
+  EDIT_OWN         // แก้ไขได้เฉพาะของตัวเอง
+  EDIT_DEPARTMENT  // แก้ไขได้เฉพาะแผนกตัวเอง
+  EDIT_ALL         // แก้ไขได้ทั้งหมด
 }
 ```
 
-### 4.3 Delete Access
-```prisma
+### 5.3 Delete Access
+```typescript
 enum DeleteAccessLevel {
-  DELETE_NONE        // Cannot delete
-  DELETE_OWN         // Delete only own records
-  DELETE_DEPARTMENT  // Delete department records
-  DELETE_ALL         // Delete all records
+  DELETE_NONE        // ลบไม่ได้
+  DELETE_OWN         // ลบได้เฉพาะของตัวเอง
+  DELETE_DEPARTMENT  // ลบได้เฉพาะแผนกตัวเอง
+  DELETE_ALL         // ลบได้ทั้งหมด
 }
 ```
 
 ---
 
-## 5. Role-Permission Matrix
+## 6. Role-Permission Matrix
 
-### Admin
-| Permission | View | Edit | Delete |
-|------------|------|------|--------|
-| customer.* | ALL | ALL | ALL |
-| product.* | ALL | ALL | ALL |
-| sale.* | ALL | ALL | ALL |
-| employee.* | ALL | ALL | ALL |
-| role.* | ALL | ALL | ALL |
+### Administrator (Full Access)
+- ✅ All MENU permissions
+- ✅ All ACTION permissions
+- ✅ DATA: VIEW_ALL, EDIT_ALL, DELETE_ALL
+- ✅ RBAC management
 
-### Manager
-| Permission | View | Edit | Delete |
-|------------|------|------|--------|
-| customer.* | DEPARTMENT | DEPARTMENT | DEPARTMENT |
-| product.* | ALL | NONE | NONE |
-| sale.* | DEPARTMENT | DEPARTMENT | NONE |
-| sale.approve | Yes | - | - |
-| employee.* | DEPARTMENT | DEPARTMENT | NONE |
-| role.* | - | - | - |
+### Admin (High-Level, No RBAC)
+| Category | Permissions |
+|----------|-------------|
+| MENU | dashboard, reports, sales, products, customers, employees, companies, credit_limits, temporary_credit_limits, fulfillment, sales_forecast, sales_targets |
+| Reports | All report types |
+| Sale | create, edit, view, delete, approve, reject, confirm-payment, manage_fulfillment |
+| Product | create, update, delete, view, manage |
+| Customer | All customer types create, edit, delete, view |
+| Credit | All credit + temporary credit operations |
+| Employee | view, manage |
+| DATA | VIEW_ALL, EDIT_ALL, DELETE_ALL |
+| ❌ | rbac.* |
 
-### Sales
-| Permission | View | Edit | Delete |
-|------------|------|------|--------|
-| customer.* | OWN | OWN | NONE |
-| product.* | ALL | NONE | NONE |
-| sale.* | OWN | OWN | NONE |
-| sale.approve | - | - | - |
-| employee.* | OWN | OWN | NONE |
+### Sales Manager
+| Category | Permissions |
+|----------|-------------|
+| MENU | dashboard, products, sales, customers, employees, credit_limits |
+| Sale | create, edit, view, delete, approve, reject |
+| Product | view only (VIEW_ALL) |
+| Customer | All types create, edit, view |
+| Credit | create, edit, delete, view, approve, reject |
+| Employee | view (VIEW_DEPARTMENT) |
+| DATA | VIEW_DEPARTMENT, EDIT_OWN, DELETE_OWN |
 
-### Viewer
-| Permission | View | Edit | Delete |
-|------------|------|------|--------|
-| customer.read | ALL | - | - |
-| product.read | ALL | - | - |
-| sale.read | ALL | - | - |
+### Sales Employee
+| Category | Permissions |
+|----------|-------------|
+| MENU | products, sales, customers, temporary_credit_limits |
+| Sale | create, edit, view, delete |
+| Product | view only (VIEW_ALL) |
+| Customer | dealer create, edit, view |
+| Temporary Credit | create, edit, view, delete |
+| Employee | view (VIEW_ALL, read-only) |
+| DATA | VIEW_OWN, EDIT_OWN, DELETE_OWN |
 
 ---
 
-## 6. Permission Override
+## 7. Permission Override
 
 ### User-Level Override
 ```prisma
@@ -155,153 +308,121 @@ model UserPermissionOverride {
   dataAccess   DataAccessLevel?
   editAccess   EditAccessLevel?
   deleteAccess DeleteAccessLevel?
-  reason       String?
+  reason       String?           // Required for audit
 }
 ```
 
-### Override Rules
-1. Override takes precedence over role permissions
-2. Deny (`allow: false`) always wins
-3. Must document reason for audit
+### Override Priority
+```
+1. UserPermissionOverride (Highest)
+2. RolePermission
+3. Default (Deny)
 
-### Example
-```typescript
-// User has 'sales' role with VIEW_OWN
-// Override grants VIEW_ALL for specific user
-{
-  userId: "user123",
-  permissionId: "customer.read",
-  allow: true,
-  dataAccess: "VIEW_ALL",
-  reason: "Regional supervisor - needs cross-department visibility"
-}
+Note: allow = false always wins (explicit deny)
 ```
 
 ---
 
-## 7. Permission Check Flow
+## 8. Permission Check Flow
 
-```
-1. Get user's roles → RolePermission[]
-2. Get user's overrides → UserPermissionOverride[]
-3. Check permission key
-4. If override exists:
-   - If allow=false → DENY
-   - If allow=true → Use override's access levels
-5. If no override:
-   - Use role's access levels
-   - Multiple roles → take highest level
-6. Apply data filter based on access level
-```
-
-### Code Implementation
 ```typescript
-// lib/rbac.ts
-async function hasPermission(
-  userId: string, 
-  permissionKey: string
-): Promise<boolean> {
-  // Check override first
-  const override = await getOverride(userId, permissionKey);
+async function checkPermission(userId: string, key: string): boolean {
+  // 1. Check user overrides first
+  const override = await getOverride(userId, key);
   if (override) return override.allow;
   
-  // Check role permissions
+  // 2. Check role permissions
   const roles = await getUserRoles(userId);
   for (const role of roles) {
-    if (roleHasPermission(role, permissionKey)) {
-      return true;
-    }
+    const perm = await getRolePermission(role.id, key);
+    if (perm?.allow) return true;
   }
   
+  // 3. Default deny
   return false;
 }
-
-async function getDataFilter(
-  userId: string,
-  permissionKey: string
-): Promise<PrismaFilter> {
-  const access = await getDataAccessLevel(userId, permissionKey);
-  
-  switch (access) {
-    case 'VIEW_ALL':
-      return {}; // No filter
-    case 'VIEW_DEPARTMENT':
-      return { departmentId: user.departmentId };
-    case 'VIEW_OWN':
-      return { createdById: userId };
-    default:
-      return { id: 'impossible' }; // Block all
-  }
-}
 ```
 
 ---
 
-## 8. API Guard Pattern
+## 9. API Guard Pattern
 
 ```typescript
-// app/api/customers/route.ts
-export async function GET(req: Request) {
+// Example: app/api/sales/route.ts
+export async function POST(req) {
   const session = await getServerSession(authOptions);
+  if (!session) return unauthorized();
   
-  if (!session) {
-    return new Response('Unauthorized', { status: 401 });
+  // Check action permission
+  if (!hasPermission(session, 'sale.create')) {
+    return forbidden();
   }
   
-  // Check permission
-  const canRead = await hasPermission(session.user.id, 'customer.read');
-  if (!canRead) {
-    return new Response('Forbidden', { status: 403 });
-  }
+  // For DATA permission, apply filter
+  const dataAccess = getDataAccess(session, 'sale');
+  const filter = buildFilter(dataAccess, session.user);
   
-  // Apply data filter
-  const filter = await getDataFilter(session.user.id, 'customer.read');
-  
-  const customers = await prisma.customer.findMany({
-    where: {
-      ...filter,
-      deletedAt: null
-    }
-  });
-  
-  return NextResponse.json({ data: customers });
+  // Continue with business logic...
 }
 ```
 
 ---
 
-## 9. Special Permissions
+## 10. Route Rules
 
-### Sale Approval
-- Only users with `sale.approve` can approve/reject sales
-- Typically: Manager, Admin
-
-### Credit Approval
-- Only `credit.approve` can approve temporary credit
-- Requires Manager or Admin role
-
-### Admin-Only Actions
-- Role management (`role.*`)
-- Permission assignment (`permission.assign`)
-- System settings
-
----
-
-## 10. Audit Trail
-
-All permission changes are logged:
 ```typescript
-// When permission is granted/revoked
-await auditLog.create({
-  action: 'PERMISSION_CHANGE',
-  entityType: 'UserPermissionOverride',
-  userId: currentUser.id,
-  oldValue: { allow: true },
-  newValue: { allow: false },
-  reason: 'User suspended'
-});
+const routeRules = [
+  { pattern: /^\/reports/, required: ['menu.reports'] },
+  { pattern: /^\/sales/, required: ['menu.sales'] },
+  { pattern: /^\/products/, required: ['menu.products'] },
+  { pattern: /^\/customers/, required: ['menu.customers'] },
+  { pattern: /^\/employee/, required: ['menu.employees'] },
+  { pattern: /^\/companies/, required: ['menu.companies'] },
+  { pattern: /^\/credit-limits/, required: ['menu.credit_limits'] },
+  { pattern: /^\/temporary-credit-limits/, required: ['menu.temporary_credit_limits'] },
+  { pattern: /^\/fulfillment/, required: ['menu.fulfillment'] },
+  { pattern: /^\/rbac/, required: ['rbac.manage'] },
+  { pattern: /^\/admin/, required: ['menu.admin'] },
+];
 ```
 
 ---
 
-**See Also**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [API_CONTRACTS.md](./API_CONTRACTS.md)
+## 11. Adding New Permissions
+
+### Checklist
+1. Add to `prisma/seed.js` in permissions array
+2. Update documentation in `docs/RBAC_POLICY.md`
+3. Assign to appropriate roles in seed config
+4. Add route rule if MENU permission
+5. Implement check in API route
+
+### Template
+```javascript
+prisma.permission.create({
+  data: {
+    key: 'resource.action',
+    name: 'ชื่อภาษาไทย',
+    category: 'ACTION', // MENU | ACTION | DATA
+    resource: 'resource',
+    action: 'action',
+    // For DATA type:
+    defaultDataAccess: 'VIEW_DEPARTMENT',
+    defaultEditAccess: 'EDIT_OWN',
+    defaultDeleteAccess: 'DELETE_OWN',
+  },
+})
+```
+
+---
+
+## 12. Changelog
+
+| Date | Version | Changes |
+|------|---------|---------|
+| 2026-01-28 | 1.1.0 | Added comprehensive permission list |
+| 2026-01-28 | 1.0.0 | Initial RBAC policy |
+
+---
+
+**See Also**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [API_CONTRACTS.md](./API_CONTRACTS.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md)
