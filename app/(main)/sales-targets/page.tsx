@@ -1045,7 +1045,9 @@ export default function SalesTargetsPage() {
                         <TableHead className="text-right text-base font-semibold">
                           ยอดรวม (บาท)
                         </TableHead>
-                        <TableHead className="w-[132px]" />
+                        <TableHead className="w-[132px] text-base font-semibold text-center">
+                          จัดการ
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
 
@@ -1091,14 +1093,6 @@ export default function SalesTargetsPage() {
 
                               <TableCell>
                                 <div className="flex items-center gap-3">
-                                  <div className="grid size-9 place-items-center rounded-xl bg-blue-500/10 ring-1 ring-blue-500/10">
-                                    <span className="text-xs font-semibold text-blue-700">
-                                      {(target.employee?.name ?? "?").slice(
-                                        0,
-                                        1,
-                                      )}
-                                    </span>
-                                  </div>
                                   <div className="flex flex-col">
                                     <span className="font-medium text-slate-900">
                                       {target.employee?.name}
