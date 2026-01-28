@@ -183,9 +183,9 @@ export function ProductForm({
           ) {
             setChemicalGroupOptions(
               chemicalGroupsData.groups.map(
-                (g: { code: string; description: string }) => ({
+                (g: { code: string; name: string }) => ({
                   value: g.code,
-                  label: g.code + " - " + g.description,
+                  label: g.code + " - " + g.name,
                 }),
               ),
             );

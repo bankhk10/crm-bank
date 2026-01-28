@@ -1134,321 +1134,321 @@ async function main() {
     data: [
       {
         code: "ACE",
-        description: "ACETOCHLOR : Herbicide",
+        name: "ACETOCHLOR : Herbicide",
       },
       {
         code: "ACT",
-        description: "ACETAMIPRID : Insecticide",
+        name: "ACETAMIPRID : Insecticide",
       },
       {
         code: "AGN",
-        description: "AGNIQUE : Adjuvant",
+        name: "AGNIQUE : Adjuvant",
       },
       {
         code: "ALA",
-        description: "ALACHLOR : Herbicide",
+        name: "ALACHLOR : Herbicide",
       },
       {
         code: "AME",
-        description: "AMETRYN : Herbicide",
+        name: "AMETRYN : Herbicide",
       },
       {
         code: "AMI",
-        description: "AMITRAZ : Acaricide",
+        name: "AMITRAZ : Acaricide",
       },
       {
         code: "AMN",
-        description: "AMINO / CHELANT : Plant Nutrient",
+        name: "AMINO / CHELANT : Plant Nutrient",
       },
       {
         code: "ATR",
-        description: "ATRAZINE : Herbicide",
+        name: "ATRAZINE : Herbicide",
       },
       {
         code: "BAC",
-        description: "BACILLUS THURINGIENSIS KURSTAKI",
+        name: "BACILLUS THURINGIENSIS KURSTAKI",
       },
-      { code: "BB5", description: "BB-5 : Adjuvant" },
+      { code: "BB5", name: "BB-5 : Adjuvant" },
       {
         code: "BIS",
-        description: "BISPYRIBAC-SODIUM : Herbicide",
+        name: "BISPYRIBAC-SODIUM : Herbicide",
       },
       {
         code: "BPR",
-        description: "BUTACHLOR + PROPANIL : Herbicide",
+        name: "BUTACHLOR + PROPANIL : Herbicide",
       },
       {
         code: "BUP",
-        description: "BUPROFEZIN : Insecticide",
+        name: "BUPROFEZIN : Insecticide",
       },
       {
         code: "BUT",
-        description: "BUTACHLOR : Herbicide",
+        name: "BUTACHLOR : Herbicide",
       },
       {
         code: "CAB",
-        description: "CALCIUM BORON : Plant Nutrient",
+        name: "CALCIUM BORON : Plant Nutrient",
       },
       {
         code: "CAR",
-        description: "CARBENDAZIM : Fungicide",
+        name: "CARBENDAZIM : Fungicide",
       },
       {
         code: "CBR",
-        description: "CARBARYL : Insecticide",
+        name: "CARBARYL : Insecticide",
       },
       {
         code: "CHC",
-        description: "CHLORPYRIFOS + CYPERMETHRIN : Insecticide",
+        name: "CHLORPYRIFOS + CYPERMETHRIN : Insecticide",
       },
       {
         code: "CHL",
-        description: "CHLORPYRIFOS : Insecticide",
+        name: "CHLORPYRIFOS : Insecticide",
       },
       {
         code: "CPR",
-        description: "CLOMAZONE + PROPANIL : Herbicide",
+        name: "CLOMAZONE + PROPANIL : Herbicide",
       },
       {
         code: "CYP",
-        description: "CYPERMETHRIN : Insecticide",
+        name: "CYPERMETHRIN : Insecticide",
       },
       {
         code: "CYR",
-        description: "CYPERMETHRIN + PROFENOFOS : Insecticide",
+        name: "CYPERMETHRIN + PROFENOFOS : Insecticide",
       },
       {
         code: "DAZ",
-        description: "DIFENOCONAZOLE + AZOXYSTROBIN : Fungicide",
+        name: "DIFENOCONAZOLE + AZOXYSTROBIN : Fungicide",
       },
       {
         code: "DEE",
-        description: "DEEORNIC (SODIUM COMPLEX) : PLG",
+        name: "DEEORNIC (SODIUM COMPLEX) : PLG",
       },
       {
         code: "DIP",
-        description: "DIFENOCONAZOLE + PROPICONAZOLE : Fungicide",
+        name: "DIFENOCONAZOLE + PROPICONAZOLE : Fungicide",
       },
       {
         code: "DIU",
-        description: "DIURON : Herbicide",
+        name: "DIURON : Herbicide",
       },
       {
         code: "EMA",
-        description: "EMAMECTIN : Insecticide",
+        name: "EMAMECTIN : Insecticide",
       },
-      { code: "ETH", description: "ETHEPHON : PGR" },
+      { code: "ETH", name: "ETHEPHON : PGR" },
       {
         code: "ETI",
-        description: "ETHION : Insecticide",
+        name: "ETHION : Insecticide",
       },
       {
         code: "FDMP",
-        description: "DIMETHOMORPH + PYRACLOSTROBIN : Fungicide",
+        name: "DIMETHOMORPH + PYRACLOSTROBIN : Fungicide",
       },
       {
         code: "FEN",
-        description: "FENOBUCARB : Insecticide",
+        name: "FENOBUCARB : Insecticide",
       },
       {
         code: "FFAZ",
-        description: "AZOXYSTROBIN : Fungicide",
+        name: "AZOXYSTROBIN : Fungicide",
       },
       {
         code: "FIP",
-        description: "FIPRONIL : Insecticide",
+        name: "FIPRONIL : Insecticide",
       },
       {
         code: "FISO",
-        description: "ISOPROTHIOLANE : Fungicide",
+        name: "ISOPROTHIOLANE : Fungicide",
       },
       {
         code: "FOM",
-        description: "FOMESAFEN : Herbicide",
+        name: "FOMESAFEN : Herbicide",
       },
       {
         code: "FOS",
-        description: "FOSETYL ALUMINIUM : Fungicide",
+        name: "FOSETYL ALUMINIUM : Fungicide",
       },
       {
         code: "FPHA",
-        description: "PHOSPHONIC ACID : Fungicide",
+        name: "PHOSPHONIC ACID : Fungicide",
       },
       {
         code: "FPRM",
-        description: "PROPAMOCARB + METALAXYL : Fungicide",
+        name: "PROPAMOCARB + METALAXYL : Fungicide",
       },
       {
         code: "FPRY",
-        description: "PROCYMIDONE : Fungicide",
+        name: "PROCYMIDONE : Fungicide",
       },
       {
         code: "FTRC",
-        description: "TRICYCLAZOLE : Fungicide",
+        name: "TRICYCLAZOLE : Fungicide",
       },
       {
         code: "GIB",
-        description: "GIBBERELLIC ACID : PGR",
+        name: "GIBBERELLIC ACID : PGR",
       },
       {
         code: "GLU",
-        description: "GLUFOSINATE : Herbicide",
+        name: "GLUFOSINATE : Herbicide",
       },
       {
         code: "GLY",
-        description: "GLYPHOSATE : Herbicide",
+        name: "GLYPHOSATE : Herbicide",
       },
       {
         code: "HFEO",
-        description: "FENOXAPROP-P-ETHYL : Herbicide",
+        name: "FENOXAPROP-P-ETHYL : Herbicide",
       },
       {
         code: "HFLU",
-        description: "FLUMIOXAZIN : Herbicide",
+        name: "FLUMIOXAZIN : Herbicide",
       },
       {
         code: "HPIM",
-        description: "PENDIMETHALIN + IMAZAPIC : Herbicide",
+        name: "PENDIMETHALIN + IMAZAPIC : Herbicide",
       },
       {
         code: "HSME",
-        description: "S-METOLACHLOR : Herbicide",
+        name: "S-METOLACHLOR : Herbicide",
       },
       {
         code: "HTRL",
-        description: "TRICLOPYR : Herbicide",
+        name: "TRICLOPYR : Herbicide",
       },
       {
         code: "ICHO",
-        description: "CHLORFENAPYR : Insecticide",
+        name: "CHLORFENAPYR : Insecticide",
       },
       {
         code: "IDIF",
-        description: "DIFLUBENZURON : Insecticide",
+        name: "DIFLUBENZURON : Insecticide",
       },
       {
         code: "ILAM",
-        description: "LAMBDA-CYHALOTHRIN : Insecticide",
+        name: "LAMBDA-CYHALOTHRIN : Insecticide",
       },
       {
         code: "IMA",
-        description: "IMAZAPIC : Herbicide",
+        name: "IMAZAPIC : Herbicide",
       },
       {
         code: "IMI",
-        description: "IMIDACLOPRID : Insecticide",
+        name: "IMIDACLOPRID : Insecticide",
       },
       {
         code: "INE",
-        description: "INDOXACARB + EMAMECTIN : Insecticide",
+        name: "INDOXACARB + EMAMECTIN : Insecticide",
       },
       {
         code: "ISPI",
-        description: "SPIROMESIFEN : Insecticide",
+        name: "SPIROMESIFEN : Insecticide",
       },
       {
         code: "MAC",
-        description: "MANCOZEB + CARBENDAZIM : Fungicide",
+        name: "MANCOZEB + CARBENDAZIM : Fungicide",
       },
       {
         code: "MAN",
-        description: "MANCOZEB : Fungicide",
+        name: "MANCOZEB : Fungicide",
       },
       {
         code: "MES",
-        description: "METSULFURON-METHYL : Herbicide",
+        name: "METSULFURON-METHYL : Herbicide",
       },
       {
         code: "MET",
-        description: "METHOMYL : Insecticide",
+        name: "METHOMYL : Insecticide",
       },
       {
         code: "MTL",
-        description: "METALAXYL : Fungicide",
+        name: "METALAXYL : Fungicide",
       },
       {
         code: "NIC",
-        description: "NICLOSAMIDE-OLAMINE : Insecticide",
+        name: "NICLOSAMIDE-OLAMINE : Insecticide",
       },
-      { code: "OTH", description: "OTHER (อื่นๆ)" },
-      { code: "PAC", description: "PACLOBUTRAZOL : PGR" },
+      { code: "OTH", name: "OTHER (อื่นๆ)" },
+      { code: "PAC", name: "PACLOBUTRAZOL : PGR" },
       {
         code: "PAR",
-        description: "PARAQUAT : Herbicide",
+        name: "PARAQUAT : Herbicide",
       },
       {
         code: "PEN",
-        description: "PENDIMETHALIN : Herbicide",
+        name: "PENDIMETHALIN : Herbicide",
       },
       {
         code: "PIR",
-        description: "PIRIMIPHOS-METHYL : Insecticide",
+        name: "PIRIMIPHOS-METHYL : Insecticide",
       },
       {
         code: "PPN",
-        description: "PROPINEB : Fungicide",
+        name: "PROPINEB : Fungicide",
       },
       {
         code: "PRC",
-        description: "PROCHLORAZ : Fungicide",
+        name: "PROCHLORAZ : Fungicide",
       },
       {
         code: "PRE",
-        description: "PRETILACHLOR : Herbicide",
+        name: "PRETILACHLOR : Herbicide",
       },
       {
         code: "PRF",
-        description: "PROFENOFOS : Insecticide",
+        name: "PROFENOFOS : Insecticide",
       },
       {
         code: "PRI",
-        description: "PROPICONAZOLE : Fungicide",
+        name: "PROPICONAZOLE : Fungicide",
       },
       {
         code: "PYI",
-        description: "PYRIDABEN : Acaricide",
+        name: "PYRIDABEN : Acaricide",
       },
       {
         code: "PYM",
-        description: "PYMETROZINE : Insecticide",
+        name: "PYMETROZINE : Insecticide",
       },
       {
         code: "PYR",
-        description: "PYRAZOSULFURON : Herbicide",
+        name: "PYRAZOSULFURON : Herbicide",
       },
       {
         code: "QUI",
-        description: "QUIZALOFOP-P-TEFURYL : Herbicide",
+        name: "QUIZALOFOP-P-TEFURYL : Herbicide",
       },
       {
         code: "SEA",
-        description: "SEARIDE : SEAWEED",
+        name: "SEARIDE : SEAWEED",
       },
       {
         code: "SEP",
-        description: "SEAPLANT : SEAWEED",
+        name: "SEAPLANT : SEAWEED",
       },
-      { code: "SEW", description: "SEAWEED" },
+      { code: "SEW", name: "SEAWEED" },
       {
         code: "SLVS",
-        description: "EMULANT LVS : SURFACTANT",
+        name: "EMULANT LVS : SURFACTANT",
       },
       {
         code: "SUL",
-        description: "SULPHUR : Fungicide",
+        name: "SULPHUR : Fungicide",
       },
       {
         code: "TER",
-        description: "TERASORB FOLIAR / 4 MACRO : Plant Nutrient",
+        name: "TERASORB FOLIAR / 4 MACRO : Plant Nutrient",
       },
-      { code: "THI", description: "THIOUREA : PGR" },
+      { code: "THI", name: "THIOUREA : PGR" },
       {
         code: "TRI",
-        description: "TRIAZOPHOS : Insecticide",
+        name: "TRIAZOPHOS : Insecticide",
       },
       {
         code: "VAL",
-        description: "VALIDAMYCIN : Fungicide",
+        name: "VALIDAMYCIN : Fungicide",
       },
     ],
   });
