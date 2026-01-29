@@ -97,127 +97,137 @@ const PriceManagementSection: React.FC<SectionProps> = ({
         }));
       }
     }
-  }, [formData.price, formData.packageSizePerBox]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData.price, formData.packageSizePerBox]);
 
   return (
     <Card>
       <SectionHeader title="จัดการราคาสินค้า" icon={Banknote} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">ราคาต่อหน่วย (บาท)</Label>
-          <div className="relative">
-            <Input
-              type="number"
-              placeholder="0.00"
-              value={formData.price || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  price: e.target.value ? Number(e.target.value) : undefined,
-                }))
-              }
-              disabled={saving}
-              className="pl-10 h-12 text-lg"
-              onWheel={(e) => e.currentTarget.blur()}
-            />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              ฿
+
+      <div className="space-y-6">
+        {/* แถวราคา */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* ราคาต่อหน่วย */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">ราคาต่อหน่วย (บาท)</Label>
+            <div className="relative">
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={formData.price || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    price: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+                disabled={saving}
+                className="pl-10 h-12 text-lg"
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ฿
+              </div>
             </div>
+          </div>
+
+          {/* จำนวนบรรจุต่อลัง */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              จำนวนบรรจุต่อลัง (ชิ้น)
+            </Label>
+            <Input
+              type="text"
+              placeholder="ระบุจำนวน (เช่น 12, 24)"
+              value={formData.packageSizePerBox || ""}
+              disabled
+              className="h-12 text-lg bg-slate-50"
+            />
+          </div>
+
+          {/* ราคาต่อลัง */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">ราคาต่อลัง (บาท)</Label>
+            <div className="relative">
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={formData.cartonPrice || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    cartonPrice: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
+                }
+                disabled={saving}
+                className="pl-10 h-12 text-lg font-bold text-green-700"
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ฿
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              *คำนวณอัตโนมัติจาก ราคาต่อหน่วย × จำนวนบรรจุต่อลัง
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">จำนวนบรรจุต่อลัง (ชิ้น)</Label>
-          <Input
-            type="text"
-            placeholder="ระบุจำนวน (เช่น 12, 24)"
-            value={formData.packageSizePerBox || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                packageSizePerBox: e.target.value,
-              }))
-            }
-            disabled
-            className="h-12 text-lg"
-          />
-        </div>
+        {/* แถวอื่น ๆ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* งบส่งเสริมการขาย */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              งบส่งเสริมการขาย (บาท)
+            </Label>
+            <div className="relative">
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={formData.promotionBudget || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    promotionBudget: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
+                }
+                disabled={saving}
+                className="pl-10 h-12 text-lg"
+                onWheel={(e) => e.currentTarget.blur()}
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ฿
+              </div>
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">ราคาต่อลัง (บาท)</Label>
-          <div className="relative">
+          {/* คะแนน */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">คะแนน</Label>
             <Input
               type="number"
-              placeholder="0.00"
-              value={formData.cartonPrice || ""}
+              min={0}
+              placeholder="0"
+              value={formData.pointPerUnit ?? ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  cartonPrice: e.target.value
+                  pointPerUnit: e.target.value
                     ? Number(e.target.value)
                     : undefined,
                 }))
               }
               disabled={saving}
-              className="pl-10 h-12 text-lg font-bold text-green-700"
+              className="h-12 text-lg"
               onWheel={(e) => e.currentTarget.blur()}
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              ฿
-            </div>
+            <p className="text-xs text-muted-foreground">
+              ใช้สำหรับคำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            *คำนวณอัตโนมัติจาก ราคาต่อหน่วย x จำนวนบรรจุต่อลัง
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">งบส่งเสริมการขาย (บาท)</Label>
-          <div className="relative">
-            <Input
-              type="number"
-              placeholder="0.00"
-              value={formData.promotionBudget || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  promotionBudget: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                }))
-              }
-              disabled={saving}
-              className="pl-10 h-12 text-lg"
-              onWheel={(e) => e.currentTarget.blur()}
-            />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              ฿
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">คะแนน</Label>
-          <Input
-            type="number"
-            min={0}
-            placeholder="0"
-            value={formData.pointPerUnit ?? ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                pointPerUnit: e.target.value
-                  ? Number(e.target.value)
-                  : undefined,
-              }))
-            }
-            disabled={saving}
-            className="h-12 text-lg"
-            onWheel={(e) => e.currentTarget.blur()}
-          />
-          <p className="text-xs text-muted-foreground">
-            ใช้สำหรับคำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
-          </p>
         </div>
       </div>
     </Card>

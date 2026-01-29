@@ -41,9 +41,9 @@ interface SelectOption {
 }
 
 const PACKAGE_UNIT_OPTIONS = [
-  { value: "g", label: "g (กรัม)" },
-  { value: "kg", label: "kg (กิโลกรัม)" },
-  { value: "ml", label: "ml (มิลลิลิตร)" },
+  { value: "G", label: "G (กรัม)" },
+  { value: "KG", label: "KG (กิโลกรัม)" },
+  { value: "ML", label: "ML (มิลลิลิตร)" },
   { value: "L", label: "L (ลิตร)" },
 ];
 
@@ -716,7 +716,7 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label>ขนาดบรรจุ</Label>
+          <Label className="text-base font-medium mx-2">ขนาดบรรจุ</Label>
           <div className="flex gap-2">
             <Input
               value={(() => {
@@ -787,7 +787,7 @@ export function ProductForm({
         </div>
 
         <FormInput
-          label="ขนาดบรรจุต่อลัง"
+          label="จำนวนบรรจุต่อลัง (ชิ้น)"
           type="number"
           value={formData.packageSizePerBox || ""}
           onChange={(e) =>
@@ -806,7 +806,7 @@ export function ProductForm({
           value={formData.totalPackageSizePerBox || ""}
           onChange={() => {}}
           disabled={true}
-          placeholder="คำนวณอัตโนมัติจาก (ขนาดบรรจุ × ขนาดบรรจุต่อลัง)"
+          placeholder="คำนวณอัตโนมัติ"
           className="bg-gray-50"
         />
 
