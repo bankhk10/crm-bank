@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserRound, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface PersonalForecastRow {
   employeeId: string;
@@ -53,7 +53,7 @@ export const PersonalForecastSection = ({
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // Reset to first page when month changes
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [selectedMonth]);
   return (

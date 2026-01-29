@@ -304,7 +304,7 @@ export default function SalesForecastPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -379,33 +379,31 @@ export default function SalesForecastPage() {
                     tickFormatter={formatCurrency}
                   />
                   <Tooltip
+                    cursor={{ fill: "#F5F5F5" }}
                     contentStyle={{
-                      backgroundColor: "#1e293b",
+                      borderRadius: 12,
                       border: "none",
-                      borderRadius: "12px",
-                      color: "#fff",
+                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                      fontSize: 12,
                     }}
-                    formatter={(value: number) => [
-                      formatFullCurrency(value),
-                      "",
-                    ]}
+                    formatter={(value: number) => [formatFullCurrency(value)]}
                   />
                   <Legend />
                   <Line
                     type="monotone"
                     dataKey="actual"
                     name="ยอดขายจริง"
-                    stroke="#3b82f6"
+                    stroke="#22c55e"
                     strokeWidth={3}
-                    dot={{ fill: "#3b82f6", strokeWidth: 2 }}
+                    dot={{ fill: "#22c55e", strokeWidth: 2 }}
                   />
                   <Line
                     type="monotone"
                     dataKey="target"
                     name="เป้าหมาย"
-                    stroke="#f59e0b"
+                    stroke="#3b82f6"
                     strokeWidth={2}
-                    dot={{ fill: "#f59e0b", strokeWidth: 2 }}
+                    dot={{ fill: "#3b82f6", strokeWidth: 2 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -434,28 +432,26 @@ export default function SalesForecastPage() {
                     tickFormatter={formatCurrency}
                   />
                   <Tooltip
+                    cursor={{ fill: "#F5F5F5" }}
                     contentStyle={{
-                      backgroundColor: "#1e293b",
+                      borderRadius: 12,
                       border: "none",
-                      borderRadius: "12px",
-                      color: "#fff",
+                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                      fontSize: 12,
                     }}
-                    formatter={(value: number) => [
-                      formatFullCurrency(value),
-                      "",
-                    ]}
+                    formatter={(value: number) => [formatCurrency(value)]}
                   />
                   <Legend />
                   <Bar
                     dataKey="actual"
                     name="ยอดขายจริง"
-                    fill="#3b82f6"
+                    fill="#22c55e"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="target"
                     name="เป้าหมาย"
-                    fill="#f59e0b"
+                    fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>

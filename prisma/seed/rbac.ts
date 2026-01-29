@@ -1,4 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import {
+  PrismaClient,
+  DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
+} from "@prisma/client";
 
 export async function seedRBAC(prisma: PrismaClient) {
   console.log("🔐 Seeding RBAC (Roles, Permissions, RolePermissions)...");
@@ -957,10 +962,10 @@ export async function seedRBAC(prisma: PrismaClient) {
         permissionId: entry.permissionId,
         roleId: adminRole.id,
         allow: true,
-        dataAccess: "VIEW_ALL",
+        dataAccess: DataAccessLevel.VIEW_ALL,
         // Add edit and delete access for DATA permissions
-        editAccess: isDataPermission ? "EDIT_ALL" : null,
-        deleteAccess: isDataPermission ? "DELETE_ALL" : null,
+        editAccess: isDataPermission ? EditAccessLevel.EDIT_ALL : null,
+        deleteAccess: isDataPermission ? DeleteAccessLevel.DELETE_ALL : null,
       };
     }),
   });
@@ -1030,12 +1035,9 @@ export async function seedRBAC(prisma: PrismaClient) {
         roleId: salesRepRole.id,
         permissionId: p(item.key)!,
         allow: true,
-        // @ts-ignore - Dynamic string alignment with enum
-        dataAccess: item.dataAccess ?? null,
-        // @ts-ignore
-        editAccess: item.editAccess ?? null,
-        // @ts-ignore
-        deleteAccess: item.deleteAccess ?? null,
+        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+        editAccess: (item.editAccess as EditAccessLevel) ?? null,
+        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
       })),
   });
 
@@ -1108,12 +1110,9 @@ export async function seedRBAC(prisma: PrismaClient) {
         roleId: salesManagerRole.id,
         permissionId: p(item.key)!,
         allow: true,
-        // @ts-ignore
-        dataAccess: item.dataAccess ?? null,
-        // @ts-ignore
-        editAccess: item.editAccess ?? null,
-        // @ts-ignore
-        deleteAccess: item.deleteAccess ?? null,
+        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+        editAccess: (item.editAccess as EditAccessLevel) ?? null,
+        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
       })),
   });
 
@@ -1265,12 +1264,9 @@ export async function seedRBAC(prisma: PrismaClient) {
         roleId: adminRoleSecondary.id,
         permissionId: p(item.key)!,
         allow: true,
-        // @ts-ignore
-        dataAccess: item.dataAccess ?? null,
-        // @ts-ignore
-        editAccess: item.editAccess ?? null,
-        // @ts-ignore
-        deleteAccess: item.deleteAccess ?? null,
+        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+        editAccess: (item.editAccess as EditAccessLevel) ?? null,
+        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
       })),
   });
 
