@@ -24,7 +24,7 @@ User ─────N:N─────▶ Role ─────N:N─────
 | ---------------- | ---------------- | --------------------------------------------------- | --------- |
 | Administrator    | `administrator`  | Full system access (RBAC included)                  | Yes       |
 | Admin            | `admin`          | High-level access (excludes RBAC)                   | Yes       |
-| CEO              | `ceo`            | ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only) | Yes       |
+| ผู้บริหาร        | `ceo`            | ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only) | Yes       |
 | ผู้จัดการฝ่ายขาย | `sales_manager`  | Department management + approval                    | No        |
 | ธุรการขาย        | `sales_admin`    | จัดการการจัดส่งสินค้าและงานเอกสารฝ่ายขาย            | No        |
 | พนักงานฝ่ายขาย   | `sales_employee` | Basic sales operations                              | No        |

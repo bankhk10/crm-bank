@@ -46,7 +46,7 @@ export async function seedRBAC(prisma: PrismaClient) {
 
   const ceoRole = await prisma.role.create({
     data: {
-      name: "CEO",
+      name: "ผู้บริหาร",
       slug: "ceo",
       description:
         "ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only Executive Access)",
