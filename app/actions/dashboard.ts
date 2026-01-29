@@ -83,7 +83,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       where: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"] },
       },
       _sum: { totalAmount: true },
     });
@@ -93,7 +93,14 @@ export async function getDashboardData(): Promise<DashboardData> {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
         status: {
-          in: ["PENDING", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"],
+          in: [
+            "PENDING",
+            "PENDING_APPROVAL",
+            "WAITING_FOR_CORRECTION",
+            "APPROVED",
+            "AWAITING_PAYMENT",
+            "AWAITING_DELIVERY",
+          ],
         },
       },
       _sum: { totalAmount: true },
@@ -103,7 +110,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       where: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"] },
+        status: {
+          in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+        },
       },
       _sum: { totalAmount: true },
     });
@@ -144,7 +153,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     where: {
       saleDate: { gte: yearStart, lte: yearEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"] },
     },
     _sum: { totalAmount: true },
   });
@@ -153,7 +162,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     where: {
       saleDate: { gte: lastYearStart, lte: lastYearEnd },
       deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"] },
     },
     _sum: { totalAmount: true },
   });
@@ -226,6 +235,8 @@ export async function getDashboardData(): Promise<DashboardData> {
               status: {
                 in: [
                   "PENDING",
+                  "PENDING_APPROVAL",
+                  "WAITING_FOR_CORRECTION",
                   "APPROVED",
                   "AWAITING_PAYMENT",
                   "AWAITING_DELIVERY",
@@ -305,7 +316,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       where: {
         saleDate: { gte: start, lte: end },
         deletedAt: null,
-        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"] },
       },
       select: {
         totalAmount: true,
@@ -335,6 +346,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         ].includes(sale.status);
         const isSalesNote = [
           "PENDING",
+          "PENDING_APPROVAL",
+          "WAITING_FOR_CORRECTION",
           "APPROVED",
           "AWAITING_PAYMENT",
           "AWAITING_DELIVERY",
@@ -384,9 +397,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       "DELIVERY_COMPLETED",
       "PAID",
     ];
-    const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED"];
+    const failStatuses = ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"];
     const progressStatuses = [
       "PENDING",
+      "PENDING_APPROVAL",
+      "WAITING_FOR_CORRECTION",
       "APPROVED",
       "AWAITING_PAYMENT",
       "AWAITING_DELIVERY",
@@ -459,9 +474,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const detailedMonthlyTarget = Number(
     detailedMonthlyTargetAgg._sum.amount || 0,
   );
-  const detailedYearlyTarget = Number(
-    detailedYearlyTargetAgg._sum.amount || 0,
-  );
+  const detailedYearlyTarget = Number(detailedYearlyTargetAgg._sum.amount || 0);
 
   const monthlyTarget =
     detailedMonthlyTarget > 0
