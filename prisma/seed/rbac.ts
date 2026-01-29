@@ -1008,6 +1008,19 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_OWN",
       deleteAccess: "DELETE_OWN",
     },
+    {
+      key: "menu.sales_targets",
+    },
+    {
+      key: "data.sales_targets",
+      dataAccess: "VIEW_OWN",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
+    },
+    { key: "sales_target.create" },
+    { key: "sales_target.edit" },
+    { key: "sales_target.view" },
+    { key: "sales_target.delete" },
   ];
 
   await prisma.rolePermission.createMany({

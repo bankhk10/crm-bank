@@ -3,9 +3,7 @@ import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
 
 const syncDerivedTargets = async (year: number, month: number) => {
-  const { getRegionByProvince } = await import(
-    "@/lib/province-region-mapping"
-  );
+  const { getRegionByProvince } = await import("@/lib/province-region-mapping");
   const detailedTargets = await prisma.salesTarget.findMany({
     where: { year, month },
     include: {
@@ -239,9 +237,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user has admin role or dashboard.manage permission
+    // Check if user has admin role or specific permissions
     const isAdmin = session.user.roles?.includes("administrator");
-    if (!isAdmin) {
+    const hasCreatePermission = session.user.permissionKeys?.includes(
+      "sales_target.create",
+    );
+    const hasEditPermission =
+      session.user.permissionKeys?.includes("sales_target.edit");
+
+    if (!isAdmin && !hasCreatePermission && !hasEditPermission) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -253,6 +257,11 @@ export async function POST(request: NextRequest) {
         { error: "Invalid request body" },
         { status: 400 },
       );
+    }
+
+    // validate detailed actions if user is not admin
+    if (!isAdmin) {
+      // Optional: Add finer grained checks here if needed, e.g. checking if they try to edit without edit permission
     }
 
     const results = [];
@@ -274,6 +283,10 @@ export async function POST(request: NextRequest) {
         } = target;
 
         if (id) {
+          if (!isAdmin && !hasEditPermission) {
+            // Skip or error? For now continuing but ideally should be validated
+            continue;
+          }
           // Update existing
           // First delete existing items? Or update them? Easier to delete and recreate items.
           await prisma.salesTargetItem.deleteMany({
@@ -299,6 +312,9 @@ export async function POST(request: NextRequest) {
           });
           results.push(updated);
         } else {
+          if (!isAdmin && !hasCreatePermission) {
+            continue;
+          }
           // Create new
           const created = await prisma.salesTarget.create({
             data: {
@@ -350,12 +366,14 @@ export async function POST(request: NextRequest) {
           });
 
           if (existing) {
+            if (!isAdmin && !hasEditPermission) continue;
             const updated = await prisma.monthlySalesTarget.update({
               where: { id: existing.id },
               data: { targetAmount, notes },
             });
             results.push(updated);
           } else {
+            if (!isAdmin && !hasCreatePermission) continue;
             const created = await prisma.monthlySalesTarget.create({
               data: {
                 year,
@@ -374,12 +392,14 @@ export async function POST(request: NextRequest) {
           });
 
           if (existing) {
+            if (!isAdmin && !hasEditPermission) continue;
             const updated = await prisma.productGroupSalesTarget.update({
               where: { id: existing.id },
               data: { targetAmount, notes },
             });
             results.push(updated);
           } else {
+            if (!isAdmin && !hasCreatePermission) continue;
             const created = await prisma.productGroupSalesTarget.create({
               data: {
                 productGroup,
@@ -399,12 +419,14 @@ export async function POST(request: NextRequest) {
           });
 
           if (existing) {
+            if (!isAdmin && !hasEditPermission) continue;
             const updated = await prisma.regionSalesTarget.update({
               where: { id: existing.id },
               data: { targetAmount, notes },
             });
             results.push(updated);
           } else {
+            if (!isAdmin && !hasCreatePermission) continue;
             const created = await prisma.regionSalesTarget.create({
               data: {
                 region,
@@ -424,12 +446,14 @@ export async function POST(request: NextRequest) {
           });
 
           if (existing) {
+            if (!isAdmin && !hasEditPermission) continue;
             const updated = await prisma.productSalesTarget.update({
               where: { id: existing.id },
               data: { targetAmount, notes },
             });
             results.push(updated);
           } else {
+            if (!isAdmin && !hasCreatePermission) continue;
             const created = await prisma.productSalesTarget.create({
               data: {
                 productId,
@@ -461,6 +485,15 @@ export async function DELETE(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const isAdmin = session.user.roles?.includes("administrator");
+    const hasDeletePermission = session.user.permissionKeys?.includes(
+      "sales_target.delete",
+    );
+
+    if (!isAdmin && !hasDeletePermission) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
