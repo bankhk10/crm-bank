@@ -14,7 +14,8 @@ export default async function RolePermissionsPage({
   params,
 }: RolePermissionsPageProps) {
   const session = await auth();
-  const canManage = Boolean(session?.user?.permissions?.["rbac.manage"]?.allow);
+  const canManage =
+    session?.user?.permissionKeys?.includes("rbac.manage") ?? false;
 
   if (!canManage) {
     redirect(DEFAULT_AUTH_REDIRECT);

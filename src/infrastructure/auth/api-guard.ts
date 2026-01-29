@@ -73,9 +73,9 @@ export function internalErrorResponse(message = "Internal Server Error") {
  */
 export function hasPermission(
   session: Session,
-  permissionKey: string
+  permissionKey: string,
 ): boolean {
-  return session.user?.permissions?.[permissionKey]?.allow ?? false;
+  return session.user?.permissionKeys?.includes(permissionKey) ?? false;
 }
 
 /**
@@ -83,7 +83,7 @@ export function hasPermission(
  */
 export function hasAnyPermission(
   session: Session,
-  permissionKeys: string[]
+  permissionKeys: string[],
 ): boolean {
   return permissionKeys.some((key) => hasPermission(session, key));
 }
@@ -93,7 +93,7 @@ export function hasAnyPermission(
  */
 export function hasAllPermissions(
   session: Session,
-  permissionKeys: string[]
+  permissionKeys: string[],
 ): boolean {
   return permissionKeys.every((key) => hasPermission(session, key));
 }

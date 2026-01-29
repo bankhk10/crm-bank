@@ -100,19 +100,19 @@ export default function ReportsPage() {
   const { data: session, status } = useSession();
 
   // Filter report categories based on user permissions
-  const permissions = session?.user?.permissions;
+  // Filter report categories based on user permissions
+  const permissionKeys = session?.user?.permissionKeys;
 
   const filteredCategories = useMemo(() => {
-    if (!permissions) {
-      // If no permissions available, show all (for backward compatibility)
-      return reportCategories;
+    if (!permissionKeys) {
+      return [];
     }
 
     return reportCategories.filter((category) => {
       // Check if user has permission for this report
-      return permissions[category.permissionKey]?.allow !== false;
+      return permissionKeys.includes(category.permissionKey);
     });
-  }, [permissions]);
+  }, [permissionKeys]);
 
   if (status === "loading") {
     return (

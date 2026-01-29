@@ -5,7 +5,8 @@ import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
 
 export default async function RBACPage() {
   const session = await auth();
-  const canManage = Boolean(session?.user?.permissions?.["rbac.manage"]?.allow);
+  const canManage =
+    session?.user?.permissionKeys?.includes("rbac.manage") ?? false;
 
   if (!canManage) {
     redirect(DEFAULT_AUTH_REDIRECT);
@@ -15,7 +16,9 @@ export default async function RBACPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">RBAC ศูนย์ควบคุมสิทธิ์</h1>
-        <p className="text-sm text-slate-500">จัดการ Role, Permission, Department และ Mapping ต่าง ๆ</p>
+        <p className="text-sm text-slate-500">
+          จัดการ Role, Permission, Department และ Mapping ต่าง ๆ
+        </p>
       </div>
       <RBACConsole />
     </div>
