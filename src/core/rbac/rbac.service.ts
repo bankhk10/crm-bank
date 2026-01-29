@@ -55,7 +55,7 @@ const routeRules: RoutePermissionRule[] = [
  */
 export function buildPermissionMap(
   rolePermissions: PermissionInput[],
-  overrides: OverrideInput[]
+  overrides: OverrideInput[],
 ): Record<string, SessionPermission> {
   const permissionMap: Record<string, SessionPermission> = {};
 
@@ -119,7 +119,7 @@ export function buildPermissionMap(
  * Build data access level map by resource
  */
 export function buildDataAccessByResource(
-  permissions: Record<string, SessionPermission>
+  permissions: Record<string, SessionPermission>,
 ): Record<string, DataAccessLevel> {
   const map: Record<string, DataAccessLevel> = {};
   for (const permission of Object.values(permissions)) {
@@ -138,7 +138,7 @@ export function buildDataAccessByResource(
  * Build edit access level map by resource
  */
 export function buildEditAccessByResource(
-  permissions: Record<string, SessionPermission>
+  permissions: Record<string, SessionPermission>,
 ): Record<string, EditAccessLevel> {
   const map: Record<string, EditAccessLevel> = {};
   for (const permission of Object.values(permissions)) {
@@ -157,7 +157,7 @@ export function buildEditAccessByResource(
  * Build delete access level map by resource
  */
 export function buildDeleteAccessByResource(
-  permissions: Record<string, SessionPermission>
+  permissions: Record<string, SessionPermission>,
 ): Record<string, DeleteAccessLevel> {
   const map: Record<string, DeleteAccessLevel> = {};
   for (const permission of Object.values(permissions)) {
@@ -180,8 +180,8 @@ export function isRoutePublic(pathname: string): boolean {
     route === "/api/auth"
       ? pathname.startsWith("/api/auth")
       : route === "/"
-      ? pathname === "/"
-      : pathname.startsWith(route)
+        ? pathname === "/"
+        : pathname.startsWith(route),
   );
 }
 
@@ -190,7 +190,7 @@ export function isRoutePublic(pathname: string): boolean {
  */
 export function isAuthorized(
   pathname: string,
-  permissionKeys: string[]
+  permissionKeys: string[],
 ): boolean {
   const rule = routeRules.find((candidate) => candidate.pattern.test(pathname));
   if (!rule) {
@@ -204,7 +204,7 @@ export function isAuthorized(
  * Check for Administrator role type
  */
 export function isAdministrator(roles: string[]): boolean {
-  return roles.some((role) => role === "administrator");
+  return roles.some((role) => role === "administrator" || role === "ceo");
 }
 
 /**
@@ -235,7 +235,7 @@ export function getDefaultRouteForRoles(roles: string[]): string {
  */
 export function userHasPermission(
   permissionMap: Record<string, SessionPermission>,
-  key: string
+  key: string,
 ): boolean {
   return Boolean(permissionMap[key]?.allow);
 }
@@ -245,11 +245,11 @@ export function userHasPermission(
  */
 export function getDataAccessForResource(
   permissionMap: Record<string, SessionPermission>,
-  resource: string
+  resource: string,
 ): DataAccessLevel | null {
   const match = Object.values(permissionMap).find(
     (permission) =>
-      permission.resource === resource && permission.category === "DATA"
+      permission.resource === resource && permission.category === "DATA",
   );
   return match?.dataAccess ?? null;
 }
@@ -259,11 +259,11 @@ export function getDataAccessForResource(
  */
 export function getEditAccessForResource(
   permissionMap: Record<string, SessionPermission>,
-  resource: string
+  resource: string,
 ): EditAccessLevel | null {
   const match = Object.values(permissionMap).find(
     (permission) =>
-      permission.resource === resource && permission.category === "DATA"
+      permission.resource === resource && permission.category === "DATA",
   );
   return match?.editAccess ?? null;
 }
@@ -273,11 +273,11 @@ export function getEditAccessForResource(
  */
 export function getDeleteAccessForResource(
   permissionMap: Record<string, SessionPermission>,
-  resource: string
+  resource: string,
 ): DeleteAccessLevel | null {
   const match = Object.values(permissionMap).find(
     (permission) =>
-      permission.resource === resource && permission.category === "DATA"
+      permission.resource === resource && permission.category === "DATA",
   );
   return match?.deleteAccess ?? null;
 }
@@ -287,7 +287,7 @@ export function getDeleteAccessForResource(
  */
 export function hasAnyPermission(
   permissionMap: Record<string, SessionPermission>,
-  keys: string[]
+  keys: string[],
 ): boolean {
   return keys.some((key) => userHasPermission(permissionMap, key));
 }
@@ -297,7 +297,7 @@ export function hasAnyPermission(
  */
 export function hasAllPermissions(
   permissionMap: Record<string, SessionPermission>,
-  keys: string[]
+  keys: string[],
 ): boolean {
   return keys.every((key) => userHasPermission(permissionMap, key));
 }
@@ -307,7 +307,7 @@ export function hasAllPermissions(
  */
 export function canViewResource(
   dataAccess: DataAccessLevel | null,
-  options: AccessScopeCheckOptions
+  options: AccessScopeCheckOptions,
 ): boolean {
   if (!dataAccess) return false;
 
@@ -331,7 +331,7 @@ export function canViewResource(
  */
 export function canEditResource(
   editAccess: EditAccessLevel | null,
-  options: AccessScopeCheckOptions
+  options: AccessScopeCheckOptions,
 ): boolean {
   if (!editAccess) return false;
 
@@ -357,7 +357,7 @@ export function canEditResource(
  */
 export function canDeleteResource(
   deleteAccess: DeleteAccessLevel | null,
-  options: AccessScopeCheckOptions
+  options: AccessScopeCheckOptions,
 ): boolean {
   if (!deleteAccess) return false;
 
@@ -384,7 +384,7 @@ export function canDeleteResource(
 export function checkResourceAccessScope(
   permissionMap: Record<string, SessionPermission>,
   resource: string,
-  options: AccessScopeCheckOptions
+  options: AccessScopeCheckOptions,
 ): AccessScopeCheckResult {
   const dataAccess = getDataAccessForResource(permissionMap, resource);
   const editAccess = getEditAccessForResource(permissionMap, resource);

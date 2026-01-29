@@ -1,16 +1,11 @@
 "use client";
 
-import React from "react";
 import { ProductForm } from "@/components/features/products";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { usePermission } from "@/hooks/use-permission";
 
 export default function NewProductPage() {
-  const { allowed, isLoading } = usePermission("product.create");
-  const canCreate = !isLoading && allowed;
-  const permissionHint =
-    "จำเป็นต้องมีสิทธิ์ product.create เพื่อสร้างสินค้าใหม่";
+  const { isLoading } = usePermission("product.create");
 
   if (isLoading) {
     return (
@@ -25,12 +20,6 @@ export default function NewProductPage() {
 
   return (
     <section className="space-y-6">
-      {!canCreate ? (
-        <Alert variant="destructive">
-          <AlertDescription>{permissionHint}</AlertDescription>
-        </Alert>
-      ) : null}
-
       <Card>
         <div className="p-6">
           <div className="text-center">

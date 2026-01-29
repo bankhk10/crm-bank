@@ -81,8 +81,6 @@ export default function EmployeeForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const { allowed, isLoading } = usePermission("employee.manage");
   const canEdit = !isLoading && allowed;
-  const permissionHint =
-    "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อจัดการข้อมูลพนักงาน";
 
   const clearFieldError = useCallback((field: string) => {
     setFieldErrors((prev) => {
@@ -140,10 +138,10 @@ export default function EmployeeForm({
         addr?.postalCode != null
           ? String(addr.postalCode)
           : (initial as any).postalCode != null
-          ? String((initial as any).postalCode)
-          : (initial as any).zipCode != null
-          ? String((initial as any).zipCode)
-          : prev.postalCode,
+            ? String((initial as any).postalCode)
+            : (initial as any).zipCode != null
+              ? String((initial as any).zipCode)
+              : prev.postalCode,
       status: (initial as any).status ?? prev.status ?? "ACTIVE",
       managerId:
         (initial as any).managerId ??
@@ -163,7 +161,7 @@ export default function EmployeeForm({
           const d = await cRes.json();
           if (mounted && Array.isArray(d.companies)) {
             setCompanyOptions(
-              d.companies.map((c: any) => ({ value: c.id, label: c.name }))
+              d.companies.map((c: any) => ({ value: c.id, label: c.name })),
             );
           }
         }
@@ -177,7 +175,7 @@ export default function EmployeeForm({
           const dd = await dRes.json();
           if (mounted && Array.isArray(dd)) {
             setDepartmentOptions(
-              dd.map((x: any) => ({ value: x.id, label: x.name }))
+              dd.map((x: any) => ({ value: x.id, label: x.name })),
             );
           }
         }
@@ -191,7 +189,7 @@ export default function EmployeeForm({
           const pp = await pRes.json();
           if (mounted && Array.isArray(pp)) {
             setPositionOptions(
-              pp.map((x: any) => ({ value: x.id, label: x.name }))
+              pp.map((x: any) => ({ value: x.id, label: x.name })),
             );
           }
         }
@@ -232,7 +230,7 @@ export default function EmployeeForm({
         setValues((prev) => ({ ...prev, [key]: v }));
         clearFieldError(String(key));
       },
-    [clearFieldError]
+    [clearFieldError],
   );
 
   const handleSelect = useCallback(
@@ -249,7 +247,7 @@ export default function EmployeeForm({
       });
       clearFieldError(String(key));
     },
-    [clearFieldError]
+    [clearFieldError],
   );
 
   const handlePhoneChange = useCallback(
@@ -260,7 +258,7 @@ export default function EmployeeForm({
       }
       clearFieldError("phone");
     },
-    [clearFieldError]
+    [clearFieldError],
   );
 
   const calculatedAge = useMemo(() => {
@@ -272,8 +270,8 @@ export default function EmployeeForm({
         return String(
           Math.floor(
             (Date.now() - new Date(values.birthDate).getTime()) /
-              (1000 * 60 * 60 * 24 * 365.25)
-          )
+              (1000 * 60 * 60 * 24 * 365.25),
+          ),
         );
       } catch (e) {
         return "";
@@ -284,9 +282,8 @@ export default function EmployeeForm({
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
-    const { generateRandomEmployee } = await import(
-      "@/lib/random-fill/employee"
-    );
+    const { generateRandomEmployee } =
+      await import("@/lib/random-fill/employee");
     return generateRandomEmployee();
   }, []);
 
@@ -313,7 +310,7 @@ export default function EmployeeForm({
       clearFieldError("email");
       clearFieldError("phone");
     },
-    [canEdit, clearFieldError]
+    [canEdit, clearFieldError],
   );
 
   const {
@@ -400,9 +397,9 @@ export default function EmployeeForm({
     };
     const hasAddress = Boolean(
       address.province ||
-        address.district ||
-        address.subdistrict ||
-        address.postalCode
+      address.district ||
+      address.subdistrict ||
+      address.postalCode,
     );
 
     const payload: any = {
@@ -451,7 +448,7 @@ export default function EmployeeForm({
           setError(
             result.error ??
               Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error"
+              "Server error",
           );
           setFieldErrors(result.issues ?? {});
         } else {

@@ -1,25 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
 import EmployeeForm from "@/components/features/employee/employee-form";
-import Can from "@/components/rbac/Can";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
-import { usePermission } from "@/hooks/use-permission";
 import { useRouter } from "next/navigation";
 
 export default function NewEmployeePage() {
-  const { allowed, isLoading } = usePermission("employee.manage");
-  const canCreate = !isLoading && allowed;
-  const permissionHint =
-    "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อสร้างพนักงานใหม่";
   const router = useRouter();
 
-  const [error, setError] = useState<string | null>(null);
-  const [randomizeFn, setRandomizeFn] = useState<(() => void) | null>(null);
-
   async function handleCreate(payload: any) {
-    setError(null);
     try {
       const res = await fetch(`/api/rbac/employees/create-with-user`, {
         method: "POST",
@@ -40,12 +28,6 @@ export default function NewEmployeePage() {
 
   return (
     <section className="space-y-6">
-      {!canCreate ? (
-        <Alert variant="destructive">
-          <AlertDescription>{permissionHint}</AlertDescription>
-        </Alert>
-      ) : null}
-
       <Card>
         <div className="p-6">
           <div className="text-center">

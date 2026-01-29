@@ -97,7 +97,7 @@ function EmployeeStatusBadge({
       className={cn(
         "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
         info.className,
-        className
+        className,
       )}
     >
       <span className={cn("h-2 w-2 rounded-full", info.dot)} aria-hidden />
@@ -162,7 +162,7 @@ function useEmployeeColumns(
   onDeleteRequest: (employee: Employee) => void,
   canDelete: boolean,
   canEdit: boolean,
-  canView: boolean
+  canView: boolean,
 ) {
   return React.useMemo<ColumnDef<Employee>[]>(
     () => [
@@ -297,7 +297,7 @@ function useEmployeeColumns(
         },
       },
     ],
-    [canDelete, canEdit, canView, onDeleteRequest]
+    [canDelete, canEdit, canView, onDeleteRequest],
   );
 }
 
@@ -307,12 +307,10 @@ function EmployeeToolbar({
   canCreate,
   searchValue,
   onSearchChange,
-  permissionHint,
 }: {
   canCreate: boolean;
   searchValue: string;
   onSearchChange: (val: string) => void;
-  permissionHint?: string;
 }) {
   return (
     <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:flex lg:justify-between lg:items-center">
@@ -339,7 +337,7 @@ function EmployeeToolbar({
             </Button>
           </Link>
         ) : (
-          <div className="w-full lg:w-auto" title={permissionHint}>
+          <div className="w-full lg:w-auto">
             <Button className="w-full" variant="outline" disabled>
               <span className="inline-flex items-center gap-2">
                 <PlusCircle className="h-4 w-4" />
@@ -572,9 +570,6 @@ type EmployeesGridProps = {
 export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   const router = useRouter();
   const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
-
-  const permissionHint =
-    "จำเป็นต้องมีสิทธิ์ employee.manage เพื่อเพิ่มพนักงานใหม่";
   const canCreate =
     !isLoading &&
     (hasPermission("employee.manage") || hasPermission("employee.create"));
@@ -617,7 +612,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
   }, [employees]);
 
   const rawData: Employee[] =
-    employees && employees.length > 0 ? employees : fetched ?? [];
+    employees && employees.length > 0 ? employees : (fetched ?? []);
 
   // Filter logic
   const filteredData = React.useMemo(() => {
@@ -628,7 +623,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(q)
+        .includes(q),
     );
   }, [rawData, query]);
 
@@ -680,7 +675,7 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
     (emp) => setDeleteTarget(emp),
     canDelete,
     canEdit,
-    canView
+    canView,
   );
 
   if (isLoading)
@@ -709,7 +704,6 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
             setQuery(v);
             setCurrentPage(1);
           }}
-          permissionHint={permissionHint}
         />
         <EmployeeCards
           data={paginatedData}
@@ -737,7 +731,6 @@ export default function EmployeesGrid({ employees }: EmployeesGridProps) {
                 setQuery(v);
                 setCurrentPage(1);
               }}
-              permissionHint={permissionHint}
             />
           }
           emptyState={{
