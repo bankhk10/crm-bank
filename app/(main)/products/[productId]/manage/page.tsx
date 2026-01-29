@@ -104,30 +104,6 @@ const PriceManagementSection: React.FC<SectionProps> = ({
       <SectionHeader title="จัดการราคาสินค้า" icon={Banknote} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">คะแนนต่อหน่วย</Label>
-          <Input
-            type="number"
-            min={0}
-            placeholder="0"
-            value={formData.pointPerUnit ?? ""}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                pointPerUnit: e.target.value
-                  ? Number(e.target.value)
-                  : undefined,
-              }))
-            }
-            disabled={saving}
-            className="h-12 text-lg"
-            onWheel={(e) => e.currentTarget.blur()}
-          />
-          <p className="text-xs text-muted-foreground">
-            ใช้สำหรับคำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
-          </p>
-        </div>
-
-        <div className="space-y-2">
           <Label className="text-sm font-medium">ราคาต่อหน่วย (บาท)</Label>
           <div className="relative">
             <Input
@@ -218,6 +194,30 @@ const PriceManagementSection: React.FC<SectionProps> = ({
               ฿
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">คะแนน</Label>
+          <Input
+            type="number"
+            min={0}
+            placeholder="0"
+            value={formData.pointPerUnit ?? ""}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                pointPerUnit: e.target.value
+                  ? Number(e.target.value)
+                  : undefined,
+              }))
+            }
+            disabled={saving}
+            className="h-12 text-lg"
+            onWheel={(e) => e.currentTarget.blur()}
+          />
+          <p className="text-xs text-muted-foreground">
+            ใช้สำหรับคำนวณคะแนนสะสมของพนักงานต่อสินค้าที่ขายได้
+          </p>
         </div>
       </div>
     </Card>
