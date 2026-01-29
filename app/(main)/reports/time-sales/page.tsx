@@ -283,603 +283,560 @@ export default function TimeSalesReportPage() {
             <Skeleton className="h-80 sm:h-96 rounded-2xl" />
           </div>
         ) : reportData ? (
-          <div className="space-y-4 sm:space-y-6">
-            {/* Summary Cards: mobile=1 col, sm=2 cols, lg=3 cols */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        ยอดขายรวม
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-                        {formatTHB(reportData.totalSales)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-blue-50">
-                      <DollarSign className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        <div className="space-y-5 sm:space-y-7">
+  {/* Summary Cards */}
+<div className="relative rounded-3xl border border-slate-200/70 bg-gradient-to-br from-slate-50 via-white to-slate-50 p-4 sm:p-6 shadow-sm overflow-hidden">
+  {/* subtle glow blobs */}
+  <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+  <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+  <div className="pointer-events-none absolute top-1/2 left-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/8 blur-3xl" />
 
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        จำนวนออเดอร์
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-                        {formatNumber(reportData.totalOrders)}
-                      </p>
-                      <div className="text-xs sm:text-sm text-muted-foreground mt-1">
-                        รายการ
-                      </div>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
-                      <ShoppingCart className="h-6 w-6 text-emerald-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+  {/* subtle grid pattern */}
+  <div
+    className="pointer-events-none absolute inset-0 opacity-[0.06]"
+    style={{
+      backgroundImage:
+        "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+      backgroundSize: "28px 28px",
+    }}
+  />
 
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        เฉลี่ยต่อออเดอร์
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
-                        {formatTHB(reportData.avgOrderValue)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-amber-50">
-                      <BarChart3 className="h-6 w-6 text-amber-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+  {/* content */}
+  <div className="relative">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+      {/* Total Sales */}
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)] hover:shadow-[0_18px_45px_-22px_rgba(2,6,23,0.45)] transition-shadow">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">ยอดขายรวม</p>
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
+                {formatTHB(reportData.totalSales)}
+              </p>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full w-2/3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500" />
+              </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto grid grid-cols-2 sm:flex gap-2 sm:gap-0">
-                <TabsTrigger
-                  value="overview"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-                >
-                  ภาพรวม
-                </TabsTrigger>
-                <TabsTrigger
-                  value="daily"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-                >
-                  รายวัน
-                </TabsTrigger>
-                <TabsTrigger
-                  value="monthly"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-                >
-                  รายเดือน
-                </TabsTrigger>
-                <TabsTrigger
-                  value="seasonality"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-                >
-                  ฤดูกาล
-                </TabsTrigger>
-                <TabsTrigger
-                  value="by-region"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-                >
-                  ตามภูมิภาค
-                </TabsTrigger>
-              </TabsList>
+            <div className="shrink-0">
+              <div className="grid place-items-center size-11 sm:size-12 rounded-2xl bg-gradient-to-br from-blue-500/15 to-cyan-500/15 ring-1 ring-blue-500/15">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-              <TabsContent value="overview" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                  {/* Daily Trend */}
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        แนวโน้มยอดขายรายวัน
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[450px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={reportData.dailyData}>
-                            <defs>
-                              <linearGradient
-                                id="salesGradient"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                              >
-                                <stop
-                                  offset="5%"
-                                  stopColor="#3b82f6"
-                                  stopOpacity={0.3}
-                                />
-                                <stop
-                                  offset="95%"
-                                  stopColor="#3b82f6"
-                                  stopOpacity={0}
-                                />
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#e2e8f0"
-                            />
-                            <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                            <YAxis
-                              tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
-                              tick={{ fontSize: 11 }}
-                            />
-                            <Tooltip
-                              formatter={(value: number) => [
-                                formatTHB(value),
-                                "ยอดขาย",
-                              ]}
-                              contentStyle={{
-                                borderRadius: "12px",
-                                border: "none",
-                                boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                              }}
-                            />
-                            <Area
-                              type="monotone"
-                              dataKey="sales"
-                              stroke="#3b82f6"
-                              strokeWidth={2}
-                              fill="url(#salesGradient)"
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
+      {/* Total Orders */}
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)] hover:shadow-[0_18px_45px_-22px_rgba(2,6,23,0.45)] transition-shadow">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">จำนวนออเดอร์</p>
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
+                {formatNumber(reportData.totalOrders)}
+              </p>
+              <div className="mt-1 text-xs sm:text-sm text-slate-500">รายการ</div>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <div className="grid place-items-center size-11 sm:size-12 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/15 ring-1 ring-emerald-500/15">
+                <ShoppingCart className="h-6 w-6 text-emerald-600" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Avg Order */}
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)] hover:shadow-[0_18px_45px_-22px_rgba(2,6,23,0.45)] transition-shadow">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-slate-500">เฉลี่ยต่อออเดอร์</p>
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-1">
+                {formatTHB(reportData.avgOrderValue)}
+              </p>
+              <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500" />
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <div className="grid place-items-center size-11 sm:size-12 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/15 ring-1 ring-amber-500/15">
+                <BarChart3 className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</div>
+
+
+  {/* Tabs */}
+  <Tabs value={activeTab} onValueChange={setActiveTab}>
+    <TabsList className="h-auto p-2 rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-md shadow-sm flex flex-wrap gap-2 sm:gap-1">
+      {[
+        { value: "overview", label: "ภาพรวม" },
+        { value: "daily", label: "รายวัน" },
+        { value: "monthly", label: "รายเดือน" },
+        { value: "seasonality", label: "ฤดูกาล" },
+        { value: "by-region", label: "ตามภูมิภาค" },
+      ].map((t) => (
+        <TabsTrigger
+          key={t.value}
+          value={t.value}
+          className="rounded-xl px-4 py-2 text-sm sm:text-base font-semibold
+            text-slate-700
+            hover:bg-slate-50
+            data-[state=active]:text-white
+            data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500
+            data-[state=active]:shadow-[0_10px_30px_-18px_rgba(37,99,235,0.9)]
+            transition-all"
+        >
+          {t.label}
+        </TabsTrigger>
+      ))}
+    </TabsList>
+
+    {/* OVERVIEW */}
+    <TabsContent value="overview" className="mt-6 space-y-6">
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+        <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+          <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+            แนวโน้มยอดขายรายวัน
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="h-[360px] sm:h-[450px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={reportData.dailyData}>
+                <defs>
+                  <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip
+                  formatter={(value: number) => [formatTHB(value), "ยอดขาย"]}
+                  contentStyle={{
+                    borderRadius: "14px",
+                    border: "1px solid rgba(226,232,240,0.8)",
+                    boxShadow: "0 18px 60px rgba(2,6,23,0.18)",
+                    padding: "10px 12px",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="#2563eb"
+                  strokeWidth={2.5}
+                  fill="url(#salesGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Seasonality Pie */}
+        <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)] lg:col-span-2">
+          <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+            <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+              สัดส่วนยอดขายตามไตรมาส
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <div className="h-[360px] sm:h-[450px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={reportData.seasonalityData.filter((d) => d.percentage > 0)}
+                    dataKey="sales"
+                    nameKey="quarter"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={140}
+                    innerRadius={86}
+                    paddingAngle={2}
+                    labelLine={false}
+                    label={({ quarter, percentage }) =>
+                      `${quarter}: ${percentage.toFixed(1)}%`
+                    }
+                  >
+                    {reportData.seasonalityData
+                      .filter((d) => d.percentage > 0)
+                      .map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => [formatTHB(value), "ยอดขาย"]} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Right column cards */}
+        <div className="flex flex-col gap-4">
+          <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/15 ring-1 ring-emerald-500/15">
+                  <Sun className="h-5 w-5 text-emerald-600" />
                 </div>
+                <div className="leading-tight">
+                  <p className="text-sm font-semibold text-slate-900">เดือนขายดีที่สุด</p>
+                  <p className="text-xs text-slate-500">ยอดขาย + จำนวนออเดอร์</p>
+                </div>
+              </div>
 
-                {/* Container หลักที่แบ่งเป็น 2 คอลัมน์เมื่อจอใหญ่ */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mt-6">
-                  {/* ฝั่งซ้าย: Seasonality Pie */}
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm lg:col-span-2 h-full">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        สัดส่วนยอดขายตามไตรมาส
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[450px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={reportData.seasonalityData.filter(
-                                (d) => d.percentage > 0,
-                              )}
-                              dataKey="sales"
-                              nameKey="quarter"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={140}
-                              innerRadius={80}
-                              label={({ quarter, percentage }) =>
-                                `${quarter}: ${percentage.toFixed(1)}%`
-                              }
-                            >
-                              {reportData.seasonalityData
-                                .filter((d) => d.percentage > 0)
-                                .map((entry, index) => (
-                                  <Cell
-                                    key={`cell-${index}`}
-                                    fill={COLORS[index % COLORS.length]}
-                                  />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                              formatter={(value: number) => [
-                                formatTHB(value),
-                                "ยอดขาย",
-                              ]}
-                            />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
+              <div className="mt-4">
+                <p className="text-2xl font-bold tracking-tight text-emerald-700">
+                  {reportData.bestSellingMonth.month}
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  {formatTHB(reportData.bestSellingMonth.sales)}{" "}
+                  <span className="text-slate-500">
+                    ({reportData.bestSellingMonth.orders} ออเดอร์)
+                  </span>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+            <CardContent className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="grid place-items-center size-10 rounded-2xl bg-gradient-to-br from-purple-500/15 to-fuchsia-500/15 ring-1 ring-purple-500/15">
+                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                </div>
+                <div className="leading-tight">
+                  <p className="text-sm font-semibold text-slate-900">การเติบโต</p>
+                  <p className="text-xs text-slate-500">เทียบกับช่วงก่อนหน้า</p>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p
+                  className={`text-2xl font-bold tracking-tight ${
+                    reportData.growthPercentage >= 0 ? "text-emerald-700" : "text-red-700"
+                  }`}
+                >
+                  {formatPercent(reportData.growthPercentage)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </TabsContent>
+
+    {/* DAILY */}
+    <TabsContent value="daily" className="mt-6">
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+        <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+          <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+            ยอดขายรายวัน
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="h-[420px] sm:h-[550px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={reportData.dailyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip
+                  formatter={(value: number, _name: string, props: any) => {
+                    const key = props?.dataKey;
+                    return [
+                      key === "sales" ? formatTHB(value) : formatNumber(value),
+                      key === "sales" ? "ยอดขาย" : "ออเดอร์",
+                    ];
+                  }}
+                  contentStyle={{
+                    borderRadius: "14px",
+                    border: "1px solid rgba(226,232,240,0.8)",
+                    boxShadow: "0 18px 60px rgba(2,6,23,0.18)",
+                    padding: "10px 12px",
+                  }}
+                />
+                <Legend />
+                <Bar
+                  dataKey="sales"
+                  fill="#2563eb"
+                  name="ยอดขาย"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Daily Table */}
+          <div className="mt-6">
+            <div className="space-y-3 sm:hidden">
+              {reportData.dailyData
+                .filter((d) => d.sales > 0)
+                .map((day, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-slate-800">
+                        {day.date}
+                      </span>
+                      <span className="text-sm font-bold text-slate-900">
+                        {formatTHB(day.sales)}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-xs text-slate-500 grid grid-cols-2 gap-2">
+                      <div>ออเดอร์: {formatNumber(day.orders)}</div>
+                      <div>
+                        เฉลี่ย:{" "}
+                        {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
+                ))}
+            </div>
 
-                  {/* ฝั่งขวา: Best Selling Info (วางซ้อนกันแนวตั้งในคอลัมน์ขวา) */}
-                  <div className="flex flex-col gap-4">
-                    <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
-                            <Sun className="h-5 w-5 text-emerald-600" />
-                          </div>
-                          <h3 className="font-semibold">เดือนขายดีที่สุด</h3>
-                        </div>
-                        <p className="text-2xl font-bold text-emerald-600">
-                          {reportData.bestSellingMonth.month}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {formatTHB(reportData.bestSellingMonth.sales)} (
-                          {reportData.bestSellingMonth.orders} ออเดอร์)
-                        </p>
-                      </CardContent>
-                    </Card>
+            <div className="hidden sm:block max-h-96 overflow-auto rounded-2xl border border-slate-200/70 bg-white/60 backdrop-blur">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/60">
+                    <TableHead>วันที่</TableHead>
+                    <TableHead className="text-right">ยอดขาย</TableHead>
+                    <TableHead className="text-right">จำนวนออเดอร์</TableHead>
+                    <TableHead className="text-right">เฉลี่ย/ออเดอร์</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.dailyData
+                    .filter((d) => d.sales > 0)
+                    .map((day, idx) => (
+                      <TableRow key={idx} className="hover:bg-slate-50/60">
+                        <TableCell className="font-medium">{day.date}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {formatTHB(day.sales)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(day.orders)}
+                        </TableCell>
+                        <TableCell className="text-right text-slate-600">
+                          {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
 
-                    <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                      <CardContent className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
-                            <TrendingUp className="h-5 w-5 text-purple-600" />
-                          </div>
-                          <h3 className="font-semibold">การเติบโต</h3>
-                        </div>
-                        <p
-                          className={`text-2xl font-bold ${reportData.growthPercentage >= 0 ? "text-emerald-600" : "text-red-600"}`}
-                        >
-                          {formatPercent(reportData.growthPercentage)}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          เทียบกับช่วงก่อนหน้า
-                        </p>
-                      </CardContent>
-                    </Card>
+    {/* MONTHLY */}
+    <TabsContent value="monthly" className="mt-6">
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+        <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+          <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+            ยอดขายรายเดือน
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="h-[420px] sm:h-[550px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={reportData.monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                <YAxis
+                  tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip
+                  formatter={(value: number, _name: string, props: any) => {
+                    const key = props?.dataKey;
+                    return [
+                      key === "sales" ? formatTHB(value) : formatNumber(value),
+                      key === "sales" ? "ยอดขาย" : "ออเดอร์",
+                    ];
+                  }}
+                  contentStyle={{
+                    borderRadius: "14px",
+                    border: "1px solid rgba(226,232,240,0.8)",
+                    boxShadow: "0 18px 60px rgba(2,6,23,0.18)",
+                    padding: "10px 12px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="sales" fill="#10b981" name="ยอดขาย" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="orders" fill="#8b5cf6" name="ออเดอร์" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+
+    {/* SEASONALITY */}
+    <TabsContent value="seasonality" className="mt-6">
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+        <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+          <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+            สัดส่วนยอดขาย
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <div className="space-y-4">
+            {reportData.seasonalityData.map((quarter, idx) => (
+              <div key={quarter.quarter} className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold text-slate-800">
+                    {quarter.quarter}
+                  </span>
+                  <span className="text-slate-500">
+                    {formatTHB(quarter.sales)} ({quarter.percentage.toFixed(1)}%)
+                  </span>
+                </div>
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden ring-1 ring-slate-200/60">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${quarter.percentage}%`,
+                      backgroundColor: COLORS[idx % COLORS.length],
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+
+    {/* BY REGION */}
+    <TabsContent value="by-region" className="mt-6">
+      <Card className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur-md shadow-[0_10px_30px_-18px_rgba(2,6,23,0.35)]">
+        <CardHeader className="border-b border-slate-200/50 bg-gradient-to-r from-white/30 to-slate-50/40 rounded-t-2xl">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold tracking-tight text-slate-900">
+            <span className="grid place-items-center size-9 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/15 ring-1 ring-blue-500/15">
+              <MapPin className="h-5 w-5 text-blue-600" />
+            </span>
+            ตามภูมิภาค
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="p-4 sm:p-6">
+          <div className="h-[360px] sm:h-[450px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={reportData.salesByRegion}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="region" tick={{ fontSize: 10 }} />
+                <YAxis
+                  tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip
+                  formatter={(value: number) => [formatTHB(value), "ยอดขาย"]}
+                  contentStyle={{
+                    borderRadius: "14px",
+                    border: "1px solid rgba(226,232,240,0.8)",
+                    boxShadow: "0 18px 60px rgba(2,6,23,0.18)",
+                    padding: "10px 12px",
+                  }}
+                />
+                <Bar dataKey="totalSales" name="ยอดขาย" radius={[8, 8, 0, 0]}>
+                  {reportData.salesByRegion.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-6">
+            <div className="space-y-3 sm:hidden">
+              {reportData.salesByRegion.map((region, i) => (
+                <div
+                  key={region.region}
+                  className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                      />
+                      {region.region}
+                    </div>
+                    <span className="text-sm font-bold text-emerald-700">
+                      {formatTHB(region.totalSales)}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    ออเดอร์: {formatNumber(region.orderCount)}
                   </div>
                 </div>
-              </TabsContent>
+              ))}
+            </div>
 
-              <TabsContent value="daily" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                  <CardHeader>
-                    <CardTitle>ยอดขายรายวัน</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[550px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.dailyData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#e2e8f0"
-                          />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                          <YAxis
-                            tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <Tooltip
-                            formatter={(
-                              value: number,
-                              name: string,
-                              props: any,
-                            ) => {
-                              const key = props?.dataKey;
-
-                              return [
-                                key === "sales"
-                                  ? formatTHB(value)
-                                  : formatNumber(value),
-                                key === "sales" ? "ยอดขาย" : "ออเดอร์",
-                              ];
-                            }}
-                            contentStyle={{
-                              borderRadius: "12px",
-                              border: "none",
-                              boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                          <Legend />
-                          <Bar
-                            dataKey="sales"
-                            fill="#3b82f6"
-                            name="ยอดขาย"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Daily Table: mobile cards, sm+ table */}
-                    <div className="mt-6">
-                      <div className="space-y-3 sm:hidden">
-                        {reportData.dailyData
-                          .filter((d) => d.sales > 0)
-                          .map((day, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded-xl border bg-white/80 p-3"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-semibold text-slate-700">
-                                  {day.date}
-                                </span>
-                                <span className="text-sm font-bold text-slate-900">
-                                  {formatTHB(day.sales)}
-                                </span>
-                              </div>
-                              <div className="mt-2 text-xs text-muted-foreground grid grid-cols-2 gap-2">
-                                <div>ออเดอร์: {formatNumber(day.orders)}</div>
-                                <div>
-                                  เฉลี่ย:{" "}
-                                  {day.orders > 0
-                                    ? formatTHB(day.sales / day.orders)
-                                    : "-"}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                      <div className="hidden sm:block max-h-96 overflow-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>วันที่</TableHead>
-                              <TableHead className="text-right">
-                                ยอดขาย
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนออเดอร์
-                              </TableHead>
-                              <TableHead className="text-right">
-                                เฉลี่ย/ออเดอร์
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportData.dailyData
-                              .filter((d) => d.sales > 0)
-                              .map((day, idx) => (
-                                <TableRow key={idx}>
-                                  <TableCell className="font-medium">
-                                    {day.date}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    {formatTHB(day.sales)}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    {formatNumber(day.orders)}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    {day.orders > 0
-                                      ? formatTHB(day.sales / day.orders)
-                                      : "-"}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="monthly" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                  <CardHeader>
-                    <CardTitle>ยอดขายรายเดือน</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[550px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.monthlyData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#e2e8f0"
-                          />
-                          <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                          <YAxis
-                            tickFormatter={(v) =>
-                              `${(v / 1000000).toFixed(1)}M`
-                            }
-                            tick={{ fontSize: 11 }}
-                          />
-                          <Tooltip
-                            formatter={(
-                              value: number,
-                              name: string,
-                              props: any,
-                            ) => {
-                              const key = props?.dataKey;
-
-                              return [
-                                key === "sales"
-                                  ? formatTHB(value)
-                                  : formatNumber(value),
-                                key === "sales" ? "ยอดขาย" : "ออเดอร์",
-                              ];
-                            }}
-                            contentStyle={{
-                              borderRadius: "12px",
-                              border: "none",
-                              boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                          <Legend />
-                          <Bar
-                            dataKey="sales"
-                            fill="#10b981"
-                            name="ยอดขาย"
-                            radius={[4, 4, 0, 0]}
-                          />
-                          <Bar
-                            dataKey="orders"
-                            fill="#8b5cf6"
-                            name="ออเดอร์"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="seasonality" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                    <CardHeader>
-                      <CardTitle>สัดส่วนยอดขาย</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {reportData.seasonalityData.map((quarter, idx) => (
-                          <div key={quarter.quarter} className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium">
-                                {quarter.quarter}
-                              </span>
-                              <span className="text-muted-foreground">
-                                {formatTHB(quarter.sales)} (
-                                {quarter.percentage.toFixed(1)}%)
-                              </span>
-                            </div>
-                            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: `${quarter.percentage}%`,
-                                  backgroundColor: COLORS[idx % COLORS.length],
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="by-region" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-blue-500" />
-                      ตามภูมิภาค
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[450px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.salesByRegion}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="#e2e8f0"
-                          />
-                          <XAxis dataKey="region" tick={{ fontSize: 10 }} />
-                          <YAxis
-                            tickFormatter={(v) =>
-                              `${(v / 1000000).toFixed(1)}M`
-                            }
-                            tick={{ fontSize: 11 }}
-                          />
-                          <Tooltip
-                            formatter={(value: number) => [
-                              formatTHB(value),
-                              "ยอดขาย",
-                            ]}
-                            contentStyle={{
-                              borderRadius: "12px",
-                              border: "none",
-                              boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                          <Bar
-                            dataKey="totalSales"
-                            name="ยอดขาย"
-                            radius={[4, 4, 0, 0]}
-                          >
-                            {reportData.salesByRegion.map((_, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={COLORS[index % COLORS.length]}
-                              />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="mt-6">
-                      <div className="space-y-3 sm:hidden">
-                        {reportData.salesByRegion.map((region, i) => (
+            <div className="hidden sm:block rounded-2xl border border-slate-200/70 bg-white/60 backdrop-blur overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/60">
+                    <TableHead>ภูมิภาค</TableHead>
+                    <TableHead className="text-right">ออเดอร์</TableHead>
+                    <TableHead className="text-right">ยอดขาย</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.salesByRegion.map((r, i) => (
+                    <TableRow key={r.region} className="hover:bg-slate-50/60">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
                           <div
-                            key={region.region}
-                            className="rounded-xl border bg-white/80 p-3"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-sm font-medium">
-                                <span
-                                  className="w-3 h-3 rounded-full"
-                                  style={{
-                                    backgroundColor: COLORS[i % COLORS.length],
-                                  }}
-                                />
-                                {region.region}
-                              </div>
-                              <span className="text-sm font-semibold text-emerald-600">
-                                {formatTHB(region.totalSales)}
-                              </span>
-                            </div>
-                            <div className="mt-2 text-xs text-muted-foreground">
-                              ออเดอร์: {formatNumber(region.orderCount)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="hidden sm:block">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ภูมิภาค</TableHead>
-                              <TableHead className="text-right">
-                                ออเดอร์
-                              </TableHead>
-                              <TableHead className="text-right">
-                                ยอดขาย
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportData.salesByRegion.map((r, i) => (
-                              <TableRow key={r.region}>
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <div
-                                      className="w-3 h-3 rounded-full"
-                                      style={{
-                                        backgroundColor:
-                                          COLORS[i % COLORS.length],
-                                      }}
-                                    />
-                                    {r.region}
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(r.orderCount)}
-                                </TableCell>
-                                <TableCell className="text-right text-emerald-600 font-semibold">
-                                  {formatTHB(r.totalSales)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                          />
+                          <span className="font-medium text-slate-800">{r.region}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatNumber(r.orderCount)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-emerald-700">
+                        {formatTHB(r.totalSales)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  </Tabs>
+</div>
+
         ) : (
           <Card className="rounded-2xl border bg-white/70 shadow-sm">
             <CardContent className="flex flex-col items-center justify-center py-20">
