@@ -89,7 +89,7 @@ export default function CustomerFormDealer({
         const res = await fetch(
           `/api/customers/check-code?code=${encodeURIComponent(code)}${
             excludeId ? `&excludeId=${excludeId}` : ""
-          }`
+          }`,
         );
         const json = await res.json();
 
@@ -111,7 +111,7 @@ export default function CustomerFormDealer({
         setCheckingCode(false);
       }
     },
-    [initial]
+    [initial],
   );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
@@ -217,7 +217,7 @@ export default function CustomerFormDealer({
     }
     if (values.responsibleEmployeeId) {
       const found = employeeOptions.find(
-        (d) => d.value === values.responsibleEmployeeId
+        (d) => d.value === values.responsibleEmployeeId,
       );
       if (found) setResponsibleEmployeeLabel(found.label);
     }
@@ -271,7 +271,7 @@ export default function CustomerFormDealer({
 
   const deleteImages = (
     customerId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/customers/${customerId}/images`, {
@@ -289,7 +289,7 @@ export default function CustomerFormDealer({
 
   const reorderImages = (
     customerId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/customers/${customerId}/images`, {
@@ -408,7 +408,9 @@ export default function CustomerFormDealer({
         if (res.issues) {
           setFieldErrors(res.issues);
           setError(
-            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+            Object.values(res.issues).flat()[0] ??
+              res.error ??
+              "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -446,7 +448,7 @@ export default function CustomerFormDealer({
               setUploadProgress(0);
               const uploadRes = await uploadImages(
                 targetCustomerId,
-                filesToUpload
+                filesToUpload,
               );
               if (uploadRes.created) {
                 uploadedImages = uploadRes.created;
@@ -490,7 +492,7 @@ export default function CustomerFormDealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -515,7 +517,7 @@ export default function CustomerFormDealer({
       (error) => {
         console.error("Error getting location", error);
         alert("Unable to retrieve your location");
-      }
+      },
     );
   };
 
@@ -784,6 +786,7 @@ export default function CustomerFormDealer({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
           label="เบอร์โทรศัพท์ (บุคคล)"
+          type="number"
           value={values.contactPhone}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, contactPhone: e.target.value }));

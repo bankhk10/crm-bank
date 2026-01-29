@@ -1415,35 +1415,80 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.customers" },
     { key: "menu.products" },
     // Sale permissions - view and manage fulfillment
+    {
+      key: "sale.create",
+    },
     { key: "sale.view", dataAccess: "VIEW_ALL" },
     { key: "sale.manage_fulfillment" },
     { key: "sale.update_delivery" },
     // Product permissions - view only
     { key: "product.view", dataAccess: "VIEW_ALL" },
+    { key: "product.create" },
+    { key: "product.update" },
+    { key: "product.delete" },
+    { key: "product.manage" },
     // Customer permissions - view only
     { key: "customer.view", dataAccess: "VIEW_ALL" },
+    { key: "customer.create" },
+    { key: "customer.update" },
+    { key: "customer.delete" },
     // Stock permissions
     { key: "stock.view" },
     // Notification
     { key: "notification.view" },
+    { key: "customer.create.dealer" },
+    { key: "customer.create.subdealer" },
+    { key: "customer.create.farmer" },
+    { key: "customer.create.broker" },
+    { key: "customer.edit" },
     // DATA permissions
     {
       key: "data.sales",
       dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
+      editAccess: "EDIT_OWN",
+      deleteAccess: "DELETE_OWN",
     },
     {
       key: "data.customers",
       dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
     },
     {
       key: "data.products",
       dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.temporary_creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.stock",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.companies",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    {
+      key: "data.employees",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
     },
   ];
 

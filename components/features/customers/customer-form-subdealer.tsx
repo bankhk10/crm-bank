@@ -689,6 +689,7 @@ export default function CustomerFormSubdealer({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
           label="เบอร์โทรศัพท์ (บุคคล)"
+          type="number"
           value={values.contactPhone}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, contactPhone: e.target.value }));
