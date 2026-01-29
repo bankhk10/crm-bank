@@ -25,7 +25,7 @@ export async function seedUsers(prisma: PrismaClient) {
 
   await prisma.position.create({
     data: {
-      name: "พนักงานขาย",
+      name: "พนักงานฝ่ายขาย",
       level: 1,
       departmentId: salesDept.id,
     },
@@ -33,7 +33,7 @@ export async function seedUsers(prisma: PrismaClient) {
 
   await prisma.position.create({
     data: {
-      name: "ผู้จัดการขาย",
+      name: "ผู้จัดการฝ่ายขาย",
       level: 3,
       isManagerial: true,
       departmentId: salesDept.id,

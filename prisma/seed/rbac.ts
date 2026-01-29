@@ -30,17 +30,17 @@ export async function seedRBAC(prisma: PrismaClient) {
 
   const salesRepRole = await prisma.role.create({
     data: {
-      name: "พนักงานขาย",
+      name: "พนักงานฝ่ายขาย",
       slug: "sales_employee",
-      description: "พนักงานขาย",
+      description: "พนักงานฝ่ายขาย",
     },
   });
 
   const salesManagerRole = await prisma.role.create({
     data: {
-      name: "ผู้จัดการขาย",
+      name: "ผู้จัดการฝ่ายขาย",
       slug: "sales_manager",
-      description: "ผู้จัดการขาย",
+      description: "ผู้จัดการฝ่ายขาย",
     },
   });
 
