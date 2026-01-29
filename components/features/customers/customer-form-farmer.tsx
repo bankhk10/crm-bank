@@ -76,7 +76,7 @@ export default function CustomerFormFarmer({
         const res = await fetch(
           `/api/customers/check-code?code=${encodeURIComponent(code)}${
             excludeId ? `&excludeId=${excludeId}` : ""
-          }`
+          }`,
         );
         const json = await res.json();
         if (json.exists) {
@@ -95,7 +95,7 @@ export default function CustomerFormFarmer({
         // ignore network errors
       }
     },
-    [initial]
+    [initial],
   );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
@@ -261,7 +261,9 @@ export default function CustomerFormFarmer({
         if (res.issues) {
           setFieldErrors(res.issues);
           setError(
-            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+            Object.values(res.issues).flat()[0] ??
+              res.error ??
+              "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -281,7 +283,7 @@ export default function CustomerFormFarmer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -300,18 +302,18 @@ export default function CustomerFormFarmer({
         handlePlotChange(
           index,
           "latitude",
-          position.coords.latitude.toFixed(6)
+          position.coords.latitude.toFixed(6),
         );
         handlePlotChange(
           index,
           "longitude",
-          position.coords.longitude.toFixed(6)
+          position.coords.longitude.toFixed(6),
         );
       },
       (error) => {
         console.error("Error getting location", error);
         alert("Unable to retrieve your location");
-      }
+      },
     );
   };
 
@@ -390,6 +392,7 @@ export default function CustomerFormFarmer({
           }}
           required
           error={fieldErrors.phone?.[0]}
+          type="number"
         />
         <FormInput
           label="E-mail (บุคคล)"

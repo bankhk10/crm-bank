@@ -75,7 +75,7 @@ export default function CustomerFormBroker({
         const res = await fetch(
           `/api/customers/check-code?code=${encodeURIComponent(code)}${
             excludeId ? `&excludeId=${excludeId}` : ""
-          }`
+          }`,
         );
         const json = await res.json();
         if (json.exists) {
@@ -94,7 +94,7 @@ export default function CustomerFormBroker({
         // ignore network errors
       }
     },
-    [initial]
+    [initial],
   );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
@@ -259,7 +259,9 @@ export default function CustomerFormBroker({
         if (res.issues) {
           setFieldErrors(res.issues);
           setError(
-            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+            Object.values(res.issues).flat()[0] ??
+              res.error ??
+              "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -279,7 +281,7 @@ export default function CustomerFormBroker({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -355,6 +357,7 @@ export default function CustomerFormBroker({
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
         <FormInput
           label="เบอร์โทรศัพท์ (บุคคล)"
+          type="number"
           value={values.phone}
           onChange={(e) => {
             setValues((p: any) => ({ ...p, phone: e.target.value }));
