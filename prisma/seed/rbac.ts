@@ -1446,6 +1446,11 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "temporary_creditlimit.edit" },
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
+    { key: "menu.credit_limits" },
+    { key: "creditlimit.create" },
+    { key: "creditlimit.edit" },
+    { key: "creditlimit.delete" },
+    { key: "creditlimit.view", dataAccess: "VIEW_ALL" },
     // DATA permissions
     {
       key: "data.sales",
@@ -1485,12 +1490,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
     {
       key: "data.companies",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.employees",
       dataAccess: "VIEW_ALL",
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
