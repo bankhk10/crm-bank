@@ -91,7 +91,7 @@ export default function CustomerFormSubdealer({
         const res = await fetch(
           `/api/customers/check-code?code=${encodeURIComponent(code)}${
             excludeId ? `&excludeId=${excludeId}` : ""
-          }`
+          }`,
         );
         const json = await res.json();
         if (json.exists) {
@@ -110,14 +110,13 @@ export default function CustomerFormSubdealer({
         // ignore network errors
       }
     },
-    [initial]
+    [initial],
   );
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
-    const { generateRandomSubdealer } = await import(
-      "@/lib/random-fill/subdealer"
-    );
+    const { generateRandomSubdealer } =
+      await import("@/lib/random-fill/subdealer");
     return generateRandomSubdealer();
   }, []);
 
@@ -194,9 +193,9 @@ export default function CustomerFormSubdealer({
           value: pg,
           label: pg,
         }));
-        const brands = (bRes.brands || []).map((b: string) => ({
-          value: b,
-          label: b,
+        const brands = (bRes.brands || []).map((b: any) => ({
+          value: b.description,
+          label: b.description,
         }));
         setDealerOptions(comps);
         setEmployeeOptions(emps);
@@ -264,7 +263,7 @@ export default function CustomerFormSubdealer({
 
   const deleteImages = (
     customerId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/customers/${customerId}/images`, {
@@ -282,7 +281,7 @@ export default function CustomerFormSubdealer({
 
   const reorderImages = (
     customerId: string,
-    imageIds: string[]
+    imageIds: string[],
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       fetch(`/api/customers/${customerId}/images`, {
@@ -395,7 +394,9 @@ export default function CustomerFormSubdealer({
         if (res.issues) {
           setFieldErrors(res.issues);
           setError(
-            Object.values(res.issues).flat()[0] ?? res.error ?? "เกิดข้อผิดพลาด"
+            Object.values(res.issues).flat()[0] ??
+              res.error ??
+              "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -433,7 +434,7 @@ export default function CustomerFormSubdealer({
               setUploadProgress(0);
               const uploadRes = await uploadImages(
                 targetCustomerId,
-                filesToUpload
+                filesToUpload,
               );
               if (uploadRes.created) {
                 uploadedImages = uploadRes.created;
@@ -477,7 +478,7 @@ export default function CustomerFormSubdealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25)
+          (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -502,7 +503,7 @@ export default function CustomerFormSubdealer({
       (error) => {
         console.error("Error getting location", error);
         alert("Unable to retrieve your location");
-      }
+      },
     );
   };
 
