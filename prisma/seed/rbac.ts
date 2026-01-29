@@ -1062,8 +1062,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sale.view" },
     { key: "sale.approve" },
     { key: "sale.reject" },
-    { key: "menu.employees" },
-    { key: "employee.view", dataAccess: "VIEW_DEPARTMENT" },
     { key: "menu.customers" },
     { key: "customer.create.dealer" },
     { key: "customer.create.subdealer" },
@@ -1111,6 +1109,17 @@ export async function seedRBAC(prisma: PrismaClient) {
       deleteAccess: "DELETE_OWN",
     },
     { key: "report.product_group_sales" },
+    { key: "menu.sales_forecast" },
+    { key: "menu.sales_targets" },
+    {
+      key: "data.sales_targets",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    { key: "sales_target.delete" },
+    { key: "sales_target.edit" },
+    { key: "sales_target.create" },
   ];
 
   await prisma.rolePermission.createMany({
