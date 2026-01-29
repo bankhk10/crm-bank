@@ -715,7 +715,7 @@ export default function CustomerDetailPage() {
                       customer.parentDealer &&
                       customer.parentDealer.id === customer.receiveFromDealer
                         ? customer.parentDealer.name
-                        : customer.receiveFromDealer
+                        : customer.name
                     }
                     icon={Building}
                   />
