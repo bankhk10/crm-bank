@@ -67,7 +67,8 @@ export function SaleFormV2({
     currentUser?.roles?.includes("administrator") ||
     false;
   const isManager = currentUser?.roles?.includes("sales_manager") || false;
-  const canSelectOtherEmployees = isAdmin || isManager;
+  const isSaleAdmin = currentUser?.roles?.includes("sales_admin") || false;
+  const canSelectOtherEmployees = isAdmin || isManager || isSaleAdmin;
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -531,7 +532,7 @@ export function SaleFormV2({
               value: "PREPAID",
               label: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
             },
-            ...(isAdmin
+            ...(isAdmin || isSaleAdmin
               ? [
                   {
                     value: "CREDIT_OVER_90",
@@ -564,7 +565,7 @@ export function SaleFormV2({
               setFieldErrors((prev) => ({ ...prev, saleDate: "" }));
             }}
             placeholder=""
-            disabled={!isAdmin}
+            disabled={!isAdmin && !isSaleAdmin}
             required
           />
           {fieldErrors.saleDate && (
