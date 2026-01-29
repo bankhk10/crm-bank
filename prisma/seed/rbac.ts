@@ -1441,6 +1441,11 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.create.farmer" },
     { key: "customer.create.broker" },
     { key: "customer.edit" },
+    { key: "menu.temporary_credit_limits" },
+    { key: "temporary_creditlimit.create" },
+    { key: "temporary_creditlimit.edit" },
+    { key: "temporary_creditlimit.view" },
+    { key: "temporary_creditlimit.delete" },
     // DATA permissions
     {
       key: "data.sales",
