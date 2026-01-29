@@ -786,7 +786,7 @@ async function main() {
     // ======================================
     // NEW PERMISSIONS - Added 2026-01-28
     // ======================================
-    
+
     // Menu Permissions - Additional
     prisma.permission.create({
       data: {
@@ -812,7 +812,7 @@ async function main() {
         menuPath: "/notifications",
       },
     }),
-    
+
     // Report Permissions - Additional
     prisma.permission.create({
       data: {
@@ -823,7 +823,7 @@ async function main() {
         action: "export",
       },
     }),
-    
+
     // Sale Permissions - Additional
     prisma.permission.create({
       data: {
@@ -843,7 +843,7 @@ async function main() {
         action: "update_delivery",
       },
     }),
-    
+
     // Product Permissions - Additional
     prisma.permission.create({
       data: {
@@ -863,7 +863,7 @@ async function main() {
         action: "export",
       },
     }),
-    
+
     // Customer Permissions - Additional
     prisma.permission.create({
       data: {
@@ -892,7 +892,7 @@ async function main() {
         action: "assign",
       },
     }),
-    
+
     // Employee Permissions - Additional
     prisma.permission.create({
       data: {
@@ -921,7 +921,7 @@ async function main() {
         action: "assign_manager",
       },
     }),
-    
+
     // Company Permissions - Additional
     prisma.permission.create({
       data: {
@@ -932,7 +932,7 @@ async function main() {
         action: "view",
       },
     }),
-    
+
     // RBAC Management Permissions
     prisma.permission.create({
       data: {
@@ -979,7 +979,7 @@ async function main() {
         action: "user_override",
       },
     }),
-    
+
     // Sales Target Permissions
     prisma.permission.create({
       data: {
@@ -1017,7 +1017,7 @@ async function main() {
         action: "delete",
       },
     }),
-    
+
     // Stock/Inventory Permissions
     prisma.permission.create({
       data: {
@@ -1046,7 +1046,7 @@ async function main() {
         action: "lot_manage",
       },
     }),
-    
+
     // Notification Permissions
     prisma.permission.create({
       data: {
@@ -1066,7 +1066,7 @@ async function main() {
         action: "manage",
       },
     }),
-    
+
     // System Permissions
     prisma.permission.create({
       data: {
@@ -1095,7 +1095,7 @@ async function main() {
         action: "settings",
       },
     }),
-    
+
     // DATA Permissions - Additional
     prisma.permission.create({
       data: {
@@ -1211,7 +1211,6 @@ async function main() {
     { key: "sale.view" },
     { key: "sale.delete" },
     { key: "menu.customers" },
-    { key: "customer.create.dealer" },
     { key: "customer.edit" },
     { key: "customer.view", dataAccess: "VIEW_ALL" },
     { key: "menu.temporary_credit_limits" },

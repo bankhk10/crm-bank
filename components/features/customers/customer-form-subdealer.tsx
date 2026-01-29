@@ -526,7 +526,7 @@ export default function CustomerFormSubdealer({
           }}
           required
           error={fieldErrors.customerCode?.[0]}
-          placeholder="C00001"
+          placeholder=""
         />
 
         <FormInput

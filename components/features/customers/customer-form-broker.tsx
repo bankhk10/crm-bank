@@ -307,7 +307,7 @@ export default function CustomerFormBroker({
           }}
           required
           error={fieldErrors.customerCode?.[0]}
-          placeholder="C00001"
+          placeholder=""
         />
 
         <FormSelect
