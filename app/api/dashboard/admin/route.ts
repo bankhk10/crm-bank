@@ -13,7 +13,8 @@ export async function GET() {
 
   const isAdmin =
     session.user.roles?.includes("administrator") ||
-    session.user.roles?.includes("admin");
+    session.user.roles?.includes("admin") ||
+    session.user.roles?.includes("ceo");
 
   if (!isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
