@@ -44,6 +44,24 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
   });
 
+  const ceoRole = await prisma.role.create({
+    data: {
+      name: "CEO",
+      slug: "ceo",
+      description:
+        "ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only Executive Access)",
+      isSystem: true,
+    },
+  });
+
+  const salesAdminRole = await prisma.role.create({
+    data: {
+      name: "ธุรการขาย",
+      slug: "sales_admin",
+      description: "ธุรการขาย - จัดการการจัดส่งสินค้าและงานเอกสารฝ่ายขาย",
+    },
+  });
+
   // Create Permissions
   await prisma.$transaction([
     prisma.permission.create({
@@ -1281,6 +1299,159 @@ export async function seedRBAC(prisma: PrismaClient) {
       .filter((item) => p(item.key))
       .map((item) => ({
         roleId: adminRoleSecondary.id,
+        permissionId: p(item.key)!,
+        allow: true,
+        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+        editAccess: (item.editAccess as EditAccessLevel) ?? null,
+        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
+      })),
+  });
+
+  // CEO Role Permissions - Read-only Executive Access (VIEW_ALL, no edit/delete)
+  const ceoConfig = [
+    // Menu permissions - access to view all areas
+    { key: "menu.dashboard" },
+    { key: "menu.reports" },
+    { key: "menu.sales" },
+    { key: "menu.products" },
+    { key: "menu.customers" },
+    { key: "menu.employees" },
+    { key: "menu.companies" },
+    { key: "menu.credit_limits" },
+    { key: "menu.temporary_credit_limits" },
+    { key: "menu.fulfillment" },
+    { key: "menu.sales_forecast" },
+    { key: "menu.sales_targets" },
+    { key: "menu.notifications" },
+    // Report permissions - view all reports
+    { key: "report.time_sales" },
+    { key: "report.product_sales" },
+    { key: "report.product_group_sales" },
+    { key: "report.customer_sales" },
+    { key: "report.salesperson" },
+    { key: "report.export" },
+    // View permissions - read-only access
+    { key: "sale.view", dataAccess: "VIEW_ALL" },
+    { key: "product.view", dataAccess: "VIEW_ALL" },
+    { key: "customer.view", dataAccess: "VIEW_ALL" },
+    { key: "creditlimit.view", dataAccess: "VIEW_ALL" },
+    { key: "temporary_creditlimit.view", dataAccess: "VIEW_ALL" },
+    { key: "employee.view", dataAccess: "VIEW_ALL" },
+    { key: "company.view", dataAccess: "VIEW_ALL" },
+    { key: "sales_target.view", dataAccess: "VIEW_ALL" },
+    { key: "stock.view", dataAccess: "VIEW_ALL" },
+    { key: "notification.view" },
+    { key: "system.audit_log" },
+    { key: "system.security_log" },
+    // DATA permissions - VIEW_ALL only (no edit/delete)
+    {
+      key: "data.products",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.employees",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.customers",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.temporary_creditlimits",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.sales",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.companies",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.sales_targets",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+  ];
+
+  await prisma.rolePermission.createMany({
+    data: ceoConfig
+      .filter((item) => p(item.key))
+      .map((item) => ({
+        roleId: ceoRole.id,
+        permissionId: p(item.key)!,
+        allow: true,
+        dataAccess: (item.dataAccess as DataAccessLevel) ?? null,
+        editAccess: (item.editAccess as EditAccessLevel) ?? null,
+        deleteAccess: (item.deleteAccess as DeleteAccessLevel) ?? null,
+      })),
+  });
+
+  // Sales Admin (ธุรการขาย) Role Permissions - Fulfillment management
+  const salesAdminConfig = [
+    // Menu permissions
+    { key: "menu.sales" },
+    { key: "menu.fulfillment" },
+    { key: "menu.customers" },
+    { key: "menu.products" },
+    // Sale permissions - view and manage fulfillment
+    { key: "sale.view", dataAccess: "VIEW_ALL" },
+    { key: "sale.manage_fulfillment" },
+    { key: "sale.update_delivery" },
+    // Product permissions - view only
+    { key: "product.view", dataAccess: "VIEW_ALL" },
+    // Customer permissions - view only
+    { key: "customer.view", dataAccess: "VIEW_ALL" },
+    // Stock permissions
+    { key: "stock.view" },
+    // Notification
+    { key: "notification.view" },
+    // DATA permissions
+    {
+      key: "data.sales",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.customers",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+    {
+      key: "data.products",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_NONE",
+      deleteAccess: "DELETE_NONE",
+    },
+  ];
+
+  await prisma.rolePermission.createMany({
+    data: salesAdminConfig
+      .filter((item) => p(item.key))
+      .map((item) => ({
+        roleId: salesAdminRole.id,
         permissionId: p(item.key)!,
         allow: true,
         dataAccess: (item.dataAccess as DataAccessLevel) ?? null,

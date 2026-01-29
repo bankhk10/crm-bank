@@ -1,6 +1,6 @@
 # RBAC Policy - CRM System
 
-> **Version**: 1.2.1 | **Updated**: 2026-01-29  
+> **Version**: 1.2.2 | **Updated**: 2026-01-29  
 > **Source of Truth**: `prisma/seed/rbac.ts`  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
@@ -20,17 +20,19 @@ User ─────N:N─────▶ Role ─────N:N─────
 
 ## 2. System Roles
 
-| Role             | Slug             | Description                        | Is System |
-| ---------------- | ---------------- | ---------------------------------- | --------- |
-| Administrator    | `administrator`  | Full system access (RBAC included) | Yes       |
-| Admin            | `admin`          | High-level access (excludes RBAC)  | Yes       |
-| ผู้จัดการฝ่ายขาย | `sales_manager`  | Department management + approval   | No        |
-| พนักงานฝ่ายขาย   | `sales_employee` | Basic sales operations             | No        |
+| Role             | Slug             | Description                                         | Is System |
+| ---------------- | ---------------- | --------------------------------------------------- | --------- |
+| Administrator    | `administrator`  | Full system access (RBAC included)                  | Yes       |
+| Admin            | `admin`          | High-level access (excludes RBAC)                   | Yes       |
+| CEO              | `ceo`            | ผู้บริหารสูงสุด - สิทธิ์ดูข้อมูลทั้งหมด (Read-only) | Yes       |
+| ผู้จัดการฝ่ายขาย | `sales_manager`  | Department management + approval                    | No        |
+| ธุรการขาย        | `sales_admin`    | จัดการการจัดส่งสินค้าและงานเอกสารฝ่ายขาย            | No        |
+| พนักงานฝ่ายขาย   | `sales_employee` | Basic sales operations                              | No        |
 
 ### Role Hierarchy
 
 ```
-Administrator > Admin > sales_manager > sales_employee
+Administrator > Admin > CEO (read-only) > sales_manager > sales_admin > sales_employee
 ```
 
 ---
@@ -282,6 +284,17 @@ enum DeleteAccessLevel {
 | DATA     | VIEW_ALL, EDIT_ALL, DELETE_ALL                                                                                                                           |
 | ❌       | rbac.\*                                                                                                                                                  |
 
+### CEO (Read-only Executive Access)
+
+| Category | Permissions                                                                                                                                                             |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MENU     | dashboard, reports, sales, products, customers, employees, companies, credit_limits, temporary_credit_limits, fulfillment, sales_forecast, sales_targets, notifications |
+| Reports  | All report types + export                                                                                                                                               |
+| View     | sale, product, customer, creditlimit, temporary_creditlimit, employee, company, sales_target, stock (VIEW_ALL)                                                          |
+| System   | audit_log, security_log                                                                                                                                                 |
+| DATA     | VIEW_ALL only (no edit, no delete)                                                                                                                                      |
+| ❌       | All create/edit/delete/approve/reject actions, rbac.\*                                                                                                                  |
+
 ### Sales Manager
 
 | Category | Permissions                                                     |
@@ -293,6 +306,17 @@ enum DeleteAccessLevel {
 | Credit   | create, edit, delete, view, approve, reject                     |
 | Employee | view (VIEW_DEPARTMENT)                                          |
 | DATA     | VIEW_DEPARTMENT, EDIT_OWN, DELETE_OWN                           |
+
+### Sales Admin (ธุรการขาย)
+
+| Category | Permissions                                          |
+| -------- | ---------------------------------------------------- |
+| MENU     | sales, fulfillment, customers, products              |
+| Sale     | view (VIEW_ALL), manage_fulfillment, update_delivery |
+| Product  | view only (VIEW_ALL)                                 |
+| Customer | view only (VIEW_ALL)                                 |
+| Stock    | view                                                 |
+| DATA     | VIEW_ALL only (no edit, no delete)                   |
 
 ### Sales Employee
 
@@ -552,6 +576,7 @@ node scripts/migrate-permissions.js
 
 | Date       | Version | Changes                                                                                               |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| 2026-01-29 | 1.2.2   | Added `CEO` role (read-only executive access) and `ธุรการขาย` (sales_admin) role for fulfillment      |
 | 2026-01-29 | 1.2.1   | Added `employee.edit` permission; clarified `employee.manage` as super permission                     |
 | 2026-01-28 | 1.2.0   | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |
 | 2026-01-28 | 1.1.0   | Added comprehensive permission list                                                                   |
