@@ -1,7 +1,7 @@
 # RBAC Policy - CRM System
 
-> **Version**: 1.2.0 | **Updated**: 2026-01-28  
-> **Source of Truth**: `prisma/seed.js`  
+> **Version**: 1.2.1 | **Updated**: 2026-01-29  
+> **Source of Truth**: `prisma/seed/rbac.ts`  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -146,13 +146,16 @@ enum PermissionType {
 
 ### 4.8 Employee Permissions (พนักงาน)
 
-| Key                       | Name (TH)           | Action |
-| ------------------------- | ------------------- | ------ |
-| `employee.view`           | ดูรายละเอียดพนักงาน | view   |
-| `employee.manage`         | จัดการพนักงาน       | edit   |
-| `employee.create`         | สร้างพนักงาน        | create |
-| `employee.delete`         | ลบพนักงาน           | delete |
-| `employee.assign_manager` | กำหนดหัวหน้า        | assign |
+| Key                       | Name (TH)           | Action | หมายเหตุ                            |
+| ------------------------- | ------------------- | ------ | ----------------------------------- |
+| `employee.view`           | ดูรายละเอียดพนักงาน | view   |                                     |
+| `employee.create`         | สร้างพนักงาน        | create |                                     |
+| `employee.edit`           | แก้ไขพนักงาน        | edit   | สิทธิ์แก้ไขพนักงานเฉพาะ             |
+| `employee.delete`         | ลบพนักงาน           | delete |                                     |
+| `employee.manage`         | จัดการพนักงาน       | manage | ครอบคลุม create/edit/delete ทั้งหมด |
+| `employee.assign_manager` | กำหนดหัวหน้า        | assign |                                     |
+
+> **หมายเหตุ**: `employee.manage` เป็น "super permission" ที่ครอบคลุมการจัดการพนักงานทั้งหมด (create, edit, delete) ใช้สำหรับ Admin roles ส่วน `employee.edit` เป็นสิทธิ์เฉพาะการแก้ไขข้อมูลพนักงาน สามารถใช้สำหรับ roles ที่ต้องการให้แก้ไขได้อย่างเดียวโดยไม่ให้สร้างหรือลบ
 
 ### 4.9 Company Permissions (บริษัท)
 
@@ -549,6 +552,7 @@ node scripts/migrate-permissions.js
 
 | Date       | Version | Changes                                                                                               |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| 2026-01-29 | 1.2.1   | Added `employee.edit` permission; clarified `employee.manage` as super permission                     |
 | 2026-01-28 | 1.2.0   | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |
 | 2026-01-28 | 1.1.0   | Added comprehensive permission list                                                                   |
 | 2026-01-28 | 1.0.0   | Initial RBAC policy                                                                                   |

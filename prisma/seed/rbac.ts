@@ -413,7 +413,7 @@ export async function seedRBAC(prisma: PrismaClient) {
         name: "จัดการพนักงาน",
         category: "ACTION",
         resource: "employee",
-        action: "edit",
+        action: "manage",
       },
     }),
     prisma.permission.create({
@@ -721,6 +721,15 @@ export async function seedRBAC(prisma: PrismaClient) {
         category: "ACTION",
         resource: "employee",
         action: "create",
+      },
+    }),
+    prisma.permission.create({
+      data: {
+        key: "employee.edit",
+        name: "แก้ไขพนักงาน",
+        category: "ACTION",
+        resource: "employee",
+        action: "edit",
       },
     }),
     prisma.permission.create({
