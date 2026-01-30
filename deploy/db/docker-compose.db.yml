@@ -1,0 +1,52 @@
+# ===========================================
+# CRM-Bank Database Stack
+# Domain: csone.cropsciences.co.th
+# ===========================================
+# Deploy first: docker compose -f docker-compose.db.yml up -d
+
+services:
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: crm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password is required}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_bank}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - crm-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-crm_admin} -d ${POSTGRES_DB:-crm_bank}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Security: bind เฉพาะ localhost เท่านั้น
+    ports:
+      - "127.0.0.1:5432:5432"
+
+# ===========================================
+# Networks (External - shared with app stack)
+# ===========================================
+networks:
+  crm-network:
+    name: crm-network
+    external: true
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_data:
+    driver: local

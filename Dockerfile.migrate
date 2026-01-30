@@ -4,7 +4,8 @@
 # ===========================================
 
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+# เพิ่ม postgresql-client สำหรับ pg_isready (wait-for-db)
+RUN apk add --no-cache libc6-compat postgresql-client
 WORKDIR /app
 
 # Install pnpm
