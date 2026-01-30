@@ -218,13 +218,14 @@ export default function SalespersonReportPage() {
                         <TableHead className="text-right">ออเดอร์</TableHead>
                         <TableHead className="text-right">ลูกค้า</TableHead>
                         <TableHead className="text-right">เฉลี่ย/ออเดอร์</TableHead>
+                        <TableHead className="text-right">คะแนนสะสม</TableHead>
                         <TableHead className="text-center">ดูรายละเอียด</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredSalespersons.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-10">
+                          <TableCell colSpan={9} className="text-center py-10">
                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                               <UserCheck className="h-10 w-10" />
                               <p>ไม่พบข้อมูลพนักงาน</p>
@@ -264,6 +265,9 @@ export default function SalespersonReportPage() {
                             </TableCell>
                             <TableCell className="text-right text-blue-600">
                               {formatTHB(s.avgOrderValue)}
+                            </TableCell>
+                            <TableCell className="text-right font-medium text-amber-600">
+                              {formatNumber(s.totalPoints)}
                             </TableCell>
                             <TableCell className="text-center">
                               <Link href={`/reports/salesperson/${s.id}`}>

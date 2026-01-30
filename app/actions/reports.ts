@@ -1747,6 +1747,7 @@ export interface SalespersonListItem {
   orderCount: number;
   avgOrderValue: number;
   customerCount: number;
+  totalPoints: number;
   lastSaleDate?: string;
 }
 
@@ -1776,6 +1777,7 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
       name: true,
       employeeCode: true,
       department: { select: { name: true } },
+      pointSummary: { select: { totalPoints: true } },
       sales: {
         where: {
           deletedAt: null,
@@ -1822,6 +1824,7 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
       customerCount: customerCountMap.get(es.employeeId)?.size || 0,
+      totalPoints: employee?.pointSummary?.totalPoints || 0,
       lastSaleDate: employee?.sales[0]?.saleDate
         ? format(employee.sales[0].saleDate, "dd/MM/yyyy")
         : undefined,
