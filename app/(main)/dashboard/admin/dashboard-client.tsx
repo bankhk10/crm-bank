@@ -356,9 +356,6 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 <div className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
                   {formatCurrency(ytd.total)}
                 </div>
-                <div className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-medium">
-                  บาท
-                </div>
               </div>
             </div>
 
