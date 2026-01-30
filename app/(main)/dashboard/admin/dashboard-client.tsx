@@ -50,6 +50,21 @@ const formatCompact = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatTHBWithCompact = (value: number) => {
+  if (value >= 10_000_000) {
+    return new Intl.NumberFormat("th-TH", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
 /* ================= Component ================= */
 export default function DashboardClient({ data }: DashboardClientProps) {
   const [dashboardData, setDashboardData] = useState<DashboardData>(data);
@@ -303,7 +318,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     )}
                     <span>
                       {remaining <= 0 ? "+" : "-"}
-                      {formatCurrency(Math.abs(remaining))} บาท
+                      {formatTHBWithCompact(Math.abs(remaining))}
                     </span>
                   </span>
                 </div>
