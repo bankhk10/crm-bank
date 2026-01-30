@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useId, useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,8 @@ export default function SalespersonReportPage() {
   const [salespersons, setSalespersons] = useState<SalespersonListItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersPanelId = useId();
 
   // Fetch all salespersons on mount
   useEffect(() => {
@@ -76,139 +78,176 @@ export default function SalespersonReportPage() {
   return (
     <div className="min-h-screen bg-slate-50/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Header */}
+        {/* Header: mobile stack, sm row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex items-center gap-3">
             <Link href="/reports">
-              <Button variant="ghost" size="icon" className="rounded-xl">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+              >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg">
-              <UserCheck className="h-6 w-6 text-white" />
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/25">
+              <UserCheck className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
             </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100">
               รายงานตามพนักงานขาย
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-sm sm:text-base">
               รายชื่อพนักงานขายทั้งหมด และผลงาน
             </p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm">
-          <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="ค้นหาพนักงาน (ชื่อ, รหัส, แผนก)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+        {/* Search Bar: mobile collapsible */}
+        <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm backdrop-blur-sm">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between sm:justify-start gap-2">
+              <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                ค้นหาพนักงาน
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="sm:hidden h-9 px-3 text-xs focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                aria-expanded={filtersOpen}
+                aria-controls={filtersPanelId}
+                onClick={() => setFiltersOpen((prev) => !prev)}
+              >
+                {filtersOpen ? "ซ่อน" : "แสดง"}
+              </Button>
+            </div>
+
+            <div
+              id={filtersPanelId}
+              className={`mt-3 ${filtersOpen ? "block" : "hidden"} sm:block`}
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="ค้นหาพนักงาน (ชื่อ, รหัส, แผนก)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Report Content */}
         {isLoading || isPending ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-24 rounded-2xl" />
+                <Skeleton key={i} className="h-28 sm:h-32 rounded-2xl" />
               ))}
             </div>
-            <Skeleton className="h-96 rounded-2xl" />
+            <Skeleton className="h-80 sm:h-96 rounded-2xl" />
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="rounded-2xl border shadow-sm">
-                <CardContent className="p-5 flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      พนักงานขายดีที่สุด
-                    </p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {topSalesperson?.name || "-"}
-                    </p>
-                    <p className="text-sm font-medium text-rose-500">
-                      {topSalesperson ? formatTHB(topSalesperson.totalSales) : "-"}
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-rose-50">
-                    <Award className="h-5 w-5 text-rose-600" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl border shadow-sm">
-                <CardContent className="p-5 flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      ยอดขายรวม
-                    </p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {formatTHB(totalSales)}
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-blue-50">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
+          <div className="space-y-4 sm:space-y-6">
+            {/* KPI Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs sm:text-sm">
+                        พนักงานขายดีที่สุด
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
+                        {topSalesperson?.name || "-"}
+                      </p>
+                      <p className="text-xs sm:text-sm text-rose-600 mt-1">
+                        {topSalesperson ? formatTHB(topSalesperson.totalSales) : "-"}
+                      </p>
+                    </div>
+                    <div className="p-2 sm:p-3 rounded-xl bg-rose-50">
+                      <Award className="h-6 w-6 text-rose-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border shadow-sm">
-                <CardContent className="p-5 flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      ออเดอร์รวม
-                    </p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {formatNumber(totalOrders)}
-                    </p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-50">
-                    <Package className="h-5 w-5 text-emerald-600" />
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs sm:text-sm">
+                        ยอดขายรวม
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
+                        {formatTHB(totalSales)}
+                      </p>
+                    </div>
+                    <div className="p-2 sm:p-3 rounded-xl bg-blue-50">
+                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border shadow-sm">
-                <CardContent className="p-5 flex justify-between items-start">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      พนักงานทั้งหมด
-                    </p>
-                    <p className="text-xl font-bold text-slate-900">
-                      {formatNumber(salespersons.length)}
-                    </p>
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs sm:text-sm">
+                        ออเดอร์รวม
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
+                        {formatNumber(totalOrders)}
+                      </p>
+                    </div>
+                    <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
+                      <Package className="h-6 w-6 text-emerald-600" />
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-purple-50">
-                    <Users className="h-5 w-5 text-purple-600" />
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs sm:text-sm">
+                        พนักงานทั้งหมด
+                      </p>
+                      <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
+                        {formatNumber(salespersons.length)}
+                      </p>
+                      <p className="text-xs sm:text-sm text-rose-600 mt-1">
+                        ที่มียอดขาย
+                      </p>
+                    </div>
+                    <div className="p-2 sm:p-3 rounded-xl bg-purple-50">
+                      <Users className="h-6 w-6 text-purple-600" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Table */}
-            <Card className="rounded-2xl border bg-white/70">
+            <Card className="rounded-2xl border bg-white/70 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                   <UserCheck className="h-5 w-5 text-rose-500" />
                   รายชื่อพนักงานขาย
                 </CardTitle>
-                <Badge variant="secondary" className="text-sm">
+                <Badge variant="secondary" className="text-xs sm:text-sm">
                   {filteredSalespersons.length} คน
                 </Badge>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12 text-center">ลำดับ</TableHead>
@@ -238,7 +277,13 @@ export default function SalespersonReportPage() {
                             <TableCell className="text-center">
                               <Badge
                                 variant={i < 3 ? "default" : "outline"}
-                                className={i === 0 ? "bg-yellow-500" : ""}
+                                className={
+                                  i === 0
+                                    ? "bg-yellow-500"
+                                    : i < 3
+                                      ? "bg-rose-100 text-rose-800 border-rose-300"
+                                      : ""
+                                }
                               >
                                 {i + 1}
                               </Badge>
@@ -281,6 +326,21 @@ export default function SalespersonReportPage() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+
+                {/* Footer hint */}
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-5 items-center rounded-full border border-slate-200/70 bg-white/70 px-2">
+                      Tip
+                    </span>
+                    <span>
+                      เลื่อนตารางในแนวนอนเพื่อดูข้อมูลทั้งหมด
+                    </span>
+                  </div>
+                  <div className="text-slate-400">
+                    คลิก "ดู" เพื่อดูรายละเอียดพนักงาน
+                  </div>
                 </div>
               </CardContent>
             </Card>
