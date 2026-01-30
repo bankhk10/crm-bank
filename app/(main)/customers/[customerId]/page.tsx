@@ -163,22 +163,22 @@ const customerTypeMap: Record<
   { label: string; icon: string; gradient: string }
 > = {
   DEALER: {
-    label: "DEALER",
+    label: "ตัวแทนจำหน่าย",
     icon: "🏪",
     gradient: "from-blue-500 to-indigo-600",
   },
   SUBDEALER: {
-    label: "SUBDEALER",
+    label: "ตัวแทนจำหน่ายย่อย",
     icon: "🏬",
     gradient: "from-purple-500 to-pink-600",
   },
   FARMER: {
-    label: "FARMER",
+    label: "เกษตรกร",
     icon: "🌾",
     gradient: "from-green-500 to-emerald-600",
   },
   BROKER: {
-    label: "BROKER",
+    label: "นายหน้า",
     icon: "💼",
     gradient: "from-orange-500 to-amber-600",
   },
@@ -200,9 +200,8 @@ const DetailItem: React.FC<DetailItemProps> = ({
   fullWidth,
 }) => (
   <div
-    className={`group flex flex-col gap-2 ${
-      fullWidth ? "col-span-full" : ""
-    } ${className}`}
+    className={`group flex flex-col gap-2 ${fullWidth ? "col-span-full" : ""
+      } ${className}`}
   >
     <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
       {Icon && (
@@ -235,64 +234,64 @@ const AddressBlock: React.FC<{
   postalCode,
   variant = "blue",
 }) => {
-  const hasAddress =
-    addressLine || subdistrict || district || province || postalCode;
+    const hasAddress =
+      addressLine || subdistrict || district || province || postalCode;
 
-  const colors = {
-    blue: {
-      bg: "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50",
-      border: "border-blue-200/60",
-      icon: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30",
-      text: "text-blue-900",
-    },
-    orange: {
-      bg: "bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50",
-      border: "border-orange-200/60",
-      icon: "bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/30",
-      text: "text-orange-900",
-    },
-    purple: {
-      bg: "bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50",
-      border: "border-purple-200/60",
-      icon: "bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30",
-      text: "text-purple-900",
-    },
-  };
+    const colors = {
+      blue: {
+        bg: "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50",
+        border: "border-blue-200/60",
+        icon: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30",
+        text: "text-blue-900",
+      },
+      orange: {
+        bg: "bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50",
+        border: "border-orange-200/60",
+        icon: "bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-lg shadow-orange-500/30",
+        text: "text-orange-900",
+      },
+      purple: {
+        bg: "bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50",
+        border: "border-purple-200/60",
+        icon: "bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30",
+        text: "text-purple-900",
+      },
+    };
 
-  const style = colors[variant];
+    const style = colors[variant];
 
-  return (
-    <div
-      className={`${style.bg} ${style.border} p-5 rounded-2xl border-2 h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1`}
-    >
-      <h3 className={`font-bold flex items-center gap-3 mb-4 ${style.text}`}>
-        <div className={`p-2 rounded-xl ${style.icon}`}>
-          <Icon className="h-4 w-4" />
-        </div>
-        {title}
-      </h3>
-      <div className="pl-11 space-y-2 text-sm/relaxed">
-        {hasAddress ? (
-          <>
-            {addressLine && (
-              <div className="font-semibold text-gray-800">{addressLine}</div>
-            )}
-            <div className="text-gray-600 font-medium">
-              {[subdistrict, district, province, postalCode]
-                .filter(Boolean)
-                .join(" • ")}
-            </div>
-          </>
-        ) : (
-          <div className="text-gray-400 italic flex items-center gap-2">
-            <span className="text-xl">📭</span>
-            ไม่มีข้อมูลที่อยู่
+    return (
+      <div
+        className={`${style.bg} ${style.border} p-5 rounded-2xl border-2 h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1`}
+      >
+        <h3 className={`font-bold flex items-center gap-3 mb-4 ${style.text}`}>
+          <div className={`p-2 rounded-xl ${style.icon}`}>
+            <Icon className="h-4 w-4" />
           </div>
-        )}
+          {title}
+        </h3>
+        <div className="pl-11 space-y-2 text-sm/relaxed">
+          {hasAddress ? (
+            <>
+              {addressLine && (
+                <div className="font-semibold text-gray-800">{addressLine}</div>
+              )}
+              <div className="text-gray-600 font-medium">
+                {[subdistrict, district, province, postalCode]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </div>
+            </>
+          ) : (
+            <div className="text-gray-400 italic flex items-center gap-2">
+              <span className="text-xl">📭</span>
+              ไม่มีข้อมูลที่อยู่
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 const InfoChip: React.FC<{
   icon: React.ReactNode;
@@ -495,9 +494,9 @@ export default function CustomerDetailPage() {
   const customerTypeInfo = customerTypeMap[customer.customerType];
   const age = customer.birthDate
     ? Math.floor(
-        (Date.now() - new Date(customer.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25),
-      )
+      (Date.now() - new Date(customer.birthDate).getTime()) /
+      (1000 * 60 * 60 * 24 * 365.25),
+    )
     : null;
 
   const relationshipLevel = !customer.relationshipScore
@@ -668,12 +667,11 @@ export default function CustomerDetailPage() {
                       {[1, 2, 3].map((star) => (
                         <Star
                           key={star}
-                          className={`h-5 w-5 transition-all ${
-                            customer.relationshipScore &&
+                          className={`h-5 w-5 transition-all ${customer.relationshipScore &&
                             customer.relationshipScore >= star
-                              ? "fill-yellow-400 text-yellow-400 scale-110"
-                              : "text-gray-300"
-                          }`}
+                            ? "fill-yellow-400 text-yellow-400 scale-110"
+                            : "text-gray-300"
+                            }`}
                         />
                       ))}
                     </div>
@@ -713,7 +711,7 @@ export default function CustomerDetailPage() {
                     label="รับของจาก Dealer"
                     value={
                       customer.parentDealer &&
-                      customer.parentDealer.id === customer.receiveFromDealer
+                        customer.parentDealer.id === customer.receiveFromDealer
                         ? customer.parentDealer.name
                         : customer.name
                     }
@@ -735,8 +733,8 @@ export default function CustomerDetailPage() {
                   value={
                     customer.averageMonthlyPurchase
                       ? `${Number(
-                          customer.averageMonthlyPurchase,
-                        ).toLocaleString()} บาท`
+                        customer.averageMonthlyPurchase,
+                      ).toLocaleString()} บาท`
                       : "-"
                   }
                   icon={Wallet}
@@ -745,7 +743,7 @@ export default function CustomerDetailPage() {
                   label="สินค้าหลักที่ขาย"
                   value={
                     customer.mainProductSold &&
-                    customer.mainProductSold.length > 0 ? (
+                      customer.mainProductSold.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {customer.mainProductSold.map((item, i) => (
                           <span
@@ -963,8 +961,8 @@ export default function CustomerDetailPage() {
                         value={
                           customer.chemicalValuePerCycle
                             ? `${Number(
-                                customer.chemicalValuePerCycle,
-                              ).toLocaleString()} บาท`
+                              customer.chemicalValuePerCycle,
+                            ).toLocaleString()} บาท`
                             : "-"
                         }
                         icon={Wallet}
@@ -1254,9 +1252,8 @@ export default function CustomerDetailPage() {
                               }
                               className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
                               style={{
-                                transform: `scale(${zoom}) translate(${
-                                  pan.x / zoom
-                                }px, ${pan.y / zoom}px)`,
+                                transform: `scale(${zoom}) translate(${pan.x / zoom
+                                  }px, ${pan.y / zoom}px)`,
                                 transformOrigin: "center center",
                               }}
                               draggable={false}
