@@ -47,7 +47,7 @@ const formatNumber = (value: number) =>
 const formatCompact = (value: number) =>
   new Intl.NumberFormat("th-TH", {
     notation: "compact",
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 0,
   }).format(value);
 
 /* ================= Component ================= */
@@ -214,11 +214,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 ยอดขาย{periodLabels[overviewPeriod]}
               </CardTitle>
               <div
-                className={`flex items-center gap-1 ${
-                  monthlySales.growthPercent >= 0
-                    ? "text-emerald-600 bg-emerald-50"
-                    : "text-rose-600 bg-rose-50"
-                } px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full`}
+                className={`flex items-center gap-1 ${monthlySales.growthPercent >= 0
+                  ? "text-emerald-600 bg-emerald-50"
+                  : "text-rose-600 bg-rose-50"
+                  } px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full`}
               >
                 {monthlySales.growthPercent >= 0 ? (
                   <ArrowUpRight className="w-3 h-3" />
@@ -242,16 +241,16 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 <p className="text-[10px] sm:text-xs font-semibold text-orange-600 uppercase tracking-wide">
                   Sales Note
                 </p>
-                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
-                  {formatCompact(monthlySales.salesNote)}
+                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5 flex items-center gap-1">
+                  {formatCurrency(monthlySales.salesNote)}
                 </p>
               </div>
               <div className="p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/60 border border-indigo-100">
                 <p className="text-[10px] sm:text-xs font-semibold text-green-600 uppercase tracking-wide">
                   Invoice
                 </p>
-                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
-                  {formatCompact(monthlySales.invoice)}
+                <p className="text-base sm:text-lg font-bold text-slate-800 mt-0.5 flex items-center gap-1">
+                  {formatCurrency(monthlySales.invoice)}
                 </p>
               </div>
             </div>
@@ -292,11 +291,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </p>
                 <div className="text-sm sm:text-base font-bold text-white">
                   <span
-                    className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
-                      remaining <= 0
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    }`}
+                    className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${remaining <= 0
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : "bg-red-500/20 text-red-400"
+                      }`}
                   >
                     {remaining <= 0 ? (
                       <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -305,7 +303,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     )}
                     <span>
                       {remaining <= 0 ? "+" : "-"}
-                      {formatCompact(Math.abs(remaining))} บาท
+                      {formatCurrency(Math.abs(remaining))} บาท
                     </span>
                   </span>
                 </div>
@@ -315,11 +313,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   เปอร์เซ็นต์
                 </p>
                 <div
-                  className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${
-                    remaining <= 0
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-amber-500/20 text-amber-400"
-                  }`}
+                  className={`inline-flex items-center gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold ${remaining <= 0
+                    ? "bg-emerald-500/20 text-emerald-400"
+                    : "bg-red-500/20 text-red-400"
+                    }`}
                 >
                   {remaining <= 0 ? (
                     <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -357,7 +354,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
               <div>
                 <div className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
-                  {formatCompact(ytd.total)}
+                  {formatCurrency(ytd.total)}
                 </div>
                 <div className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-medium">
                   บาท
@@ -374,7 +371,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     : 0}
                   %
                 </span>
-                <span>เป้าหมาย: {formatCompact(ytd.target)}</span>
+                <span>เป้าหมาย: {formatCurrency(ytd.target)}</span>
               </div>
               <Progress
                 value={
@@ -389,11 +386,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             {/* Growth & Remaining Info */}
             <div className="mt-3 sm:mt-4 flex items-center justify-between">
               <div
-                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold ${
-                  ytd.growthPercent >= 0
-                    ? "text-emerald-700 bg-emerald-100/80"
-                    : "text-rose-700 bg-rose-100/80"
-                } px-2 sm:px-3 py-1 sm:py-1.5 rounded-full`}
+                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold ${ytd.growthPercent >= 0
+                  ? "text-emerald-700 bg-emerald-100/80"
+                  : "text-rose-700 bg-rose-100/80"
+                  } px-2 sm:px-3 py-1 sm:py-1.5 rounded-full`}
               >
                 {ytd.growthPercent >= 0 ? (
                   <ArrowUpRight className="w-3 h-3" />
@@ -409,14 +405,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               <div className="text-right">
                 <p className="text-[10px] sm:text-xs text-slate-500">คงเหลือ</p>
                 <p
-                  className={`text-xs sm:text-sm font-bold ${
-                    ytd.total >= ytd.target
-                      ? "text-emerald-600"
-                      : "text-amber-600"
-                  }`}
+                  className={`text-xs sm:text-sm font-bold ${ytd.total >= ytd.target
+                    ? "text-emerald-600"
+                    : "text-red-600"
+                    }`}
                 >
                   {ytd.total >= ytd.target ? "+" : "-"}
-                  {formatCompact(Math.abs(ytd.target - ytd.total))}
+                  {formatCurrency(Math.abs(ytd.target - ytd.total))}
                 </p>
               </div>
             </div>
@@ -550,19 +545,17 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                       className={`
                         inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium
                         transition-all duration-200 border
-                        ${
-                          isVisible
-                            ? "bg-gradient-to-r from-purple-500 to-violet-500 text-white border-transparent shadow-sm"
-                            : "bg-white text-slate-600 border-slate-200 hover:border-purple-300 hover:bg-purple-50"
+                        ${isVisible
+                          ? "bg-gradient-to-r from-purple-500 to-violet-500 text-white border-transparent shadow-sm"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-purple-300 hover:bg-purple-50"
                         }
                       `}
                     >
                       <span
-                        className={`w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center rounded border-2 transition-colors ${
-                          isVisible
-                            ? "bg-white border-white"
-                            : "border-slate-300"
-                        }`}
+                        className={`w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center rounded border-2 transition-colors ${isVisible
+                          ? "bg-white border-white"
+                          : "border-slate-300"
+                          }`}
                       >
                         {isVisible && (
                           <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-600" />
