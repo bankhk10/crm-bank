@@ -1,22 +1,11 @@
 /**
- * Product Feature Module
- * Centralized exports for product feature
+ * Product Feature Module (Legacy Location)
+ * 
+ * @deprecated This file is kept for backward compatibility.
+ * New imports should use: import { ... } from "@/features/products"
+ * 
+ * This file will be removed in a future update.
  */
 
-// Components
-export * from "./components";
-
-// Hooks
-export * from "./hooks";
-
-// Utils
-export * from "./utils";
-
-// Types
-export * from "./types";
-
-// Main Form Components
-export { ProductForm } from "./product-form";
-
-// Table Component
-export { ProductsTable } from "./products-table";
+// Re-export everything from new feature location
+export * from "@/features/products";

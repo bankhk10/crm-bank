@@ -33,7 +33,7 @@ import { STATUS_OPTIONS, type ProductFormData } from "@/types/product";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
-import { ProductFormProps } from "./types";
+import { ProductFormProps } from "../_types/types";
 
 interface SelectOption {
   value: string;
@@ -309,8 +309,8 @@ export function ProductForm({
         if (!result.success) {
           setError(
             result.error ??
-              Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error",
+            Object.values(result.issues ?? {})[0]?.[0] ??
+            "Server error",
           );
         } else {
           // Handle images (delete removed, upload new, reorder)
@@ -804,7 +804,7 @@ export function ProductForm({
           label="ขนาดบรรจุรวมต่อลัง"
           type="text"
           value={formData.totalPackageSizePerBox || ""}
-          onChange={() => {}}
+          onChange={() => { }}
           disabled={true}
           placeholder="คำนวณอัตโนมัติ"
           className="bg-gray-50"
