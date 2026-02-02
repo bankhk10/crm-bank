@@ -2,12 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
-import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
-import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
-import CustomerFormBroker from "@/components/features/customers/customer-form-broker";
-
-type CustomerType = "DEALER" | "SUBDEALER" | "FARMER" | "BROKER";
+import {
+  CustomerFormDealer,
+  CustomerFormSubdealer,
+  CustomerFormFarmer,
+  CustomerFormBroker,
+  type CustomerType,
+} from "@/features/customers";
 
 export default function NewCustomerPage() {
   const router = useRouter();

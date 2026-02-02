@@ -21,7 +21,7 @@ import type {
   SubmitResult,
   SelectOption,
   FarmPlot,
-} from "./types";
+} from "../../_types/types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -74,8 +74,7 @@ export default function CustomerFormFarmer({
       try {
         const excludeId = (initial as any)?.id || "";
         const res = await fetch(
-          `/api/customers/check-code?code=${encodeURIComponent(code)}${
-            excludeId ? `&excludeId=${excludeId}` : ""
+          `/api/customers/check-code?code=${encodeURIComponent(code)}${excludeId ? `&excludeId=${excludeId}` : ""
           }`,
         );
         const json = await res.json();
@@ -221,9 +220,8 @@ export default function CustomerFormFarmer({
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "FARMER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${
-        values.firstName ?? ""
-      } ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
+        } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -235,9 +233,8 @@ export default function CustomerFormFarmer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${
-        values.lastName ?? ""
-      }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
+        }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -262,8 +259,8 @@ export default function CustomerFormFarmer({
           setFieldErrors(res.issues);
           setError(
             Object.values(res.issues).flat()[0] ??
-              res.error ??
-              "เกิดข้อผิดพลาด",
+            res.error ??
+            "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -283,7 +280,7 @@ export default function CustomerFormFarmer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25),
+        (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -418,7 +415,7 @@ export default function CustomerFormFarmer({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => {}}
+          onChange={() => { }}
         />
       </div>
 

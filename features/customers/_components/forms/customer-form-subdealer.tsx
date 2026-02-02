@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LocateFixed, X, Save } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -14,15 +13,25 @@ import {
   FormTextarea,
 } from "@/components/custom/form-components";
 import RandomFillButton from "@/components/custom/random-fill-button";
+import { MultiSelect } from "@/components/custom/multi-select";
+import { LocateFixed, X, Save } from "lucide-react";
 import { useRandomFill } from "@/hooks/use-random-fill";
-import type { CustomerFormProps, CustomerPayload, SelectOption } from "./types";
+
+// Local feature imports - use types from centralized types.ts
+import type {
+  CustomerFormProps,
+  CustomerPayload,
+  SubmitResult,
+  SelectOption,
+} from "../../_types/types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
-export default function CustomerFormDealer({
+export default function CustomerFormSubdealer({
   initial = {},
   onSubmit,
   onCancel,
+  submitLabel = "เพิ่มลูกค้า",
   onSuccess,
 }: Props) {
   const router = useRouter();
@@ -35,45 +44,40 @@ export default function CustomerFormDealer({
     email: initial.email ?? "",
     latitude: (initial as any).latitude ?? "",
     longitude: (initial as any).longitude ?? "",
+    addressLine: initial.addressLine ?? "",
+    province: initial.province ?? "",
+    district: initial.district ?? "",
+    subdistrict: initial.subdistrict ?? "",
+    postalCode: initial.postalCode ?? "",
     prefix: initial.prefix ?? "",
     firstName: initial.firstName ?? "",
     lastName: initial.lastName ?? "",
     birthDate: (initial as any).birthDate ?? "",
     contactPhone: initial.contactPhone ?? "",
     contactEmail: initial.contactEmail ?? "",
-    parentDealer: (initial as any).parentDealer ?? "",
-    responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? null,
+    receiveFromDealer: (initial as any).receiveFromDealer ?? "",
+    mainCompetitor: (initial as any).mainCompetitor ?? "",
+    areaCrops: (initial as any).areaCrops ?? "",
+    averageMonthlyPurchase: (initial as any).averageMonthlyPurchase ?? "",
+    mainProductSold: (initial as any).mainProductSold ?? [],
+    brandsSold: (initial as any).brandsSold ?? [],
+    areaType: (initial as any).areaType ?? "",
+    responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? "",
     relationshipScore: (initial as any).relationshipScore ?? null,
-    businessNotes: (initial as any).businessNotes ?? initial.notes ?? "",
-    addressLine: initial.addressLine ?? "",
-    province: initial.province ?? "",
-    district: initial.district ?? "",
-    subdistrict: initial.subdistrict ?? "",
-    postalCode: initial.postalCode ?? "",
-    billingAddressLine: (initial as any).billingAddressLine ?? "",
-    billingProvince: (initial as any).billingProvince ?? "",
-    billingDistrict: (initial as any).billingDistrict ?? "",
-    billingSubdistrict: (initial as any).billingSubdistrict ?? "",
-    billingPostalCode: (initial as any).billingPostalCode ?? "",
-    shippingAddressLine: (initial as any).shippingAddressLine ?? "",
-    shippingProvince: (initial as any).shippingProvince ?? "",
-    shippingDistrict: (initial as any).shippingDistrict ?? "",
-    shippingSubdistrict: (initial as any).shippingSubdistrict ?? "",
-    shippingPostalCode: (initial as any).shippingPostalCode ?? "",
-    status: initial.status ?? "ACTIVE",
+    notes: initial.notes ?? "",
     images: initial.images || [],
   });
 
   const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
-  const [parentDealerLabel, setParentDealerLabel] = useState<string>("");
-  const [responsibleEmployeeLabel, setResponsibleEmployeeLabel] =
-    useState<string>("");
+  const [productGroupOptions, setProductGroupOptions] = useState<
+    SelectOption[]
+  >([]);
+  const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [checkingCode, setCheckingCode] = useState(false);
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -82,17 +86,13 @@ export default function CustomerFormDealer({
   const checkCustomerCode = useCallback(
     async (code: string) => {
       if (!code?.trim()) return;
-
-      setCheckingCode(true);
       try {
         const excludeId = (initial as any)?.id || "";
         const res = await fetch(
-          `/api/customers/check-code?code=${encodeURIComponent(code)}${
-            excludeId ? `&excludeId=${excludeId}` : ""
+          `/api/customers/check-code?code=${encodeURIComponent(code)}${excludeId ? `&excludeId=${excludeId}` : ""
           }`,
         );
         const json = await res.json();
-
         if (json.exists) {
           setFieldErrors((prev) => ({
             ...prev,
@@ -106,9 +106,7 @@ export default function CustomerFormDealer({
           });
         }
       } catch {
-        // ignore network errors during check
-      } finally {
-        setCheckingCode(false);
+        // ignore network errors
       }
     },
     [initial],
@@ -116,40 +114,43 @@ export default function CustomerFormDealer({
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
-    const { generateRandomDealer } = await import("@/lib/random-fill/dealer");
-    return generateRandomDealer();
+    const { generateRandomSubdealer } =
+      await import("@/lib/random-fill/subdealer");
+    return generateRandomSubdealer();
   }, []);
 
   const handleRandomFillGenerated = useCallback((rnd: any) => {
     setValues((p: any) => ({
       ...p,
-      companyName: rnd.name ?? p.companyName,
+      companyName: rnd.companyName ?? p.companyName,
       taxId: rnd.taxId ?? p.taxId,
       phone: rnd.phone ?? p.phone,
       email: rnd.email ?? p.email,
+      latitude: rnd.latitude ?? p.latitude,
+      longitude: rnd.longitude ?? p.longitude,
       addressLine: rnd.addressLine ?? p.addressLine,
       province: rnd.province ?? p.province,
       district: rnd.district ?? p.district,
       subdistrict: rnd.subdistrict ?? p.subdistrict,
       postalCode: rnd.postalCode ?? p.postalCode,
-      billingAddressLine: rnd.billingAddressLine ?? p.billingAddressLine,
-      billingProvince: rnd.billingProvince ?? p.billingProvince,
-      billingDistrict: rnd.billingDistrict ?? p.billingDistrict,
-      billingSubdistrict: rnd.billingSubdistrict ?? p.billingSubdistrict,
-      billingPostalCode: rnd.billingPostalCode ?? p.billingPostalCode,
-      shippingAddressLine: rnd.shippingAddressLine ?? p.shippingAddressLine,
-      shippingProvince: rnd.shippingProvince ?? p.shippingProvince,
-      shippingDistrict: rnd.shippingDistrict ?? p.shippingDistrict,
-      shippingSubdistrict: rnd.shippingSubdistrict ?? p.shippingSubdistrict,
-      shippingPostalCode: rnd.shippingPostalCode ?? p.shippingPostalCode,
       prefix: rnd.prefix ?? p.prefix,
       firstName: rnd.firstName ?? p.firstName,
       lastName: rnd.lastName ?? p.lastName,
+      birthDate: rnd.birthDate ?? p.birthDate,
       contactPhone: rnd.contactPhone ?? p.contactPhone,
       contactEmail: rnd.contactEmail ?? p.contactEmail,
-      businessNotes: rnd.businessNotes ?? p.businessNotes,
+      receiveFromDealer: rnd.receiveFromDealer ?? p.receiveFromDealer,
+      mainCompetitor: rnd.mainCompetitor ?? p.mainCompetitor,
+      areaCrops: rnd.areaCrops ?? p.areaCrops,
+      averageMonthlyPurchase:
+        rnd.averageMonthlyPurchase ?? p.averageMonthlyPurchase,
+      mainProductSold: rnd.mainProductSold ?? p.mainProductSold,
+      brandsSold: rnd.brandsSold ?? p.brandsSold,
+      areaType: rnd.areaType ?? p.areaType,
       relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
+      notes: rnd.notes ?? p.notes,
     }));
+    setFieldErrors({});
   }, []);
 
   const {
@@ -161,28 +162,22 @@ export default function CustomerFormDealer({
     onGenerated: handleRandomFillGenerated,
   });
 
-  // Convert initial images to FileMetadata format for GalleryUpload
-  const convertToFileMetadata = (images: any[]): FileMetadata[] => {
-    return images.map((img) => ({
-      id: img.id,
-      name: img.name || `image-${img.id}`,
-      size: img.size || 0,
-      type: img.type || "image/jpeg",
-      url: img.url,
-    }));
-  };
-
   useEffect(() => {
-    // fetch companies (for parent dealer) and employees (for responsible)
     async function fetchOptions() {
       try {
-        const [cRes, eRes] = await Promise.all([
+        const [cRes, eRes, pgRes, bRes] = await Promise.all([
           fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
             .then((r) => r.json())
             .catch(() => ({ customers: [] })),
           fetch(`/api/employee`)
             .then((r) => r.json())
             .catch(() => ({ employees: [] })),
+          fetch(`/api/products/product-groups`)
+            .then((r) => r.json())
+            .catch(() => ({ productGroups: [] })),
+          fetch(`/api/products/brands`)
+            .then((r) => r.json())
+            .catch(() => ({ brands: [] })),
         ]);
 
         const comps = (cRes.customers || []).map((c: any) => ({
@@ -193,8 +188,18 @@ export default function CustomerFormDealer({
           value: e.id,
           label: e.name,
         }));
+        const productGroups = (pgRes.productGroups || []).map((pg: string) => ({
+          value: pg,
+          label: pg,
+        }));
+        const brands = (bRes.brands || []).map((b: any) => ({
+          value: b.description,
+          label: b.description,
+        }));
         setDealerOptions(comps);
         setEmployeeOptions(emps);
+        setProductGroupOptions(productGroups);
+        setBrandOptions(brands);
       } catch (err) {
         // ignore
       }
@@ -203,31 +208,6 @@ export default function CustomerFormDealer({
     fetchOptions();
   }, []);
 
-  // when options or initial change, set labels for inputs
-  useEffect(() => {
-    // if parentDealer is set to self, clear it
-    if (values.parentDealer && values.id && values.parentDealer === values.id) {
-      setValues((p: any) => ({ ...p, parentDealer: "" }));
-      clearFieldError("parentDealer");
-    }
-
-    if (values.parentDealer) {
-      const found = dealerOptions.find((d) => d.value === values.parentDealer);
-      if (found) setParentDealerLabel(found.label);
-    }
-    if (values.responsibleEmployeeId) {
-      const found = employeeOptions.find(
-        (d) => d.value === values.responsibleEmployeeId,
-      );
-      if (found) setResponsibleEmployeeLabel(found.label);
-    }
-  }, [
-    dealerOptions,
-    employeeOptions,
-    values.parentDealer,
-    values.responsibleEmployeeId,
-  ]);
-
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
       if (!prev || !(field in prev)) return prev;
@@ -235,6 +215,17 @@ export default function CustomerFormDealer({
       delete next[field];
       return next;
     });
+  };
+
+  // Convert initial images to FileMetadata format for GalleryUpload
+  const convertToFileMetadata = (images: any[]): FileMetadata[] => {
+    return images.map((img) => ({
+      id: img.id,
+      name: img.name || `image-${img.id}`,
+      size: img.size || 0,
+      type: img.type || "image/jpeg",
+      url: img.url,
+    }));
   };
 
   const uploadImages = (customerId: string, files: File[]): Promise<any> => {
@@ -305,14 +296,6 @@ export default function CustomerFormDealer({
     });
   };
 
-  function handleChange(key: string) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const v = (e.target as HTMLInputElement).value;
-      setValues((prev: any) => ({ ...prev, [key]: v }));
-      clearFieldError(key);
-    };
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -359,7 +342,7 @@ export default function CustomerFormDealer({
 
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
-      customerType: "DEALER",
+      customerType: "SUBDEALER",
       name: values.companyName ?? "",
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
@@ -373,44 +356,45 @@ export default function CustomerFormDealer({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      billingAddressLine: values.billingAddressLine ?? "",
-      billingProvince: values.billingProvince ?? "",
-      billingDistrict: values.billingDistrict ?? "",
-      billingSubdistrict: values.billingSubdistrict ?? "",
-      billingPostalCode: values.billingPostalCode ?? "",
-      shippingAddressLine: values.shippingAddressLine ?? "",
-      shippingProvince: values.shippingProvince ?? "",
-      shippingDistrict: values.shippingDistrict ?? "",
-      shippingSubdistrict: values.shippingSubdistrict ?? "",
-      shippingPostalCode: values.shippingPostalCode ?? "",
-      status: values.status ?? "ACTIVE",
-      contactPerson: `${values.firstName ?? ""} ${
-        values.lastName ?? ""
-      }`.trim(),
+      contactPerson: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
+        } ${values.lastName ?? ""}`.trim(),
       contactPhone: values.contactPhone ?? "",
       contactEmail: values.contactEmail ?? "",
-      notes: values.businessNotes ?? "",
-      // extra fields kept alongside payload (backend may ignore unknown keys)
+      notes: values.notes ?? "",
       ...(values.latitude ? { latitude: values.latitude } : {}),
       ...(values.longitude ? { longitude: values.longitude } : {}),
-      ...(values.parentDealer ? { parentDealerId: values.parentDealer } : {}),
+      ...(values.receiveFromDealer
+        ? { receiveFromDealer: values.receiveFromDealer }
+        : {}),
+      ...(values.mainCompetitor
+        ? { mainCompetitor: values.mainCompetitor }
+        : {}),
+      ...(values.areaCrops ? { areaCrops: values.areaCrops } : {}),
+      ...(values.averageMonthlyPurchase
+        ? { averageMonthlyPurchase: values.averageMonthlyPurchase }
+        : {}),
+      ...(values.mainProductSold
+        ? { mainProductSold: values.mainProductSold }
+        : {}),
+      ...(values.brandsSold ? { brandsSold: values.brandsSold } : {}),
+      ...(values.areaType ? { areaType: values.areaType } : {}),
       ...(values.responsibleEmployeeId
         ? { responsibleEmployeeId: values.responsibleEmployeeId }
         : {}),
-      ...(values.relationshipScore != null
+      ...(values.relationshipScore != null && values.relationshipScore !== ""
         ? { relationshipScore: Number(values.relationshipScore) }
         : {}),
     } as any;
 
     try {
-      const res = await onSubmit(payload);
+      const res: SubmitResult = await onSubmit(payload);
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
           setError(
             Object.values(res.issues).flat()[0] ??
-              res.error ??
-              "เกิดข้อผิดพลาด",
+            res.error ??
+            "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -492,7 +476,7 @@ export default function CustomerFormDealer({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25),
+        (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -522,10 +506,11 @@ export default function CustomerFormDealer({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
       </h3>
+
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <FormInput
           label="รหัสลูกค้า"
@@ -652,91 +637,7 @@ export default function CustomerFormDealer({
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่วางบิล
-      </h3>
-
-      <FormInput
-        label="ที่อยู่วางบิล (บ้านเลขที่ หมู่ ซอย ถนน)"
-        placeholder="123/45 หมู่ 6"
-        value={values.billingAddressLine}
-        onChange={(e) => {
-          setValues((p: any) => ({
-            ...p,
-            billingAddressLine: e.target.value,
-          }));
-          clearFieldError("billingAddressLine");
-        }}
-        containerClassName="md:col-span-2 mt-6"
-      />
-
-      <div className="md:col-span-2">
-        <ThaiAddressPicker
-          value={{
-            province: values.billingProvince,
-            district: values.billingDistrict,
-            subdistrict: values.billingSubdistrict,
-            postalCode: values.billingPostalCode,
-          }}
-          onChange={(next) => {
-            setValues((p: any) => ({
-              ...p,
-              billingProvince: next.province,
-              billingDistrict: next.district,
-              billingSubdistrict: next.subdistrict,
-              billingPostalCode: next.postalCode,
-            }));
-            clearFieldError("billingProvince");
-            clearFieldError("billingDistrict");
-            clearFieldError("billingSubdistrict");
-            clearFieldError("billingPostalCode");
-          }}
-        />
-      </div>
-
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่จัดส่ง
-      </h3>
-
-      <FormInput
-        label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
-        placeholder="123/45 หมู่ 6"
-        value={values.shippingAddressLine}
-        onChange={(e) => {
-          setValues((p: any) => ({
-            ...p,
-            shippingAddressLine: e.target.value,
-          }));
-          clearFieldError("shippingAddressLine");
-        }}
-        containerClassName="md:col-span-2 mt-6"
-      />
-
-      <div className="md:col-span-2">
-        <ThaiAddressPicker
-          value={{
-            province: values.shippingProvince,
-            district: values.shippingDistrict,
-            subdistrict: values.shippingSubdistrict,
-            postalCode: values.shippingPostalCode,
-          }}
-          onChange={(next) => {
-            setValues((p: any) => ({
-              ...p,
-              shippingProvince: next.province,
-              shippingDistrict: next.district,
-              shippingSubdistrict: next.subdistrict,
-              shippingPostalCode: next.postalCode,
-            }));
-            clearFieldError("shippingProvince");
-            clearFieldError("shippingDistrict");
-            clearFieldError("shippingSubdistrict");
-            clearFieldError("shippingPostalCode");
-          }}
-        />
-      </div>
-
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ข้อมูลผู้ติดต่อ
+        ข้อมูลบุคคล
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-6">
@@ -803,6 +704,7 @@ export default function CustomerFormDealer({
             setValues((p: any) => ({ ...p, contactEmail: e.target.value }));
             clearFieldError("contactEmail");
           }}
+          error={fieldErrors.contactEmail?.[0]}
         />
         <div>
           <DatePicker
@@ -816,54 +718,100 @@ export default function CustomerFormDealer({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => {}}
+          onChange={() => { }}
         />
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ข้อมูลเพิ่มเติม
+        ข้อมูลเพิ่มเติม (Sub-Dealer)
       </h3>
 
-      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        {/* <div>
-          <Label className={labelTextClass}>ร้านหลัก (ถ้ามี)</Label>
-          <Select
-            value={values.parentDealer ?? ""}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, parentDealer: v || "" }));
-              const found = dealerOptions.find((d) => d.id === v);
-              setParentDealerLabel(found ? found.label : "");
-              clearFieldError("parentDealer");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกร้านหลัก" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>ร้านหลัก</SelectLabel>
-                {dealerOptions
-                  .filter((d) => d.id !== values.id)
-                  .map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.label}
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div> */}
-
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <FormSelect
-          label="พนักงานที่รับผิดชอบ"
-          value={values.responsibleEmployeeId ?? ""}
+          label="รับของจาก Dealer"
+          value={values.receiveFromDealer ?? ""}
           onChange={(v) => {
+            setValues((p: any) => ({ ...p, receiveFromDealer: v || "" }));
+            clearFieldError("receiveFromDealer");
+          }}
+          options={dealerOptions.filter((d) => d.value !== values.id)}
+          placeholder="เลือกร้านหลัก"
+          groupLabel="Dealer"
+        />
+
+        <FormInput
+          label="คู่แข่งหลัก"
+          value={values.mainCompetitor}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, mainCompetitor: e.target.value }))
+          }
+        />
+
+        <FormInput
+          label="พืชในพื้นที่"
+          value={values.areaCrops}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, areaCrops: e.target.value }))
+          }
+        />
+        <FormInput
+          label="ยอดสั่งซื้อเฉลี่ย/เดือน"
+          type="number"
+          value={values.averageMonthlyPurchase}
+          onChange={(e) =>
             setValues((p: any) => ({
               ...p,
-              responsibleEmployeeId: v || null,
-            }));
-            const found = employeeOptions.find((d) => d.value === v);
-            setResponsibleEmployeeLabel(found ? found.label : "");
+              averageMonthlyPurchase: e.target.value,
+            }))
+          }
+          onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+        />
+      </div>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">สินค้าหลักที่ขาย</label>
+          <MultiSelect
+            options={productGroupOptions}
+            onValueChange={(v: string[]) => {
+              setValues((p: any) => ({ ...p, mainProductSold: v }));
+              clearFieldError("mainProductSold");
+            }}
+            defaultValue={values.mainProductSold}
+            placeholder="เลือกสินค้า"
+            searchable={true}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-base font-medium mx-2">แบรนด์ที่จำหน่าย</label>
+          <MultiSelect
+            options={brandOptions}
+            onValueChange={(v: string[]) => {
+              setValues((p: any) => ({ ...p, brandsSold: v }));
+              clearFieldError("brandsSold");
+            }}
+            defaultValue={values.brandsSold}
+            placeholder="เลือกแบรนด์"
+            searchable={true}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-x-4 gap-y-3 md:grid-cols-3">
+        <FormInput
+          label="ประเภทพื้นที่"
+          value={values.areaType}
+          onChange={(e) =>
+            setValues((p: any) => ({ ...p, areaType: e.target.value }))
+          }
+        />
+
+        <FormSelect
+          label="พนักงานรับผิดชอบ"
+          value={values.responsibleEmployeeId ?? ""}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, responsibleEmployeeId: v || "" }));
             clearFieldError("responsibleEmployeeId");
           }}
           options={employeeOptions}
@@ -890,29 +838,13 @@ export default function CustomerFormDealer({
           placeholder="เลือกคะแนน"
           groupLabel="คะแนน"
         />
-        <FormSelect
-          label="สถานะ"
-          value={values.status ?? "ACTIVE"}
-          onChange={(v) => {
-            setValues((p: any) => ({ ...p, status: v }));
-            clearFieldError("status");
-          }}
-          options={[
-            { value: "ACTIVE", label: "ใช้งาน" },
-            { value: "INACTIVE", label: "ไม่ได้ใช้งาน" },
-            { value: "SUSPENDED", label: "ระงับ" },
-          ]}
-          placeholder="เลือกสถานะ"
-          groupLabel="สถานะ"
-          error={fieldErrors.status?.[0]}
-        />
       </div>
 
       <FormTextarea
         label="หมายเหตุ"
-        value={values.businessNotes}
+        value={values.notes}
         onChange={(e) => {
-          setValues((p: any) => ({ ...p, businessNotes: e.target.value }));
+          setValues((p: any) => ({ ...p, notes: e.target.value }));
           clearFieldError("notes");
         }}
         rows={3}
@@ -956,7 +888,14 @@ export default function CustomerFormDealer({
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="button"
-            onClick={onCancel ?? (() => router.back())}
+            onClick={() => {
+              try {
+                if (onCancel) onCancel();
+              } catch (e) {
+                /* ignore */
+              }
+              router.push("/customers");
+            }}
             disabled={loading}
           >
             <X className="h-4 w-4" />

@@ -4,10 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import CustomerFormDealer from "@/components/features/customers/customer-form-dealer";
-import CustomerFormSubdealer from "@/components/features/customers/customer-form-subdealer";
-import CustomerFormFarmer from "@/components/features/customers/customer-form-farmer";
-import CustomerFormBroker from "@/components/features/customers/customer-form-broker";
+import {
+  CustomerFormDealer,
+  CustomerFormSubdealer,
+  CustomerFormFarmer,
+  CustomerFormBroker,
+} from "@/features/customers";
 
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };

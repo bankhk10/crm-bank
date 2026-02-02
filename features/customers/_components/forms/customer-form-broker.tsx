@@ -14,13 +14,12 @@ import RandomFillButton from "@/components/custom/random-fill-button";
 import { X, Save } from "lucide-react";
 import { useRandomFill } from "@/hooks/use-random-fill";
 
-// Local feature imports - use types from centralized types.ts
 import type {
   CustomerFormProps,
   CustomerPayload,
   SubmitResult,
   SelectOption,
-} from "./types";
+} from "../../_types/types";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -73,8 +72,7 @@ export default function CustomerFormBroker({
       try {
         const excludeId = (initial as any)?.id || "";
         const res = await fetch(
-          `/api/customers/check-code?code=${encodeURIComponent(code)}${
-            excludeId ? `&excludeId=${excludeId}` : ""
+          `/api/customers/check-code?code=${encodeURIComponent(code)}${excludeId ? `&excludeId=${excludeId}` : ""
           }`,
         );
         const json = await res.json();
@@ -216,9 +214,8 @@ export default function CustomerFormBroker({
     const payload: CustomerPayload & any = {
       customerCode: values.customerCode ?? "",
       customerType: "BROKER",
-      name: `${values.prefix ? `${values.prefix} ` : ""}${
-        values.firstName ?? ""
-      } ${values.lastName ?? ""}`.trim(),
+      name: `${values.prefix ? `${values.prefix} ` : ""}${values.firstName ?? ""
+        } ${values.lastName ?? ""}`.trim(),
       prefix: values.prefix ?? "",
       firstName: values.firstName ?? "",
       lastName: values.lastName ?? "",
@@ -230,9 +227,8 @@ export default function CustomerFormBroker({
       district: values.district ?? "",
       subdistrict: values.subdistrict ?? "",
       postalCode: values.postalCode != null ? String(values.postalCode) : "",
-      contactPerson: `${values.firstName ?? ""} ${
-        values.lastName ?? ""
-      }`.trim(),
+      contactPerson: `${values.firstName ?? ""} ${values.lastName ?? ""
+        }`.trim(),
       contactPhone: values.phone ?? "",
       contactEmail: values.email ?? "",
       notes: values.notes ?? "",
@@ -260,8 +256,8 @@ export default function CustomerFormBroker({
           setFieldErrors(res.issues);
           setError(
             Object.values(res.issues).flat()[0] ??
-              res.error ??
-              "เกิดข้อผิดพลาด",
+            res.error ??
+            "เกิดข้อผิดพลาด",
           );
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
@@ -281,7 +277,7 @@ export default function CustomerFormBroker({
       if (!values.birthDate) return "";
       const age = Math.floor(
         (Date.now() - new Date(values.birthDate).getTime()) /
-          (1000 * 60 * 60 * 24 * 365.25),
+        (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
     } catch (err) {
@@ -390,7 +386,7 @@ export default function CustomerFormBroker({
           label="อายุ"
           value={calculatedAge()}
           disabled={true}
-          onChange={() => {}}
+          onChange={() => { }}
         />
       </div>
 

@@ -1,6 +1,5 @@
 /**
- * Customer Filter Constants
- * Constants used for filtering in the customers table
+ * Customer Feature - Constants & Utils
  */
 
 export const ALL_FILTER_VALUE = "__ALL__";
@@ -9,7 +8,7 @@ export const ALL_STATUS_VALUE = "__ALL_STATUS__";
 /**
  * Status style configuration
  */
-export const statusStyle: Record<
+export const STATUS_STYLE: Record<
   string,
   { label: string; className: string; dot: string }
 > = {
@@ -36,7 +35,7 @@ export const statusStyle: Record<
 /**
  * Customer type style configuration
  */
-export const customerTypeStyle: Record<
+export const CUSTOMER_TYPE_STYLE: Record<
   string,
   { label: string; className: string; buttonColor: string }
 > = {
@@ -47,7 +46,7 @@ export const customerTypeStyle: Record<
     buttonColor: "bg-blue-600 hover:bg-blue-700",
   },
   SUBDEALER: {
-    label: "ตัวแทนจำหน่ายย่อย",
+    label: "ร้านค้าย่อย",
     className:
       "rounded-full bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-50",
     buttonColor: "bg-emerald-600 hover:bg-emerald-700",
@@ -66,13 +65,11 @@ export const customerTypeStyle: Record<
   },
 };
 
-/**
- * Default badge style for unknown types
- */
 export const DEFAULT_BADGE_STYLE = {
   label: "ไม่ระบุ",
   className:
     "rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/40 dark:text-slate-100",
+  dot: "bg-slate-400",
 };
 
 /**
@@ -81,7 +78,7 @@ export const DEFAULT_BADGE_STYLE = {
 export function getStatusStyle(status: string) {
   const key = status?.toUpperCase() || "";
   return (
-    statusStyle[key] ?? {
+    STATUS_STYLE[key] ?? {
       ...DEFAULT_BADGE_STYLE,
       label: key || "ไม่ระบุ",
       dot: "bg-slate-400",
@@ -94,5 +91,5 @@ export function getStatusStyle(status: string) {
  */
 export function getCustomerTypeStyle(type: string) {
   const key = type?.toUpperCase() || "";
-  return customerTypeStyle[key] ?? DEFAULT_BADGE_STYLE;
+  return CUSTOMER_TYPE_STYLE[key] ?? { ...DEFAULT_BADGE_STYLE, buttonColor: "bg-gray-600" };
 }
