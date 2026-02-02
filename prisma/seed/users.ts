@@ -17,9 +17,17 @@ export async function seedUsers(prisma: PrismaClient) {
   const adminPosition = await prisma.position.create({
     data: {
       name: "Admin",
-      level: 99,
+      level: 10,
       isManagerial: true,
-      departmentId: salesDept.id,
+      departmentId: null
+    },
+  });
+
+  await prisma.position.create({
+    data: {
+      name: "ผู้บริหาร",
+      level: 10,
+      departmentId: null,
     },
   });
 

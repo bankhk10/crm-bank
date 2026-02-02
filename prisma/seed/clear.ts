@@ -4,6 +4,11 @@ export async function seedClear(prisma: PrismaClient) {
   console.log("🧹 Clearing data...");
 
   // Delete in correct order to avoid foreign key constraints
+  await prisma.dailySalesSummary.deleteMany();
+  await prisma.salesTargetItem.deleteMany(); // Delete items before parent just in case, or rely on cascade. Better safe.
+  await prisma.salesTarget.deleteMany();
+  await prisma.employeePointHistory.deleteMany();
+  await prisma.employeePointSummary.deleteMany();
   await prisma.saleStatusHistory.deleteMany();
   await prisma.saleItem.deleteMany();
   await prisma.sale.deleteMany();
