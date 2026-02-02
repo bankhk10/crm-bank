@@ -33,12 +33,16 @@ interface PeriodData {
     target: number;
     salesNote: number;
     invoice: number;
+    lastYearSalesNote: number;
+    lastYearInvoice: number;
   }[];
   regionData: {
     region: string;
     target: number;
     salesNote: number;
     invoice: number;
+    lastYearSalesNote: number;
+    lastYearInvoice: number;
   }[];
   jobStatus: {
     total: number;
@@ -199,7 +203,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)]),
   );
 
-  const getProductGroupData = async (start: Date, end: Date) =>
+  const getProductGroupData = async (start: Date, end: Date, lastYearStart: Date, lastYearEnd: Date) =>
     Promise.all(
       productGroupOptions.map(async (groupOption) => {
         const group = groupOption.value;
@@ -222,6 +226,8 @@ export async function getDashboardData(): Promise<DashboardData> {
             target,
             salesNote: 0,
             invoice: 0,
+            lastYearSalesNote: 0,
+            lastYearInvoice: 0,
           };
         }
 
@@ -265,21 +271,69 @@ export async function getDashboardData(): Promise<DashboardData> {
         const salesNoteAmt = Number(salesNoteAgg._sum.totalPrice || 0);
         const invoiceAmt = Number(invoiceAgg._sum.totalPrice || 0);
 
+        // Last year's Sales Note amounts
+        const lastYearSalesNoteAgg = await prisma.saleItem.aggregate({
+          where: {
+            productId: { in: productIds },
+            sale: {
+              saleDate: { gte: lastYearStart, lte: lastYearEnd },
+              deletedAt: null,
+              status: {
+                in: [
+                  "PENDING",
+                  "PENDING_APPROVAL",
+                  "WAITING_FOR_CORRECTION",
+                  "APPROVED",
+                  "AWAITING_PAYMENT",
+                  "AWAITING_DELIVERY",
+                ],
+              },
+            },
+          },
+          _sum: { totalPrice: true },
+        });
+
+        // Last year's Invoice amounts
+        const lastYearInvoiceAgg = await prisma.saleItem.aggregate({
+          where: {
+            productId: { in: productIds },
+            sale: {
+              saleDate: { gte: lastYearStart, lte: lastYearEnd },
+              deletedAt: null,
+              status: {
+                in: ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+              },
+            },
+          },
+          _sum: { totalPrice: true },
+        });
+
+        const lastYearSalesNoteAmt = Number(lastYearSalesNoteAgg._sum.totalPrice || 0);
+        const lastYearInvoiceAmt = Number(lastYearInvoiceAgg._sum.totalPrice || 0);
+
         return {
           group: groupOption.label,
           code: groupOption.value,
           target,
           salesNote: salesNoteAmt,
           invoice: invoiceAmt,
+          lastYearSalesNote: lastYearSalesNoteAmt,
+          lastYearInvoice: lastYearInvoiceAmt,
         };
       }),
     );
 
+  // Calculate last year same period ranges
+  const lastYearSameDayStart = startOfDay(subYears(now, 1));
+  const lastYearSameDayEnd = endOfDay(subYears(now, 1));
+  const lastYearSameMonthStart = startOfMonth(subYears(now, 1));
+  const lastYearSameMonthEnd = endOfMonth(subYears(now, 1));
+
   const [productGroupDay, productGroupMonth, productGroupYear] =
     await Promise.all([
-      getProductGroupData(dayStart, dayEnd),
-      getProductGroupData(monthStart, monthEnd),
-      getProductGroupData(yearStart, yearEnd),
+      getProductGroupData(dayStart, dayEnd, lastYearSameDayStart, lastYearSameDayEnd),
+      getProductGroupData(monthStart, monthEnd, lastYearSameMonthStart, lastYearSameMonthEnd),
+      getProductGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
     ]);
 
   // === 3. Region Sales (This Month) ===
@@ -300,15 +354,15 @@ export async function getDashboardData(): Promise<DashboardData> {
     regionTargets.map((t) => [t.region, Number(t.targetAmount)]),
   );
 
-  const getRegionData = async (start: Date, end: Date) => {
+  const getRegionData = async (start: Date, end: Date, lastYearStart: Date, lastYearEnd: Date) => {
     // Initialize accumulators
     const regionSalesMap = new Map<
       string,
-      { salesNote: number; invoice: number }
+      { salesNote: number; invoice: number; lastYearSalesNote: number; lastYearInvoice: number }
     >();
 
     regions.forEach((r) => {
-      regionSalesMap.set(r, { salesNote: 0, invoice: 0 });
+      regionSalesMap.set(r, { salesNote: 0, invoice: 0, lastYearSalesNote: 0, lastYearInvoice: 0 });
     });
 
     // Fetch all sales for this range with customer province
@@ -361,23 +415,75 @@ export async function getDashboardData(): Promise<DashboardData> {
       }
     }
 
+    // Fetch last year's sales for the same period
+    const lastYearSalesInRange = await prisma.sale.findMany({
+      where: {
+        saleDate: { gte: lastYearStart, lte: lastYearEnd },
+        deletedAt: null,
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"] },
+      },
+      select: {
+        totalAmount: true,
+        status: true,
+        customer: {
+          select: {
+            province: true,
+          },
+        },
+      },
+    });
+
+    // Process last year's sales in memory
+    for (const sale of lastYearSalesInRange) {
+      const province = sale.customer.province;
+      const region = getRegionByProvince(province);
+
+      if (region && regionSalesMap.has(region)) {
+        const entry = regionSalesMap.get(region)!;
+        const amount = Number(sale.totalAmount);
+
+        const isInvoice = [
+          "PAID",
+          "DELIVERED",
+          "DELIVERY_COMPLETED",
+          "COMPLETED",
+        ].includes(sale.status);
+        const isSalesNote = [
+          "PENDING",
+          "PENDING_APPROVAL",
+          "WAITING_FOR_CORRECTION",
+          "APPROVED",
+          "AWAITING_PAYMENT",
+          "AWAITING_DELIVERY",
+        ].includes(sale.status);
+
+        if (isInvoice) {
+          entry.lastYearInvoice += amount;
+        } else if (isSalesNote) {
+          entry.lastYearSalesNote += amount;
+        }
+      }
+    }
+
     return regions.map((region) => {
       const target = regionTargetMap.get(region) || 0;
-      const sales = regionSalesMap.get(region) || { salesNote: 0, invoice: 0 };
+      const sales = regionSalesMap.get(region) || { salesNote: 0, invoice: 0, lastYearSalesNote: 0, lastYearInvoice: 0 };
 
       return {
         region,
         target,
         salesNote: sales.salesNote,
         invoice: sales.invoice,
+        lastYearSalesNote: sales.lastYearSalesNote,
+        lastYearInvoice: sales.lastYearInvoice,
       };
     });
   };
 
   const [regionDay, regionMonth, regionYear] = await Promise.all([
-    getRegionData(dayStart, dayEnd),
-    getRegionData(monthStart, monthEnd),
-    getRegionData(yearStart, yearEnd),
+    getRegionData(dayStart, dayEnd, lastYearSameDayStart, lastYearSameDayEnd),
+    getRegionData(monthStart, monthEnd, lastYearSameMonthStart, lastYearSameMonthEnd),
+    getRegionData(yearStart, yearEnd, lastYearStart, lastYearEnd),
   ]);
 
   // === 4. Job Status (Sales in this period) ===

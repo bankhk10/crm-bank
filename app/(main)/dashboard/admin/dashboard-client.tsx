@@ -488,6 +488,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   iconSize={8}
                 />
                 <Bar
+                  dataKey="lastYearInvoice"
+                  name="Invoice (ปีที่แล้ว)"
+                  fill="#ad31e2ff"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
                   dataKey="target"
                   name="Target"
                   fill="#3b82f6"
@@ -499,6 +505,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   fill="#f97316"
                   radius={[4, 4, 0, 0]}
                 />
+
                 <Bar
                   dataKey="invoice"
                   name="Invoice"
@@ -627,6 +634,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     iconSize={8}
                   />
                   <Bar
+                    dataKey="lastYearInvoice"
+                    name="Invoice (ปีที่แล้ว)"
+                    fill="#ad31e2ff"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
                     dataKey="target"
                     name="Target"
                     fill="#3b82f6"
@@ -638,6 +651,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     fill="#f97316"
                     radius={[4, 4, 0, 0]}
                   />
+
                   <Bar
                     dataKey="invoice"
                     name="Invoice"
