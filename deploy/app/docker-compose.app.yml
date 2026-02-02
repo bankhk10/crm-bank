@@ -19,7 +19,7 @@ services:
     environment:
       NODE_ENV: production
       # ใช้ container_name "crm-postgres" แทน service name เพราะ db อยู่คนละ compose
-      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm_bank}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm}
       AUTH_SECRET: ${AUTH_SECRET:?Auth secret is required}
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://csone.cropsciences.co.th}
@@ -103,7 +103,7 @@ services:
     container_name: crm-migrate
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm_bank}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm}
     networks:
       - crm-network
     # wait-for-db: รอจนกว่า postgres จะ ready แล้วค่อย migrate
@@ -135,7 +135,7 @@ services:
     container_name: crm-db-push
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm_bank}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm}
     networks:
       - crm-network
     command: >
@@ -165,7 +165,7 @@ services:
     container_name: crm-seed
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm_bank}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-crm_admin}:${POSTGRES_PASSWORD}@crm-postgres:5432/${POSTGRES_DB:-crm}
     networks:
       - crm-network
     # wait-for-db + prisma generate + run seed
