@@ -3,7 +3,7 @@
  * Helper functions for parsing and formatting Thai addresses
  */
 
-import type { ParsedAddress } from "../types";
+import type { ParsedAddress } from "../_types/types";
 
 /**
  * Parse Thai address from string

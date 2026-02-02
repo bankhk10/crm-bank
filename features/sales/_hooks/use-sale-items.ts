@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import type { SaleItemFormData } from "@/types/sales";
-import type { SaleFormProduct } from "../types";
+import type { SaleFormProduct } from "../_types/types";
 
 interface UseSaleItemsOptions {
   initialItems?: SaleItemFormData[];

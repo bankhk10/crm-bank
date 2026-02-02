@@ -11,7 +11,7 @@ import type {
   SaleFormEmployee,
   SaleFormProduct,
   SaleFormCompany,
-} from "../types";
+} from "../_types/types";
 
 interface SaleFormData {
   customers: SaleFormCustomer[];

@@ -3,7 +3,13 @@
  * Type definitions for sale form components
  */
 
-import type { SaleFormData, SaleItemFormData } from "@/types/sales";
+import type {
+  SaleFormData,
+  SaleItemFormData,
+  SaleWithRelations,
+  SaleStatus,
+} from "@/types/sales";
+import type { DateRange } from "react-day-picker";
 
 /**
  * Customer for sale form
@@ -216,6 +222,7 @@ export interface SaleItemRowProps {
   onRemove: (index: number) => void;
   onShowDetails: (product: SaleFormProduct) => void;
   fieldError?: string;
+  onClearError?: () => void;
 }
 
 /**
@@ -234,4 +241,36 @@ export interface SaleSummaryProps {
 export interface ProductDetailModalProps {
   product: SaleFormProduct | null;
   onClose: () => void;
+}
+
+// --- Table Types ---
+
+export type SaleRecord = SaleWithRelations;
+
+export interface SalesTableProps {
+  sales: SaleRecord[];
+  total: number;
+  page: number;
+  perPage: number;
+  loading?: boolean;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  isTyping?: boolean;
+  onSearchSubmit?: () => void;
+  statusFilter?: SaleStatus;
+  onStatusFilterChange?: (status: SaleStatus | undefined) => void;
+  dateRange?: DateRange;
+  onDateRangeChange?: (range: DateRange | undefined) => void;
+  onPageChange?: (page: number) => void;
+  onPerPageChange?: (perPage: number) => void;
+  onDelete?: (sale: SaleRecord) => void;
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canApprove?: boolean;
+  currentUserId?: string;
+  userDepartmentId?: string | null;
+  // Callback functions to check per-item permissions based on access scope
+  canEditItem?: (item: SaleRecord) => boolean;
+  canDeleteItem?: (item: SaleRecord) => boolean;
 }
