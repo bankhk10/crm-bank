@@ -489,7 +489,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 />
                 <Bar
                   dataKey="lastYearInvoice"
-                  name="Invoice (ปีที่แล้ว)"
+                  name="ยอดขาย (ปีที่แล้ว)"
                   fill="#ad31e2ff"
                   radius={[4, 4, 0, 0]}
                 />
@@ -635,7 +635,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   />
                   <Bar
                     dataKey="lastYearInvoice"
-                    name="Invoice (ปีที่แล้ว)"
+                    name="ยอดขาย (ปีที่แล้ว)"
                     fill="#ad31e2ff"
                     radius={[4, 4, 0, 0]}
                   />
