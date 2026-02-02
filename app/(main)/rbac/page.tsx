@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import RBACConsole from "@/components/features/rbac/rbac-console";
+import { RBACConsole } from "@/features/rbac";
 import { auth } from "@/lib/auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
 
