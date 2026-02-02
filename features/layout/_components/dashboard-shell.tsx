@@ -21,7 +21,7 @@ export default function DashboardShell({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="fixed inset-0 flex min-h-screen bg-[#b92626]">
+    <div className="fixed inset-0 flex min-h-screen overflow-hidden bg-[#b92626]">
       {/* Desktop Sidebar */}
       <Sidebar
         permissionKeys={permissionKeys}
@@ -29,7 +29,7 @@ export default function DashboardShell({
         className="hidden md:block"
       />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <div className="bg-[#b92626] text-white shrink-0">
           <Navbar
             user={{
@@ -44,28 +44,25 @@ export default function DashboardShell({
 
         {/* Mobile sidebar overlay with slide-in transition */}
         <div
-          className={`fixed inset-0 z-50 md:hidden ${
-            isSidebarOpen ? "" : "pointer-events-none"
-          }`}
+          className={`fixed inset-0 z-50 md:hidden ${isSidebarOpen ? "" : "pointer-events-none"
+            }`}
           role="dialog"
           aria-modal
         >
           {/* Backdrop: fades in/out */}
           <div
-            className={`absolute inset-0 bg-black transition-opacity duration-300 ease-in-out ${
-              isSidebarOpen
+            className={`absolute inset-0 bg-black transition-opacity duration-300 ease-in-out ${isSidebarOpen
                 ? "opacity-40 pointer-events-auto"
                 : "opacity-0 pointer-events-none"
-            }`}
+              }`}
             onClick={() => setIsSidebarOpen(false)}
             aria-hidden
           />
 
           {/* Sidebar panel: slides from left */}
           <div
-            className={`absolute inset-y-0 left-0 w-64 transform bg-[#b92626] transition-transform duration-300 ease-in-out ${
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
+            className={`absolute inset-y-0 left-0 w-64 transform bg-[#b92626] transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
           >
             <Sidebar
               permissionKeys={permissionKeys}
