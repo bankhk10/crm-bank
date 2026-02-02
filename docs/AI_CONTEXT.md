@@ -1,8 +1,8 @@
 # AI Context - CRM System
 
 > **Document Type**: Master Context Document  
-> **Version**: 1.0.0  
-> **Last Updated**: 2026-01-28  
+> **Version**: 1.1.0  
+> **Last Updated**: 2026-02-02  
 > **Related Documents**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -220,15 +220,15 @@ when_uncertain:
 
 | Layer | Technology | Version |
 |-------|------------|---------|
-| Frontend | Next.js + React | 15.x |
-| Styling | Tailwind CSS | 3.x |
-| UI Components | shadcn/ui | latest |
-| Backend | Next.js API Routes | 15.x |
-| ORM | Prisma | 6.x |
+| Frontend | Next.js + React | 16.1.5 + 19.2.0 |
+| Styling | Tailwind CSS | 4.x |
+| UI Components | shadcn/ui (Radix UI) | latest |
+| Backend | Next.js API Routes | 16.x |
+| ORM | Prisma | 7.x |
 | Database | PostgreSQL | 15+ |
-| Auth | NextAuth.js | 4.x |
+| Auth | NextAuth.js | 5.0.0-beta.30 |
 | Containerization | Docker + Docker Compose | latest |
-| State Management | React Query / SWR | latest |
+| State Management | React (built-in) | 19.x |
 
 ---
 
@@ -262,6 +262,7 @@ types: types/
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-02-02 | 1.1.0 | Updated Tech Stack versions (Next.js 16.1.5, React 19.2.0, Prisma 7.x, NextAuth v5 beta) |
 | 2026-01-28 | 1.0.0 | Initial documentation created |
 
 ---

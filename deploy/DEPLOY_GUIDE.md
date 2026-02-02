@@ -23,6 +23,8 @@
 
 ## Prerequisites
 
+- **Node.js**: 20.0.0 หรือสูงกว่า (สำหรับ local development)
+- **npm/pnpm**: 10.0.0 หรือสูงกว่า
 - Docker 24+ และ Docker Compose v2
 - Git
 - Domain pointing to VPS IP

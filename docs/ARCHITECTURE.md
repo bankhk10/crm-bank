@@ -1,6 +1,6 @@
 # Architecture - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-02-02  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md)
 
 ---
@@ -42,12 +42,12 @@
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Next.js 15, React, Tailwind CSS |
-| UI Components | shadcn/ui |
+| Frontend | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
+| UI Components | shadcn/ui, Radix UI, Lucide Icons |
 | Backend | Next.js API Routes (App Router) |
-| ORM | Prisma 6.x |
+| ORM | Prisma 7.x |
 | Database | PostgreSQL 15+ |
-| Auth | NextAuth.js v4 |
+| Auth | NextAuth.js v5 (5.0.0-beta.30) |
 | Container | Docker + Docker Compose |
 
 ---
