@@ -178,7 +178,7 @@ services:
         done &&
         echo 'Database is ready!' &&
         pnpm exec prisma generate &&
-        node prisma/seed.js
+        pnpm run seed
       "
     restart: "no"
     profiles:
