@@ -122,7 +122,24 @@ docker compose -f docker-compose.app.yml --env-file ../env.production up -d --bu
 ### Step 7: Setup SSL Certificate (First Time)
 
 ```bash
-# Setup SSL... (same as before)
+cd /opt/crm-bank
+
+# Stop nginx temporarily (needs env file for variable check)
+docker compose -f deploy/app/docker-compose.app.yml --env-file deploy/.env.production stop nginx
+
+# Request certificate
+# Note: check volume names with 'docker volume ls' if unsure (e.g., app_certbot_*)
+docker run --rm -it \
+  -v app_certbot_certs:/etc/letsencrypt \
+  -v app_certbot_data:/var/www/certbot \
+  -p 80:80 \
+  certbot/certbot certonly --standalone \
+  -d csone.cropsciences.co.th \
+  --agree-tos \
+  --email your-email@domain.com
+
+# Start nginx again
+docker compose -f deploy/app/docker-compose.app.yml --env-file deploy/.env.production start nginx
 ```
 
 ---
