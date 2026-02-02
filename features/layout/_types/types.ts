@@ -36,13 +36,7 @@ export interface SidebarProps {
   onClose?: () => void;
 }
 
-/**
- * Header props
- */
-export interface HeaderProps {
-  onMenuClick: () => void;
-  displayName?: string | null;
-}
+
 
 /**
  * Navbar user type

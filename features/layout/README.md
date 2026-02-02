@@ -4,7 +4,7 @@ This module handles the main application layout, including sidebar navigation, h
 
 ## Directory Structure
 
-- `_components/`: UI components (DashboardShell, Sidebar, Header, Navbar).
+- `_components/`: UI components (DashboardShell, Sidebar, Navbar).
 - `_hooks/`: Custom hooks (sidebar state management).
 - `_lib/`: Navigation utilities (filtering, route matching).
 - `_types/`: TypeScript definitions for layout components.
@@ -14,7 +14,7 @@ This module handles the main application layout, including sidebar navigation, h
 ### Components
 
 ```tsx
-import { DashboardShell, Sidebar, Navbar, Header } from "@/features/layout";
+import { DashboardShell, Sidebar, Navbar } from "@/features/layout";
 
 // Main layout wrapper
 <DashboardShell 
@@ -76,12 +76,7 @@ Top navigation bar with:
 - User info display
 - Logout button
 
-### Header
-Alternative header component with:
-- Mobile menu toggle
-- Notifications
-- Language selector
-- User profile
+
 
 ## Dependencies
 
