@@ -10,12 +10,12 @@ import DatePicker from "@/components/custom/DatePicker";
 import { Eye, EyeOff, X, Save } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { useRandomFill } from "@/hooks/use-random-fill";
-import type { Employee } from "@/types/Employee.ts";
+import { Employee, EmployeeFormProps } from "../_types/types";
 import {
-  prefixOptions,
-  responsibilityAreaOptions,
-  statusOptions,
-} from "./employee-options";
+  PREFIX_OPTIONS,
+  RESPONSIBILITY_AREA_OPTIONS,
+  STATUS_OPTIONS,
+} from "../_lib/constants";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 
 type EmployeeFormValues = Partial<Employee> & {
@@ -40,19 +40,6 @@ type EmployeeFormValues = Partial<Employee> & {
   managerId?: string;
 };
 
-interface EmployeeFormProps {
-  employeeId?: string;
-  initial?: Partial<EmployeeFormValues>;
-  onSubmit?: (payload: any) => Promise<{
-    success: boolean;
-    issues?: Record<string, string[]>;
-    error?: string;
-  }>;
-
-  onCancel?: () => void;
-  registerRandomize?: (fn: () => void) => void;
-  hideBorder?: boolean;
-}
 
 type Option = { value: string; label: string };
 
@@ -270,7 +257,7 @@ export default function EmployeeForm({
         return String(
           Math.floor(
             (Date.now() - new Date(values.birthDate).getTime()) /
-              (1000 * 60 * 60 * 24 * 365.25),
+            (1000 * 60 * 60 * 24 * 365.25),
           ),
         );
       } catch (e) {
@@ -332,7 +319,7 @@ export default function EmployeeForm({
     registerRandomize(handleRandomFill);
     return () => {
       try {
-        registerRandomize(() => {});
+        registerRandomize(() => { });
       } catch (e) {
         // ignore
       }
@@ -417,9 +404,8 @@ export default function EmployeeForm({
         responsibilityArea: values.responsibilityArea,
         addressLine: values.addressLine,
         status: values.status ?? "ACTIVE",
-        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${
-          values.lastName ?? ""
-        }`.trim(),
+        name: `${values.prefix ?? ""} ${values.firstName ?? ""} ${values.lastName ?? ""
+          }`.trim(),
         email: emailVal || undefined,
         roleTitle: (values.roleDefinitionId && roleDefObj?.name) || undefined,
         ...(hasAddress ? { address } : {}),
@@ -447,8 +433,8 @@ export default function EmployeeForm({
         if (!result.success) {
           setError(
             result.error ??
-              Object.values(result.issues ?? {})[0]?.[0] ??
-              "Server error",
+            Object.values(result.issues ?? {})[0]?.[0] ??
+            "Server error",
           );
           setFieldErrors(result.issues ?? {});
         } else {
@@ -507,7 +493,7 @@ export default function EmployeeForm({
           label="คำนำหน้า"
           value={values.prefix ?? ""}
           onChange={handleSelect("prefix")}
-          options={prefixOptions.map((o) => ({
+          options={PREFIX_OPTIONS.map((o) => ({
             value: o.value,
             label: o.label,
           }))}
@@ -562,7 +548,7 @@ export default function EmployeeForm({
           label="อายุ"
           value={calculatedAge}
           disabled
-          onChange={() => {}}
+          onChange={() => { }}
         />
       </div>
 
@@ -633,7 +619,7 @@ export default function EmployeeForm({
           label="เขตที่รับผิดชอบ"
           value={values.responsibilityArea ?? ""}
           onChange={handleSelect("responsibilityArea")}
-          options={responsibilityAreaOptions.map((o) => ({
+          options={RESPONSIBILITY_AREA_OPTIONS.map((o) => ({
             value: o.value,
             label: o.label,
           }))}
@@ -716,7 +702,7 @@ export default function EmployeeForm({
           label="สถานะการทำงาน"
           value={values.status ?? "ACTIVE"}
           onChange={handleSelect("status")}
-          options={statusOptions.map((s) => ({
+          options={STATUS_OPTIONS.map((s) => ({
             value: s.value,
             label: s.label,
           }))}
@@ -732,7 +718,7 @@ export default function EmployeeForm({
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
             type="button"
-            onClick={onCancel ?? (() => {})}
+            onClick={onCancel ?? (() => { })}
             disabled={loading}
           >
             <X className="h-4 w-4" />

@@ -1,6 +1,6 @@
 "use client";
 
-import EmployeeForm from "@/components/features/employee/employee-form";
+import { EmployeeForm } from "@/features/employee";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
@@ -36,7 +36,7 @@ export default function NewEmployeePage() {
             </h5>
           </div>
           <EmployeeForm
-            hideBorder
+
             onSubmit={async (body) => {
               const result = await handleCreate(body);
               if (result.success) router.push(`/employee`);

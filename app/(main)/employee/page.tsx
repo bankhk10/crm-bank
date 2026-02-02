@@ -1,6 +1,6 @@
 "use client";
 
-import EmployeeTable from "@/components/features/employee/employee-table";
+import { EmployeeTable } from "@/features/employee";
 import { Users } from "lucide-react";
 
 export default function EmployeePage() {

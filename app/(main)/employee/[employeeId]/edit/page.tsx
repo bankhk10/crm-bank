@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import EmployeeForm from "@/components/features/employee/employee-form";
+import { EmployeeForm } from "@/features/employee";
 import { Card } from "@/components/ui/card";
 
 export default function EditEmployeePage() {
@@ -142,7 +142,7 @@ export default function EditEmployeePage() {
             <EmployeeForm
               employeeId={employeeId}
               initial={payload}
-              hideBorder
+
               onSubmit={async (body) => {
                 const result = await handleUpdate(body);
                 if (result.success) router.push(`/employee`);
