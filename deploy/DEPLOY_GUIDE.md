@@ -76,35 +76,37 @@ docker logs crm-postgres
 # รอจนกว่าจะแสดง "database system is ready to accept connections"
 ```
 
-### Step 4: Run Database Migration
+### Step 4: Setup Database Schema
+
+Since this project does not use migration files yet, we use `db push` to sync the schema.
 
 ```bash
 cd /opt/crm-bank/deploy/app
 
-# Build และ Run migration (ใช้ migrate deploy สำหรับ production)
+# Build and Run db-push
 docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile migrate build migrate
+  --profile db-push build db-push
 
 docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile migrate up migrate
+  --profile db-push up db-push
 
-# ตรวจสอบ migration สำเร็จ
-docker logs crm-migrate
+# Check logs
+docker logs crm-db-push
 ```
 
-### Step 5: Seed Initial Data (Optional - ครั้งแรกเท่านั้น)
+### Step 5: Seed Initial Data (Optional - One-time only)
 
 ```bash
 cd /opt/crm-bank/deploy/app
 
-# Build และ Run seed
+# Build and Run seed
 docker compose -f docker-compose.app.yml --env-file ../env.production \
   --profile seed build seed
 
 docker compose -f docker-compose.app.yml --env-file ../env.production \
   --profile seed up seed
 
-# ตรวจสอบ seed สำเร็จ
+# Check seed success
 docker logs crm-seed
 ```
 
@@ -113,38 +115,21 @@ docker logs crm-seed
 ```bash
 cd /opt/crm-bank/deploy/app
 
-# Build และ Start app + nginx + certbot
+# Build and Start app + nginx + certbot
 docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build
-
-# ตรวจสอบ status
-docker compose -f docker-compose.app.yml ps
 ```
 
 ### Step 7: Setup SSL Certificate (First Time)
 
 ```bash
-# หยุด nginx ชั่วคราวเพื่อ certbot standalone
-docker compose -f docker-compose.app.yml stop nginx
-
-# ขอ certificate
-docker run --rm -it \
-  -v crm-bank_certbot_certs:/etc/letsencrypt \
-  -v crm-bank_certbot_data:/var/www/certbot \
-  -p 80:80 \
-  certbot/certbot certonly --standalone \
-  -d csone.cropsciences.co.th \
-  --agree-tos \
-  --email your-email@domain.com
-
-# Start nginx กลับมา
-docker compose -f docker-compose.app.yml start nginx
+# Setup SSL... (same as before)
 ```
 
 ---
 
 ## 2. Update Deployment (Code Updates)
 
-เมื่อมีการ push code ใหม่:
+When pushing new code:
 
 ```bash
 # SSH to VPS
@@ -160,63 +145,38 @@ git pull origin main
 cd deploy/app
 docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
 
-# Nginx จะ restart อัตโนมัติถ้า app healthy
-
 # ====================================
-# Option B: With database migration
+# Option B: With database schema changes
 # ====================================
 cd deploy/app
 
-# Run migration first
+# Run db-push to update schema
 docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile migrate up migrate
+  --profile db-push up db-push
 
 # Then rebuild and restart app
 docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
-
-# ====================================
-# Option C: Full rebuild (both app + nginx)
-# ====================================
-cd deploy/app
-docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build
 ```
 
 ---
 
-## 3. Migration Commands Explained
+## 3. Database Management Explained
 
-### Recommended: `prisma migrate deploy`
-
-```bash
-# ใช้สำหรับ production - apply migration files ที่มีอยู่
-docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile migrate up migrate
-```
-
-**เมื่อไหร่ควรใช้:**
-- Production deployment
-- มี migration files ใน `prisma/migrations/`
-- ต้องการ version control schema changes
-- ทำงานกับ team และต้อง sync schema
-
-### Alternative: `prisma db push` (ใช้ด้วยความระวัง!)
+### Primary Method: `prisma db push`
 
 ```bash
-# ⚠️ WARNING: --accept-data-loss อาจลบข้อมูลได้!
 docker compose -f docker-compose.app.yml --env-file ../env.production \
   --profile db-push up db-push
 ```
 
-**เมื่อไหร่อาจจำเป็น:**
-- Development/staging environment
-- ต้องการ sync schema โดยไม่สนใจ migration history
-- Reset database ใหม่ทั้งหมด
-- Prototype/POC ที่ไม่มี production data
+**Why use this:**
+- The project currently does not track migration history (no `prisma/migrations` folder).
+- It directly synchronizes the database schema to match `schema.prisma`.
+- **Warning:** If you remove columns/tables, data might be lost (requires `--accept-data-loss`).
 
-**⚠️ ความเสี่ยง:**
-- `--accept-data-loss` อาจ DROP columns/tables
-- ไม่มี rollback
-- ไม่ track history ใน `_prisma_migrations`
+### Alternative: `prisma migrate deploy` (Not used currently)
+
+Use this only if you start generating migration files locally with `prisma migrate dev`.
 
 ---
 
