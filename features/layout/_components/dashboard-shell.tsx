@@ -76,8 +76,8 @@ export default function DashboardShell({
           </div>
         </div>
 
-        <main className="flex-1 min-h-0 bg-gray-100 rounded-tl-3xl flex flex-col">
-          <div className="flex-1 min-h-0 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 min-h-0 min-w-0 bg-gray-100 rounded-tl-3xl flex flex-col">
+          <div className="flex-1 min-h-0 min-w-0 p-4 md:p-6 overflow-auto">
             <div className="space-y-6">{children}</div>
           </div>
         </main>
