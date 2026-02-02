@@ -15,7 +15,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-crm_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password is required}
-      POSTGRES_DB: ${POSTGRES_DB:-crm_bank}
+      POSTGRES_DB: ${POSTGRES_DB:-crm}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -26,7 +26,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-crm_admin} -d ${POSTGRES_DB:-crm_bank}",
+          "pg_isready -U ${POSTGRES_USER:-crm_admin} -d ${POSTGRES_DB:-crm}",
         ]
       interval: 10s
       timeout: 5s
