@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import CreditLimitForm from "@/components/features/credit-limits/credit-limit-form";
+import { CreditLimitForm } from "@/features/credit-limits";
 
 export default function NewCreditLimitPage() {
   const router = useRouter();

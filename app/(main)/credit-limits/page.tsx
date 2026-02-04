@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import CustomersCreditTable, {
+import {
+  CreditLimitTable,
   type CustomerRecord,
-} from "@/components/features/credit-limits/credit-limit-table";
+} from "@/features/credit-limits";
 
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } =
@@ -32,7 +33,6 @@ export default function CreditLimitsPage() {
     dateRange?: DateRange;
     status?: string;
   }>({ query: "", dateRange: undefined, status: "" });
-  // no inline delete in customers list; editing handled via dedicated credit-limit pages
 
   useEffect(() => {
     const isExtendingEmpty =
@@ -79,7 +79,7 @@ export default function CreditLimitsPage() {
   const isTyping =
     filterDraft.query !== appliedFilters.query ||
     mkRangeKey(filterDraft.dateRange) !==
-      mkRangeKey(appliedFilters.dateRange) ||
+    mkRangeKey(appliedFilters.dateRange) ||
     filterDraft.status !== appliedFilters.status;
 
   const handleSearchSubmit = () => {
@@ -177,7 +177,7 @@ export default function CreditLimitsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <CustomersCreditTable
+          <CreditLimitTable
             data={customers}
             loading={loading}
             searchValue={filterDraft.query}

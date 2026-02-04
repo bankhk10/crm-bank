@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import CreditLimitForm from "@/components/features/credit-limits/credit-limit-form";
+import { CreditLimitForm } from "@/features/credit-limits";
 
 export default function EditCreditLimitPage() {
   const { creditLimitId } = useParams() as { creditLimitId: string };

@@ -1,25 +1,10 @@
 "use client";
+
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-type CreditLimitPayload = {
-  customerId: string;
-  limitAmount: number;
-  promoAmount?: number;
-  usedAmount?: number;
-  availableAmount?: number;
-  effectiveDate: Date;
-  expiryDate?: Date;
-  notes?: string;
-};
-
-type SubmitResult = {
-  success: boolean;
-  issues?: Record<string, string[]>;
-  error?: string;
-};
+import type { CreditLimitPayload, SubmitResult } from "../_types/types";
 
 interface Props {
   initial?: Partial<CreditLimitPayload>;
@@ -53,7 +38,7 @@ export default function CreditLimitForm({
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
-  // keep display text for numeric inputs so user can clear the field while typing
+
   const [limitAmountText, setLimitAmountText] = useState<string>(
     String(initial.limitAmount ?? 0)
   );
@@ -75,7 +60,6 @@ export default function CreditLimitForm({
     setFieldErrors({});
 
     try {
-      // parse display text to numbers; allow empty as 0
       const parsedLimit = limitAmountText === "" ? 0 : Number(limitAmountText);
       const parsedPromo = promoAmountText === "" ? 0 : Number(promoAmountText);
 
@@ -86,18 +70,20 @@ export default function CreditLimitForm({
         notes: payload.notes,
       };
 
-      // keep payload in sync with parsed values
+      // Sync payload
       setPayload((p) => ({
         ...p,
         limitAmount: parsedLimit,
         promoAmount: parsedPromo,
       }));
 
-      if (payload.effectiveDate)
-        body.effectiveDate = payload.effectiveDate.toISOString();
-
-      if (payload.expiryDate)
-        body.expiryDate = payload.expiryDate.toISOString();
+      // In real payload, dates are Date objects. 
+      // API expects ISO strings if JSONified? 
+      // The prop `onSubmit` takes `CreditLimitPayload` which has `Date`.
+      // The caller handles stringification.
+      // Copy dates
+      body.effectiveDate = payload.effectiveDate;
+      body.expiryDate = payload.expiryDate;
 
       const res = await onSubmit(body);
       if (!res.success) {
@@ -109,29 +95,23 @@ export default function CreditLimitForm({
     }
   }
 
+  // Helper to find customer
+  const currentCustomer = customers.find((c) => c.id === payload.customerId);
+  const customerDisplay = currentCustomer
+    ? `${currentCustomer.customerCode} - ${currentCustomer.name}`
+    : "";
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 p-6">
-      {/* ---------------- HEADER ---------------- */}
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-200 py-3 px-4 rounded-2xl">
         ข้อมูลวงเงินเครดิตลูกค้า
       </h3>
 
-      {/* ---------------- FORM GRID ---------------- */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* ลูกค้า */}
         <div className="md:col-span-2">
           <Label className={labelText}>ลูกค้า</Label>
           <Input
-            value={
-              customers.find((c) => c.id === payload.customerId)
-                ? `${
-                    customers.find((c) => c.id === payload.customerId)!
-                      .customerCode
-                  } - ${
-                    customers.find((c) => c.id === payload.customerId)!.name
-                  }`
-                : ""
-            }
+            value={customerDisplay}
             readOnly
             disabled
             className={`${inputClass} w-full border rounded-xl px-3 py-3`}
@@ -141,7 +121,6 @@ export default function CreditLimitForm({
           )}
         </div>
 
-        {/* Used Amount (Read-only) */}
         <div>
           <Label className={labelText}>ใช้วงเงินไปแล้ว (บาท)</Label>
           <Input
@@ -155,7 +134,6 @@ export default function CreditLimitForm({
           />
         </div>
 
-        {/* Available Amount (Read-only) */}
         <div>
           <Label className={labelText}>คงเหลือ (บาท)</Label>
           <Input
@@ -169,7 +147,6 @@ export default function CreditLimitForm({
           />
         </div>
 
-        {/* limitAmount */}
         <div>
           <Label className={labelText}>วงเงิน (บาท)</Label>
           <Input
@@ -179,12 +156,10 @@ export default function CreditLimitForm({
             onChange={(e) => {
               const raw = e.target.value;
               const cleaned = raw.replace(/^0+(?=\d)/, "");
-              // allow empty string while typing
               setLimitAmountText(cleaned === "" ? "" : cleaned);
               clearError("limitAmount");
             }}
             onBlur={() => {
-              // ensure display shows 0 instead of empty and sync payload
               if (limitAmountText === "") setLimitAmountText("0");
               const num = limitAmountText === "" ? 0 : Number(limitAmountText);
               setPayload((p) => ({ ...p, limitAmount: num }));
@@ -193,7 +168,6 @@ export default function CreditLimitForm({
           />
         </div>
 
-        {/* promoAmount */}
         <div>
           <Label className={labelText}>วงเงินส่งเสริมการขาย (บาท)</Label>
           <Input
@@ -215,12 +189,11 @@ export default function CreditLimitForm({
           />
         </div>
 
-        {/* Notes */}
         <div className="md:col-span-2">
           <Label className={labelText}>หมายเหตุ</Label>
           <textarea
             rows={3}
-            value={payload.notes}
+            value={payload.notes || ""}
             onChange={(e) =>
               setPayload((p) => ({ ...p, notes: e.target.value }))
             }
@@ -229,7 +202,6 @@ export default function CreditLimitForm({
         </div>
       </div>
 
-      {/* ---------------- ACTION BUTTONS ---------------- */}
       <div className="pt-6 border-t flex flex-col sm:flex-row gap-3 justify-center">
         <Button
           type="button"
