@@ -52,7 +52,7 @@ export default function CustomersTable({
           data={data}
           loading={loading}
           pagination={pagination}
-        // searchable={false} // Managed by toolbar - CustomTable prop doesn't exist
+          toolbar={<></>}
         />
       </div>
 
