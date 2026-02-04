@@ -8,6 +8,7 @@ import {
   CreditLimitTable,
   type CustomerRecord,
 } from "@/features/credit-limits";
+import { CreditCard } from "lucide-react";
 
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } =
@@ -177,6 +178,15 @@ export default function CreditLimitsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-9 h-9 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">
+                จัดการวงเงิน
+              </h1>
+            </div>
+          </div>
+
           <CreditLimitTable
             data={customers}
             loading={loading}

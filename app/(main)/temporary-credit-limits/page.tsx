@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TemporaryCreditLimitTable } from "@/features/temporary-credit-limits";
 import type { TemporaryCreditLimitWithRelations } from "@/types/temporary-credit-limit";
+import { CreditCard } from "lucide-react";
 
 export default function TemporaryCreditLimitsPage() {
   const { hasPermission, allowed, isLoading } = usePermission(
@@ -221,6 +222,14 @@ export default function TemporaryCreditLimitsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <CreditCard className="w-9 h-9 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">
+                วงเงินเครดิตชั่วคราว
+              </h1>
+            </div>
+          </div>
           <TemporaryCreditLimitTable
             data={temporaryCreditLimits}
             loading={loading}
