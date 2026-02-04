@@ -421,9 +421,9 @@ export default function FulfillmentDetailPage({
                                 ⚠️ สต็อกสินค้าไม่เพียงพอ - ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้
                             </p>
                             <ul className="text-amber-700 text-sm space-y-1">
-                                {stockWarnings.map((warning) => (
+                                {stockWarnings.map((warning, index) => (
                                     <li
-                                        key={warning.productId}
+                                        key={`${warning.productId}-${index}`}
                                         className="flex items-center gap-2"
                                     >
                                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
