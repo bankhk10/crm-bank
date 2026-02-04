@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
+import { ClipboardCheck } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -142,29 +143,42 @@ export default function FulfillmentPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <section className="space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      <FulfillmentTable
-        sales={sales}
-        total={total}
-        page={page}
-        perPage={perPage}
-        loading={loading}
-        searchValue={filterDraft.query}
-        onSearchChange={(value) => setFilterDraft({ query: value })}
-        isTyping={isTyping}
-        onSearchSubmit={handleSearchSubmit}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        onPageChange={setPage}
-        onPerPageChange={setPerPage}
-        currentUserId={user?.id}
-      />
-    </div>
+      <div className="bg-white shadow-sm sm:rounded-lg">
+        <div className="p-6">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-3">
+              <ClipboardCheck className="w-9 h-9 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">
+                จัดการคำสั่งขาย
+              </h1>
+            </div>
+          </div>
+
+          <FulfillmentTable
+            sales={sales}
+            total={total}
+            page={page}
+            perPage={perPage}
+            loading={loading}
+            searchValue={filterDraft.query}
+            onSearchChange={(value) => setFilterDraft({ query: value })}
+            isTyping={isTyping}
+            onSearchSubmit={handleSearchSubmit}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+            currentUserId={user?.id}
+          />
+        </div>
+      </div>
+    </section>
   );
 }

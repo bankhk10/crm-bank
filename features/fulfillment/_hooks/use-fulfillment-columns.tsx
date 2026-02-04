@@ -15,9 +15,9 @@ export function useFulfillmentColumns() {
         () => [
             {
                 accessorKey: "saleNumber",
-                header: "เลขที่เอกสาร",
+                header: "เลขที่ใบขาย",
                 cell: (info) => (
-                    <span className="font-mono font-medium text-slate-700">
+                    <span className="font-medium text-slate-700">
                         {info.getValue() as string}
                     </span>
                 ),
@@ -26,7 +26,7 @@ export function useFulfillmentColumns() {
                 accessorKey: "saleDate",
                 header: "วันที่",
                 cell: (info) =>
-                    format(new Date(info.getValue() as string), "d MMM yy", {
+                    format(new Date(info.getValue() as string), "d MMM yyyy", {
                         locale: th,
                     }),
             },
@@ -45,18 +45,10 @@ export function useFulfillmentColumns() {
                 ),
             },
             {
-                id: "items_count",
-                header: "จำนวนรายการ",
-                cell: (info) => {
-                    const items = info.row.original.items;
-                    return <span className="text-center block">{items.length}</span>;
-                },
-            },
-            {
                 accessorKey: "totalAmount",
                 header: () => <div className="text-right">ยอดรวม</div>,
                 cell: (info) => (
-                    <div className="text-right font-medium">
+                    <div className="font-medium">
                         ฿{Number(info.getValue()).toLocaleString()}
                     </div>
                 ),
@@ -74,18 +66,18 @@ export function useFulfillmentColumns() {
                 cell: ({ row }) => {
                     const sale = row.original;
                     return (
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-3">
                             <ActionButton
                                 href={`/sales/${sale.id}`}
                                 icon={Eye}
                                 label="รายละเอียด"
-                                colorClass="text-slate-600 hover:text-slate-800 border-slate-200 hover:bg-slate-50"
+                                colorClass="text-slate-700 hover:text-white border-slate-200 hover:border-slate-300 hover:bg-slate-600 transition-all duration-200 shadow-sm hover:shadow-md"
                             />
                             <ActionButton
                                 href={`/fulfillment/${sale.id}`}
                                 icon={ClipboardList}
-                                label="จัดการสินค้า"
-                                colorClass="text-blue-600 hover:text-blue-700 border-blue-200 hover:bg-blue-50"
+                                label="จัดการคำสั่งขาย"
+                                colorClass="text-blue-700 hover:text-white border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                             />
                         </div>
                     );

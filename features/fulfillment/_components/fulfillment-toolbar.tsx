@@ -29,12 +29,13 @@ export function FulfillmentToolbar({
     dateRange,
     onDateRangeChange,
 }: FulfillmentToolbarProps) {
+    const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
     return (
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
+            <div className="relative w-xl">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                    placeholder="ค้นหาตามเลขที่เอกสาร, ชื่อลูกค้า..."
+                    placeholder="ค้นหาตามเลขที่ใบขาย, ชื่อลูกค้า..."
                     value={searchValue || ""}
                     onChange={(e) => onSearchChange?.(e.target.value)}
                     onKeyDown={(e) => {
@@ -45,32 +46,33 @@ export function FulfillmentToolbar({
                     className="pl-9 bg-white"
                 />
             </div>
-            <div className="flex gap-2">
-                <Popover>
+
+            <div className="w-xl">
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                         <Button
-                            variant="outline"
+                            variant={"outline"}
                             className={cn(
-                                "justify-start text-left font-normal w-full sm:w-[240px] bg-white",
-                                !dateRange && "text-muted-foreground"
+                                "w-full justify-start text-left font-normal bg-white h-11",
+                                !dateRange && "text-muted-foreground",
                             )}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {dateRange?.from ? (
                                 dateRange.to ? (
                                     <>
-                                        {format(dateRange.from, "dd MMM", { locale: th })} -{" "}
-                                        {format(dateRange.to, "dd MMM yyyy", { locale: th })}
+                                        {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
+                                        {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
                                     </>
                                 ) : (
-                                    format(dateRange.from, "dd MMM yyyy", { locale: th })
+                                    format(dateRange.from, "dd/MM/yyyy", { locale: th })
                                 )
                             ) : (
                                 <span>เลือกช่วงวันที่</span>
                             )}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
+                    <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                             initialFocus
                             mode="range"
@@ -79,18 +81,27 @@ export function FulfillmentToolbar({
                             onSelect={onDateRangeChange}
                             numberOfMonths={2}
                         />
+                        <div className="p-3 border-t border-border flex items-center justify-center gap-2 bg-slate-50/50">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8"
+                                onClick={() => {
+                                    onDateRangeChange?.(undefined);
+                                }}
+                            >
+                                ล้าง
+                            </Button>
+                            <Button
+                                size="sm"
+                                className="h-8"
+                                onClick={() => setIsCalendarOpen(false)}
+                            >
+                                ตกลง
+                            </Button>
+                        </div>
                     </PopoverContent>
                 </Popover>
-                {dateRange && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDateRangeChange?.(undefined)}
-                        className="text-slate-500 hover:text-slate-700"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                )}
             </div>
         </div>
     );
