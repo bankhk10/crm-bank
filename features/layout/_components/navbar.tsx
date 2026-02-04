@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { NavbarProps } from "../_types";
 
 const NotificationBell = dynamic(
-  () => import("@/components/features/notifications/notification-bell"),
+  () => import("@/features/notifications").then((mod) => mod.NotificationBell),
   {
     ssr: false,
     loading: () => (
