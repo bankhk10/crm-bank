@@ -82,7 +82,7 @@ export function useFulfillmentColumns() {
                                 colorClass="text-slate-600 hover:text-slate-800 border-slate-200 hover:bg-slate-50"
                             />
                             <ActionButton
-                                href={`/sales/${sale.id}/fulfillment`}
+                                href={`/fulfillment/${sale.id}`}
                                 icon={ClipboardList}
                                 label="จัดการสินค้า"
                                 colorClass="text-blue-600 hover:text-blue-700 border-blue-200 hover:bg-blue-50"
