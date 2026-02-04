@@ -37,7 +37,7 @@ import {
 import type { SaleDetailResponse, StockWarning } from "@/types/sales";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import LotSelector from "@/components/features/fulfillment/lot-selector";
+import { LotSelector } from "@/features/fulfillment";
 
 const FULFILLMENT_STATUSES = [
   "WAITING_FOR_CORRECTION",
@@ -168,8 +168,7 @@ export default function FulfillmentPage({
     if (status === "DELIVERED" || status === "DELIVERY_COMPLETED") {
       if (!deliveryDate) {
         setError(
-          `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${
-            status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
+          `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
           }'`,
         );
         setSubmitting(false);
@@ -359,10 +358,10 @@ export default function FulfillmentPage({
               <p className="font-bold text-gray-900 text-base sm:text-lg">
                 {sale.requestedDeliveryDate
                   ? (() => {
-                      const date = new Date(sale.requestedDeliveryDate);
-                      const year = date.getFullYear() + 543;
-                      return format(date, `d MMM ${year}`, { locale: th });
-                    })()
+                    const date = new Date(sale.requestedDeliveryDate);
+                    const year = date.getFullYear() + 543;
+                    return format(date, `d MMM ${year}`, { locale: th });
+                  })()
                   : "-"}
               </p>
             </div>
@@ -488,9 +487,8 @@ export default function FulfillmentPage({
                         <SelectItem
                           key={st}
                           value={st}
-                          className={`rounded-lg ${
-                            isDisabled ? "opacity-50" : ""
-                          }`}
+                          className={`rounded-lg ${isDisabled ? "opacity-50" : ""
+                            }`}
                           disabled={isDisabled}
                         >
                           {SaleStatusLabels[
@@ -524,8 +522,8 @@ export default function FulfillmentPage({
                     {(status === "COMPLETED" ||
                       status === "DELIVERED" ||
                       status === "DELIVERY_COMPLETED") && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
                   </label>
                   <div className="relative">
                     <DatePicker

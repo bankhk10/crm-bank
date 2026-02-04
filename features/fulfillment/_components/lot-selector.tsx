@@ -10,50 +10,11 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
-interface LotInfo {
-  id: string;
-  lotNumber: string;
-  quantity: number;
-  expiryDate?: Date | string | null;
-  storageLocation?: string | null;
-  productId: string;
-}
-
-interface ExistingAllocation {
-  lotId: string;
-  lotNumber: string;
-  quantity: number;
-}
-
-interface SuggestedAllocation {
-  lotId: string;
-  lotNumber: string;
-  quantity: number;
-}
-
-interface SaleItemLotOption {
-  saleItemId: string;
-  productId: string;
-  productCode: string;
-  productName: string;
-  requiredQuantity: number;
-  availableLots: LotInfo[];
-  existingAllocations?: ExistingAllocation[];
-  suggestedAllocations?: SuggestedAllocation[]; // Auto-calculated allocations from API
-}
-
-interface LotAllocation {
-  saleItemId: string;
-  lotId: string;
-  quantity: number;
-}
-
-interface LotSelectorProps {
-  saleId: string;
-  onAllocationsChange: (allocations: LotAllocation[], isValid: boolean) => void;
-  disabled?: boolean;
-}
-
+import type {
+  LotSelectorProps,
+  SaleItemLotOption,
+  LotAllocation
+} from "../_types/types";
 export function LotSelector({
   saleId,
   onAllocationsChange,
