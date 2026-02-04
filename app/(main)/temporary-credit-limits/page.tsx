@@ -5,7 +5,7 @@ import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import TemporaryCreditLimitTable from "@/components/features/temporary-credit-limits/temporary-credit-limit-table";
+import { TemporaryCreditLimitTable } from "@/features/temporary-credit-limits";
 import type { TemporaryCreditLimitWithRelations } from "@/types/temporary-credit-limit";
 
 export default function TemporaryCreditLimitsPage() {
@@ -85,7 +85,7 @@ export default function TemporaryCreditLimitsPage() {
   const isTyping =
     filterDraft.query !== appliedFilters.query ||
     mkRangeKey(filterDraft.dateRange) !==
-      mkRangeKey(appliedFilters.dateRange) ||
+    mkRangeKey(appliedFilters.dateRange) ||
     filterDraft.status !== appliedFilters.status;
 
   const handleSearchSubmit = () => {
