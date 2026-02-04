@@ -63,7 +63,7 @@ export function useCompanyColumns(
                 accessorKey: "taxId",
                 header: "เลขผู้เสียภาษี",
                 cell: ({ row }) => (
-                    <div className="font-mono text-sm text-slate-600">
+                    <div className="text-sm">
                         {row.original.taxId || "-"}
                     </div>
                 ),
@@ -76,13 +76,13 @@ export function useCompanyColumns(
                     return (
                         <div className="space-y-1 text-sm">
                             {company.email && (
-                                <div className="flex items-center gap-2 text-slate-600">
+                                <div className="flex items-center gap-2">
                                     <Mail className="h-3 w-3" />
                                     <span className="truncate max-w-[150px]">{company.email}</span>
                                 </div>
                             )}
                             {company.phone && (
-                                <div className="flex items-center gap-2 text-slate-600">
+                                <div className="flex items-center gap-2">
                                     <Phone className="h-3 w-3" />
                                     <span>{company.phone}</span>
                                 </div>
@@ -111,49 +111,48 @@ export function useCompanyColumns(
             },
             {
                 id: "actions",
+                header: "จัดการ",
                 enableHiding: false,
                 cell: ({ row }) => {
                     const company = row.original;
 
                     return (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
+                        <div className="flex items-center gap-2">
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 hover:bg-blue-50 border border-blue-100 rounded-md"
+                            >
+                                <Link href={`/companies/${company.id}`}>
+                                    <Eye className="h-4 w-4" />
+                                </Link>
+                            </Button>
+
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                            >
+                                <Link href={`/companies/${company.id}/edit`}>
+                                    <Edit className="h-4 w-4" />
+                                </Link>
+                            </Button>
+
+                            {canDelete && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-100 rounded-md"
+                                    onClick={() => onDeleteRequest(company)}
+                                    aria-label="ลบข้อมูล"
+                                >
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>การจัดการ</DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href={`/companies/${company.id}`}
-                                        className="cursor-pointer"
-                                    >
-                                        <Eye className="mr-2 h-4 w-4" /> รายละเอียด
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link
-                                        href={`/companies/${company.id}/edit`}
-                                        className="cursor-pointer"
-                                    >
-                                        <Edit className="mr-2 h-4 w-4" /> แก้ไขข้อมูล
-                                    </Link>
-                                </DropdownMenuItem>
-                                {canDelete && (
-                                    <>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            className="text-red-600 cursor-pointer"
-                                            onClick={() => onDeleteRequest(company)}
-                                        >
-                                            <Trash2 className="mr-2 h-4 w-4" /> ลบข้อมูล
-                                        </DropdownMenuItem>
-                                    </>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            )}
+                        </div>
                     );
                 },
             },
