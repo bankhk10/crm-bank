@@ -9,27 +9,7 @@ import Can from "@/components/rbac/Can";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 import { X, Save } from "lucide-react";
-
-type CompanyPayload = {
-  name: string;
-  companyCode?: string;
-  shortName?: string;
-  email?: string;
-  phone?: string;
-  taxId?: string;
-  addressLine?: string;
-  province?: string;
-  district?: string;
-  subdistrict?: string;
-  postalCode?: string;
-  status?: string;
-};
-
-type SubmitResult = {
-  success: boolean;
-  issues?: Record<string, string[]>;
-  error?: string;
-};
+import type { CompanyPayload, SubmitResult } from "../_types/types";
 
 interface Props {
   initial?: Partial<CompanyPayload>;
@@ -233,6 +213,19 @@ export default function CompanyForm({
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
         <div className="flex justify-center sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+          <Can permission="company.manage">
+            <RandomFillButton
+              onClick={() => {
+                const random = generateRandomCompany();
+                setPayload((prev) => ({
+                  ...prev,
+                  ...random,
+                }));
+              }}
+            >
+              สุ่มข้อมูล (Test)
+            </RandomFillButton>
+          </Can>
           <Button
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"

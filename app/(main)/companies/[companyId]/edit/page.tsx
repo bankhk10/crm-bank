@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import CompanyForm from "@/components/features/companies/company-form";
+import { CompanyForm } from "@/features/companies";
 
 export default function EditCompanyPage() {
   const { companyId } = useParams() as { companyId: string };

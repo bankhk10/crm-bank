@@ -3,9 +3,9 @@
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import type { Company } from "@/types/companies";
+import type { CompanyRecord } from "../_types/types";
 
-const mockCompanies: Company[] = [
+const mockCompanies: CompanyRecord[] = [
   {
     id: "acme",
     name: "Acme Industries",

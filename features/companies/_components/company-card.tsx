@@ -5,8 +5,12 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit, Trash2 } from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import { CompanyStatusBadge } from "./company-status-badge";
 
 type Props = {
   id: string;
@@ -29,16 +33,6 @@ export default function CompanyCard({
   status,
   onDelete,
 }: Props) {
-  const s = (status ?? "").toString().toUpperCase();
-  const statusMap: Record<string, { label: string; className: string }> = {
-    ACTIVE: { label: "ใช้งาน", className: "bg-emerald-100 text-emerald-800" },
-    INACTIVE: { label: "ไม่ได้ใช้งาน", className: "bg-gray-100 text-gray-800" },
-  };
-  const statusInfo = statusMap[s] ?? {
-    label: status ?? "-",
-    className: "bg-gray-100 text-gray-800",
-  };
-
   const initials = name
     .split(" ")
     .map((s) => s[0])
@@ -65,14 +59,7 @@ export default function CompanyCard({
                 </div>
               ) : null}
             </div>
-            <div
-              className={cn(
-                "text-xs font-medium px-3 py-1 rounded-full",
-                statusInfo.className
-              )}
-            >
-              {statusInfo.label}
-            </div>
+            <CompanyStatusBadge status={status || undefined} />
           </div>
 
           <div className="mt-3 text-sm text-slate-600 space-y-1">
@@ -106,17 +93,15 @@ export default function CompanyCard({
                 asChild
                 size="icon-sm"
                 variant="outline"
-                className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                className="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md h-8 w-8"
                 aria-label={`ดู ${name}`}
               >
                 <Link href={`/companies/${id}`}>
-                  <Eye className="size-4 text-blue-600" />
+                  <Eye className="h-4 w-4 text-blue-600" />
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              ดู {name}
-            </TooltipContent>
+            <TooltipContent side="top">ดู {name}</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -125,17 +110,15 @@ export default function CompanyCard({
                 asChild
                 size="icon-sm"
                 variant="outline"
-                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md h-8 w-8"
                 aria-label={`แก้ไข ${name}`}
               >
                 <Link href={`/companies/${id}/edit`}>
-                  <Edit className="size-4 text-purple-600" />
+                  <Edit className="h-4 w-4 text-purple-600" />
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="top">
-              แก้ไข {name}
-            </TooltipContent>
+            <TooltipContent side="top">แก้ไข {name}</TooltipContent>
           </Tooltip>
 
           {onDelete ? (
@@ -144,16 +127,14 @@ export default function CompanyCard({
                 <Button
                   variant="destructive"
                   size="icon-sm"
-                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md"
+                  className="bg-red-50 text-red-600 hover:bg-red-100 rounded-md h-8 w-8"
                   onClick={() => onDelete(id)}
                   aria-label={`ลบ ${name}`}
                 >
-                  <Trash2 className="size-4 text-red-600" />
+                  <Trash2 className="h-4 w-4 text-red-600" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top">
-                ลบ {name}
-              </TooltipContent>
+              <TooltipContent side="top">ลบ {name}</TooltipContent>
             </Tooltip>
           ) : null}
         </div>

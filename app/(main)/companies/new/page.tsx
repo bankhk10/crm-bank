@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import CompanyForm from "@/components/features/companies/company-form";
+import { CompanyForm } from "@/features/companies";
 
 export default function NewCompanyPage() {
   const router = useRouter();
