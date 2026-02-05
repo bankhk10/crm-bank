@@ -31,38 +31,16 @@ export function useCreditLimitColumns() {
 
                     if (!cl) return "-";
 
-                    let baseAmount =
+                    // Base credit remaining (without temporary credit)
+                    const baseAmount =
                         cl.availableAmount !== undefined
                             ? Number(cl.availableAmount)
                             : Number(cl.limitAmount) - (Number(cl.usedAmount) || 0);
 
-                    let totalRemaining = baseAmount;
-
-                    const tempLimits = r.temporaryCreditLimits || [];
-                    const approvedLimits = tempLimits.filter(
-                        (temp) => temp.status === "APPROVED"
-                    );
-
-                    if (approvedLimits.length > 0) {
-                        const latestTemp = approvedLimits.sort((a, b) => {
-                            const dateA = new Date(a.expiryDate).getTime();
-                            const dateB = new Date(b.expiryDate).getTime();
-                            return dateB - dateA;
-                        })[0];
-
-                        const expiryDate = new Date(latestTemp.expiryDate);
-                        const now = new Date();
-
-                        if (expiryDate >= now) {
-                            totalRemaining =
-                                totalRemaining + Number(latestTemp.requestedAmount);
-                        }
-                    }
-
                     return new Intl.NumberFormat("th-TH", {
                         style: "currency",
                         currency: "THB",
-                    }).format(totalRemaining);
+                    }).format(baseAmount);
                 },
                 meta: { minWidth: 170, width: 170, align: "center" },
             },

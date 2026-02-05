@@ -15,12 +15,13 @@ export function calculateCreditInfo(r: CustomerRecord) {
     };
   }
 
+  // Base credit remaining (without temporary credit)
   const baseAmount =
     cl.availableAmount !== undefined
       ? Number(cl.availableAmount)
       : Number(cl.limitAmount) - (Number(cl.usedAmount) || 0);
 
-  let totalRemaining = baseAmount;
+  const totalRemaining = baseAmount;
   
   const tempLimits = r.temporaryCreditLimits || [];
   const approvedLimits = tempLimits.filter(
@@ -45,7 +46,6 @@ export function calculateCreditInfo(r: CustomerRecord) {
 
     if (expiryDate >= now) {
       tempLimitAmount = Number(latestTemp.requestedAmount);
-      totalRemaining += tempLimitAmount;
     } else {
       isTempExpired = true;
     }
