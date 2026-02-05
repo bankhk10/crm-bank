@@ -611,7 +611,7 @@ enum SaleStatus {
   AWAITING_PAYMENT  // รอดำเนินการชำระเงิน
   PAID              // ชำระเงินแล้ว
   AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
-  DELIVERED         // จัดส่งแล้ว
+  DELIVERED         // ระหว่างขนส่ง
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
   EXPIRED           // หมดอายุ (ไม่ระบุวันส่ง + เลย 3 วัน)
   OVERDUE           // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)

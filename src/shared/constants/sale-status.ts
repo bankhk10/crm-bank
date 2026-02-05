@@ -16,7 +16,7 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   AWAITING_PAYMENT: "รอชำระเงิน",
   PAID: "ชำระแล้ว",
   AWAITING_DELIVERY: "รอจัดส่ง",
-  DELIVERED: "จัดส่งแล้ว",
+  DELIVERED: "ระหว่างขนส่ง",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
@@ -77,7 +77,7 @@ export const SALE_STATUS_STYLES: Record<
     dot: "bg-blue-500",
   },
   DELIVERED: {
-    label: "จัดส่งแล้ว",
+    label: "ระหว่างขนส่ง",
     className:
       "bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-900/30 dark:text-sky-100",
     dot: "bg-sky-500",

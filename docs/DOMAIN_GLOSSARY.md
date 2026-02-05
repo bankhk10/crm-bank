@@ -57,7 +57,7 @@ Alternative:
 | APPROVED | อนุมัติแล้ว | Deliver |
 | REJECTED | ไม่อนุมัติ | Terminal |
 | AWAITING_DELIVERY | รอจัดส่ง | Mark delivered |
-| DELIVERED | จัดส่งแล้ว | Confirm |
+| DELIVERED | ระหว่างขนส่ง | Confirm |
 | COMPLETED | เสร็จสิ้น | Terminal |
 | CANCELLED | ยกเลิก | Terminal |
 | EXPIRED | หมดอายุ | Terminal (ไม่ระบุวันส่ง 3 วัน) |

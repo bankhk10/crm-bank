@@ -199,7 +199,7 @@ const saleStatusLabels: Record<string, { label: string; color: string }> = {
     label: "รอจัดส่ง",
     color: "bg-purple-100 text-purple-800",
   },
-  DELIVERED: { label: "จัดส่งแล้ว", color: "bg-indigo-100 text-indigo-800" },
+  DELIVERED: { label: "ระหว่างขนส่ง", color: "bg-indigo-100 text-indigo-800" },
   DELIVERY_COMPLETED: {
     label: "ส่งเสร็จแล้ว",
     color: "bg-teal-100 text-teal-800",
@@ -441,8 +441,8 @@ export default function CustomerDetailPage() {
               <p className="text-xs text-muted-foreground mt-2">
                 {kpi?.lastPurchaseDate
                   ? format(new Date(kpi.lastPurchaseDate), "d MMM yyyy", {
-                      locale: th,
-                    })
+                    locale: th,
+                  })
                   : "ไม่มีประวัติ"}
               </p>
             </CardContent>
@@ -513,7 +513,7 @@ export default function CustomerDetailPage() {
                         <p className="font-medium">
                           {
                             customerTypeLabels[
-                              customer?.customerType || "DEALER"
+                            customer?.customerType || "DEALER"
                             ]
                           }
                         </p>
@@ -937,10 +937,10 @@ export default function CustomerDetailPage() {
                             <p className="font-medium">
                               {creditLimit.expiryDate
                                 ? format(
-                                    new Date(creditLimit.expiryDate),
-                                    "d MMM yyyy",
-                                    { locale: th }
-                                  )
+                                  new Date(creditLimit.expiryDate),
+                                  "d MMM yyyy",
+                                  { locale: th }
+                                )
                                 : "ไม่มีกำหนด"}
                             </p>
                           </div>
@@ -968,7 +968,7 @@ export default function CustomerDetailPage() {
                                 width: `${Math.min(
                                   (Number(creditLimit.usedAmount) /
                                     Number(creditLimit.limitAmount)) *
-                                    100,
+                                  100,
                                   100
                                 )}%`,
                               }}

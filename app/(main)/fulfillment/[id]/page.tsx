@@ -168,7 +168,7 @@ export default function FulfillmentDetailPage({
         if (status === "DELIVERED" || status === "DELIVERY_COMPLETED") {
             if (!deliveryDate) {
                 setError(
-                    `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
+                    `กรุณาระบุวันที่จัดส่งของเมื่อสถานะเป็น '${status === "DELIVERED" ? "ระหว่างขนส่ง" : "ส่งเสร็จแล้ว"
                     }'`,
                 );
                 setSubmitting(false);
@@ -544,7 +544,7 @@ export default function FulfillmentDetailPage({
                                                 {status === "COMPLETED"
                                                     ? "เสร็จสิ้น"
                                                     : status === "DELIVERED"
-                                                        ? "จัดส่งแล้ว"
+                                                        ? "ระหว่างขนส่ง"
                                                         : "ส่งเสร็จแล้ว"}
                                                 &rdquo;
                                             </p>

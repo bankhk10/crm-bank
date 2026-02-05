@@ -169,7 +169,7 @@ export const SaleStatusLabels: Record<SaleStatus, string> = {
   AWAITING_PAYMENT: "รอดำเนินการชำระเงิน",
   PAID: "ชำระเงินแล้ว",
   AWAITING_DELIVERY: "รอดำเนินการจัดส่งสินค้า",
-  DELIVERED: "จัดส่งแล้ว",
+  DELIVERED: "ระหว่างขนส่ง",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",

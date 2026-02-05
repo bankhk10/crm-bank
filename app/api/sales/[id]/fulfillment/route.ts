@@ -73,7 +73,7 @@ export async function POST(
           return NextResponse.json(
             {
               error: `กรุณาระบุวันที่จัดส่งสินค้าเมื่อสถานะเป็น '${
-                status === "DELIVERED" ? "จัดส่งแล้ว" : "ส่งเสร็จแล้ว"
+                status === "DELIVERED" ? "ระหว่างขนส่ง" : "ส่งเสร็จแล้ว"
               }'`,
             },
             { status: 400 },
@@ -107,7 +107,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากสถานะเป็น 'จัดส่งแล้ว' หรือ 'เสร็จสิ้น'",
+            "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากสถานะเป็น 'ระหว่างขนส่ง' หรือ 'เสร็จสิ้น'",
         },
         { status: 400 },
       );
@@ -126,7 +126,7 @@ export async function POST(
       // Check if delivery is locked
       if ((isAddingDate || isChangingDate) && sale.isDeliveryLocked) {
         return NextResponse.json(
-          { error: "ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่จัดส่งแล้ว" },
+          { error: "ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่ระหว่างขนส่ง" },
           { status: 400 },
         );
       }

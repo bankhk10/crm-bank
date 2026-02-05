@@ -109,7 +109,7 @@ const saleStatusLabels: Record<string, { label: string; color: string }> = {
     label: "รอจัดส่ง",
     color: "bg-purple-100 text-purple-800",
   },
-  DELIVERED: { label: "จัดส่งแล้ว", color: "bg-indigo-100 text-indigo-800" },
+  DELIVERED: { label: "ระหว่างขนส่ง", color: "bg-indigo-100 text-indigo-800" },
   DELIVERY_COMPLETED: {
     label: "ส่งเสร็จแล้ว",
     color: "bg-teal-100 text-teal-800",
@@ -299,11 +299,10 @@ export default function SalespersonDetailPage() {
                 </Badge>
               )}
               <Badge
-                className={`border-0 ${
-                  employee.status === "ACTIVE" || !employee.status
+                className={`border-0 ${employee.status === "ACTIVE" || !employee.status
                     ? "bg-green-500/80 text-white"
                     : "bg-gray-500/80 text-white"
-                }`}
+                  }`}
               >
                 {employee.status === "ACTIVE" || !employee.status ? (
                   <>
@@ -509,29 +508,29 @@ export default function SalespersonDetailPage() {
                 {(employee.addressLine ||
                   employee.province ||
                   employee.district) && (
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        ที่อยู่
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="font-medium">
-                        {[
-                          employee.addressLine,
-                          employee.subdistrict &&
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          ที่อยู่
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="font-medium">
+                          {[
+                            employee.addressLine,
+                            employee.subdistrict &&
                             `ต.${employee.subdistrict}`,
-                          employee.district && `อ.${employee.district}`,
-                          employee.province && `จ.${employee.province}`,
-                          employee.postalCode,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                            employee.district && `อ.${employee.district}`,
+                            employee.province && `จ.${employee.province}`,
+                            employee.postalCode,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
               </TabsContent>
 
               {/* Sales Tab */}
@@ -641,7 +640,7 @@ export default function SalespersonDetailPage() {
                   </CardHeader>
                   <CardContent>
                     {!employee.responsibleCustomers ||
-                    employee.responsibleCustomers.length === 0 ? (
+                      employee.responsibleCustomers.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         <Store className="h-12 w-12 mx-auto mb-3 opacity-50" />
                         <p>ไม่มีลูกค้าในความดูแล</p>
@@ -686,11 +685,10 @@ export default function SalespersonDetailPage() {
                                   </span>
                                 )}
                                 <span
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${
-                                    customer.status === "ACTIVE"
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
                                       ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                       : "bg-slate-50 text-slate-700 border-slate-100"
-                                  }`}
+                                    }`}
                                 >
                                   {customer.status === "ACTIVE"
                                     ? "ปกติ"

@@ -47,7 +47,7 @@ export const STATUS_STYLE: Record<
     dot: "bg-blue-500",
   },
   DELIVERED: {
-    label: "ส่งสินค้าแล้ว",
+    label: "ระหว่างขนส่ง",
     className:
       "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-100",
     dot: "bg-indigo-500",
