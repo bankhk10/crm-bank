@@ -156,7 +156,8 @@ ssh user@your-vps-ip
 cd /opt/crm-bank
 
 # Pull latest code
-git pull origin main
+git reset --hard
+git pull origin Production
 
 # ====================================
 # Option A: Code-only update (no DB changes)
