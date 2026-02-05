@@ -10,7 +10,7 @@ import { getRegionByProvince } from "@/lib/province-region-mapping";
 const resourcePath = "/api/customers";
 
 const customerSchema = z.object({
-  customerCode: z.string().min(1),
+  customerCode: z.string().min(1).optional(),
   customerType: z.enum(["DEALER", "SUBDEALER", "FARMER", "BROKER"]),
   name: z.string().min(2),
   latitude: z.string().optional(),
@@ -234,9 +234,75 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Auto-generate customer code if not provided
+    let customerCode = parsed.data.customerCode;
+    
+    if (!customerCode) {
+      // Get current date in Thailand timezone
+      const now = new Date();
+      const thaiDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+      
+      // Convert to Buddhist year (add 543 years)
+      const buddhistYear = thaiDate.getFullYear() + 543;
+      const yearSuffix = String(buddhistYear).slice(-2); // Last 2 digits
+      const month = String(thaiDate.getMonth() + 1).padStart(2, "0");
+
+      // Determine prefix based on customer type
+      const prefixMap: Record<string, string> = {
+        FARMER: "F",
+        BROKER: "B",
+        DEALER: "D",
+        SUBDEALER: "S",
+      };
+      const prefix = prefixMap[parsed.data.customerType];
+
+      // Generate pattern for current month
+      const pattern = `${prefix}${yearSuffix}${month}`;
+
+      // Find the highest existing customer code for this pattern
+      const existingCustomers = await db.customer.findMany({
+        where: {
+          customerCode: {
+            startsWith: pattern,
+          },
+          deletedAt: null,
+        },
+        select: {
+          customerCode: true,
+        },
+        orderBy: {
+          customerCode: "desc",
+        },
+        take: 1,
+      });
+
+      let runningNumber = 1;
+
+      if (existingCustomers.length > 0) {
+        const lastCode = existingCustomers[0].customerCode;
+        // Extract the running number from the last code
+        const lastRunningNumber = parseInt(lastCode.slice(-4), 10);
+        if (!isNaN(lastRunningNumber)) {
+          runningNumber = lastRunningNumber + 1;
+        }
+      }
+
+      // Check if we've exceeded the maximum running number
+      if (runningNumber > 9999) {
+        return NextResponse.json(
+          { error: "Maximum customer codes reached for this month" },
+          { status: 400 }
+        );
+      }
+
+      // Format the running number with leading zeros
+      const runningNumberStr = String(runningNumber).padStart(4, "0");
+      customerCode = `${pattern}${runningNumberStr}`;
+    }
+
     const customer = await db.customer.create({
       data: {
-        customerCode: parsed.data.customerCode,
+        customerCode,
         customerType: parsed.data.customerType,
         name: parsed.data.name,
         prefix: parsed.data.prefix,
