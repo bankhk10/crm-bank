@@ -20,8 +20,8 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "CSONE : คร็อพ ซายน์ ตราปืนใหญ่",
-  description: "CSONE : คร็อพ ซายน์ ตราปืนใหญ่",
+  title: "CS ONE : คร็อพ ซายน์ ตราปืนใหญ่",
+  description: "CS ONE : คร็อพ ซายน์ ตราปืนใหญ่",
   icons: {
     icon: "/images/logo.png",
     shortcut: "/images/logo.png",
