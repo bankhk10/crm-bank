@@ -97,7 +97,7 @@ export function useCreditLimitColumns() {
                                         currency: "THB",
                                     }).format(0)}
                                 </span>
-                                <span className="ml-2 text-xs text-red-600">(หมดอายุ)</span>
+                                {/* <span className="ml-2 text-xs text-red-600">(หมดอายุ)</span> */}
                             </div>
                         );
                     }
