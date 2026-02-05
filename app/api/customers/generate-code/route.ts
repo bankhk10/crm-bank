@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if we've exceeded the maximum running number
-    if (runningNumber > 999) {
+    if (runningNumber > 9999) {
       return NextResponse.json(
         { error: "Maximum customer codes reached for this month" },
         { status: 400 }
