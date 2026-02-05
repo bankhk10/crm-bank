@@ -685,13 +685,12 @@ const StockLotsSection: React.FC<
             <div className="bg-muted/30 px-4 py-3 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span
-                  className={`text-sm font-bold px-2 py-1 rounded ${
-                    lot.id
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "bg-green-100 text-green-700"
-                  }`}
+                  className={`text-sm font-bold px-2 py-1 rounded ${lot.id
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-green-100 text-green-700"
+                    }`}
                 >
-                  {lot.id ? lot.lotNumber : `Lot-${index + 1} (ใหม่)`}
+                  {lot.id ? 'LOT NO. : ' + lot.lotNumber : `Lot-${index + 1} (ใหม่)`}
                 </span>
                 {lot.isUsed && (
                   <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
@@ -717,7 +716,7 @@ const StockLotsSection: React.FC<
             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  เลขที่นำเข้า
+                  เลขที่ล็อต
                 </Label>
                 <Input
                   type="text"
