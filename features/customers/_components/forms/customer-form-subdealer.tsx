@@ -78,39 +78,7 @@ export default function CustomerFormSubdealer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-
-  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-
-  // Check if customer code already exists
-  const checkCustomerCode = useCallback(
-    async (code: string) => {
-      if (!code?.trim()) return;
-      try {
-        const excludeId = (initial as any)?.id || "";
-        const res = await fetch(
-          `/api/customers/check-code?code=${encodeURIComponent(code)}${excludeId ? `&excludeId=${excludeId}` : ""
-          }`,
-        );
-        const json = await res.json();
-        if (json.exists) {
-          setFieldErrors((prev) => ({
-            ...prev,
-            customerCode: [json.message || `รหัสลูกค้า "${code}" ถูกใช้แล้ว`],
-          }));
-        } else {
-          setFieldErrors((prev) => {
-            const next = { ...prev };
-            delete next.customerCode;
-            return next;
-          });
-        }
-      } catch {
-        // ignore network errors
-      }
-    },
-    [initial],
-  );
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
   const randomFillGenerator = useCallback(async () => {
@@ -161,6 +129,32 @@ export default function CustomerFormSubdealer({
     generator: randomFillGenerator,
     onGenerated: handleRandomFillGenerated,
   });
+
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  // Auto-generate customer code on mount for new customers
+  useEffect(() => {
+    async function generateCustomerCode() {
+      // Only generate for new customers (no initial.customerCode)
+      if (initial.customerCode) return;
+
+      setGeneratingCode(true);
+      try {
+        const res = await fetch(`/api/customers/generate-code?type=SUBDEALER`);
+        const json = await res.json();
+        if (json.customerCode) {
+          setValues((p: any) => ({ ...p, customerCode: json.customerCode }));
+        }
+      } catch (err) {
+        console.error("Failed to generate customer code:", err);
+      } finally {
+        setGeneratingCode(false);
+      }
+    }
+
+    generateCustomerCode();
+  }, [initial.customerCode]);
 
   useEffect(() => {
     async function fetchOptions() {
@@ -308,12 +302,7 @@ export default function CustomerFormSubdealer({
       nextFieldErrors[field] = [msg];
     };
 
-    if (!values.customerCode?.trim()) {
-      pushErr("customerCode", "กรุณากรอกรหัสลูกค้า");
-    } else if (fieldErrors.customerCode?.length) {
-      // If there's already a duplicate error from onBlur check
-      nextFieldErrors.customerCode = fieldErrors.customerCode;
-    }
+    // customerCode is auto-generated, no validation needed
     if (!values.companyName?.trim()) {
       pushErr("name", "กรุณากรอกชื่อร้านค้า");
     }
@@ -513,19 +502,11 @@ export default function CustomerFormSubdealer({
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
         <FormInput
-          label="รหัสลูกค้า"
-          value={values.customerCode}
-          onChange={(e) => {
-            setValues((p: any) => ({ ...p, customerCode: e.target.value }));
-            clearFieldError("customerCode");
-          }}
-          onBlur={(e) => {
-            const code = e.target.value?.trim();
-            if (code) checkCustomerCode(code);
-          }}
-          required
-          error={fieldErrors.customerCode?.[0]}
-          placeholder=""
+          label="รหัสลูกค้า (สร้างอัตโนมัติ)"
+          value={values.customerCode || (generatingCode ? "กำลังสร้างรหัส..." : "")}
+          onChange={() => { }}
+          disabled={true}
+          placeholder="รหัสจะถูกสร้างอัตโนมัติ"
         />
 
         <FormInput

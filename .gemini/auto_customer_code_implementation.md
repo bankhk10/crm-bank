@@ -63,6 +63,14 @@ Changes:
 - Same changes as FARMER form
 - Auto-generates with `type=BROKER` parameter
 
+### 5. Updated SUBDEALER Form
+**File**: `features/customers/_components/forms/customer-form-subdealer.tsx`
+
+Changes:
+- Same changes as FARMER/BROKER forms
+- Auto-generates with `type=SUBDEALER` parameter
+- Updated validation logic to remove manual code requirement
+
 ## User Experience
 
 ### Creating New Customer
