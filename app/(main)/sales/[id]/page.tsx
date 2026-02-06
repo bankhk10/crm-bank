@@ -171,18 +171,18 @@ export default function SaleDetailPage({
       customer.shippingSubdistrict
         ? `ต.${customer.shippingSubdistrict}`
         : customer.subdistrict
-        ? `ต.${customer.subdistrict}`
-        : "",
+          ? `ต.${customer.subdistrict}`
+          : "",
       customer.shippingDistrict
         ? `อ.${customer.shippingDistrict}`
         : customer.district
-        ? `อ.${customer.district}`
-        : "",
+          ? `อ.${customer.district}`
+          : "",
       customer.shippingProvince
         ? `จ.${customer.shippingProvince}`
         : customer.province
-        ? `จ.${customer.province}`
-        : "",
+          ? `จ.${customer.province}`
+          : "",
       customer.shippingPostalCode || customer.postalCode,
     ].filter(Boolean);
     return shippingParts.length > 0
@@ -218,25 +218,22 @@ export default function SaleDetailPage({
                   sale.billingAddress ||
                   [
                     sale.customer.billingAddressLine ||
-                      sale.customer.addressLine,
+                    sale.customer.addressLine,
                     sale.customer.billingSubdistrict ||
-                    sale.customer.subdistrict
-                      ? `ต.${
-                          sale.customer.billingSubdistrict ||
-                          sale.customer.subdistrict
-                        }`
+                      sale.customer.subdistrict
+                      ? `ต.${sale.customer.billingSubdistrict ||
+                      sale.customer.subdistrict
+                      }`
                       : "",
                     sale.customer.billingDistrict || sale.customer.district
-                      ? `อ.${
-                          sale.customer.billingDistrict ||
-                          sale.customer.district
-                        }`
+                      ? `อ.${sale.customer.billingDistrict ||
+                      sale.customer.district
+                      }`
                       : "",
                     sale.customer.billingProvince || sale.customer.province
-                      ? `จ.${
-                          sale.customer.billingProvince ||
-                          sale.customer.province
-                        }`
+                      ? `จ.${sale.customer.billingProvince ||
+                      sale.customer.province
+                      }`
                       : "",
                     sale.customer.billingPostalCode || sale.customer.postalCode,
                   ]
@@ -377,25 +374,22 @@ export default function SaleDetailPage({
                   sale.billingAddress ||
                   [
                     sale.customer.billingAddressLine ||
-                      sale.customer.addressLine,
+                    sale.customer.addressLine,
                     sale.customer.billingSubdistrict ||
-                    sale.customer.subdistrict
-                      ? `ต.${
-                          sale.customer.billingSubdistrict ||
-                          sale.customer.subdistrict
-                        }`
+                      sale.customer.subdistrict
+                      ? `ต.${sale.customer.billingSubdistrict ||
+                      sale.customer.subdistrict
+                      }`
                       : "",
                     sale.customer.billingDistrict || sale.customer.district
-                      ? `อ.${
-                          sale.customer.billingDistrict ||
-                          sale.customer.district
-                        }`
+                      ? `อ.${sale.customer.billingDistrict ||
+                      sale.customer.district
+                      }`
                       : "",
                     sale.customer.billingProvince || sale.customer.province
-                      ? `จ.${
-                          sale.customer.billingProvince ||
-                          sale.customer.province
-                        }`
+                      ? `จ.${sale.customer.billingProvince ||
+                      sale.customer.province
+                      }`
                       : "",
                     sale.customer.billingPostalCode || sale.customer.postalCode,
                   ]
@@ -428,12 +422,12 @@ export default function SaleDetailPage({
                 value={
                   (sale as any).deliveryDate
                     ? format(
-                        new Date((sale as any).deliveryDate),
-                        "dd/MM/yyyy",
-                        {
-                          locale: th,
-                        }
-                      )
+                      new Date((sale as any).deliveryDate),
+                      "dd/MM/yyyy",
+                      {
+                        locale: th,
+                      }
+                    )
                     : "-"
                 }
               />
@@ -443,13 +437,12 @@ export default function SaleDetailPage({
                   label="วันที่ชำระเงิน"
                   value={
                     <span
-                      className={`${
-                        sale.creditDueDate &&
+                      className={`${sale.creditDueDate &&
                         new Date(sale.paymentDate) >
-                          new Date(sale.creditDueDate)
-                          ? "text-red-600"
-                          : "text-green-600"
-                      }`}
+                        new Date(sale.creditDueDate)
+                        ? "text-red-600"
+                        : "text-green-600"
+                        }`}
                     >
                       {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
                         locale: th,
@@ -501,11 +494,17 @@ export default function SaleDetailPage({
                       <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-sm sm:text-base font-semibold text-gray-700">
                         สินค้า
                       </th>
+                      <th className="py-3 sm:py-4 px-3 sm:px-6 text-center text-sm sm:text-base font-semibold text-gray-700 hidden sm:table-cell">
+                        บรรจุ
+                      </th>
                       <th className="py-3 sm:py-4 px-3 sm:px-6 text-right text-sm sm:text-base font-semibold text-gray-700">
                         จำนวน
                       </th>
-                      <th className="py-3 sm:py-4 px-3 sm:px-6 text-right text-sm sm:text-base font-semibold text-gray-700 hidden sm:table-cell">
+                      <th className="py-3 sm:py-4 px-3 sm:px-6 text-right text-sm sm:text-base font-semibold text-gray-700 hidden lg:table-cell">
                         ราคา/หน่วย
+                      </th>
+                      <th className="py-3 sm:py-4 px-3 sm:px-6 text-right text-sm sm:text-base font-semibold text-gray-700 hidden md:table-cell">
+                        ราคา/ลัง
                       </th>
                       <th className="py-3 sm:py-4 px-3 sm:px-6 text-right text-sm sm:text-base font-semibold text-gray-700">
                         รวม
@@ -513,54 +512,84 @@ export default function SaleDetailPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {sale.items.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200"
-                      >
-                        <td className="py-4 sm:py-5 px-3 sm:px-6">
-                          <div className="flex flex-col gap-1 sm:gap-2">
-                            <div className="font-semibold text-gray-900 text-sm sm:text-base">
-                              {item.product.name}
+                    {sale.items.map((item) => {
+                      const packSize = parseFloat(
+                        item.product.packageSizePerBox || "1"
+                      );
+                      const multiplier =
+                        isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                      const cartonPrice = Number(item.unitPrice) * multiplier;
+
+                      return (
+                        <tr
+                          key={item.id}
+                          className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200"
+                        >
+                          <td className="py-4 sm:py-5 px-3 sm:px-6">
+                            <div className="flex flex-col gap-1 sm:gap-2">
+                              <div className="font-semibold text-gray-900 text-sm sm:text-base">
+                                {item.product.name}
+                              </div>
+                              <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded inline-block w-fit">
+                                {item.product.productCode}
+                              </div>
+                              <div className="lg:hidden text-xs text-gray-600 mt-1">
+                                {Number(item.unitPrice).toLocaleString(
+                                  "th-TH",
+                                  {
+                                    minimumFractionDigits: 2,
+                                  }
+                                )}{" "}
+                                / หน่วย
+                              </div>
+                              <div className="md:hidden text-xs text-gray-600">
+                                {Number(cartonPrice).toLocaleString("th-TH", {
+                                  minimumFractionDigits: 2,
+                                })}{" "}
+                                / ลัง
+                              </div>
+                              {item.priceModified && (
+                                <span className="text-xs font-medium text-amber-700 bg-gradient-to-r from-amber-100 to-yellow-100 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-sm w-fit mt-1">
+                                  <Tag className="h-3 w-3" />
+                                  ราคาพิเศษ
+                                </span>
+                              )}
                             </div>
-                            <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded inline-block w-fit">
-                              {item.product.productCode}
-                            </div>
-                            <div className="sm:hidden text-xs text-gray-600">
-                              ฿
-                              {Number(item.unitPrice).toLocaleString("th-TH", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </div>
-                            {item.priceModified && (
-                              <span className="text-xs font-medium text-amber-700 bg-gradient-to-r from-amber-100 to-yellow-100 px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-sm w-fit">
-                                <Tag className="h-3 w-3" />
-                                ราคาพิเศษ
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-4 sm:py-5 px-3 sm:px-6 text-right">
-                          <span className="inline-flex items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] px-2 sm:px-3 py-1 bg-gray-100 text-gray-800 font-semibold rounded-lg text-sm sm:text-base">
-                            {item.quantity}
-                          </span>
-                        </td>
-                        <td className="py-4 sm:py-5 px-3 sm:px-6 text-right text-gray-700 font-medium hidden sm:table-cell">
-                          ฿
-                          {Number(item.unitPrice).toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
-                        <td className="py-4 sm:py-5 px-3 sm:px-6 text-right">
-                          <span className="text-base sm:text-lg font-bold text-gray-900">
+                          </td>
+                          <td className="py-4 sm:py-5 px-3 sm:px-6 text-center text-gray-600 hidden sm:table-cell">
+                            {item.product.packageSizePerBox || "-"}
+                          </td>
+                          <td className="py-4 sm:py-5 px-3 sm:px-6 text-right">
+                            <span className="inline-flex items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] px-2 sm:px-3 py-1 bg-gray-100 text-gray-800 font-semibold rounded-lg text-sm sm:text-base">
+                              {item.quantity}
+                            </span>
+                            <span className="ml-1 text-xs text-gray-500">
+                              ลัง
+                            </span>
+                          </td>
+                          <td className="py-4 sm:py-5 px-3 sm:px-6 text-right text-gray-700 font-medium hidden lg:table-cell">
                             ฿
-                            {Number(item.totalPrice).toLocaleString("th-TH", {
+                            {Number(item.unitPrice).toLocaleString("th-TH", {
                               minimumFractionDigits: 2,
                             })}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="py-4 sm:py-5 px-3 sm:px-6 text-right text-gray-700 font-medium hidden md:table-cell">
+                            ฿
+                            {Number(cartonPrice).toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </td>
+                          <td className="py-4 sm:py-5 px-3 sm:px-6 text-right">
+                            <span className="text-base sm:text-lg font-bold text-gray-900">
+                              ฿
+                              {Number(item.totalPrice).toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -780,11 +809,10 @@ function ReferenceSection({
           <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
             <span className="text-slate-500">วันที่ชำระเงิน:</span>
             <span
-              className={`font-medium ${
-                creditDueDate && new Date(paymentDate) > new Date(creditDueDate)
-                  ? "text-red-600"
-                  : "text-green-600"
-              }`}
+              className={`font-medium ${creditDueDate && new Date(paymentDate) > new Date(creditDueDate)
+                ? "text-red-600"
+                : "text-green-600"
+                }`}
             >
               {format(new Date(paymentDate), "dd/MM/yyyy", { locale: th })}
             </span>

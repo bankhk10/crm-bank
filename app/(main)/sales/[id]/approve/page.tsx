@@ -343,9 +343,8 @@ export default function ApproveSalePage({
                     <div className="rounded-xl bg-white p-3 border border-orange-100">
                       <span className="text-gray-500 text-xs">ส่วนต่าง</span>
                       <p
-                        className={`font-bold ${
-                          diffPositive ? "text-green-600" : "text-red-600"
-                        }`}
+                        className={`font-bold ${diffPositive ? "text-green-600" : "text-red-600"
+                          }`}
                       >
                         {diffPositive ? "+" : ""}
                         {diff.toLocaleString("th-TH", {
@@ -394,11 +393,10 @@ export default function ApproveSalePage({
       {/* 💳 Credit Information — Glass Premium UI */}
       {sale.paymentTerm !== "PREPAID" && (
         <Card
-          className={`backdrop-blur-lg rounded-2xl p-6 shadow-sm border-2 ${
-            creditInfo.willExceedLimit
-              ? "border-red-300 bg-red-50/60"
-              : "border-green-300 bg-green-50/60"
-          }`}
+          className={`backdrop-blur-lg rounded-2xl p-6 shadow-sm border-2 ${creditInfo.willExceedLimit
+            ? "border-red-300 bg-red-50/60"
+            : "border-green-300 bg-green-50/60"
+            }`}
         >
           <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
             <CreditCard className="text-blue-600" /> ข้อมูลวงเงินเครดิต
@@ -419,9 +417,8 @@ export default function ApproveSalePage({
             <div className="bg-white p-4 rounded-xl border shadow-sm">
               <span className="text-sm text-gray-600">คงเหลือ</span>
               <p
-                className={`font-bold text-xl mt-1 ${
-                  creditInfo.willExceedLimit ? "text-red-600" : "text-green-600"
-                }`}
+                className={`font-bold text-xl mt-1 ${creditInfo.willExceedLimit ? "text-red-600" : "text-green-600"
+                  }`}
               >
                 ฿{creditInfo.availableCredit.toLocaleString()}
               </p>
@@ -458,14 +455,17 @@ export default function ApproveSalePage({
               );
               const priceChanged = Boolean(item.priceModified);
 
+              const packSize = parseFloat(item.product.packageSizePerBox || "1");
+              const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+              const cartonPrice = currentUnitPrice * multiplier;
+
               return (
                 <div
                   key={item.id ?? i}
-                  className={`rounded-2xl border-2 p-4 transition-all shadow-sm ${
-                    priceChanged
-                      ? "bg-orange-50/70 border-orange-300"
-                      : "bg-white border-gray-100"
-                  }`}
+                  className={`rounded-2xl border-2 p-4 transition-all shadow-sm ${priceChanged
+                    ? "bg-orange-50/70 border-orange-300"
+                    : "bg-white border-gray-100"
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
@@ -483,35 +483,56 @@ export default function ApproveSalePage({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div className="text-center">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {/* Row 1: Package Size & Quantity */}
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <span className="text-gray-500 text-xs block mb-1">
+                        บรรจุ
+                      </span>
+                      <p className="font-bold text-gray-900">
+                        {item.product.packageSizePerBox || "-"}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-2">
                       <span className="text-gray-500 text-xs block mb-1">
                         จำนวน
                       </span>
-                      <p className="font-bold text-gray-900">{item.quantity}</p>
+                      <p className="font-bold text-gray-900">{item.quantity} ลัง</p>
                     </div>
-                    <div className="text-center">
+
+                    {/* Row 2: Unit Price & Carton Price */}
+                    <div className="bg-gray-50 rounded-lg p-2">
                       <span className="text-gray-500 text-xs block mb-1">
                         ราคา/หน่วย
                       </span>
                       <p
-                        className={`font-bold ${
-                          priceChanged ? "text-orange-700" : "text-gray-900"
-                        }`}
+                        className={`font-bold ${priceChanged ? "text-orange-700" : "text-gray-900"
+                          }`}
                       >
                         {currentUnitPrice.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
                         })}
                       </p>
                     </div>
-                    <div className="text-center">
+                    <div className="bg-gray-50 rounded-lg p-2">
                       <span className="text-gray-500 text-xs block mb-1">
-                        รวม
+                        ราคา/ลัง
+                      </span>
+                      <p className="font-bold text-gray-900">
+                        {cartonPrice.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Row 3: Total */}
+                    <div className="col-span-2 bg-blue-50/50 rounded-lg p-3 text-right">
+                      <span className="text-gray-500 text-xs block mb-1">
+                        ราคารวม
                       </span>
                       <p
-                        className={`font-bold ${
-                          priceChanged ? "text-orange-700" : "text-blue-600"
-                        }`}
+                        className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
+                          }`}
                       >
                         {currentTotal.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -575,30 +596,41 @@ export default function ApproveSalePage({
         {/* 💻 Desktop Table View */}
         <div className="hidden lg:block">
           <div className="p-6 space-y-3">
+            <div className="grid grid-cols-12 gap-4 px-5 py-2 text-sm text-gray-500 font-semibold border-b border-gray-100">
+              <div className="col-span-4">สินค้า</div>
+              <div className="col-span-2 text-center">บรรจุ</div>
+              <div className="col-span-1 text-center">จำนวน</div>
+              <div className="col-span-2 text-right">ราคา/หน่วย</div>
+              <div className="col-span-2 text-right">ราคา/ลัง</div>
+              <div className="col-span-1 text-right">รวม</div>
+            </div>
             {sale.items.map((item, i) => {
               const originalUnitPrice = Number(
-                item.originalPrice ?? item.unitPrice ?? 0,
+                item.originalPrice ?? item.unitPrice ?? 0
               );
               const currentUnitPrice = Number(item.unitPrice ?? 0);
               const quantity = Number(item.quantity ?? 0);
               const currentTotal = Number(
-                item.totalPrice ?? currentUnitPrice * quantity,
+                item.totalPrice ?? currentUnitPrice * quantity
               );
               const originalTotal = originalUnitPrice * quantity;
               const priceChanged = Boolean(item.priceModified);
 
+              const packSize = parseFloat(item.product.packageSizePerBox || "1");
+              const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+              const cartonPrice = currentUnitPrice * multiplier;
+
               return (
                 <div
                   key={item.id ?? i}
-                  className={`rounded-2xl border-2 p-5 transition-all shadow-sm hover:shadow-md ${
-                    priceChanged
-                      ? "bg-orange-50/70 border-orange-300"
-                      : "bg-white border-gray-100"
-                  }`}
+                  className={`rounded-2xl border-2 p-4 transition-all shadow-sm hover:shadow-md ${priceChanged
+                    ? "bg-orange-50/70 border-orange-300"
+                    : "bg-white border-gray-100"
+                    }`}
                 >
                   <div className="grid grid-cols-12 gap-4 items-center">
                     {/* Product Info */}
-                    <div className="col-span-5">
+                    <div className="col-span-4">
                       <div className="flex items-start gap-3">
                         <div>
                           <p className="font-bold text-gray-900 text-base">
@@ -616,25 +648,25 @@ export default function ApproveSalePage({
                       </div>
                     </div>
 
-                    {/* Quantity */}
+                    {/* Package Size */}
                     <div className="col-span-2 text-center">
-                      <span className="text-gray-500 text-xs block mb-1">
-                        จำนวน
-                      </span>
+                      <p className="text-gray-900">
+                        {item.product.packageSizePerBox || "-"}
+                      </p>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="col-span-1 text-center">
                       <p className="font-bold text-gray-900 text-lg">
                         {item.quantity}
                       </p>
                     </div>
 
                     {/* Unit Price */}
-                    <div className="col-span-2 text-center">
-                      <span className="text-gray-500 text-xs block mb-1">
-                        ราคา/หน่วย
-                      </span>
+                    <div className="col-span-2 text-right">
                       <p
-                        className={`font-bold text-lg ${
-                          priceChanged ? "text-orange-700" : "text-gray-900"
-                        }`}
+                        className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-gray-900"
+                          }`}
                       >
                         {currentUnitPrice.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -649,15 +681,20 @@ export default function ApproveSalePage({
                       )}
                     </div>
 
+                    {/* Carton Price */}
+                    <div className="col-span-2 text-right">
+                      <p className="font-bold text-gray-900 text-lg">
+                        {cartonPrice.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+
                     {/* Total */}
-                    <div className="col-span-3 text-right">
-                      <span className="text-gray-500 text-xs block mb-1">
-                        รวม
-                      </span>
+                    <div className="col-span-1 text-right">
                       <p
-                        className={`font-bold text-xl ${
-                          priceChanged ? "text-orange-700" : "text-blue-600"
-                        }`}
+                        className={`font-bold text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"
+                          }`}
                       >
                         {currentTotal.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
