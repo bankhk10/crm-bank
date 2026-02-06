@@ -47,6 +47,16 @@ import { SaleRecord, SaleFormProps } from "@/features/sales";
 - `sale.approve`: Approve sales.
 - `sales_manager`, `sales_admin`: Special roles for viewing all sales.
 
+## Calculation Logic
+
+Sales totals are calculated using the following formula:
+
+- **Item Total Price**: `Quantity (Cartons) × Unit Price (Per Unit) × Package Size (Per Carton)`
+- **Subtotal**: Sum of all Item Total Prices
+- **Total Amount (Net)**: `Subtotal - Shipping Cost - Other Costs`
+
+> **Note**: If `packageSizePerBox` is not defined or invalid for a product, it defaults to **1**.
+
 ## Dependencies
 
 - `@/components/ui`: UI primitives.

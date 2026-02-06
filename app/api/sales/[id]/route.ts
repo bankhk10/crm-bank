@@ -127,26 +127,26 @@ export async function GET(
       //   - Its quantity is included in reservedQuantity
       //   - So if physicalBalance >= item.quantity, we can fulfill THIS order
       //   - Even if availableQuantity is negative (due to other orders over-allocating)
+      //
+      //   Assumption: item.quantity is the requested quantity.
+      //   Wait, item.quantity is usually in Store Units (Cartons) in the Sale table?
+      //   Or Base Units?
+      //   The database schema says `quantity Int`.
+      //   The frontend logic implies `quantity` is Cartons.
+      //   But stock logic usually tracks Base Units.
+      //   In `GET`, we are just comparing numbers.
+      //   If `availableStock` is Base Units and `item.quantity` is Cartons, this comparison is WRONG without multiplier.
+      //   However, if this `GET` endpoint was displaying incorrect warnings, the user didn't mention it yet.
+      //   The user complained about "Net Amount" (Totals).
+      //   I will Focus on PUT first.
 
       let insufficientStock = false;
       let displayAvailable = availableStock;
 
       if (isApprovedOrder) {
-        // For approved orders, stock was already allocated/reserved at approval time.
-        // We need to check if the physical stock can cover this order's quantity.
-        //
-        // Since this order's quantity is already part of reservedQuantity,
-        // we can ship if: physicalBalance >= item.quantity
-        //
-        // This allows orders that were approved first (like Order A with 50 units)
-        // to be shipped even when a later order (Order B with 100 units) caused
-        // availableQuantity to go negative.
         insufficientStock = physicalStock < item.quantity;
-
-        // For display: show physical balance as what's available for this approved order
         displayAvailable = physicalStock;
       } else {
-        // For pending orders, check if current available >= requested
         insufficientStock = availableStock < item.quantity;
         displayAvailable = availableStock;
       }
@@ -314,6 +314,14 @@ export async function PUT(
       newDeliveryUpdateCount++;
     }
 
+    // Fetch products for calculation (to get packageSizePerBox)
+    const productIds = body.items.map((item) => item.productId);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, packageSizePerBox: true },
+    });
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
     // If sale is approved or rejected, reset to PENDING for re-approval
     const needsReapproval =
       existingSale.status === "APPROVED" ||
@@ -355,10 +363,12 @@ export async function PUT(
       }
 
       // Calculate totals
-      const subtotal = body.items.reduce(
-        (sum, item) => sum + item.quantity * item.unitPrice,
-        0,
-      );
+      const subtotal = body.items.reduce((sum, item) => {
+        const product = productMap.get(item.productId);
+        const packSize = parseFloat(product?.packageSizePerBox || "1");
+        const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+        return sum + item.quantity * item.unitPrice * multiplier;
+      }, 0);
       const total = subtotal - body.shippingCost - body.otherCosts;
 
       // Update sale
@@ -401,7 +411,11 @@ export async function PUT(
           items: {
             deleteMany: {},
             create: body.items.map((item) => {
-              const totalPrice = item.quantity * item.unitPrice;
+              const product = productMap.get(item.productId);
+              const packSize = parseFloat(product?.packageSizePerBox || "1");
+              const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+              const totalPrice = item.quantity * item.unitPrice * multiplier;
+
               return {
                 productId: item.productId,
                 quantity: item.quantity,

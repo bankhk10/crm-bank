@@ -242,11 +242,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate totals
-    const subtotal = body.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    );
+    // Fetch all products involved in the sale for calculations and stock checks
+    const productIds = body.items.map((item) => item.productId);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      include: {
+        stockLots: {
+          where: { isUsed: false },
+        },
+      },
+    });
+
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    // Calculate totals with package size multiplier (matching frontend logic)
+    const subtotal = body.items.reduce((sum, item) => {
+      const product = productMap.get(item.productId);
+      const packSize = parseFloat(product?.packageSizePerBox || "1");
+      const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+      
+      return sum + item.quantity * item.unitPrice * multiplier;
+    }, 0);
+
     const total = subtotal - body.shippingCost - body.otherCosts;
 
     // Check credit limit for CREDIT payment term
@@ -283,25 +300,24 @@ export async function POST(request: NextRequest) {
     // Check stock availability (warnings only, allow save)
     const stockWarnings = [];
     for (const item of body.items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        include: {
-          stockLots: {
-            where: { isUsed: false },
-          },
-        },
-      });
+      const product = productMap.get(item.productId);
 
       if (product) {
         const totalStock = product.stockLots.reduce(
           (sum, lot) => sum + lot.quantity,
           0,
         );
-        if (totalStock < item.quantity) {
+        // Note: Stock quantity is usually in base units (e.g. bottles)
+        // Item quantity is in Cartons.
+        const packSize = parseFloat(product.packageSizePerBox || "1");
+        const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+        const requestedUnits = item.quantity * multiplier;
+
+        if (totalStock < requestedUnits) {
           stockWarnings.push({
             productId: product.id,
             productName: product.name,
-            requested: item.quantity,
+            requested: item.quantity, 
             available: totalStock,
           });
         }
@@ -350,7 +366,11 @@ export async function POST(request: NextRequest) {
         createdById: session.user.id,
         items: {
           create: body.items.map((item) => {
-            const totalPrice = item.quantity * item.unitPrice;
+            const product = productMap.get(item.productId);
+            const packSize = parseFloat(product?.packageSizePerBox || "1");
+            const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+            const totalPrice = item.quantity * item.unitPrice * multiplier;
+            
             return {
               productId: item.productId,
               quantity: item.quantity,
