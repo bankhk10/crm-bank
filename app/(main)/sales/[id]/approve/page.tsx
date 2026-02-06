@@ -598,11 +598,11 @@ export default function ApproveSalePage({
           <div className="p-6 space-y-3">
             <div className="grid grid-cols-12 gap-4 px-5 py-2 text-sm text-gray-500 font-semibold border-b border-gray-100">
               <div className="col-span-4">สินค้า</div>
-              <div className="col-span-2 text-center">บรรจุ</div>
-              <div className="col-span-1 text-center">จำนวน</div>
-              <div className="col-span-2 text-right">ราคา/หน่วย</div>
-              <div className="col-span-2 text-right">ราคา/ลัง</div>
-              <div className="col-span-1 text-right">รวม</div>
+              <div className="col-span-1 text-center">บรรจุ</div>
+              <div className="col-span-1 text-center">จำนวน (ลัง)</div>
+              <div className="col-span-2 text-right">ราคา (หน่วย)</div>
+              <div className="col-span-2 text-right">ราคา (ลัง)</div>
+              <div className="col-span-2 text-right">รวม</div>
             </div>
             {sale.items.map((item, i) => {
               const originalUnitPrice = Number(
@@ -649,7 +649,7 @@ export default function ApproveSalePage({
                     </div>
 
                     {/* Package Size */}
-                    <div className="col-span-2 text-center">
+                    <div className="col-span-1 text-center">
                       <p className="text-gray-900">
                         {item.product.packageSizePerBox || "-"}
                       </p>
@@ -691,7 +691,7 @@ export default function ApproveSalePage({
                     </div>
 
                     {/* Total */}
-                    <div className="col-span-1 text-right">
+                    <div className="col-span-2 text-right">
                       <p
                         className={`font-bold text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"
                           }`}
