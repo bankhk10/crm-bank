@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
-    MoreHorizontal,
     Eye,
     Edit,
     Trash2,
@@ -15,14 +14,6 @@ import {
     Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { CompanyStatusBadge } from "../_components/company-status-badge";
 import type { CompanyRecord } from "../_types/types";
 
@@ -104,7 +95,7 @@ export function useCompanyColumns(
                 header: "วันที่สร้าง",
                 cell: ({ row }) =>
                     row.original.createdAt
-                        ? format(new Date(row.original.createdAt), "d MMM yy", {
+                        ? format(new Date(row.original.createdAt), "d MMM yyyy", {
                             locale: th,
                         })
                         : "-",
