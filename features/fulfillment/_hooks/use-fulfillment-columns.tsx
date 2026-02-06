@@ -24,7 +24,7 @@ export function useFulfillmentColumns() {
             },
             {
                 accessorKey: "saleDate",
-                header: "วันที่",
+                header: "วันที่ขาย",
                 cell: (info) =>
                     format(new Date(info.getValue() as string), "d MMM yyyy", {
                         locale: th,
