@@ -184,17 +184,13 @@ export default function EmployeeForm({
         // ignore
       }
       try {
-        console.log("Fetching managers...");
         const mRes = await fetch(`/api/employee`);
-        console.log("Managers fetch status:", mRes.status);
         if (mRes.ok) {
           const mm = await mRes.json();
-          console.log("Managers data:", mm);
           if (mounted && Array.isArray(mm.employees)) {
             const opts = mm.employees
               .filter((e: any) => e.id !== employeeId)
               .map((e: any) => ({ value: e.id, label: e.name }));
-            console.log("Manager options filtered:", opts);
             setManagerOptions(opts);
           }
         }
