@@ -48,6 +48,14 @@ export async function seedUsers(prisma: PrismaClient) {
     },
   });
 
+  await prisma.position.create({
+    data: {
+      name: "ธุรการขาย",
+      level: 1,
+      departmentId: null,
+    },
+  });
+
   // Fetch Admin Role
   const adminRole = await prisma.role.findUnique({
     where: { slug: "administrator" },
