@@ -78,23 +78,23 @@ docker logs crm-postgres
 # รอจนกว่าจะแสดง "database system is ready to accept connections"
 ```
 
-### Step 4: Setup Database Schema
-
-Since this project does not use migration files yet, we use `db push` to sync the schema.
-
-```bash
-cd /opt/crm-bank/deploy/app
-
-# Build and Run db-push
-docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile db-push build db-push
-
-docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile db-push up db-push
-
-# Check logs
-docker logs crm-db-push
-```
+### Step 4: Apply Database Migrations
+ 
+ Since we tracked migration history in git, we use `migrate deploy` to apply migrations safely.
+ 
+ ```bash
+ cd /opt/crm-bank/deploy/app
+ 
+ # Build and Run migrate
+ docker compose -f docker-compose.app.yml --env-file ../env.production \
+   --profile migrate build migrate
+ 
+ docker compose -f docker-compose.app.yml --env-file ../env.production \
+   --profile migrate up migrate
+ 
+ # Check logs
+ docker logs crm-migrate
+ ```
 
 ### Step 5: Seed Initial Data (Optional - One-time only)
 
@@ -166,37 +166,38 @@ cd deploy/app
 docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
 
 # ====================================
-# Option B: With database schema changes
-# ====================================
-cd deploy/app
-
-# Run db-push to update schema
-docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile db-push up db-push
-
-# Then rebuild and restart app
-docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
-```
+ # Option B: With database schema changes (Migrations)
+ # ====================================
+ cd deploy/app
+ 
+ # Run migrate to apply new schema changes
+ docker compose -f docker-compose.app.yml --env-file ../env.production \
+   --profile migrate up migrate
+ 
+ # Then rebuild and restart app
+ docker compose -f docker-compose.app.yml --env-file ../env.production up -d --build app
+ ```
 
 ---
 
 ## 3. Database Management Explained
-
-### Primary Method: `prisma db push`
-
-```bash
-docker compose -f docker-compose.app.yml --env-file ../env.production \
-  --profile db-push up db-push
-```
-
-**Why use this:**
-- The project currently does not track migration history (no `prisma/migrations` folder).
-- It directly synchronizes the database schema to match `schema.prisma`.
-- **Warning:** If you remove columns/tables, data might be lost (requires `--accept-data-loss`).
-
-### Alternative: `prisma migrate deploy` (Not used currently)
-
-Use this only if you start generating migration files locally with `prisma migrate dev`.
+ 
+ ### Primary Method: `prisma migrate deploy` (Production Safe)
+ 
+ ```bash
+ docker compose -f docker-compose.app.yml --env-file ../env.production \
+   --profile migrate up migrate
+ ```
+ 
+ **Why use this:**
+ - **Safest for Production**: Applies pending migrations from `prisma/migrations` folder.
+ - **Version Control**: Tracks schema history via migration files committed in Git.
+ - **Strict Validation**: Will fail if the database schema has drifted from migration history, preventing accidental data loss.
+ 
+ ### Alternative: `prisma db push` (Development / Prototyping)
+ 
+ Use this ONLY if you are prototyping and haven't generated migration files yet.
+ **Warning:** `db push` may modify/delete data to match schema.prisma and ignores migration history files.
 
 ---
 
