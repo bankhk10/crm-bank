@@ -90,13 +90,14 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Package className="h-4 w-4" />,
     children: [
       { href: "/products", label: "ข้อมูลสินค้า" },
+      { href: "/products/chains", label: "กรุ๊ปสินค้า" },
       {
         href: "#attributes",
         label: "หมวดหมู่และคุณลักษณะ",
         children: [
           { href: "/products/plants", label: "พืช" },
-          { href: "/products/groups", label: "กลุ่มสินค้า" },
-          { href: "/products/chemical-groups", label: "กลุ่มสาร" },
+          { href: "/products/groups", label: "กลุ่มชื่อการค้า" },
+          { href: "/products/chemical-groups", label: "กลุ่มสินค้า" },
           { href: "/products/categories", label: "หมวดสินค้า" },
           { href: "/products/units", label: "หน่วยนับ" },
           { href: "/products/brands", label: "แบรนด์" },
@@ -211,9 +212,8 @@ const SidebarMenuItem = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex w-full items-center justify-between rounded px-4 py-2 transition text-white/80 hover:text-white hover:bg-white/5 ${
-            nested ? "pl-8" : "pl-4"
-          } ${active ? "text-white font-medium" : ""}`}
+          className={`flex w-full items-center justify-between rounded px-4 py-2 transition text-white/80 hover:text-white hover:bg-white/5 ${nested ? "pl-8" : "pl-4"
+            } ${active ? "text-white font-medium" : ""}`}
         >
           <span>{item.label}</span>
           {isOpen ? (
@@ -246,11 +246,10 @@ const SidebarMenuItem = ({
   return (
     <Link
       href={item.href}
-      className={`flex items-center justify-between rounded px-4 py-2 transition ${
-        isSelfActive
+      className={`flex items-center justify-between rounded px-4 py-2 transition ${isSelfActive
           ? "font-semibold text-white"
           : "text-white/80 hover:text-white"
-      } ${nested ? "pl-8" : "pl-4"}`}
+        } ${nested ? "pl-8" : "pl-4"}`}
       onClick={() => onClose?.()}
     >
       <span className={nested ? "pl-4" : ""}>{item.label}</span>
@@ -303,9 +302,8 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`relative flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-[#b92626] text-white ${
-        className ?? ""
-      }`}
+      className={`relative flex h-full w-64 shrink-0 flex-col overflow-y-auto bg-[#b92626] text-white ${className ?? ""
+        }`}
     >
       {/* Mobile close button */}
       {onClose && (

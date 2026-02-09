@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!group) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสาร" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
     }
 
     return NextResponse.json({ group });
@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (!code || !name) {
       return NextResponse.json(
-        { error: "รหัสและชื่อกลุ่มสารจำเป็นต้องระบุ" },
+        { error: "รหัสและชื่อกลุ่มสินค้าจำเป็นต้องระบุ" },
         { status: 400 },
       );
     }
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสาร" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
     }
 
     // Check duplicate code (excluding current)
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (duplicate) {
       return NextResponse.json(
-        { error: "รหัสกลุ่มสารนี้มีอยู่แล้ว" },
+        { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
         { status: 400 },
       );
     }
@@ -92,7 +92,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสาร" }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
     }
 
     await db.chemicalGroup.update({

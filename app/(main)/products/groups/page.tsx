@@ -218,7 +218,7 @@ export default function ProductGroupsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <FolderTree className="w-8 h-8" />
-              <CardTitle className="text-2xl font-bold">กลุ่มสินค้า</CardTitle>
+              <CardTitle className="text-2xl font-bold">กลุ่มชื่อการค้า</CardTitle>
             </div>
             {canCreate && (
               <Button
@@ -226,7 +226,7 @@ export default function ProductGroupsPage() {
                 className="bg-white text-emerald-600 hover:bg-emerald-50 shadow-md"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                เพิ่มกลุ่มสินค้า
+                เพิ่มกลุ่มชื่อการค้า
               </Button>
             )}
           </div>
@@ -339,13 +339,13 @@ export default function ProductGroupsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingItem ? "แก้ไขกลุ่มสินค้า" : "เพิ่มกลุ่มสินค้าใหม่"}
+              {editingItem ? "แก้ไขกลุ่มชื่อการค้า" : "เพิ่มกลุ่มชื่อการค้าใหม่"}
             </DialogTitle>
-            <DialogDescription>กรอกข้อมูลกลุ่มสินค้าด้านล่าง</DialogDescription>
+            <DialogDescription>กรอกข้อมูลกลุ่มชื่อการค้าด้านล่าง</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">รหัสกลุ่มสินค้า *</Label>
+              <Label htmlFor="code">รหัสกลุ่มชื่อการค้า *</Label>
               <Input
                 id="code"
                 value={formData.code}
@@ -367,7 +367,7 @@ export default function ProductGroupsPage() {
                     description: e.target.value,
                   }))
                 }
-                placeholder="คำอธิบายกลุ่มสินค้า"
+                placeholder="คำอธิบายกลุ่มชื่อการค้า"
                 required
               />
             </div>
@@ -417,7 +417,7 @@ export default function ProductGroupsPage() {
           <DialogHeader>
             <DialogTitle>ยืนยันการลบ</DialogTitle>
             <DialogDescription>
-              คุณต้องการลบกลุ่มสินค้า <strong>{deleteItem?.description}</strong>{" "}
+              คุณต้องการลบกลุ่มชื่อการค้า <strong>{deleteItem?.description}</strong>{" "}
               ใช่หรือไม่?
             </DialogDescription>
           </DialogHeader>

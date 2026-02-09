@@ -423,19 +423,32 @@ model ProductCategory {
   deletedAt   DateTime?
 
   productGroups ProductGroupMaster[]
+  products      Product[]              // Products in this category
 }
 
-// กลุ่มสินค้า (Product Group)
+// กลุ่มชื่อการค้า (Trade Name Group) - เดิมชื่อ "กลุ่มสินค้า"
 model ProductGroupMaster {
   id          String    @id @default(cuid())
-  code        String    @unique        // รหัสกลุ่มสินค้า
-  description String                   // คำอธิบายกลุ่มสินค้า
+  code        String    @unique        // รหัสกลุ่มชื่อการค้า
+  description String                   // คำอธิบายกลุ่มชื่อการค้า
   categoryId  String?                  // FK to ProductCategory
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
   category    ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+// กรุ๊ปสินค้า (Product Chain)
+model ProductChain {
+  id          String    @id @default(cuid())
+  name        String                   // ชื่อกรุ๊ปสินค้า
+  description String?                  // รายละเอียดกรุ๊ปสินค้า
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  products    Product[]
 }
 
 // หน่วยนับ (Unit)
@@ -484,7 +497,7 @@ model Product {
   name                  String
   commonName            String?
   unit                  String?
-  productGroup          String?
+  productGroup          String?       // กลุ่มชื่อการค้า (Trade Name Group)
   brand                 String?
   packageSize           String?
   packageSizePerBox     String?
@@ -501,6 +514,12 @@ model Product {
   updatedAt             DateTime      @updatedAt
   deletedAt             DateTime?
 
+  // Category and Chain relations
+  categoryId            String?                   // FK to ProductCategory (หมวดสินค้า)
+  productChainId        String?                   // FK to ProductChain (กรุ๊ปสินค้า)
+  category              ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  productChain          ProductChain?   @relation(fields: [productChainId], references: [id], onDelete: SetNull)
+
   images                ProductImage[]
   promotionItems        ProductPromotionItem[]
   freeItems             ProductFreeItem[]
@@ -510,17 +529,17 @@ model Product {
   dailySalesSummaries   DailySalesSummary[]
   salesTargets          ProductSalesTarget[] @relation("ProductSalesTargets")
   detailedSalesTargets  SalesTargetItem[]
-  chemicalGroup         String?       // กลุ่มสาร
+  chemicalGroup         String?       // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   pointHistories        EmployeePointHistory[]
 }
 
-// กลุ่มสาร (Chemical Group)
+// กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
 model ChemicalGroup {
   id           String    @id @default(cuid())
-  code         String    @unique        // รหัสกลุ่มสาร
-  name         String    @default("")               // ชื่อกลุ่มสาร
-  abbreviation String?                  // ตัวย่อกลุ่มสาร
-  description  String?                  // คำอธิบายกลุ่มสาร
+  code         String    @unique        // รหัสกลุ่มสินค้า
+  name         String    @default("")               // ชื่อกลุ่มสินค้า
+  abbreviation String?                  // ตัวย่อกลุ่มสินค้า
+  description  String?                  // คำอธิบายกลุ่มสินค้า
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?

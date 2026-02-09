@@ -13,9 +13,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  productGroup: z.string().optional(),
+  productGroup: z.string().optional(),    // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  chemicalGroup: z.string().optional(),
+  chemicalGroup: z.string().optional(),   // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   totalPackageSizePerBox: z.string().optional(),
@@ -24,6 +24,9 @@ const productSchema = z.object({
   salesPoint: z.string().optional(),
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
+  // New fields
+  categoryId: z.string().optional(),      // FK to ProductCategory (หมวดสินค้า)
+  productChainId: z.string().optional(),  // FK to ProductChain (กรุ๊ปสินค้า)
 });
 
 export async function GET(request: Request) {
@@ -191,6 +194,9 @@ export async function POST(request: Request) {
         salesPoint: parsed.data.salesPoint,
         properties: parsed.data.properties,
         pointPerUnit: parsed.data.pointPerUnit ?? 0,
+        // New fields
+        categoryId: parsed.data.categoryId || null,
+        productChainId: parsed.data.productChainId || null,
       },
       include: {
         images: true,

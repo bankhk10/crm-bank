@@ -74,9 +74,9 @@ export interface Product {
   name: string;
   commonName: string | null;
   unit: string | null;
-  productGroup: string | null;
+  productGroup: string | null; // กลุ่มชื่อการค้า (Trade Name Group)
   brand: string | null;
-  chemicalGroup: string | null;
+  chemicalGroup: string | null; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: string | null;
   packageSizePerBox: string | null;
   totalPackageSizePerBox: string | null;
@@ -91,6 +91,9 @@ export interface Product {
   createdAt: Date | string;
   updatedAt: Date | string;
   deletedAt: Date | string | null;
+  // New fields
+  categoryId: string | null;      // FK to ProductCategory (หมวดสินค้า)
+  productChainId: string | null;  // FK to ProductChain (กรุ๊ปสินค้า)
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
   freeItems?: ProductFreeItem[];
@@ -102,9 +105,9 @@ export interface ProductFormData {
   name: string;
   commonName?: string;
   unit?: string;
-  productGroup?: string;
+  productGroup?: string;    // กลุ่มชื่อการค้า (Trade Name Group)
   brand?: string;
-  chemicalGroup?: string;
+  chemicalGroup?: string;   // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize?: string;
   packageSizePerBox?: string;
   totalPackageSizePerBox?: string;
@@ -123,6 +126,9 @@ export interface ProductFormData {
   >;
   /** index in `images` that should be treated as the cover (0-based) */
   coverIndex?: number | null;
+  // New fields
+  categoryId?: string;      // FK to ProductCategory (หมวดสินค้า)
+  productChainId?: string;  // FK to ProductChain (กรุ๊ปสินค้า)
 }
 
 export interface ProductManagementFormData {

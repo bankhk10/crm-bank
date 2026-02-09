@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // description and abbreviation are optional based on schema update, but name is now required (with default "" handled in schema, but we should enforce it here)
     if (!code || !name) {
       return NextResponse.json(
-        { error: "รหัสและชื่อกลุ่มสารจำเป็นต้องระบุ" },
+        { error: "รหัสและชื่อกลุ่มสินค้าจำเป็นต้องระบุ" },
         { status: 400 },
       );
     }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { error: "รหัสกลุ่มสารนี้มีอยู่แล้ว" },
+        { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
         { status: 400 },
       );
     }

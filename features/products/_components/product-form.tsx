@@ -76,6 +76,8 @@ export function ProductForm({
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
     coverIndex: (initialData as any)?.coverIndex ?? null,
+    categoryId: (initialData as any)?.categoryId || "",
+    productChainId: (initialData as any)?.productChainId || "",
   });
 
   // Convert initial images to FileMetadata format for GalleryUpload
@@ -110,6 +112,8 @@ export function ProductForm({
     SelectOption[]
   >([]);
   const [plantOptions, setPlantOptions] = useState<SelectOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([]);
+  const [productChainOptions, setProductChainOptions] = useState<SelectOption[]>([]);
 
   // Fetch dynamic options from database
   useEffect(() => {
@@ -211,6 +215,38 @@ export function ProductForm({
             setPlantOptions(uniqueOptions);
           }
         }
+
+        // Fetch categories (หมวดสินค้า)
+        const categoriesRes = await fetch("/api/products/categories?perPage=100");
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          if (categoriesData.categories && categoriesData.categories.length > 0) {
+            setCategoryOptions(
+              categoriesData.categories.map(
+                (c: { id: string; code: string; description: string }) => ({
+                  value: c.id,
+                  label: c.code + " - " + c.description,
+                }),
+              ),
+            );
+          }
+        }
+
+        // Fetch product chains (กรุ๊ปสินค้า)
+        const chainsRes = await fetch("/api/products/chains?perPage=100");
+        if (chainsRes.ok) {
+          const chainsData = await chainsRes.json();
+          if (chainsData.chains && chainsData.chains.length > 0) {
+            setProductChainOptions(
+              chainsData.chains.map(
+                (c: { id: string; name: string }) => ({
+                  value: c.id,
+                  label: c.name,
+                }),
+              ),
+            );
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch options:", err);
       }
@@ -299,6 +335,8 @@ export function ProductForm({
         salesPoint: formData.salesPoint || undefined,
         properties: formData.properties || undefined,
         coverIndex: formData.coverIndex ?? undefined,
+        categoryId: (formData as any).categoryId || undefined,
+        productChainId: (formData as any).productChainId || undefined,
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -679,27 +717,49 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="กลุ่มสาร"
+          label="กลุ่มสินค้า"
           value={formData.chemicalGroup || ""}
           onChange={(v) => updateField("chemicalGroup", v)}
           options={chemicalGroupOptions}
-          placeholder="เลือกกลุ่มสาร"
-          searchPlaceholder="ค้นหากลุ่มสาร..."
-          emptyText="ไม่พบกลุ่มสาร"
-          disabled={loading}
-        />
-
-        <FormCombobox
-          label="กลุ่มสินค้า"
-          value={formData.productGroup || ""}
-          onChange={(v) => updateField("productGroup", v)}
-          required
-          options={groupOptions}
           placeholder="เลือกกลุ่มสินค้า"
           searchPlaceholder="ค้นหากลุ่มสินค้า..."
           emptyText="ไม่พบกลุ่มสินค้า"
           disabled={loading}
+        />
+
+        <FormCombobox
+          label="กลุ่มชื่อการค้า"
+          value={formData.productGroup || ""}
+          onChange={(v) => updateField("productGroup", v)}
+          required
+          options={groupOptions}
+          placeholder="เลือกกลุ่มชื่อการค้า"
+          searchPlaceholder="ค้นหากลุ่มชื่อการค้า..."
+          emptyText="ไม่พบกลุ่มชื่อการค้า"
+          disabled={loading}
           error={errors.productGroup}
+        />
+
+        <FormCombobox
+          label="หมวดสินค้า"
+          value={(formData as any).categoryId || ""}
+          onChange={(v) => updateField("categoryId" as keyof ProductFormData, v)}
+          options={categoryOptions}
+          placeholder="เลือกหมวดสินค้า"
+          searchPlaceholder="ค้นหาหมวดสินค้า..."
+          emptyText="ไม่พบหมวดสินค้า"
+          disabled={loading}
+        />
+
+        <FormCombobox
+          label="กรุ๊ปสินค้า"
+          value={(formData as any).productChainId || ""}
+          onChange={(v) => updateField("productChainId" as keyof ProductFormData, v)}
+          options={productChainOptions}
+          placeholder="เลือกกรุ๊ปสินค้า"
+          searchPlaceholder="ค้นหากรุ๊ปสินค้า..."
+          emptyText="ไม่พบกรุ๊ปสินค้า"
+          disabled={loading}
         />
 
         <FormCombobox

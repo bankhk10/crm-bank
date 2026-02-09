@@ -126,7 +126,7 @@ export default function ChemicalGroupsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code.trim() || !formData.name.trim()) {
-      toast.error("กรุณากรอกข้อมูลรหัสและชื่อกลุ่มสารให้ครบถ้วน");
+      toast.error("กรุณากรอกข้อมูลรหัสและชื่อกลุ่มสินค้าให้ครบถ้วน");
       return;
     }
 
@@ -208,7 +208,7 @@ export default function ChemicalGroupsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <FlaskConical className="w-8 h-8" />
-              <CardTitle className="text-2xl font-bold">กลุ่มสาร</CardTitle>
+              <CardTitle className="text-2xl font-bold">กลุ่มสินค้า</CardTitle>
             </div>
             {canCreate && (
               <Button
@@ -216,7 +216,7 @@ export default function ChemicalGroupsPage() {
                 className="bg-white text-emerald-600 hover:bg-emerald-50 shadow-md"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                เพิ่มกลุ่มสาร
+                เพิ่มกลุ่มสินค้า
               </Button>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function ChemicalGroupsPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">รหัส</TableHead>
-                  <TableHead className="font-semibold">ชื่อกลุ่มสาร</TableHead>
+                  <TableHead className="font-semibold">ชื่อกลุ่มสินค้า</TableHead>
                   <TableHead className="font-semibold">ตัวย่อ</TableHead>
                   <TableHead className="font-semibold">คำอธิบาย</TableHead>
                   <TableHead className="font-semibold text-right w-32">
@@ -352,13 +352,13 @@ export default function ChemicalGroupsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingItem ? "แก้ไขกลุ่มสาร" : "เพิ่มกลุ่มสารใหม่"}
+              {editingItem ? "แก้ไขกลุ่มสินค้า" : "เพิ่มกลุ่มสินค้าใหม่"}
             </DialogTitle>
-            <DialogDescription>กรอกข้อมูลกลุ่มสารด้านล่าง</DialogDescription>
+            <DialogDescription>กรอกข้อมูลกลุ่มสินค้าด้านล่าง</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">รหัสกลุ่มสาร *</Label>
+              <Label htmlFor="code">รหัสกลุ่มสินค้า *</Label>
               <Input
                 id="code"
                 value={formData.code}
@@ -370,14 +370,14 @@ export default function ChemicalGroupsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="name">ชื่อกลุ่มสาร *</Label>
+              <Label htmlFor="name">ชื่อกลุ่มสินค้า *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="ชื่อกลุ่มสาร"
+                placeholder="ชื่อกลุ่มสินค้า"
                 required
               />
             </div>
@@ -435,7 +435,7 @@ export default function ChemicalGroupsPage() {
           <DialogHeader>
             <DialogTitle>ยืนยันการลบ</DialogTitle>
             <DialogDescription>
-              คุณต้องการลบกลุ่มสาร <strong>{deleteItem?.name}</strong>{" "}
+              คุณต้องการลบกลุ่มสินค้า <strong>{deleteItem?.name}</strong>{" "}
               ใช่หรือไม่?
             </DialogDescription>
           </DialogHeader>
