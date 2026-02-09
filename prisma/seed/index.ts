@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { seedClear } from "./clear";
 import { seedMaster } from "./master";
 import { seedProductMaster } from "./product-master";
 import { seedRBAC } from "./rbac";
@@ -23,7 +22,6 @@ async function main() {
 
   try {
     // 1. Clear Data
-    // await seedClear(prisma);
 
     // 2. Master Data (Company, Dept, Unit, Category, Plant)
     await seedMaster(prisma);
