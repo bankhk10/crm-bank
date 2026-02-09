@@ -151,8 +151,8 @@ export async function seedMaster(prisma: PrismaClient) {
   // Create Categories (Needed for Product Groups)
   await prisma.productCategory.createMany({
     data: [
-      { code: "INS", description: "ยาฆ่าแมลง" },
-      { code: "SUP", description: "ยาบำรุง" },
+      // { code: "INS", description: "ยาฆ่าแมลง" },
+      // { code: "SUP", description: "ยาบำรุง" },
     ],
   });
 

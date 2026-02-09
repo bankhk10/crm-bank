@@ -255,8 +255,7 @@ export default function ProductGroupsPage() {
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">รหัส</TableHead>
                   <TableHead className="font-semibold">คำอธิบาย</TableHead>
-                  <TableHead className="font-semibold">หมวดสินค้า</TableHead>
-                  <TableHead className="font-semibold text-right w-32">
+                  <TableHead className="font-semibold text-right">
                     จัดการ
                   </TableHead>
                 </TableRow>
@@ -285,15 +284,6 @@ export default function ProductGroupsPage() {
                     <TableRow key={grp.id} className="hover:bg-slate-50">
                       <TableCell className="font-medium">{grp.code}</TableCell>
                       <TableCell>{grp.description}</TableCell>
-                      <TableCell>
-                        {grp.category ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
-                            {grp.category.description}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
-                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           {canUpdate && (
@@ -370,26 +360,6 @@ export default function ProductGroupsPage() {
                 placeholder="คำอธิบายกลุ่มชื่อการค้า"
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="categoryId">หมวดสินค้า</Label>
-              <Select
-                value={formData.categoryId}
-                onValueChange={(val) =>
-                  setFormData((prev) => ({ ...prev, categoryId: val }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกหมวดสินค้า (ไม่บังคับ)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.code} - {cat.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <DialogFooter>
               <Button
