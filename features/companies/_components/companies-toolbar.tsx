@@ -1,16 +1,7 @@
 import Link from "next/link";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
-import { Search, PlusCircle, Calendar as CalendarIcon, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Search, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import type { CompaniesTableProps } from "../_types/types";
 
 type CompaniesToolbarProps = Pick<
@@ -28,8 +19,6 @@ export function CompaniesToolbar({
     searchValue,
     onSearchChange,
     onSearchSubmit,
-    dateRange,
-    onDateRangeChange,
 }: CompaniesToolbarProps) {
     return (
         <div className="flex flex-col sm:flex-row gap-4 mb-6">

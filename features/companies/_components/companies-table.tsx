@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import CustomTable from "@/components/custom/custom-table";
 import { CompaniesToolbar } from "./companies-toolbar";
 import { CompaniesCards } from "./companies-cards";
