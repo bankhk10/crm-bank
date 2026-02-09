@@ -107,6 +107,7 @@ export async function seedMaster(prisma: PrismaClient) {
         status: "ACTIVE",
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create departments
@@ -121,8 +122,10 @@ export async function seedMaster(prisma: PrismaClient) {
   ];
 
   for (const dept of departments) {
-    await prisma.department.create({
-      data: dept,
+    await prisma.department.upsert({
+      where: { code: dept.code },
+      update: {},
+      create: dept,
     });
   }
 
@@ -146,6 +149,7 @@ export async function seedMaster(prisma: PrismaClient) {
       { code: "SET", description: "ชุด" },
       { code: "STAL", description: "ซอง" },
     ],
+    skipDuplicates: true,
   });
 
   // Create Categories (Needed for Product Groups)
@@ -154,6 +158,7 @@ export async function seedMaster(prisma: PrismaClient) {
       // { code: "INS", description: "ยาฆ่าแมลง" },
       // { code: "SUP", description: "ยาบำรุง" },
     ],
+    skipDuplicates: true,
   });
 
   // Create Plants
@@ -202,6 +207,7 @@ export async function seedMaster(prisma: PrismaClient) {
       },
       { code: "CHILI", name: "พริก", abbreviation: "CHL", group: "พืชไร่" },
     ],
+    skipDuplicates: true,
   });
 
   console.log("✅ Master Data seeded.");

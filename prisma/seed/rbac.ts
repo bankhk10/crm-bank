@@ -8,6 +8,16 @@ import {
 export async function seedRBAC(prisma: PrismaClient) {
   console.log("🔐 Seeding RBAC (Roles, Permissions, RolePermissions)...");
 
+  // Check if RBAC has already been seeded
+  const existingAdminRole = await prisma.role.findUnique({
+    where: { slug: "administrator" },
+  });
+
+  if (existingAdminRole) {
+    console.log("🔐 RBAC already seeded, skipping...");
+    return;
+  }
+
   // Create Roles
   const adminRole = await prisma.role.create({
     data: {

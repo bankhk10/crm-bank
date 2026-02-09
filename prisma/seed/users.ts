@@ -14,47 +14,35 @@ export async function seedUsers(prisma: PrismaClient) {
   }
 
   // Create Positions
-  const adminPosition = await prisma.position.create({
-    data: {
-      name: "Admin",
-      level: 10,
-      isManagerial: true,
-      departmentId: null
-    },
-  });
+  const positions = [
+    { name: "Admin", level: 10, isManagerial: true, departmentId: null },
+    { name: "ผู้บริหาร", level: 10, isManagerial: true, departmentId: null },
+    { name: "พนักงานฝ่ายขาย", level: 1, isManagerial: false, departmentId: salesDept.id },
+    { name: "ผู้จัดการฝ่ายขาย", level: 3, isManagerial: true, departmentId: salesDept.id },
+    { name: "ธุรการขาย", level: 1, isManagerial: false, departmentId: null },
+  ];
 
-  await prisma.position.create({
-    data: {
-      name: "ผู้บริหาร",
-      level: 10,
-      departmentId: null,
-    },
-  });
+  let adminPosition: any;
 
-  await prisma.position.create({
-    data: {
-      name: "พนักงานฝ่ายขาย",
-      level: 1,
-      departmentId: salesDept.id,
-    },
-  });
+  for (const pos of positions) {
+    const existingPos = await prisma.position.findFirst({
+      where: { name: pos.name },
+    });
 
-  await prisma.position.create({
-    data: {
-      name: "ผู้จัดการฝ่ายขาย",
-      level: 3,
-      isManagerial: true,
-      departmentId: salesDept.id,
-    },
-  });
-
-  await prisma.position.create({
-    data: {
-      name: "ธุรการขาย",
-      level: 1,
-      departmentId: null,
-    },
-  });
+    if (existingPos) {
+      if (pos.name === "Admin") adminPosition = existingPos;
+    } else {
+      const newPos = await prisma.position.create({
+        data: {
+          name: pos.name,
+          level: pos.level,
+          isManagerial: pos.isManagerial,
+          departmentId: pos.departmentId,
+        },
+      });
+      if (pos.name === "Admin") adminPosition = newPos;
+    }
+  }
 
   // Fetch Admin Role
   const adminRole = await prisma.role.findUnique({
@@ -68,8 +56,10 @@ export async function seedUsers(prisma: PrismaClient) {
   // Create Admin User
   const adminPassword = await hash("b@b.com", 12);
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: "b@b.com" },
+    update: {},
+    create: {
       name: "Bank Admin",
       email: "b@b.com",
       password: adminPassword,
@@ -79,7 +69,6 @@ export async function seedUsers(prisma: PrismaClient) {
         create: { roleId: adminRole.id },
       },
     },
-    include: { userRoles: true },
   });
 
   console.log("✅ Users seeded.");

@@ -23,7 +23,7 @@ async function main() {
 
   try {
     // 1. Clear Data
-    await seedClear(prisma);
+    // await seedClear(prisma);
 
     // 2. Master Data (Company, Dept, Unit, Category, Plant)
     await seedMaster(prisma);

@@ -25,6 +25,7 @@ export async function seedProductMaster(prisma: PrismaClient) {
       //   description: "กลุ่มสินค้า D - ยาบำรุงพืช",
       // },
     ],
+    skipDuplicates: true,
   });
 
   // Create Chemical Groups
@@ -349,11 +350,13 @@ export async function seedProductMaster(prisma: PrismaClient) {
         name: "VALIDAMYCIN : Fungicide",
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create Brands
   await prisma.brand.createMany({
     data: [{ code: "cropsciences", description: "Crop Science" }],
+    skipDuplicates: true,
   });
 
   console.log("✅ Product Master Data seeded.");
