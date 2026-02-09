@@ -90,7 +90,7 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <Package className="h-4 w-4" />,
     children: [
       { href: "/products", label: "ข้อมูลสินค้า" },
-      { href: "/products/chains", label: "กรุ๊ปสินค้า" },
+
       {
         href: "#attributes",
         label: "หมวดหมู่และคุณลักษณะ",
@@ -101,6 +101,7 @@ export const navigationItems: SidebarNavItem[] = [
           { href: "/products/categories", label: "หมวดสินค้า" },
           { href: "/products/units", label: "หน่วยนับ" },
           { href: "/products/brands", label: "แบรนด์" },
+          { href: "/products/chains", label: "กรุ๊ปสินค้า" },
         ],
       },
     ],
@@ -247,8 +248,8 @@ const SidebarMenuItem = ({
     <Link
       href={item.href}
       className={`flex items-center justify-between rounded px-4 py-2 transition ${isSelfActive
-          ? "font-semibold text-white"
-          : "text-white/80 hover:text-white"
+        ? "font-semibold text-white"
+        : "text-white/80 hover:text-white"
         } ${nested ? "pl-8" : "pl-4"}`}
       onClick={() => onClose?.()}
     >
