@@ -1,319 +1,107 @@
 # Data Model - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-02-09  
 > **Source of Truth**: `prisma/schema.prisma`  
 > **Related**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
 
 ---
 
-## 1. Entity Relationship Diagram
+## 1. Source of Truth
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          ORGANIZATION STRUCTURE                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────┐     ┌────────────┐     ┌──────────┐     ┌──────────┐         │
-│  │Department│────▶│  Position  │     │   Role   │────▶│Permission│         │
-│  └────┬─────┘     └─────┬──────┘     └────┬─────┘     └──────────┘         │
-│       │                 │                 │                                 │
-│       │ 1:N             │ 1:N             │ N:N (RolePermission)            │
-│       ▼                 ▼                 ▼                                 │
-│  ┌──────────────────────────────────────────────────────┐                  │
-│  │                      USER                             │                  │
-│  │  id, email, password, isActive                        │                  │
-│  └────────────────────────┬─────────────────────────────┘                  │
-│                           │ 1:1 (optional)                                  │
-│                           ▼                                                 │
-│  ┌──────────────────────────────────────────────────────┐                  │
-│  │                    EMPLOYEE                           │                  │
-│  │  id, employeeCode, name, departmentId, managerId      │                  │
-│  │  (self-reference: manager → reports)                  │                  │
-│  └──────────────────────────────────────────────────────┘                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          CUSTOMER & CREDIT                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────┐                  │
-│  │                    CUSTOMER                           │                  │
-│  │  id, customerCode, customerType, name, status         │                  │
-│  │  parentDealerId (self-ref), responsibleEmployeeId     │                  │
-│  └────────────────────────┬─────────────────────────────┘                  │
-│                           │                                                 │
-│          ┌────────────────┼────────────────┐                               │
-│          │ 1:N            │ 1:N            │                               │
-│          ▼                ▼                ▼                               │
-│  ┌─────────────┐  ┌─────────────────┐  ┌───────────┐                       │
-│  │ CreditLimit │  │TemporaryCreditLimit│ │   Sale    │                       │
-│  └─────────────┘  └─────────────────┘  └───────────┘                       │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          PRODUCT & STOCK                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────┐                  │
-│  │                    PRODUCT                            │                  │
-│  │  id, productCode, name, price, pointPerUnit           │                  │
-│  └────────────────────────┬─────────────────────────────┘                  │
-│                           │                                                 │
-│          ┌────────────────┼────────────────┐                               │
-│          │ 1:1            │ 1:N            │                               │
-│          ▼                ▼                ▼                               │
-│  ┌─────────────┐  ┌────────────────┐  ┌──────────────┐                     │
-│  │ProductStock │  │ProductStockLot │  │ProductImage  │                     │
-│  └─────────────┘  └───────┬────────┘  └──────────────┘                     │
-│                           │ 1:N                                             │
-│                           ▼                                                 │
-│                    ┌────────────┐                                           │
-│                    │SaleItemLot │                                           │
-│                    └────────────┘                                           │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          SALES & POINTS                                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────┐                  │
-│  │                      SALE                             │                  │
-│  │  id, saleNumber, customerId, employeeId, status       │                  │
-│  │  paymentTerm, totalAmount                             │                  │
-│  └────────────────────────┬─────────────────────────────┘                  │
-│                           │                                                 │
-│          ┌────────────────┼────────────────┐                               │
-│          │ 1:N            │ 1:N            │                               │
-│          ▼                ▼                ▼                               │
-│  ┌─────────────┐  ┌─────────────────┐  ┌────────────────────┐              │
-│  │  SaleItem   │  │SaleStatusHistory│  │EmployeePointHistory│              │
-│  └──────┬──────┘  └─────────────────┘  └────────────────────┘              │
-│         │ 1:1                                                               │
-│         ▼                                                                   │
-│  ┌──────────────────────┐                                                  │
-│  │EmployeePointHistory  │──────────▶ EmployeePointSummary                  │
-│  └──────────────────────┘                                                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+`prisma/schema.prisma` คือแหล่งข้อมูลหลักของโครงสร้างฐานข้อมูล หากเอกสารนี้ขัดแย้งกับ schema ให้ถือ schema เป็นหลักเสมอ
 
 ---
 
-## 2. Core Tables
+## 2. Entity Groups (High-Level)
 
-### 2.1 User
-```prisma
-model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  password     String
-  isActive     Boolean   @default(true)
-  departmentId String?
-  positionId   String?
-  deletedAt    DateTime?
-  
-  // Relations
-  employeeProfile Employee?
-  userRoles       UserRole[]
-  permissionOverrides UserPermissionOverride[]
-}
-```
+### 2.1 Identity & Organization
+- **User**: บัญชีสำหรับ login + session
+- **Employee**: โปรไฟล์พนักงาน (ผูกกับ User)
+- **Company**: บริษัท/สาขา
+- **Department / Position**: โครงสร้างองค์กร
+- **Role / Permission / UserRole / RolePermission / UserPermissionOverride**: RBAC
 
-### 2.2 Employee
-```prisma
-model Employee {
-  id           String    @id @default(cuid())
-  employeeCode String?
-  name         String
-  email        String    @unique
-  departmentId String?
-  positionId   String?
-  managerId    String?   // Self-reference for hierarchy
-  userId       String?   @unique
-  deletedAt    DateTime?
-  
-  // Relations
-  user       User?          @relation(fields: [userId])
-  manager    Employee?      @relation("EmployeeHierarchy", fields: [managerId])
-  reports    Employee[]     @relation("EmployeeHierarchy")
-  sales      Sale[]
-  pointSummary EmployeePointSummary?
-}
-```
+### 2.2 Customers & Credit
+- **Customer**: ลูกค้า (มี hierarchy และพนักงานรับผิดชอบ)
+- **CustomerImage**: รูปลูกค้า
+- **CreditLimit**: วงเงินเครดิตถาวร
+- **TemporaryCreditLimit**: วงเงินเครดิตชั่วคราว (มี request/approve)
 
-### 2.3 Customer
-```prisma
-model Customer {
-  id           String         @id @default(cuid())
-  customerCode String         @unique
-  customerType CustomerType   // DEALER, SUBDEALER, FARMER, BROKER
-  name         String
-  status       CustomerStatus @default(ACTIVE)
-  region       String?
-  parentDealerId String?      // Self-reference for hierarchy
-  responsibleEmployeeId String?
-  deletedAt    DateTime?
-  
-  // Relations
-  parentDealer        Customer?      @relation("ParentDealer", fields: [parentDealerId])
-  subDealers          Customer[]     @relation("ParentDealer")
-  responsibleEmployee Employee?
-  creditLimits        CreditLimit[]
-  sales               Sale[]
-}
+### 2.3 Products & Inventory
+- **Product**: สินค้า (ราคา/คะแนน/คุณสมบัติ)
+- **ProductCategory / ProductGroupMaster**: โครงสร้างกลุ่มสินค้า
+- **ProductStock / ProductStockLot**: สต็อกและ LOT
+- **ProductImage / ProductFreeItem / ProductPromotionItem**: สื่อและโปรโมชั่นสินค้า
+- **Plant / ChemicalGroup / Brand / Unit**: Master data ที่ช่วยจัดหมวดสินค้า
 
-enum CustomerType { DEALER, SUBDEALER, FARMER, BROKER }
-enum CustomerStatus { ACTIVE, INACTIVE, SUSPENDED }
-```
+### 2.4 Sales & Fulfillment
+- **Sale**: ใบขาย (สถานะ + การชำระเงิน + จัดส่ง)
+- **SaleItem / SaleItemLot**: รายการสินค้าและ LOT ที่ใช้
+- **SaleStatusHistory**: ประวัติสถานะใบขาย
 
-### 2.4 Product
-```prisma
-model Product {
-  id           String        @id @default(cuid())
-  productCode  String        @unique
-  name         String
-  price        Decimal?      @db.Decimal(15, 2)
-  pointPerUnit Int           @default(0)
-  status       ProductStatus @default(ACTIVE)
-  deletedAt    DateTime?
-  
-  // Relations
-  stock        ProductStock?
-  stockLots    ProductStockLot[]
-  saleItems    SaleItem[]
-}
+### 2.5 Points & Reporting
+- **EmployeePointHistory / EmployeePointSummary**: สะสมคะแนนพนักงาน
+- **DailySalesSummary**: สรุปยอดขายรายวัน
+- **SalesTarget / SalesTargetItem**: เป้าหมายยอดขายรายเดือน
+- **ProductSalesTarget / ProductGroupSalesTarget**: เป้าหมายตามสินค้า/กลุ่มสินค้า
 
-enum ProductStatus { ACTIVE, INACTIVE }
-```
-
-### 2.5 Sale
-```prisma
-model Sale {
-  id          String      @id @default(cuid())
-  saleNumber  String      @unique
-  customerId  String
-  employeeId  String
-  status      SaleStatus  @default(PENDING)
-  paymentTerm PaymentTerm
-  totalAmount Decimal     @db.Decimal(15, 2)
-  
-  // Delivery tracking
-  deliveryUpdateCount Int  @default(0)
-  maxDeliveryUpdates  Int  @default(3)
-  isDeliveryLocked    Boolean @default(false)
-  orderExpiryDate     DateTime?
-  
-  // Approval
-  approvedById String?
-  approvedAt   DateTime?
-  
-  // Audit
-  createdById String
-  createdAt   DateTime @default(now())
-  deletedAt   DateTime?
-  
-  // Relations
-  customer      Customer
-  employee      Employee
-  items         SaleItem[]
-  statusHistory SaleStatusHistory[]
-  pointHistories EmployeePointHistory[]
-}
-
-enum SaleStatus {
-  PENDING, PENDING_APPROVAL, APPROVED, REJECTED
-  AWAITING_PAYMENT, PAID, AWAITING_DELIVERY
-  DELIVERED, DELIVERY_COMPLETED, COMPLETED
-  EXPIRED, OVERDUE, WAITING_FOR_CORRECTION, CANCELLED
-}
-
-enum PaymentTerm {
-  CREDIT_90, CASH_7, PREPAID, CREDIT_OVER_90
-}
-```
+### 2.6 System Logs & Notifications
+- **Notification**: แจ้งเตือนผู้ใช้
+- **AuditLog / SecurityLog**: บันทึกเหตุการณ์ระบบและความปลอดภัย
 
 ---
 
-## 3. Relationship Summary
+## 3. Key Enums (Snapshot)
 
-| From | To | Type | Description |
-|------|----|------|-------------|
-| User | Employee | 1:1 | Optional profile |
-| User | Role | N:N | Via UserRole |
-| User | Permission | N:N | Via UserPermissionOverride |
-| Employee | Employee | N:1 | manager/reports hierarchy |
-| Employee | Department | N:1 | Organization |
-| Customer | Customer | N:1 | parentDealer hierarchy |
-| Customer | Employee | N:1 | responsibleEmployee |
-| Customer | CreditLimit | 1:N | Credit management |
-| Customer | Sale | 1:N | Orders |
-| Product | ProductStock | 1:1 | Stock tracking |
-| Product | SaleItem | 1:N | Order items |
-| Sale | SaleItem | 1:N | Line items |
-| Sale | StatusHistory | 1:N | Status changes |
-| SaleItem | PointHistory | 1:1 | Points calculation |
+> ตรวจสอบค่าล่าสุดจาก `prisma/schema.prisma`
+
+### 3.1 SaleStatus
+```
+PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID
+→ AWAITING_DELIVERY → DELIVERED → DELIVERY_COMPLETED → COMPLETED
+
+Alternative:
+- PENDING_APPROVAL → REJECTED / WAITING_FOR_CORRECTION
+- APPROVED → CANCELLED / EXPIRED / OVERDUE
+```
+
+### 3.2 PaymentTerm
+- `CREDIT_90`
+- `CASH_7`
+- `PREPAID`
+- `CREDIT_OVER_90`
+
+### 3.3 Customer & Credit
+- `CustomerType`: DEALER, SUBDEALER, FARMER, BROKER
+- `CustomerStatus`: ACTIVE, INACTIVE, SUSPENDED
+- `CreditLimitStatus`: ACTIVE, SUSPENDED, EXPIRED
+- `TemporaryCreditStatus`: PENDING, APPROVED, REJECTED, EXPIRED
+
+### 3.4 RBAC Access
+- `DataAccessLevel`: VIEW_OWN, VIEW_DEPARTMENT, VIEW_ALL
+- `EditAccessLevel`: EDIT_NONE, EDIT_OWN, EDIT_DEPARTMENT, EDIT_ALL
+- `DeleteAccessLevel`: DELETE_NONE, DELETE_OWN, DELETE_DEPARTMENT, DELETE_ALL
 
 ---
 
-## 4. Constraints & Indexes
+## 4. Relationship Notes (Essentials)
 
-### Unique Constraints
-```prisma
-@@unique([roleId, permissionId])          // RolePermission
-@@unique([userId, roleId])                 // UserRole  
-@@unique([userId, permissionId])           // UserPermissionOverride
-@@unique([saleItemId])                     // EmployeePointHistory
-@@unique([date, customerId, employeeId, productId]) // DailySalesSummary
-```
-
-### Important Indexes
-```prisma
-@@index([userId, timestamp])               // AuditLog
-@@index([customerId, saleDate])            // Sale
-@@index([employeeId, saleDate])            // Sale
-@@index([year, customerId])                // DailySalesSummary
-@@index([year, employeeId])                // DailySalesSummary
-```
+- **User ↔ Employee**: 1:1 optional (User มี employeeProfile)
+- **Employee hierarchy**: Employee.managerId เป็น self-reference
+- **Customer hierarchy**: Customer.parentDealerId เป็น self-reference
+- **Sale** เชื่อมกับ Customer, Employee, User (createdBy/approvedBy)
+- **SaleItem** เชื่อม Product และ Sale
+- **ProductStock** เป็น 1:1 กับ Product, LOT อยู่ใน ProductStockLot
+- **TemporaryCreditLimit** เชื่อมผู้ร้องขอ (requester) และผู้อนุมัติ (approver)
 
 ---
 
-## 5. Soft Delete Pattern
+## 5. Soft Delete Convention
 
-All major entities use `deletedAt` for soft deletion:
-```prisma
-model Entity {
-  deletedAt DateTime?
-}
-
-// Query pattern - always filter
-await prisma.entity.findMany({
-  where: { deletedAt: null }
-});
-```
+ตารางหลักส่วนใหญ่มี `deletedAt` เพื่อ soft delete
+- Query ต้องกรอง `deletedAt: null`
+- ห้าม hard delete เว้นแต่เป็น master data ที่ไม่ได้ใช้งาน
 
 ---
 
-## 6. Key Formulas
-
-### Credit Available
-```
-availableAmount = limitAmount + promoAmount + temporaryCreditAmount - usedAmount
-```
-
-### Employee Points
-```
-For each SaleItem in COMPLETED Sale:
-  totalPoints += quantity × product.pointPerUnit
-```
-
-### Stock
-```
-availableQuantity = physicalBalance - reservedQuantity
-```
-
----
-
-**See Also**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [API_CONTRACTS.md](./API_CONTRACTS.md)
+**See Also**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [ARCHITECTURE.md](./ARCHITECTURE.md)

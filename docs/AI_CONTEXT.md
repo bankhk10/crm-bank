@@ -1,8 +1,8 @@
 # AI Context - CRM System
 
 > **Document Type**: Master Context Document  
-> **Version**: 1.1.0  
-> **Last Updated**: 2026-02-02  
+> **Version**: 1.2.0  
+> **Last Updated**: 2026-02-09  
 > **Related Documents**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -17,6 +17,8 @@
 - **พนักงาน** (Employee) - ทีมขายและผู้ดูแลระบบ
 - **คะแนน** (Points) - ระบบสะสมคะแนนพนักงานจากยอดขาย
 - **รายงาน** (Reports) - วิเคราะห์ยอดขายและ KPI
+- **บริษัท** (Company) - โครงสร้างองค์กรที่ผูกกับพนักงาน
+- **แจ้งเตือน** (Notifications) - แจ้งเตือนเหตุการณ์สำคัญในระบบ
 
 ### 1.2 Business Domain
 - **Industry**: Agricultural Chemicals / Agrochemicals
@@ -56,8 +58,9 @@
 ✅ RBAC System (Role, Permission, Override)
 ✅ Point System (Accumulation based on Sale Items)
 ✅ Reporting Dashboard (Sales KPI, Employee KPI)
-✅ Sales Target Management (Monthly, Region, Product Group)
+✅ Sales Target & Forecast (Monthly, Region, Product Group)
 ✅ Audit Logging (Security, Application, Audit)
+✅ Notifications (User-level alerts)
 ```
 
 ### 3.2 Out of Scope (นอกขอบเขต)
@@ -116,7 +119,7 @@
 ### 4.2 Critical Status Values
 ```typescript
 // Sale Status Flow:
-PENDING → PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → 
+PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID → AWAITING_DELIVERY →
 DELIVERED → DELIVERY_COMPLETED → COMPLETED
 
 // Alternative paths:
@@ -166,8 +169,10 @@ file_naming:
 folder_structure:
   - app/(main)/* for pages
   - app/api/* for API routes
+  - app/actions/* for Server Actions
   - src/core/* for domain logic
   - components/* for UI components
+  - features/* for feature modules
   
 database:
   - always use lib/db.ts for prisma client
@@ -251,8 +256,10 @@ auth: lib/auth.ts
 db_client: lib/db.ts
 rbac: lib/rbac.ts
 api: app/api/
+actions: app/actions/
 core_logic: src/core/
 components: components/
+features: features/
 types: types/
 ```
 
@@ -262,6 +269,7 @@ types: types/
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-02-09 | 1.2.0 | Updated sale status flow + scope alignment with notifications and forecast |
 | 2026-02-02 | 1.1.0 | Updated Tech Stack versions (Next.js 16.1.5, React 19.2.0, Prisma 7.x, NextAuth v5 beta) |
 | 2026-01-28 | 1.0.0 | Initial documentation created |
 

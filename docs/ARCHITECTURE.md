@@ -1,6 +1,6 @@
 # Architecture - CRM System
 
-> **Version**: 1.1.0 | **Updated**: 2026-02-02  
+> **Version**: 1.2.0 | **Updated**: 2026-02-09  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [CODING_STANDARDS.md](./CODING_STANDARDS.md)
 
 ---
@@ -16,9 +16,9 @@
                                  │ 
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                            API LAYER                                     │
-│                     (Next.js App Router API)                             │
-│                   app/api/**/route.ts                                    │
+│                            API / ACTION LAYER                            │
+│                     (Next.js App Router API + Actions)                   │
+│            app/api/**/route.ts + app/actions/*.ts                        │
 └────────────────────────────────┬────────────────────────────────────────┘
                                  │
                                  ▼
@@ -44,7 +44,7 @@
 |-------|------------|
 | Frontend | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
 | UI Components | shadcn/ui, Radix UI, Lucide Icons |
-| Backend | Next.js API Routes (App Router) |
+| Backend | Next.js API Routes + Server Actions |
 | ORM | Prisma 7.x |
 | Database | PostgreSQL 15+ |
 | Auth | NextAuth.js v5 (5.0.0-beta.30) |
@@ -55,22 +55,24 @@
 ## 3. Folder Structure
 
 ```
-d:\crm\
+crm-bank/
 ├── app/                      # Next.js App Router
-│   ├── (auth)/               # Auth pages (login, logout)
+│   ├── (auth)/               # Auth pages (login, register)
 │   ├── (main)/               # Main app pages (protected)
 │   │   ├── customers/        # Customer management
 │   │   ├── products/         # Product management
 │   │   ├── sales/            # Sales management
 │   │   ├── employee/         # Employee management
 │   │   ├── reports/          # Reports & analytics
-│   │   └── settings/         # System settings
+│   │   ├── notifications/    # Notifications
+│   │   └── admin/            # System settings
 │   ├── api/                  # API Routes
 │   │   ├── auth/             # NextAuth endpoints
 │   │   ├── customers/        # Customer APIs
 │   │   ├── products/         # Product APIs
 │   │   ├── sales/            # Sales APIs
 │   │   └── rbac/             # RBAC APIs
+│   ├── actions/              # Server Actions (dashboard, reports, logs)
 │   ├── layout.tsx            # Root layout
 │   └── globals.css           # Global styles
 │
@@ -78,6 +80,13 @@ d:\crm\
 │   ├── ui/                   # shadcn/ui components
 │   ├── forms/                # Form components
 │   └── layout/               # Layout components
+│
+├── features/                 # Feature modules
+│   └── [feature]/_components # Feature-scoped UI
+│   └── [feature]/_hooks
+│   └── [feature]/_lib
+│   └── [feature]/_types
+│   └── [feature]/README.md
 │
 ├── src/                      # Core business logic
 │   ├── core/                 # Domain services
@@ -109,7 +118,7 @@ d:\crm\
 ```typescript
 // Responsibilities:
 // 1. Request validation (Zod)
-// 2. Authentication check (getServerSession)
+// 2. Authentication check (auth())
 // 3. Permission check (lib/rbac.ts)
 // 4. Call service layer
 // 5. Format response
@@ -117,8 +126,8 @@ d:\crm\
 // Pattern:
 export async function GET(req: Request) {
   // 1. Auth
-  const session = await getServerSession(authOptions);
-  if (!session) return unauthorized();
+  const session = await auth();
+  if (!session?.user) return unauthorized();
 
   // 2. Permission check
   if (!hasPermission(session, 'resource.read')) {

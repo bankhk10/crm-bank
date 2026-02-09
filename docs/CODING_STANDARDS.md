@@ -1,6 +1,6 @@
 # Coding Standards - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-02-09  
 > **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
 
 ---
@@ -69,18 +69,19 @@ export function InteractiveComponent() { ... }
 app/
 ├── (auth)/                 # Authentication pages
 │   ├── login/
-│   └── logout/
+│   └── register/
 ├── (main)/                 # Protected pages
 │   ├── customers/
 │   │   ├── page.tsx        # List page
 │   │   ├── new/page.tsx    # Create page
 │   │   └── [id]/page.tsx   # Detail page
 │   └── layout.tsx          # Main layout with sidebar
-└── api/
-    └── customers/
-        ├── route.ts        # GET (list), POST (create)
-        └── [id]/
-            └── route.ts    # GET (detail), PUT, DELETE
+├── api/
+│   └── customers/
+│       ├── route.ts        # GET (list), POST (create)
+│       └── [customerId]/
+│           └── route.ts    # GET (detail), PUT, DELETE
+└── actions/                # Server Actions (dashboard, reports)
 
 src/
 ├── core/                   # Domain logic
@@ -94,6 +95,14 @@ components/
 ├── ui/                     # shadcn components
 ├── forms/                  # Form components
 └── layout/                 # Layout components
+
+features/
+└── [feature]/
+    ├── _components/
+    ├── _hooks/
+    ├── _lib/
+    ├── _types/
+    └── README.md
 
 lib/
 ├── db.ts                   # Prisma client
@@ -161,7 +170,7 @@ import type { Customer } from '@prisma/client';
 ```typescript
 // app/api/customers/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from '@/lib/auth';
 import { z } from 'zod';
 import prisma from '@/lib/db';
 import { authOptions } from '@/lib/auth';
@@ -177,8 +186,8 @@ const createSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth check
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'UNAUTHORIZED' },
         { status: 401 }
