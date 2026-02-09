@@ -128,10 +128,6 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               <h2 className="text-2xl sm:text-4xl font-extrabold uppercase tracking-wide">
                 ระบบ <span className="text-[#c62828]">CS ONE</span>
               </h2>
-
-              {/* <h2 className="text- font-semibold text-gray-700 ">
-                Smart Crop Smart Solutions
-              </h2> */}
             </div>
 
             <h2 className="text-center font-extrabold tracking-wide text-gray-800 sm:text-2xl mt-4">
