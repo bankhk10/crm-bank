@@ -65,6 +65,8 @@ export async function GET(request: Request, { params }: { params: any }) {
       stockLots: {
         orderBy: { createdAt: "desc" },
       },
+      category: true,
+      productChain: true,
     },
   });
 

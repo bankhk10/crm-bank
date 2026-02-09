@@ -100,6 +100,8 @@ export default function EditProductPage() {
               usedForPlants: product.usedForPlants,
               salesPoint: product.salesPoint || "",
               properties: product.properties || "",
+              categoryId: product.categoryId || undefined,
+              productChainId: product.productChainId || undefined,
               images:
                 product.images?.map((img: any) => ({
                   id: img.id,
