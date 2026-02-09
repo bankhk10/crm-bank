@@ -1,6 +1,6 @@
 # Architecture Decisions - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-02-09  
 > **Related**: [ARCHITECTURE.md](./ARCHITECTURE.md) | [AI_CONTEXT.md](./AI_CONTEXT.md)
 
 ---
@@ -14,7 +14,7 @@
 ## ADR-001: Next.js App Router
 
 ### Decision
-ใช้ Next.js 15 App Router แทน Pages Router
+ใช้ Next.js 16 App Router แทน Pages Router
 
 ### Context
 - ต้องการ Full-stack framework

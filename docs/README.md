@@ -1,7 +1,7 @@
 # CRM System Documentation
 
 > **Single Source of Truth** สำหรับ AI Agents และทีมพัฒนา  
-> **Version**: 1.1.0 | **Updated**: 2026-02-04
+> **Version**: 1.2.0 | **Updated**: 2026-02-09
 
 ---
 
@@ -32,7 +32,7 @@
 ### Step 2: Trust Hierarchy
 ```
 LEVEL 1 (Highest): prisma/schema.prisma
-LEVEL 2 (High):    app/api/**/route.ts, src/core/**/*.ts  
+LEVEL 2 (High):    app/api/**/route.ts, app/actions/*.ts, src/core/**/*.ts  
 LEVEL 3 (Medium):  types/**/*.ts
 LEVEL 4 (Ref):     docs/**/*.md
 ```
@@ -45,9 +45,33 @@ Auth:         lib/auth.ts
 RBAC:         lib/rbac.ts
 Core Logic:   src/core/
 API Routes:   app/api/
+Actions:      app/actions/
 Pages:        app/(main)/
 Components:   components/
-Features:     features/          # Feature modules (new)
+Features:     features/          # Feature modules
+```
+
+---
+
+## 🤖 AI Reading Commands (เพื่ออัปเดตฟีเจอร์ในอนาคต)
+
+> ใช้คำสั่งด้านล่างเพื่อเก็บ context ล่าสุดก่อนเพิ่มฟีเจอร์ใหม่
+
+```bash
+# 1) ตรวจ schema และ enum ล่าสุด (source of truth)
+sed -n '1,200p' prisma/schema.prisma
+
+# 2) ดูรายการ API routes ทั้งหมด
+find app/api -maxdepth 3 -type f -name 'route.ts'
+
+# 3) ดูโครงสร้าง feature modules
+find features -maxdepth 2 -type d
+
+# 4) ดู Server Actions
+ls app/actions
+
+# 5) ตรวจ RBAC seed เพื่อดู permission ล่าสุด
+sed -n '1,200p' prisma/seed/rbac.ts
 ```
 
 ---
@@ -106,11 +130,11 @@ Sale COMPLETED → Calculate per SaleItem → EmployeePointHistory → Summary
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Next.js 15, Tailwind CSS, shadcn/ui |
-| Backend | Next.js API Routes |
-| ORM | Prisma 6 |
+| Frontend | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
+| Backend | Next.js API Routes + Server Actions |
+| ORM | Prisma 7.x |
 | Database | PostgreSQL 15+ |
-| Auth | NextAuth.js |
+| Auth | NextAuth.js 5.0.0-beta.30 |
 | Container | Docker |
 
 ---
@@ -121,12 +145,17 @@ Sale COMPLETED → Calculate per SaleItem → EmployeePointHistory → Summary
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| **companies** | บริษัทและองค์กร (Table, Form, Kanban) | ✅ |
-| **credit-limits** | วงเงินเครดิตถาวร (Table, Form, Cards) | ✅ |
-| **temporary-credit-limits** | วงเงินเครดิตชั่วคราว (Approval flow) | ✅ |
-| **notifications** | ระบบแจ้งเตือน (Bell, Polling, Navigation) | ✅ |
+| **companies** | บริษัทและองค์กร | ✅ |
+| **credit-limits** | วงเงินเครดิตถาวร | ✅ |
+| **customers** | ลูกค้าและผู้ดูแล | ✅ |
+| **employee** | พนักงานและโครงสร้างองค์กร | ✅ |
 | **fulfillment** | การจัดส่งสินค้า | ✅ |
 | **layout** | Components สำหรับ Layout | ✅ |
+| **notifications** | ระบบแจ้งเตือน | ✅ |
+| **products** | สินค้า กลุ่มสินค้า และราคา | ✅ |
+| **rbac** | การจัดการสิทธิ์ | ✅ |
+| **sales** | ใบขายและ approval flow | ✅ |
+| **temporary-credit-limits** | วงเงินเครดิตชั่วคราว | ✅ |
 
 ### Module Structure
 ```
@@ -170,8 +199,8 @@ import { NotificationBell } from "@/features/notifications";
 
 | Date | Changes |
 |------|---------|
+| 2026-02-09 | Updated AI reading commands + feature module list (v1.2.0) |
 | 2026-02-04 | Added feature modules structure (v1.1.0) |
-| 2026-02-04 | Refactored: companies, credit-limits, temporary-credit-limits, notifications |
 | 2026-01-28 | Initial documentation created (v1.0.0) |
 
 ---

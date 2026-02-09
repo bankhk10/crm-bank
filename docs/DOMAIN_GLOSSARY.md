@@ -1,6 +1,6 @@
 # Domain Glossary - CRM System
 
-> **Version**: 1.0.0 | **Updated**: 2026-01-28  
+> **Version**: 1.1.0 | **Updated**: 2026-02-09  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -25,6 +25,10 @@
 - Unique: `customerCode`
 - Related: CreditLimit, Sale, parentDealer, responsibleEmployee
 
+### Company
+บริษัท | Fields: `id`, `name`, `companyCode`, `status`
+- Related: Employee, Sale (pickupCompany)
+
 ### Product
 สินค้า | Fields: `id`, `productCode`, `name`, `price`, `pointPerUnit`
 - Unique: `productCode`
@@ -42,7 +46,8 @@
 
 ### Sale Status Flow
 ```
-PENDING → PENDING_APPROVAL → APPROVED → AWAITING_DELIVERY → DELIVERED → COMPLETED
+PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID → AWAITING_DELIVERY
+→ DELIVERED → DELIVERY_COMPLETED → COMPLETED
 
 Alternative:
 - PENDING_APPROVAL → REJECTED
@@ -56,8 +61,11 @@ Alternative:
 | PENDING_APPROVAL | รออนุมัติ | Approve/Reject |
 | APPROVED | อนุมัติแล้ว | Deliver |
 | REJECTED | ไม่อนุมัติ | Terminal |
+| AWAITING_PAYMENT | รอชำระเงิน | Confirm payment |
+| PAID | ชำระเงินแล้ว | Deliver |
 | AWAITING_DELIVERY | รอจัดส่ง | Mark delivered |
 | DELIVERED | ระหว่างขนส่ง | Confirm |
+| DELIVERY_COMPLETED | ส่งเสร็จแล้ว | Complete |
 | COMPLETED | เสร็จสิ้น | Terminal |
 | CANCELLED | ยกเลิก | Terminal |
 | EXPIRED | หมดอายุ | Terminal (ไม่ระบุวันส่ง 3 วัน) |
