@@ -17,6 +17,11 @@ enum CompanyStatus {
   INACTIVE
 }
 
+enum ShippingCompanyStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum PermissionType {
   MENU
   ACTION
@@ -360,6 +365,7 @@ model Customer {
   sales                   Sale[]        @relation("SaleCustomer")
   dailySalesSummaries     DailySalesSummary[]
   salesTargets            SalesTarget[]
+  shippingCompanies       CustomerShippingCompany[]
 }
 
 model CreditLimit {
@@ -411,6 +417,39 @@ model TemporaryCreditLimit {
   customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   requestedBy     User?    @relation("TemporaryCreditRequester", fields: [requestedById], references: [id], onDelete: SetNull)
   approvedBy      User?    @relation("TemporaryCreditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+}
+
+// ==========================================
+// SHIPPING COMPANIES
+// ==========================================
+
+model ShippingCompany {
+  id          String                 @id @default(cuid())
+  name        String                 // ชื่อบริษัทขนส่ง
+  phone       String?                // เบอร์โทร
+  address     String?                // ที่อยู่บริษัทขนส่ง
+  notes       String?                // หมายเหตุ
+  status      ShippingCompanyStatus  @default(ACTIVE) // สถานะการใช้งาน
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  deletedAt   DateTime?              // Soft delete
+  
+  customers   CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
+}
+
+// Junction table สำหรับความสัมพันธ์ Many-to-Many ระหว่าง Customer และ ShippingCompany
+model CustomerShippingCompany {
+  id                String          @id @default(cuid())
+  customerId        String
+  shippingCompanyId String
+  createdAt         DateTime        @default(now())
+  
+  customer          Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  shippingCompany   ShippingCompany @relation(fields: [shippingCompanyId], references: [id], onDelete: Cascade)
+  
+  @@unique([customerId, shippingCompanyId])
+  @@index([customerId])
+  @@index([shippingCompanyId])
 }
 
 // หมวดสินค้า (Product Category)
