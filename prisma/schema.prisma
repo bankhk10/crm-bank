@@ -416,7 +416,7 @@ model TemporaryCreditLimit {
 // หมวดสินค้า (Product Category)
 model ProductCategory {
   id          String    @id @default(cuid())
-  code        String    @unique        // รหัสหมวดสินค้า
+  code        String           // รหัสหมวดสินค้า
   description String                   // คำอธิบายหมวดสินค้า
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

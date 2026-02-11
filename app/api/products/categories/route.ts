@@ -52,18 +52,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check duplicate code
-    const existing = await db.productCategory.findUnique({
-      where: { code },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "รหัสหมวดสินค้านี้มีอยู่แล้ว" },
-        { status: 400 },
-      );
-    }
-
     const category = await db.productCategory.create({
       data: { code, description },
     });
