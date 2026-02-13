@@ -25,6 +25,8 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (isSubmitting) return; // Prevent double submission
+
       const formData = new FormData(event.currentTarget);
       const email = String(formData.get("email") ?? "")
         .trim()
@@ -39,48 +41,59 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       setError(null);
       setIsSubmitting(true);
 
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-        remember: remember ? "on" : "off",
-        callbackUrl: callbackUrl ?? "/dashboard",
-      });
+      try {
+        const result = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+          remember: remember ? "on" : "off",
+          callbackUrl: callbackUrl ?? "/dashboard",
+        });
 
-      setIsSubmitting(false);
+        if (result?.error) {
+          setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+          setIsSubmitting(false); // Only stop loading on error
+          return;
+        }
 
-      if (result?.error) {
-        setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-        return;
+        router.push(result?.url ?? "/dashboard");
+        // Keep loading=true during navigation
+      } catch (error) {
+        setIsSubmitting(false);
+        setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       }
-
-      router.push(result?.url ?? "/dashboard");
     },
-    [router, remember, callbackUrl] // ⭐️ เพิ่ม callbackUrl ใน dependency array
+    [router, remember, callbackUrl, isSubmitting]
   );
 
   const handleAdminLogin = async () => {
     if (process.env.NODE_ENV !== "development") return;
+    if (isSubmitting) return; // Prevent double submission
 
     setError(null);
     setIsSubmitting(true);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: "b@b.com",
-      password: "b@b.com",
-      remember: "on",
-      callbackUrl: callbackUrl ?? "/dashboard",
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: "b@b.com",
+        password: "b@b.com",
+        remember: "on",
+        callbackUrl: callbackUrl ?? "/dashboard",
+      });
 
-    setIsSubmitting(false);
+      if (result?.error) {
+        setError("Admin dev login ล้มเหลว");
+        setIsSubmitting(false); // Only stop loading on error
+        return;
+      }
 
-    if (result?.error) {
-      setError("Admin dev login ล้มเหลว");
-      return;
+      router.push(result?.url ?? "/dashboard");
+      // Keep loading=true during navigation
+    } catch (error) {
+      setIsSubmitting(false);
+      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ Admin");
     }
-
-    router.push(result?.url ?? "/dashboard");
   };
 
   return (

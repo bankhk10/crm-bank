@@ -326,6 +326,7 @@ export default function EmployeeForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canEdit) return;
+    if (loading) return;
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -434,8 +435,10 @@ export default function EmployeeForm({
             "Server error",
           );
           setFieldErrors(result.issues ?? {});
+          setLoading(false);
         } else {
           setSuccess("บันทึกเรียบร้อยแล้ว");
+          // Keep loading true for navigation
         }
       } else if (employeeId) {
         res = await fetch(`/api/employee/${employeeId}`, {
@@ -450,6 +453,7 @@ export default function EmployeeForm({
         } else {
           setSuccess("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว");
         }
+        setLoading(false);
       } else {
         res = await fetch("/api/rbac/employees/create-with-user", {
           method: "POST",
@@ -465,10 +469,10 @@ export default function EmployeeForm({
           setValues({ status: "ACTIVE" });
           setPassword("");
         }
+        setLoading(false);
       }
     } catch (err) {
       setError(String(err));
-    } finally {
       setLoading(false);
     }
   }

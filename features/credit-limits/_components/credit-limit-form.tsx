@@ -55,6 +55,7 @@ export default function CreditLimitForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
     setFieldErrors({});
@@ -89,8 +90,10 @@ export default function CreditLimitForm({
       if (!res.success) {
         if (res.issues) setFieldErrors(res.issues);
         setError(res.error ?? "เกิดข้อผิดพลาด");
+        setLoading(false);
       }
-    } finally {
+    } catch (error) {
+      setError(String(error));
       setLoading(false);
     }
   }

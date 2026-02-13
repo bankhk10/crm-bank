@@ -60,6 +60,7 @@ export default function TemporaryCreditLimitForm({
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (readonly) return;
+        if (loading) return;
 
         setLoading(true);
         setError(null);
@@ -89,11 +90,11 @@ export default function TemporaryCreditLimitForm({
                 } else {
                     setError(res.error ?? "เกิดข้อผิดพลาด");
                 }
+                setLoading(false);
             }
         } catch (error) {
             const err = error as Error;
             setError(err.message || String(err));
-        } finally {
             setLoading(false);
         }
     }

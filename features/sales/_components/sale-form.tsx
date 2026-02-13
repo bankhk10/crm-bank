@@ -297,6 +297,8 @@ export function SaleForm({
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
+
         setErrors([]);
         setWarnings([]);
         setFieldErrors({});
@@ -403,7 +405,6 @@ export function SaleForm({
                     ? error.message
                     : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
             setErrors([errorMessage]);
-        } finally {
             setLoading(false);
         }
     };

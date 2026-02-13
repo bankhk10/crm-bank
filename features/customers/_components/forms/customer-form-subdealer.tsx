@@ -292,6 +292,7 @@ export default function CustomerFormSubdealer({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
     setFieldErrors({});
@@ -388,6 +389,7 @@ export default function CustomerFormSubdealer({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+        setLoading(false);
       } else {
         // Handle images (delete removed, upload new, reorder)
         const targetCustomerId = res.data?.customer?.id || values.id;
@@ -454,8 +456,8 @@ export default function CustomerFormSubdealer({
       }
     } catch (err: any) {
       setError(String(err));
-    } finally {
       setLoading(false);
+    } finally {
       setUploadProgress(null);
     }
   }

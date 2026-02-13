@@ -304,6 +304,7 @@ export function ProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!validateForm()) return;
 
     if (!canEdit) return;
@@ -343,6 +344,8 @@ export function ProductForm({
             Object.values(result.issues ?? {})[0]?.[0] ??
             "Server error",
           );
+          setLoading(false);
+          setUploadProgress(null);
         } else {
           // Handle images (delete removed, upload new, reorder)
           const targetProductId = result.data?.product?.id || productId;
@@ -500,7 +503,6 @@ export function ProductForm({
     } catch (err) {
       const error = err as Error;
       setError(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-    } finally {
       setLoading(false);
       setUploadProgress(null);
     }

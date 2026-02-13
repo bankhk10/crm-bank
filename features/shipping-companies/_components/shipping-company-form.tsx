@@ -84,6 +84,7 @@ export default function ShippingCompanyForm({
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        if (loading) return;
 
         // Client-side validation
         const newErrors: Record<string, string[]> = {};
@@ -113,11 +114,11 @@ export default function ShippingCompanyForm({
                 } else {
                     setError(res.error ?? "เกิดข้อผิดพลาด");
                 }
+                setLoading(false);
             }
         } catch (error) {
             const err = error as Error;
             setError(err.message || String(err));
-        } finally {
             setLoading(false);
         }
     }

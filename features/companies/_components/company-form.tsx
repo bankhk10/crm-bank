@@ -53,6 +53,7 @@ export default function CompanyForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
     setFieldErrors({});
@@ -68,11 +69,11 @@ export default function CompanyForm({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+        setLoading(false);
       }
     } catch (error) {
       const err = error as Error;
       setError(err.message || String(err));
-    } finally {
       setLoading(false);
     }
   }

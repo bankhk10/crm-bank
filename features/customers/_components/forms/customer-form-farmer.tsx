@@ -172,6 +172,7 @@ export default function CustomerFormFarmer({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
     setFieldErrors({});
@@ -254,12 +255,12 @@ export default function CustomerFormFarmer({
         } else {
           setError(res.error ?? "เกิดข้อผิดพลาด");
         }
+        setLoading(false);
       } else {
         onSuccess?.();
       }
     } catch (err: any) {
       setError(String(err));
-    } finally {
       setLoading(false);
     }
   }
