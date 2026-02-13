@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   CustomerFormDealer,
   CustomerFormSubdealer,
@@ -9,24 +9,23 @@ import {
   CustomerFormBroker,
   type CustomerType,
 } from "@/features/customers";
+import { toast } from "sonner";
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState<CustomerType | null>(null);
   const searchParams = useSearchParams();
-
-  useEffect(() => {
+  const [selectedType] = useState<CustomerType | null>(() => {
     const t = searchParams?.get("type")?.toUpperCase();
-    if (!t) return;
     if (
       t === "DEALER" ||
       t === "SUBDEALER" ||
       t === "FARMER" ||
       t === "BROKER"
     ) {
-      setSelectedType(t as CustomerType);
+      return t as CustomerType;
     }
-  }, [searchParams]);
+    return null;
+  });
 
   async function handleCreate(payload: any) {
     try {
@@ -114,7 +113,10 @@ export default function NewCustomerPage() {
                 <CustomerFormDealer
                   onSubmit={async (payload) => {
                     const result = await handleCreate(payload);
-                    if (result.success) router.push("/customers");
+                    if (result.success) {
+                      toast.success("สร้างตัวแทนจำหน่ายเรียบร้อยแล้ว");
+                      router.push("/customers");
+                    }
                     return result;
                   }}
                   onCancel={() => router.push("/customers")}
@@ -126,7 +128,10 @@ export default function NewCustomerPage() {
                 <CustomerFormSubdealer
                   onSubmit={async (payload) => {
                     const result = await handleCreate(payload);
-                    if (result.success) router.push("/customers");
+                    if (result.success) {
+                      toast.success("สร้างตัวแทนจำหน่ายย่อยเรียบร้อยแล้ว");
+                      router.push("/customers");
+                    }
                     return result;
                   }}
                   onCancel={() => router.push("/customers")}
@@ -138,7 +143,10 @@ export default function NewCustomerPage() {
                 <CustomerFormFarmer
                   onSubmit={async (payload) => {
                     const result = await handleCreate(payload);
-                    if (result.success) router.push("/customers");
+                    if (result.success) {
+                      toast.success("สร้างเกษตรกรเรียบร้อยแล้ว");
+                      router.push("/customers");
+                    }
                     return result;
                   }}
                   onCancel={() => router.push("/customers")}
@@ -150,7 +158,10 @@ export default function NewCustomerPage() {
                 <CustomerFormBroker
                   onSubmit={async (payload) => {
                     const result = await handleCreate(payload);
-                    if (result.success) router.push("/customers");
+                    if (result.success) {
+                      toast.success("สร้างนายหน้าเรียบร้อยแล้ว");
+                      router.push("/customers");
+                    }
                     return result;
                   }}
                   onCancel={() => router.push("/customers")}

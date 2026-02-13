@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CompanyForm } from "@/features/companies";
+import { toast } from "sonner";
 
 export default function NewCompanyPage() {
   const router = useRouter();
@@ -92,6 +93,7 @@ export default function NewCompanyPage() {
             onSubmit={async (payload) => {
               const result = await handleCreate(payload);
               if (result.success) {
+                toast.success("สร้างบริษัทเรียบร้อยแล้ว");
                 router.push("/companies");
               }
               return result;

@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import { CompanyForm } from "@/features/companies";
+import { toast } from "sonner";
 
 export default function EditCompanyPage() {
   const { companyId } = useParams() as { companyId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("company.edit");
+  const { hasPermission, isLoading } = usePermission("company.edit");
   const canEdit =
     !isLoading &&
     (hasPermission("company.edit") ||
@@ -32,9 +32,7 @@ export default function EditCompanyPage() {
     status: "ACTIVE",
   });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -73,20 +71,11 @@ export default function EditCompanyPage() {
     };
   }, [companyId]);
 
-  const clearFieldError = (field: string) => {
-    setFieldErrors((prev) => {
-      if (!prev || !(field in prev)) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  };
+
 
   async function handleUpdate(payloadData: any) {
     if (!canEdit) return { success: false, error: "No permission" };
-    setSaving(true);
     setError(null);
-    setFieldErrors({});
     try {
       const res = await fetch(`/api/companies/${companyId}`, {
         method: "PUT",
@@ -102,8 +91,6 @@ export default function EditCompanyPage() {
       return { success: true };
     } catch (e: any) {
       return { success: false, error: String(e) };
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -146,7 +133,10 @@ export default function EditCompanyPage() {
               initial={payload}
               onSubmit={async (body) => {
                 const result = await handleUpdate(body);
-                if (result.success) router.push(`/companies`);
+                if (result.success) {
+                  toast.success("บันทึกการแก้ไขเรียบร้อยแล้ว");
+                  router.push(`/companies`);
+                }
                 return result;
               }}
               onCancel={() => router.push(`/companies`)}
