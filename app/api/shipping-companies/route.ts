@@ -12,6 +12,11 @@ const shippingCompanySchema = z.object({
   name: z.string().min(2, "ชื่อบริษัทขนส่งต้องมีอย่างน้อย 2 ตัวอักษร"),
   phone: z.string().optional(),
   address: z.string().optional(),
+  addressLine: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
+  subdistrict: z.string().optional(),
+  postalCode: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   customerIds: z.array(z.string()).optional(), // รายการ customer IDs ที่ใช้บริการ
@@ -32,7 +37,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const fromParam = url.searchParams.get("from");
@@ -123,7 +128,7 @@ export async function POST(request: Request) {
   ) {
     return NextResponse.json(
       { error: "Forbidden - missing shipping-company.create" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -134,7 +139,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -146,6 +151,11 @@ export async function POST(request: Request) {
         name: shippingCompanyData.name,
         phone: shippingCompanyData.phone,
         address: shippingCompanyData.address,
+        addressLine: shippingCompanyData.addressLine,
+        province: shippingCompanyData.province,
+        district: shippingCompanyData.district,
+        subdistrict: shippingCompanyData.subdistrict,
+        postalCode: shippingCompanyData.postalCode,
         notes: shippingCompanyData.notes,
         status: shippingCompanyData.status ?? "ACTIVE",
         customers: customerIds?.length
@@ -185,7 +195,7 @@ export async function POST(request: Request) {
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
         { error: `Unique constraint failed on the fields: (${fields})` },
-        { status: 409 }
+        { status: 409 },
       );
     }
 

@@ -428,6 +428,11 @@ model ShippingCompany {
   name        String                 // ชื่อบริษัทขนส่ง
   phone       String?                // เบอร์โทร
   address     String?                // ที่อยู่บริษัทขนส่ง
+  addressLine String?                // บ้านเลขที่, ถนน
+  province    String?
+  district    String?
+  subdistrict String?
+  postalCode  String?
   notes       String?                // หมายเหตุ
   status      ShippingCompanyStatus  @default(ACTIVE) // สถานะการใช้งาน
   createdAt   DateTime               @default(now())

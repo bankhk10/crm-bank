@@ -25,9 +25,8 @@ export default function EditShippingCompanyPage() {
         customerIds: [],
     });
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+
     const [error, setError] = useState<string | null>(null);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
     useEffect(() => {
         let mounted = true;
@@ -44,6 +43,11 @@ export default function EditShippingCompanyPage() {
                         name: src.name ?? "",
                         phone: src.phone ?? "",
                         address: src.address ?? "",
+                        addressLine: src.addressLine ?? "",
+                        province: src.province ?? "",
+                        district: src.district ?? "",
+                        subdistrict: src.subdistrict ?? "",
+                        postalCode: src.postalCode ?? "",
                         notes: src.notes ?? "",
                         status: src.status ?? "ACTIVE",
                         customerIds: src.customerList?.map((c: any) => c.id) ?? [],
@@ -62,9 +66,8 @@ export default function EditShippingCompanyPage() {
 
     async function handleUpdate(payloadData: any) {
         if (!canEdit) return { success: false, error: "No permission" };
-        setSaving(true);
+        if (!canEdit) return { success: false, error: "No permission" };
         setError(null);
-        setFieldErrors({});
         try {
             const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`, {
                 method: "PUT",
@@ -81,7 +84,7 @@ export default function EditShippingCompanyPage() {
         } catch (e: any) {
             return { success: false, error: String(e) };
         } finally {
-            setSaving(false);
+            // Nothing to do
         }
     }
 

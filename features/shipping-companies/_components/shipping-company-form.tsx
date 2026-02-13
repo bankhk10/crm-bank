@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
+import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { X, Save } from "lucide-react";
 import type { ShippingCompanyPayload } from "../_types";
 import { MultiSelect } from "@/components/custom/multi-select";
@@ -32,6 +33,11 @@ export default function ShippingCompanyForm({
         name: initial.name ?? "",
         phone: initial.phone ?? "",
         address: initial.address ?? "",
+        addressLine: initial.addressLine ?? "",
+        province: initial.province ?? "",
+        district: initial.district ?? "",
+        subdistrict: initial.subdistrict ?? "",
+        postalCode: initial.postalCode ? String(initial.postalCode) : "",
         notes: initial.notes ?? "",
         status: initial.status ?? "ACTIVE",
         customerIds: initial.customerIds ?? [],
@@ -146,16 +152,35 @@ export default function ShippingCompanyForm({
                 />
             </div>
 
-            <FormTextarea
-                label="ที่อยู่บริษัทขนส่ง"
-                value={payload.address ?? ""}
+            <FormInput
+                label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+                placeholder="123/45 หมู่ 6"
+                value={payload.addressLine ?? ""}
                 onChange={(e) => {
-                    setPayload((p) => ({ ...p, address: e.target.value }));
-                    clearFieldError("address");
+                    setPayload((p) => ({ ...p, addressLine: e.target.value }));
+                    clearFieldError("addressLine");
                 }}
-                error={fieldErrors.address?.[0]}
-                rows={3}
+                disabled={loading}
+                containerClassName="md:col-span-2 mt-6"
             />
+
+            <div className="md:col-span-2">
+                <ThaiAddressPicker
+                    value={{
+                        province: payload.province || undefined,
+                        district: payload.district || undefined,
+                        subdistrict: payload.subdistrict || undefined,
+                        postalCode: payload.postalCode || undefined,
+                    }}
+                    onChange={(next) => {
+                        setPayload((p) => ({ ...p, ...next }));
+                        clearFieldError("province");
+                        clearFieldError("district");
+                        clearFieldError("subdistrict");
+                        clearFieldError("postalCode");
+                    }}
+                />
+            </div>
 
             <FormTextarea
                 label="หมายเหตุ"

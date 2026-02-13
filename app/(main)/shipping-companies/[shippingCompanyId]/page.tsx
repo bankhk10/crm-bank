@@ -34,6 +34,11 @@ type ShippingCompany = {
     name: string;
     phone?: string | null;
     address?: string | null;
+    addressLine?: string | null;
+    province?: string | null;
+    district?: string | null;
+    subdistrict?: string | null;
+    postalCode?: string | null;
     notes?: string | null;
     status?: string | null;
     createdAt?: string | null;
@@ -263,7 +268,15 @@ export default function ShippingCompanyDetailPage() {
                             <DetailItem
                                 icon={<MapPin className="h-5 w-5" />}
                                 label="ที่อยู่บริษัทขนส่ง"
-                                value={shippingCompany.address}
+                                value={
+                                    [
+                                        shippingCompany.addressLine,
+                                        shippingCompany.subdistrict && `ต.${shippingCompany.subdistrict}`,
+                                        shippingCompany.district && `อ.${shippingCompany.district}`,
+                                        shippingCompany.province && `จ.${shippingCompany.province}`,
+                                        shippingCompany.postalCode
+                                    ].filter(Boolean).join(" ") || shippingCompany.address || "-"
+                                }
                             />
                             <DetailItem
                                 icon={<FileText className="h-5 w-5" />}

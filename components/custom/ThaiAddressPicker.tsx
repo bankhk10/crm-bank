@@ -53,7 +53,7 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
             subdistricts: (d.sub_districts || []).map((s: any) => ({
               id: s.id,
               name: s.name_th,
-              postalCode: s.zip_code,
+              postalCode: String(s.zip_code),
             })),
           })),
         }));

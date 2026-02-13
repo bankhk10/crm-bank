@@ -7,9 +7,17 @@ import { isAuthorized } from "@/lib/rbac";
 const resourcePath = "/api/shipping-companies";
 
 const shippingCompanyUpdateSchema = z.object({
-  name: z.string().min(2, "ชื่อบริษัทขนส่งต้องมีอย่างน้อย 2 ตัวอักษร").optional(),
+  name: z
+    .string()
+    .min(2, "ชื่อบริษัทขนส่งต้องมีอย่างน้อย 2 ตัวอักษร")
+    .optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
+  addressLine: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
+  subdistrict: z.string().optional(),
+  postalCode: z.string().optional(),
   notes: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   customerIds: z.array(z.string()).optional(), // รายการ customer IDs ที่ใช้บริการ
@@ -41,7 +49,9 @@ export async function GET(request: Request, context: any) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Fetch customer details
-  const customerIds = (shippingCompany as any).customers.map((c: any) => c.customerId);
+  const customerIds = (shippingCompany as any).customers.map(
+    (c: any) => c.customerId,
+  );
   const customers = customerIds.length
     ? await db.customer.findMany({
         where: { id: { in: customerIds } },
@@ -74,12 +84,10 @@ export async function PUT(request: Request, context: any) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (
-    !(session.user.permissionKeys ?? []).includes("shipping-company.edit")
-  ) {
+  if (!(session.user.permissionKeys ?? []).includes("shipping-company.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing shipping-company.edit" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -89,7 +97,7 @@ export async function PUT(request: Request, context: any) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -117,7 +125,9 @@ export async function PUT(request: Request, context: any) {
   });
 
   // Fetch customer details
-  const updatedCustomerIds = customerIds ?? (shippingCompany as any).customers.map((c: any) => c.customerId);
+  const updatedCustomerIds =
+    customerIds ??
+    (shippingCompany as any).customers.map((c: any) => c.customerId);
   const customers = updatedCustomerIds.length
     ? await db.customer.findMany({
         where: { id: { in: updatedCustomerIds } },
@@ -154,7 +164,7 @@ export async function DELETE(request: Request, context: any) {
   ) {
     return NextResponse.json(
       { error: "Forbidden - missing shipping-company.delete" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
