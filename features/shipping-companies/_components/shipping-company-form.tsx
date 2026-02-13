@@ -30,7 +30,6 @@ export default function ShippingCompanyForm({
     onCancel,
     submitLabel,
 }: Props) {
-    const router = useRouter();
     const [payload, setPayload] = useState<ShippingCompanyPayload>({
         name: initial.name ?? "",
         phone: initial.phone ?? "",
@@ -206,20 +205,9 @@ export default function ShippingCompanyForm({
                 />
             </div>
 
-            <FormTextarea
-                label="หมายเหตุ"
-                value={payload.notes ?? ""}
-                onChange={(e) => {
-                    setPayload((p) => ({ ...p, notes: e.target.value }));
-                    clearFieldError("notes");
-                }}
-                error={fieldErrors.notes?.[0]}
-                rows={3}
-            />
-
             {/* Customer Selection */}
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="text-base font-medium mx-2">
                     ลูกค้าที่ใช้บริการขนส่ง
                 </label>
                 {loadingCustomers ? (
@@ -239,6 +227,18 @@ export default function ShippingCompanyForm({
                     <p className="text-sm text-red-600">{fieldErrors.customerIds[0]}</p>
                 )}
             </div>
+
+
+            <FormTextarea
+                label="หมายเหตุ"
+                value={payload.notes ?? ""}
+                onChange={(e) => {
+                    setPayload((p) => ({ ...p, notes: e.target.value }));
+                    clearFieldError("notes");
+                }}
+                error={fieldErrors.notes?.[0]}
+                rows={3}
+            />
 
             {/* Error Display */}
             {error && (

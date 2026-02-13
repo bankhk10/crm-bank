@@ -2,8 +2,6 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
     Eye,
@@ -52,13 +50,25 @@ export function useShippingCompanyColumns(
                 accessorKey: "address",
                 header: "ที่อยู่",
                 cell: ({ row }) => {
-                    const address = row.original.address;
+                    const data = row.original;
+
+                    const fullAddress =
+                        [
+                            data.addressLine,
+                            data.subdistrict && `ต.${data.subdistrict}`,
+                            data.district && `อ.${data.district}`,
+                            data.province && `จ.${data.province}`,
+                            data.postalCode,
+                        ]
+                            .filter(Boolean)
+                            .join(" ") || data.address || "-";
+
                     return (
-                        <div className="text-sm max-w-[200px]">
-                            {address ? (
+                        <div className="text-sm">
+                            {fullAddress && fullAddress !== "-" ? (
                                 <div className="flex items-start gap-2">
                                     <MapPin className="h-3 w-3 mt-0.5 flex-shrink-0 text-slate-400" />
-                                    <span className="line-clamp-2">{address}</span>
+                                    <span className="line-clamp-2">{fullAddress}</span>
                                 </div>
                             ) : (
                                 <span className="text-slate-400 text-xs">- ไม่มีข้อมูล -</span>
@@ -78,11 +88,6 @@ export function useShippingCompanyColumns(
                             <Badge variant="secondary" className="font-normal">
                                 {customers.length} ราย
                             </Badge>
-                            {customers.length > 0 && (
-                                <div className="text-xs text-slate-500 max-w-[150px] truncate hidden lg:block">
-                                    {customers.map((c) => c.name).join(", ")}
-                                </div>
-                            )}
                         </div>
                     );
                 },
@@ -90,17 +95,7 @@ export function useShippingCompanyColumns(
             {
                 accessorKey: "status",
                 header: "สถานะ",
-                cell: ({ row }) => <ShippingCompanyStatusBadge status={row.original.status} />,
-            },
-            {
-                accessorKey: "createdAt",
-                header: "วันที่สร้าง",
-                cell: ({ row }) =>
-                    row.original.createdAt
-                        ? format(new Date(row.original.createdAt), "d MMM yyyy", {
-                            locale: th,
-                        })
-                        : "-",
+                cell: ({ row }) => <ShippingCompanyStatusBadge status={row.original.status ?? undefined} />,
             },
             {
                 id: "actions",
