@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormCombobox } from "./FormCombobox";
@@ -22,20 +22,6 @@ const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
 export default function ThaiAddressPicker({ value, onChange }: Props) {
   const [provinces, setProvinces] = useState<any[]>([]);
-  const [province, setProvince] = useState<string | undefined>(value?.province);
-  const [district, setDistrict] = useState<string | undefined>(value?.district);
-  const [subdistrict, setSubdistrict] = useState<string | undefined>(
-    value?.subdistrict,
-  );
-  const [postalCode, setPostalCode] = useState<string | undefined>(
-    value?.postalCode,
-  );
-
-  // Store latest onChange callback
-  const onChangeRef = useRef(onChange);
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
 
   // โหลดข้อมูลจังหวัด
   useEffect(() => {
@@ -64,6 +50,10 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     })();
   }, []);
 
+  // Safe access to value props
+  const safeValue = value || {};
+  const { province, district, subdistrict, postalCode } = safeValue;
+
   const districts = useMemo(() => {
     const p = provinces.find((pp: any) => pp.name === province);
     return p ? p.districts : [];
@@ -74,55 +64,6 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
     return d ? d.subdistricts : [];
   }, [district, districts]);
 
-  // Track previous value to detect external changes
-  const prevValueRef = useRef(value);
-
-  // sync ค่าเมื่อ parent ส่งมาครั้งแรก หรือเมื่อมีการเปลี่ยนแปลงจาก parent
-  useEffect(() => {
-    if (!value) return;
-    if (provinces.length === 0) return; // ⭐ สำคัญมาก
-
-    if (value.province !== undefined) setProvince(value.province);
-    if (value.district !== undefined) setDistrict(value.district);
-    if (value.subdistrict !== undefined) setSubdistrict(value.subdistrict);
-    if (value.postalCode !== undefined) setPostalCode(value.postalCode);
-
-    prevValueRef.current = value;
-  }, [value, provinces]);
-
-  // อัพเดทค่า postalCode อัตโนมัติ และแจ้ง parent เมื่อมีการเปลี่ยนแปลง
-  useEffect(() => {
-    const p = provinces.find((pp: any) => pp.name === province);
-    const d = p?.districts?.find((dd: any) => dd.name === district);
-    const s = d?.subdistricts?.find((ss: any) => ss.name === subdistrict);
-    const newPostalCode = s?.postalCode;
-
-    // Update postal code if it changed
-    if (newPostalCode !== postalCode) {
-      setPostalCode(newPostalCode);
-    }
-
-    // Notify parent of changes
-    const newValue = {
-      province,
-      district,
-      subdistrict,
-      postalCode: newPostalCode,
-    };
-
-    // Only call onChange if the value actually changed
-    const hasChanged =
-      newValue.province !== prevValueRef.current?.province ||
-      newValue.district !== prevValueRef.current?.district ||
-      newValue.subdistrict !== prevValueRef.current?.subdistrict ||
-      newValue.postalCode !== prevValueRef.current?.postalCode;
-
-    if (hasChanged && onChangeRef.current) {
-      prevValueRef.current = newValue;
-      onChangeRef.current(newValue);
-    }
-  }, [province, district, subdistrict, provinces, postalCode]);
-
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       {/* จังหวัด */}
@@ -130,11 +71,13 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         label="จังหวัด"
         value={province || ""}
         onChange={(v) => {
-          setProvince(v || undefined);
-          if (v !== province) {
-            setDistrict(undefined);
-            setSubdistrict(undefined);
-          }
+          onChange?.({
+            ...safeValue,
+            province: v || undefined,
+            district: undefined,
+            subdistrict: undefined,
+            postalCode: undefined,
+          });
         }}
         options={provinces.map((p: any) => ({
           value: p.name,
@@ -151,8 +94,12 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         label="อำเภอ/เขต"
         value={district || ""}
         onChange={(v) => {
-          setDistrict(v || undefined);
-          setSubdistrict(undefined);
+          onChange?.({
+            ...safeValue,
+            district: v || undefined,
+            subdistrict: undefined,
+            postalCode: undefined,
+          });
         }}
         disabled={!province}
         options={districts.map((d: any) => ({
@@ -169,7 +116,16 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
       <FormCombobox
         label="ตำบล/แขวง"
         value={subdistrict || ""}
-        onChange={(v) => setSubdistrict(v || undefined)}
+        onChange={(v) => {
+          const selectedSubdistrict = subdistricts.find(
+            (s: any) => s.name === v,
+          );
+          onChange?.({
+            ...safeValue,
+            subdistrict: v || undefined,
+            postalCode: selectedSubdistrict?.postalCode,
+          });
+        }}
         disabled={!district}
         options={subdistricts.map((s: any) => ({
           value: s.name,
