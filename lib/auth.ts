@@ -15,6 +15,7 @@ import {
   buildDeleteAccessByResource,
   buildPermissionMap,
 } from "./rbac";
+import { getSessionVersion, isSessionValid } from "./force-logout.service";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -24,7 +25,7 @@ const credentialsSchema = z.object({
 // Helper to create a compact permission storage (only essential data)
 // Store only the permission keys that are allowed to reduce token size significantly
 function createCompactPermissions(
-  permissionMap: Record<string, SessionPermission>
+  permissionMap: Record<string, SessionPermission>,
 ): {
   keys: string[];
   data: Record<string, DataAccessLevel>;
@@ -104,16 +105,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
         const rolePermissions = user.userRoles.flatMap(
-          (userRole) => userRole.role.permissions
+          (userRole) => userRole.role.permissions,
         );
         const permissionMap = buildPermissionMap(
           rolePermissions,
-          user.permissionOverrides
+          user.permissionOverrides,
         );
 
         // Create compact permission storage to reduce token size
         const compact = createCompactPermissions(permissionMap);
         const roles = user.userRoles.map((userRole) => userRole.role.slug);
+
+        // Get current session version for force logout functionality
+        const sessionVersion = await getSessionVersion();
 
         return {
           id: user.id,
@@ -127,6 +131,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           editAccessByResource: compact.edit,
           deleteAccessByResource: compact.del,
           employeeId: user.employeeProfile?.id ?? null,
+          sessionVersion, // Add session version for force logout
         } satisfies {
           id: string;
           name: string;
@@ -139,6 +144,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           editAccessByResource: Record<string, EditAccessLevel>;
           deleteAccessByResource: Record<string, DeleteAccessLevel>;
           employeeId?: string | null;
+          sessionVersion: string;
         };
       },
     }),
@@ -159,6 +165,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           editAccessByResource?: Record<string, EditAccessLevel>;
           deleteAccessByResource?: Record<string, DeleteAccessLevel>;
           employeeId?: string | null;
+          sessionVersion?: string;
         };
         token.roles = enriched.roles;
         token.permissionKeys = enriched.permissionKeys;
@@ -168,7 +175,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.editAccessByResource = enriched.editAccessByResource ?? {};
         token.deleteAccessByResource = enriched.deleteAccessByResource ?? {};
         token.employeeId = enriched.employeeId ?? null;
+        token.sessionVersion = enriched.sessionVersion ?? null;
       } else if (token.sub) {
+        // Validate session version on token refresh
+        if (token.sessionVersion) {
+          const isValid = await isSessionValid(token.sessionVersion as string);
+          if (!isValid) {
+            // Session is invalid, return null to force logout
+            return null;
+          }
+        }
+
         // Subsequent session refresh: re-fetch roles/permissions to reflect any RBAC changes
         // Filter out soft-deleted roles & overrides
         try {
@@ -197,11 +214,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
           if (fresh) {
             const rolePermissions = fresh.userRoles.flatMap(
-              (ur) => ur.role.permissions
+              (ur) => ur.role.permissions,
             );
             const permissionMap = buildPermissionMap(
               rolePermissions,
-              fresh.permissionOverrides
+              fresh.permissionOverrides,
             );
 
             // Create compact permission storage
@@ -215,6 +232,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.editAccessByResource = compact.edit;
             token.deleteAccessByResource = compact.del;
             token.employeeId = fresh.employeeProfile?.id ?? null;
+            // Update session version on refresh
+            token.sessionVersion = await getSessionVersion();
           }
         } catch {
           // Silent fail: keep old token data
