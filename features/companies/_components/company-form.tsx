@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import { Button } from "@/components/ui/button";
 import { generateRandomCompany } from "@/lib/random-fill/company";
 import Can from "@/components/rbac/Can";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
-import { X, Save } from "lucide-react";
+import FormActions from "@/components/custom/form-actions";
 import type { CompanyPayload, SubmitResult } from "../_types/types";
 
 interface Props {
@@ -24,7 +22,7 @@ export default function CompanyForm({
   onCancel,
   submitLabel,
 }: Props) {
-  const router = useRouter();
+
   const [payload, setPayload] = useState<CompanyPayload>({
     name: initial.name ?? "",
     companyCode: initial.companyCode ?? "",
@@ -81,6 +79,12 @@ export default function CompanyForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-destructive/15 text-destructive font-medium p-4 rounded-md border border-destructive/20">
+          {error}
+        </div>
+      )}
+
       {/* General Info Section */}
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบริษัท
@@ -211,36 +215,11 @@ export default function CompanyForm({
       </div>
 
       {/* Action Buttons */}
-      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
-          <Button
-            size="lg"
-            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-            type="button"
-            onClick={onCancel ?? (() => router.back())}
-            disabled={loading}
-          >
-            <X className="h-4 w-4" />
-            ยกเลิก
-          </Button>
-          <Button
-            size="lg"
-            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? (
-              <span>กำลังบันทึก...</span>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                <span>{submitLabel || "บันทึก"}</span>
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-      <div className="w-full h-12 sm:hidden"></div>
+      <FormActions
+        loading={loading}
+        onCancel={onCancel}
+        submitLabel={submitLabel}
+      />
     </form>
   );
 }

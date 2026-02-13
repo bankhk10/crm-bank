@@ -43,7 +43,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const fromParam = url.searchParams.get("from");
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
   if (!(session.user.permissionKeys ?? []).includes("company.create")) {
     return NextResponse.json(
       { error: "Forbidden - missing company.create" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
   // Build a direct map of sanitized-knownKey -> original knownKey to avoid
   // accidental partial matches (e.g. "shortName" matching "name").
   const keyMap = Object.fromEntries(
-    knownKeys.map((kk) => [sanitizeKey(kk), kk])
+    knownKeys.map((kk) => [sanitizeKey(kk), kk]),
   );
 
   const normalizedBody: Record<string, unknown> = {};
@@ -156,13 +156,13 @@ export async function POST(request: Request) {
     normalizedBody.postalCode = String(normalizedBody.postalCode);
   }
   const parsed = companySchema.safeParse(
-    Object.keys(normalizedBody).length ? normalizedBody : body
+    Object.keys(normalizedBody).length ? normalizedBody : body,
   );
 
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -191,11 +191,30 @@ export async function POST(request: Request) {
       err.code === "P2002"
     ) {
       // Unique constraint failed - provide a helpful message for client
-      const target = (err.meta && (err.meta as any).target) || [];
+      // console.error("P2002 Error details:", err); // debug
+      let target = err.meta && (err.meta as any).target;
+
+      // Fallback: try to parse target from message if not in meta
+      if (
+        (!target || (Array.isArray(target) && target.length === 0)) &&
+        err.message
+      ) {
+        const match = err.message.match(/fields:\s*\(([^)]+)\)/i);
+        if (match && match[1]) {
+          target = match[1]
+            .split(",")
+            .map((s: string) => s.trim().replace(/['"`]/g, ""));
+        }
+      }
+
+      target = target || [];
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
-        { error: `Unique constraint failed on the fields: (${fields})` },
-        { status: 409 }
+        {
+          error: `Unique constraint failed on the fields: (${fields})`,
+          target: Array.isArray(target) ? target : [String(target)],
+        },
+        { status: 409 },
       );
     }
 

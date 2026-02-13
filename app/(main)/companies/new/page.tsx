@@ -22,24 +22,44 @@ export default function NewCompanyPage() {
           const errMsg: string = json?.error || "";
           const issues: Record<string, string[]> = {};
 
-          // Try to parse fields from message like: "Unique constraint failed on the fields: (`email`)"
-          const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
-          if (m && m[1]) {
-            const raw = m[1];
-            const fields = raw
-              .split(",")
-              .map((s) => s.replace(/[`"'\s]/g, "").trim());
-            for (const f of fields) {
-              if (!f) continue;
+          // If unique constraint (409), use structured target if available
+          const targets: string[] = Array.isArray(json?.target)
+            ? json.target
+            : [];
+
+          if (targets.length > 0) {
+            for (const t of targets) {
+              if (!t) continue;
+              const f = String(t).replace(/[`"'\s]/g, "").trim();
               if (f.toLowerCase() === "email") {
                 issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+              } else if (f.toLowerCase() === "companycode") {
+                issues.companyCode = ["รหัสบริษัทนี้ถูกใช้งานแล้ว"];
+              } else if (f.toLowerCase() === "taxid") {
+                issues.taxId = ["เลขประจำตัวผู้เสียภาษีนี้ถูกใช้งานแล้ว"];
               } else {
                 issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
               }
             }
-          } else if (/email/i.test(errMsg)) {
-            // Fallback: if message mentions email, set email error
-            issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+          } else {
+            // Fallback: parse error message
+            const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
+            if (m && m[1]) {
+              const raw = m[1];
+              const fields = raw
+                .split(",")
+                .map((s) => s.replace(/[`"'\s]/g, "").trim());
+              for (const f of fields) {
+                if (!f) continue;
+                if (f.toLowerCase() === "email") {
+                  issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+                } else {
+                  issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
+                }
+              }
+            } else if (/email/i.test(errMsg)) {
+              issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
+            }
           }
 
           return {
