@@ -5,6 +5,7 @@ import { Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
+import { applyDataScope } from "@/lib/data-scope";
 
 const resourcePath = "/api/credit-limits";
 
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const customerId = url.searchParams.get("customerId");
@@ -78,50 +79,8 @@ export async function GET(request: Request) {
     };
   }
 
-  // Permission-based filtering
-  const resourceAccess = session.user.dataAccessByResource?.["creditlimit"];
-  const isAdmin = session.user.roles.includes("administrator");
-
-  if (!isAdmin) {
-    const currentCustomerWhere =
-      (where.customer as Prisma.CustomerWhereInput) || {};
-
-    switch (resourceAccess) {
-      case "VIEW_OWN":
-        if (session.user.employeeId) {
-          where.customer = {
-            ...currentCustomerWhere,
-            responsibleEmployeeId: session.user.employeeId,
-          };
-        } else {
-          where.createdById = session.user.id;
-        }
-        break;
-      case "VIEW_DEPARTMENT":
-        if (session.user.departmentId) {
-          where.customer = {
-            ...currentCustomerWhere,
-            responsibleEmployee: {
-              departmentId: session.user.departmentId,
-            },
-          };
-        }
-        break;
-      case "VIEW_ALL":
-        break;
-      default:
-        // Default to VIEW_OWN behavior
-        if (session.user.employeeId) {
-          where.customer = {
-            ...currentCustomerWhere,
-            responsibleEmployeeId: session.user.employeeId,
-          };
-        } else {
-          where.createdById = session.user.id;
-        }
-        break;
-    }
-  }
+  // Permission-based data scope filtering
+  applyDataScope(where, session, "creditlimit");
 
   const [total, creditLimits] = await Promise.all([
     db.creditLimit.count({ where }),
@@ -153,7 +112,7 @@ export async function POST(request: Request) {
   if (!(session.user.permissionKeys ?? []).includes("creditlimit.create")) {
     return NextResponse.json(
       { error: "Forbidden - missing creditlimit.create" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -163,7 +122,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -208,7 +167,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { error: "Customer not found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

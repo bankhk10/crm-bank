@@ -5,6 +5,7 @@ import { Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
+import { applyDataScope } from "@/lib/data-scope";
 
 const resourcePath = "/api/temporary-credit-limits";
 
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const customerId = url.searchParams.get("customerId");
@@ -85,6 +86,9 @@ export async function GET(request: Request) {
     };
   }
 
+  // Permission-based data scope filtering
+  applyDataScope(where, session, "temporary_creditlimit");
+
   const [total, temporaryCreditLimits] = await Promise.all([
     db.temporaryCreditLimit.count({ where }),
     db.temporaryCreditLimit.findMany({
@@ -126,10 +130,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("temporary_creditlimit.create")) {
+  if (
+    !(session.user.permissionKeys ?? []).includes(
+      "temporary_creditlimit.create",
+    )
+  ) {
     return NextResponse.json(
       { error: "Forbidden - missing temporary_creditlimit.create" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -143,7 +151,7 @@ export async function POST(request: Request) {
     console.error("❌ Validation Error:", parsed.error.flatten());
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -198,13 +206,13 @@ export async function POST(request: Request) {
           {
             error: "Invalid User (Requester) ID. Please try logging in again.",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       return NextResponse.json(
         { error: "Customer not found" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -218,7 +226,7 @@ export async function POST(request: Request) {
         error: "Failed to create temporary credit limit",
         details: err instanceof Error ? err.message : String(err),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

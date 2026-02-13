@@ -5,6 +5,7 @@ import { Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
 import { isAuthorized } from "@/src/core/rbac";
+import { applyDataScope } from "@/lib/data-scope";
 import { getRegionByProvince } from "@/lib/province-region-mapping";
 
 const resourcePath = "/api/customers";
@@ -135,9 +136,11 @@ export async function GET(request: Request) {
   }
 
   const [total, customers] = await Promise.all([
-    db.customer.count({ where }),
+    db.customer.count({
+      where: applyDataScope({ ...where }, session, "customer"),
+    }),
     db.customer.findMany({
-      where,
+      where: applyDataScope({ ...where }, session, "customer"),
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,
       take: perPage,

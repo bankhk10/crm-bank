@@ -5,6 +5,7 @@ import { SaleStatus, PaymentTerm, Prisma } from "@/src/infrastructure/database";
 import type { SalesFilterParams, SaleFormData } from "@/types/sales";
 import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
 import { sendNotification } from "@/src/core/notifications";
+import { applyDataScope } from "@/lib/data-scope";
 
 // GET /api/sales - List sales with filters
 export async function GET(request: NextRequest) {
@@ -80,40 +81,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Permission-based filtering
-    const salesAccess = session.user.dataAccessByResource?.["sale"];
-    const isAdmin = session.user.roles.includes("administrator");
-
-    if (!isAdmin) {
-      switch (salesAccess) {
-        case "VIEW_OWN":
-          if (session.user.employeeId) {
-            where.employeeId = session.user.employeeId;
-          } else {
-            // Fallback for users without employee profile
-            where.createdById = session.user.id;
-          }
-          break;
-        case "VIEW_DEPARTMENT":
-          if (session.user.departmentId) {
-            where.employee = {
-              departmentId: session.user.departmentId,
-            };
-          }
-          break;
-        case "VIEW_ALL":
-          // No filter needed
-          break;
-        default:
-          // If no specific access level, default to viewing own (or restrict completely if stricter security is needed)
-          if (session.user.employeeId) {
-            where.employeeId = session.user.employeeId;
-          } else {
-            where.createdById = session.user.id;
-          }
-          break;
-      }
-    }
+    // Permission-based data scope filtering
+    applyDataScope(where, session, "sale");
 
     const skip = ((filters.page || 1) - 1) * (filters.perPage || 10);
     const take = filters.perPage || 10;
@@ -260,7 +229,7 @@ export async function POST(request: NextRequest) {
       const product = productMap.get(item.productId);
       const packSize = parseFloat(product?.packageSizePerBox || "1");
       const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-      
+
       return sum + item.quantity * item.unitPrice * multiplier;
     }, 0);
 
@@ -317,7 +286,7 @@ export async function POST(request: NextRequest) {
           stockWarnings.push({
             productId: product.id,
             productName: product.name,
-            requested: item.quantity, 
+            requested: item.quantity,
             available: totalStock,
           });
         }
@@ -370,7 +339,7 @@ export async function POST(request: NextRequest) {
             const packSize = parseFloat(product?.packageSizePerBox || "1");
             const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
             const totalPrice = item.quantity * item.unitPrice * multiplier;
-            
+
             return {
               productId: item.productId,
               quantity: item.quantity,
