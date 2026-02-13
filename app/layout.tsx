@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Prompt } from "next/font/google";
 import "./globals.css";
 import AuthSessionProvider from "@/components/providers/session-provider";
 import { auth } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,10 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased ${prompt.className}`}
         suppressHydrationWarning
       >
-        <AuthSessionProvider session={session}>{children}</AuthSessionProvider>
+        <AuthSessionProvider session={session}>
+          {children}
+          <Toaster richColors />
+        </AuthSessionProvider>
       </body>
     </html>
   );

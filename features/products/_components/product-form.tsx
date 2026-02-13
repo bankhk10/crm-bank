@@ -3,16 +3,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import GalleryUpload from "@/components/custom/gallery-upload";
-import { Button } from "@/components/ui/button";
+
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { CheckCircle, X, Save } from "lucide-react";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +22,7 @@ import {
   FormCombobox,
   FormTextarea,
 } from "@/components/custom/form-components";
+import FormActions from "@/components/custom/form-actions";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { STATUS_OPTIONS, type ProductFormData } from "@/types/product";
 import { useRandomFill } from "@/hooks/use-random-fill";
@@ -58,7 +53,6 @@ export function ProductForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const [formData, setFormData] = useState<ProductFormData>({
@@ -316,7 +310,6 @@ export function ProductForm({
 
     setLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const payload = {
@@ -412,7 +405,8 @@ export function ProductForm({
             }
           }
 
-          setSuccess(true);
+
+          toast.success("บันทึกข้อมูลสำเร็จ");
           setTimeout(() => {
             router.push("/products");
             router.refresh();
@@ -496,12 +490,12 @@ export function ProductForm({
         }
 
         setRemovedImageIds([]);
-        setSuccess(true);
+        toast.success("บันทึกข้อมูลสำเร็จ");
 
         setTimeout(() => {
           router.push("/products");
           router.refresh();
-        }, 1500);
+        }, 1200);
       }
     } catch (err) {
       const error = err as Error;
@@ -647,31 +641,7 @@ export function ProductForm({
         </Alert>
       )}
 
-      {success && (
-        <Dialog open={true} onOpenChange={(open) => !open && setSuccess(false)}>
-          <DialogContent
-            showCloseButton={false}
-            className="sm:max-w-md border-none shadow-xl"
-          >
-            <div className="flex flex-col items-center justify-center py-10 gap-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-25"></div>
-                <div className="bg-green-100 p-4 rounded-full relative">
-                  <CheckCircle className="h-12 w-12 text-green-600 animate-in zoom-in duration-500" />
-                </div>
-              </div>
-              <div className="space-y-2 text-center">
-                <DialogTitle className="text-2xl font-bold text-gray-900">
-                  บันทึกข้อมูลสำเร็จ
-                </DialogTitle>
-                <DialogDescription className="text-base text-gray-500">
-                  กำลังนำทางกลับไปหน้ารายการสินค้า...
-                </DialogDescription>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
 
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลสินค้า
@@ -959,37 +929,12 @@ export function ProductForm({
         </div>
       )}
 
-      <div className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8 flex justify-center">
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-row gap-3 w-full sm:w-auto">
-            <Button
-              size="lg"
-              className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="button"
-              onClick={onCancel ?? (() => router.back())}
-              disabled={loading}
-            >
-              <X className="h-4 w-4" />
-              ยกเลิก
-            </Button>
-            <Button
-              size="lg"
-              className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? (
-                "กำลังบันทึก..."
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  บันทึก
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <FormActions
+        loading={loading}
+        onCancel={onCancel}
+        submitLabel="บันทึก"
+        className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8"
+      />
 
       {/* Random Fill Button - แสดงเฉพาะ development */}
       {isRandomFillEnabled && (
