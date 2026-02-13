@@ -7,10 +7,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function NewSalePage() {
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("sale.create");
+  const { allowed, isLoading } = usePermission("sale.create");
 
   const handleSubmit = async (data: SaleFormData) => {
     const res = await fetch("/api/sales", {
@@ -32,6 +33,7 @@ export default function NewSalePage() {
     }
 
     // Redirect to sales list page
+    toast.success("สร้างรายการขายสำเร็จ");
     router.push(`/sales`);
   };
 

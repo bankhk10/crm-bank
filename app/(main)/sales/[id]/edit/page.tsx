@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function EditSalePage({
   params,
@@ -92,6 +93,7 @@ export default function EditSalePage({
       throw new Error(error.error || "Failed to update sale");
     }
 
+    toast.success("บันทึกการแก้ไขสำเร็จ");
     router.push(`/sales`);
   };
 
