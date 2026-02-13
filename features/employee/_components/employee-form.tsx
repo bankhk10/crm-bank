@@ -3,11 +3,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+
 import RandomFillButton from "@/components/custom/random-fill-button";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
-import { Eye, EyeOff, X, Save } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import { Employee, EmployeeFormProps } from "../_types/types";
@@ -17,6 +17,7 @@ import {
   STATUS_OPTIONS,
 } from "../_lib/constants";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
+import FormActions from "@/components/custom/form-actions";
 
 type EmployeeFormValues = Partial<Employee> & {
   prefix?: string;
@@ -708,35 +709,12 @@ export default function EmployeeForm({
       </div>
 
       {/* Action Buttons */}
-      <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
-          <Button
-            size="lg"
-            className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-            type="button"
-            onClick={onCancel ?? (() => { })}
-            disabled={loading}
-          >
-            <X className="h-4 w-4" />
-            ยกเลิก
-          </Button>
-          <Button
-            size="lg"
-            className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-            type="submit"
-            disabled={loading || !canEdit}
-          >
-            {loading ? (
-              <span>กำลังบันทึก...</span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <Save className="h-4 w-4" />
-                บันทึก
-              </span>
-            )}
-          </Button>
-        </div>
-      </div>
+      <FormActions
+        loading={loading}
+        disabled={!canEdit}
+        onCancel={onCancel}
+        submitLabel="บันทึก"
+      />
       <div className="w-full h-12 sm:hidden"></div>
 
       {/* Random Fill Button - แสดงเฉพาะ development */}
