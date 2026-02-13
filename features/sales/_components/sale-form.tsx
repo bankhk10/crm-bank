@@ -5,7 +5,7 @@
  * Refactored version of sale-form using modular components and hooks
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -93,12 +93,17 @@ export function SaleForm({
         initialData?.paymentTerm || "CREDIT_90",
     );
     const [creditDays, setCreditDays] = useState(initialData?.creditDays || 90);
-    const [creditDueDate, setCreditDueDate] = useState(
-        initialData?.creditDueDate || "",
-    );
     const [saleDate, setSaleDate] = useState(
         initialData?.saleDate || new Date().toISOString().split("T")[0],
     );
+    const creditDueDate = useMemo(() => {
+        if (saleDate && creditDays > 0) {
+            const date = new Date(saleDate);
+            date.setDate(date.getDate() + creditDays);
+            return date.toISOString().split("T")[0];
+        }
+        return "";
+    }, [saleDate, creditDays]);
     const [usePromotionalCredit, setUsePromotionalCredit] = useState(
         initialData?.usePromotionalCredit || false,
     );
@@ -178,42 +183,52 @@ export function SaleForm({
     // User permissions
     // User permissions (moved to top)
 
-    // Auto-calculate credit due date
-    useEffect(() => {
-        if (saleDate && creditDays > 0) {
-            const date = new Date(saleDate);
-            date.setDate(date.getDate() + creditDays);
-            setCreditDueDate(date.toISOString().split("T")[0]);
-        } else {
-            setCreditDueDate("");
-        }
-    }, [saleDate, creditDays]);
+
 
     // Auto-fill employeeId for current user (if they have an employeeId)
     useEffect(() => {
         if (!isEdit && !employeeId && currentUser?.employeeId) {
-            setEmployeeId(currentUser.employeeId);
+            const timer = setTimeout(() => {
+                setEmployeeId(currentUser.employeeId || "");
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [currentUser, isEdit, employeeId]);
 
-    // Update customer info when customer changes
+    // Helper to update customer details when customer changes
+    const updateCustomerDetails = (newCustomerId: string) => {
+        if (!newCustomerId) {
+            setSelectedCustomer(null);
+            return;
+        }
+
+        const customer = customers.find((c) => c.id === newCustomerId);
+        setSelectedCustomer(customer || null);
+
+        const isInitialCustomer = initialData?.customerId === newCustomerId;
+        const shouldUpdateAddress = customer && (!isEdit || !isInitialCustomer);
+
+        if (shouldUpdateAddress) {
+            setBillingAddress(customer.billingAddress || "");
+            const parsedBill = parseAddress(customer.billingAddress || "");
+            setBillingStreet(parsedBill.street);
+            setBillingThaiAddress(parsedBill.thaiAddress);
+            setShippingAddress(buildCustomerShippingAddress(customer));
+        }
+    };
+
+    // Initialize selectedCustomer on mount if needed
     useEffect(() => {
-        if (customerId) {
+        if (customerId && !selectedCustomer) {
             const customer = customers.find((c) => c.id === customerId);
-            setSelectedCustomer(customer || null);
-
-            const isInitialCustomer = initialData?.customerId === customerId;
-            const shouldUpdateAddress = customer && (!isEdit || !isInitialCustomer);
-
-            if (shouldUpdateAddress) {
-                setBillingAddress(customer.billingAddress || "");
-                const parsedBill = parseAddress(customer.billingAddress || "");
-                setBillingStreet(parsedBill.street);
-                setBillingThaiAddress(parsedBill.thaiAddress);
-                setShippingAddress(buildCustomerShippingAddress(customer));
+            if (customer) {
+                const timer = setTimeout(() => {
+                    setSelectedCustomer(customer);
+                }, 0);
+                return () => clearTimeout(timer);
             }
         }
-    }, [customerId, customers, isEdit, initialData?.customerId]);
+    }, [customerId, customers, selectedCustomer]);
 
     // Combine billing address parts
     useEffect(() => {
@@ -229,7 +244,10 @@ export function SaleForm({
             billingThaiAddress.postalCode || "",
         ].filter(Boolean);
         if (parts.length > 0) {
-            setBillingAddress(parts.join(" "));
+            const timer = setTimeout(() => {
+                setBillingAddress(parts.join(" "));
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [billingStreet, billingThaiAddress]);
 
@@ -238,47 +256,61 @@ export function SaleForm({
         useState(false);
 
     useEffect(() => {
+        let timer: NodeJS.Timeout;
+
         if (deliveryMethod === "CUSTOMER_PICKUP") {
             if (pickupCompanyId) {
                 const company = companies.find((c) => c.id === pickupCompanyId);
                 if (company) {
                     const fullAddress = buildCompanyAddress(company);
-                    setShippingAddress(fullAddress);
-                    setCustomShippingAddress(fullAddress);
-                    setUseCustomShippingAddress(true);
+                    timer = setTimeout(() => {
+                        setShippingAddress(fullAddress);
+                        setCustomShippingAddress(fullAddress);
+                        setUseCustomShippingAddress(true);
+                    }, 0);
                 }
             } else {
-                setShippingAddress("");
-                setCustomShippingAddress("");
-                setUseCustomShippingAddress(true);
+                timer = setTimeout(() => {
+                    setShippingAddress("");
+                    setCustomShippingAddress("");
+                    setUseCustomShippingAddress(true);
+                }, 0);
             }
         } else if (deliveryMethod === "COURIER") {
-            setUseCustomShippingAddress(true);
-            const wasInitiallyCourier = initialData?.deliveryMethod === "COURIER";
-            if (pickupCompanyId && !wasInitiallyCourier) {
-                setCustomShippingAddress("");
-                setShippingAddress("");
-                setPickupCompanyId("");
-                setShippingCompanyId("");
-            } else if (pickupCompanyId && wasInitiallyCourier) {
-                setPickupCompanyId("");
-            }
-        } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
-            const isInitialCustomer = initialData?.customerId === customerId;
-            const hadCustomShipping =
-                isEdit && isInitialCustomer && initialData?.useCustomShipping === true;
-
-            if (hadCustomShipping) {
-                if (!hasInitializedDeliveryMethod) {
-                    setHasInitializedDeliveryMethod(true);
+            timer = setTimeout(() => {
+                setUseCustomShippingAddress(true);
+                const wasInitiallyCourier = initialData?.deliveryMethod === "COURIER";
+                if (pickupCompanyId && !wasInitiallyCourier) {
+                    setCustomShippingAddress("");
+                    setShippingAddress("");
+                    setPickupCompanyId("");
+                    setShippingCompanyId("");
+                } else if (pickupCompanyId && wasInitiallyCourier) {
+                    setPickupCompanyId("");
                 }
-                setPickupCompanyId("");
-            } else if (!isEdit || !isInitialCustomer) {
-                setUseCustomShippingAddress(false);
-                setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
-                setPickupCompanyId("");
-            }
+            }, 0);
+        } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
+            timer = setTimeout(() => {
+                const isInitialCustomer = initialData?.customerId === customerId;
+                const hadCustomShipping =
+                    isEdit && isInitialCustomer && initialData?.useCustomShipping === true;
+
+                if (hadCustomShipping) {
+                    if (!hasInitializedDeliveryMethod) {
+                        setHasInitializedDeliveryMethod(true);
+                    }
+                    setPickupCompanyId("");
+                } else if (!isEdit || !isInitialCustomer) {
+                    setUseCustomShippingAddress(false);
+                    setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+                    setPickupCompanyId("");
+                }
+            }, 0);
         }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
     }, [
         pickupCompanyId,
         deliveryMethod,
@@ -313,7 +345,10 @@ export function SaleForm({
             });
 
             if (matchingCompany) {
-                setShippingCompanyId(matchingCompany.shippingCompany.id);
+                const timer = setTimeout(() => {
+                    setShippingCompanyId(matchingCompany.shippingCompany.id);
+                }, 0);
+                return () => clearTimeout(timer);
             }
         }
     }, [deliveryMethod, selectedCustomer, shippingCompanyId, customShippingAddress]);
@@ -445,10 +480,11 @@ export function SaleForm({
         const randomData = generateRandomSaleClient(customers, employees, products);
 
         setCustomerId(randomData.customerId);
+        updateCustomerDetails(randomData.customerId);
         setEmployeeId(randomData.employeeId);
         setPaymentTerm(randomData.paymentTerm as PaymentTermType);
         if (randomData.creditDays) setCreditDays(randomData.creditDays);
-        if (randomData.creditDueDate) setCreditDueDate(randomData.creditDueDate);
+        // creditDueDate is derived automatically
         setUsePromotionalCredit(randomData.usePromotionalCredit || false);
         setPromotionalCreditUsed(randomData.promotionalCreditUsed || 0);
         setSaleDate(randomData.saleDate);
@@ -512,6 +548,7 @@ export function SaleForm({
                     value={customerId}
                     onChange={(val) => {
                         setCustomerId(val);
+                        updateCustomerDetails(val);
                         setFieldErrors((prev) => ({ ...prev, customerId: "" }));
                     }}
                     options={customers.map((customer) => ({
