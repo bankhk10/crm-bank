@@ -85,7 +85,7 @@ export async function GET(request: Request) {
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
     100,
-    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10))
+    Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
   const typeFilter = url.searchParams.get("type");
@@ -152,6 +152,11 @@ export async function GET(request: Request) {
           orderBy: { createdAt: "desc" },
           take: 5,
         },
+        shippingCompanies: {
+          include: {
+            shippingCompany: true,
+          },
+        },
       },
     }),
   ]);
@@ -189,7 +194,7 @@ export async function POST(request: Request) {
     if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
       return NextResponse.json(
         { error: `Forbidden - missing ${typePermissionKey}` },
-        { status: 403 }
+        { status: 403 },
       );
     }
   }
@@ -202,17 +207,17 @@ export async function POST(request: Request) {
   if (normalizedBody && typeof normalizedBody === "object") {
     if (typeof (normalizedBody as any).postalCode === "number") {
       (normalizedBody as any).postalCode = String(
-        (normalizedBody as any).postalCode
+        (normalizedBody as any).postalCode,
       );
     }
     if (typeof (normalizedBody as any).billingPostalCode === "number") {
       (normalizedBody as any).billingPostalCode = String(
-        (normalizedBody as any).billingPostalCode
+        (normalizedBody as any).billingPostalCode,
       );
     }
     if (typeof (normalizedBody as any).shippingPostalCode === "number") {
       (normalizedBody as any).shippingPostalCode = String(
-        (normalizedBody as any).shippingPostalCode
+        (normalizedBody as any).shippingPostalCode,
       );
     }
   }
@@ -229,19 +234,21 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     // Auto-generate customer code if not provided
     let customerCode = parsed.data.customerCode;
-    
+
     if (!customerCode) {
       // Get current date in Thailand timezone
       const now = new Date();
-      const thaiDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-      
+      const thaiDate = new Date(
+        now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }),
+      );
+
       // Convert to Buddhist year (add 543 years)
       const buddhistYear = thaiDate.getFullYear() + 543;
       const yearSuffix = String(buddhistYear).slice(-2); // Last 2 digits
@@ -291,7 +298,7 @@ export async function POST(request: Request) {
       if (runningNumber > 9999) {
         return NextResponse.json(
           { error: "Maximum customer codes reached for this month" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -393,7 +400,7 @@ export async function POST(request: Request) {
       const fields = Array.isArray(target) ? target.join(", ") : String(target);
       return NextResponse.json(
         { error: `Unique constraint failed on the fields: (${fields})` },
-        { status: 409 }
+        { status: 409 },
       );
     }
 

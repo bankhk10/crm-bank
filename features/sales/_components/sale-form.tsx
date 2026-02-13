@@ -88,6 +88,7 @@ export function SaleForm({
     const [pickupCompanyId, setPickupCompanyId] = useState(
         initialData?.pickupCompanyId || "",
     );
+    const [shippingCompanyId, setShippingCompanyId] = useState("");
     const [paymentTerm, setPaymentTerm] = useState<PaymentTermType>(
         initialData?.paymentTerm || "CREDIT_90",
     );
@@ -258,6 +259,7 @@ export function SaleForm({
                 setCustomShippingAddress("");
                 setShippingAddress("");
                 setPickupCompanyId("");
+                setShippingCompanyId("");
             } else if (pickupCompanyId && wasInitiallyCourier) {
                 setPickupCompanyId("");
             }
@@ -287,6 +289,34 @@ export function SaleForm({
         customerId,
         hasInitializedDeliveryMethod,
     ]);
+
+    // Auto-select shipping company in edit mode if address matches
+    useEffect(() => {
+        if (
+            deliveryMethod === "COURIER" &&
+            selectedCustomer?.shippingCompanies &&
+            !shippingCompanyId &&
+            customShippingAddress
+        ) {
+            const matchingCompany = selectedCustomer.shippingCompanies.find((sc) => {
+                const company = sc.shippingCompany;
+                const structuredAddr = buildCompanyAddress({
+                    addressLine: company.addressLine || undefined,
+                    subdistrict: company.subdistrict || undefined,
+                    district: company.district || undefined,
+                    province: company.province || undefined,
+                    postalCode: company.postalCode || undefined,
+                });
+
+                const fullAddress = structuredAddr || company.address || "";
+                return fullAddress === customShippingAddress;
+            });
+
+            if (matchingCompany) {
+                setShippingCompanyId(matchingCompany.shippingCompany.id);
+            }
+        }
+    }, [deliveryMethod, selectedCustomer, shippingCompanyId, customShippingAddress]);
 
     // Handle payment term change
     const handlePaymentTermChange = (value: PaymentTermType) => {
@@ -645,6 +675,42 @@ export function SaleForm({
                                     ⏰ หมายเหตุ สร้างรายการหลัง 12:00 น. → จัดส่งวันถัดไป
                                 </p>
                             </div>
+
+                            {selectedCustomer?.shippingCompanies &&
+                                selectedCustomer.shippingCompanies.length > 0 && (
+                                    <FormCombobox
+                                        label="เลือกบริษัทขนส่ง"
+                                        value={shippingCompanyId}
+                                        onChange={(val) => {
+                                            setShippingCompanyId(val);
+                                            const selected = selectedCustomer.shippingCompanies?.find(
+                                                (sc) => sc.shippingCompany.id === val
+                                            );
+                                            const sc = selected?.shippingCompany;
+                                            if (sc) {
+                                                const structuredAddr = buildCompanyAddress({
+                                                    addressLine: sc.addressLine || undefined,
+                                                    subdistrict: sc.subdistrict || undefined,
+                                                    district: sc.district || undefined,
+                                                    province: sc.province || undefined,
+                                                    postalCode: sc.postalCode || undefined,
+                                                });
+                                                const fullAddress = structuredAddr || sc.address || "";
+                                                if (fullAddress) {
+                                                    setCustomShippingAddress(fullAddress);
+                                                    setShippingAddress(fullAddress);
+                                                }
+                                            }
+                                        }}
+                                        options={selectedCustomer.shippingCompanies.map((sc) => ({
+                                            value: sc.shippingCompany.id,
+                                            label: sc.shippingCompany.name,
+                                        }))}
+                                        placeholder="เลือกบริษัทขนส่ง"
+                                        searchPlaceholder="ค้นหาบริษัทขนส่ง..."
+                                        emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
+                                    />
+                                )}
 
                             <FormTextarea
                                 label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"

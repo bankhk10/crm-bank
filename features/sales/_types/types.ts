@@ -34,6 +34,18 @@ export interface SaleFormCustomer {
     availableAmount: number;
     status: string;
   }>;
+  shippingCompanies?: Array<{
+    shippingCompany: {
+      id: string;
+      name: string;
+      address?: string | null;
+      addressLine?: string | null;
+      subdistrict?: string | null;
+      district?: string | null;
+      province?: string | null;
+      postalCode?: string | null;
+    };
+  }>;
 }
 
 /**
