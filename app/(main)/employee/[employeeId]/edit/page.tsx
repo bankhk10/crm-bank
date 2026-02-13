@@ -2,16 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import { EmployeeForm } from "@/features/employee";
-import { Card } from "@/components/ui/card";
+
+import { toast } from "sonner";
 
 export default function EditEmployeePage() {
   const { employeeId } = useParams() as { employeeId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("employee.edit");
+  const { hasPermission, isLoading } = usePermission("employee.edit");
   const canEdit =
     !isLoading &&
     (hasPermission("employee.edit") ||
@@ -145,7 +145,10 @@ export default function EditEmployeePage() {
 
               onSubmit={async (body) => {
                 const result = await handleUpdate(body);
-                if (result.success) router.push(`/employee`);
+                if (result.success) {
+                  toast.success("บันทึกการแก้ไขเรียบร้อยแล้ว");
+                  router.push(`/employee`);
+                }
                 return result;
               }}
             />

@@ -3,6 +3,7 @@
 import { EmployeeForm } from "@/features/employee";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function NewEmployeePage() {
   const router = useRouter();
@@ -39,7 +40,10 @@ export default function NewEmployeePage() {
 
             onSubmit={async (body) => {
               const result = await handleCreate(body);
-              if (result.success) router.push(`/employee`);
+              if (result.success) {
+                toast.success("สร้างพนักงานเรียบร้อยแล้ว");
+                router.push(`/employee`);
+              }
               return result;
             }}
             onCancel={() => router.push(`/employee`)}
