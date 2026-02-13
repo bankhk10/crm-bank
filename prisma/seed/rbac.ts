@@ -953,6 +953,56 @@ export async function seedRBAC(prisma: PrismaClient) {
       },
     }),
 
+    // Shipping Companies Permissions
+    prisma.permission.create({
+      data: {
+        key: "menu.shipping-companies",
+        name: "เมนูบริษัทขนส่ง",
+        category: "MENU",
+        menuPath: "/shipping-companies",
+      },
+    }),
+
+    prisma.permission.create({
+      data: {
+        key: "shipping-company.create",
+        name: "สร้างบริษัทขนส่ง",
+        category: "ACTION",
+        resource: "shipping-company",
+        action: "create",
+      },
+    }),
+
+    prisma.permission.create({
+      data: {
+        key: "shipping-company.edit",
+        name: "แก้ไขบริษัทขนส่ง",
+        category: "ACTION",
+        resource: "shipping-company",
+        action: "edit",
+      },
+    }),
+
+    prisma.permission.create({
+      data: {
+        key: "shipping-company.delete",
+        name: "ลบบริษัทขนส่ง",
+        category: "ACTION",
+        resource: "shipping-company",
+        action: "delete",
+      },
+    }),
+
+    prisma.permission.create({
+      data: {
+        key: "shipping-company.manage",
+        name: "จัดการบริษัทขนส่ง",
+        category: "ACTION",
+        resource: "shipping-company",
+        action: "manage",
+      },
+    }),
+
     // DATA Permissions - Additional
     prisma.permission.create({
       data: {

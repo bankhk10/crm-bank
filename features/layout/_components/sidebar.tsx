@@ -27,6 +27,7 @@ import {
   Package,
   TrendingUp,
   Target,
+  Truck,
 } from "lucide-react";
 import Divider from "@/components/ui/divider";
 import {
@@ -128,6 +129,12 @@ export const navigationItems: SidebarNavItem[] = [
       { href: "/credit-limits", label: "จัดการวงเงิน" },
       { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว" },
     ],
+  },
+  {
+    href: "/shipping-companies",
+    label: "บริษัทขนส่ง",
+    permissionKey: "menu.shipping-companies",
+    icon: <Truck className="h-4 w-4" />,
   },
   {
     href: "/rbac",
