@@ -12,15 +12,24 @@ type AddressValue = {
   postalCode?: string;
 };
 
+type AddressErrors = {
+  province?: string;
+  district?: string;
+  subdistrict?: string;
+  postalCode?: string;
+};
+
 type Props = {
   value?: AddressValue;
   onChange?: (next: AddressValue) => void;
+  errors?: AddressErrors;
+  required?: boolean;
 };
 
 const labelTextClass = "text-base font-medium mx-2";
 const inputTextClass = "mt-1 h-11 text-base placeholder:text-gray-500";
 
-export default function ThaiAddressPicker({ value, onChange }: Props) {
+export default function ThaiAddressPicker({ value, onChange, errors, required }: Props) {
   const [provinces, setProvinces] = useState<any[]>([]);
 
   // โหลดข้อมูลจังหวัด
@@ -87,6 +96,8 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         searchPlaceholder="ค้นหาจังหวัด..."
         emptyText="ไม่พบจังหวัด"
         containerClassName="w-full"
+        required={required}
+        error={errors?.province}
       />
 
       {/* อำเภอ/เขต */}
@@ -110,6 +121,8 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         searchPlaceholder="ค้นหาอำเภอ/เขต..."
         emptyText="ไม่พบอำเภอ/เขต"
         containerClassName="w-full"
+        required={required}
+        error={errors?.district}
       />
 
       {/* ตำบล/แขวง */}
@@ -135,17 +148,25 @@ export default function ThaiAddressPicker({ value, onChange }: Props) {
         searchPlaceholder="ค้นหาตำบล/แขวง..."
         emptyText="ไม่พบตำบล/แขวง"
         containerClassName="w-full"
+        required={required}
+        error={errors?.subdistrict}
       />
 
       {/* รหัสไปรษณีย์ */}
       <div className="w-full">
-        <Label className={labelTextClass}>รหัสไปรษณีย์</Label>
+        <Label className={labelTextClass}>
+          รหัสไปรษณีย์
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
         <Input
           value={postalCode ?? ""}
           readOnly
           disabled
           className={inputTextClass}
         />
+        {errors?.postalCode && (
+          <p className="text-xs text-red-600 mt-1">{errors.postalCode}</p>
+        )}
       </div>
     </div>
   );
