@@ -8,6 +8,8 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { X, Save } from "lucide-react";
 import type { ShippingCompanyPayload } from "../_types";
 import { MultiSelect } from "@/components/custom/multi-select";
+import { PhoneInput } from "@/components/custom/PhoneInput";
+import FormActions from "@/components/custom/form-actions";
 
 export interface SubmitResult {
     success: boolean;
@@ -139,11 +141,11 @@ export default function ShippingCompanyForm({
                     containerClassName="md:col-span-2"
                 />
 
-                <FormInput
+                <PhoneInput
                     label="เบอร์โทร"
                     value={payload.phone ?? ""}
-                    onChange={(e) => {
-                        setPayload((p) => ({ ...p, phone: e.target.value }));
+                    onChange={(value) => {
+                        setPayload((p) => ({ ...p, phone: value }));
                         clearFieldError("phone");
                     }}
                     error={fieldErrors.phone?.[0]}
@@ -167,7 +169,7 @@ export default function ShippingCompanyForm({
             </div>
 
             <FormInput
-                label="ที่อยู่ (บ้านเลขที่, ถนน, ฯลฯ)"
+                label="ที่อยู่ (เลขที่, ถนน, ฯลฯ)"
                 placeholder="123/45 หมู่ 6"
                 value={payload.addressLine ?? ""}
                 onChange={(e) => {
@@ -245,35 +247,11 @@ export default function ShippingCompanyForm({
             )}
 
             {/* Action Buttons */}
-            <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-                <div className="flex justify-center sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
-                    <Button
-                        size="lg"
-                        className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-                        type="button"
-                        onClick={onCancel ?? (() => router.back())}
-                        disabled={loading}
-                    >
-                        <X className="h-4 w-4" />
-                        ยกเลิก
-                    </Button>
-                    <Button
-                        size="lg"
-                        className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
-                        type="submit"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <span>กำลังบันทึก...</span>
-                        ) : (
-                            <>
-                                <Save className="h-4 w-4" />
-                                <span>{submitLabel || "บันทึก"}</span>
-                            </>
-                        )}
-                    </Button>
-                </div>
-            </div>
+            <FormActions
+                loading={loading}
+                onCancel={onCancel}
+                submitLabel={submitLabel}
+            />
             <div className="w-full h-12 sm:hidden"></div>
         </form>
     );
