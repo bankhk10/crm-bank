@@ -3,9 +3,20 @@
 import { useRouter } from "next/navigation";
 import { CompanyForm } from "@/features/companies";
 import { toast } from "sonner";
+import { usePermission } from "@/hooks/use-permission";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function NewCompanyPage() {
   const router = useRouter();
+  const { hasPermission, isLoading } = usePermission("company.create");
+
+  if (!isLoading && !hasPermission("company.create")) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>คุณไม่มีสิทธิ์สร้างบริษัท</AlertDescription>
+      </Alert>
+    );
+  }
 
   async function handleCreate(payload: any) {
     try {

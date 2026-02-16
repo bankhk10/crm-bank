@@ -30,6 +30,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const perms = session.user.permissionKeys ?? [];
+  if (!perms.includes("company.view") && !perms.includes("sale.create")) {
+    return NextResponse.json(
+      { error: "Forbidden - missing company.view" },
+      { status: 403 },
+    );
+  }
+
   if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     // Allow if user has sale.create permission (needed for sale form dropdowns)
     if ((session.user.permissionKeys ?? []).includes("sale.create")) {

@@ -11,6 +11,7 @@ export function CompaniesTable(props: CompaniesTableProps) {
         data,
         loading,
         canCreate,
+        canEdit,
         canDelete,
         onDeleteRequest,
         searchValue,
@@ -21,7 +22,7 @@ export function CompaniesTable(props: CompaniesTableProps) {
         pagination,
     } = props;
 
-    const columns = useCompanyColumns(onDeleteRequest, canDelete);
+    const columns = useCompanyColumns(onDeleteRequest, canDelete, !!canEdit);
 
     return (
         <div className="space-y-4">
@@ -39,6 +40,7 @@ export function CompaniesTable(props: CompaniesTableProps) {
                 <CompaniesCards
                     data={data}
                     loading={loading}
+                    canEdit={canEdit}
                     canDelete={canDelete}
                     onDeleteRequest={onDeleteRequest}
                     pagination={pagination}

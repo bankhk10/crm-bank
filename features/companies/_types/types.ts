@@ -45,6 +45,7 @@ export interface CompaniesTableProps {
   data: CompanyRecord[];
   loading?: boolean;
   canCreate: boolean;
+  canEdit?: boolean;
   canDelete: boolean;
   onDeleteRequest: (company: CompanyRecord) => void;
   searchValue: string;

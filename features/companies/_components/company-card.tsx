@@ -20,6 +20,7 @@ type Props = {
   phone?: string | null;
   taxId?: string | null;
   status?: string | null;
+  canEdit?: boolean;
   onDelete?: (id: string) => void;
 };
 
@@ -31,6 +32,8 @@ export default function CompanyCard({
   phone,
   taxId,
   status,
+
+  canEdit,
   onDelete,
 }: Props) {
   const initials = name
@@ -104,22 +107,24 @@ export default function CompanyCard({
             <TooltipContent side="top">ดู {name}</TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                size="icon-sm"
-                variant="outline"
-                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md h-8 w-8"
-                aria-label={`แก้ไข ${name}`}
-              >
-                <Link href={`/companies/${id}/edit`}>
-                  <Edit className="h-4 w-4 text-purple-600" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">แก้ไข {name}</TooltipContent>
-          </Tooltip>
+          {canEdit && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  size="icon-sm"
+                  variant="outline"
+                  className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md h-8 w-8"
+                  aria-label={`แก้ไข ${name}`}
+                >
+                  <Link href={`/companies/${id}/edit`}>
+                    <Edit className="h-4 w-4 text-purple-600" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">แก้ไข {name}</TooltipContent>
+            </Tooltip>
+          )}
 
           {onDelete ? (
             <Tooltip>

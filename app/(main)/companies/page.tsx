@@ -14,7 +14,8 @@ export default function CompaniesPage() {
     hasPermission("company.create") ||
     hasPermission("company.manage") ||
     hasPermission("menu.companies");
-  const canView = !isLoading && allowed;
+  const canEdit = hasPermission("company.edit");
+  const canView = (!isLoading && allowed) && hasPermission("company.view");
 
   const [companies, setCompanies] = useState<CompanyRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,6 +206,7 @@ export default function CompaniesPage() {
             data={companies}
             loading={loading}
             canCreate={canCreate}
+            canEdit={canEdit}
             canDelete={hasPermission("company.delete")}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}

@@ -19,7 +19,8 @@ import type { CompanyRecord } from "../_types/types";
 
 export function useCompanyColumns(
     onDeleteRequest: (company: CompanyRecord) => void,
-    canDelete: boolean
+    canDelete: boolean,
+    canEdit: boolean
 ) {
     const columns = useMemo<ColumnDef<CompanyRecord>[]>(
         () => [
@@ -121,16 +122,18 @@ export function useCompanyColumns(
                                 </Link>
                             </Button>
 
-                            <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                                className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                            >
-                                <Link href={`/companies/${company.id}/edit`}>
-                                    <Edit className="h-4 w-4" />
-                                </Link>
-                            </Button>
+                            {canEdit && (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                                >
+                                    <Link href={`/companies/${company.id}/edit`}>
+                                        <Edit className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            )}
 
                             {canDelete && (
                                 <Button
@@ -148,7 +151,7 @@ export function useCompanyColumns(
                 },
             },
         ],
-        [canDelete, onDeleteRequest]
+        [canDelete, onDeleteRequest, canEdit]
     );
 
     return columns;

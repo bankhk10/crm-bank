@@ -74,7 +74,7 @@ export default function CompanyDetailPage() {
   const { companyId } = useParams() as { companyId: string };
   const router = useRouter();
   const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
-  const canView = !isLoading && allowed;
+  const canView = (!isLoading && allowed) && hasPermission("company.view");
   const canEdit = hasPermission("company.edit");
   const canDelete = hasPermission("company.delete");
 
@@ -192,6 +192,31 @@ export default function CompanyDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               กลับไปหน้ารายการบริษัท
             </Link>
+
+            <div className="flex gap-2">
+              {canEdit && (
+                <Button
+                  asChild
+                  variant="secondary"
+                  className="bg-white/20 hover:bg-white/30 text-white border-none"
+                >
+                  <Link href={`/companies/${companyId}/edit`}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    แก้ไข
+                  </Link>
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="destructive"
+                  className="bg-red-500/80 hover:bg-red-600 text-white border-none"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  ลบ
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
@@ -254,12 +279,12 @@ export default function CompanyDetailPage() {
                 value={
                   company.createdAt
                     ? new Date(company.createdAt).toLocaleDateString("th-TH", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
                     : "-"
                 }
               />
@@ -302,10 +327,10 @@ export default function CompanyDetailPage() {
                 label=""
                 value={
                   company.addressLine ||
-                  company.subdistrict ||
-                  company.district ||
-                  company.province ||
-                  company.postalCode ? (
+                    company.subdistrict ||
+                    company.district ||
+                    company.province ||
+                    company.postalCode ? (
                     <span>
                       {company.addressLine && `${company.addressLine} `}
                       {[

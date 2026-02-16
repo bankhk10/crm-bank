@@ -6,7 +6,7 @@ import type { CompaniesTableProps } from "../_types/types";
 
 type CompaniesCardsProps = Pick<
     CompaniesTableProps,
-    "data" | "loading" | "canDelete" | "onDeleteRequest" | "pagination"
+    "data" | "loading" | "canDelete" | "onDeleteRequest" | "pagination" | "canEdit"
 >;
 
 export function CompaniesCards({
@@ -15,6 +15,7 @@ export function CompaniesCards({
     canDelete,
     onDeleteRequest,
     pagination,
+    canEdit,
 }: CompaniesCardsProps) {
     if (loading) {
         return (
@@ -50,6 +51,7 @@ export function CompaniesCards({
                     phone={company.phone}
                     taxId={company.taxId}
                     status={company.status}
+                    canEdit={canEdit}
                     onDelete={canDelete ? () => onDeleteRequest(company) : undefined}
                 />
             ))}

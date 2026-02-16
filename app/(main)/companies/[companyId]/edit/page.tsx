@@ -10,12 +10,8 @@ import { toast } from "sonner";
 export default function EditCompanyPage() {
   const { companyId } = useParams() as { companyId: string };
   const router = useRouter();
-  const { hasPermission, isLoading } = usePermission("company.edit");
-  const canEdit =
-    !isLoading &&
-    (hasPermission("company.edit") ||
-      hasPermission("company.manage") ||
-      hasPermission("menu.companies"));
+  const { hasPermission } = usePermission("company.edit");
+  const canEdit = hasPermission("company.edit");
 
   const [payload, setPayload] = useState<any>({
     name: "",
