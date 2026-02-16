@@ -61,7 +61,7 @@ export const navigationItems: SidebarNavItem[] = [
   },
   {
     href: "/dashboard/employee",
-    label: "แดชบอร์ดพนักงาน",
+    label: "หน้าแรก",
     permissionKey: "menu.dashboard.employee",
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
