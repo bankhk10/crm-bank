@@ -45,6 +45,7 @@ export async function GET(
         createdBy: true,
         approvedBy: true,
         pickupCompany: true, // Include pickup company for CUSTOMER_PICKUP delivery method
+        shippingCompany: true, // Include shipping company for delivery
         items: {
           include: {
             product: {
@@ -413,7 +414,8 @@ export async function PUT(
             create: body.items.map((item) => {
               const product = productMap.get(item.productId);
               const packSize = parseFloat(product?.packageSizePerBox || "1");
-              const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+              const multiplier =
+                isNaN(packSize) || packSize <= 0 ? 1 : packSize;
               const totalPrice = item.quantity * item.unitPrice * multiplier;
 
               return {

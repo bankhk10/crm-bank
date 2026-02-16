@@ -14,6 +14,7 @@ import {
     ClipboardCheck,
     X,
     Package,
+    Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,6 +73,21 @@ export default function FulfillmentDetailPage({
     const [dueDate, setDueDate] = useState<string>("");
     const [paymentDate, setPaymentDate] = useState<string>("");
     const [notes, setNotes] = useState<string>("");
+    const [shippingCompanyId, setShippingCompanyId] = useState<string>("");
+
+    // Shipping companies list
+    interface ShippingCompanyOption {
+        id: string;
+        name: string;
+        address?: string;
+        addressLine?: string;
+        province?: string;
+        district?: string;
+        subdistrict?: string;
+        postalCode?: string;
+        phone?: string;
+    }
+    const [shippingCompanies, setShippingCompanies] = useState<ShippingCompanyOption[]>([]);
 
     // LOT allocation states
     interface LotAllocation {
@@ -119,6 +135,9 @@ export default function FulfillmentDetailPage({
                 if (data.sale.notes) {
                     setNotes(data.sale.notes);
                 }
+                if (data.sale.shippingCompanyId) {
+                    setShippingCompanyId(data.sale.shippingCompanyId);
+                }
                 setLoading(false);
             })
             .catch((err) => {
@@ -126,6 +145,32 @@ export default function FulfillmentDetailPage({
                 setLoading(false);
             });
     }, [id]);
+
+    // Fetch shipping companies
+    useEffect(() => {
+        fetch("/api/shipping-companies?perPage=100")
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.shippingCompanies) {
+                    setShippingCompanies(
+                        data.shippingCompanies
+                            .filter((sc: any) => sc.status === "ACTIVE")
+                            .map((sc: any) => ({
+                                id: sc.id,
+                                name: sc.name,
+                                address: sc.address,
+                                addressLine: sc.addressLine,
+                                province: sc.province,
+                                district: sc.district,
+                                subdistrict: sc.subdistrict,
+                                postalCode: sc.postalCode,
+                                phone: sc.phone,
+                            }))
+                    );
+                }
+            })
+            .catch(() => { });
+    }, []);
 
     // Auto-calculate Due Date from Delivery Date
     useEffect(() => {
@@ -227,6 +272,7 @@ export default function FulfillmentDetailPage({
                     creditDueDate: dueDate,
                     paymentDate,
                     notes,
+                    shippingCompanyId: shippingCompanyId || null,
                     // Only include LOT allocations if valid and not locked
                     lotAllocations:
                         lotAllocationsValid && !isLotLocked ? lotAllocations : undefined,
@@ -606,11 +652,63 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
 
-                            {/* 5. Notes */}
+                            {/* 5. Shipping Company */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 text-xs font-bold">
+                                        5
+                                    </span>
+                                    <Building2 className="h-4 w-4 text-cyan-600" />
+                                    บริษัทขนส่ง
+                                </label>
+                                <Select value={shippingCompanyId || "__none"} onValueChange={(val) => setShippingCompanyId(val === "__none" ? "" : val)}>
+                                    <SelectTrigger className="w-full h-12 border-slate-200 hover:border-cyan-300 focus:border-cyan-500 transition-colors rounded-xl shadow-sm">
+                                        <SelectValue placeholder="เลือกบริษัทขนส่ง" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl">
+                                        <SelectItem value="__none" className="rounded-lg text-slate-400">
+                                            -- ไม่ระบุ --
+                                        </SelectItem>
+                                        {shippingCompanies.map((sc) => (
+                                            <SelectItem key={sc.id} value={sc.id} className="rounded-lg">
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{sc.name}</span>
+                                                    {sc.phone && (
+                                                        <span className="text-xs text-slate-400">
+                                                            โทร: {sc.phone}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {shippingCompanyId && shippingCompanyId !== "__none" && (() => {
+                                    const selectedSC = shippingCompanies.find(sc => sc.id === shippingCompanyId);
+                                    if (!selectedSC) return null;
+                                    const addressParts = [
+                                        selectedSC.addressLine,
+                                        selectedSC.subdistrict,
+                                        selectedSC.district,
+                                        selectedSC.province,
+                                        selectedSC.postalCode,
+                                    ].filter(Boolean);
+                                    const fullAddress = addressParts.length > 0 ? addressParts.join(" ") : selectedSC.address;
+                                    if (!fullAddress) return null;
+                                    return (
+                                        <p className="text-xs text-cyan-600 font-medium flex items-center gap-1.5 bg-cyan-50 px-3 py-2 rounded-lg">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 inline-block"></span>
+                                            ที่อยู่: {fullAddress}
+                                        </p>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* 6. Notes */}
                             <div className="space-y-3 group/field">
                                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                                        5
+                                        6
                                     </span>
                                     หมายเหตุ
                                     {status === "CANCELLED" && (
@@ -631,11 +729,11 @@ export default function FulfillmentDetailPage({
                                 )}
                             </div>
 
-                            {/* 6. LOT Selection - Always show for selecting stock lots */}
+                            {/* 7. LOT Selection - Always show for selecting stock lots */}
                             <div className="space-y-3 group/field pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
-                                        6
+                                        7
                                     </span>
                                     <Package className="h-4 w-4 text-indigo-600" />
                                     <span className="text-sm font-semibold text-slate-700">

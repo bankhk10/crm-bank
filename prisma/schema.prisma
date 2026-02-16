@@ -440,6 +440,7 @@ model ShippingCompany {
   deletedAt   DateTime?              // Soft delete
   
   customers   CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
+  sales       Sale[]                   @relation("SaleShippingCompany")
 }
 
 // Junction table สำหรับความสัมพันธ์ Many-to-Many ระหว่าง Customer และ ShippingCompany
@@ -717,6 +718,8 @@ model Sale {
   deliveryMethod        String?     // SALES_DELIVERY or CUSTOMER_PICKUP
   pickupCompanyId       String?
   pickupCompany         Company?    @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
+  shippingCompanyId     String?
+  shippingCompany       ShippingCompany? @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
   
   // Addresses
   billingAddress        String?
