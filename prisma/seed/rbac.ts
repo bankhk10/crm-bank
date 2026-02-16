@@ -1276,7 +1276,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sale.manage_fulfillment" },
     // Product permissions
     { key: "product.create" },
-    { key: "product.update" },
+    { key: "product.edit" },
     { key: "product.delete" },
     { key: "product.view" },
     { key: "product.manage" },

@@ -10,10 +10,7 @@ import { Building2 } from "lucide-react";
 
 export default function CompaniesPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
-  const canCreate =
-    hasPermission("company.create") ||
-    hasPermission("company.manage") ||
-    hasPermission("menu.companies");
+  const canCreate = hasPermission("company.create");
   const canEdit = hasPermission("company.edit");
   const canView = (!isLoading && allowed) && hasPermission("company.view");
 
