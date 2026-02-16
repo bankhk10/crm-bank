@@ -14,7 +14,73 @@ export async function seedRBAC(prisma: PrismaClient) {
   });
 
   if (existingAdminRole) {
-    console.log("🔐 RBAC already seeded, skipping...");
+    console.log("🔐 RBAC already seeded, checking for missing permissions...");
+
+    // Upsert any new permissions that were added after initial seed
+    const newPermissions = [
+      // Shipping Companies Permissions
+      {
+        key: "menu.shipping-companies",
+        name: "เมนูบริษัทขนส่ง",
+        category: "MENU" as const,
+        menuPath: "/shipping-companies",
+      },
+      {
+        key: "shipping-company.create",
+        name: "สร้างบริษัทขนส่ง",
+        category: "ACTION" as const,
+        resource: "shipping-company",
+        action: "create",
+      },
+      {
+        key: "shipping-company.edit",
+        name: "แก้ไขบริษัทขนส่ง",
+        category: "ACTION" as const,
+        resource: "shipping-company",
+        action: "edit",
+      },
+      {
+        key: "shipping-company.delete",
+        name: "ลบบริษัทขนส่ง",
+        category: "ACTION" as const,
+        resource: "shipping-company",
+        action: "delete",
+      },
+      {
+        key: "shipping-company.manage",
+        name: "จัดการบริษัทขนส่ง",
+        category: "ACTION" as const,
+        resource: "shipping-company",
+        action: "manage",
+      },
+    ];
+
+    let createdCount = 0;
+    for (const perm of newPermissions) {
+      const existing = await prisma.permission.findUnique({
+        where: { key: perm.key },
+      });
+      if (!existing) {
+        const created = await prisma.permission.create({ data: perm });
+        // Assign to administrator role with full access
+        await prisma.rolePermission.create({
+          data: {
+            roleId: existingAdminRole.id,
+            permissionId: created.id,
+            allow: true,
+            dataAccess: DataAccessLevel.VIEW_ALL,
+          },
+        });
+        createdCount++;
+        console.log(`  ✅ Created permission: ${perm.key}`);
+      }
+    }
+
+    if (createdCount === 0) {
+      console.log("  ✅ All permissions already exist.");
+    } else {
+      console.log(`  ✅ Created ${createdCount} new permissions.`);
+    }
     return;
   }
 
