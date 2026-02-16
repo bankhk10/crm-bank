@@ -8,7 +8,7 @@
  *   import { applyDataScope, RESOURCE_CONFIGS } from "@/lib/data-scope";
  *
  *   const where = { deletedAt: null };
- *   applyDataScope(where, session, "sale");
+ *   await applyDataScope(where, session, "sale");
  */
 
 import type { Session } from "next-auth";
@@ -17,13 +17,14 @@ import type {
   EditAccessLevel,
   DeleteAccessLevel,
 } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 /**
- * Describes how a Prisma model can be filtered to the "own" or "department"
+ * Describes how a Prisma model can be filtered to the "own", "team" or "department"
  * level. Different models use different fields/relations for this purpose.
  */
 export interface ResourceScopeConfig {
@@ -51,6 +52,29 @@ export interface ResourceScopeConfig {
     | "responsibleEmployeeId"
     | "createdById"
     | "nestedCustomerEmployee";
+
+  /**
+   * Strategy for VIEW_TEAM filtering.
+   *
+   * - "employeeTeam" → where.employeeId = { in: teamEmployeeIds }
+   *   (Sale – has direct employee relation)
+   *
+   * - "responsibleEmployeeTeam" → where.responsibleEmployeeId = { in: teamEmployeeIds }
+   *   (Customer)
+   *
+   * - "nestedCustomerTeam" → where.customer.responsibleEmployeeId = { in: teamEmployeeIds }
+   *   (CreditLimit, TemporaryCreditLimit)
+   *
+   * - "createdByTeam" → uses own filter (no team concept for non-employee models)
+   *
+   * - "none" → No team filtering available (fallback to own)
+   */
+  teamStrategy:
+    | "employeeTeam"
+    | "responsibleEmployeeTeam"
+    | "nestedCustomerTeam"
+    | "createdByTeam"
+    | "none";
 
   /**
    * Strategy for VIEW_DEPARTMENT filtering.
@@ -91,48 +115,93 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
   sale: {
     resource: "sale",
     ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
     fallbackOwnerField: "createdById",
   },
   customer: {
     resource: "customer",
     ownStrategy: "responsibleEmployeeId",
+    teamStrategy: "responsibleEmployeeTeam",
     departmentStrategy: "responsibleEmployeeDepartment",
     fallbackOwnerField: "createdById",
   },
   creditlimit: {
     resource: "creditlimit",
     ownStrategy: "nestedCustomerEmployee",
+    teamStrategy: "nestedCustomerTeam",
     departmentStrategy: "nestedCustomerDepartment",
     fallbackOwnerField: "createdById",
   },
   temporary_creditlimit: {
     resource: "temporary_creditlimit",
     ownStrategy: "nestedCustomerEmployee",
+    teamStrategy: "nestedCustomerTeam",
     departmentStrategy: "nestedCustomerDepartment",
     fallbackOwnerField: "createdById",
   },
   employee: {
     resource: "employee",
     ownStrategy: "createdById",
+    teamStrategy: "none",
     departmentStrategy: "directDepartment",
   },
   product: {
     resource: "product",
     ownStrategy: "createdById",
+    teamStrategy: "none",
     departmentStrategy: "none",
   },
   sales_target: {
     resource: "sales_target",
     ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
   },
   sales_forecast: {
     resource: "sales_forecast",
     ownStrategy: "employeeId",
+    teamStrategy: "employeeTeam",
     departmentStrategy: "employeeDepartment",
   },
 };
+
+// ---------------------------------------------------------------------------
+// Team helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Get all employee IDs in the same team as the current user.
+ * "Team" = employees who share the same managerId, plus the manager themselves.
+ * If the user IS a manager, the team includes all their direct reports.
+ */
+async function getTeamEmployeeIds(session: Session): Promise<string[]> {
+  const employeeId = session.user.employeeId;
+  if (!employeeId) return [];
+
+  const managerId = session.user.managerId;
+
+  // Find all employees who share the same manager
+  // Also include the manager themselves in the team
+  const teamMembers = await db.employee.findMany({
+    where: {
+      deletedAt: null,
+      OR: [
+        // Employees with the same manager (same team)
+        ...(managerId ? [{ managerId: managerId }] : []),
+        // The manager themselves
+        ...(managerId ? [{ id: managerId }] : []),
+        // If user IS a manager, include their direct reports
+        { managerId: employeeId },
+        // Always include the user themselves
+        { id: employeeId },
+      ],
+    },
+    select: { id: true },
+  });
+
+  return [...new Set(teamMembers.map((m) => m.id))];
+}
 
 // ---------------------------------------------------------------------------
 // Core functions
@@ -147,16 +216,16 @@ export const RESOURCE_CONFIGS: Record<string, ResourceScopeConfig> = {
  * @example
  * ```ts
  * const where: Prisma.SaleWhereInput = { deletedAt: null };
- * applyDataScope(where, session, "sale");
+ * await applyDataScope(where, session, "sale");
  * const sales = await prisma.sale.findMany({ where });
  * ```
  */
-export function applyDataScope<T extends Record<string, any>>(
+export async function applyDataScope<T extends Record<string, any>>(
   where: T,
   session: Session,
   resourceKey: string,
   configOverride?: Partial<ResourceScopeConfig>,
-): T {
+): Promise<T> {
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) {
     console.warn(
@@ -186,6 +255,10 @@ export function applyDataScope<T extends Record<string, any>>(
       applyDepartmentFilter(where, session, config);
       break;
 
+    case "VIEW_TEAM":
+      await applyTeamFilter(where, session, config);
+      break;
+
     case "VIEW_OWN":
     default:
       // Default to VIEW_OWN when access level is undefined
@@ -199,11 +272,11 @@ export function applyDataScope<T extends Record<string, any>>(
 /**
  * Apply edit-scope filtering. Similar to applyDataScope but uses EditAccessLevel.
  */
-export function applyEditScope<T extends Record<string, any>>(
+export async function applyEditScope<T extends Record<string, any>>(
   where: T,
   session: Session,
   resourceKey: string,
-): T {
+): Promise<T> {
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -219,6 +292,9 @@ export function applyEditScope<T extends Record<string, any>>(
       break;
     case "EDIT_DEPARTMENT":
       applyDepartmentFilter(where, session, baseConfig);
+      break;
+    case "EDIT_TEAM":
+      await applyTeamFilter(where, session, baseConfig);
       break;
     case "EDIT_OWN":
       applyOwnFilter(where, session, baseConfig);
@@ -236,11 +312,11 @@ export function applyEditScope<T extends Record<string, any>>(
 /**
  * Apply delete-scope filtering. Similar to applyDataScope but uses DeleteAccessLevel.
  */
-export function applyDeleteScope<T extends Record<string, any>>(
+export async function applyDeleteScope<T extends Record<string, any>>(
   where: T,
   session: Session,
   resourceKey: string,
-): T {
+): Promise<T> {
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
@@ -256,6 +332,9 @@ export function applyDeleteScope<T extends Record<string, any>>(
       break;
     case "DELETE_DEPARTMENT":
       applyDepartmentFilter(where, session, baseConfig);
+      break;
+    case "DELETE_TEAM":
+      await applyTeamFilter(where, session, baseConfig);
       break;
     case "DELETE_OWN":
       applyOwnFilter(where, session, baseConfig);
@@ -313,6 +392,43 @@ function applyOwnFilter(
       } else {
         where[fallback] = userId;
       }
+      break;
+  }
+}
+
+async function applyTeamFilter(
+  where: Record<string, any>,
+  session: Session,
+  config: ResourceScopeConfig,
+): Promise<void> {
+  const teamEmployeeIds = await getTeamEmployeeIds(session);
+
+  // If no team found, fall back to own filter
+  if (teamEmployeeIds.length === 0) {
+    applyOwnFilter(where, session, config);
+    return;
+  }
+
+  switch (config.teamStrategy) {
+    case "employeeTeam":
+      where.employeeId = { in: teamEmployeeIds };
+      break;
+
+    case "responsibleEmployeeTeam":
+      where.responsibleEmployeeId = { in: teamEmployeeIds };
+      break;
+
+    case "nestedCustomerTeam":
+      where.customer = {
+        ...(where.customer ?? {}),
+        responsibleEmployeeId: { in: teamEmployeeIds },
+      };
+      break;
+
+    case "createdByTeam":
+    case "none":
+      // No team strategy – fall back to own filter
+      applyOwnFilter(where, session, config);
       break;
   }
 }
@@ -379,11 +495,11 @@ export interface OwnershipCheckOptions {
  * Check if the current user can access a specific record based on their
  * data access level. Useful for single-record GET/PUT/DELETE endpoints.
  */
-export function canAccessRecord(
+export async function canAccessRecord(
   session: Session,
   resourceKey: string,
   options: OwnershipCheckOptions,
-): boolean {
+): Promise<boolean> {
   const config = RESOURCE_CONFIGS[resourceKey];
   if (!config) return false;
 
@@ -401,6 +517,15 @@ export function canAccessRecord(
         session.user.id === options.resourceOwnerId ||
         session.user.employeeId === options.resourceEmployeeId
       );
+    case "VIEW_TEAM": {
+      // Check if owner/employee is in the same team
+      const teamIds = await getTeamEmployeeIds(session);
+      return (
+        session.user.id === options.resourceOwnerId ||
+        (!!options.resourceEmployeeId &&
+          teamIds.includes(options.resourceEmployeeId))
+      );
+    }
     case "VIEW_OWN":
     default:
       return (

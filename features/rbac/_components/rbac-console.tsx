@@ -128,7 +128,7 @@ const permissionSchema = z.object({
   menuPath: z.string().optional(),
   action: z.string().optional(),
   defaultDataAccess: z
-    .enum(["VIEW_OWN", "VIEW_DEPARTMENT", "VIEW_ALL"])
+    .enum(["VIEW_OWN", "VIEW_TEAM", "VIEW_DEPARTMENT", "VIEW_ALL"])
     .optional(),
 });
 
@@ -145,6 +145,7 @@ const positionSchema = z.object({
 
 const dataAccessOptions: { label: string; value: DataAccessLevel }[] = [
   { label: "เฉพาะฉัน", value: "VIEW_OWN" },
+  { label: "ทีมเดียวกัน", value: "VIEW_TEAM" },
   { label: "แผนกเดียวกัน", value: "VIEW_DEPARTMENT" },
   { label: "ทั้งหมด", value: "VIEW_ALL" },
 ];
@@ -311,7 +312,7 @@ export default function RBACConsole() {
         const body = await response.json();
         if (body?.error) msg = body.error;
         else if (body?.issues) msg = JSON.stringify(body.issues);
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -340,7 +341,7 @@ export default function RBACConsole() {
           const body = await response.json();
           if (body?.error) msg = body.error;
           else if (body?.issues) msg = JSON.stringify(body.issues);
-        } catch (_) {}
+        } catch (_) { }
         showApiMessage("error", msg);
         return;
       }
@@ -360,7 +361,7 @@ export default function RBACConsole() {
           const body = await response.json();
           if (body?.error) msg = body.error;
           else if (body?.issues) msg = JSON.stringify(body.issues);
-        } catch (_) {}
+        } catch (_) { }
         showApiMessage("error", msg);
         return;
       }
@@ -412,7 +413,7 @@ export default function RBACConsole() {
       try {
         const body = await response.json();
         if (body?.error) msg = body.error;
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -438,7 +439,7 @@ export default function RBACConsole() {
         try {
           const body = await response.json();
           if (body?.error) msg = body.error;
-        } catch (_) {}
+        } catch (_) { }
         showApiMessage("error", msg);
         return;
       }
@@ -463,7 +464,7 @@ export default function RBACConsole() {
         const body = await response.json();
         if (body?.error) msg = body.error;
         else if (body?.issues) msg = JSON.stringify(body.issues);
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -488,7 +489,7 @@ export default function RBACConsole() {
         try {
           const body = await response.json();
           if (body?.error) msg = body.error;
-        } catch (_) {}
+        } catch (_) { }
         showApiMessage("error", msg);
         return;
       }
@@ -513,7 +514,7 @@ export default function RBACConsole() {
         const body = await response.json();
         if (body?.error) msg = body.error;
         else if (body?.issues) msg = JSON.stringify(body.issues);
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -549,7 +550,7 @@ export default function RBACConsole() {
       try {
         const body = await response.json();
         if (body?.error) msg = body.error;
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -588,7 +589,7 @@ export default function RBACConsole() {
       try {
         const body = await response.json();
         if (body?.error) msg = body.error;
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -614,7 +615,7 @@ export default function RBACConsole() {
       try {
         const body = await response.json();
         if (body?.error) msg = body.error;
-      } catch (_) {}
+      } catch (_) { }
       showApiMessage("error", msg);
       return;
     }
@@ -1304,11 +1305,10 @@ export default function RBACConsole() {
                                         return (
                                           <div
                                             key={role.id}
-                                            className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${
-                                              isAssigned
+                                            className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${isAssigned
                                                 ? "bg-primary/5 border-primary/20"
                                                 : "bg-transparent"
-                                            }`}
+                                              }`}
                                           >
                                             <div className="space-y-0.5">
                                               <p className="font-medium text-sm">

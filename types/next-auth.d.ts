@@ -30,6 +30,7 @@ declare module "next-auth" {
       editAccessByResource?: Record<string, EditAccessLevel>;
       deleteAccessByResource?: Record<string, DeleteAccessLevel>;
       employeeId?: string | null;
+      managerId?: string | null;
     } & DefaultSession["user"];
   }
 
@@ -50,5 +51,6 @@ declare module "next-auth/jwt" {
     editAccessByResource?: Record<string, EditAccessLevel>;
     deleteAccessByResource?: Record<string, DeleteAccessLevel>;
     employeeId?: string | null;
+    managerId?: string | null;
   }
 }

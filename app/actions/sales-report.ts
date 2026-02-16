@@ -4,6 +4,28 @@ import { db as prisma, DataAccessLevel } from "@/src/infrastructure/database";
 import { startOfYear, endOfYear, format } from "date-fns";
 import { auth } from "@/lib/auth";
 
+// Helper to get team employee IDs (employees with same manager)
+async function getTeamEmployeeIds(session: {
+  user: { employeeId?: string | null; managerId?: string | null };
+}): Promise<string[]> {
+  const employeeId = session.user.employeeId;
+  if (!employeeId) return [];
+  const managerId = session.user.managerId;
+  const teamMembers = await prisma.employee.findMany({
+    where: {
+      deletedAt: null,
+      OR: [
+        ...(managerId ? [{ managerId }] : []),
+        ...(managerId ? [{ id: managerId }] : []),
+        { managerId: employeeId },
+        { id: employeeId },
+      ],
+    },
+    select: { id: true },
+  });
+  return [...new Set(teamMembers.map((m) => m.id))];
+}
+
 export type ReportType = "CUSTOMER" | "EMPLOYEE";
 
 export async function getFilterOptions() {
@@ -24,6 +46,10 @@ export async function getFilterOptions() {
     if (!session.user.employeeId) throw new Error("User is not an employee");
     whereEmployee.id = session.user.employeeId;
     whereCustomer.responsibleEmployeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    whereEmployee.id = { in: teamIds };
+    whereCustomer.responsibleEmployeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     if (!session.user.departmentId) throw new Error("User has no department");
     whereEmployee.departmentId = session.user.departmentId;
@@ -85,12 +111,15 @@ export async function getReportSummary(
     }
     // If viewing customer report, ensure we only count MY sales
     scopeConstraint.employeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    if (type === "EMPLOYEE" && !teamIds.includes(entityId!)) {
+      throw new Error("Unauthorized query"); // Cannot view employees outside team
+    }
+    scopeConstraint.employeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     // If viewing employee report, entityId must be in my dept
     if (type === "EMPLOYEE") {
-      // We should verify entityId belongs to dept.
-      // Prisma relation filter in groupBy is tricky?
-      // DailySalesSummary has employee relation.
       scopeConstraint.employee = { departmentId: session.user.departmentId };
     } else {
       // Viewing customer: filter by sales within department
@@ -210,6 +239,11 @@ export async function getOrderHistory(
     if (type === "EMPLOYEE" && entityId !== session.user.employeeId)
       throw new Error("Unauthorized");
     scopeConstraint.employeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    if (type === "EMPLOYEE" && !teamIds.includes(entityId!))
+      throw new Error("Unauthorized");
+    scopeConstraint.employeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     scopeConstraint.employee = { departmentId: session.user.departmentId };
   }

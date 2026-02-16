@@ -19,6 +19,51 @@ import { th } from "date-fns/locale";
 import { auth } from "@/lib/auth";
 import { DataAccessLevel } from "@/src/infrastructure/database";
 
+// Helper to get team employee IDs (employees with same manager)
+async function getTeamEmployeeIds(session: {
+  user: { employeeId?: string | null; managerId?: string | null };
+}): Promise<string[]> {
+  const employeeId = session.user.employeeId;
+  if (!employeeId) return [];
+  const managerId = session.user.managerId;
+  const teamMembers = await prisma.employee.findMany({
+    where: {
+      deletedAt: null,
+      OR: [
+        ...(managerId ? [{ managerId }] : []),
+        ...(managerId ? [{ id: managerId }] : []),
+        { managerId: employeeId },
+        { id: employeeId },
+      ],
+    },
+    select: { id: true },
+  });
+  return [...new Set(teamMembers.map((m) => m.id))];
+}
+
+// Build scope filter based on user's data access level
+async function buildScopeFilter(
+  session: any,
+  viewScope: DataAccessLevel | string,
+): Promise<any> {
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === "VIEW_TEAM") {
+    const teamIds = await getTeamEmployeeIds(session);
+    if (teamIds.length > 0) {
+      scopeFilter.employeeId = { in: teamIds };
+    } else {
+      scopeFilter.employeeId = session.user.employeeId;
+    }
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
+  return scopeFilter;
+}
+
 // ============================================
 // TYPES
 // ============================================
@@ -439,14 +484,7 @@ export async function getTimeSalesReport(
   const durationInDays = differenceInDays(end, start) + 1; // +1 to include both start and end dates
 
   // Build scope filter
-  const scopeFilter: any = {};
-  if (viewScope === DataAccessLevel.VIEW_OWN) {
-    if (!session.user.employeeId) throw new Error("User is not an employee");
-    scopeFilter.employeeId = session.user.employeeId;
-  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
-    if (!session.user.departmentId) throw new Error("User has no department");
-    scopeFilter.employee = { departmentId: session.user.departmentId };
-  }
+  const scopeFilter = await buildScopeFilter(session, viewScope);
 
   let previousStart: Date;
   let previousEnd: Date;
@@ -682,14 +720,8 @@ export async function getProductSalesReport(
   const { start, end } = getDateRange(filter);
 
   // Build scope filter
-  const scopeFilter: any = {};
-  if (viewScope === DataAccessLevel.VIEW_OWN) {
-    if (!session.user.employeeId) throw new Error("User is not an employee");
-    scopeFilter.employeeId = session.user.employeeId;
-  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
-    if (!session.user.departmentId) throw new Error("User has no department");
-    scopeFilter.employee = { departmentId: session.user.departmentId };
-  }
+  // Build scope filter
+  const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Get all products with their sales in the period
   const productSales = await prisma.saleItem.groupBy({
@@ -772,6 +804,9 @@ export async function getProductSalesReport(
           // DailySalesSummary has employeeId.
           ...(viewScope === DataAccessLevel.VIEW_OWN
             ? { employeeId: session.user.employeeId! }
+            : {}),
+          ...(viewScope === ("VIEW_TEAM" as DataAccessLevel)
+            ? { employeeId: { in: await getTeamEmployeeIds(session) } }
             : {}),
           ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
             ? { employee: { departmentId: session.user.departmentId! } }
@@ -924,14 +959,8 @@ export async function getProductGroupSalesReport(
   const { start, end } = getDateRange(filter);
 
   // Build scope filter
-  const scopeFilter: any = {};
-  if (viewScope === DataAccessLevel.VIEW_OWN) {
-    if (!session.user.employeeId) throw new Error("User is not an employee");
-    scopeFilter.employeeId = session.user.employeeId;
-  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
-    if (!session.user.departmentId) throw new Error("User has no department");
-    scopeFilter.employee = { departmentId: session.user.departmentId };
-  }
+  // Build scope filter
+  const scopeFilter = await buildScopeFilter(session, viewScope);
   // Get all product groups from database
   const productGroups = await prisma.productGroupMaster.findMany({
     where: { deletedAt: null },
@@ -1032,6 +1061,9 @@ export async function getProductGroupSalesReport(
           date: { gte: start, lte: end },
           ...(viewScope === DataAccessLevel.VIEW_OWN
             ? { employeeId: session.user.employeeId! }
+            : {}),
+          ...(viewScope === ("VIEW_TEAM" as DataAccessLevel)
+            ? { employeeId: { in: await getTeamEmployeeIds(session) } }
             : {}),
           ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
             ? { employee: { departmentId: session.user.departmentId! } }
@@ -1155,14 +1187,8 @@ export async function getCustomerSalesReport(
   const monthCount = Math.max(1, dayCount / 30);
 
   // Build scope filter
-  const scopeFilter: any = {};
-  if (viewScope === DataAccessLevel.VIEW_OWN) {
-    if (!session.user.employeeId) throw new Error("User is not an employee");
-    scopeFilter.employeeId = session.user.employeeId;
-  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
-    if (!session.user.departmentId) throw new Error("User has no department");
-    scopeFilter.employee = { departmentId: session.user.departmentId };
-  }
+  // Build scope filter
+  const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Top customers
   const customerSales = await prisma.sale.groupBy({
@@ -1474,14 +1500,8 @@ export async function getSalespersonSalesReport(
   const { start, end } = getDateRange(filter);
 
   // Build scope filter
-  const scopeFilter: any = {};
-  if (viewScope === DataAccessLevel.VIEW_OWN) {
-    if (!session.user.employeeId) throw new Error("User is not an employee");
-    scopeFilter.employeeId = session.user.employeeId;
-  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
-    if (!session.user.departmentId) throw new Error("User has no department");
-    scopeFilter.employee = { departmentId: session.user.departmentId };
-  }
+  // Build scope filter
+  const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Get salesperson performance
   const employeeSales = await prisma.sale.groupBy({
@@ -1727,6 +1747,10 @@ export async function getReportFilterOptions() {
     if (!session.user.employeeId) throw new Error("User is not an employee");
     whereEmployee.id = session.user.employeeId;
     whereCustomer.responsibleEmployeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    whereEmployee.id = { in: teamIds };
+    whereCustomer.responsibleEmployeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     if (!session.user.departmentId) throw new Error("User has no department");
     whereEmployee.departmentId = session.user.departmentId;
@@ -1829,6 +1853,10 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
     if (!session.user.employeeId) throw new Error("User is not an employee");
     whereCustomer.responsibleEmployeeId = session.user.employeeId;
     whereSales.employeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    whereCustomer.responsibleEmployeeId = { in: teamIds };
+    whereSales.employeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     if (!session.user.departmentId) throw new Error("User has no department");
     whereCustomer.responsibleEmployee = {
@@ -1965,6 +1993,9 @@ export async function getAllSalespersonsForReport(): Promise<
   if (viewScope === DataAccessLevel.VIEW_OWN) {
     if (!session.user.employeeId) throw new Error("User is not an employee");
     whereSales.employeeId = session.user.employeeId;
+  } else if (viewScope === ("VIEW_TEAM" as DataAccessLevel)) {
+    const teamIds = await getTeamEmployeeIds(session);
+    whereSales.employeeId = { in: teamIds };
   } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
     if (!session.user.departmentId) throw new Error("User has no department");
     whereSales.employee = { departmentId: session.user.departmentId };

@@ -135,12 +135,15 @@ export async function GET(request: Request) {
     };
   }
 
+  // Permission-based data scope filtering (async because of VIEW_TEAM lookup)
+  const scopedWhere = await applyDataScope({ ...where }, session, "customer");
+
   const [total, customers] = await Promise.all([
     db.customer.count({
-      where: applyDataScope({ ...where }, session, "customer"),
+      where: scopedWhere,
     }),
     db.customer.findMany({
-      where: applyDataScope({ ...where }, session, "customer"),
+      where: scopedWhere,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,
       take: perPage,

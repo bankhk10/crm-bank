@@ -25,27 +25,27 @@ interface PermissionHookResult {
   deleteAccess: (resource: string) => DeleteAccessLevel | null;
   canView: (
     resource: string,
-    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
   ) => boolean;
   canEdit: (
     resource: string,
-    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
   ) => boolean;
   canDelete: (
     resource: string,
-    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+    options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
   ) => boolean;
 }
 
 export function usePermission(
-  required?: string | string[]
+  required?: string | string[],
 ): PermissionHookResult {
   const currentUser = useCurrentUser();
   const requirements = Array.isArray(required)
     ? required
     : required
-    ? [required]
-    : [];
+      ? [required]
+      : [];
 
   return useMemo(() => {
     if (!currentUser) {
@@ -81,7 +81,7 @@ export function usePermission(
     // Check if user can view a resource based on data access scope
     const canView = (
       resource: string,
-      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
     ): boolean => {
       const access = dataAccess(resource);
       if (!access) return false;
@@ -90,6 +90,8 @@ export function usePermission(
         case "VIEW_ALL":
           return true;
         case "VIEW_DEPARTMENT":
+        case "VIEW_TEAM":
+          // VIEW_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
             currentUser.id === options.resourceOwnerId
@@ -104,7 +106,7 @@ export function usePermission(
     // Check if user can edit a resource based on edit access scope
     const canEdit = (
       resource: string,
-      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
     ): boolean => {
       const access = editAccess(resource);
       if (!access) return false;
@@ -113,6 +115,8 @@ export function usePermission(
         case "EDIT_ALL":
           return true;
         case "EDIT_DEPARTMENT":
+        case "EDIT_TEAM":
+          // EDIT_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
             currentUser.id === options.resourceOwnerId
@@ -129,7 +133,7 @@ export function usePermission(
     // Check if user can delete a resource based on delete access scope
     const canDelete = (
       resource: string,
-      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">
+      options: Omit<AccessScopeCheck, "userId" | "userDepartmentId">,
     ): boolean => {
       const access = deleteAccess(resource);
       if (!access) return false;
@@ -138,6 +142,8 @@ export function usePermission(
         case "DELETE_ALL":
           return true;
         case "DELETE_DEPARTMENT":
+        case "DELETE_TEAM":
+          // DELETE_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
             currentUser.id === options.resourceOwnerId

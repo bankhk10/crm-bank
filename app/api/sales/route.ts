@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Permission-based data scope filtering
-    applyDataScope(where, session, "sale");
+    await applyDataScope(where, session, "sale");
 
     const skip = ((filters.page || 1) - 1) * (filters.perPage || 10);
     const take = filters.perPage || 10;

@@ -131,6 +131,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           editAccessByResource: compact.edit,
           deleteAccessByResource: compact.del,
           employeeId: user.employeeProfile?.id ?? null,
+          managerId: user.employeeProfile?.managerId ?? null,
           sessionVersion, // Add session version for force logout
         } satisfies {
           id: string;
@@ -144,6 +145,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           editAccessByResource: Record<string, EditAccessLevel>;
           deleteAccessByResource: Record<string, DeleteAccessLevel>;
           employeeId?: string | null;
+          managerId?: string | null;
           sessionVersion: string;
         };
       },
@@ -175,6 +177,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.editAccessByResource = enriched.editAccessByResource ?? {};
         token.deleteAccessByResource = enriched.deleteAccessByResource ?? {};
         token.employeeId = enriched.employeeId ?? null;
+        token.managerId = (enriched as any).managerId ?? null;
         token.sessionVersion = enriched.sessionVersion ?? null;
       } else if (token.sub) {
         // Validate session version on token refresh
@@ -194,6 +197,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.editAccessByResource = {};
             token.deleteAccessByResource = {};
             token.employeeId = null;
+            token.managerId = null;
             token.sessionVersion = null;
             return token;
           }
@@ -245,6 +249,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.editAccessByResource = compact.edit;
             token.deleteAccessByResource = compact.del;
             token.employeeId = fresh.employeeProfile?.id ?? null;
+            token.managerId = fresh.employeeProfile?.managerId ?? null;
             // Update session version on refresh
             token.sessionVersion = await getSessionVersion();
           }
@@ -276,6 +281,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           (token.deleteAccessByResource as Record<string, DeleteAccessLevel>) ??
           {};
         session.user.employeeId = (token.employeeId as string | null) ?? null;
+        session.user.managerId = (token.managerId as string | null) ?? null;
       }
 
       return session;

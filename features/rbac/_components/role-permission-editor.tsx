@@ -34,6 +34,7 @@ interface RolePermissionEditorProps {
 
 const dataAccessOptions: { label: string; value: DataAccessLevel }[] = [
   { label: "เฉพาะฉัน", value: "VIEW_OWN" },
+  { label: "ทีมเดียวกัน", value: "VIEW_TEAM" },
   { label: "แผนกเดียวกัน", value: "VIEW_DEPARTMENT" },
   { label: "ทั้งหมด", value: "VIEW_ALL" },
 ];
@@ -41,6 +42,7 @@ const dataAccessOptions: { label: string; value: DataAccessLevel }[] = [
 const editAccessOptions: { label: string; value: EditAccessLevel }[] = [
   { label: "ไม่สามารถแก้ไข", value: "EDIT_NONE" },
   { label: "เฉพาะของตัวเอง", value: "EDIT_OWN" },
+  { label: "ทีมเดียวกัน", value: "EDIT_TEAM" },
   { label: "เฉพาะแผนกตัวเอง", value: "EDIT_DEPARTMENT" },
   { label: "แก้ไขได้ทั้งหมด", value: "EDIT_ALL" },
 ];
@@ -48,6 +50,7 @@ const editAccessOptions: { label: string; value: EditAccessLevel }[] = [
 const deleteAccessOptions: { label: string; value: DeleteAccessLevel }[] = [
   { label: "ไม่สามารถลบ", value: "DELETE_NONE" },
   { label: "เฉพาะของตัวเอง", value: "DELETE_OWN" },
+  { label: "ทีมเดียวกัน", value: "DELETE_TEAM" },
   { label: "เฉพาะแผนกตัวเอง", value: "DELETE_DEPARTMENT" },
   { label: "ลบได้ทั้งหมด", value: "DELETE_ALL" },
 ];

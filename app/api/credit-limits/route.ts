@@ -80,7 +80,7 @@ export async function GET(request: Request) {
   }
 
   // Permission-based data scope filtering
-  applyDataScope(where, session, "creditlimit");
+  await applyDataScope(where, session, "creditlimit");
 
   const [total, creditLimits] = await Promise.all([
     db.creditLimit.count({ where }),

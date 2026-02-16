@@ -30,6 +30,7 @@ enum PermissionType {
 
 enum DataAccessLevel {
   VIEW_OWN
+  VIEW_TEAM         // ดูได้เฉพาะทีมเดียวกัน (manager เดียวกัน)
   VIEW_DEPARTMENT
   VIEW_ALL
 }
@@ -37,6 +38,7 @@ enum DataAccessLevel {
 enum EditAccessLevel {
   EDIT_NONE        // ไม่สามารถแก้ไขได้
   EDIT_OWN         // แก้ไขได้เฉพาะของตัวเอง
+  EDIT_TEAM        // แก้ไขได้เฉพาะทีมเดียวกัน (manager เดียวกัน)
   EDIT_DEPARTMENT  // แก้ไขได้เฉพาะของแผนกตัวเอง
   EDIT_ALL         // แก้ไขได้ทั้งหมด
 }
@@ -44,6 +46,7 @@ enum EditAccessLevel {
 enum DeleteAccessLevel {
   DELETE_NONE        // ไม่สามารถลบได้
   DELETE_OWN         // ลบได้เฉพาะของตัวเอง
+  DELETE_TEAM        // ลบได้เฉพาะทีมเดียวกัน (manager เดียวกัน)
   DELETE_DEPARTMENT  // ลบได้เฉพาะของแผนกตัวเอง
   DELETE_ALL         // ลบได้ทั้งหมด
 }

@@ -22,7 +22,7 @@ export const permissionSchema = z.object({
   menuPath: z.string().optional(),
   action: z.string().optional(),
   defaultDataAccess: z
-    .enum(["VIEW_OWN", "VIEW_DEPARTMENT", "VIEW_ALL"])
+    .enum(["VIEW_OWN", "VIEW_TEAM", "VIEW_DEPARTMENT", "VIEW_ALL"])
     .optional(),
 });
 
