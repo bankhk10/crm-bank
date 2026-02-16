@@ -15,6 +15,7 @@ import {
     X,
     Package,
     Building2,
+    FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,6 +75,7 @@ export default function FulfillmentDetailPage({
     const [paymentDate, setPaymentDate] = useState<string>("");
     const [notes, setNotes] = useState<string>("");
     const [shippingCompanyId, setShippingCompanyId] = useState<string>("");
+    const [saleOrderRef, setSaleOrderRef] = useState<string>("");
 
     // Shipping companies list
     interface ShippingCompanyOption {
@@ -137,6 +139,9 @@ export default function FulfillmentDetailPage({
                 }
                 if (data.sale.shippingCompanyId) {
                     setShippingCompanyId(data.sale.shippingCompanyId);
+                }
+                if (data.sale.saleOrderRef) {
+                    setSaleOrderRef(data.sale.saleOrderRef);
                 }
                 setLoading(false);
             })
@@ -273,6 +278,7 @@ export default function FulfillmentDetailPage({
                     paymentDate,
                     notes,
                     shippingCompanyId: shippingCompanyId || null,
+                    saleOrderRef: saleOrderRef || null,
                     // Only include LOT allocations if valid and not locked
                     lotAllocations:
                         lotAllocationsValid && !isLotLocked ? lotAllocations : undefined,
@@ -704,11 +710,33 @@ export default function FulfillmentDetailPage({
                                 })()}
                             </div>
 
-                            {/* 6. Notes */}
+                            {/* 6. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-600 text-xs font-bold">
+                                        6
+                                    </span>
+                                    <FileText className="h-4 w-4 text-teal-600" />
+                                    เลขที่คำสั่งขาย (Ref)
+                                </label>
+                                <input
+                                    type="text"
+                                    className="flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-teal-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="กรอกเลขที่คำสั่งขายจากระบบอื่น (ถ้ามี)"
+                                    value={saleOrderRef}
+                                    onChange={(e) => setSaleOrderRef(e.target.value)}
+                                />
+                                <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                    <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
+                                    เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
+                                </p>
+                            </div>
+
+                            {/* 7. Notes */}
                             <div className="space-y-3 group/field">
                                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                                        6
+                                        7
                                     </span>
                                     หมายเหตุ
                                     {status === "CANCELLED" && (
@@ -729,11 +757,11 @@ export default function FulfillmentDetailPage({
                                 )}
                             </div>
 
-                            {/* 7. LOT Selection - Always show for selecting stock lots */}
+                            {/* 8. LOT Selection - Always show for selecting stock lots */}
                             <div className="space-y-3 group/field pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-4">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
-                                        7
+                                        8
                                     </span>
                                     <Package className="h-4 w-4 text-indigo-600" />
                                     <span className="text-sm font-semibold text-slate-700">

@@ -30,6 +30,7 @@ export async function POST(
       notes,
       lotAllocations,
       shippingCompanyId,
+      saleOrderRef,
     } = (await request.json()) as {
       status?: string;
       deliveryDate?: string | null;
@@ -38,6 +39,7 @@ export async function POST(
       notes?: string;
       lotAllocations?: LotAllocation[];
       shippingCompanyId?: string | null;
+      saleOrderRef?: string | null;
     };
 
     const sale = await prisma.sale.findUnique({
@@ -178,6 +180,11 @@ export async function POST(
     // 6. Shipping Company
     if (shippingCompanyId !== undefined) {
       updateData.shippingCompanyId = shippingCompanyId || null;
+    }
+
+    // 7. Sale Order Reference
+    if (saleOrderRef !== undefined) {
+      updateData.saleOrderRef = saleOrderRef || null;
     }
 
     // Add history if status changed

@@ -733,6 +733,9 @@ model Sale {
   otherCostsDescription String?
   totalAmount           Decimal     @db.Decimal(15, 2)
   
+  // External reference
+  saleOrderRef          String?   // เลขที่คำสั่งขาย (Ref จากระบบอื่น)
+  
   // Notes
   notes                 String?
   
