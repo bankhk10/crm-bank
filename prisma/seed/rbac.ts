@@ -40,6 +40,20 @@ const permissionGroups: Record<string, PermissionGroup> = {
       resource: "dashboard",
       menuPath: "/dashboard",
     },
+    subMenus: [
+      {
+        key: "menu.dashboard.manager",
+        name: "แดชบอร์ดผู้จัดการ",
+        resource: "dashboard",
+        menuPath: "/dashboard/manager",
+      },
+      {
+        key: "menu.dashboard.employee",
+        name: "แดชบอร์ดพนักงาน",
+        resource: "dashboard",
+        menuPath: "/dashboard/employee",
+      },
+    ],
   },
 
   // ─────────────────────────────────────────────
@@ -1139,7 +1153,9 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.create" },
     { key: "sales_target.edit" },
     { key: "sales_target.view" },
+    { key: "sales_target.view" },
     { key: "sales_target.delete" },
+    { key: "menu.dashboard.employee" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1197,7 +1213,9 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.customer_sales" },
     { key: "report.salesperson" },
     { key: "menu.temporary_credit_limits" },
+    { key: "menu.temporary_credit_limits" },
     { key: "temporary_creditlimit.create" },
+    { key: "menu.dashboard.manager" },
     { key: "temporary_creditlimit.edit" },
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
@@ -1248,6 +1266,8 @@ export async function seedRBAC(prisma: PrismaClient) {
 
   const adminConfig = [
     { key: "menu.dashboard" },
+    { key: "menu.dashboard.manager" },
+    { key: "menu.dashboard.employee" },
     { key: "menu.reports" },
     { key: "menu.sales" },
     { key: "menu.products" },
@@ -1395,6 +1415,7 @@ export async function seedRBAC(prisma: PrismaClient) {
   const ceoConfig = [
     // Menu permissions - access to view all areas
     { key: "menu.dashboard" },
+    { key: "menu.dashboard.manager" },
     { key: "menu.reports" },
     { key: "menu.sales" },
     { key: "menu.products" },
@@ -1559,6 +1580,13 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
     },
+    {
+      key: "data.stock",
+      dataAccess: "VIEW_ALL",
+      editAccess: "EDIT_ALL",
+      deleteAccess: "DELETE_ALL",
+    },
+    { key: "menu.dashboard.employee" },
   ];
 
   await prisma.rolePermission.createMany({

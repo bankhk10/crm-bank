@@ -1,5 +1,9 @@
 "use client";
 
+import { usePermission } from "@/hooks/use-permission";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -136,11 +140,10 @@ function ProductCarousel() {
         {productImages.map((image, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-              index === currentIndex
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentIndex
                 ? "opacity-100 scale-100"
                 : "opacity-0 scale-105"
-            }`}
+              }`}
           >
             <Image
               src={image.src}
@@ -156,11 +159,10 @@ function ProductCarousel() {
             {/* Content Overlay */}
             <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 lg:p-16">
               <div
-                className={`transform transition-all duration-700 delay-300 ${
-                  index === currentIndex
+                className={`transform transition-all duration-700 delay-300 ${index === currentIndex
                     ? "translate-y-0 opacity-100"
                     : "translate-y-8 opacity-0"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
@@ -201,11 +203,10 @@ function ProductCarousel() {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentIndex
+              className={`transition-all duration-300 rounded-full ${index === currentIndex
                   ? "bg-white w-12 h-3"
                   : "bg-white/50 hover:bg-white/70 w-3 h-3"
-              }`}
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
@@ -224,6 +225,22 @@ function ProductCarousel() {
 }
 
 export default function EmployeeDashboardPage() {
+  const { hasPermission, isLoading } = usePermission("menu.dashboard.employee");
+
+  if (!isLoading && !hasPermission) {
+    return (
+      <div className="p-8">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ดพนักงาน
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 p-4 md:p-8 space-y-6 md:space-y-8 rounded-2xl">
       {/* Product Carousel */}

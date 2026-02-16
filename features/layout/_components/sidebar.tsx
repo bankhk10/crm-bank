@@ -54,6 +54,18 @@ interface SidebarNavItem {
 // Exported for reuse in mobile navbar drawer
 export const navigationItems: SidebarNavItem[] = [
   {
+    href: "/dashboard/manager",
+    label: "แดชบอร์ดผู้จัดการ",
+    permissionKey: "menu.dashboard.manager",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
+    href: "/dashboard/employee",
+    label: "แดชบอร์ดพนักงาน",
+    permissionKey: "menu.dashboard.employee",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
     href: "/reports",
     label: "รายงาน",
     permissionKey: "menu.reports",
