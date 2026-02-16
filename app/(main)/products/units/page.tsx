@@ -50,7 +50,7 @@ export default function UnitsPage() {
   } = usePermission("menu.products");
   const canView = !permLoading && allowed;
   const canCreate = hasPermission("product.create");
-  const canUpdate = hasPermission("product.update");
+  const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
 
   const [units, setUnits] = useState<Unit[]>([]);

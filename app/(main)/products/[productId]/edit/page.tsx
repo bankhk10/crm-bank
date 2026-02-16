@@ -14,7 +14,7 @@ export default function EditProductPage() {
   const params = useParams();
   const productId = params.productId as string;
   const { hasPermission, isLoading: permissionLoading } =
-    usePermission("product.update");
+    usePermission("product.edit");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);

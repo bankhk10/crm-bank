@@ -212,10 +212,10 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "create",
       },
       {
-        key: "product.update",
+        key: "product.edit",
         name: "แก้ไขสินค้า",
         resource: "product",
-        action: "update",
+        action: "edit",
       },
       {
         key: "product.delete",
@@ -248,14 +248,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "export",
       },
     ],
-    data: {
-      key: "data.products",
-      name: "ขอบเขตข้อมูลสินค้า",
-      resource: "product",
-      defaultDataAccess: DataAccessLevel.VIEW_DEPARTMENT,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
   },
 
   // ─────────────────────────────────────────────
@@ -376,14 +368,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "delete",
       },
     ],
-    data: {
-      key: "data.companies",
-      name: "ขอบเขตข้อมูลบริษัท",
-      resource: "company",
-      defaultDataAccess: DataAccessLevel.VIEW_ALL,
-      defaultEditAccess: EditAccessLevel.EDIT_OWN,
-      defaultDeleteAccess: DeleteAccessLevel.DELETE_OWN,
-    },
   },
 
   // ─────────────────────────────────────────────
@@ -897,6 +881,44 @@ function flattenPermissionGroups(
 export async function seedRBAC(prisma: PrismaClient) {
   console.log("🔐 Seeding RBAC (Roles, Permissions, RolePermissions)...");
 
+  // Rename deprecated keys
+  const renames = { "product.update": "product.edit" };
+  for (const [oldKey, newKey] of Object.entries(renames)) {
+    try {
+      const oldPerm = await prisma.permission.findUnique({
+        where: { key: oldKey },
+      });
+      if (oldPerm) {
+        const newPerm = await prisma.permission.findUnique({
+          where: { key: newKey },
+        });
+        if (!newPerm) {
+          await prisma.permission.update({
+            where: { key: oldKey },
+            data: { key: newKey },
+          });
+          console.log(`♻️  Renamed permission: ${oldKey} -> ${newKey}`);
+        } else {
+          await prisma.permission.delete({ where: { key: oldKey } });
+        }
+      }
+    } catch {}
+  }
+
+  // Cleanup removed permissions
+  const deprecatedKeys = ["data.companies", "data.products"];
+  for (const key of deprecatedKeys) {
+    try {
+      const deprecated = await prisma.permission.findUnique({ where: { key } });
+      if (deprecated) {
+        await prisma.permission.delete({ where: { key } });
+        console.log(`🗑️  Removed deprecated permission: ${key}`);
+      }
+    } catch (error) {
+      // Ignore
+    }
+  }
+
   // Flatten all permission groups
   const allPermissionDefs = flattenPermissionGroups(permissionGroups);
 
@@ -934,11 +956,20 @@ export async function seedRBAC(prisma: PrismaClient) {
         createdCount++;
         console.log(`  ✅ Created permission: ${perm.key}`);
       } else {
-        // Update resource grouping if changed
-        if (existing.resource !== perm.resource) {
+        // Update permission details if changed
+        if (
+          existing.resource !== perm.resource ||
+          existing.action !== (perm.action ?? null) ||
+          existing.name !== perm.name
+        ) {
           await prisma.permission.update({
             where: { id: existing.id },
-            data: { resource: perm.resource },
+            data: {
+              resource: perm.resource,
+              action: perm.action,
+              name: perm.name,
+              menuPath: perm.menuPath,
+            },
           });
           updatedCount++;
         }
@@ -1279,12 +1310,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "employee.view", dataAccess: "VIEW_ALL" },
     { key: "employee.manage" },
     // Data scope permissions - Admin can view/edit/delete all
-    {
-      key: "data.products",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
+
     {
       key: "data.employees",
       dataAccess: "VIEW_ALL",
@@ -1339,12 +1365,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "notification.manage" },
     { key: "system.audit_log" },
     { key: "system.security_log" },
-    {
-      key: "data.companies",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
+
     {
       key: "data.sales_targets",
       dataAccess: "VIEW_ALL",
@@ -1406,13 +1427,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "notification.view" },
     { key: "system.audit_log" },
     { key: "system.security_log" },
-    // DATA permissions - VIEW_ALL only (no edit/delete)
-    {
-      key: "data.products",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
+
     {
       key: "data.employees",
       dataAccess: "VIEW_ALL",
@@ -1443,12 +1458,7 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_NONE",
       deleteAccess: "DELETE_NONE",
     },
-    {
-      key: "data.companies",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_NONE",
-      deleteAccess: "DELETE_NONE",
-    },
+
     {
       key: "data.sales_targets",
       dataAccess: "VIEW_ALL",
@@ -1490,7 +1500,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     // Product permissions - view only
     { key: "product.view", dataAccess: "VIEW_ALL" },
     { key: "product.create" },
-    { key: "product.update" },
+    { key: "product.edit" },
     { key: "product.delete" },
     { key: "product.manage" },
     // Customer permissions - view only
@@ -1530,12 +1540,7 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
     },
-    {
-      key: "data.products",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
+
     {
       key: "data.creditlimits",
       dataAccess: "VIEW_ALL",
@@ -1550,12 +1555,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
     {
       key: "data.stock",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.companies",
       dataAccess: "VIEW_ALL",
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",

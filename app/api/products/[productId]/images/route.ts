@@ -89,7 +89,7 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
+  if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },
@@ -152,7 +152,7 @@ export async function PUT(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
+  if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },

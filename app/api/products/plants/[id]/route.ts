@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
+  if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

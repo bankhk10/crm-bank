@@ -24,14 +24,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  Search, 
-  Sprout, 
-  ChevronLeft, 
-  ChevronRight 
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Sprout,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { Plant, PlantFormData } from "@/types/product";
@@ -44,7 +44,7 @@ export default function PlantsPage() {
   } = usePermission("menu.products");
   const canView = !permLoading && allowed;
   const canCreate = hasPermission("product.create");
-  const canUpdate = hasPermission("product.update");
+  const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
 
   const [plants, setPlants] = useState<Plant[]>([]);
@@ -310,7 +310,7 @@ export default function PlantsPage() {
               <div className="text-sm text-slate-500">
                 แสดง {((page - 1) * perPage) + 1} ถึง {Math.min(page * perPage, total)} จาก {total} รายการ
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -321,7 +321,7 @@ export default function PlantsPage() {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                
+
                 <div className="flex items-center gap-1 mx-2">
                   <span className="text-sm font-medium">หน้า {page}</span>
                   <span className="text-sm text-slate-400">จาก {totalPages || 1}</span>

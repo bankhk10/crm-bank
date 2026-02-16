@@ -43,7 +43,7 @@ export default function ProductChainsPage() {
     } = usePermission("menu.products");
     const canView = !permLoading && allowed;
     const canCreate = hasPermission("product.create");
-    const canUpdate = hasPermission("product.update");
+    const canUpdate = hasPermission("product.edit");
     const canDelete = hasPermission("product.delete");
 
     const [chains, setChains] = useState<ProductChain[]>([]);

@@ -21,9 +21,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  productGroup: z.string().optional(),    // กลุ่มชื่อการค้า (Trade Name Group)
+  productGroup: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  chemicalGroup: z.string().optional(),   // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   totalPackageSizePerBox: z.string().optional(),
@@ -33,8 +33,8 @@ const productSchema = z.object({
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
-  categoryId: z.string().optional(),      // FK to ProductCategory (หมวดสินค้า)
-  productChainId: z.string().optional(),  // FK to ProductChain (กรุ๊ปสินค้า)
+  categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
+  productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
 });
 
 export async function GET(request: Request, { params }: { params: any }) {
@@ -92,7 +92,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("product.update")) {
+  if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },
