@@ -16,6 +16,8 @@ import {
   subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
+import { auth } from "@/lib/auth";
+import { DataAccessLevel } from "@/src/infrastructure/database";
 
 // ============================================
 // TYPES
@@ -423,8 +425,28 @@ function getRegionFromProvince(province: string | null): string {
 export async function getTimeSalesReport(
   filter: DateRangeFilter,
 ): Promise<TimeSalesReportData> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] || // Fallback
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
   const { start, end } = getDateRange(filter);
   const durationInDays = differenceInDays(end, start) + 1; // +1 to include both start and end dates
+
+  // Build scope filter
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
 
   let previousStart: Date;
   let previousEnd: Date;
@@ -449,6 +471,7 @@ export async function getTimeSalesReport(
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     select: {
       id: true,
@@ -473,6 +496,7 @@ export async function getTimeSalesReport(
       saleDate: { gte: previousStart, lte: previousEnd },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
   });
@@ -645,7 +669,27 @@ export async function getTimeSalesReport(
 export async function getProductSalesReport(
   filter: DateRangeFilter,
 ): Promise<ProductSalesReportData> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
   const { start, end } = getDateRange(filter);
+
+  // Build scope filter
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
 
   // Get all products with their sales in the period
   const productSales = await prisma.saleItem.groupBy({
@@ -655,6 +699,7 @@ export async function getProductSalesReport(
         saleDate: { gte: start, lte: end },
         deletedAt: null,
         status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        ...scopeFilter,
       },
     },
     _sum: {
@@ -723,6 +768,14 @@ export async function getProductSalesReport(
         where: {
           productId: product.id,
           date: { gte: start, lte: end },
+          // TODO: DailySalesSummary might need scope filtering too if it has employeeId relation
+          // DailySalesSummary has employeeId.
+          ...(viewScope === DataAccessLevel.VIEW_OWN
+            ? { employeeId: session.user.employeeId! }
+            : {}),
+          ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
+            ? { employee: { departmentId: session.user.departmentId! } }
+            : {}),
         },
         _sum: { totalAmount: true },
       });
@@ -794,6 +847,7 @@ export async function getProductSalesReport(
         saleDate: { gte: ninetyDaysAgo },
         deletedAt: null,
         status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+        ...scopeFilter,
       },
     },
     select: { productId: true },
@@ -815,6 +869,7 @@ export async function getProductSalesReport(
           sale: {
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            ...scopeFilter,
           },
         },
         orderBy: { createdAt: "desc" },
@@ -856,7 +911,27 @@ export async function getProductSalesReport(
 export async function getProductGroupSalesReport(
   filter: DateRangeFilter,
 ): Promise<ProductGroupSalesReportData> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
   const { start, end } = getDateRange(filter);
+
+  // Build scope filter
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
   // Get all product groups from database
   const productGroups = await prisma.productGroupMaster.findMany({
     where: { deletedAt: null },
@@ -900,6 +975,7 @@ export async function getProductGroupSalesReport(
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            ...scopeFilter,
           },
         },
         _sum: {
@@ -917,6 +993,7 @@ export async function getProductGroupSalesReport(
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            ...scopeFilter,
           },
         },
       });
@@ -953,6 +1030,12 @@ export async function getProductGroupSalesReport(
         where: {
           productGroup: groupOption.value,
           date: { gte: start, lte: end },
+          ...(viewScope === DataAccessLevel.VIEW_OWN
+            ? { employeeId: session.user.employeeId! }
+            : {}),
+          ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
+            ? { employee: { departmentId: session.user.departmentId! } }
+            : {}),
         },
         _sum: { totalAmount: true },
       });
@@ -1004,6 +1087,7 @@ export async function getProductGroupSalesReport(
                 saleDate: { gte: monthStart, lte: monthEnd },
                 deletedAt: null,
                 status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+                ...scopeFilter,
               },
             },
             _sum: { totalPrice: true },
@@ -1017,6 +1101,7 @@ export async function getProductGroupSalesReport(
                 saleDate: { gte: monthStart, lte: monthEnd },
                 deletedAt: null,
                 status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+                ...scopeFilter,
               },
             },
           });
@@ -1055,9 +1140,29 @@ export async function getProductGroupSalesReport(
 export async function getCustomerSalesReport(
   filter: DateRangeFilter,
 ): Promise<CustomerSalesReportData> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
   const { start, end } = getDateRange(filter);
   const dayCount = differenceInDays(end, start) + 1;
   const monthCount = Math.max(1, dayCount / 30);
+
+  // Build scope filter
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
 
   // Top customers
   const customerSales = await prisma.sale.groupBy({
@@ -1066,6 +1171,7 @@ export async function getCustomerSalesReport(
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -1088,6 +1194,7 @@ export async function getCustomerSalesReport(
         where: {
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
         orderBy: { saleDate: "desc" },
         take: 1,
@@ -1099,6 +1206,7 @@ export async function getCustomerSalesReport(
             where: {
               deletedAt: null,
               status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+              ...scopeFilter,
             },
           },
         },
@@ -1113,6 +1221,7 @@ export async function getCustomerSalesReport(
       customerId: { in: customerIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
   });
@@ -1151,6 +1260,7 @@ export async function getCustomerSalesReport(
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
   });
@@ -1193,6 +1303,7 @@ export async function getCustomerSalesReport(
           saleDate: { gte: start, lte: end },
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
       },
     },
@@ -1202,6 +1313,7 @@ export async function getCustomerSalesReport(
         where: {
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
         orderBy: { saleDate: "asc" },
         take: 1,
@@ -1269,11 +1381,13 @@ export async function getCustomerSalesReport(
           saleDate: { lt: start },
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
         none: {
           saleDate: { gte: start, lte: end },
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
       },
     },
@@ -1285,6 +1399,7 @@ export async function getCustomerSalesReport(
         where: {
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
         orderBy: { saleDate: "desc" },
         take: 1,
@@ -1302,6 +1417,7 @@ export async function getCustomerSalesReport(
       customerId: { in: inactiveIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
   });
@@ -1345,7 +1461,27 @@ export async function getCustomerSalesReport(
 export async function getSalespersonSalesReport(
   filter: DateRangeFilter,
 ): Promise<SalespersonReportData> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
   const { start, end } = getDateRange(filter);
+
+  // Build scope filter
+  const scopeFilter: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    scopeFilter.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    scopeFilter.employee = { departmentId: session.user.departmentId };
+  }
 
   // Get salesperson performance
   const employeeSales = await prisma.sale.groupBy({
@@ -1354,6 +1490,7 @@ export async function getSalespersonSalesReport(
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -1382,6 +1519,7 @@ export async function getSalespersonSalesReport(
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
     },
   });
 
@@ -1430,6 +1568,8 @@ export async function getSalespersonSalesReport(
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            ...scopeFilter, // Keep this for consistency, though Salesperson report by nature shows by employee
+            // But if manager views department, they see all employees in department.
           },
         },
         _sum: {
@@ -1485,6 +1625,7 @@ export async function getSalespersonSalesReport(
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+            ...scopeFilter,
           },
         },
         _sum: {
@@ -1528,6 +1669,7 @@ export async function getSalespersonSalesReport(
           saleDate: { gte: monthStart, lte: monthEnd },
           deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          ...scopeFilter,
         },
         _sum: { totalAmount: true },
         _count: true,
@@ -1568,14 +1710,39 @@ export async function getSalespersonSalesReport(
 // ============================================
 
 export async function getReportFilterOptions() {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  const whereEmployee: any = { deletedAt: null };
+  const whereCustomer: any = { deletedAt: null };
+
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    whereEmployee.id = session.user.employeeId;
+    whereCustomer.responsibleEmployeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    whereEmployee.departmentId = session.user.departmentId;
+    whereCustomer.responsibleEmployee = {
+      departmentId: session.user.departmentId,
+    };
+  }
+
   const [customers, employees, products, productGroups] = await Promise.all([
     prisma.customer.findMany({
-      where: { deletedAt: null },
+      where: whereCustomer,
       select: { id: true, name: true, customerCode: true, customerType: true },
       orderBy: { name: "asc" },
     }),
     prisma.employee.findMany({
-      where: { deletedAt: null },
+      where: whereEmployee,
       select: { id: true, name: true, employeeCode: true },
       orderBy: { name: "asc" },
     }),
@@ -1639,12 +1806,40 @@ export interface CustomerListItem {
 }
 
 export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  const whereCustomer: any = {
+    deletedAt: null,
+    status: "ACTIVE",
+  };
+  const whereSales: any = {
+    deletedAt: null,
+    status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+  };
+
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    whereCustomer.responsibleEmployeeId = session.user.employeeId;
+    whereSales.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    whereCustomer.responsibleEmployee = {
+      departmentId: session.user.departmentId,
+    };
+    whereSales.employee = { departmentId: session.user.departmentId };
+  }
+
   // Get all customers with their sales data
   const customers = await prisma.customer.findMany({
-    where: {
-      deletedAt: null,
-      status: "ACTIVE",
-    },
+    where: whereCustomer,
     select: {
       id: true,
       customerCode: true,
@@ -1653,10 +1848,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
       province: true,
       createdAt: true,
       sales: {
-        where: {
-          deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-        },
+        where: whereSales,
         orderBy: { saleDate: "desc" },
         take: 1,
         select: { saleDate: true },
@@ -1664,10 +1856,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
       _count: {
         select: {
           sales: {
-            where: {
-              deletedAt: null,
-              status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-            },
+            where: whereSales,
           },
         },
       },
@@ -1684,6 +1873,10 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
       customerId: { in: customerIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      customerId: { in: customerIds },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...whereSales, // Apply scope to lifetime sales aggregation too
     },
     _sum: { totalAmount: true },
     _count: true,
@@ -1696,7 +1889,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
         totalSales: Number(s._sum.totalAmount || 0),
         orderCount: s._count,
       },
-    ])
+    ]),
   );
 
   // Calculate months since customer creation for purchase frequency
@@ -1710,7 +1903,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
 
     const monthsSinceCreation = Math.max(
       1,
-      differenceInDays(now, customer.createdAt) / 30
+      differenceInDays(now, customer.createdAt) / 30,
     );
 
     return {
@@ -1751,14 +1944,36 @@ export interface SalespersonListItem {
   lastSaleDate?: string;
 }
 
-export async function getAllSalespersonsForReport(): Promise<SalespersonListItem[]> {
+export async function getAllSalespersonsForReport(): Promise<
+  SalespersonListItem[]
+> {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  const whereSales: any = {
+    deletedAt: null,
+    status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+  };
+
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    whereSales.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    whereSales.employee = { departmentId: session.user.departmentId };
+  }
+
   // Get all employees who have made sales
   const employeeSales = await prisma.sale.groupBy({
     by: ["employeeId"],
-    where: {
-      deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-    },
+    where: whereSales,
     _sum: { totalAmount: true },
     _count: true,
     orderBy: { _sum: { totalAmount: "desc" } },
@@ -1768,7 +1983,7 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
 
   // Get employee details
   const employees = await prisma.employee.findMany({
-    where: { 
+    where: {
       id: { in: employeeIds },
       deletedAt: null,
     },
@@ -1781,7 +1996,14 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
       sales: {
         where: {
           deletedAt: null,
+          deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+          // No need to add scope here explicitly if product access is not scoped,
+          // but we are finding employees.
+          // Sales relation in employee should be filtered?
+          // If we are listing salespersons, we show THEIR last sale date.
+          // If I can see the salesperson, I can see their last sale date.
+          // The whereSales logic above filtered *which* employees are returned.
         },
         orderBy: { saleDate: "desc" },
         take: 1,
@@ -1798,7 +2020,11 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
     where: {
       employeeId: { in: employeeIds },
       deletedAt: null,
+      employeeId: { in: employeeIds },
+      deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      // Scope filter?
+      // employeeIds are already filtered by scope.
     },
   });
 
@@ -1831,4 +2057,3 @@ export async function getAllSalespersonsForReport(): Promise<SalespersonListItem
     };
   });
 }
-

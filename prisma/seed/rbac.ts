@@ -66,6 +66,14 @@ const permissionGroups: Record<string, PermissionGroup> = {
       resource: "report",
       menuPath: "/reports",
     },
+    data: {
+      key: "data.reports",
+      name: "ขอบเขตข้อมูลรายงาน",
+      resource: "report",
+      defaultDataAccess: DataAccessLevel.VIEW_DEPARTMENT,
+      defaultEditAccess: EditAccessLevel.EDIT_NONE,
+      defaultDeleteAccess: DeleteAccessLevel.DELETE_NONE,
+    },
     subMenus: [
       {
         key: "menu.sales",
@@ -1268,6 +1276,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.dashboard" },
     { key: "menu.dashboard.manager" },
     { key: "menu.dashboard.employee" },
+    { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
     { key: "menu.reports" },
     { key: "menu.sales" },
     { key: "menu.products" },

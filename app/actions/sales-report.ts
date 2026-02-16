@@ -1,20 +1,46 @@
 "use server";
 
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma, DataAccessLevel } from "@/src/infrastructure/database";
 import { startOfYear, endOfYear, format } from "date-fns";
+import { auth } from "@/lib/auth";
 
 export type ReportType = "CUSTOMER" | "EMPLOYEE";
 
 export async function getFilterOptions() {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] || // Fallback
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  const whereEmployee: any = { deletedAt: null };
+  const whereCustomer: any = { deletedAt: null };
+
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (!session.user.employeeId) throw new Error("User is not an employee");
+    whereEmployee.id = session.user.employeeId;
+    whereCustomer.responsibleEmployeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    if (!session.user.departmentId) throw new Error("User has no department");
+    whereEmployee.departmentId = session.user.departmentId;
+    whereCustomer.responsibleEmployee = {
+      departmentId: session.user.departmentId,
+    };
+  }
+
   const [customers, employees, yearsResult] = await Promise.all([
     prisma.customer.findMany({
       select: { id: true, name: true, customerCode: true },
-      where: { deletedAt: null },
+      where: whereCustomer,
       orderBy: { name: "asc" },
     }),
     prisma.employee.findMany({
       select: { id: true, name: true },
-      where: { deletedAt: null },
+      where: whereEmployee,
       orderBy: { name: "asc" },
     }),
     prisma.dailySalesSummary.groupBy({
@@ -35,9 +61,42 @@ export async function getFilterOptions() {
 export async function getReportSummary(
   year: number,
   type: ReportType,
-  entityId?: string
+  entityId?: string,
 ) {
   if (!entityId) return null;
+
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  // Build scope constraint
+  const scopeConstraint: any = {};
+
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    // If viewing employee report, entityId must be me
+    if (type === "EMPLOYEE" && entityId !== session.user.employeeId) {
+      throw new Error("Unauthorized query"); // Cannot view other employees
+    }
+    // If viewing customer report, ensure we only count MY sales
+    scopeConstraint.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    // If viewing employee report, entityId must be in my dept
+    if (type === "EMPLOYEE") {
+      // We should verify entityId belongs to dept.
+      // Prisma relation filter in groupBy is tricky?
+      // DailySalesSummary has employee relation.
+      scopeConstraint.employee = { departmentId: session.user.departmentId };
+    } else {
+      // Viewing customer: filter by sales within department
+      scopeConstraint.employee = { departmentId: session.user.departmentId };
+    }
+  }
 
   // 1. Get Monthly Trend
   const monthlyData = await prisma.dailySalesSummary.groupBy({
@@ -47,6 +106,7 @@ export async function getReportSummary(
       ...(type === "CUSTOMER"
         ? { customerId: entityId }
         : { employeeId: entityId }),
+      ...scopeConstraint,
     },
     _sum: {
       totalAmount: true,
@@ -64,16 +124,21 @@ export async function getReportSummary(
       ...(type === "CUSTOMER"
         ? { customerId: entityId }
         : { employeeId: entityId }),
+      ...scopeConstraint,
     },
     _sum: {
       totalAmount: true,
       quantity: true,
+      orderCount: true,
     },
     orderBy: {
       _sum: { totalAmount: "desc" },
     },
     take: 5,
   });
+
+  // Note: productData _sum structure in typescript
+  // _sum property names come from schema.
 
   // Enrich product names
   const productIds = productData.map((p) => p.productId);
@@ -96,12 +161,12 @@ export async function getReportSummary(
   // 3. Calculate Totals
   const totalSales = monthlyData.reduce(
     (acc, curr) => acc + Number(curr._sum.totalAmount || 0),
-    0
+    0,
   );
   const totalOrders = monthlyData.reduce(
     (acc, curr) => acc + Number(curr._sum.orderCount || 0),
-    0
-  ); // Note: This might be slightly off if multiple summaries per day, but good enough for trend
+    0,
+  );
 
   // Refine monthly data for chart
   const chartData = Array.from({ length: 12 }, (_, i) => {
@@ -126,9 +191,28 @@ export async function getOrderHistory(
   year: number,
   type: ReportType,
   entityId?: string,
-  limit = 50
+  limit = 50,
 ) {
   if (!entityId) return [];
+
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+
+  const viewScope =
+    session.user.dataAccessByResource["report"] ||
+    session.user.dataAccessByResource["sale"] ||
+    null;
+
+  if (!viewScope) throw new Error("Unauthorized");
+
+  const scopeConstraint: any = {};
+  if (viewScope === DataAccessLevel.VIEW_OWN) {
+    if (type === "EMPLOYEE" && entityId !== session.user.employeeId)
+      throw new Error("Unauthorized");
+    scopeConstraint.employeeId = session.user.employeeId;
+  } else if (viewScope === DataAccessLevel.VIEW_DEPARTMENT) {
+    scopeConstraint.employee = { departmentId: session.user.departmentId };
+  }
 
   const startDate = startOfYear(new Date(year, 0, 1));
   const endDate = endOfYear(new Date(year, 0, 1));
@@ -143,6 +227,7 @@ export async function getOrderHistory(
       ...(type === "CUSTOMER"
         ? { customerId: entityId }
         : { employeeId: entityId }),
+      ...scopeConstraint,
     },
     select: {
       id: true,
