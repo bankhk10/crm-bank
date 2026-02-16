@@ -13,9 +13,9 @@ import {
 type PermissionDef = {
   key: string;
   name: string;
+  resource: string; // Mandatory Grouping Field
   category?: "MENU" | "ACTION" | "DATA";
   menuPath?: string;
-  resource?: string;
   action?: string;
   defaultDataAccess?: DataAccessLevel;
   defaultEditAccess?: EditAccessLevel;
@@ -37,6 +37,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.dashboard",
       name: "เมนูแดชบอร์ด",
+      resource: "dashboard",
       menuPath: "/dashboard",
     },
   },
@@ -45,36 +46,47 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 📈 Reports (รายงาน)
   // ─────────────────────────────────────────────
   reports: {
-    menu: { key: "menu.reports", name: "เมนูรายงาน", menuPath: "/reports" },
+    menu: {
+      key: "menu.reports",
+      name: "เมนูรายงาน",
+      resource: "report",
+      menuPath: "/reports",
+    },
     subMenus: [
       {
         key: "menu.sales",
         name: "เมนูการขาย",
+        resource: "sale",
         menuPath: "/reports/salesReport",
       },
       {
         key: "report.time_sales",
         name: "รายงานยอดขายตามเวลา",
+        resource: "report",
         menuPath: "/reports/time-sales",
       },
       {
         key: "report.product_sales",
         name: "รายงานตามสินค้า",
+        resource: "report",
         menuPath: "/reports/product-sales",
       },
       {
         key: "report.product_group_sales",
         name: "รายงานตามกลุ่มสินค้า",
+        resource: "report",
         menuPath: "/reports/product-group-sales",
       },
       {
         key: "report.customer_sales",
         name: "รายงานตามลูกค้า",
+        resource: "report",
         menuPath: "/reports/customer-sales",
       },
       {
         key: "report.salesperson",
         name: "รายงานตามพนักงานขาย",
+        resource: "report",
         menuPath: "/reports/salesperson",
       },
     ],
@@ -95,6 +107,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.sales",
       name: "เมนูการขาย",
+      resource: "sale",
       menuPath: "/reports/salesReport",
     },
     actions: [
@@ -176,6 +189,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.fulfillment",
       name: "เมนูจัดส่งสินค้า",
+      resource: "fulfillment",
       menuPath: "/fulfillment",
     },
   },
@@ -184,7 +198,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 📦 Products (สินค้า)
   // ─────────────────────────────────────────────
   products: {
-    menu: { key: "menu.products", name: "เมนูสินค้า", menuPath: "/products" },
+    menu: {
+      key: "menu.products",
+      name: "เมนูสินค้า",
+      resource: "product",
+      menuPath: "/products",
+    },
     actions: [
       {
         key: "product.create",
@@ -243,7 +262,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 👥 Customers (ลูกค้า)
   // ─────────────────────────────────────────────
   customers: {
-    menu: { key: "menu.customers", name: "เมนูลูกค้า", menuPath: "/customers" },
+    menu: {
+      key: "menu.customers",
+      name: "เมนูลูกค้า",
+      resource: "customer",
+      menuPath: "/customers",
+    },
     actions: [
       {
         key: "customer.create.dealer",
@@ -320,8 +344,19 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 🏢 Companies (บริษัท)
   // ─────────────────────────────────────────────
   companies: {
-    menu: { key: "menu.companies", name: "เมนูบริษัท", menuPath: "/companies" },
+    menu: {
+      key: "menu.companies",
+      name: "เมนูบริษัท",
+      resource: "company",
+      menuPath: "/companies",
+    },
     actions: [
+      {
+        key: "company.view",
+        name: "ดูรายละเอียดบริษัท",
+        resource: "company",
+        action: "view",
+      },
       {
         key: "company.create",
         name: "สร้างบริษัท",
@@ -339,12 +374,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         name: "ลบบริษัท",
         resource: "company",
         action: "delete",
-      },
-      {
-        key: "company.view",
-        name: "ดูรายละเอียดบริษัท",
-        resource: "company",
-        action: "view",
       },
     ],
     data: {
@@ -364,6 +393,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.credit_limits",
       name: "เมนูวงเงินสินเชื่อ",
+      resource: "creditlimit",
       menuPath: "/credit-limits",
     },
     actions: [
@@ -421,6 +451,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.temporary_credit_limits",
       name: "เมนูวงเงินสินเชื่อชั่วคราว",
+      resource: "temporary_creditlimit",
       menuPath: "/temporary-credit-limits",
     },
     actions: [
@@ -475,7 +506,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 👨‍💼 Employees (พนักงาน)
   // ─────────────────────────────────────────────
   employees: {
-    menu: { key: "menu.employees", name: "เมนูพนักงาน", menuPath: "/employee" },
+    menu: {
+      key: "menu.employees",
+      name: "เมนูพนักงาน",
+      resource: "employee",
+      menuPath: "/employee",
+    },
     actions: [
       {
         key: "employee.create",
@@ -528,7 +564,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 🔐 RBAC (จัดการสิทธิ์)
   // ─────────────────────────────────────────────
   rbac: {
-    menu: { key: "menu.rbac", name: "เมนูจัดการสิทธิ์", menuPath: "/rbac" },
+    menu: {
+      key: "menu.rbac",
+      name: "เมนูจัดการสิทธิ์",
+      resource: "rbac",
+      menuPath: "/rbac",
+    },
     actions: [
       {
         key: "rbac.manage",
@@ -573,7 +614,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ⚙️ Admin / System (ตั้งค่าระบบ)
   // ─────────────────────────────────────────────
   admin: {
-    menu: { key: "menu.admin", name: "เมนูตั้งค่าระบบ", menuPath: "/admin" },
+    menu: {
+      key: "menu.admin",
+      name: "เมนูตั้งค่าระบบ",
+      resource: "system",
+      menuPath: "/admin",
+    },
     actions: [
       {
         key: "system.audit_log",
@@ -603,6 +649,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.sales_forecast",
       name: "เมนูการคาดการณ์ยอดขาย",
+      resource: "sales_forecast",
       menuPath: "/sales-forecast",
     },
   },
@@ -614,6 +661,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.sales_targets",
       name: "เมนูตั้งเป้าหมายยอดขาย",
+      resource: "sales_target",
       menuPath: "/sales-targets",
     },
     actions: [
@@ -685,6 +733,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.notifications",
       name: "เมนูแจ้งเตือน",
+      resource: "notification",
       menuPath: "/notifications",
     },
     actions: [
@@ -710,6 +759,7 @@ const permissionGroups: Record<string, PermissionGroup> = {
     menu: {
       key: "menu.shipping-companies",
       name: "เมนูบริษัทขนส่ง",
+      resource: "shipping-company",
       menuPath: "/shipping-companies",
     },
     actions: [
@@ -744,7 +794,14 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // 🎲 Misc (อื่นๆ)
   // ─────────────────────────────────────────────
   misc: {
-    actions: [{ key: "randomize", name: "สุ่มข้อมูล", action: "randomize" }],
+    actions: [
+      {
+        key: "randomize",
+        name: "สุ่มข้อมูล",
+        resource: "system",
+        action: "randomize",
+      },
+    ],
   },
 };
 
@@ -757,7 +814,7 @@ interface PrismaPermissionData {
   name: string;
   category: "MENU" | "ACTION" | "DATA";
   menuPath?: string;
-  resource?: string;
+  resource: string;
   action?: string;
   defaultDataAccess?: DataAccessLevel;
   defaultEditAccess?: EditAccessLevel;
@@ -778,6 +835,7 @@ function flattenPermissionGroups(
         key: group.menu.key,
         name: group.menu.name,
         category: "MENU",
+        resource: group.menu.resource,
         menuPath: group.menu.menuPath,
       });
     }
@@ -791,6 +849,7 @@ function flattenPermissionGroups(
             key: sub.key,
             name: sub.name,
             category: "MENU",
+            resource: sub.resource,
             menuPath: sub.menuPath,
           });
         }
@@ -847,13 +906,16 @@ export async function seedRBAC(prisma: PrismaClient) {
   });
 
   if (existingAdminRole) {
-    console.log("🔐 RBAC already seeded, checking for missing permissions...");
+    console.log("🔐 RBAC already seeded, updating permissions...");
 
     let createdCount = 0;
+    let updatedCount = 0;
+
     for (const perm of allPermissionDefs) {
       const existing = await prisma.permission.findUnique({
         where: { key: perm.key },
       });
+
       if (!existing) {
         const created = await prisma.permission.create({ data: perm });
         // Assign to administrator role with full access
@@ -863,17 +925,31 @@ export async function seedRBAC(prisma: PrismaClient) {
             permissionId: created.id,
             allow: true,
             dataAccess: DataAccessLevel.VIEW_ALL,
+            editAccess:
+              perm.category === "DATA" ? EditAccessLevel.EDIT_ALL : null,
+            deleteAccess:
+              perm.category === "DATA" ? DeleteAccessLevel.DELETE_ALL : null,
           },
         });
         createdCount++;
         console.log(`  ✅ Created permission: ${perm.key}`);
+      } else {
+        // Update resource grouping if changed
+        if (existing.resource !== perm.resource) {
+          await prisma.permission.update({
+            where: { id: existing.id },
+            data: { resource: perm.resource },
+          });
+          updatedCount++;
+        }
       }
     }
 
-    if (createdCount === 0) {
-      console.log("  ✅ All permissions already exist.");
-    } else {
-      console.log(`  ✅ Created ${createdCount} new permissions.`);
+    console.log(
+      `  ✅ Sync complete: Created ${createdCount}, Updated ${updatedCount} permissions.`,
+    );
+    if (createdCount === 0 && updatedCount === 0) {
+      console.log("  ✅ All permissions up to date.");
     }
     return;
   }

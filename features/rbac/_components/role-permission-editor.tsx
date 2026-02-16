@@ -62,36 +62,43 @@ export default function RolePermissionEditor({
 
   // Helper to determine group name
   const getPermissionGroup = (p: Permission) => {
-    let raw = "";
-    if (p.resource) {
-      raw = p.resource;
-    } else if (p.key.startsWith("menu.")) {
-      raw = p.key.split(".")[1] || "Other";
-    } else {
-      // Fallback for actions without resource (e.g. rbac.manage)
-      raw = p.key.split(".")[0];
+    let raw = p.resource || "";
+
+    // Fallback logic only if resource is missing
+    if (!raw) {
+      if (p.key.startsWith("menu.")) {
+        raw = p.key.split(".")[1] || "Other";
+      } else {
+        // Fallback for actions without resource
+        raw = p.key.split(".")[0];
+      }
     }
 
-    // Normalize specific known keys to common Module Names
-    const lower = raw.toLowerCase();
-    if (lower.includes("sale")) return "Sales";
-    if (lower.includes("product")) return "Products";
-    if (lower.includes("customer")) return "Customers";
-    if (lower.includes("employee")) return "Employees";
-    if (lower.includes("company") || lower.includes("companies"))
-      return "Companies";
-    if (lower.includes("report")) return "Reports";
-    if (
-      lower.includes("rbac") ||
-      lower.includes("role") ||
-      lower.includes("permission")
-    )
-      return "System & RBAC";
-    if (lower.includes("fulfillment")) return "Fulfillment";
-    if (lower.includes("credit")) return "Credit Limits";
+    // Custom formatting for specific terms
+    const overrides: Record<string, string> = {
+      rbac: "RBAC",
+      crm: "CRM",
+      sale: "Sales",
+      product: "Products",
+      customer: "Customers",
+      employee: "Employees",
+      company: "Companies",
+      report: "Reports",
+      notification: "Notifications",
+      "shipping-company": "Shipping Companies",
+      sales_target: "Sales Targets",
+      creditlimit: "Credit Limit",
+      temporary_creditlimit: "Temporary Credit Limit",
+      "temporary creditlimit": "Temporary Credit Limit",
+    };
 
-    // Default capitalization
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
+    const lower = raw.toLowerCase();
+    if (overrides[lower]) return overrides[lower];
+
+    // General formatting: replace delimiters with spaces and Title Case
+    return raw
+      .replace(/[_-]/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   // Group permissions
@@ -102,10 +109,15 @@ export default function RolePermissionEditor({
     return acc;
   }, {} as Record<string, Permission[]>);
 
-  // Sort groups: System & RBAC last, otherwise alphabetical
+  // Sort groups: RBAC/System last, otherwise alphabetical
   const sortedGroupKeys = Object.keys(groupedPermissions).sort((a, b) => {
-    if (a === "System & RBAC") return 1;
-    if (b === "System & RBAC") return -1;
+    // Force RBAC/System to bottom
+    const isSystemA = a === "RBAC" || a === "System";
+    const isSystemB = b === "RBAC" || b === "System";
+
+    if (isSystemA && !isSystemB) return 1;
+    if (!isSystemA && isSystemB) return -1;
+
     return a.localeCompare(b);
   });
 
@@ -435,11 +447,10 @@ function PermissionItem({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-lg border p-3 transition-all ${
-        isChecked
-          ? "border-primary/50 bg-primary/5"
-          : "bg-white hover:border-slate-300"
-      }`}
+      className={`flex flex-col gap-3 rounded-lg border p-3 transition-all ${isChecked
+        ? "border-primary/50 bg-primary/5"
+        : "bg-white hover:border-slate-300"
+        }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0 space-y-0.5">
