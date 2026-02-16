@@ -181,8 +181,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (token.sessionVersion) {
           const isValid = await isSessionValid(token.sessionVersion as string);
           if (!isValid) {
-            // Session is invalid, return null to force logout
-            return null;
+            // Session is invalid – clear all auth data from the token so the
+            // user is treated as unauthenticated.  Returning `null` here
+            // would cause NextAuth to redirect to the signIn page, but the
+            // stale JWT cookie persists, creating an infinite redirect loop.
+            token.sub = undefined;
+            token.roles = [];
+            token.permissionKeys = [];
+            token.departmentId = null;
+            token.positionId = null;
+            token.dataAccessByResource = {};
+            token.editAccessByResource = {};
+            token.deleteAccessByResource = {};
+            token.employeeId = null;
+            token.sessionVersion = null;
+            return token;
           }
         }
 
@@ -242,6 +255,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      if (!token.sub) {
+        // Token was invalidated (force logout) – treat as unauthenticated
+        session.user = undefined as any;
+        return session;
+      }
+
       if (session.user) {
         session.user.id = token.sub ?? "";
         session.user.roles = (token.roles as string[]) ?? [];
