@@ -709,32 +709,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // 🔔 Notifications (แจ้งเตือน)
-  // ─────────────────────────────────────────────
-  notifications: {
-    menu: {
-      key: "menu.notifications",
-      name: "เมนูแจ้งเตือน",
-      resource: "notification",
-      menuPath: "/notifications",
-    },
-    actions: [
-      {
-        key: "notification.view",
-        name: "ดูการแจ้งเตือน",
-        resource: "notification",
-        action: "view",
-      },
-      {
-        key: "notification.manage",
-        name: "จัดการการแจ้งเตือน",
-        resource: "notification",
-        action: "manage",
-      },
-    ],
-  },
-
-  // ─────────────────────────────────────────────
   // 🚛 Shipping Companies (บริษัทขนส่ง)
   // ─────────────────────────────────────────────
   shippingCompanies: {
@@ -1116,7 +1090,6 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_OWN",
       deleteAccess: "DELETE_OWN",
     },
-    { key: "notification.view" },
     { key: "stock.view" },
     { key: "customer.create.subdealer" },
     { key: "customer.create.farmer" },
@@ -1215,7 +1188,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.assign" },
     { key: "employee.manage" },
     { key: "stock.view" },
-    { key: "notification.view" },
     { key: "sales_target.view" },
     {
       key: "data.customers",
@@ -1368,8 +1340,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "stock.view" },
     { key: "stock.adjust" },
     { key: "stock.lot.manage" },
-    { key: "notification.view" },
-    { key: "notification.manage" },
     { key: "system.audit_log" },
     { key: "system.security_log" },
 
@@ -1432,7 +1402,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "company.view", dataAccess: "VIEW_ALL" },
     { key: "sales_target.view", dataAccess: "VIEW_ALL" },
     { key: "stock.view", dataAccess: "VIEW_ALL" },
-    { key: "notification.view" },
     { key: "system.audit_log" },
     { key: "system.security_log" },
 
@@ -1516,8 +1485,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.delete" },
     // Stock permissions
     { key: "stock.view" },
-    // Notification
-    { key: "notification.view" },
     { key: "customer.create.dealer" },
     { key: "customer.create.subdealer" },
     { key: "customer.create.farmer" },

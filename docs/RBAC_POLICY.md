@@ -69,7 +69,6 @@ enum PermissionType {
 | `menu.sales_targets`           | เมนูตั้งเป้าหมายยอดขาย     | /sales-targets           |
 | `menu.rbac`                    | เมนูจัดการสิทธิ์           | /rbac                    |
 | `menu.admin`                   | เมนูตั้งค่าระบบ            | /admin                   |
-| `menu.notifications`           | เมนูแจ้งเตือน              | /notifications           |
 
 ### 4.2 Report Permissions (รายงาน)
 
@@ -84,14 +83,14 @@ enum PermissionType {
 
 ### 4.3 Sale Permissions (การขาย)
 
-| Key                       | Name (TH)             | Action             |
-| ------------------------- | --------------------- | ------------------ |
-| `sale.create`             | สร้างใบขาย            | create             |
-| `sale.edit`               | แก้ไขใบขาย            | edit               |
-| `sale.view`               | ดูรายละเอียดใบขาย     | view               |
-| `sale.delete`             | ลบใบขาย               | delete             |
-| `sale.approve`            | อนุมัติใบขาย          | approve            |
-| `sale.confirm-payment`    | ยืนยันการชำระเงิน     | confirm_payment    |
+| Key                    | Name (TH)         | Action          |
+| ---------------------- | ----------------- | --------------- |
+| `sale.create`          | สร้างใบขาย        | create          |
+| `sale.edit`            | แก้ไขใบขาย        | edit            |
+| `sale.view`            | ดูรายละเอียดใบขาย | view            |
+| `sale.delete`          | ลบใบขาย           | delete          |
+| `sale.approve`         | อนุมัติใบขาย      | approve         |
+| `sale.confirm-payment` | ยืนยันการชำระเงิน | confirm_payment |
 
 ### 4.4 Product Permissions (สินค้า)
 
@@ -192,14 +191,7 @@ enum PermissionType {
 | `stock.adjust`     | ปรับปรุงสต็อก | adjust |
 | `stock.lot.manage` | จัดการ LOT    | manage |
 
-### 4.13 Notification Permissions (แจ้งเตือน)
-
-| Key                   | Name (TH)          | Action |
-| --------------------- | ------------------ | ------ |
-| `notification.view`   | ดูการแจ้งเตือน     | view   |
-| `notification.manage` | จัดการการแจ้งเตือน | manage |
-
-### 4.14 System Permissions (ระบบ)
+### 4.13 System Permissions (ระบบ)
 
 | Key                   | Name (TH)             | Action    |
 | --------------------- | --------------------- | --------- |
