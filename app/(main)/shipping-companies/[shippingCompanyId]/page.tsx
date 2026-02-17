@@ -1,361 +1,64 @@
-"use client";
+import React from "react";
+import { auth } from "@/lib/auth";
+import { isAuthorized } from "@/src/core/rbac";
+import { redirect } from "next/navigation";
+import { getShippingCompany } from "@/features/shipping-companies/_lib/data-access";
+import { ShippingCompanyDetailView } from "@/features/shipping-companies/_components/shipping-company-detail-view";
+import type { ShippingCompanyRecord } from "@/features/shipping-companies/_types";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-    ArrowLeft,
-    Truck,
-    Phone,
-    MapPin,
-    Calendar,
-    FileText,
-    CheckCircle2,
-    XCircle,
-    Pencil,
-    Trash2,
-    AlertTriangle,
-    Users,
-} from "lucide-react";
-import { usePermission } from "@/hooks/use-permission";
-import { Badge } from "@/components/ui/badge";
-
-type ShippingCompany = {
-    id: string;
-    name: string;
-    phone?: string | null;
-    address?: string | null;
-    addressLine?: string | null;
-    province?: string | null;
-    district?: string | null;
-    subdistrict?: string | null;
-    postalCode?: string | null;
-    notes?: string | null;
-    status?: string | null;
-    createdAt?: string | null;
-    customerList?: Array<{
-        id: string;
-        name: string;
-        customerCode: string;
-    }>;
-};
-
-function DetailItem({
-    icon,
-    label,
-    value,
-}: {
-    icon?: React.ReactNode;
-    label: string;
-    value: React.ReactNode;
-}) {
-    return (
-        <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-            {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
-            <div className="flex-1 min-w-0">
-                <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
-                <dd className="text-base text-gray-900 font-medium break-words">
-                    {value || "-"}
-                </dd>
-            </div>
-        </div>
-    );
+interface PageProps {
+    params: Promise<{ shippingCompanyId: string }>;
 }
 
-export default function ShippingCompanyDetailPage() {
-    const { shippingCompanyId } = useParams() as { shippingCompanyId: string };
-    const router = useRouter();
-    const { hasPermission, allowed, isLoading } = usePermission("menu.shipping-companies");
-    const canView = !isLoading && allowed;
-    const canEdit = hasPermission("shipping-company.edit");
-    const canDelete = hasPermission("shipping-company.delete");
+export default async function ShippingCompanyDetailPage({ params }: PageProps) {
+    const { shippingCompanyId } = await params;
+    const session = await auth();
 
-    const [shippingCompany, setShippingCompany] = useState<ShippingCompany | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [deleting, setDeleting] = useState(false);
-
-    useEffect(() => {
-        let mounted = true;
-        (async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`);
-                if (!res.ok) throw new Error("Failed to load shipping company");
-                const json = await res.json();
-                const src = (json && (json.shippingCompany ?? json)) || null;
-                if (mounted) setShippingCompany(src || null);
-            } catch (e: any) {
-                setError(String(e?.message ?? e));
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [shippingCompanyId]);
-
-    const handleDelete = async () => {
-        if (!shippingCompany) return;
-        setDeleting(true);
-        try {
-            const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`, {
-                method: "DELETE",
-            });
-            if (!res.ok) throw new Error("ไม่สามารถลบข้อมูลบริษัทขนส่งได้");
-            router.push("/shipping-companies");
-            router.refresh();
-        } catch (err: any) {
-            setError(err.message || String(err));
-        } finally {
-            setDeleting(false);
-            setDeleteDialogOpen(false);
-        }
-    };
-
-    if (isLoading || loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">กำลังโหลด...</p>
-                </div>
-            </div>
-        );
+    if (!session?.user) {
+        redirect("/api/auth/signin");
     }
+
+    const perms = session.user.permissionKeys ?? [];
+    const resourcePath = "/api/shipping-companies";
+    const authorized = isAuthorized(resourcePath, perms);
+
+    // Enforce server-side permission check
+    const canView = isAuthorized(resourcePath, perms);
 
     if (!canView) {
         return (
             <div className="container max-w-4xl mx-auto p-6">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
-                    <AlertDescription>
-                        คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทขนส่งนี้
-                    </AlertDescription>
-                </Alert>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Error: </strong>
+                    <span className="block sm:inline">คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทขนส่งนี้</span>
+                </div>
             </div>
         );
     }
 
-    if (error) {
-        return (
-            <div className="container max-w-4xl mx-auto p-6">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>ข้อผิดพลาด</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            </div>
-        );
-    }
+    const shippingCompany = await getShippingCompany(shippingCompanyId);
 
     if (!shippingCompany) {
         return (
             <div className="container max-w-4xl mx-auto p-6 text-center">
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>ไม่พบข้อมูล</AlertTitle>
-                    <AlertDescription>ไม่พบข้อมูลบริษัทขนส่งที่คุณค้นหา</AlertDescription>
-                </Alert>
-                <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => router.back()}
-                >
-                    กลับหน้ารายการ
-                </Button>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+                    <strong className="font-bold">ไม่พบข้อมูล</strong>
+                    <span className="block sm:inline"> ไม่พบข้อมูลบริษัทขนส่งที่คุณค้นหา</span>
+                </div>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen from-slate-50 to-orange-50 bg-slate-50/50 pb-12">
-            {/* Hero Header Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-gradient-to-br from-orange-600 via-orange-700 to-red-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
-                    <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-                        <Link
-                            href="/shipping-companies"
-                            className="inline-flex items-center text-orange-100 hover:text-white mb-2 transition-colors group"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            กลับไปหน้ารายการบริษัทขนส่ง
-                        </Link>
-                        <div className="flex gap-2">
-                            {canEdit && (
-                                <Button
-                                    asChild
-                                    variant="secondary"
-                                    size="sm"
-                                    className="bg-white/10 hover:bg-white/20 text-white border-white/20"
-                                >
-                                    <Link href={`/shipping-companies/${shippingCompanyId}/edit`}>
-                                        <Pencil className="h-4 w-4 mr-2" />
-                                        แก้ไข
-                                    </Link>
-                                </Button>
-                            )}
-                            {canDelete && (
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => setDeleteDialogOpen(true)}
-                                    className="bg-red-500/20 hover:bg-red-500/30 text-white border-red-300/20"
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    ลบ
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+    // Serialize dates and ensure type safety
+    const serializedShippingCompany: ShippingCompanyRecord = {
+        ...shippingCompany,
+        createdAt: shippingCompany.createdAt?.toISOString() ?? undefined,
+        customerList: shippingCompany.customerList.map(c => ({
+            id: c.id,
+            name: c.name,
+            customerCode: c.customerCode
+        }))
+    };
 
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <Truck className="h-8 w-8" />
-                                <h1 className="text-3xl lg:text-4xl font-bold">
-                                    {shippingCompany.name}
-                                </h1>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 text-orange-100">
-                                {shippingCompany.phone && (
-                                    <div className="flex items-center gap-2">
-                                        <Phone className="h-4 w-4" />
-                                        <span>{shippingCompany.phone}</span>
-                                    </div>
-                                )}
-                                {shippingCompany.status === "ACTIVE" ? (
-                                    <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
-                                        <CheckCircle2 className="h-4 w-4 text-green-300" />
-                                        <span className="text-green-100">ใช้งาน</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 bg-gray-500/20 px-3 py-1 rounded-full">
-                                        <XCircle className="h-4 w-4 text-gray-300" />
-                                        <span className="text-gray-100">ไม่ใช้งาน</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* General Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-orange-300">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <FileText className="h-6 w-6 text-orange-600" />
-                                ข้อมูลทั่วไป
-                            </h2>
-                        </div>
-                        <div className="p-6">
-                            <DetailItem
-                                icon={<MapPin className="h-5 w-5" />}
-                                label="ที่อยู่บริษัทขนส่ง"
-                                value={
-                                    [
-                                        shippingCompany.addressLine,
-                                        shippingCompany.subdistrict && `ต.${shippingCompany.subdistrict}`,
-                                        shippingCompany.district && `อ.${shippingCompany.district}`,
-                                        shippingCompany.province && `จ.${shippingCompany.province}`,
-                                        shippingCompany.postalCode
-                                    ].filter(Boolean).join(" ") || shippingCompany.address || "-"
-                                }
-                            />
-                            <DetailItem
-                                icon={<FileText className="h-5 w-5" />}
-                                label="หมายเหตุ"
-                                value={shippingCompany.notes}
-                            />
-                            <DetailItem
-                                icon={<Calendar className="h-5 w-5" />}
-                                label="วันที่สร้างข้อมูล"
-                                value={
-                                    shippingCompany.createdAt
-                                        ? new Date(shippingCompany.createdAt).toLocaleDateString("th-TH", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })
-                                        : "-"
-                                }
-                            />
-                        </div>
-                    </div>
-
-                    {/* Customers Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-blue-300">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Users className="h-6 w-6 text-blue-600" />
-                                ลูกค้าที่ใช้บริการขนส่ง ({shippingCompany.customerList?.length || 0} ราย)
-                            </h2>
-                        </div>
-                        <div className="p-6">
-                            {shippingCompany.customerList && shippingCompany.customerList.length > 0 ? (
-                                <div className="space-y-2">
-                                    {shippingCompany.customerList.map((customer) => (
-                                        <div
-                                            key={customer.id}
-                                            className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
-                                        >
-                                            <Badge variant="secondary">{customer.customerCode}</Badge>
-                                            <span className="text-sm font-medium">{customer.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-sm text-gray-500">ยังไม่มีลูกค้าที่ใช้บริการขนส่งนี้</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent>
-                    <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
-                    <DialogDescription>
-                        คุณต้องการลบบริษัทขนส่ง <strong>{shippingCompany.name}</strong> ใช่หรือไม่?
-                        การกระทำนี้ไม่สามารถย้อนกลับได้
-                    </DialogDescription>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteDialogOpen(false)}
-                            disabled={deleting}
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                        >
-                            {deleting ? "กำลังลบ..." : "ลบข้อมูล"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
+    return <ShippingCompanyDetailView shippingCompany={serializedShippingCompany} />;
 }

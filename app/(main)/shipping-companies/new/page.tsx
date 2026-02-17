@@ -1,77 +1,40 @@
-"use client";
+import React from "react";
+import { auth } from "@/lib/auth";
+import { isAuthorized } from "@/src/core/rbac";
+import { redirect } from "next/navigation";
+import { getCustomers } from "@/features/customers/_lib/data-access";
+import { ShippingCompanyNewView } from "@/features/shipping-companies/_components/shipping-company-new-view";
 
-import { useRouter } from "next/navigation";
-import { ShippingCompanyForm } from "@/features/shipping-companies";
+export default async function NewShippingCompanyPage() {
+    const session = await auth();
 
-export default function NewShippingCompanyPage() {
-    const router = useRouter();
-
-    async function handleCreate(payload: any) {
-        try {
-            const res = await fetch("/api/shipping-companies", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-
-                if (res.status === 409) {
-                    const errMsg: string = json?.error || "";
-                    const issues: Record<string, string[]> = {};
-
-                    const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
-                    if (m && m[1]) {
-                        const raw = m[1];
-                        const fields = raw
-                            .split(",")
-                            .map((s) => s.replace(/[`"'\s]/g, "").trim());
-                        for (const f of fields) {
-                            if (!f) continue;
-                            issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
-                        }
-                    }
-
-                    return {
-                        success: false,
-                        issues: Object.keys(issues).length ? issues : json?.issues,
-                        error: json?.error,
-                    };
-                }
-
-                return { success: false, issues: json?.issues, error: json?.error };
-            }
-
-            return { success: true };
-        } catch (e: any) {
-            return { success: false, error: String(e) };
-        }
+    if (!session?.user) {
+        redirect("/api/auth/signin");
     }
 
-    return (
-        <section className="space-y-6">
-            <div className="bg-white shadow-sm sm:rounded-lg">
-                <div className="p-6">
-                    <div className="text-center">
-                        <h5 className="font-semibold text-3xl my-5 border-b pb-6">
-                            สร้างบริษัทขนส่งใหม่
-                        </h5>
-                    </div>
+    const perms = session.user.permissionKeys ?? [];
+    const canCreate =
+        perms.includes("shipping-company.create") ||
+        perms.includes("shipping-company.manage") ||
+        perms.includes("menu.shipping-companies");
 
-                    <ShippingCompanyForm
-                        onSubmit={async (payload) => {
-                            const result = await handleCreate(payload);
-                            if (result.success) {
-                                router.push("/shipping-companies");
-                            }
-                            return result;
-                        }}
-                        onCancel={() => router.push("/shipping-companies")}
-                        submitLabel="บันทึก"
-                    />
+    if (!canCreate) {
+        // Basic check
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Error: </strong>
+                    <span className="block sm:inline">คุณไม่มีสิทธิ์สร้างบริษัทขนส่งใหม่</span>
                 </div>
             </div>
-        </section>
-    );
+        );
+    }
+
+    const customers = await getCustomers({ take: 1000 });
+    const customerOptions = customers.map(c => ({
+        value: c.id,
+        label: `${c.customerCode} - ${c.name}`
+    }));
+
+    return <ShippingCompanyNewView customerOptions={customerOptions} />;
 }

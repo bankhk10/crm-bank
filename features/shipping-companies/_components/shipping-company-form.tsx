@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import { X, Save } from "lucide-react";
 import type { ShippingCompanyPayload } from "../_types";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { PhoneInput } from "@/components/custom/PhoneInput";
@@ -22,6 +19,7 @@ interface Props {
     onSubmit: (payload: ShippingCompanyPayload) => Promise<SubmitResult>;
     onCancel?: () => void;
     submitLabel?: string;
+    customerOptions?: Array<{ value: string; label: string }>;
 }
 
 export default function ShippingCompanyForm({
@@ -29,6 +27,7 @@ export default function ShippingCompanyForm({
     onSubmit,
     onCancel,
     submitLabel,
+    customerOptions = [],
 }: Props) {
     const [payload, setPayload] = useState<ShippingCompanyPayload>({
         name: initial.name ?? "",
@@ -47,30 +46,7 @@ export default function ShippingCompanyForm({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-    const [customers, setCustomers] = useState<Array<{ value: string; label: string }>>([]);
-    const [loadingCustomers, setLoadingCustomers] = useState(true);
 
-    // Fetch customers for multi-select
-    useEffect(() => {
-        async function fetchCustomers() {
-            try {
-                const res = await fetch("/api/customers?perPage=1000");
-                if (res.ok) {
-                    const data = await res.json();
-                    const customerOptions = data.customers.map((c: any) => ({
-                        value: c.id,
-                        label: `${c.customerCode} - ${c.name}`,
-                    }));
-                    setCustomers(customerOptions);
-                }
-            } catch (err) {
-                console.error("Failed to fetch customers:", err);
-            } finally {
-                setLoadingCustomers(false);
-            }
-        }
-        fetchCustomers();
-    }, []);
 
     const clearFieldError = (field: string) => {
         setFieldErrors((prev) => {
@@ -210,19 +186,15 @@ export default function ShippingCompanyForm({
                 <label className="text-base font-medium mx-2">
                     ลูกค้าที่ใช้บริการขนส่ง
                 </label>
-                {loadingCustomers ? (
-                    <div className="text-sm text-gray-500">กำลังโหลดข้อมูลลูกค้า...</div>
-                ) : (
-                    <MultiSelect
-                        options={customers}
-                        defaultValue={payload.customerIds ?? []}
-                        onValueChange={(selected) => {
-                            setPayload((p) => ({ ...p, customerIds: selected }));
-                            clearFieldError("customerIds");
-                        }}
-                        placeholder="เลือกลูกค้า (สามารถเลือกได้หลายราย)"
-                    />
-                )}
+                <MultiSelect
+                    options={customerOptions}
+                    defaultValue={payload.customerIds ?? []}
+                    onValueChange={(selected) => {
+                        setPayload((p) => ({ ...p, customerIds: selected }));
+                        clearFieldError("customerIds");
+                    }}
+                    placeholder="เลือกลูกค้า (สามารถเลือกได้หลายราย)"
+                />
                 {fieldErrors.customerIds?.[0] && (
                     <p className="text-sm text-red-600">{fieldErrors.customerIds[0]}</p>
                 )}

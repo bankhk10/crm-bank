@@ -1,141 +1,79 @@
-"use client";
+import React from "react";
+import { auth } from "@/lib/auth";
+import { isAuthorized } from "@/src/core/rbac";
+import { redirect } from "next/navigation";
+import { getShippingCompany } from "@/features/shipping-companies/_lib/data-access";
+import { getCustomers } from "@/features/customers/_lib/data-access";
+import { ShippingCompanyEditView } from "@/features/shipping-companies";
 
-import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { usePermission } from "@/hooks/use-permission";
-import { ShippingCompanyForm } from "@/features/shipping-companies";
+interface PageProps {
+    params: Promise<{ shippingCompanyId: string }>;
+}
 
-export default function EditShippingCompanyPage() {
-    const { shippingCompanyId } = useParams() as { shippingCompanyId: string };
-    const router = useRouter();
-    const { hasPermission, isLoading } = usePermission("shipping-company.edit");
-    const canEdit =
-        !isLoading &&
-        (hasPermission("shipping-company.edit") ||
-            hasPermission("shipping-company.manage") ||
-            hasPermission("menu.shipping-companies"));
+export default async function EditShippingCompanyPage({ params }: PageProps) {
+    const { shippingCompanyId } = await params;
+    const session = await auth();
 
-    const [payload, setPayload] = useState<any>({
-        name: "",
-        phone: "",
-        address: "",
-        notes: "",
-        status: "ACTIVE",
-        customerIds: [],
-    });
-    const [loading, setLoading] = useState(true);
-
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let mounted = true;
-        (async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`);
-                if (!res.ok) throw new Error("Failed to load shipping company");
-                const json = await res.json();
-                const src = (json && (json.shippingCompany ?? json)) || {};
-                if (mounted) {
-                    setPayload((prev: any) => ({
-                        ...prev,
-                        name: src.name ?? "",
-                        phone: src.phone ?? "",
-                        address: src.address ?? "",
-                        addressLine: src.addressLine ?? "",
-                        province: src.province ?? "",
-                        district: src.district ?? "",
-                        subdistrict: src.subdistrict ?? "",
-                        postalCode: src.postalCode ?? "",
-                        notes: src.notes ?? "",
-                        status: src.status ?? "ACTIVE",
-                        customerIds: src.customerList?.map((c: any) => c.id) ?? [],
-                    }));
-                }
-            } catch (e: any) {
-                setError(String(e?.message ?? e));
-            } finally {
-                if (mounted) setLoading(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [shippingCompanyId]);
-
-    async function handleUpdate(payloadData: any) {
-        if (!canEdit) return { success: false, error: "No permission" };
-        if (!canEdit) return { success: false, error: "No permission" };
-        setError(null);
-        try {
-            const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payloadData),
-            });
-
-            if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-                return { success: false, issues: json?.issues, error: json?.error };
-            }
-
-            return { success: true };
-        } catch (e: any) {
-            return { success: false, error: String(e) };
-        } finally {
-            // Nothing to do
-        }
+    if (!session?.user) {
+        redirect("/api/auth/signin");
     }
 
-    return (
-        <section className="space-y-6">
-            <div className="bg-white shadow-sm sm:rounded-lg">
-                <div className="p-6">
-                    <div className="text-center">
-                        <h5 className="font-semibold text-3xl my-5 border-b pb-6">
-                            แก้ไขข้อมูลบริษัทขนส่ง
-                        </h5>
-                    </div>
+    const perms = session.user.permissionKeys ?? [];
+    const canEdit =
+        perms.includes("shipping-company.edit") ||
+        perms.includes("shipping-company.manage") ||
+        perms.includes("menu.shipping-companies"); // fallback
 
-                    {(!canEdit || error) && (
-                        <div>
-                            {!canEdit && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>
-                                        คุณไม่มีสิทธิ์แก้ไขบริษัทขนส่งนี้
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-                            {error && (
-                                <div className="mt-3">
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <div className="animate-pulse">
-                            <div className="h-8 w-2/5 bg-slate-200 rounded" />
-                            <div className="mt-4 h-4 w-3/5 bg-slate-200 rounded" />
-                        </div>
-                    ) : (
-                        <ShippingCompanyForm
-                            initial={payload}
-                            onSubmit={async (body) => {
-                                const result = await handleUpdate(body);
-                                if (result.success) router.push(`/shipping-companies`);
-                                return result;
-                            }}
-                            onCancel={() => router.push(`/shipping-companies`)}
-                            submitLabel="บันทึก"
-                        />
-                    )}
+    if (!canEdit) {
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Error: </strong>
+                    <span className="block sm:inline">คุณไม่มีสิทธิ์แก้ไขบริษัทขนส่งนี้</span>
                 </div>
             </div>
-        </section>
+        );
+    }
+
+    const shippingCompany = await getShippingCompany(shippingCompanyId);
+
+    if (!shippingCompany) {
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+                    <strong className="font-bold">ไม่พบข้อมูล</strong>
+                    <span className="block sm:inline"> ไม่พบข้อมูลบริษัทขนส่งที่คุณค้นหา</span>
+                </div>
+            </div>
+        );
+    }
+
+    const customers = await getCustomers({ take: 1000 });
+    const customerOptions = customers.map(c => ({
+        value: c.id,
+        label: `${c.customerCode} - ${c.name}`
+    }));
+
+    const initialData = {
+        name: shippingCompany.name,
+        phone: shippingCompany.phone ?? undefined, // Form expects string | undefined
+        address: shippingCompany.address ?? undefined,
+        addressLine: shippingCompany.addressLine ?? undefined,
+        province: shippingCompany.province ?? undefined,
+        district: shippingCompany.district ?? undefined,
+        subdistrict: shippingCompany.subdistrict ?? undefined,
+        postalCode: shippingCompany.postalCode ?? undefined,
+        notes: shippingCompany.notes ?? undefined,
+        status: shippingCompany.status ?? "ACTIVE",
+        customerIds: shippingCompany.customerList.map(c => c.id),
+    };
+
+    return (
+        <ShippingCompanyEditView
+            shippingCompanyId={shippingCompanyId}
+            initialData={initialData}
+            customerOptions={customerOptions}
+            canEdit={canEdit}
+        />
     );
 }
