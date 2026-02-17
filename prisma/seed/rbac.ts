@@ -369,51 +369,21 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // 💳 Credit Limits (วงเงินสินเชื่อ)
+  // 💳 Credit Limits (วงเงินเครดิต)
   // ─────────────────────────────────────────────
   creditLimits: {
     menu: {
       key: "menu.credit_limits",
-      name: "เมนูวงเงินสินเชื่อ",
+      name: "เมนูวงเงินเครดิต",
       resource: "creditlimit",
       menuPath: "/credit-limits",
     },
     actions: [
       {
-        key: "creditlimit.create",
-        name: "สร้างวงเงินสินเชื่อ",
-        resource: "creditlimit",
-        action: "create",
-      },
-      {
         key: "creditlimit.edit",
         name: "แก้ไขวงเงินสินเชื่อ",
         resource: "creditlimit",
         action: "edit",
-      },
-      {
-        key: "creditlimit.delete",
-        name: "ลบวงเงินสินเชื่อ",
-        resource: "creditlimit",
-        action: "delete",
-      },
-      {
-        key: "creditlimit.view",
-        name: "ดูรายละเอียดวงเงินสินเชื่อ",
-        resource: "creditlimit",
-        action: "view",
-      },
-      {
-        key: "creditlimit.approve",
-        name: "อนุมัติวงเงินสินเชื่อ",
-        resource: "creditlimit",
-        action: "approve",
-      },
-      {
-        key: "creditlimit.reject",
-        name: "ปฏิเสธวงเงินสินเชื่อ",
-        resource: "creditlimit",
-        action: "reject",
       },
     ],
     data: {
@@ -1158,12 +1128,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.edit" },
     { key: "customer.view", dataAccess: "VIEW_ALL" },
     { key: "menu.credit_limits" },
-    { key: "creditlimit.create" },
     { key: "creditlimit.edit" },
-    { key: "creditlimit.delete" },
-    { key: "creditlimit.view", dataAccess: "VIEW_DEPARTMENT" },
-    { key: "creditlimit.approve" },
-    { key: "creditlimit.reject" },
     // DATA permission - can view department but only edit/delete own
     {
       key: "data.sales",
@@ -1270,12 +1235,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.delete" },
     { key: "customer.view" },
     // Credit limit permissions
-    { key: "creditlimit.create" },
     { key: "creditlimit.edit" },
-    { key: "creditlimit.delete" },
-    { key: "creditlimit.view" },
-    { key: "creditlimit.approve" },
-    { key: "creditlimit.reject" },
     // Temporary credit limit permissions
     { key: "temporary_creditlimit.create" },
     { key: "temporary_creditlimit.edit" },
@@ -1396,7 +1356,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sale.view", dataAccess: "VIEW_ALL" },
     { key: "product.view", dataAccess: "VIEW_ALL" },
     { key: "customer.view", dataAccess: "VIEW_ALL" },
-    { key: "creditlimit.view", dataAccess: "VIEW_ALL" },
     { key: "temporary_creditlimit.view", dataAccess: "VIEW_ALL" },
     { key: "employee.view", dataAccess: "VIEW_ALL" },
     { key: "company.view", dataAccess: "VIEW_ALL" },
@@ -1496,10 +1455,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
     { key: "menu.credit_limits" },
-    { key: "creditlimit.create" },
     { key: "creditlimit.edit" },
-    { key: "creditlimit.delete" },
-    { key: "creditlimit.view", dataAccess: "VIEW_ALL" },
     // DATA permissions
     {
       key: "data.sales",

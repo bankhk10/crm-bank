@@ -109,13 +109,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("creditlimit.create")) {
-    return NextResponse.json(
-      { error: "Forbidden - missing creditlimit.create" },
-      { status: 403 },
-    );
-  }
-
   const body = await request.json().catch(() => null);
   const parsed = creditLimitSchema.safeParse(body);
 

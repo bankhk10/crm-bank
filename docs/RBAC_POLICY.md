@@ -62,7 +62,7 @@ enum PermissionType {
 | `menu.customers`               | เมนูลูกค้า                 | /customers               |
 | `menu.employees`               | เมนูพนักงาน                | /employee                |
 | `menu.companies`               | เมนูบริษัท                 | /companies               |
-| `menu.credit_limits`           | เมนูวงเงินสินเชื่อ         | /credit-limits           |
+| `menu.credit_limits`           | เมนูวงเงินเครดิต           | /credit-limits           |
 | `menu.temporary_credit_limits` | เมนูวงเงินสินเชื่อชั่วคราว | /temporary-credit-limits |
 | `menu.fulfillment`             | เมนูจัดส่งสินค้า           | /fulfillment             |
 | `menu.sales_forecast`          | เมนูคาดการณ์ยอดขาย         | /sales-forecast          |
@@ -121,14 +121,9 @@ enum PermissionType {
 
 ### 4.6 Credit Limit Permissions (วงเงินเครดิต)
 
-| Key                   | Name (TH)                  | Action  |
-| --------------------- | -------------------------- | ------- |
-| `creditlimit.create`  | สร้างวงเงินสินเชื่อ        | create  |
-| `creditlimit.edit`    | แก้ไขวงเงินสินเชื่อ        | edit    |
-| `creditlimit.delete`  | ลบวงเงินสินเชื่อ           | delete  |
-| `creditlimit.view`    | ดูรายละเอียดวงเงินสินเชื่อ | view    |
-| `creditlimit.approve` | อนุมัติวงเงินสินเชื่อ      | approve |
-| `creditlimit.reject`  | ปฏิเสธวงเงินสินเชื่อ       | reject  |
+| Key                | Name (TH)           | Action |
+| ------------------ | ------------------- | ------ |
+| `creditlimit.edit` | แก้ไขวงเงินสินเชื่อ | edit   |
 
 ### 4.7 Temporary Credit Limit Permissions (วงเงินชั่วคราว)
 

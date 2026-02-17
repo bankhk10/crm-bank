@@ -13,9 +13,7 @@ import { CreditCard } from "lucide-react";
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } =
     usePermission("menu.credit_limits");
-  const canCreate = hasPermission("creditlimit.create");
   const canEdit = hasPermission("creditlimit.edit");
-  const canDelete = hasPermission("creditlimit.delete");
   const canView = !isLoading && allowed;
 
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
@@ -175,7 +173,6 @@ export default function CreditLimitsPage() {
       )}
 
       {/* delete handled on individual credit-limit pages; no inline delete here */}
-
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
           <div className="flex justify-center mb-6">

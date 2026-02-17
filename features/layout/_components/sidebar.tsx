@@ -138,8 +138,8 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <UserCog className="h-4 w-4" />,
     children: [
       { href: "/customers", label: "ข้อมูลลูกค้า" },
-      { href: "/credit-limits", label: "จัดการวงเงิน" },
-      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว" },
+      { href: "/credit-limits", label: "วงเงินเครดิต", permissionKey: "menu.credit_limits" },
+      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว", permissionKey: "menu.temporary_credit_limits" },
     ],
   },
   {

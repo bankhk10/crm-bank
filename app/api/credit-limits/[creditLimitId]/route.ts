@@ -24,7 +24,7 @@ const creditLimitUpdateSchema = z.object({
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ creditLimitId: string }> }
+  context: { params: Promise<{ creditLimitId: string }> },
 ) {
   const params = await context.params;
   const session = await auth();
@@ -53,7 +53,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  context: { params: Promise<{ creditLimitId: string }> }
+  context: { params: Promise<{ creditLimitId: string }> },
 ) {
   const params = await context.params;
   const session = await auth();
@@ -69,7 +69,7 @@ export async function PUT(
   if (!(session.user.permissionKeys ?? []).includes("creditlimit.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing creditlimit.edit" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -79,7 +79,7 @@ export async function PUT(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -151,7 +151,7 @@ export async function PUT(
     {
       entityName: `Credit Limit - ${creditLimit.customer?.name}`,
       module: "credit-limits",
-    }
+    },
   );
 
   reqLogger.info("Credit limit updated successfully", {
@@ -167,7 +167,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ creditLimitId: string }> }
+  context: { params: Promise<{ creditLimitId: string }> },
 ) {
   const params = await context.params;
   const session = await auth();
@@ -178,13 +178,6 @@ export async function DELETE(
 
   if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  if (!(session.user.permissionKeys ?? []).includes("creditlimit.delete")) {
-    return NextResponse.json(
-      { error: "Forbidden - missing creditlimit.delete" },
-      { status: 403 }
-    );
   }
 
   // Get existing for audit log
@@ -218,7 +211,7 @@ export async function DELETE(
     {
       entityName: `Credit Limit - ${existing.customer?.name}`,
       module: "credit-limits",
-    }
+    },
   );
 
   reqLogger.info("Credit limit deleted", {

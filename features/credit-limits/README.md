@@ -14,11 +14,13 @@ This feature module manages customer credit limits, including displaying credit 
 ## API Endpoints
 
 ### List Credit Limits
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/credit-limits` | `app/api/credit-limits/route.ts` |
+
+| Method | Endpoint             | File Location                    |
+| ------ | -------------------- | -------------------------------- |
+| `GET`  | `/api/credit-limits` | `app/api/credit-limits/route.ts` |
 
 **Query Parameters:**
+
 - `page` (number): Page number
 - `perPage` (number): Items per page
 - `q` (string): Search query (Customer name or code)
@@ -31,38 +33,38 @@ This feature module manages customer credit limits, including displaying credit 
 ---
 
 ### Create Credit Limit
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `POST` | `/api/credit-limits` | `app/api/credit-limits/route.ts` |
 
-**Required Permissions:** `creditlimit.create`
+| Method | Endpoint             | File Location                    |
+| ------ | -------------------- | -------------------------------- |
+| `POST` | `/api/credit-limits` | `app/api/credit-limits/route.ts` |
 
 ---
 
 ### Get Single Credit Limit
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
+
+| Method | Endpoint                             | File Location                                    |
+| ------ | ------------------------------------ | ------------------------------------------------ |
+| `GET`  | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
 
 **Required Permissions:** `/api/credit-limits`
 
 ---
 
 ### Update Credit Limit
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `PUT` | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
+
+| Method | Endpoint                             | File Location                                    |
+| ------ | ------------------------------------ | ------------------------------------------------ |
+| `PUT`  | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
 
 **Required Permissions:** `creditlimit.edit`
 
 ---
 
 ### Delete Credit Limit (Soft Delete)
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `DELETE` | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
 
-**Required Permissions:** `creditlimit.delete`
+| Method   | Endpoint                             | File Location                                    |
+| -------- | ------------------------------------ | ------------------------------------------------ |
+| `DELETE` | `/api/credit-limits/[creditLimitId]` | `app/api/credit-limits/[creditLimitId]/route.ts` |
 
 ---
 
@@ -70,26 +72,27 @@ This feature module manages customer credit limits, including displaying credit 
 
 ### Table: `CreditLimit`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary key (cuid) |
-| `customerId` | `String` | Foreign Key to Customer |
-| `limitAmount` | `Decimal` | วงเงินเครดิต |
-| `promoAmount` | `Decimal?` | วงเงินส่งเสริมการขาย |
-| `usedAmount` | `Decimal` | วงเงินที่ใช้ไป (default: 0) |
-| `availableAmount` | `Decimal` | วงเงินคงเหลือ (default: 0) |
-| `status` | `CreditLimitStatus` | สถานะ (ACTIVE/SUSPENDED/EXPIRED) |
-| `effectiveDate` | `DateTime` | วันที่มีผล |
-| `expiryDate` | `DateTime?` | วันหมดอายุ |
-| `notes` | `String?` | หมายเหตุ |
-| `createdById` | `String?` | ผู้สร้าง |
-| `createdAt` | `DateTime` | วันที่สร้าง |
-| `updatedAt` | `DateTime` | วันที่อัปเดต |
-| `deletedAt` | `DateTime?` | วันที่ลบ (Soft delete) |
-| `temporaryCreditAmount` | `Decimal?` | วงเงินชั่วคราว |
-| `temporaryCreditExpiryDate` | `DateTime?` | วันหมดอายุวงเงินชั่วคราว |
+| Column                      | Type                | Description                      |
+| --------------------------- | ------------------- | -------------------------------- |
+| `id`                        | `String`            | Primary key (cuid)               |
+| `customerId`                | `String`            | Foreign Key to Customer          |
+| `limitAmount`               | `Decimal`           | วงเงินเครดิต                     |
+| `promoAmount`               | `Decimal?`          | วงเงินส่งเสริมการขาย             |
+| `usedAmount`                | `Decimal`           | วงเงินที่ใช้ไป (default: 0)      |
+| `availableAmount`           | `Decimal`           | วงเงินคงเหลือ (default: 0)       |
+| `status`                    | `CreditLimitStatus` | สถานะ (ACTIVE/SUSPENDED/EXPIRED) |
+| `effectiveDate`             | `DateTime`          | วันที่มีผล                       |
+| `expiryDate`                | `DateTime?`         | วันหมดอายุ                       |
+| `notes`                     | `String?`           | หมายเหตุ                         |
+| `createdById`               | `String?`           | ผู้สร้าง                         |
+| `createdAt`                 | `DateTime`          | วันที่สร้าง                      |
+| `updatedAt`                 | `DateTime`          | วันที่อัปเดต                     |
+| `deletedAt`                 | `DateTime?`         | วันที่ลบ (Soft delete)           |
+| `temporaryCreditAmount`     | `Decimal?`          | วงเงินชั่วคราว                   |
+| `temporaryCreditExpiryDate` | `DateTime?`         | วันหมดอายุวงเงินชั่วคราว         |
 
 ### Enum: `CreditLimitStatus`
+
 ```prisma
 enum CreditLimitStatus {
   ACTIVE
@@ -107,6 +110,7 @@ CreditLimit
 ```
 
 **ER Diagram:**
+
 ```
 ┌─────────────────┐         ┌─────────────────┐
 │   CreditLimit   │         │    Customer     │
@@ -127,38 +131,41 @@ CreditLimit
 
 ### Zod Schema (Create)
 
-| Field | Rules |
-|-------|-------|
-| `customerId` | `string`, **required**, min 1 char |
-| `limitAmount` | `number`, **required**, non-negative |
-| `promoAmount` | `number`, optional, non-negative |
-| `effectiveDate` | `string` or `date`, **required** |
-| `expiryDate` | `string` or `date`, optional |
-| `notes` | `string`, optional |
+| Field           | Rules                                |
+| --------------- | ------------------------------------ |
+| `customerId`    | `string`, **required**, min 1 char   |
+| `limitAmount`   | `number`, **required**, non-negative |
+| `promoAmount`   | `number`, optional, non-negative     |
+| `effectiveDate` | `string` or `date`, **required**     |
+| `expiryDate`    | `string` or `date`, optional         |
+| `notes`         | `string`, optional                   |
 
 ### Zod Schema (Update)
 
-| Field | Rules |
-|-------|-------|
-| `limitAmount` | `number`, optional, non-negative |
-| `promoAmount` | `number`, optional, non-negative |
-| `usedAmount` | `number`, optional |
-| `effectiveDate` | `string` or `date`, optional |
-| `expiryDate` | `string` or `date`, optional |
-| `status` | `enum`, optional (`ACTIVE`, `SUSPENDED`, `EXPIRED`) |
-| `notes` | `string`, optional |
+| Field           | Rules                                               |
+| --------------- | --------------------------------------------------- |
+| `limitAmount`   | `number`, optional, non-negative                    |
+| `promoAmount`   | `number`, optional, non-negative                    |
+| `usedAmount`    | `number`, optional                                  |
+| `effectiveDate` | `string` or `date`, optional                        |
+| `expiryDate`    | `string` or `date`, optional                        |
+| `status`        | `enum`, optional (`ACTIVE`, `SUSPENDED`, `EXPIRED`) |
+| `notes`         | `string`, optional                                  |
 
 ---
 
 ## Key Components
 
 ### CreditLimitTable
+
 Displays list of customers with their credit info.
+
 - **Desktop**: Table view via `CustomTable`.
 - **Mobile**: Card view via `CreditLimitCards`.
 - **Toolbar**: `CreditLimitToolbar` for search.
 
 ### CreditLimitForm
+
 Form for creating or editing credit limits (regular and promo amounts).
 
 ---
@@ -166,40 +173,42 @@ Form for creating or editing credit limits (regular and promo amounts).
 ## Component Props
 
 ### `CreditLimitTable`
+
 (Uses type `CustomersCreditTableProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `data` | `CustomerRecord[]` | ✅ | ข้อมูลลูกค้าและวงเงิน |
-| `loading` | `boolean` | ❌ | สถานะกำลังโหลด |
-| `pagination` | `CreditLimitPagination` | ❌ | ข้อมูล Pagination |
-| `searchValue` | `string` | ❌ | คำค้นหา |
-| `onSearchChange` | `(val: string) => void` | ❌ | Callback เมื่อพิมพ์ค้นหา |
-| `onSearchSubmit` | `() => void` | ❌ | Callback เมื่อกด Enter ค้นหา |
+| Prop             | Type                    | Required | Description                  |
+| ---------------- | ----------------------- | -------- | ---------------------------- |
+| `data`           | `CustomerRecord[]`      | ✅       | ข้อมูลลูกค้าและวงเงิน        |
+| `loading`        | `boolean`               | ❌       | สถานะกำลังโหลด               |
+| `pagination`     | `CreditLimitPagination` | ❌       | ข้อมูล Pagination            |
+| `searchValue`    | `string`                | ❌       | คำค้นหา                      |
+| `onSearchChange` | `(val: string) => void` | ❌       | Callback เมื่อพิมพ์ค้นหา     |
+| `onSearchSubmit` | `() => void`            | ❌       | Callback เมื่อกด Enter ค้นหา |
 
 ### `CreditLimitForm`
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `initial` | `Partial<CreditLimitPayload>` | ❌ | ข้อมูลเริ่มต้น (สำหรับแก้ไข) |
-| `customers` | `Array<{id, name, ...}>` | ❌ | รายชื่อลูกค้า (สำหรับเลือกในฟอร์ม) |
-| `onSubmit` | `(payload) => Promise<SubmitResult>` | ✅ | Callback เมื่อบันทึก |
-| `onCancel` | `() => void` | ❌ | Callback เมื่อยกเลิก |
-| `submitLabel` | `string` | ❌ | ข้อความปุ่มบันทึก ("บันทึก") |
+| Prop          | Type                                 | Required | Description                        |
+| ------------- | ------------------------------------ | -------- | ---------------------------------- |
+| `initial`     | `Partial<CreditLimitPayload>`        | ❌       | ข้อมูลเริ่มต้น (สำหรับแก้ไข)       |
+| `customers`   | `Array<{id, name, ...}>`             | ❌       | รายชื่อลูกค้า (สำหรับเลือกในฟอร์ม) |
+| `onSubmit`    | `(payload) => Promise<SubmitResult>` | ✅       | Callback เมื่อบันทึก               |
+| `onCancel`    | `() => void`                         | ❌       | Callback เมื่อยกเลิก               |
+| `submitLabel` | `string`                             | ❌       | ข้อความปุ่มบันทึก ("บันทึก")       |
 
 ### `CreditLimitToolbar`
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `searchValue` | `string` | ✅ | คำค้นหา |
-| `onSearchChange` | `(val: string) => void` | ✅ | Callback เมื่อพิมพ์ค้นหา |
-| `onSearchSubmit` | `() => void` | ❌ | Callback เมื่อกด Enter ค้นหา |
+| Prop             | Type                    | Required | Description                  |
+| ---------------- | ----------------------- | -------- | ---------------------------- |
+| `searchValue`    | `string`                | ✅       | คำค้นหา                      |
+| `onSearchChange` | `(val: string) => void` | ✅       | Callback เมื่อพิมพ์ค้นหา     |
+| `onSearchSubmit` | `() => void`            | ❌       | Callback เมื่อกด Enter ค้นหา |
 
 ---
 
 ## Types
 
 ### `CreditLimitPayload`
+
 ```typescript
 interface CreditLimitPayload {
   customerId: string;
@@ -214,6 +223,7 @@ interface CreditLimitPayload {
 ```
 
 ### `CustomerRecord`
+
 ```typescript
 interface CustomerRecord {
   id: string;
@@ -227,6 +237,7 @@ interface CustomerRecord {
 ```
 
 ### `CreditLimit`
+
 ```typescript
 interface CreditLimit {
   id: string;
@@ -250,11 +261,10 @@ import { CreditLimitTable } from "@/features/credit-limits";
     perPage: 10,
     total: 50,
     onPageChange: setPage,
-    onPerPageChange: setPerPage
+    onPerPageChange: setPerPage,
   }}
   searchValue={search}
   onSearchChange={setSearch}
   onSearchSubmit={handleSearch}
-/>
+/>;
 ```
-
