@@ -238,10 +238,6 @@ export async function applyDataScope<T extends Record<string, any>>(
     ? { ...baseConfig, ...configOverride }
     : baseConfig;
 
-  // Admins bypass all data scope filters
-  const isAdmin = session.user.roles?.includes("administrator");
-  if (isAdmin) return where;
-
   const accessLevel = session.user.dataAccessByResource?.[config.resource] as
     | DataAccessLevel
     | undefined;
@@ -280,9 +276,6 @@ export async function applyEditScope<T extends Record<string, any>>(
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
 
-  const isAdmin = session.user.roles?.includes("administrator");
-  if (isAdmin) return where;
-
   const accessLevel = session.user.editAccessByResource?.[
     baseConfig.resource
   ] as EditAccessLevel | undefined;
@@ -319,9 +312,6 @@ export async function applyDeleteScope<T extends Record<string, any>>(
 ): Promise<T> {
   const baseConfig = RESOURCE_CONFIGS[resourceKey];
   if (!baseConfig) return where;
-
-  const isAdmin = session.user.roles?.includes("administrator");
-  if (isAdmin) return where;
 
   const accessLevel = session.user.deleteAccessByResource?.[
     baseConfig.resource
@@ -502,9 +492,6 @@ export async function canAccessRecord(
 ): Promise<boolean> {
   const config = RESOURCE_CONFIGS[resourceKey];
   if (!config) return false;
-
-  const isAdmin = session.user.roles?.includes("administrator");
-  if (isAdmin) return true;
 
   const accessLevel = session.user.dataAccessByResource?.[config.resource];
 
