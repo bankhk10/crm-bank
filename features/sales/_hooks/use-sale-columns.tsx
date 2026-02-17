@@ -34,11 +34,16 @@ export function useSaleColumns(
         return [
             {
                 accessorKey: "saleNumber",
-                header: "เลขที่ใบขาย",
+                header: "เลขที่ออเดอร์",
                 cell: (info) => <TruncatedCell value={info.getValue() as string} />,
                 meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
             },
-
+            {
+                accessorKey: "saleOrderRef",
+                header: "เลขที่คำสั่งขาย",
+                cell: (info) => <TruncatedCell value={info.getValue() as string} />,
+                meta: { minWidth: 130, width: 130, maxWidth: 130, align: "left" },
+            },
             {
                 accessorKey: "customer.name",
                 header: "ชื่อลูกค้า",

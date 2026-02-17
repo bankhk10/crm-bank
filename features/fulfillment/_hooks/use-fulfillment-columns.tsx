@@ -15,7 +15,16 @@ export function useFulfillmentColumns() {
         () => [
             {
                 accessorKey: "saleNumber",
-                header: "เลขที่ใบขาย",
+                header: "เลขที่ออเดอร์",
+                cell: (info) => (
+                    <span className="font-medium text-slate-700">
+                        {info.getValue() as string}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: "saleOrderRef",
+                header: "เลขที่คำสั่งขาย",
                 cell: (info) => (
                     <span className="font-medium text-slate-700">
                         {info.getValue() as string}

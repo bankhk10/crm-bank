@@ -717,12 +717,12 @@ export default function FulfillmentDetailPage({
                                         6
                                     </span>
                                     <FileText className="h-4 w-4 text-teal-600" />
-                                    เลขที่คำสั่งขาย (Ref)
+                                    เลขที่คำสั่งขาย
                                 </label>
                                 <input
                                     type="text"
                                     className="flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-teal-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="กรอกเลขที่คำสั่งขายจากระบบอื่น (ถ้ามี)"
+                                    placeholder="กรอกเลขที่คำสั่งขาย"
                                     value={saleOrderRef}
                                     onChange={(e) => setSaleOrderRef(e.target.value)}
                                 />
