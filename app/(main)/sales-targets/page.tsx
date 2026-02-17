@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Target, ChevronLeft, Loader2 } from "lucide-react";
 import NextLink from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,9 +18,6 @@ import {
 // Feature Imports
 import {
   SalesTargetDetailDialog,
-  ProductGroupTargetsTab,
-  RegionTargetsTab,
-  ProductTargetsTab,
   YearlyTargetCard,
   DetailedTargetsTable,
   SalesTargetFilters,
@@ -62,27 +58,13 @@ export default function SalesTargetsPage() {
   // Hook Usage
   const {
     loading,
-    saving,
     monthlyTargets,
-    productGroupTargets,
-    regionTargets,
-    productTargets,
     detailedTargets,
-    products,
-    setProductGroupTargets,
-    setRegionTargets,
-    setProductTargets,
-    setProducts,
     fetchTargets,
-    saveProductGroupTargets,
-    saveRegionTargets,
-    saveProductTargets,
     deleteTarget,
-    searchProducts,
   } = useSalesTargets();
 
   // Local UI State
-  const [activeTab, setActiveTab] = useState("monthly");
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [viewingTarget, setViewingTarget] = useState<DetailedTarget | null>(
@@ -94,9 +76,6 @@ export default function SalesTargetsPage() {
   // Filter Options State
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
-  const [productGroups, setProductGroups] = useState<
-    { value: string; label: string }[]
-  >([]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -137,14 +116,13 @@ export default function SalesTargetsPage() {
     }
   }, [employeeFilter, monthFilter, router, searchParams, shopFilter, year]);
 
-  // Load Filter Options (Employees, Customers, ProductGroups)
+  // Load Filter Options (Employees, Customers)
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [empRes, custRes, groupsRes] = await Promise.all([
+        const [empRes, custRes] = await Promise.all([
           fetch("/api/employee"),
           fetch("/api/customers?perPage=100"),
-          fetch("/api/products/groups?perPage=100"),
         ]);
 
         if (empRes.ok) {
@@ -154,17 +132,6 @@ export default function SalesTargetsPage() {
         if (custRes.ok) {
           const data = await custRes.json();
           setFilterCustomers(data.customers || data);
-        }
-        if (groupsRes.ok) {
-          const groupsData = await groupsRes.json();
-          setProductGroups(
-            groupsData.groups.map(
-              (g: { code: string; description: string }) => ({
-                value: g.code,
-                label: g.description,
-              }),
-            ),
-          );
         }
       } catch (error) {
         console.error("Error fetching filter options:", error);
@@ -194,69 +161,6 @@ export default function SalesTargetsPage() {
     setMonthFilter("all");
     setEmployeeFilter("");
     setShopFilter("");
-  };
-
-  const handleSaveProductGroup = async () => {
-    const targets: any[] = [];
-    Object.entries(productGroupTargets).forEach(([productGroup, months]) => {
-      Object.entries(months).forEach(([month, amount]) => {
-        if (amount > 0) {
-          targets.push({
-            productGroup,
-            month: parseInt(month),
-            targetAmount: amount,
-          });
-        }
-      });
-    });
-
-    const success = await saveProductGroupTargets(targets, year);
-    if (success) {
-      setSuccessMessage("บันทึกเป้าหมายกลุ่มสินค้าสำเร็จ");
-      setSuccessDialogOpen(true);
-    }
-  };
-
-  const handleSaveRegion = async () => {
-    const targets: any[] = [];
-    Object.entries(regionTargets).forEach(([region, months]) => {
-      Object.entries(months).forEach(([month, amount]) => {
-        if (amount > 0) {
-          targets.push({
-            region,
-            month: parseInt(month),
-            targetAmount: amount,
-          });
-        }
-      });
-    });
-
-    const success = await saveRegionTargets(targets, year);
-    if (success) {
-      setSuccessMessage("บันทึกเป้าหมายรายภาคสำเร็จ");
-      setSuccessDialogOpen(true);
-    }
-  };
-
-  const handleSaveProduct = async () => {
-    const targets: any[] = [];
-    Object.entries(productTargets).forEach(([productId, months]) => {
-      Object.entries(months).forEach(([month, amount]) => {
-        if (amount > 0) {
-          targets.push({
-            productId,
-            month: parseInt(month),
-            targetAmount: amount,
-          });
-        }
-      });
-    });
-
-    const success = await saveProductTargets(targets, year);
-    if (success) {
-      setSuccessMessage("บันทึกเป้าหมายรายสินค้าสำเร็จ");
-      setSuccessDialogOpen(true);
-    }
   };
 
   const handleDelete = async () => {
@@ -342,94 +246,22 @@ export default function SalesTargetsPage() {
         onClear={handleClearFilters}
       />
 
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:w-[600px] bg-white/50 backdrop-blur-sm p-1 rounded-2xl border border-slate-200/50">
-          <TabsTrigger value="monthly" className="rounded-xl">
-            รายเดือน
-          </TabsTrigger>
-          <TabsTrigger value="productGroup" className="rounded-xl">
-            กลุ่มสินค้า
-          </TabsTrigger>
-          <TabsTrigger value="product" className="rounded-xl">
-            รายสินค้า
-          </TabsTrigger>
-          <TabsTrigger value="region" className="rounded-xl">
-            รายภาค
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="monthly" className="space-y-6">
-          <YearlyTargetCard
-            year={year}
-            totalTarget={calculateMonthlyTotal()}
-          />
-          <DetailedTargetsTable
-            targets={detailedTargets}
-            paginatedTargets={paginatedTargets}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            onView={(target) => {
-              setViewingTarget(target);
-              setIsDetailDialogOpen(true);
-            }}
-            onDelete={setDeletingTargetId}
-          />
-        </TabsContent>
-
-        <TabsContent value="productGroup" className="space-y-6">
-          <ProductGroupTargetsTab
-            productGroups={productGroups}
-            targets={productGroupTargets}
-            onChange={(group, month, value) =>
-              setProductGroupTargets((prev) => ({
-                ...prev,
-                [group]: { ...prev[group], [month]: value },
-              }))
-            }
-            onSave={handleSaveProductGroup}
-            saving={saving}
-          />
-        </TabsContent>
-
-        <TabsContent value="product" className="space-y-6">
-          <ProductTargetsTab
-            products={products}
-            targets={productTargets}
-            onChange={(productId, month, value) =>
-              setProductTargets((prev) => ({
-                ...prev,
-                [productId]: { ...prev[productId], [month]: value },
-              }))
-            }
-            onSave={handleSaveProduct}
-            saving={saving}
-            onSearch={searchProducts}
-            onAddProducts={(newProducts) => {
-              setProducts((prev) => [...prev, ...newProducts]);
-            }}
-          />
-        </TabsContent>
-
-        <TabsContent value="region" className="space-y-6">
-          <RegionTargetsTab
-            targets={regionTargets}
-            onChange={(region, month, value) =>
-              setRegionTargets((prev) => ({
-                ...prev,
-                [region]: { ...prev[region], [month]: value },
-              }))
-            }
-            onSave={handleSaveRegion}
-            saving={saving}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Content */}
+      <div className="space-y-6">
+        <YearlyTargetCard year={year} totalTarget={calculateMonthlyTotal()} />
+        <DetailedTargetsTable
+          targets={detailedTargets}
+          paginatedTargets={paginatedTargets}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onView={(target) => {
+            setViewingTarget(target);
+            setIsDetailDialogOpen(true);
+          }}
+          onDelete={setDeletingTargetId}
+        />
+      </div>
 
       {/* Dialogs */}
       <SalesTargetDetailDialog

@@ -1,28 +1,3 @@
-export interface ProductGroupTarget {
-  productGroup: string;
-  month: number | null;
-  targetAmount: number;
-  notes?: string;
-  year?: number;
-}
-
-export interface RegionTarget {
-  region: string;
-  month: number | null;
-  targetAmount: number;
-  notes?: string;
-  year?: number;
-}
-
-export interface ProductTarget {
-  productId: string;
-  month: number | null;
-  targetAmount: number;
-  notes?: string;
-  year?: number;
-  product?: ProductInfo;
-}
-
 export interface ProductInfo {
   id: string;
   productCode: string;
@@ -65,6 +40,8 @@ export interface DetailedTarget {
 export interface MonthlyTarget {
   month: number | null;
   targetAmount: string; // API returns string, potentially
+  notes?: string;
+  year?: number;
 }
 
 // Input Types

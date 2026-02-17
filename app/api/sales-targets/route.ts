@@ -83,12 +83,6 @@ export async function POST(request: NextRequest) {
     let results;
 
     if (type === "detailed") {
-      // Logic for saving detailed targets
-      // We need to adapt the service method to match this logic
-      // In service I created `saveDetailedTargets` which iterates and handles create/update
-      // The logic in route.ts was checking permissions per item (update vs create).
-      // Assuming permissions are handled inside the service method call or passed down.
-      // I passed permissions to service method.
       results = await salesTargetService.saveDetailedTargets(
         targets,
         session.user.id,
@@ -96,8 +90,8 @@ export async function POST(request: NextRequest) {
         hasCreatePermission || false,
         hasEditPermission || false,
       );
-    } else {
-      // Legacy types
+    } else if (type === "monthly") {
+      // Only allow monthly if explicitly asked
       results = await salesTargetService.saveLegacyTargets(
         type,
         targets,
@@ -105,6 +99,12 @@ export async function POST(request: NextRequest) {
         isAdmin || false,
         hasCreatePermission || false,
         hasEditPermission || false,
+      );
+    } else {
+      // Disallow other types
+      return NextResponse.json(
+        { error: "Invalid target type" },
+        { status: 400 },
       );
     }
 
