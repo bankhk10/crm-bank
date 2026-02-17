@@ -160,7 +160,7 @@ export function SalesToolbar({
             {/* Create Button */}
             <div className="grid gap-4 lg:items-end mt-4">
                 <div className="flex flex-wrap gap-2 items-center lg:justify-end">
-                    {canCreate ? (
+                    {canCreate && (
                         <Link href="/sales/new" className="w-full lg:w-auto">
                             <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white">
                                 <span className="inline-flex items-center gap-2">
@@ -169,13 +169,6 @@ export function SalesToolbar({
                                 </span>
                             </Button>
                         </Link>
-                    ) : (
-                        <Button className="w-full lg:w-auto" variant="outline" disabled>
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                สร้างรายการขาย
-                            </span>
-                        </Button>
                     )}
                 </div>
             </div>
