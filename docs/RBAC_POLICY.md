@@ -91,10 +91,7 @@ enum PermissionType {
 | `sale.view`               | ดูรายละเอียดใบขาย     | view               |
 | `sale.delete`             | ลบใบขาย               | delete             |
 | `sale.approve`            | อนุมัติใบขาย          | approve            |
-| `sale.reject`             | ปฏิเสธใบขาย           | reject             |
 | `sale.confirm-payment`    | ยืนยันการชำระเงิน     | confirm_payment    |
-| `sale.manage_fulfillment` | จัดการการจัดส่งสินค้า | manage_fulfillment |
-| `sale.cancel`             | ยกเลิกใบขาย           | cancel             |
 
 ### 4.4 Product Permissions (สินค้า)
 
