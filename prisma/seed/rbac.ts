@@ -381,14 +381,14 @@ const permissionGroups: Record<string, PermissionGroup> = {
     actions: [
       {
         key: "creditlimit.edit",
-        name: "แก้ไขวงเงินสินเชื่อ",
+        name: "แก้ไขวงเงินเครดิต",
         resource: "creditlimit",
         action: "edit",
       },
     ],
     data: {
       key: "data.creditlimits",
-      name: "ขอบเขตข้อมูลวงเงินสินเชื่อ",
+      name: "ขอบเขตข้อมูลวงเงินเครดิต",
       resource: "creditlimit",
       defaultDataAccess: DataAccessLevel.VIEW_DEPARTMENT,
       defaultEditAccess: EditAccessLevel.EDIT_OWN,

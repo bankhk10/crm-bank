@@ -100,7 +100,7 @@ export default function RolePermissionEditor({
       sales_targets: "ตั้งเป้าหมายยอดขาย",
       sales_forecast: "คาดการณ์ยอดขาย",
       fulfillment: "จัดการคำสั่งขาย",
-      creditlimit: "จัดการวงเงิน",
+      creditlimit: "จัดการวงเงินเครดิต",
       temporary_creditlimit: "วงเงินเครดิตชั่วคราว",
       "temporary creditlimit": "วงเงินเครดิตชั่วคราว",
       show_product: "หน้าแรก",

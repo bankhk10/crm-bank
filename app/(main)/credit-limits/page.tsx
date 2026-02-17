@@ -179,7 +179,7 @@ export default function CreditLimitsPage() {
             <div className="flex items-center gap-3">
               <CreditCard className="w-9 h-9 text-blue-600" />
               <h1 className="text-3xl font-bold tracking-tight">
-                จัดการวงเงิน
+                จัดการวงเงินเครดิต
               </h1>
             </div>
           </div>
