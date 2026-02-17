@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, Target } from "lucide-react";
-import { SalesTargetForm } from "../../SalesTargetForm";
+import { SalesTargetForm } from "@/features/sales-targets";
 
 export default function EditSalesTargetPage() {
   const params = useParams<{ id: string }>();
