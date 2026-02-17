@@ -95,7 +95,6 @@ enum PermissionType {
 | `sale.confirm-payment`    | ยืนยันการชำระเงิน     | confirm_payment    |
 | `sale.manage_fulfillment` | จัดการการจัดส่งสินค้า | manage_fulfillment |
 | `sale.cancel`             | ยกเลิกใบขาย           | cancel             |
-| `sale.update_delivery`    | แก้ไขวันส่ง           | update_delivery    |
 
 ### 4.4 Product Permissions (สินค้า)
 

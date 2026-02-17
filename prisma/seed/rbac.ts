@@ -187,12 +187,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "sale",
         action: "manage_fulfillment",
       },
-      {
-        key: "sale.update_delivery",
-        name: "แก้ไขวันส่ง",
-        resource: "sale",
-        action: "update_delivery",
-      },
     ],
     data: {
       key: "data.sales",
@@ -1381,7 +1375,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.notifications" },
     { key: "report.export" },
     { key: "sale.cancel" },
-    { key: "sale.update_delivery" },
     { key: "product.import" },
     { key: "product.export" },
     { key: "customer.import" },
@@ -1534,7 +1527,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
     { key: "sale.view", dataAccess: "VIEW_ALL" },
     { key: "sale.manage_fulfillment" },
-    { key: "sale.update_delivery" },
     // Product permissions - view only
     { key: "product.view", dataAccess: "VIEW_ALL" },
     { key: "product.create" },
