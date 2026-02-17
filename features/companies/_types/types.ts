@@ -3,12 +3,21 @@ import type { DateRange } from "react-day-picker";
 export interface CompanyRecord {
   id: string;
   name: string;
-  shortName?: string;
-  email?: string;
-  phone?: string;
-  taxId?: string;
-  status?: string;
-  createdAt?: string;
+  shortName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  taxId?: string | null;
+  status?: string | null;
+  createdAt?: string | null;
+}
+
+export interface CompanyDetail extends CompanyRecord {
+  companyCode?: string | null;
+  addressLine?: string | null;
+  province?: string | null;
+  district?: string | null;
+  subdistrict?: string | null;
+  postalCode?: string | null;
 }
 
 export interface CompanyPayload {

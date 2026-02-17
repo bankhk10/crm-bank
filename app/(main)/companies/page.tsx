@@ -1,238 +1,99 @@
-"use client";
+import React from "react";
+import { auth } from "@/lib/auth";
+import { isAuthorized } from "@/src/core/rbac";
+import { redirect } from "next/navigation";
+import { getCompanies } from "@/features/companies/_lib/data-access";
+import { CompaniesView } from "@/features/companies/_components/companies-view";
 
-import React, { useEffect, useState } from "react";
-import type { DateRange } from "react-day-picker";
-import { usePermission } from "@/hooks/use-permission";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { CompaniesTable, type CompanyRecord } from "@/features/companies";
-import { Building2 } from "lucide-react";
+interface PageProps {
+  searchParams: Promise<{
+    page?: string;
+    perPage?: string;
+    q?: string;
+    from?: string;
+    to?: string;
+  }>;
+}
 
-export default function CompaniesPage() {
-  const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
-  const canCreate = hasPermission("company.create");
-  const canEdit = hasPermission("company.edit");
-  const canView = (!isLoading && allowed) && hasPermission("company.view");
+export default async function CompaniesPage({ searchParams }: PageProps) {
+  const session = await auth();
 
-  const [companies, setCompanies] = useState<CompanyRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(12);
-  const [total, setTotal] = useState<number>(0);
-  const [error, setError] = useState<string | null>(null);
-  const [filterDraft, setFilterDraft] = useState<{
-    query: string;
-    dateRange?: DateRange;
-  }>({ query: "", dateRange: undefined });
-  const [appliedFilters, setAppliedFilters] = useState<{
-    query: string;
-    dateRange?: DateRange;
-  }>({ query: "", dateRange: undefined });
-  const [deleteCandidate, setDeleteCandidate] = useState<CompanyRecord | null>(
-    null
-  );
-  const [actionLoading, setActionLoading] = useState(false);
+  if (!session?.user) {
+    redirect("/api/auth/signin");
+  }
 
-  useEffect(() => {
-    const isExtendingEmpty =
-      total === 0 &&
-      appliedFilters.query &&
-      filterDraft.query.startsWith(appliedFilters.query) &&
-      filterDraft.query.length > appliedFilters.query.length;
+  const perms = session.user.permissionKeys ?? [];
+  const canView = perms.includes("company.view");
+  const resourcePath = "/api/companies"; // Using same resource path for consistency
+  const authorized = isAuthorized(resourcePath, perms);
 
-    if (isExtendingEmpty) {
-      return;
-    }
+  // If strict RBAC is needed, handle it here. 
+  // The client component also checks "menu.companies" & "company.view".
+  // But we should protect data access here too.
+  if (!canView && !authorized) {
+    // If we want to be strict, redirect to 403 or show error.
+    // However, the original page showed an Alert if !canView.
+    // We can let the Client Component show the alert by passing empty data 
+    // or we can just render the Alert here. 
+    // Best practice: Server component returns Unauthorized UI or redirects.
 
-    const delay = 400;
-    const next = {
-      query: filterDraft.query,
-      dateRange: filterDraft.dateRange,
-    };
-
-    const rangeKey = (r?: DateRange) =>
-      r?.from?.toISOString() + "|" + r?.to?.toISOString();
-    if (
-      next.query === appliedFilters.query &&
-      rangeKey(next.dateRange) === rangeKey(appliedFilters.dateRange)
-    ) {
-      return;
-    }
-
-    const id = setTimeout(() => {
-      setAppliedFilters(next);
-      setPage(1);
-    }, delay);
-    return () => clearTimeout(id);
-  }, [filterDraft.query, filterDraft.dateRange, total, appliedFilters.query]);
-
-  const mkRangeKey = (r?: DateRange) =>
-    r?.from?.toISOString() + "|" + r?.to?.toISOString();
-
-  const isTyping =
-    filterDraft.query !== appliedFilters.query ||
-    mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange);
-
-  const handleSearchSubmit = () => {
-    setAppliedFilters({
-      query: filterDraft.query,
-      dateRange: filterDraft.dateRange,
-    });
-    setPage(1);
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    const controller = new AbortController();
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams();
-        params.set("page", String(page));
-        params.set("perPage", String(perPage));
-        if (appliedFilters.query.trim())
-          params.set("q", appliedFilters.query.trim());
-        if (appliedFilters.dateRange?.from)
-          params.set("from", appliedFilters.dateRange.from.toISOString());
-        if (appliedFilters.dateRange?.to)
-          params.set("to", appliedFilters.dateRange.to.toISOString());
-
-        const res = await fetch(`/api/companies?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Failed to load companies");
-        const json = await res.json();
-        if (mounted) {
-          setCompanies(json.companies ?? []);
-          setTotal(typeof json.total === "number" ? json.total : 0);
-        }
-      } catch (error) {
-        const err = error as Error;
-        if (err.name === "AbortError") return;
-        setError(err.message || String(err));
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-  }, [page, perPage, appliedFilters]);
-
-  if (!canView) {
+    // Let's pass empty data and let Client Component handle the specific "You don't have permission" UI 
+    // matching the original behavior, OR just show a simple Server "Forbidden".
+    // The original code returned: <Alert>...</Alert> if !canView.
+    // So if we detect !canView here, we can just return a localized error UI.
     return (
-      <Alert variant="destructive">
-        <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัท</AlertDescription>
-      </Alert>
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัท</span>
+        </div>
+      </div>
     );
   }
 
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page || "1", 10));
+  const perPage = Math.min(100, Math.max(1, parseInt(params.perPage || "12", 10)));
+  const q = (params.q || "").trim();
+
+  const parseDate = (value: string | undefined): Date | undefined => {
+    if (!value) return undefined;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  };
+
+  const from = parseDate(params.from);
+  const to = parseDate(params.to);
+
+  const { total, companies } = await getCompanies({
+    page,
+    perPage,
+    q,
+    from,
+    to
+  });
+
+  // Transform data if needed to match Client types (e.g. Dates to strings if strictly needed, 
+  // but Next.js RSC can pass Date objects to Client Components? 
+  // Warning: "Only plain objects can be passed to Client Components from Server Components. Date objects are not supported."
+  // So we must serialize Dates.
+
+  const serializedCompanies = companies.map(c => ({
+    ...c,
+    createdAt: c.createdAt?.toISOString(),
+    updatedAt: c.updatedAt?.toISOString(),
+    deletedAt: c.deletedAt?.toISOString(),
+  }));
+
   return (
-    <section className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Delete confirm dialog */}
-      {deleteCandidate && (
-        <div className="fixed inset-0 min-h-screen z-50 flex items-center justify-center">
-          <div
-            className="bg-black/50 absolute inset-0"
-            onClick={() => setDeleteCandidate(null)}
-          />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-lg p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">ยืนยันการลบ</h3>
-            <p className="mt-2 text-sm text-slate-600">
-              คุณต้องการลบบริษัท <strong>{deleteCandidate.name}</strong>{" "}
-              ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteCandidate(null)}
-              >
-                ยกเลิก
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  if (!deleteCandidate) return;
-                  setActionLoading(true);
-                  try {
-                    const res = await fetch(
-                      `/api/companies/${deleteCandidate.id}`,
-                      { method: "DELETE" }
-                    );
-                    if (!res.ok) throw new Error("Delete failed");
-                    setCompanies((prev) =>
-                      prev.filter((c) => c.id !== deleteCandidate.id)
-                    );
-                    setDeleteCandidate(null);
-                  } catch (error) {
-                    const err = error as Error;
-                    setError(err.message || String(err));
-                  } finally {
-                    setActionLoading(false);
-                  }
-                }}
-                disabled={actionLoading}
-              >
-                {actionLoading ? "กำลังลบ..." : "ลบบริษัท"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white shadow-sm sm:rounded-lg">
-        <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <Building2 className="w-9 h-9 text-blue-600" />
-              <h1 className="text-3xl font-bold tracking-tight">
-                ข้อมูลบริษัท
-              </h1>
-            </div>
-          </div>
-
-          <CompaniesTable
-            data={companies}
-            loading={loading}
-            canCreate={canCreate}
-            canEdit={canEdit}
-            canDelete={hasPermission("company.delete")}
-            onDeleteRequest={setDeleteCandidate}
-            searchValue={filterDraft.query}
-            onSearchChange={(value) =>
-              setFilterDraft((prev) => ({ ...prev, query: value }))
-            }
-            isTyping={isTyping}
-            onSearchSubmit={handleSearchSubmit}
-            dateRange={filterDraft.dateRange}
-            onDateRangeChange={(range) =>
-              setFilterDraft((prev) => ({
-                ...prev,
-                dateRange: range ?? undefined,
-              }))
-            }
-            pagination={{
-              page,
-              perPage,
-              total,
-              onPageChange: (nextPage) => setPage(nextPage),
-              onPerPageChange: (nextPerPage) => {
-                setPerPage(nextPerPage);
-                setPage(1);
-              },
-              perPageOptions: [6, 12, 24, 48],
-            }}
-          />
-        </div>
-      </div>
-    </section>
+    <CompaniesView
+      initialCompanies={serializedCompanies}
+      total={total}
+      initialPage={page}
+      initialPerPage={perPage}
+      initialQ={q}
+      initialDateRange={from || to ? { from, to } : undefined}
+    />
   );
 }
+
