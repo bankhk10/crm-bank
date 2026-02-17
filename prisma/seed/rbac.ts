@@ -48,10 +48,10 @@ const permissionGroups: Record<string, PermissionGroup> = {
         menuPath: "/dashboard/manager",
       },
       {
-        key: "menu.dashboard.employee",
-        name: "แดชบอร์ดพนักงาน",
-        resource: "dashboard",
-        menuPath: "/dashboard/employee",
+        key: "menu.show_product",
+        name: "หน้าแรก",
+        resource: "show_product",
+        menuPath: "/show-product",
       },
     ],
   },
@@ -1163,7 +1163,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.view" },
     { key: "sales_target.view" },
     { key: "sales_target.delete" },
-    { key: "menu.dashboard.employee" },
+    { key: "menu.show_product" },
   ];
 
   await prisma.rolePermission.createMany({
@@ -1275,7 +1275,7 @@ export async function seedRBAC(prisma: PrismaClient) {
   const adminConfig = [
     { key: "menu.dashboard" },
     { key: "menu.dashboard.manager" },
-    { key: "menu.dashboard.employee" },
+    { key: "menu.show_product" },
     { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
     { key: "menu.reports" },
     { key: "menu.sales" },
@@ -1595,7 +1595,7 @@ export async function seedRBAC(prisma: PrismaClient) {
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
     },
-    { key: "menu.dashboard.employee" },
+    { key: "menu.show_product" },
   ];
 
   await prisma.rolePermission.createMany({

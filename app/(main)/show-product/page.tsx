@@ -234,7 +234,7 @@ export default function EmployeeDashboardPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Access Denied</AlertTitle>
           <AlertDescription>
-            คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ดพนักงาน
+            คุณไม่มีสิทธิ์เข้าถึงหน้าแรก
           </AlertDescription>
         </Alert>
       </div>

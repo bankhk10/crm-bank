@@ -60,9 +60,9 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
-    href: "/dashboard/employee",
+    href: "/show-product",
     label: "หน้าแรก",
-    permissionKey: "menu.dashboard.employee",
+    permissionKey: "menu.show_product",
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
