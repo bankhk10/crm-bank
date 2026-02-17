@@ -55,7 +55,8 @@ enum PermissionType {
 
 | Key                            | Name (TH)                  | Menu Path                |
 | ------------------------------ | -------------------------- | ------------------------ |
-| `menu.dashboard`               | เมนูแดชบอร์ด               | /dashboard               |
+| `menu.dashboard.admin`         | เเมนูแดชบอร์ดผู้บริหาร     | /dashboard/admin         |
+| `menu.dashboard.manager`       | เเมนูแดชบอร์ดผู้จัดการ     | /dashboard/manager       |
 | `menu.reports`                 | เมนูรายงาน                 | /reports                 |
 | `menu.sales`                   | เมนูการขาย                 | /sales                   |
 | `menu.products`                | เมนูสินค้า                 | /products                |

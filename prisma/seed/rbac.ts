@@ -35,10 +35,10 @@ const permissionGroups: Record<string, PermissionGroup> = {
   // ─────────────────────────────────────────────
   dashboard: {
     menu: {
-      key: "menu.dashboard",
-      name: "เมนูแดชบอร์ด",
+      key: "menu.dashboard.admin",
+      name: "เมนูแดชบอร์ดผู้บริหาร",
       resource: "dashboard",
-      menuPath: "/dashboard",
+      menuPath: "/dashboard/admin",
     },
     subMenus: [
       {
@@ -1111,7 +1111,6 @@ export async function seedRBAC(prisma: PrismaClient) {
   // ──────────────────────────────────────────────────────────────
 
   const salesManagerConfig = [
-    { key: "menu.dashboard" },
     { key: "menu.products" },
     { key: "product.view", dataAccess: "VIEW_ALL" },
     { key: "menu.sales" },
@@ -1192,7 +1191,7 @@ export async function seedRBAC(prisma: PrismaClient) {
   // ──────────────────────────────────────────────────────────────
 
   const adminConfig = [
-    { key: "menu.dashboard" },
+    { key: "menu.dashboard.admin" },
     { key: "menu.dashboard.manager" },
     { key: "menu.show_product" },
     { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
@@ -1331,8 +1330,7 @@ export async function seedRBAC(prisma: PrismaClient) {
 
   const ceoConfig = [
     // Menu permissions - access to view all areas
-    { key: "menu.dashboard" },
-    { key: "menu.dashboard.manager" },
+    { key: "menu.dashboard.admin" },
     { key: "menu.reports" },
     { key: "menu.sales" },
     { key: "menu.products" },

@@ -214,6 +214,10 @@ export function isManager(roles: string[]): boolean {
   return roles.some((role) => role.toLowerCase().includes("manager"));
 }
 
+export function isCeo(roles: string[]): boolean {
+  return roles.some((role) => role.toLowerCase().includes("ceo"));
+}
+
 /**
  * Get default route for user roles
  */
@@ -221,7 +225,7 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   if (isAdministrator(roles)) {
     return "/dashboard/admin";
   }
-  if (roles.some((role) => role === "admin")) {
+  if (roles.some((role) => role === "admin" || role === "ceo")) {
     return "/dashboard/admin";
   }
   if (isManager(roles)) {

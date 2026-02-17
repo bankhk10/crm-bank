@@ -51,7 +51,7 @@ interface SidebarNavItem {
   children?: SidebarChildItem[];
 }
 
-// Exported for reuse in mobile navbar drawer
+// Exported for reuse in mobile navbar drawerT
 export const navigationItems: SidebarNavItem[] = [
   {
     href: "/dashboard/manager",
