@@ -45,7 +45,7 @@ export function YearlyTargetCard({ year, totalTarget }: YearlyTargetCardProps) {
                         <p className="text-sm text-slate-400 mb-1">รวมเป้าหมายทั้งปี</p>
                         <div className="flex items-baseline gap-2">
                             <span className="text-3xl sm:text-4xl font-bold text-emerald-400 tracking-tight">
-                                ฿{formatCurrency(totalTarget)}
+                                {formatCurrency(totalTarget)}
                             </span>
                             <span className="text-xs text-slate-500">THB</span>
                         </div>
