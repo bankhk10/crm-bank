@@ -16,6 +16,19 @@ import {
   DeleteAccessLevel,
 } from "@/src/infrastructure/database";
 
+export type {
+  Department,
+  Permission,
+  Position,
+  Role,
+  RolePermission,
+  User,
+  UserPermissionOverride,
+  DataAccessLevel,
+  EditAccessLevel,
+  DeleteAccessLevel,
+};
+
 /**
  * RBAC Summary Response from API
  */

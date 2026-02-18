@@ -18,6 +18,7 @@ export {
   getDefaultRouteForRoles,
   userHasPermission,
   getDataAccessForResource,
+  getRolePermissionsPageData,
   getEditAccessForResource,
   getDeleteAccessForResource,
   hasAnyPermission,
@@ -27,6 +28,8 @@ export {
   canDeleteResource,
   checkResourceAccessScope,
 } from "./rbac.service";
+
+export * as RbacRepository from "./rbac.repository";
 
 // Types
 export * from "./rbac.types";

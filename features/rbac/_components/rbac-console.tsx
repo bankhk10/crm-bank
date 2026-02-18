@@ -14,7 +14,7 @@ import {
   User,
   UserPermissionOverride,
   DataAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/features/rbac/_types";
 import {
   Dialog,
   DialogTrigger,

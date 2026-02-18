@@ -10,7 +10,7 @@ import {
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/features/rbac/_types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {

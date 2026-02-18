@@ -8,6 +8,7 @@ import type {
   EditAccessLevel,
   DeleteAccessLevel,
 } from "@/src/infrastructure/database";
+import * as RbacRepository from "./rbac.repository";
 import type {
   SessionPermission,
   RoutePermissionRule,
@@ -256,6 +257,15 @@ export function getDataAccessForResource(
       permission.resource === resource && permission.category === "DATA",
   );
   return match?.dataAccess ?? null;
+}
+
+export async function getRolePermissionsPageData(roleId: string) {
+  const [role, permissions] = await Promise.all([
+    RbacRepository.findRoleWithPermissions(roleId),
+    RbacRepository.findActivePermissions(),
+  ]);
+
+  return { role, permissions };
 }
 
 /**
