@@ -46,6 +46,16 @@ export interface SaleFormCustomer {
       postalCode?: string | null;
     };
   }>;
+  addresses?: Array<{
+    id: string;
+    addressLine?: string | null;
+    province?: string | null;
+    district?: string | null;
+    subdistrict?: string | null;
+    postalCode?: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>;
 }
 
 /**
@@ -125,6 +135,7 @@ export interface SaleFormProps {
     deliveryMethod?: DeliveryMethodType;
     pickupCompanyId?: string;
     requestedDeliveryDate?: string;
+    selectedAddressId?: string;
   };
   onSubmit: (data: SaleFormData) => Promise<void>;
   isEdit?: boolean;
@@ -217,6 +228,10 @@ export interface PaymentTermSelectorProps {
 export interface DeliveryMethodSectionProps {
   value: DeliveryMethodType;
   onChange: (value: DeliveryMethodType) => void;
+  customer?: SaleFormCustomer | null;
+  selectedAddressId?: string;
+  onAddressSelect?: (addressId: string, fullAddress: string) => void;
+  onUseCustomAddress?: () => void;
 }
 
 /**

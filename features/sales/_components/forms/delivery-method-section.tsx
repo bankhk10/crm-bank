@@ -2,12 +2,13 @@
 
 /**
  * Delivery Method Section Component
- * Radio button group for selecting delivery method
+ * Radio button group for selecting delivery method with address selector
  */
 
 import React from "react";
 import { Label } from "@/components/ui/label";
 import type { DeliveryMethodSectionProps, DeliveryMethodType } from "../../_types/types";
+import { AddressSelector } from "./address-selector";
 
 const DELIVERY_METHODS = [
     {
@@ -30,7 +31,14 @@ const DELIVERY_METHODS = [
 export function DeliveryMethodSection({
     value,
     onChange,
+    customer,
+    selectedAddressId,
+    onAddressSelect,
+    onUseCustomAddress,
 }: DeliveryMethodSectionProps) {
+    // Show address selector for delivery methods that need shipping address
+    const shouldShowAddressSelector = value === "SALES_DELIVERY" || value === "COURIER";
+
     return (
         <div className="mt-6">
             <Label className="text-base font-semibold mx-2 mb-4 block">
@@ -68,6 +76,18 @@ export function DeliveryMethodSection({
                     </div>
                 ))}
             </div>
+
+            {/* Address Selector for applicable delivery methods */}
+            {shouldShowAddressSelector && (
+                <div className="mt-6">
+                    <AddressSelector
+                        customer={customer || null}
+                        selectedAddressId={selectedAddressId}
+                        onAddressSelect={onAddressSelect || (() => { })}
+                        onUseCustomAddress={onUseCustomAddress || (() => { })}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -1,3 +1,4 @@
+export * from "./address-selector";
 export * from "./customer-credit-info";
 export * from "./delivery-method-section";
 export * from "./form-action-buttons";

@@ -152,6 +152,11 @@ export function SaleForm({
         initialData?.deliveryMethod || "SALES_DELIVERY",
     );
 
+    // Address selection state
+    const [selectedAddressId, setSelectedAddressId] = useState<string>(
+        initialData?.selectedAddressId || "",
+    );
+
     // Discounts and notes
     const [shippingCost, setShippingCost] = useState(
         initialData?.shippingCost || 0,
@@ -359,6 +364,19 @@ export function SaleForm({
         setCreditDays(getCreditDaysForTerm(value));
     };
 
+    // Handle address selection
+    const handleAddressSelect = (addressId: string, fullAddress: string) => {
+        setSelectedAddressId(addressId);
+        setCustomShippingAddress(fullAddress);
+        setUseCustomShippingAddress(true);
+    };
+
+    // Handle custom address input
+    const handleUseCustomAddress = () => {
+        setSelectedAddressId("");
+        setUseCustomShippingAddress(true);
+    };
+
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -456,6 +474,7 @@ export function SaleForm({
                     deliveryMethod === "COURIER" ||
                     (deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress),
                 deliveryMethod,
+                selectedAddressId: selectedAddressId || undefined,
                 pickupCompanyId:
                     deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
                 items,
@@ -648,6 +667,10 @@ export function SaleForm({
             <DeliveryMethodSection
                 value={deliveryMethod}
                 onChange={setDeliveryMethod}
+                customer={selectedCustomer}
+                selectedAddressId={selectedAddressId}
+                onAddressSelect={handleAddressSelect}
+                onUseCustomAddress={handleUseCustomAddress}
             />
 
             {/* Shipping Address based on delivery method */}

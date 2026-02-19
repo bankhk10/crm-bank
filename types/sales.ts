@@ -70,6 +70,7 @@ export interface SaleFormData {
   deliveryDate?: string;
   deliveryMethod?: string;
   pickupCompanyId?: string;
+  selectedAddressId?: string;
   billingAddress?: string;
   shippingAddress?: string;
   useCustomShipping?: boolean; // Flag indicating user specified custom shipping address
