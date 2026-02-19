@@ -115,7 +115,8 @@ export default function CustomersTable({
           getRowCanExpand={(row) => {
             const customer = row.original;
             const hasChildren = data && data.some((d) => d.parentDealerId === customer.id);
-            return hasChildren || !!customer.parentDealerId;
+            // Only allow dealers that have sub-dealers to expand
+            return hasChildren && customer.customerType === "DEALER";
           }}
         />
       </div>

@@ -35,7 +35,8 @@ export function useCustomerColumns(
                     const orig = row.original;
                     const hasChildren =
                         !!data && data.some((d) => d.parentDealerId === orig.id);
-                    const showExpander = hasChildren || !!orig.parentDealerId;
+                    // Only show expander for dealers that have sub-dealers
+                    const showExpander = hasChildren && orig.customerType === "DEALER";
 
                     if (!showExpander) return <div className="p-1" />;
 
