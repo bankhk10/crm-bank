@@ -45,7 +45,7 @@ export function ContactList({ value = [], onChange }: Props) {
     return (
         <div className="space-y-4">
             {value.map((item, index) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50 relative">
+                <div key={index} className="p-4 border rounded-lg relative">
                     <Button
                         type="button"
                         variant="ghost"
@@ -57,7 +57,7 @@ export function ContactList({ value = [], onChange }: Props) {
                     </Button>
 
                     <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        ข้อมูลผู้ติดต่อ ลำดับที่ {index + 1}
+                        ข้อมูลผู้ติดต่อ ลำดับที่ {index + 2}
                     </h4>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

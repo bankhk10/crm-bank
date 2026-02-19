@@ -60,7 +60,7 @@ export function ShippingAddressList({ value = [], onChange }: Props) {
     return (
         <div className="space-y-4">
             {value.map((item, index) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50 relative">
+                <div key={index} className="p-4 border rounded-lg relative">
                     <Button
                         type="button"
                         variant="ghost"
