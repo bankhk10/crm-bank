@@ -183,6 +183,9 @@ export function DeliveryMethodSection({
                                                 if (fullAddress) {
                                                     onCustomShippingAddressChange?.(fullAddress);
                                                 }
+                                            } else {
+                                                // Clear address when no company selected
+                                                onCustomShippingAddressChange?.("");
                                             }
                                         }}
                                         options={customer.shippingCompanies.map((sc) => ({
@@ -195,6 +198,7 @@ export function DeliveryMethodSection({
                                     />
                                 )}
 
+                            {/* Always show custom address for COURIER */}
                             <FormTextarea
                                 label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
                                 value={customShippingAddress}
@@ -202,11 +206,25 @@ export function DeliveryMethodSection({
                                     onCustomShippingAddressChange?.(e.target.value);
                                     onFieldErrorClear?.("customShippingAddress");
                                 }}
-                                placeholder="ระบุรายละเอียดที่อยู่..."
-                                rows={4}
-                                required
+                                placeholder="กรุณาเลือกบริษัทขนส่งเพื่อระบุที่อยู่"
+                                rows={1}
+                                disabled
                                 error={fieldErrors.customShippingAddress}
                             />
+
+                            {/* Address Selector Section for COURIER */}
+                            {customer && (
+                                <div className="space-y-4">
+                                    <AddressSelector
+                                        customer={customer}
+                                        selectedAddressId={selectedAddressId}
+                                        onAddressSelect={onAddressSelect || (() => { })}
+                                        onUseCustomAddress={onUseCustomAddress || (() => { })}
+                                    />
+                                </div>
+                            )}
+
+
                         </div>
                     </div>
                 ) : customer ? (

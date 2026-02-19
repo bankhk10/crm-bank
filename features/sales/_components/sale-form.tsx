@@ -468,7 +468,7 @@ export function SaleForm({
                 billingAddress,
                 shippingAddress:
                     deliveryMethod === "COURIER"
-                        ? customShippingAddress
+                        ? customShippingAddress // Always use custom address for COURIER
                         : deliveryMethod === "SALES_DELIVERY"
                             ? useCustomShippingAddress
                                 ? customShippingAddress

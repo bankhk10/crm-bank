@@ -122,7 +122,7 @@ export function AddressSelector({
 
   return (
     <div className="space-y-3">
-      <Label className="text-base font-semibold">
+      <Label className="text-base mx-3">
         เลือกที่อยู่จัดส่ง <span className="text-red-500">*</span>
       </Label>
 
@@ -175,17 +175,6 @@ export function AddressSelector({
             </div>
           );
         })}
-
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full border-dashed border-2 py-3 h-auto text-gray-500 hover:text-gray-700"
-          onClick={onUseCustomAddress}
-          disabled={disabled}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          ระบุที่อยู่อื่นๆ
-        </Button>
       </div>
     </div>
   );
