@@ -25,6 +25,11 @@ const DELIVERY_METHODS = [
         icon: "🚚",
     },
     {
+        value: "FACTORY_DELIVERY" as const,
+        label: "ส่งโดยรถโรงงาน",
+        icon: "🏭",
+    },
+    {
         value: "CUSTOMER_PICKUP" as const,
         label: "ลูกค้ามารับสินค้าเอง",
         icon: "🏬",
@@ -235,7 +240,7 @@ export function DeliveryMethodSection({
                     </div>
                 ) : customer ? (
                     <>
-                        {/* Address Selector Section */}
+                        {/* Address Selector Section for SALES_DELIVERY and FACTORY_DELIVERY */}
                         {!useCustomShippingAddress && (
                             <div className="space-y-4">
                                 <AddressSelector

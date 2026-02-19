@@ -122,6 +122,7 @@ export type PaymentTermType =
  */
 export type DeliveryMethodType =
   | "SALES_DELIVERY"
+  | "FACTORY_DELIVERY"
   | "CUSTOMER_PICKUP"
   | "COURIER";
 
