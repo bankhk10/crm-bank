@@ -228,6 +228,16 @@ export default function CustomerFormDealer({
     values.id,
   ]);
 
+  // Set parentDealerLabel when dealerOptions are loaded and parentDealer has initial value
+  useEffect(() => {
+    if (values.parentDealer && dealerOptions.length > 0) {
+      const found = dealerOptions.find((d) => d.value === values.parentDealer);
+      if (found) {
+        setParentDealerLabel(found.label);
+      }
+    }
+  }, [values.parentDealer, dealerOptions]);
+
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
       if (!prev || !(field in prev)) return prev;

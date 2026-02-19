@@ -114,6 +114,7 @@ export async function GET(request: Request) {
   const statusFilter = url.searchParams.get("status");
   const fromParam = url.searchParams.get("from");
   const toParam = url.searchParams.get("to");
+  const parentDealerId = url.searchParams.get("parentDealerId");
 
   const parseDate = (value: string | null) => {
     if (!value) return undefined;
@@ -156,6 +157,10 @@ export async function GET(request: Request) {
     };
   }
 
+  if (parentDealerId) {
+    where.parentDealerId = parentDealerId;
+  }
+
   // Permission-based data scope filtering (async because of VIEW_TEAM lookup)
   const scopedWhere = await applyDataScope({ ...where }, session, "customer");
 
@@ -183,6 +188,26 @@ export async function GET(request: Request) {
           include: {
             shippingCompany: true,
           },
+        },
+        parentDealer: {
+          select: {
+            id: true,
+            customerCode: true,
+            name: true,
+          },
+        },
+        subDealers: {
+          where: { deletedAt: null },
+          select: {
+            id: true,
+            customerCode: true,
+            name: true,
+            customerType: true,
+            status: true,
+            phone: true,
+            email: true,
+          },
+          orderBy: { createdAt: "desc" },
         },
       },
     }),

@@ -181,3 +181,60 @@ export function useCustomerColumns(
         [canDelete, onDeleteRequest, data]
     );
 }
+
+// Sub-dealers row component for expanded parent dealers
+const SubDealersRow = ({ customer }: { customer: CustomerRecord }) => {
+    const subDealers = (customer as any).subDealers || [];
+
+    if (!subDealers || subDealers.length === 0) {
+        return (
+            <tr>
+                <td colSpan={8} className="px-4 py-3 text-sm text-gray-500 bg-gray-50">
+                    ไม่มีร้านค้าลูกภายใต้ร้านนี้
+                </td>
+            </tr>
+        );
+    }
+
+    return (
+        <>
+            {subDealers.map((subDealer: any) => (
+                <tr key={subDealer.id} className="bg-blue-50 border-l-4 border-blue-300">
+                    <td className="px-4 py-3 text-sm font-medium text-blue-900">
+                        {subDealer.customerCode}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-blue-900">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            {subDealer.name}
+                        </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{subDealer.email || "-"}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{subDealer.phone || "-"}</td>
+                    <td className="px-4 py-3">
+                        <CustomerTypeBadge type={subDealer.customerType} />
+                    </td>
+                    <td className="px-4 py-3">
+                        <CustomerStatusBadge status={subDealer.status} className="text-sm" />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                            <ActionButton
+                                href={`/customers/${subDealer.id}`}
+                                icon={Eye}
+                                label="ดู"
+                                colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                            />
+                            <ActionButton
+                                href={`/customers/${subDealer.id}/edit`}
+                                icon={Edit}
+                                label="แก้ไข"
+                                colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
+                            />
+                        </div>
+                    </td>
+                </tr>
+            ))}
+        </>
+    );
+};
