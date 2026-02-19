@@ -198,19 +198,21 @@ export function DeliveryMethodSection({
                                     />
                                 )}
 
-                            {/* Always show custom address for COURIER */}
-                            <FormTextarea
-                                label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
-                                value={customShippingAddress}
-                                onChange={(e) => {
-                                    onCustomShippingAddressChange?.(e.target.value);
-                                    onFieldErrorClear?.("customShippingAddress");
-                                }}
-                                placeholder="กรุณาเลือกบริษัทขนส่งเพื่อระบุที่อยู่"
-                                rows={1}
-                                disabled
-                                error={fieldErrors.customShippingAddress}
-                            />
+                            {/* Show custom address only when shipping company is selected */}
+                            {shippingCompanyId && (
+                                <FormTextarea
+                                    label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
+                                    value={customShippingAddress}
+                                    onChange={(e) => {
+                                        onCustomShippingAddressChange?.(e.target.value);
+                                        onFieldErrorClear?.("customShippingAddress");
+                                    }}
+                                    placeholder="กรุณาเลือกบริษัทขนส่งเพื่อระบุที่อยู่"
+                                    rows={1}
+                                    disabled
+                                    error={fieldErrors.customShippingAddress}
+                                />
+                            )}
 
                             {/* Address Selector Section for COURIER */}
                             {customer && (
