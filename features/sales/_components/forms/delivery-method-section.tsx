@@ -31,7 +31,7 @@ const DELIVERY_METHODS = [
     },
     {
         value: "COURIER" as const,
-        label: "ส่งผ่านบริษัทขนส่ง",
+        label: "ส่งโดยบริษัทขนส่ง",
         icon: "📦",
     },
 ];
@@ -144,7 +144,7 @@ export function DeliveryMethodSection({
                 ) : value === "COURIER" ? (
                     <div className="space-y-4 border rounded-xl p-4">
                         <h4 className="font-medium text-gray-900">
-                            รายละเอียดการจัดส่งผ่านบริษัทขนส่ง
+                            รายละเอียดการจัดส่งโดยบริษัทขนส่ง
                         </h4>
 
                         <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">

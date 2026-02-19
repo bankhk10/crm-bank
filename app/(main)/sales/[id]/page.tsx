@@ -946,7 +946,7 @@ function getDeliveryMethodLabel(method?: string | null) {
     case "CUSTOMER_PICKUP":
       return "ลูกค้ามารับสินค้าเอง";
     case "COURIER":
-      return "ส่งผ่านบริษัทขนส่ง";
+      return "ส่งโดยบริษัทขนส่ง";
     default:
       return method || "-";
   }

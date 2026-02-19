@@ -60,7 +60,7 @@ export type DeliveryMethod =
 export const DELIVERY_METHOD_LABELS: Record<DeliveryMethod, string> = {
   SALES_DELIVERY: "พนักงานขายนำส่ง",
   CUSTOMER_PICKUP: "ลูกค้ารับเอง",
-  COURIER: "ส่งผ่านบริษัทขนส่ง",
+  COURIER: "ส่งโดยบริษัทขนส่ง",
 };
 
 /**
