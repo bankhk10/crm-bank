@@ -402,6 +402,7 @@ export async function PUT(
           shippingAddress: body.shippingAddress,
           // Store flag indicating user specified custom shipping address
           useCustomShipping: body.useCustomShipping ?? false,
+          selectedAddressId: body.selectedAddressId || null,
           subtotalAmount: new Prisma.Decimal(subtotal),
           shippingCost: new Prisma.Decimal(body.shippingCost),
           otherCosts: new Prisma.Decimal(body.otherCosts),

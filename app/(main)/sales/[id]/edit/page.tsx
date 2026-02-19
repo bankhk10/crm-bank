@@ -61,6 +61,7 @@ export default function EditSalePage({
           billingAddress: sale.billingAddress || "",
           shippingAddress: sale.shippingAddress || "",
           useCustomShipping, // Flag to indicate custom shipping was used
+          selectedAddressId: sale.selectedAddressId || "",
           items: sale.items.map((item: any) => ({
             productId: item.productId,
             quantity: item.quantity,
