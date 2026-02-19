@@ -6,16 +6,6 @@ import { LocateFixed, X, Save } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
@@ -23,6 +13,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/custom/form-components";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { CustomerFormProps, CustomerPayload, SelectOption } from "../../_types/types";
@@ -84,9 +75,6 @@ export default function CustomerFormDealer({
 
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-
-  const labelTextClass = "text-base font-medium";
-  const inputTextClass = "text-base";
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -395,7 +383,7 @@ export default function CustomerFormDealer({
       // extra fields kept alongside payload (backend may ignore unknown keys)
       ...(values.latitude ? { latitude: values.latitude } : {}),
       ...(values.longitude ? { longitude: values.longitude } : {}),
-      ...(values.parentDealer ? { parentDealerId: values.parentDealer } : {}),
+      parentDealerId: values.parentDealer || "",
       ...(values.responsibleEmployeeId
         ? { responsibleEmployeeId: values.responsibleEmployeeId }
         : {}),
@@ -839,34 +827,25 @@ export default function CustomerFormDealer({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        <div>
-          <Label className={labelTextClass}>ร้านหลัก (ถ้ามี)</Label>
-          <Select
-            value={values.parentDealer ?? ""}
-            onValueChange={(v) => {
-              setValues((p: any) => ({ ...p, parentDealer: v || "" }));
-              const found = dealerOptions.find((d) => d.value === v);
-              setParentDealerLabel(found ? found.label : "");
-              clearFieldError("parentDealer");
-            }}
-          >
-            <SelectTrigger className={inputTextClass}>
-              <SelectValue placeholder="เลือกร้านหลัก" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>ร้านหลัก</SelectLabel>
-                {dealerOptions
-                  .filter((d) => d.value !== values.id)
-                  .map((d) => (
-                    <SelectItem key={d.value} value={d.value}>
-                      {d.label}
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <FormCombobox
+          label="ร้านหลัก (ถ้ามี)"
+          value={values.parentDealer ?? ""}
+          onChange={(v) => {
+            setValues((p: any) => ({ ...p, parentDealer: v || "" }));
+            const found = dealerOptions.find((d) => d.value === v);
+            setParentDealerLabel(found ? found.label : "");
+            clearFieldError("parentDealer");
+          }}
+          options={[
+            { value: "", label: "ไม่มีร้านหลัก" },
+            ...dealerOptions.filter((d) => d.value !== values.id)
+          ]}
+          placeholder="เลือกร้านหลัก"
+          searchPlaceholder="ค้นหาร้านหลัก..."
+          emptyText="ไม่พบร้านหลัก"
+          error={fieldErrors.parentDealer?.[0]}
+          containerClassName="md:col-span-1"
+        />
 
         <FormSelect
           label="พนักงานที่รับผิดชอบ"
