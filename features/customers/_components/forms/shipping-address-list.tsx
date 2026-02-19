@@ -72,7 +72,7 @@ export function ShippingAddressList({ value = [], onChange }: Props) {
                     </Button>
 
                     <h4 className="text-sm font-medium text-gray-700 mb-3">
-                        ที่อยู่จัดส่งลำดับที่ {index + 1}
+                        ที่อยู่จัดส่งลำดับที่ {index + 2}
                     </h4>
 
                     <FormInput
