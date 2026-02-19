@@ -123,7 +123,7 @@ export function AddressSelector({
   return (
     <div className="space-y-3">
       <Label className="text-base mx-3">
-        เลือกที่อยู่จัดส่ง <span className="text-red-500">*</span>
+        เลือกที่อยู่จัดส่งสินค้า <span className="text-red-500">*</span>
       </Label>
 
       <div className="space-y-2">
