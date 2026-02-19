@@ -6,6 +6,16 @@ import { LocateFixed, X, Save } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import GalleryUpload from "@/components/custom/gallery-upload";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 import {
@@ -69,9 +79,14 @@ export default function CustomerFormDealer({
   });
 
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
+  const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
+  const [parentDealerLabel, setParentDealerLabel] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+  const labelTextClass = "text-base font-medium";
+  const inputTextClass = "text-base";
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -181,6 +196,17 @@ export default function CustomerFormDealer({
           label: e.name,
         }));
         setEmployeeOptions(emps);
+
+        // Fetch dealer customers for parent dealer dropdown
+        const cRes = await fetch(`/api/customers?type=DEALER`)
+          .then((r) => r.json())
+          .catch(() => ({ customers: [] }));
+
+        const dealers = (cRes.customers || []).map((c: any) => ({
+          value: c.id,
+          label: `${c.customerCode} - ${c.name}`,
+        }));
+        setDealerOptions(dealers);
       } catch {
         // ignore
       }
@@ -803,13 +829,13 @@ export default function CustomerFormDealer({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-3 mt-6">
-        {/* <div>
+        <div>
           <Label className={labelTextClass}>ร้านหลัก (ถ้ามี)</Label>
           <Select
             value={values.parentDealer ?? ""}
             onValueChange={(v) => {
               setValues((p: any) => ({ ...p, parentDealer: v || "" }));
-              const found = dealerOptions.find((d) => d.id === v);
+              const found = dealerOptions.find((d) => d.value === v);
               setParentDealerLabel(found ? found.label : "");
               clearFieldError("parentDealer");
             }}
@@ -821,16 +847,16 @@ export default function CustomerFormDealer({
               <SelectGroup>
                 <SelectLabel>ร้านหลัก</SelectLabel>
                 {dealerOptions
-                  .filter((d) => d.id !== values.id)
+                  .filter((d) => d.value !== values.id)
                   .map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
+                    <SelectItem key={d.value} value={d.value}>
                       {d.label}
                     </SelectItem>
                   ))}
               </SelectGroup>
             </SelectContent>
           </Select>
-        </div> */}
+        </div>
 
         <FormSelect
           label="พนักงานที่รับผิดชอบ"
