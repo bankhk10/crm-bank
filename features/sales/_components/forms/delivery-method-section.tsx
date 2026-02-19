@@ -160,43 +160,47 @@ export function DeliveryMethodSection({
                                 </p>
                             </div>
 
-                            {customer?.shippingCompanies &&
-                                customer.shippingCompanies.length > 0 && (
-                                    <FormCombobox
-                                        label="เลือกบริษัทขนส่ง"
-                                        value={shippingCompanyId}
-                                        onChange={(val) => {
-                                            onShippingCompanyChange?.(val);
-                                            const selected = customer.shippingCompanies?.find(
-                                                (sc) => sc.shippingCompany.id === val
-                                            );
-                                            const sc = selected?.shippingCompany;
-                                            if (sc) {
-                                                const structuredAddr = buildCompanyAddress({
-                                                    addressLine: sc.addressLine || undefined,
-                                                    subdistrict: sc.subdistrict || undefined,
-                                                    district: sc.district || undefined,
-                                                    province: sc.province || undefined,
-                                                    postalCode: sc.postalCode || undefined,
-                                                });
-                                                const fullAddress = structuredAddr || sc.address || "";
-                                                if (fullAddress) {
-                                                    onCustomShippingAddressChange?.(fullAddress);
-                                                }
-                                            } else {
-                                                // Clear address when no company selected
-                                                onCustomShippingAddressChange?.("");
+                            {/* Always show shipping company selector */}
+                            {customer?.shippingCompanies && customer.shippingCompanies.length > 0 ? (
+                                <FormCombobox
+                                    label="เลือกบริษัทขนส่ง"
+                                    value={shippingCompanyId}
+                                    onChange={(val) => {
+                                        onShippingCompanyChange?.(val);
+                                        const selected = customer.shippingCompanies?.find(
+                                            (sc) => sc.shippingCompany.id === val
+                                        );
+                                        const sc = selected?.shippingCompany;
+                                        if (sc) {
+                                            const structuredAddr = buildCompanyAddress({
+                                                addressLine: sc.addressLine || undefined,
+                                                subdistrict: sc.subdistrict || undefined,
+                                                district: sc.district || undefined,
+                                                province: sc.province || undefined,
+                                                postalCode: sc.postalCode || undefined,
+                                            });
+                                            const fullAddress = structuredAddr || sc.address || "";
+                                            if (fullAddress) {
+                                                onCustomShippingAddressChange?.(fullAddress);
                                             }
-                                        }}
-                                        options={customer.shippingCompanies.map((sc) => ({
-                                            value: sc.shippingCompany.id,
-                                            label: sc.shippingCompany.name,
-                                        }))}
-                                        placeholder="เลือกบริษัทขนส่ง"
-                                        searchPlaceholder="ค้นหาบริษัทขนส่ง..."
-                                        emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
-                                    />
-                                )}
+                                        } else {
+                                            // Clear address when no company selected
+                                            onCustomShippingAddressChange?.("");
+                                        }
+                                    }}
+                                    options={customer.shippingCompanies.map((sc) => ({
+                                        value: sc.shippingCompany.id,
+                                        label: sc.shippingCompany.name,
+                                    }))}
+                                    placeholder="เลือกบริษัทขนส่ง"
+                                    searchPlaceholder="ค้นหาบริษัทขนส่ง..."
+                                    emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
+                                />
+                            ) : (
+                                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                                    <p className="text-sm text-gray-600">ไม่มีข้อมูลบริษัทขนส่ง</p>
+                                </div>
+                            )}
 
                             {/* Show custom address only when shipping company is selected */}
                             {shippingCompanyId && (
