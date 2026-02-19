@@ -63,52 +63,82 @@ export default function CustomersTable({
 
             if (!subDealers || subDealers.length === 0) {
               return (
-                <div className="px-4 py-3 text-sm text-gray-500 bg-gray-50 border-t">
-                  ไม่มีร้านค้าลูกภายใต้ร้านนี้
+                <div className="px-8 py-4 text-sm text-gray-500 bg-gray-50/50 border-t italic">
+                  — ไม่มีข้อมูลร้านค้าลูกภายใต้ร้านนี้ —
                 </div>
               );
             }
 
             return (
-              <div className="bg-blue-50 border-t">
-                <div className="px-4 py-2 text-sm font-medium text-blue-900 bg-blue-100">
-                  ร้านค้าลูก ({subDealers.length} ร้าน)
+              <div className="bg-gray-50/50 border-t">
+                {/* Header ของตารางย่อย - แยก ชื่อ และ รหัส ออกจากกัน */}
+                <div className="px-8 py-2 bg-gray-100/80 border-b flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  <div className="flex-1 px-2">ชื่อร้านค้า</div>
+                  <div className="w-32 px-2 text-center">รหัสลูกค้า</div>
+                  <div className="w-40 px-2 text-center">เบอร์โทรศัพท์</div>
+                  <div className="w-32 px-2 text-center">ประเภท</div>
+                  <div className="w-32 px-2 text-center">สถานะ</div>
+                  <div className="w-24 px-2 text-right">จัดการ</div>
                 </div>
-                {subDealers.map((subDealer: any) => (
-                  <div key={subDealer.id} className="px-4 py-3 border-l-4 border-blue-300 hover:bg-blue-100 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        <div>
-                          <div className="font-medium text-blue-900">
-                            {subDealer.customerCode} - {subDealer.name}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {subDealer.phone} {subDealer.email && `• ${subDealer.email}`}
-                          </div>
+
+                {/* รายการร้านค้าลูก */}
+                <div className="divide-y divide-gray-200">
+                  {subDealers.map((subDealer: any) => (
+                    <div
+                      key={subDealer.id}
+                      className="px-8 py-3 flex items-center hover:bg-white transition-colors group"
+                    >
+                      {/* 1. ชื่อร้านค้า */}
+                      <div className="flex-1 px-2 flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+                        <div className="text-sm font-semibold text-gray-900 truncate">
+                          {subDealer.name}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* 2. รหัสลูกค้า (แยกออกมา) */}
+                      <div className="w-32 px-2 text-center">
+                        <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">
+                          {subDealer.customerCode}
+                        </span>
+                      </div>
+
+                      {/* 3. เบอร์โทรศัพท์ */}
+                      <div className="w-40 px-2 text-center text-sm text-gray-600">
+                        {subDealer.phone || "-"}
+                      </div>
+
+                      {/* 4. ประเภท */}
+                      <div className="w-32 px-2 flex justify-center">
                         <CustomerTypeBadge type={subDealer.customerType} />
-                        <CustomerStatusBadge status={subDealer.status} className="text-sm" />
-                        <div className="flex items-center gap-1">
-                          <ActionButton
-                            href={`/customers/${subDealer.id}`}
-                            icon={Eye}
-                            label="ดู"
-                            colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
-                          />
-                          <ActionButton
-                            href={`/customers/${subDealer.id}/edit`}
-                            icon={Edit}
-                            label="แก้ไข"
-                            colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
-                          />
-                        </div>
+                      </div>
+
+                      {/* 5. สถานะ */}
+                      <div className="w-32 px-2 flex justify-center">
+                        <CustomerStatusBadge
+                          status={subDealer.status}
+                          className="text-[11px] px-2 py-0.5"
+                        />
+                      </div>
+
+                      {/* 6. ปุ่มจัดการ */}
+                      <div className="w-24 px-2 flex justify-end items-center gap-1">
+                        <ActionButton
+                          href={`/customers/${subDealer.id}`}
+                          icon={Eye}
+                          label="ดู"
+                          colorClass="text-gray-400 text-blue-600 bg-blue-50 border-transparent shadow-none p-1.5"
+                        />
+                        <ActionButton
+                          href={`/customers/${subDealer.id}/edit`}
+                          icon={Edit}
+                          label="แก้ไข"
+                          colorClass="text-gray-400 text-purple-600 bg-purple-50 border-transparent shadow-none p-1.5"
+                        />
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             );
           }}
