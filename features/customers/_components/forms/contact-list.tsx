@@ -63,25 +63,25 @@ export function ContactList({ value = [], onChange }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
                             label="ชื่อ"
-                            placeholder="สมชาย"
+                            placeholder=""
                             value={item.firstName}
                             onChange={(e) => handleChange(index, "firstName", e.target.value)}
                         />
                         <FormInput
                             label="นามสกุล"
-                            placeholder="ใจดี"
+                            placeholder=""
                             value={item.lastName}
                             onChange={(e) => handleChange(index, "lastName", e.target.value)}
                         />
                         <FormInput
                             label="เบอร์โทรศัพท์"
-                            placeholder="0812345678"
+                            placeholder=""
                             value={item.phone}
                             onChange={(e) => handleChange(index, "phone", e.target.value)}
                         />
                         <FormInput
                             label="อีเมล"
-                            placeholder="example@test.com"
+                            placeholder=""
                             value={item.email}
                             onChange={(e) => handleChange(index, "email", e.target.value)}
                         />
