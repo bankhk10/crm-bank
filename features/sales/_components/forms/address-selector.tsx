@@ -35,7 +35,7 @@ export function AddressSelector({
   // Build full address string from address components
   const buildFullAddress = (address: CustomerAddress | null): string => {
     if (!address) return "";
-    
+
     const parts = [
       address.addressLine,
       address.subdistrict,
@@ -43,7 +43,7 @@ export function AddressSelector({
       address.province,
       address.postalCode,
     ].filter(Boolean);
-    
+
     return parts.join(" ");
   };
 
@@ -58,7 +58,7 @@ export function AddressSelector({
 
   // Combine primary address and additional addresses
   const allAddresses: Array<CustomerAddress & { isPrimary?: boolean }> = [];
-  
+
   // Add primary address first if it exists
   if (primaryAddress && (primaryAddress.addressLine || primaryAddress.province)) {
     allAddresses.push({
@@ -73,7 +73,7 @@ export function AddressSelector({
       isPrimary: true,
     });
   }
-  
+
   // Add additional addresses
   if (customer?.addresses) {
     allAddresses.push(...customer.addresses);
@@ -125,12 +125,12 @@ export function AddressSelector({
       <Label className="text-base font-semibold">
         เลือกที่อยู่จัดส่ง <span className="text-red-500">*</span>
       </Label>
-      
+
       <div className="space-y-2">
         {allAddresses.map((address) => {
           const fullAddress = buildFullAddress(address);
           const isSelected = selectedAddressId === address.id;
-          
+
           return (
             <div
               key={address.id}
@@ -158,7 +158,7 @@ export function AddressSelector({
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <MapPin className="h-4 w-4 text-gray-500" />
@@ -166,7 +166,7 @@ export function AddressSelector({
                       {address.isPrimary ? "ที่อยู่หลัก" : `ที่อยู่ที่ ${allAddresses.indexOf(address)}`}
                     </span>
                   </div>
-                  
+
                   <div className="text-gray-700 text-sm">
                     {fullAddress || "-"}
                   </div>
@@ -175,7 +175,7 @@ export function AddressSelector({
             </div>
           );
         })}
-        
+
         <Button
           type="button"
           variant="outline"

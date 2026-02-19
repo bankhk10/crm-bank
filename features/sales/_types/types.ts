@@ -232,6 +232,21 @@ export interface DeliveryMethodSectionProps {
   selectedAddressId?: string;
   onAddressSelect?: (addressId: string, fullAddress: string) => void;
   onUseCustomAddress?: () => void;
+  // Additional props for shipping address handling
+  companies?: SaleFormCompany[];
+  pickupCompanyId?: string;
+  onPickupCompanyChange?: (value: string) => void;
+  shippingCompanyId?: string;
+  onShippingCompanyChange?: (value: string) => void;
+  requestedDeliveryDate?: string;
+  onRequestedDeliveryDateChange?: (value: string) => void;
+  shippingAddress?: string;
+  customShippingAddress?: string;
+  useCustomShippingAddress?: boolean;
+  onCustomShippingAddressChange?: (value: string) => void;
+  onUseCustomShippingAddressChange?: (value: boolean) => void;
+  fieldErrors?: Record<string, string>;
+  onFieldErrorClear?: (field: string) => void;
 }
 
 /**

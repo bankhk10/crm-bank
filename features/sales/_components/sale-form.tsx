@@ -8,7 +8,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import DatePicker from "@/components/custom/DatePicker";
 import {
     FormInput,
@@ -18,8 +17,6 @@ import {
 } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin } from "lucide-react";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import generateRandomSaleClient from "@/lib/random-fill/sale-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -152,12 +149,11 @@ export function SaleForm({
         initialData?.deliveryMethod || "SALES_DELIVERY",
     );
 
+
     // Address selection state
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
         initialData?.selectedAddressId || "",
     );
-
-    // Discounts and notes
     const [shippingCost, setShippingCost] = useState(
         initialData?.shippingCost || 0,
     );
@@ -365,10 +361,11 @@ export function SaleForm({
     };
 
     // Handle address selection
-    const handleAddressSelect = (addressId: string, fullAddress: string) => {
+    const handleAddressSelect = (addressId: string, _fullAddress: string) => {
         setSelectedAddressId(addressId);
-        setCustomShippingAddress(fullAddress);
-        setUseCustomShippingAddress(true);
+        // Don't automatically set custom shipping address when selecting from list
+        // setCustomShippingAddress(fullAddress);
+        // setUseCustomShippingAddress(true);
     };
 
     // Handle custom address input
@@ -376,6 +373,15 @@ export function SaleForm({
         setSelectedAddressId("");
         setUseCustomShippingAddress(true);
     };
+
+    // Handle custom shipping address change
+    const handleUseCustomShippingAddressChange = (checked: boolean) => {
+        setUseCustomShippingAddress(checked);
+        if (checked) {
+            setSelectedAddressId(""); // Clear selected address when switching to custom
+        }
+    };
+
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
@@ -466,7 +472,9 @@ export function SaleForm({
                         : deliveryMethod === "SALES_DELIVERY"
                             ? useCustomShippingAddress
                                 ? customShippingAddress
-                                : undefined
+                                : selectedAddressId
+                                    ? undefined // Use selectedAddressId instead of shippingAddress
+                                    : shippingAddress
                             : useCustomShippingAddress
                                 ? customShippingAddress
                                 : shippingAddress,
@@ -671,259 +679,24 @@ export function SaleForm({
                 selectedAddressId={selectedAddressId}
                 onAddressSelect={handleAddressSelect}
                 onUseCustomAddress={handleUseCustomAddress}
+                companies={companies}
+                pickupCompanyId={pickupCompanyId}
+                onPickupCompanyChange={(val) => {
+                    setPickupCompanyId(val);
+                    setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
+                }}
+                shippingCompanyId={shippingCompanyId}
+                onShippingCompanyChange={setShippingCompanyId}
+                requestedDeliveryDate={requestedDeliveryDate}
+                onRequestedDeliveryDateChange={setRequestedDeliveryDate}
+                shippingAddress={shippingAddress}
+                customShippingAddress={customShippingAddress}
+                useCustomShippingAddress={useCustomShippingAddress}
+                onCustomShippingAddressChange={setCustomShippingAddress}
+                onUseCustomShippingAddressChange={handleUseCustomShippingAddressChange}
+                fieldErrors={fieldErrors}
+                onFieldErrorClear={(field) => setFieldErrors((prev) => ({ ...prev, [field]: "" }))}
             />
-
-            {/* Shipping Address based on delivery method */}
-            <div className="mt-6">
-                {deliveryMethod === "CUSTOMER_PICKUP" ? (
-                    <div className="space-y-4 border rounded-xl p-4">
-                        <h4 className="font-medium text-gray-900">
-                            รายละเอียดการรับสินค้า
-                        </h4>
-                        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-                            <DatePicker
-                                label="วันที่มารับสินค้า"
-                                value={requestedDeliveryDate}
-                                onChange={(val) => setRequestedDeliveryDate(val || "")}
-                                placeholder="เลือกวันที่มารับสินค้า"
-                                required
-                            />
-
-                            <FormCombobox
-                                label="สถานที่รับสินค้า (บริษัท/สาขา)"
-                                value={pickupCompanyId}
-                                onChange={(val) => {
-                                    setPickupCompanyId(val);
-                                    setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
-                                }}
-                                options={companies.map((c) => ({
-                                    value: c.id,
-                                    label: c.name,
-                                }))}
-                                placeholder="เลือกสถานที่รับสินค้า"
-                                searchPlaceholder="ค้นหาสถานที่..."
-                                emptyText="ไม่พบสถานที่"
-                                required
-                                error={fieldErrors.pickupCompanyId}
-                            />
-
-                            <div className="md:col-span-2">
-                                <Label className="text-base font-medium mx-2 mb-2 block">
-                                    ที่อยู่สถานที่รับสินค้า
-                                </Label>
-                                <div className="p-3 bg-white border rounded-md min-h-[60px] text-gray-700">
-                                    {shippingAddress || "-"}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : deliveryMethod === "COURIER" ? (
-                    <div className="space-y-4 border rounded-xl p-4">
-                        <h4 className="font-medium text-gray-900">
-                            รายละเอียดการจัดส่งผ่านบริษัทขนส่ง
-                        </h4>
-
-                        <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
-                            <div className="space-y-1">
-                                <DatePicker
-                                    label="วันที่ต้องการให้ส่งของ"
-                                    value={requestedDeliveryDate}
-                                    onChange={(val) => setRequestedDeliveryDate(val || "")}
-                                    placeholder="เลือกวันที่ต้องการส่งของ"
-                                />
-                                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
-                                    ⏰ หมายเหตุ สร้างรายการหลัง 12:00 น. → จัดส่งวันถัดไป
-                                </p>
-                            </div>
-
-                            {selectedCustomer?.shippingCompanies &&
-                                selectedCustomer.shippingCompanies.length > 0 && (
-                                    <FormCombobox
-                                        label="เลือกบริษัทขนส่ง"
-                                        value={shippingCompanyId}
-                                        onChange={(val) => {
-                                            setShippingCompanyId(val);
-                                            const selected = selectedCustomer.shippingCompanies?.find(
-                                                (sc) => sc.shippingCompany.id === val
-                                            );
-                                            const sc = selected?.shippingCompany;
-                                            if (sc) {
-                                                const structuredAddr = buildCompanyAddress({
-                                                    addressLine: sc.addressLine || undefined,
-                                                    subdistrict: sc.subdistrict || undefined,
-                                                    district: sc.district || undefined,
-                                                    province: sc.province || undefined,
-                                                    postalCode: sc.postalCode || undefined,
-                                                });
-                                                const fullAddress = structuredAddr || sc.address || "";
-                                                if (fullAddress) {
-                                                    setCustomShippingAddress(fullAddress);
-                                                    setShippingAddress(fullAddress);
-                                                }
-                                            }
-                                        }}
-                                        options={selectedCustomer.shippingCompanies.map((sc) => ({
-                                            value: sc.shippingCompany.id,
-                                            label: sc.shippingCompany.name,
-                                        }))}
-                                        placeholder="เลือกบริษัทขนส่ง"
-                                        searchPlaceholder="ค้นหาบริษัทขนส่ง..."
-                                        emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
-                                    />
-                                )}
-
-                            <FormTextarea
-                                label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
-                                value={customShippingAddress}
-                                onChange={(e) => {
-                                    setCustomShippingAddress(e.target.value);
-                                    setShippingAddress(e.target.value);
-                                    setFieldErrors((prev) => ({
-                                        ...prev,
-                                        customShippingAddress: "",
-                                    }));
-                                }}
-                                placeholder="ระบุรายละเอียดที่อยู่..."
-                                rows={4}
-                                required
-                                error={fieldErrors.customShippingAddress}
-                            />
-                        </div>
-                    </div>
-                ) : selectedCustomer ? (
-                    <>
-                        {!useCustomShippingAddress && (
-                            <>
-                                {selectedCustomer.shippingAddressLine ||
-                                    selectedCustomer.shippingProvince ? (
-                                    <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-                                        <div className="md:col-span-2">
-                                            <FormInput
-                                                label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
-                                                value={selectedCustomer.shippingAddressLine || ""}
-                                                onChange={() => { }}
-                                                disabled
-                                                readOnly
-                                            />
-                                        </div>
-
-                                        <FormInput
-                                            label={
-                                                selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
-                                                    ? "แขวง"
-                                                    : "ตำบล"
-                                            }
-                                            value={
-                                                selectedCustomer.shippingSubdistrict
-                                                    ?.replace(/^แขวง/, "")
-                                                    ?.replace(/^ตำบล/, "")
-                                                    ?.trim() || ""
-                                            }
-                                            onChange={() => { }}
-                                            disabled
-                                            readOnly
-                                        />
-
-                                        <FormInput
-                                            label={
-                                                selectedCustomer.shippingProvince === "กรุงเทพมหานคร"
-                                                    ? "เขต"
-                                                    : "อำเภอ"
-                                            }
-                                            value={
-                                                selectedCustomer.shippingDistrict
-                                                    ?.replace(/^เขต/, "")
-                                                    ?.replace(/^อำเภอ/, "")
-                                                    ?.trim() || ""
-                                            }
-                                            onChange={() => { }}
-                                            disabled
-                                            readOnly
-                                        />
-
-                                        <FormInput
-                                            label="จังหวัด"
-                                            value={
-                                                selectedCustomer.shippingProvince
-                                                    ?.replace(/^จังหวัด/, "")
-                                                    ?.trim() || ""
-                                            }
-                                            onChange={() => { }}
-                                            disabled
-                                            readOnly
-                                        />
-
-                                        <FormInput
-                                            label="รหัสไปรษณีย์"
-                                            value={selectedCustomer.shippingPostalCode || ""}
-                                            onChange={() => { }}
-                                            disabled
-                                            readOnly
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
-                                            <MapPin className="h-8 w-8 text-gray-400" />
-                                        </div>
-                                        <p className="text-base font-medium text-gray-600">
-                                            ไม่พบข้อมูลที่อยู่จัดส่ง
-                                        </p>
-                                        <p className="mt-2 text-sm text-gray-500">
-                                            ลูกค้ารายนี้ยังไม่มีข้อมูลที่อยู่จัดส่งในระบบ
-                                        </p>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </>
-                ) : (
-                    <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
-                            <MapPin className="h-8 w-8 text-gray-400" />
-                        </div>
-                        <p className="text-base font-medium text-gray-600">
-                            กรุณาเลือกลูกค้า
-                        </p>
-                        <p className="mt-2 text-sm text-gray-500">
-                            เลือกลูกค้าเพื่อแสดงข้อมูลที่อยู่จัดส่ง
-                        </p>
-                    </div>
-                )}
-
-                {/* Custom shipping address option */}
-                {selectedCustomer &&
-                    deliveryMethod !== "CUSTOMER_PICKUP" &&
-                    deliveryMethod !== "COURIER" && (
-                        <div className="mt-6 space-y-4">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="customShippingAddress"
-                                    checked={useCustomShippingAddress}
-                                    onCheckedChange={(checked) =>
-                                        setUseCustomShippingAddress(checked as boolean)
-                                    }
-                                />
-                                <label
-                                    htmlFor="customShippingAddress"
-                                    className="text-base font-medium cursor-pointer"
-                                >
-                                    ระบุที่อยู่จัดส่งสำหรับรายการขายนี้เท่านั้น
-                                </label>
-                            </div>
-
-                            {useCustomShippingAddress && (
-                                <FormTextarea
-                                    label="ที่อยู่จัดส่งสำหรับรายการนี้"
-                                    value={customShippingAddress}
-                                    onChange={(e) => setCustomShippingAddress(e.target.value)}
-                                    rows={4}
-                                    placeholder="กรอกที่อยู่จัดส่งสำหรับรายการขายนี้..."
-                                />
-                            )}
-                        </div>
-                    )}
-            </div>
 
             {/* Products Section */}
             <SectionHeader title="รายการสินค้า" color="gray">
