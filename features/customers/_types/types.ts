@@ -58,6 +58,19 @@ export type CustomerPayload = {
   notes?: string;
   birthDate?: string;
   images?: any[];
+  shippingAddresses?: {
+    addressLine: string;
+    province: string;
+    district: string;
+    subdistrict: string;
+    postalCode: string;
+  }[];
+  contacts?: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+  }[];
 };
 
 /**

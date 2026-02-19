@@ -22,6 +22,8 @@ import type {
   SelectOption,
   FarmPlot,
 } from "../../_types/types";
+import { ShippingAddressList } from "./shipping-address-list";
+import { ContactList } from "./contact-list";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -60,11 +62,12 @@ export default function CustomerFormFarmer({
       },
     ],
     notes: initial.notes ?? "",
+    shippingAddresses: (initial as any).shippingAddresses ?? [],
+    contacts: (initial as any).contacts ?? [],
   });
 
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generatingCode, setGeneratingCode] = useState(false);
 
@@ -137,7 +140,7 @@ export default function CustomerFormFarmer({
           label: e.name,
         }));
         setEmployeeOptions(emps);
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
@@ -174,7 +177,6 @@ export default function CustomerFormFarmer({
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    setError(null);
     setFieldErrors({});
 
     // Client-side validation
@@ -202,7 +204,6 @@ export default function CustomerFormFarmer({
 
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
-      setError(Object.values(nextFieldErrors)[0][0]);
       setLoading(false);
       return;
     }
@@ -239,7 +240,11 @@ export default function CustomerFormFarmer({
         ...(p.variety ? { variety: p.variety } : {}),
         ...(p.soilType ? { soilType: p.soilType } : {}),
         ...(p.waterSource ? { waterSource: p.waterSource } : {}),
+        ...(p.soilType ? { soilType: p.soilType } : {}),
+        ...(p.waterSource ? { waterSource: p.waterSource } : {}),
       })),
+      shippingAddresses: values.shippingAddresses,
+      contacts: values.contacts,
     } as any;
 
     try {
@@ -247,20 +252,12 @@ export default function CustomerFormFarmer({
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(
-            Object.values(res.issues).flat()[0] ??
-            res.error ??
-            "เกิดข้อผิดพลาด",
-          );
-        } else {
-          setError(res.error ?? "เกิดข้อผิดพลาด");
         }
         setLoading(false);
       } else {
         onSuccess?.();
       }
-    } catch (err: any) {
-      setError(String(err));
+    } catch {
       setLoading(false);
     }
   }
@@ -273,7 +270,7 @@ export default function CustomerFormFarmer({
         (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
-    } catch (err) {
+    } catch {
       return "";
     }
   }
@@ -401,6 +398,14 @@ export default function CustomerFormFarmer({
         />
       </div>
 
+      <div className="md:col-span-4 mt-6">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลผู้ติดต่อเพิ่มเติม</h4>
+        <ContactList
+          value={values.contacts}
+          onChange={(val) => setValues((p: any) => ({ ...p, contacts: val }))}
+        />
+      </div>
+
       <FormInput
         label="ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)"
         placeholder="123/45 หมู่ 6"
@@ -427,6 +432,14 @@ export default function CustomerFormFarmer({
             clearFieldError("subdistrict");
             clearFieldError("postalCode");
           }}
+        />
+      </div>
+
+      <div className="md:col-span-4 mt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่งเพิ่มเติม</h4>
+        <ShippingAddressList
+          value={values.shippingAddresses}
+          onChange={(val) => setValues((p: any) => ({ ...p, shippingAddresses: val }))}
         />
       </div>
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
@@ -586,7 +599,7 @@ export default function CustomerFormFarmer({
 
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+        <div className="flex justify-center flex-col-reverse sm:flex-row sm:items-center gap-4 sm:gap-6">
           <Button
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"

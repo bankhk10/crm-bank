@@ -24,6 +24,8 @@ import type {
   SubmitResult,
   SelectOption,
 } from "../../_types/types";
+import { ShippingAddressList } from "./shipping-address-list";
+import { ContactList } from "./contact-list";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -65,6 +67,8 @@ export default function CustomerFormSubdealer({
     responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? "",
     relationshipScore: (initial as any).relationshipScore ?? null,
     notes: initial.notes ?? "",
+    shippingAddresses: (initial as any).shippingAddresses ?? [],
+    contacts: (initial as any).contacts ?? [],
     images: initial.images || [],
   });
 
@@ -76,7 +80,6 @@ export default function CustomerFormSubdealer({
   const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generatingCode, setGeneratingCode] = useState(false);
 
@@ -194,7 +197,7 @@ export default function CustomerFormSubdealer({
         setEmployeeOptions(emps);
         setProductGroupOptions(productGroups);
         setBrandOptions(brands);
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
@@ -241,7 +244,7 @@ export default function CustomerFormSubdealer({
           try {
             const json = JSON.parse(xhr.responseText || "{}");
             resolve(json);
-          } catch (err) {
+          } catch {
             resolve({});
           }
         } else {
@@ -294,7 +297,6 @@ export default function CustomerFormSubdealer({
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    setError(null);
     setFieldErrors({});
 
     // Client-side validation
@@ -325,7 +327,6 @@ export default function CustomerFormSubdealer({
 
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
-      setError(Object.values(nextFieldErrors)[0][0]);
       setLoading(false);
       return;
     }
@@ -374,6 +375,8 @@ export default function CustomerFormSubdealer({
       ...(values.relationshipScore != null && values.relationshipScore !== ""
         ? { relationshipScore: Number(values.relationshipScore) }
         : {}),
+      shippingAddresses: values.shippingAddresses,
+      contacts: values.contacts,
     } as any;
 
     try {
@@ -381,13 +384,6 @@ export default function CustomerFormSubdealer({
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(
-            Object.values(res.issues).flat()[0] ??
-            res.error ??
-            "เกิดข้อผิดพลาด",
-          );
-        } else {
-          setError(res.error ?? "เกิดข้อผิดพลาด");
         }
         setLoading(false);
       } else {
@@ -454,8 +450,7 @@ export default function CustomerFormSubdealer({
         // Navigation is handled by onSuccess callback
         onSuccess?.();
       }
-    } catch (err: any) {
-      setError(String(err));
+    } catch {
       setLoading(false);
     } finally {
       setUploadProgress(null);
@@ -470,7 +465,7 @@ export default function CustomerFormSubdealer({
         (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
-    } catch (err) {
+    } catch {
       return "";
     }
   }
@@ -619,6 +614,14 @@ export default function CustomerFormSubdealer({
         />
       </div>
 
+      <div className="md:col-span-4 mt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่งเพิ่มเติม</h4>
+        <ShippingAddressList
+          value={values.shippingAddresses}
+          onChange={(val) => setValues((p: any) => ({ ...p, shippingAddresses: val }))}
+        />
+      </div>
+
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลบุคคล
       </h3>
@@ -702,6 +705,14 @@ export default function CustomerFormSubdealer({
           value={calculatedAge()}
           disabled={true}
           onChange={() => { }}
+        />
+      </div>
+
+      <div className="md:col-span-4 mt-6">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลผู้ติดต่อเพิ่มเติม</h4>
+        <ContactList
+          value={values.contacts}
+          onChange={(val) => setValues((p: any) => ({ ...p, contacts: val }))}
         />
       </div>
 
@@ -866,7 +877,7 @@ export default function CustomerFormSubdealer({
 
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+        <div className="flex justify-center flex-col-reverse sm:flex-row sm:items-center gap-4 sm:gap-6">
           <Button
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"

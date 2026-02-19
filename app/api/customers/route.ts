@@ -69,6 +69,27 @@ const customerSchema = z.object({
   regularShops: z.string().optional(),
   serviceTypes: z.string().optional(),
   usedBrands: z.string().optional(),
+  shippingAddresses: z
+    .array(
+      z.object({
+        addressLine: z.string().optional(),
+        province: z.string().optional(),
+        district: z.string().optional(),
+        subdistrict: z.string().optional(),
+        postalCode: z.string().optional(),
+      }),
+    )
+    .optional(),
+  contacts: z
+    .array(
+      z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        phone: z.string().optional(),
+        email: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export async function GET(request: Request) {
@@ -189,7 +210,7 @@ export async function POST(request: Request) {
       customerType: body?.customerType ?? null,
       customerCode: body?.customerCode ?? null,
     });
-  } catch (logErr) {
+  } catch {
     // best-effort logging, don't break request
   }
 
@@ -226,6 +247,14 @@ export async function POST(request: Request) {
         (normalizedBody as any).shippingPostalCode,
       );
     }
+    // Normalize nested shipping addresses postal codes
+    if (Array.isArray((normalizedBody as any).shippingAddresses)) {
+      (normalizedBody as any).shippingAddresses.forEach((addr: any) => {
+        if (typeof addr.postalCode === "number") {
+          addr.postalCode = String(addr.postalCode);
+        }
+      });
+    }
   }
 
   const parsed = customerSchema.safeParse(normalizedBody);
@@ -236,7 +265,7 @@ export async function POST(request: Request) {
         userId: session.user.id,
         issues: parsed.error.flatten().fieldErrors,
       });
-    } catch (logErr) {}
+    } catch {}
 
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
@@ -380,6 +409,30 @@ export async function POST(request: Request) {
         regularShops: parsed.data.regularShops ?? null,
         serviceTypes: parsed.data.serviceTypes ?? null,
         usedBrands: parsed.data.usedBrands ?? null,
+        // ... existing fields ...
+        addresses: parsed.data.shippingAddresses
+          ? {
+              create: parsed.data.shippingAddresses.map((addr) => ({
+                addressLine: addr.addressLine,
+                province: addr.province,
+                district: addr.district,
+                subdistrict: addr.subdistrict,
+                postalCode: addr.postalCode
+                  ? String(addr.postalCode)
+                  : undefined,
+              })),
+            }
+          : undefined,
+        contacts: parsed.data.contacts
+          ? {
+              create: parsed.data.contacts.map((contact) => ({
+                firstName: contact.firstName,
+                lastName: contact.lastName,
+                phone: contact.phone,
+                email: contact.email,
+              })),
+            }
+          : undefined,
         createdById: session.user.id,
       } as any,
     });
@@ -390,13 +443,13 @@ export async function POST(request: Request) {
         customerId: customer.id,
         customerCode: customer.customerCode,
       });
-    } catch (logErr) {}
+    } catch {}
 
     return NextResponse.json({ customer }, { status: 201 });
   } catch (err) {
     try {
       console.error(`[api/customers] Error creating customer`, { error: err });
-    } catch (logErr) {}
+    } catch {}
 
     if (
       err instanceof Prisma.PrismaClientKnownRequestError &&

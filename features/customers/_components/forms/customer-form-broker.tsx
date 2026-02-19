@@ -20,6 +20,8 @@ import type {
   SubmitResult,
   SelectOption,
 } from "../../_types/types";
+import { ShippingAddressList } from "./shipping-address-list";
+import { ContactList } from "./contact-list";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -58,6 +60,8 @@ export default function CustomerFormBroker({
     usedBrands: (initial as any).usedBrands ?? "",
     responsibleEmployeeId: (initial as any).responsibleEmployeeId ?? "",
     notes: initial.notes ?? "",
+    shippingAddresses: (initial as any).shippingAddresses ?? [],
+    contacts: (initial as any).contacts ?? [],
   });
 
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
@@ -237,6 +241,8 @@ export default function CustomerFormBroker({
       ...(values.responsibleEmployeeId
         ? { responsibleEmployeeId: values.responsibleEmployeeId }
         : {}),
+      shippingAddresses: values.shippingAddresses,
+      contacts: values.contacts,
     } as any;
 
     try {
@@ -372,6 +378,14 @@ export default function CustomerFormBroker({
         />
       </div>
 
+      <div className="md:col-span-4 mt-6">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลผู้ติดต่อเพิ่มเติม</h4>
+        <ContactList
+          value={values.contacts}
+          onChange={(val) => setValues((p: any) => ({ ...p, contacts: val }))}
+        />
+      </div>
+
       <FormInput
         label="ที่อยู่ (บ้านเลขที่, หมู่, ซอย, ถนน)"
         placeholder="123/45 หมู่ 6"
@@ -398,6 +412,14 @@ export default function CustomerFormBroker({
             clearFieldError("subdistrict");
             clearFieldError("postalCode");
           }}
+        />
+      </div>
+
+      <div className="md:col-span-4 mt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่งเพิ่มเติม</h4>
+        <ShippingAddressList
+          value={values.shippingAddresses}
+          onChange={(val) => setValues((p: any) => ({ ...p, shippingAddresses: val }))}
         />
       </div>
 
@@ -551,7 +573,7 @@ export default function CustomerFormBroker({
 
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+        <div className="flex justify-center flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
           <Button
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"

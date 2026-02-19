@@ -369,6 +369,35 @@ model Customer {
   dailySalesSummaries     DailySalesSummary[]
   salesTargets            SalesTarget[]
   shippingCompanies       CustomerShippingCompany[]
+  addresses               CustomerAddress[]
+  contacts                CustomerContact[]
+}
+
+model CustomerAddress {
+  id          String   @id @default(cuid())
+  customerId  String
+  addressLine String?
+  province    String?
+  district    String?
+  subdistrict String?
+  postalCode  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CustomerContact {
+  id          String   @id @default(cuid())
+  customerId  String
+  firstName   String?
+  lastName    String?
+  phone       String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model CreditLimit {

@@ -16,6 +16,8 @@ import {
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { CustomerFormProps, CustomerPayload, SelectOption } from "../../_types/types";
+import { ShippingAddressList } from "./shipping-address-list";
+import { ContactList } from "./contact-list";
 
 type Props = Omit<CustomerFormProps, "customerType">;
 
@@ -60,20 +62,16 @@ export default function CustomerFormDealer({
     shippingDistrict: (initial as any).shippingDistrict ?? "",
     shippingSubdistrict: (initial as any).shippingSubdistrict ?? "",
     shippingPostalCode: (initial as any).shippingPostalCode ?? "",
+    shippingAddresses: (initial as any).shippingAddresses ?? [],
+    contacts: (initial as any).contacts ?? [],
     status: initial.status ?? "ACTIVE",
     images: initial.images || [],
   });
 
-  const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
-  const [parentDealerLabel, setParentDealerLabel] = useState<string>("");
-  const [responsibleEmployeeLabel, setResponsibleEmployeeLabel] =
-    useState<string>("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [checkingCode, setCheckingCode] = useState(false);
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -83,7 +81,6 @@ export default function CustomerFormDealer({
     async (code: string) => {
       if (!code?.trim()) return;
 
-      setCheckingCode(true);
       try {
         const excludeId = (initial as any)?.id || "";
         const res = await fetch(
@@ -107,7 +104,7 @@ export default function CustomerFormDealer({
       } catch {
         // ignore network errors during check
       } finally {
-        setCheckingCode(false);
+        // setCheckingCode(false);
       }
     },
     [initial],
@@ -175,26 +172,16 @@ export default function CustomerFormDealer({
     // fetch companies (for parent dealer) and employees (for responsible)
     async function fetchOptions() {
       try {
-        const [cRes, eRes] = await Promise.all([
-          fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
-            .then((r) => r.json())
-            .catch(() => ({ customers: [] })),
-          fetch(`/api/employee`)
-            .then((r) => r.json())
-            .catch(() => ({ employees: [] })),
-        ]);
+        const eRes = await fetch(`/api/employee`)
+          .then((r) => r.json())
+          .catch(() => ({ employees: [] }));
 
-        const comps = (cRes.customers || []).map((c: any) => ({
-          value: c.id,
-          label: c.name,
-        }));
         const emps = (eRes.employees || []).map((e: any) => ({
           value: e.id,
           label: e.name,
         }));
-        setDealerOptions(comps);
         setEmployeeOptions(emps);
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
@@ -210,21 +197,9 @@ export default function CustomerFormDealer({
       clearFieldError("parentDealer");
     }
 
-    if (values.parentDealer) {
-      const found = dealerOptions.find((d) => d.value === values.parentDealer);
-      if (found) setParentDealerLabel(found.label);
-    }
-    if (values.responsibleEmployeeId) {
-      const found = employeeOptions.find(
-        (d) => d.value === values.responsibleEmployeeId,
-      );
-      if (found) setResponsibleEmployeeLabel(found.label);
-    }
   }, [
-    dealerOptions,
-    employeeOptions,
     values.parentDealer,
-    values.responsibleEmployeeId,
+    values.id,
   ]);
 
   const clearFieldError = (field: string) => {
@@ -255,7 +230,7 @@ export default function CustomerFormDealer({
           try {
             const json = JSON.parse(xhr.responseText || "{}");
             resolve(json);
-          } catch (err) {
+          } catch {
             resolve({});
           }
         } else {
@@ -304,19 +279,12 @@ export default function CustomerFormDealer({
     });
   };
 
-  function handleChange(key: string) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const v = (e.target as HTMLInputElement).value;
-      setValues((prev: any) => ({ ...prev, [key]: v }));
-      clearFieldError(key);
-    };
-  }
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    setError(null);
     setFieldErrors({});
 
     // Client-side validation
@@ -352,7 +320,6 @@ export default function CustomerFormDealer({
 
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
-      setError(Object.values(nextFieldErrors)[0][0]);
       setLoading(false);
       return;
     }
@@ -399,6 +366,8 @@ export default function CustomerFormDealer({
       ...(values.relationshipScore != null
         ? { relationshipScore: Number(values.relationshipScore) }
         : {}),
+      shippingAddresses: values.shippingAddresses,
+      contacts: values.contacts,
     } as any;
 
     try {
@@ -406,13 +375,6 @@ export default function CustomerFormDealer({
       if (!res.success) {
         if (res.issues) {
           setFieldErrors(res.issues);
-          setError(
-            Object.values(res.issues).flat()[0] ??
-            res.error ??
-            "เกิดข้อผิดพลาด",
-          );
-        } else {
-          setError(res.error ?? "เกิดข้อผิดพลาด");
         }
         setLoading(false);
       } else {
@@ -479,8 +441,8 @@ export default function CustomerFormDealer({
         // Navigation is handled by onSuccess callback
         onSuccess?.();
       }
-    } catch (err: any) {
-      setError(String(err));
+
+    } catch {
       setLoading(false);
     } finally {
       setUploadProgress(null);
@@ -495,7 +457,7 @@ export default function CustomerFormDealer({
         (1000 * 60 * 60 * 24 * 365.25),
       );
       return String(age);
-    } catch (err) {
+    } catch {
       return "";
     }
   }
@@ -735,6 +697,14 @@ export default function CustomerFormDealer({
         />
       </div>
 
+      <div className="md:col-span-4 mt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่จัดส่งเพิ่มเติม</h4>
+        <ShippingAddressList
+          value={values.shippingAddresses}
+          onChange={(val) => setValues((p: any) => ({ ...p, shippingAddresses: val }))}
+        />
+      </div>
+
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลผู้ติดต่อ
       </h3>
@@ -820,6 +790,14 @@ export default function CustomerFormDealer({
         />
       </div>
 
+      <div className="md:col-span-4 mt-6">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลผู้ติดต่อเพิ่มเติม</h4>
+        <ContactList
+          value={values.contacts}
+          onChange={(val) => setValues((p: any) => ({ ...p, contacts: val }))}
+        />
+      </div>
+
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
         ข้อมูลเพิ่มเติม
       </h3>
@@ -862,8 +840,7 @@ export default function CustomerFormDealer({
               ...p,
               responsibleEmployeeId: v || null,
             }));
-            const found = employeeOptions.find((d) => d.value === v);
-            setResponsibleEmployeeLabel(found ? found.label : "");
+
             clearFieldError("responsibleEmployeeId");
           }}
           options={employeeOptions}
@@ -951,7 +928,7 @@ export default function CustomerFormDealer({
 
       {/* Action Buttons */}
       <div className="sm:pt-2 mt-8 sm:mt-8 space-y-6">
-        <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+        <div className="flex justify-center flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
           <Button
             size="lg"
             className="flex-1 sm:flex-none sm:w-32 bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
