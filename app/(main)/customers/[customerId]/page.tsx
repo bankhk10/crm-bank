@@ -132,6 +132,19 @@ type Customer = {
   regularShops?: string | null;
   serviceTypes?: string | null;
   usedBrands?: string | null;
+  addresses?: Array<{
+    addressLine?: string | null;
+    province?: string | null;
+    district?: string | null;
+    subdistrict?: string | null;
+    postalCode?: string | null;
+  }>;
+  contacts?: Array<{
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  }>;
 };
 
 const statusMap: Record<
@@ -1079,6 +1092,72 @@ export default function CustomerDetailPage() {
                 icon={Calendar}
               />
             </CardContent>
+            {customer.contacts && customer.contacts.length > 0 && (
+              <>
+                <Separator className="bg-blue-100" />
+                <CardContent className="p-8">
+                  <h4 className="font-bold text-lg text-gray-700 mb-6 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-blue-500 rounded-full" />
+                    ผู้ติดต่อเพิ่มเติม ({customer.contacts.length})
+                  </h4>
+                  <div className="space-y-6">
+                    {customer.contacts.map((contact, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 hover:border-blue-200 transition-colors"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+                          <DetailItem
+                            label="ชื่อ-นามสกุล"
+                            value={
+                              <span className="text-gray-900 font-medium">
+                                {[contact.firstName, contact.lastName]
+                                  .filter(Boolean)
+                                  .join(" ") || "-"}
+                              </span>
+                            }
+                            icon={User}
+                            className="col-span-full"
+                          />
+                          <DetailItem
+                            label="เบอร์โทรศัพท์"
+                            value={
+                              contact.phone ? (
+                                <a
+                                  href={`tel:${contact.phone}`}
+                                  className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
+                                >
+                                  {contact.phone}
+                                </a>
+                              ) : (
+                                "-"
+                              )
+                            }
+                            icon={Phone}
+                          />
+                          <DetailItem
+                            label="อีเมล"
+                            value={
+                              contact.email ? (
+                                <a
+                                  href={`mailto:${contact.email}`}
+                                  className="hover:text-blue-600 underline-offset-4 hover:underline transition-colors inline-flex items-center gap-2"
+                                >
+                                  {contact.email}
+                                </a>
+                              ) : (
+                                "-"
+                              )
+                            }
+                            icon={Mail}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </>
+            )}
           </Card>
 
           {/* Section: Addresses */}
@@ -1132,6 +1211,31 @@ export default function CustomerDetailPage() {
                   />
                 </div>
               </div>
+
+              {customer.addresses && customer.addresses.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="font-bold text-lg text-gray-700 mb-6 flex items-center gap-2">
+                    <span className="w-2 h-6 bg-emerald-500 rounded-full" />
+                    ที่อยู่จัดส่งเพิ่มเติม ({customer.addresses.length})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {customer.addresses.map((addr, idx) => (
+                      <div key={idx} className="h-full">
+                        <AddressBlock
+                          title={`ที่อยู่จัดส่งสำรอง ${idx + 1}`}
+                          icon={Truck}
+                          addressLine={addr.addressLine}
+                          subdistrict={addr.subdistrict}
+                          district={addr.district}
+                          province={addr.province}
+                          postalCode={addr.postalCode}
+                          variant="orange"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

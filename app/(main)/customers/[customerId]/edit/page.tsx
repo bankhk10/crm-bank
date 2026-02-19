@@ -14,7 +14,7 @@ import {
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("customer.edit");
+  const { hasPermission, isLoading } = usePermission("customer.edit");
   const canEdit = !isLoading && hasPermission("customer.edit");
 
   const [payload, setPayload] = useState<any>({
@@ -74,9 +74,7 @@ export default function EditCustomerPage() {
     usedBrands: "",
   });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -165,6 +163,8 @@ export default function EditCustomerPage() {
               ...img,
               name: img.filename,
             })),
+            shippingAddresses: src.addresses ?? [],
+            contacts: src.contacts ?? [],
           }));
         }
       } catch (e: any) {
@@ -180,9 +180,7 @@ export default function EditCustomerPage() {
 
   async function handleUpdate(payloadData: any) {
     if (!canEdit) return { success: false, error: "No permission" };
-    setSaving(true);
     setError(null);
-    setFieldErrors({});
     try {
       const res = await fetch(`/api/customers/${customerId}`, {
         method: "PUT",
@@ -199,8 +197,6 @@ export default function EditCustomerPage() {
       return { success: true, data: json };
     } catch (e: any) {
       return { success: false, error: String(e) };
-    } finally {
-      setSaving(false);
     }
   }
 

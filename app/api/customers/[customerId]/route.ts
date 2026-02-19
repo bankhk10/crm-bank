@@ -74,6 +74,27 @@ const customerUpdateSchema = z.object({
   regularShops: z.string().optional(),
   serviceTypes: z.string().optional(),
   usedBrands: z.string().optional(),
+  shippingAddresses: z
+    .array(
+      z.object({
+        addressLine: z.string().optional(),
+        province: z.string().optional(),
+        district: z.string().optional(),
+        subdistrict: z.string().optional(),
+        postalCode: z.string().optional(),
+      }),
+    )
+    .optional(),
+  contacts: z
+    .array(
+      z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        phone: z.string().optional(),
+        email: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export async function GET(request: Request, context: any) {
@@ -115,6 +136,8 @@ export async function GET(request: Request, context: any) {
           name: true,
         },
       },
+      addresses: true,
+      contacts: true,
     },
   });
 
@@ -127,7 +150,7 @@ export async function GET(request: Request, context: any) {
 
 export async function PUT(
   request: Request,
-  context: { params: Promise<{ customerId: string }> }
+  context: { params: Promise<{ customerId: string }> },
 ) {
   const startTime = Date.now();
   const params = await context.params;
@@ -144,7 +167,7 @@ export async function PUT(
   if (!(session.user.permissionKeys ?? []).includes("customer.edit")) {
     return NextResponse.json(
       { error: "Forbidden - missing customer.edit" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -186,7 +209,7 @@ export async function PUT(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten().fieldErrors },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -252,6 +275,36 @@ export async function PUT(
       updateData.relationshipScore = null;
   }
 
+  // Handle nested updates for shippingAddresses and contacts
+  if (updateData.shippingAddresses) {
+    const addresses = updateData.shippingAddresses as any[];
+    delete updateData.shippingAddresses;
+    updateData.addresses = {
+      deleteMany: {},
+      create: addresses.map((addr) => ({
+        addressLine: addr.addressLine,
+        province: addr.province,
+        district: addr.district,
+        subdistrict: addr.subdistrict,
+        postalCode: addr.postalCode ? String(addr.postalCode) : undefined,
+      })),
+    };
+  }
+
+  if (updateData.contacts) {
+    const contacts = updateData.contacts as any[];
+    delete updateData.contacts;
+    updateData.contacts = {
+      deleteMany: {},
+      create: contacts.map((contact) => ({
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        phone: contact.phone,
+        email: contact.email,
+      })),
+    };
+  }
+
   const customer = await db.customer.update({
     where: { id: params.customerId },
     data: updateData,
@@ -283,7 +336,7 @@ export async function PUT(
       entityName: customer.name,
       module: "customers",
       duration,
-    }
+    },
   );
 
   reqLogger.info("Customer updated successfully", {
@@ -316,7 +369,7 @@ export async function DELETE(request: Request, context: any) {
   if (!(session.user.permissionKeys ?? []).includes("customer.delete")) {
     return NextResponse.json(
       { error: "Forbidden - missing customer.delete" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
