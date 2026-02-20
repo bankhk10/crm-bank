@@ -7,39 +7,39 @@ import type { SaleWithRelations } from "@/types/sales";
 import { PaymentTermLabels } from "@/types/sales";
 
 interface SalesRecordDocumentProps {
-    sale: SaleWithRelations;
-    displayShippingAddress: string;
+  sale: SaleWithRelations;
+  displayShippingAddress: string;
 }
 
 const SalesRecordDocument = React.forwardRef<
-    HTMLDivElement,
-    SalesRecordDocumentProps
+  HTMLDivElement,
+  SalesRecordDocumentProps
 >(({ sale, displayShippingAddress }, ref) => {
-    const paymentTermLabel =
-        PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm;
+  const paymentTermLabel =
+    PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm;
 
-    // Build billing address
-    const billingAddress =
-        sale.billingAddress ||
-        [
-            sale.customer.billingAddressLine || sale.customer.addressLine,
-            sale.customer.billingSubdistrict || sale.customer.subdistrict
-                ? `ต.${sale.customer.billingSubdistrict || sale.customer.subdistrict}`
-                : "",
-            sale.customer.billingDistrict || sale.customer.district
-                ? `อ.${sale.customer.billingDistrict || sale.customer.district}`
-                : "",
-            sale.customer.billingProvince || sale.customer.province
-                ? `จ.${sale.customer.billingProvince || sale.customer.province}`
-                : "",
-            sale.customer.billingPostalCode || sale.customer.postalCode,
-        ]
-            .filter(Boolean)
-            .join(" ");
+  // Build billing address
+  const billingAddress =
+    sale.billingAddress ||
+    [
+      sale.customer.billingAddressLine || sale.customer.addressLine,
+      sale.customer.billingSubdistrict || sale.customer.subdistrict
+        ? `ต.${sale.customer.billingSubdistrict || sale.customer.subdistrict}`
+        : "",
+      sale.customer.billingDistrict || sale.customer.district
+        ? `อ.${sale.customer.billingDistrict || sale.customer.district}`
+        : "",
+      sale.customer.billingProvince || sale.customer.province
+        ? `จ.${sale.customer.billingProvince || sale.customer.province}`
+        : "",
+      sale.customer.billingPostalCode || sale.customer.postalCode,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-    return (
-        <div ref={ref} className="sales-record-document">
-            <style jsx>{`
+  return (
+    <div ref={ref} className="sales-record-document">
+      <style jsx>{`
         .sales-record-document {
           width: 210mm;
           min-height: 297mm;
@@ -377,244 +377,244 @@ const SalesRecordDocument = React.forwardRef<
         }
       `}</style>
 
-            {/* Header */}
-            <div className="doc-header">
-                <div className="doc-header-left">
-                    {/* <p className="company-name">บริษัท เซ็นทรัล ฟู้ดส์ จำกัด</p>
+      {/* Header */}
+      <div className="doc-header">
+        <div className="doc-header-left">
+          {/* <p className="company-name">บริษัท เซ็นทรัล ฟู้ดส์ จำกัด</p>
                     <p className="company-subtitle">Central Foods Co., Ltd.</p> */}
-                </div>
-                <div className="doc-header-center">
-                    <h1 className="doc-title">ใบบันทึกการขาย</h1>
-                </div>
-                <div className="doc-header-right">
-                    {/* <p className="sale-number-label">เลขที่เอกสาร</p>
+        </div>
+        <div className="doc-header-center">
+          <h1 className="doc-title">ใบบันทึกการขาย</h1>
+        </div>
+        <div className="doc-header-right">
+          {/* <p className="sale-number-label">เลขที่เอกสาร</p>
                     <p className="sale-number">{sale.saleNumber}</p>
                     <p className="sale-date">
                         วันที่:{" "}
                         {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
                     </p> */}
-                </div>
-            </div>
-
-            {/* Info Grid */}
-            <div className="info-grid">
-                {/* Billing Address */}
-                <div className="info-section">
-                    <div className="info-section-header">ที่อยู่วางบิล</div>
-                    <div className="info-section-body">
-                        <div className="name">{sale.customer.name}</div>
-                        <div className="address-text">{billingAddress}</div>
-                        {sale.customer.taxId && (
-                            <div className="info-detail">
-                                เลขผู้เสียภาษี: {sale.customer.taxId}
-                            </div>
-                        )}
-                        {sale.customer.phone && (
-                            <div className="info-detail">โทร: {sale.customer.phone}</div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Shipping Address */}
-                <div className="info-section">
-                    <div className="info-section-header">ที่อยู่จัดส่ง</div>
-                    <div className="info-section-body">
-                        <div className="address-text">{displayShippingAddress}</div>
-                    </div>
-                </div>
-
-                {/* Reference Info */}
-                <div className="info-section">
-                    <div className="info-section-header">ข้อมูลอ้างอิง</div>
-                    <div className="ref-rows">
-                        <div className="ref-row">
-                            <span className="ref-label">วันที่:</span>
-                            <span className="ref-value">
-                                {format(new Date(sale.saleDate), "dd/MM/yyyy", { locale: th })}
-                            </span>
-                        </div>
-                        <div className="ref-row">
-                            <span className="ref-label">เลขที่:</span>
-                            <span className="ref-value">{sale.saleNumber}</span>
-                        </div>
-                        <div className="ref-row">
-                            <span className="ref-label">เงื่อนไขชำระเงิน:</span>
-                            <span className="ref-value">{paymentTermLabel}</span>
-                        </div>
-                        {sale.creditDueDate && (
-                            <div className="ref-row">
-                                <span className="ref-label">วันครบกำหนด:</span>
-                                <span className="ref-value">
-                                    {format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
-                                        locale: th,
-                                    })}
-                                </span>
-                            </div>
-                        )}
-                        {(sale as any).deliveryDate && (
-                            <div className="ref-row">
-                                <span className="ref-label">วันจัดส่ง:</span>
-                                <span className="ref-value">
-                                    {format(
-                                        new Date((sale as any).deliveryDate),
-                                        "dd/MM/yyyy",
-                                        { locale: th }
-                                    )}
-                                </span>
-                            </div>
-                        )}
-                        {sale.paymentDate && (
-                            <div className="ref-row">
-                                <span className="ref-label">วันชำระเงิน:</span>
-                                <span className="ref-value">
-                                    {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
-                                        locale: th,
-                                    })}
-                                </span>
-                            </div>
-                        )}
-                        <div className="ref-row">
-                            <span className="ref-label">ผู้ขาย:</span>
-                            <span className="ref-value">{sale.employee.name}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Product Table */}
-            <table className="product-table">
-                <thead>
-                    <tr>
-                        <th>ลำดับ</th>
-                        <th className="text-left">รหัสสินค้า</th>
-                        <th className="text-left">รายละเอียดสินค้า</th>
-                        <th>บรรจุ</th>
-                        <th>จำนวน</th>
-                        <th className="text-right">ราคา/หน่วย</th>
-                        <th className="text-right">ราคา/ลัง</th>
-                        <th className="text-right">รวม</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {sale.items.map((item, idx) => {
-                        const packSize = parseFloat(
-                            item.product.packageSizePerBox || "1"
-                        );
-                        const multiplier =
-                            isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                        const cartonPrice = Number(item.unitPrice) * multiplier;
-
-                        return (
-                            <tr key={item.id}>
-                                <td className="col-no">{idx + 1}</td>
-                                <td className="col-code">{item.product.productCode}</td>
-                                <td className="col-name">
-                                    {item.product.name}
-                                    {item.priceModified && (
-                                        <span className="price-special">ราคาพิเศษ</span>
-                                    )}
-                                </td>
-                                <td className="col-pack">
-                                    {item.product.packageSizePerBox || "-"}
-                                </td>
-                                <td className="col-qty">{item.quantity}</td>
-                                <td className="col-unit-price">
-                                    {Number(item.unitPrice).toLocaleString("th-TH", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </td>
-                                <td className="col-carton-price">
-                                    {Number(cartonPrice).toLocaleString("th-TH", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </td>
-                                <td className="col-total">
-                                    {Number(item.totalPrice).toLocaleString("th-TH", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-
-            {/* Bottom Section: Notes + Totals */}
-            <div className="bottom-section">
-                <div>
-                    {sale.notes && (
-                        <div className="notes-box">
-                            <div className="notes-title">หมายเหตุ</div>
-                            <div className="notes-text">{sale.notes}</div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="totals-box">
-                    <div className="total-row">
-                        <span className="t-label">รวมเป็นเงิน</span>
-                        <span className="t-value">
-                            {Number(sale.subtotalAmount).toLocaleString("th-TH", {
-                                minimumFractionDigits: 2,
-                            })}
-                        </span>
-                    </div>
-
-                    {Number(sale.shippingCost) > 0 && (
-                        <div className="total-row">
-                            <span className="t-label">ส่วนลดค่าขนส่ง</span>
-                            <span className="t-value discount">
-                                -
-                                {Number(sale.shippingCost).toLocaleString("th-TH", {
-                                    minimumFractionDigits: 2,
-                                })}
-                            </span>
-                        </div>
-                    )}
-
-                    {Number(sale.otherCosts) > 0 && (
-                        <div className="total-row">
-                            <span className="t-label">ส่วนลดหน้าบิล</span>
-                            <span className="t-value discount">
-                                -
-                                {Number(sale.otherCosts).toLocaleString("th-TH", {
-                                    minimumFractionDigits: 2,
-                                })}
-                            </span>
-                        </div>
-                    )}
-
-                    <div className="grand-total-row">
-                        <span>ยอดสุทธิ</span>
-                        <span>
-                            ฿
-                            {Number(sale.totalAmount).toLocaleString("th-TH", {
-                                minimumFractionDigits: 2,
-                            })}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Signature Section */}
-            <div className="signature-section">
-                <div className="signature-block">
-                    <div className="signature-line" />
-                    <div className="signature-label">ผู้ส่งสินค้า</div>
-                    <div className="signature-sublabel">
-                        วันที่ ......./......./...​....
-                    </div>
-                </div>
-                <div className="signature-block">
-                    <div className="signature-line" />
-                    <div className="signature-label">ผู้รับสินค้า</div>
-                    <div className="signature-sublabel">
-                        วันที่ ......./......./...​....
-                    </div>
-                </div>
-            </div>
         </div>
-    );
+      </div>
+
+      {/* Info Grid */}
+      <div className="info-grid">
+        {/* Billing Address */}
+        <div className="info-section">
+          <div className="info-section-header">ที่อยู่วางบิล</div>
+          <div className="info-section-body">
+            <div className="name">{sale.customer.name}</div>
+            <div className="address-text">{billingAddress}</div>
+            {sale.customer.taxId && (
+              <div className="info-detail">
+                เลขผู้เสียภาษี: {sale.customer.taxId}
+              </div>
+            )}
+            {sale.customer.phone && (
+              <div className="info-detail">โทร: {sale.customer.phone}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Shipping Address */}
+        <div className="info-section">
+          <div className="info-section-header">ที่อยู่จัดส่ง</div>
+          <div className="info-section-body">
+            <div className="address-text">{displayShippingAddress}</div>
+          </div>
+        </div>
+
+        {/* Reference Info */}
+        <div className="info-section">
+          <div className="info-section-header">ข้อมูลอ้างอิง</div>
+          <div className="ref-rows">
+            <div className="ref-row">
+              <span className="ref-label">วันที่:</span>
+              <span className="ref-value">
+                {format(new Date(sale.saleDate), "dd/MM/yyyy", { locale: th })}
+              </span>
+            </div>
+            <div className="ref-row">
+              <span className="ref-label">เลขที่:</span>
+              <span className="ref-value">{sale.saleNumber}</span>
+            </div>
+            <div className="ref-row">
+              <span className="ref-label">เงื่อนไขชำระเงิน:</span>
+              <span className="ref-value">{paymentTermLabel}</span>
+            </div>
+            {(sale as any).deliveryDate && (
+              <div className="ref-row">
+                <span className="ref-label">วันจัดส่ง:</span>
+                <span className="ref-value">
+                  {format(
+                    new Date((sale as any).deliveryDate),
+                    "dd/MM/yyyy",
+                    { locale: th }
+                  )}
+                </span>
+              </div>
+            )}
+            {sale.creditDueDate && (
+              <div className="ref-row">
+                <span className="ref-label">วันครบกำหนด:</span>
+                <span className="ref-value">
+                  {format(new Date(sale.creditDueDate), "dd/MM/yyyy", {
+                    locale: th,
+                  })}
+                </span>
+              </div>
+            )}
+            {sale.paymentDate && (
+              <div className="ref-row">
+                <span className="ref-label">วันชำระเงิน:</span>
+                <span className="ref-value">
+                  {format(new Date(sale.paymentDate), "dd/MM/yyyy", {
+                    locale: th,
+                  })}
+                </span>
+              </div>
+            )}
+            <div className="ref-row">
+              <span className="ref-label">ผู้ขาย:</span>
+              <span className="ref-value">{sale.employee.name}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Product Table */}
+      <table className="product-table">
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th className="text-left">รหัสสินค้า</th>
+            <th className="text-left">รายละเอียดสินค้า</th>
+            <th>บรรจุ</th>
+            <th>จำนวน</th>
+            <th className="text-right">ราคา/หน่วย</th>
+            <th className="text-right">ราคา/ลัง</th>
+            <th className="text-right">รวม</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sale.items.map((item, idx) => {
+            const packSize = parseFloat(
+              item.product.packageSizePerBox || "1"
+            );
+            const multiplier =
+              isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+            const cartonPrice = Number(item.unitPrice) * multiplier;
+
+            return (
+              <tr key={item.id}>
+                <td className="col-no">{idx + 1}</td>
+                <td className="col-code">{item.product.productCode}</td>
+                <td className="col-name">
+                  {item.product.name}
+                  {item.priceModified && (
+                    <span className="price-special">ราคาพิเศษ</span>
+                  )}
+                </td>
+                <td className="col-pack">
+                  {item.product.packageSizePerBox || "-"}
+                </td>
+                <td className="col-qty">{item.quantity}</td>
+                <td className="col-unit-price">
+                  {Number(item.unitPrice).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+                <td className="col-carton-price">
+                  {Number(cartonPrice).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+                <td className="col-total">
+                  {Number(item.totalPrice).toLocaleString("th-TH", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Bottom Section: Notes + Totals */}
+      <div className="bottom-section">
+        <div>
+          {sale.notes && (
+            <div className="notes-box">
+              <div className="notes-title">หมายเหตุ</div>
+              <div className="notes-text">{sale.notes}</div>
+            </div>
+          )}
+        </div>
+
+        <div className="totals-box">
+          <div className="total-row">
+            <span className="t-label">รวมเป็นเงิน</span>
+            <span className="t-value">
+              {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+
+          {Number(sale.shippingCost) > 0 && (
+            <div className="total-row">
+              <span className="t-label">ส่วนลดค่าขนส่ง</span>
+              <span className="t-value discount">
+                -
+                {Number(sale.shippingCost).toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          )}
+
+          {Number(sale.otherCosts) > 0 && (
+            <div className="total-row">
+              <span className="t-label">ส่วนลดหน้าบิล</span>
+              <span className="t-value discount">
+                -
+                {Number(sale.otherCosts).toLocaleString("th-TH", {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          )}
+
+          <div className="grand-total-row">
+            <span>ยอดสุทธิ</span>
+            <span>
+              ฿
+              {Number(sale.totalAmount).toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Section */}
+      <div className="signature-section">
+        <div className="signature-block">
+          <div className="signature-line" />
+          <div className="signature-label">ผู้ส่งสินค้า</div>
+          <div className="signature-sublabel">
+            วันที่ ......./......./...​....
+          </div>
+        </div>
+        <div className="signature-block">
+          <div className="signature-line" />
+          <div className="signature-label">ผู้รับสินค้า</div>
+          <div className="signature-sublabel">
+            วันที่ ......./......./...​....
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 });
 
 SalesRecordDocument.displayName = "SalesRecordDocument";
