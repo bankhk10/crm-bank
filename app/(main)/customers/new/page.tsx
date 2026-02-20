@@ -8,7 +8,7 @@ import {
   CustomerFormFarmer,
   CustomerFormBroker,
   type CustomerType,
-} from "@/features/customers";
+} from "@/modules/customers";
 import { toast } from "sonner";
 
 export default function NewCustomerPage() {

@@ -5,7 +5,7 @@ import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { TemporaryCreditLimitTable } from "@/features/temporary-credit-limits";
+import { TemporaryCreditLimitTable } from "@/modules/temporary-credit-limits";
 import type { TemporaryCreditLimitWithRelations } from "@/types/temporary-credit-limit";
 import { CreditCard } from "lucide-react";
 

@@ -39,7 +39,7 @@ import {
 import type { SaleDetailResponse, StockWarning } from "@/types/sales";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { LotSelector } from "@/features/fulfillment";
+import { LotSelector } from "@/modules/fulfillment";
 
 const FULFILLMENT_STATUSES = [
     "WAITING_FOR_CORRECTION",

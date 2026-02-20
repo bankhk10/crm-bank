@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductForm } from "@/features/products";
+import { ProductForm } from "@/modules/products";
 import { Card } from "@/components/ui/card";
 import { usePermission } from "@/hooks/use-permission";
 

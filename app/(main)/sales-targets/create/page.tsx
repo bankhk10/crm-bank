@@ -1,4 +1,4 @@
-import { SalesTargetForm } from "@/features/sales-targets";
+import { SalesTargetForm } from "@/modules/sales-targets";
 
 export default function CreateSalesTargetPage() {
   return <SalesTargetForm mode="create" />;

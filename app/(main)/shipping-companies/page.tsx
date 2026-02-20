@@ -2,8 +2,8 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getShippingCompanies } from "@/features/shipping-companies/_lib/data-access";
-import { ShippingCompaniesView } from "@/features/shipping-companies/_components/shipping-companies-view";
+import { getShippingCompanies } from "@/modules/shipping-companies/_lib/data-access";
+import { ShippingCompaniesView } from "@/modules/shipping-companies/_components/shipping-companies-view";
 
 interface PageProps {
     searchParams: Promise<{

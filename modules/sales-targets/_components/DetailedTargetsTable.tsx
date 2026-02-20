@@ -28,7 +28,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatCurrency } from "@/src/shared/utils/currency.utils";
-import { MONTHS } from "@/features/sales-targets/_lib/constants";
+import { MONTHS } from "@/modules/sales-targets/_lib/constants";
 import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
 
 interface DetailedTargetsTableProps {

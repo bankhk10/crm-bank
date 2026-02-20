@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { DashboardShell } from "@/features/layout";
+import { DashboardShell } from "@/modules/layout";
 import { auth } from "@/lib/auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
 

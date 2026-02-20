@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import { CompanyForm } from "@/features/companies";
+import { CompanyForm } from "@/modules/companies";
 import { toast } from "sonner";
 
 export default function EditCompanyPage() {

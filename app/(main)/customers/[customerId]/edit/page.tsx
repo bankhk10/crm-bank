@@ -9,7 +9,7 @@ import {
   CustomerFormSubdealer,
   CustomerFormFarmer,
   CustomerFormBroker,
-} from "@/features/customers";
+} from "@/modules/customers";
 
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };

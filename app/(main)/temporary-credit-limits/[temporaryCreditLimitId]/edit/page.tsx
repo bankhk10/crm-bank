@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { TemporaryCreditLimitForm } from "@/features/temporary-credit-limits";
+import { TemporaryCreditLimitForm } from "@/modules/temporary-credit-limits";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function EditTemporaryCreditLimitPage() {

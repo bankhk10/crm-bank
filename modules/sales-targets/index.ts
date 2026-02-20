@@ -9,7 +9,7 @@
  *   SalesTargetForm,
  *   SalesTargetDetailDialog,
  *   useSalesTargets,
- * } from "@/features/sales-targets";
+ * } from "@/modules/sales-targets";
  */
 
 // Types

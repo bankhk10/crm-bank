@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ProductsTable,
   type ProductRecord,
-} from "@/features/products";
+} from "@/modules/products";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import Link from "next/link";

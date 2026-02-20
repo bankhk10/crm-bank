@@ -14,13 +14,15 @@ This module manages the fulfillment process, including order status management, 
 ## API Endpoints
 
 ### List Sales for Fulfillment
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/sales` | `app/api/sales/route.ts` |
 
-*(Note: Fulfillment uses the shared Sales API but filters for specific statuses)*
+| Method | Endpoint     | File Location            |
+| ------ | ------------ | ------------------------ |
+| `GET`  | `/api/sales` | `app/api/sales/route.ts` |
+
+_(Note: Fulfillment uses the shared Sales API but filters for specific statuses)_
 
 **Query Parameters:**
+
 - `status` (string): e.g. `AWAITING_DELIVERY`, `DELIVERED`
 - `page`, `perPage` (number)
 - `q` (string): Search query
@@ -30,9 +32,10 @@ This module manages the fulfillment process, including order status management, 
 ---
 
 ### Update Fulfillment Status / Allocation
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `PUT` | `/api/sales/[saleId]/fulfillment` | `app/api/sales/[saleId]/fulfillment/route.ts` |
+
+| Method | Endpoint                          | File Location                                 |
+| ------ | --------------------------------- | --------------------------------------------- |
+| `PUT`  | `/api/sales/[saleId]/fulfillment` | `app/api/sales/[saleId]/fulfillment/route.ts` |
 
 **Required Permissions:** `fulfillment.manage`
 
@@ -42,31 +45,34 @@ This module manages the fulfillment process, including order status management, 
 
 ### Relevant Tables
 
-*This feature mostly updates the `Sale` table and creates `InventoryTransaction` records.*
+_This feature mostly updates the `Sale` table and creates `InventoryTransaction` records._
 
 ### Table: `Sale`
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary Key |
-| `status` | `SaleStatus` | Current status (e.g., AWAITING_DELIVERY) |
-| `deliveryStatus` | `String` | Specific delivery tracking status |
-| ... | ... | Other sale fields |
+
+| Column           | Type         | Description                              |
+| ---------------- | ------------ | ---------------------------------------- |
+| `id`             | `String`     | Primary Key                              |
+| `status`         | `SaleStatus` | Current status (e.g., AWAITING_DELIVERY) |
+| `deliveryStatus` | `String`     | Specific delivery tracking status        |
+| ...              | ...          | Other sale fields                        |
 
 ### Table: `InventoryTransaction`
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary Key |
-| `type` | `TransactionType` | `SALE_OUT` |
-| `quantity` | `Decimal` | Amount deducted |
-| `lotId` | `String` | Specific Lot used |
-| `saleItemId` | `String` | Link to Sale Item |
-| ... | ... | ... |
+
+| Column       | Type              | Description       |
+| ------------ | ----------------- | ----------------- |
+| `id`         | `String`          | Primary Key       |
+| `type`       | `TransactionType` | `SALE_OUT`        |
+| `quantity`   | `Decimal`         | Amount deducted   |
+| `lotId`      | `String`          | Specific Lot used |
+| `saleItemId` | `String`          | Link to Sale Item |
+| ...          | ...               | ...               |
 
 ---
 
 ## Validation Rules
 
 ### LotSelector Validation
+
 - **Quantity Check**: Allocated quantity must not exceed:
   1. Required quantity for the Sale Item.
   2. Available balance in the selected Lot.
@@ -78,12 +84,16 @@ This module manages the fulfillment process, including order status management, 
 ## Key Components
 
 ### FulfillmentTable
+
 Displays list of sales ready for fulfillment or in transit.
+
 - **Features**: Status-based filtering, responsive mobile cards.
 - **Props**: `FulfillmentTableProps`
 
 ### LotSelector
+
 Interactive component for warehouse staff to select specific inventory Lots for each item in a Sale.
+
 - **Features**: Auto-suggest, Validation, Manual override.
 - **Props**: `LotSelectorProps`
 
@@ -92,34 +102,37 @@ Interactive component for warehouse staff to select specific inventory Lots for 
 ## Component Props
 
 ### `FulfillmentTable`
+
 (Uses type `FulfillmentTableProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `sales` | `SaleRecord[]` | ✅ | List of sales data |
-| `total` | `number` | ✅ | Total count for pagination |
-| `page` | `number` | ✅ | Current page |
-| `perPage` | `number` | ✅ | Items per page |
-| `loading` | `boolean` | ❌ | Loading state |
-| `searchValue` | `string` | ❌ | Search term |
-| `onSearchChange` | `(val: string) => void` | ❌ | Search handler |
-| `dateRange` | `DateRange` | ❌ | Date filter |
-| `onDateRangeChange` | `(range) => void` | ❌ | Date change handler |
+| Prop                | Type                    | Required | Description                |
+| ------------------- | ----------------------- | -------- | -------------------------- |
+| `sales`             | `SaleRecord[]`          | ✅       | List of sales data         |
+| `total`             | `number`                | ✅       | Total count for pagination |
+| `page`              | `number`                | ✅       | Current page               |
+| `perPage`           | `number`                | ✅       | Items per page             |
+| `loading`           | `boolean`               | ❌       | Loading state              |
+| `searchValue`       | `string`                | ❌       | Search term                |
+| `onSearchChange`    | `(val: string) => void` | ❌       | Search handler             |
+| `dateRange`         | `DateRange`             | ❌       | Date filter                |
+| `onDateRangeChange` | `(range) => void`       | ❌       | Date change handler        |
 
 ### `LotSelector`
+
 (Uses type `LotSelectorProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `saleId` | `string` | ✅ | Target Sale ID |
-| `onAllocationsChange` | `(allocations, isValid) => void` | ✅ | Callback when user selects lots |
-| `disabled` | `boolean` | ❌ | Read-only mode |
+| Prop                  | Type                             | Required | Description                     |
+| --------------------- | -------------------------------- | -------- | ------------------------------- |
+| `saleId`              | `string`                         | ✅       | Target Sale ID                  |
+| `onAllocationsChange` | `(allocations, isValid) => void` | ✅       | Callback when user selects lots |
+| `disabled`            | `boolean`                        | ❌       | Read-only mode                  |
 
 ---
 
 ## Types
 
 ### `LotAllocation`
+
 ```typescript
 interface LotAllocation {
   saleItemId: string;
@@ -129,6 +142,7 @@ interface LotAllocation {
 ```
 
 ### `LotInfo`
+
 ```typescript
 interface LotInfo {
   id: string;
@@ -142,7 +156,7 @@ interface LotInfo {
 ## Usage
 
 ```tsx
-import { FulfillmentTable, LotSelector } from "@/features/fulfillment";
+import { FulfillmentTable, LotSelector } from "@/modules/fulfillment";
 
 // List View
 <FulfillmentTable
@@ -159,4 +173,3 @@ import { FulfillmentTable, LotSelector } from "@/features/fulfillment";
   onAllocationsChange={(allocs, valid) => setPayload(allocs)}
 />
 ```
-

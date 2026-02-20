@@ -14,11 +14,13 @@ This feature module manages shipping company data, including listing, creating, 
 ## API Endpoints
 
 ### List Shipping Companies
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/shipping-companies` | `app/api/shipping-companies/route.ts` |
+
+| Method | Endpoint                  | File Location                         |
+| ------ | ------------------------- | ------------------------------------- |
+| `GET`  | `/api/shipping-companies` | `app/api/shipping-companies/route.ts` |
 
 **Query Parameters:**
+
 - `page` (number): Page number (default: 1)
 - `perPage` (number): Items per page (default: 12, max: 100)
 - `q` (string): Search query (searches name, phone, address)
@@ -30,8 +32,9 @@ This feature module manages shipping company data, including listing, creating, 
 ---
 
 ### Create Shipping Company
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method | Endpoint                  | File Location                         |
+| ------ | ------------------------- | ------------------------------------- |
 | `POST` | `/api/shipping-companies` | `app/api/shipping-companies/route.ts` |
 
 **Required Permissions:** `shipping-company.create`
@@ -39,26 +42,29 @@ This feature module manages shipping company data, including listing, creating, 
 ---
 
 ### Get Single Shipping Company
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/shipping-companies/[shippingCompanyId]` | `app/api/shipping-companies/[shippingCompanyId]/route.ts` |
+
+| Method | Endpoint                                      | File Location                                             |
+| ------ | --------------------------------------------- | --------------------------------------------------------- |
+| `GET`  | `/api/shipping-companies/[shippingCompanyId]` | `app/api/shipping-companies/[shippingCompanyId]/route.ts` |
 
 **Required Permissions:** `/api/shipping-companies`
 
 ---
 
 ### Update Shipping Company
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `PUT` | `/api/shipping-companies/[shippingCompanyId]` | `app/api/shipping-companies/[shippingCompanyId]/route.ts` |
+
+| Method | Endpoint                                      | File Location                                             |
+| ------ | --------------------------------------------- | --------------------------------------------------------- |
+| `PUT`  | `/api/shipping-companies/[shippingCompanyId]` | `app/api/shipping-companies/[shippingCompanyId]/route.ts` |
 
 **Required Permissions:** `shipping-company.edit`
 
 ---
 
 ### Delete Shipping Company (Soft Delete)
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method   | Endpoint                                      | File Location                                             |
+| -------- | --------------------------------------------- | --------------------------------------------------------- |
 | `DELETE` | `/api/shipping-companies/[shippingCompanyId]` | `app/api/shipping-companies/[shippingCompanyId]/route.ts` |
 
 **Required Permissions:** `shipping-company.delete`
@@ -69,28 +75,29 @@ This feature module manages shipping company data, including listing, creating, 
 
 ### Table: `ShippingCompany`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary key (cuid) |
-| `name` | `String` | ชื่อบริษัทขนส่ง (required) |
-| `phone` | `String?` | เบอร์โทร |
-| `address` | `String?` | ที่อยู่บริษัทขนส่ง |
-| `notes` | `String?` | หมายเหตุ |
-| `status` | `ShippingCompanyStatus` | สถานะ (ACTIVE/INACTIVE) - default: ACTIVE |
-| `createdAt` | `DateTime` | วันที่สร้าง |
-| `updatedAt` | `DateTime` | วันที่อัปเดต |
-| `deletedAt` | `DateTime?` | วันที่ลบ (Soft delete) |
+| Column      | Type                    | Description                               |
+| ----------- | ----------------------- | ----------------------------------------- |
+| `id`        | `String`                | Primary key (cuid)                        |
+| `name`      | `String`                | ชื่อบริษัทขนส่ง (required)                |
+| `phone`     | `String?`               | เบอร์โทร                                  |
+| `address`   | `String?`               | ที่อยู่บริษัทขนส่ง                        |
+| `notes`     | `String?`               | หมายเหตุ                                  |
+| `status`    | `ShippingCompanyStatus` | สถานะ (ACTIVE/INACTIVE) - default: ACTIVE |
+| `createdAt` | `DateTime`              | วันที่สร้าง                               |
+| `updatedAt` | `DateTime`              | วันที่อัปเดต                              |
+| `deletedAt` | `DateTime?`             | วันที่ลบ (Soft delete)                    |
 
 ### Table: `CustomerShippingCompany` (Junction Table)
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary key (cuid) |
-| `customerId` | `String` | FK to Customer |
-| `shippingCompanyId` | `String` | FK to ShippingCompany |
-| `createdAt` | `DateTime` | วันที่สร้าง |
+| Column              | Type       | Description           |
+| ------------------- | ---------- | --------------------- |
+| `id`                | `String`   | Primary key (cuid)    |
+| `customerId`        | `String`   | FK to Customer        |
+| `shippingCompanyId` | `String`   | FK to ShippingCompany |
+| `createdAt`         | `DateTime` | วันที่สร้าง           |
 
 ### Enum: `ShippingCompanyStatus`
+
 ```prisma
 enum ShippingCompanyStatus {
   ACTIVE
@@ -111,6 +118,7 @@ Customer
 ```
 
 **ER Diagram:**
+
 ```
 ┌─────────────────────┐         ┌──────────────────────────┐         ┌─────────────────┐
 │  ShippingCompany    │         │ CustomerShippingCompany  │         │    Customer     │
@@ -133,26 +141,29 @@ Customer
 
 ### Zod Schema (Create/Update)
 
-| Field | Rules |
-|-------|-------|
-| `name` | `string`, **required**, min 2 characters |
-| `phone` | `string`, optional |
-| `address` | `string`, optional |
-| `notes` | `string`, optional |
-| `status` | `enum`, optional, values: `"ACTIVE"` \| `"INACTIVE"` |
-| `customerIds` | `array of strings`, optional |
+| Field         | Rules                                                |
+| ------------- | ---------------------------------------------------- |
+| `name`        | `string`, **required**, min 2 characters             |
+| `phone`       | `string`, optional                                   |
+| `address`     | `string`, optional                                   |
+| `notes`       | `string`, optional                                   |
+| `status`      | `enum`, optional, values: `"ACTIVE"` \| `"INACTIVE"` |
+| `customerIds` | `array of strings`, optional                         |
 
 ---
 
 ## Key Components
 
 ### ShippingCompaniesTable
+
 Main table component for displaying shipping companies with search, filter, and pagination.
 
 ### ShippingCompanyForm
+
 Form for creating and editing shipping companies with customer multi-select.
 
 ### ShippingCompanyStatusBadge
+
 Badge component for displaying status with color indicators.
 
 ---
@@ -160,6 +171,7 @@ Badge component for displaying status with color indicators.
 ## Types
 
 ### `ShippingCompanyRecord`
+
 ```typescript
 interface ShippingCompanyRecord {
   id: string;
@@ -178,6 +190,7 @@ interface ShippingCompanyRecord {
 ```
 
 ### `ShippingCompanyPayload`
+
 ```typescript
 interface ShippingCompanyPayload {
   name: string;
@@ -194,7 +207,7 @@ interface ShippingCompanyPayload {
 ## Usage
 
 ```tsx
-import { ShippingCompaniesTable, ShippingCompanyForm } from "@/features/shipping-companies";
+import { ShippingCompaniesTable, ShippingCompanyForm } from "@/modules/shipping-companies";
 
 // List View
 <ShippingCompaniesTable

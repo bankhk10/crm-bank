@@ -1,6 +1,6 @@
 "use client";
 
-import { EmployeeForm } from "@/features/employee";
+import { EmployeeForm } from "@/modules/employee";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

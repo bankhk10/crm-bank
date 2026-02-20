@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   CustomersTable,
   type CustomerRecord,
-} from "@/features/customers";
+} from "@/modules/customers";
 import { UserCog } from "lucide-react";
 
 export default function CustomersPage() {

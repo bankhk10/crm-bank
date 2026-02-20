@@ -14,11 +14,13 @@ This feature module manages products, including their details, images, stock lot
 ## API Endpoints
 
 ### List Products
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/products` | `app/api/products/route.ts` |
+
+| Method | Endpoint        | File Location               |
+| ------ | --------------- | --------------------------- |
+| `GET`  | `/api/products` | `app/api/products/route.ts` |
 
 **Query Parameters:**
+
 - `page` (number): Page number
 - `perPage` (number): Items per page
 - `q` (string): Search query (Code, Name, Common Name)
@@ -30,8 +32,9 @@ This feature module manages products, including their details, images, stock lot
 ---
 
 ### Create Product
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method | Endpoint        | File Location               |
+| ------ | --------------- | --------------------------- |
 | `POST` | `/api/products` | `app/api/products/route.ts` |
 
 **Required Permissions:** `product.create`
@@ -39,17 +42,19 @@ This feature module manages products, including their details, images, stock lot
 ---
 
 ### Get Single Product
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/products/[productId]` | `app/api/products/[productId]/route.ts` |
+
+| Method | Endpoint                    | File Location                           |
+| ------ | --------------------------- | --------------------------------------- |
+| `GET`  | `/api/products/[productId]` | `app/api/products/[productId]/route.ts` |
 
 **Required Permissions:** `menu.products`
 
 ---
 
 ### Update Product
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method  | Endpoint                    | File Location                           |
+| ------- | --------------------------- | --------------------------------------- |
 | `PATCH` | `/api/products/[productId]` | `app/api/products/[productId]/route.ts` |
 
 **Required Permissions:** `product.update`
@@ -57,8 +62,9 @@ This feature module manages products, including their details, images, stock lot
 ---
 
 ### Delete Product (Soft Delete)
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method   | Endpoint                    | File Location                           |
+| -------- | --------------------------- | --------------------------------------- |
 | `DELETE` | `/api/products/[productId]` | `app/api/products/[productId]/route.ts` |
 
 **Required Permissions:** `product.delete`
@@ -69,30 +75,31 @@ This feature module manages products, including their details, images, stock lot
 
 ### Table: `Product`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | Primary key (cuid) |
-| `productCode` | `String` | รหัสสินค้า (Unique) |
-| `name` | `String` | ชื่อสินค้า |
-| `commonName` | `String?` | ชื่อสามัญ |
-| `status` | `ProductStatus` | สถานะ (ACTIVE/INACTIVE) |
-| `productGroup` | `String?` | กลุ่มสินค้า |
-| `brand` | `String?` | ยี่ห้อ |
-| `unit` | `String?` | หน่วยนับ |
-| `price` | `Decimal?` | ราคาขาย |
-| `stock` | `ProductStock?` | ข้อมูลสต็อกรวม (Relation) |
+| Column         | Type            | Description               |
+| -------------- | --------------- | ------------------------- |
+| `id`           | `String`        | Primary key (cuid)        |
+| `productCode`  | `String`        | รหัสสินค้า (Unique)       |
+| `name`         | `String`        | ชื่อสินค้า                |
+| `commonName`   | `String?`       | ชื่อสามัญ                 |
+| `status`       | `ProductStatus` | สถานะ (ACTIVE/INACTIVE)   |
+| `productGroup` | `String?`       | กลุ่มสินค้า               |
+| `brand`        | `String?`       | ยี่ห้อ                    |
+| `unit`         | `String?`       | หน่วยนับ                  |
+| `price`        | `Decimal?`      | ราคาขาย                   |
+| `stock`        | `ProductStock?` | ข้อมูลสต็อกรวม (Relation) |
 
 ### Table: `ProductStock`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | PK |
-| `productId` | `String` | FK to Product |
-| `physicalBalance` | `Int` | ของที่มีจริงในคลัง |
-| `reservedQuantity` | `Int` | ของที่ถูกจอง (รอส่ง) |
-| `availableQuantity` | `Int` | ของที่ขายได้ (Physical - Reserved) |
+| Column              | Type     | Description                        |
+| ------------------- | -------- | ---------------------------------- |
+| `id`                | `String` | PK                                 |
+| `productId`         | `String` | FK to Product                      |
+| `physicalBalance`   | `Int`    | ของที่มีจริงในคลัง                 |
+| `reservedQuantity`  | `Int`    | ของที่ถูกจอง (รอส่ง)               |
+| `availableQuantity` | `Int`    | ของที่ขายได้ (Physical - Reserved) |
 
 ### Relationships
+
 ```
 Product
 ├── images: ProductImage[]
@@ -109,15 +116,16 @@ Product
 
 ### Zod Schema (Create/Update)
 
-| Field | Rules |
-|-------|-------|
-| `productCode` | **Required** |
-| `name` | **Required** |
-| `pointPerUnit` | Non-negative integer (Default: 0) |
-| `status` | Enum: ACTIVE, INACTIVE (Default: ACTIVE) |
-| `usedForPlants` | Array of strings (Default: []) |
+| Field           | Rules                                    |
+| --------------- | ---------------------------------------- |
+| `productCode`   | **Required**                             |
+| `name`          | **Required**                             |
+| `pointPerUnit`  | Non-negative integer (Default: 0)        |
+| `status`        | Enum: ACTIVE, INACTIVE (Default: ACTIVE) |
+| `usedForPlants` | Array of strings (Default: [])           |
 
 **Unique Constraint Handling:**
+
 - Checks for duplicate `productCode` and returns 409 Conflict if found.
 
 ---
@@ -125,12 +133,16 @@ Product
 ## Key Components
 
 ### ProductsTable
+
 Displays the list of products with search and filtering.
+
 - **Features**: Sortable columns, Status badges, Stock display, Responsive design.
 - **Props**: `ProductsTableProps`
 
 ### ProductForm
+
 Form for creating and editing products.
+
 - **Features**: Image upload, Master data dropdowns (Brands, Categories), Validation.
 - **Props**: `ProductFormProps`
 
@@ -139,37 +151,41 @@ Form for creating and editing products.
 ## Component Props
 
 ### `ProductsTable`
+
 (Uses type `ProductsTableProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `data` | `ProductRecord[]` | ✅ | ข้อมูลสินค้า |
-| `loading` | `boolean` | ❌ | สถานะโหลด |
-| `canCreate` | `boolean` | ✅ | สิทธิ์สร้าง |
-| `canUpdate` | `boolean` | ❌ | สิทธิ์แก้ไข |
-| `canDelete` | `boolean` | ✅ | สิทธิ์ลบ |
-| `searchValue` | `string` | ✅ | คำค้นหา |
-| `onSearchChange` | `(val) => void` | ✅ | Callback พิมพ์ค้นหา |
-| `statusFilter` | `string` | ❌ | ตัวกรองสถานะ |
-| `pagination` | `ProductsPagination` | ✅ | Pagination setup |
+| Prop             | Type                 | Required | Description         |
+| ---------------- | -------------------- | -------- | ------------------- |
+| `data`           | `ProductRecord[]`    | ✅       | ข้อมูลสินค้า        |
+| `loading`        | `boolean`            | ❌       | สถานะโหลด           |
+| `canCreate`      | `boolean`            | ✅       | สิทธิ์สร้าง         |
+| `canUpdate`      | `boolean`            | ❌       | สิทธิ์แก้ไข         |
+| `canDelete`      | `boolean`            | ✅       | สิทธิ์ลบ            |
+| `searchValue`    | `string`             | ✅       | คำค้นหา             |
+| `onSearchChange` | `(val) => void`      | ✅       | Callback พิมพ์ค้นหา |
+| `statusFilter`   | `string`             | ❌       | ตัวกรองสถานะ        |
+| `pagination`     | `ProductsPagination` | ✅       | Pagination setup    |
 
 ### `ProductForm`
+
 (Uses type `ProductFormProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `initialData` | `Partial<ProductFormData>` | ❌ | ข้อมูลเริ่มต้น (Edit mode) |
-| `productId` | `string` | ❌ | ID สินค้า (Edit mode) |
-| `onSubmit` | `(payload) => Promise<Result>` | ❌ | Custom submit handler |
-| `onCancel` | `() => void` | ❌ | Callback ยกเลิก |
-| `canEdit` | `boolean` | ❌ | ควบคุมการแก้ไข (View only mode) |
+| Prop          | Type                           | Required | Description                     |
+| ------------- | ------------------------------ | -------- | ------------------------------- |
+| `initialData` | `Partial<ProductFormData>`     | ❌       | ข้อมูลเริ่มต้น (Edit mode)      |
+| `productId`   | `string`                       | ❌       | ID สินค้า (Edit mode)           |
+| `onSubmit`    | `(payload) => Promise<Result>` | ❌       | Custom submit handler           |
+| `onCancel`    | `() => void`                   | ❌       | Callback ยกเลิก                 |
+| `canEdit`     | `boolean`                      | ❌       | ควบคุมการแก้ไข (View only mode) |
 
 ---
 
 ## Types
 
 ### `ProductRecord`
+
 Extends `Product` model with calculated fields:
+
 ```typescript
 interface ProductRecord extends Product {
   stockQuantity?: number;
@@ -185,7 +201,7 @@ interface ProductRecord extends Product {
 ## Usage
 
 ```tsx
-import { ProductsTable, ProductForm } from "@/features/products";
+import { ProductsTable, ProductForm } from "@/modules/products";
 
 // Table View
 <ProductsTable

@@ -251,7 +251,7 @@ interface CreditLimit {
 ## Usage
 
 ```tsx
-import { CreditLimitTable } from "@/features/credit-limits";
+import { CreditLimitTable } from "@/modules/credit-limits";
 
 <CreditLimitTable
   data={customers}

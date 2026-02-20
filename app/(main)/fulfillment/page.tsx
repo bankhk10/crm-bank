@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   FulfillmentTable,
   type SaleRecord,
-} from "@/features/fulfillment";
+} from "@/modules/fulfillment";
 
 const FULFILLMENT_STATUSES = [
   "APPROVED",

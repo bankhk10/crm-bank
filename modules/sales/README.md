@@ -14,11 +14,13 @@ This module handles sales management functionalities, including creating sale re
 ## API Endpoints
 
 ### List Sales
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/sales` | `app/api/sales/route.ts` |
+
+| Method | Endpoint     | File Location            |
+| ------ | ------------ | ------------------------ |
+| `GET`  | `/api/sales` | `app/api/sales/route.ts` |
 
 **Query Parameters:**
+
 - `search` (string): Search by Sale No, Customer Name/Code.
 - `status` (string): Filter by SaleStatus.
 - `customerId`, `employeeId`, `paymentTerm` (string): Exact match filters.
@@ -30,8 +32,9 @@ This module handles sales management functionalities, including creating sale re
 ---
 
 ### Create Sale
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method | Endpoint     | File Location            |
+| ------ | ------------ | ------------------------ |
 | `POST` | `/api/sales` | `app/api/sales/route.ts` |
 
 **Description:** Creates a new sale, checks credit limit, validates stock (returns warnings), and notifies manager.
@@ -41,9 +44,10 @@ This module handles sales management functionalities, including creating sale re
 ---
 
 ### Get Sale Detail
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `GET` | `/api/sales/[saleId]` | `app/api/sales/[saleId]/route.ts` |
+
+| Method | Endpoint              | File Location                     |
+| ------ | --------------------- | --------------------------------- |
+| `GET`  | `/api/sales/[saleId]` | `app/api/sales/[saleId]/route.ts` |
 
 **Description:** Fetches full sale details including items, customer credit info, and stock warnings.
 
@@ -52,9 +56,10 @@ This module handles sales management functionalities, including creating sale re
 ---
 
 ### Update Sale
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
-| `PUT` | `/api/sales/[saleId]` | `app/api/sales/[saleId]/route.ts` |
+
+| Method | Endpoint              | File Location                     |
+| ------ | --------------------- | --------------------------------- |
+| `PUT`  | `/api/sales/[saleId]` | `app/api/sales/[saleId]/route.ts` |
 
 **Description:** Updates sale details. If status was APPROVED/REJECTED, it may reset to PENDING and release stock.
 
@@ -63,8 +68,9 @@ This module handles sales management functionalities, including creating sale re
 ---
 
 ### Delete Sale
-| Method | Endpoint | File Location |
-|--------|----------|---------------|
+
+| Method   | Endpoint              | File Location                     |
+| -------- | --------------------- | --------------------------------- |
 | `DELETE` | `/api/sales/[saleId]` | `app/api/sales/[saleId]/route.ts` |
 
 **Description:** Soft deletes a sale. Returns credit and stock if applicable.
@@ -77,28 +83,29 @@ This module handles sales management functionalities, including creating sale re
 
 ### Table: `Sale`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | `String` | PK |
-| `saleNumber` | `String` | Auto-generated (e.g. SO2023100001) |
-| `customerId` | `String` | FK to Customer |
-| `employeeId` | `String` | FK to Employee (Salesperson) |
-| `status` | `SaleStatus` | PENDING, APPROVED, etc. |
-| `paymentTerm` | `PaymentTerm` | CREDIT_90, CASH, etc. |
-| `totalAmount` | `Decimal` | Net total |
-| `items` | `SaleItem[]` | Relation to items |
+| Column        | Type          | Description                        |
+| ------------- | ------------- | ---------------------------------- |
+| `id`          | `String`      | PK                                 |
+| `saleNumber`  | `String`      | Auto-generated (e.g. SO2023100001) |
+| `customerId`  | `String`      | FK to Customer                     |
+| `employeeId`  | `String`      | FK to Employee (Salesperson)       |
+| `status`      | `SaleStatus`  | PENDING, APPROVED, etc.            |
+| `paymentTerm` | `PaymentTerm` | CREDIT_90, CASH, etc.              |
+| `totalAmount` | `Decimal`     | Net total                          |
+| `items`       | `SaleItem[]`  | Relation to items                  |
 
 ### Table: `SaleItem`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `saleId` | `String` | FK to Sale |
-| `productId` | `String` | FK to Product |
-| `quantity` | `Int` | Quantity (Cartons/Units) |
-| `unitPrice` | `Decimal` | Price per unit |
-| `totalPrice` | `Decimal` | Total line amount |
+| Column       | Type      | Description              |
+| ------------ | --------- | ------------------------ |
+| `saleId`     | `String`  | FK to Sale               |
+| `productId`  | `String`  | FK to Product            |
+| `quantity`   | `Int`     | Quantity (Cartons/Units) |
+| `unitPrice`  | `Decimal` | Price per unit           |
+| `totalPrice` | `Decimal` | Total line amount        |
 
 ### Relationships
+
 ```
 Sale
 ├── customer: Customer
@@ -114,6 +121,7 @@ Sale
 ## Validation Rules
 
 ### Server-side Validation (POST/PUT)
+
 1. **Credit Limit**:
    - For CREDIT terms, `Total Amount` must not exceed `Available Credit + Promo Credit`.
    - Returns 400 if exceeded.
@@ -125,6 +133,7 @@ Sale
    - Max 3 delivery date updates allowed.
 
 ### Client-side Validation (Form)
+
 - Required fields: Customer, Employee, Items.
 - Items must have usage Quantity > 0.
 
@@ -133,15 +142,19 @@ Sale
 ## Key Components
 
 ### SalesTable
+
 Main list view for sales.
+
 - **Features**: Advanced filtering, Status badges, Role-based actions (Approve/Edit/Delete).
 - **Props**: `SalesTableProps`
 
 ### SaleForm
+
 Complex form for creating/editing sales.
+
 - **Features**:
   - Dynamic product search & addition.
-  - Auto-calculation of totals (Unit Price * Qty * Package Size).
+  - Auto-calculation of totals (Unit Price _ Qty _ Package Size).
   - Credit limit real-time check.
   - Address auto-fill from Customer.
 - **Props**: `SaleFormProps`
@@ -151,40 +164,42 @@ Complex form for creating/editing sales.
 ## Component Props
 
 ### `SalesTable`
+
 (Uses type `SalesTableProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `sales` | `SaleRecord[]` | ✅ | List of sales |
-| `total` | `number` | ✅ | Total records |
-| `page` | `number` | ✅ | Current page |
-| `perPage` | `number` | ✅ | Per page count |
-| `canCreate` | `boolean` | ❌ | Permission flag |
-| `canApprove` | `boolean` | ❌ | Permission flag |
-| `canEditItem` | `(item) => boolean` | ❌ | Row-level permission check |
+| Prop          | Type                | Required | Description                |
+| ------------- | ------------------- | -------- | -------------------------- |
+| `sales`       | `SaleRecord[]`      | ✅       | List of sales              |
+| `total`       | `number`            | ✅       | Total records              |
+| `page`        | `number`            | ✅       | Current page               |
+| `perPage`     | `number`            | ✅       | Per page count             |
+| `canCreate`   | `boolean`           | ❌       | Permission flag            |
+| `canApprove`  | `boolean`           | ❌       | Permission flag            |
+| `canEditItem` | `(item) => boolean` | ❌       | Row-level permission check |
 
 ### `SaleForm`
+
 (Uses type `SaleFormProps`)
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `initialData` | `Partial<SaleFormData>` | ❌ | For Edit mode |
-| `onSubmit` | `(data) => Promise<void>` | ✅ | Submit handler |
-| `onCancel` | `() => void` | ❌ | Cancel handler |
-| `isEdit` | `boolean` | ❌ | Edit mode flag |
+| Prop          | Type                      | Required | Description    |
+| ------------- | ------------------------- | -------- | -------------- |
+| `initialData` | `Partial<SaleFormData>`   | ❌       | For Edit mode  |
+| `onSubmit`    | `(data) => Promise<void>` | ✅       | Submit handler |
+| `onCancel`    | `() => void`              | ❌       | Cancel handler |
+| `isEdit`      | `boolean`                 | ❌       | Edit mode flag |
 
 ---
 
 ## Calculation Formula
 
 - **Item Total**: `Quantity` × `Unit Price` × `Package Size Multiplier`
-  - *Note: Package Size Multiplier defaults to 1 if invalid.*
+  - _Note: Package Size Multiplier defaults to 1 if invalid._
 - **Net Total**: `Sum(Item Totals)` - `Shipping Cost` - `Other Costs`
 
 ## Usage
 
 ```tsx
-import { SalesTable, SaleForm } from "@/features/sales";
+import { SalesTable, SaleForm } from "@/modules/sales";
 
 // List Page
 <SalesTable

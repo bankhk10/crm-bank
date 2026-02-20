@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/lib/rbac";
-import { RolePermissionEditor } from "@/features/rbac";
+import { RolePermissionEditor } from "@/modules/rbac";
 
 interface RolePermissionsPageProps {
   params: {

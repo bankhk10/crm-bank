@@ -2,9 +2,9 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getShippingCompany } from "@/features/shipping-companies/_lib/data-access";
-import { getCustomers } from "@/features/customers/_lib/data-access";
-import { ShippingCompanyEditView } from "@/features/shipping-companies";
+import { getShippingCompany } from "@/modules/shipping-companies/_lib/data-access";
+import { getCustomers } from "@/modules/customers/_lib/data-access";
+import { ShippingCompanyEditView } from "@/modules/shipping-companies";
 
 interface PageProps {
     params: Promise<{ shippingCompanyId: string }>;

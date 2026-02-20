@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
-import { MONTHS } from "@/features/sales-targets/_lib/constants";
+import { MONTHS } from "@/modules/sales-targets/_lib/constants";
 
 interface SalesTargetFiltersProps {
     year: number;

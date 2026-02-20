@@ -1,16 +1,16 @@
 /**
  * Products Feature Module
- * 
+ *
  * This is the main barrel export file for the products feature.
  * Import everything from this file when working with products.
- * 
+ *
  * @example
- * import { 
- *   ProductsTable, 
- *   ProductForm, 
+ * import {
+ *   ProductsTable,
+ *   ProductForm,
  *   useProductColumns,
- *   type Product 
- * } from "@/features/products";
+ *   type Product
+ * } from "@/modules/products";
  */
 
 // Types

@@ -2,8 +2,8 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getCustomers } from "@/features/customers/_lib/data-access";
-import { ShippingCompanyNewView } from "@/features/shipping-companies/_components/shipping-company-new-view";
+import { getCustomers } from "@/modules/customers/_lib/data-access";
+import { ShippingCompanyNewView } from "@/modules/shipping-companies/_components/shipping-company-new-view";
 
 export default async function NewShippingCompanyPage() {
     const session = await auth();

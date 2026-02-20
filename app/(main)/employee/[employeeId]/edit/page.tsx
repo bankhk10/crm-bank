@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import { EmployeeForm } from "@/features/employee";
+import { EmployeeForm } from "@/modules/employee";
 
 import { toast } from "sonner";
 

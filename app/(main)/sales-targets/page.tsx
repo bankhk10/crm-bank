@@ -21,9 +21,9 @@ import {
   YearlyTargetCard,
   DetailedTargetsTable,
   SalesTargetFilters,
-} from "@/features/sales-targets";
-import { useSalesTargets } from "@/features/sales-targets";
-import { CURRENT_YEAR, YEARS } from "@/features/sales-targets/_lib/constants";
+} from "@/modules/sales-targets";
+import { useSalesTargets } from "@/modules/sales-targets";
+import { CURRENT_YEAR, YEARS } from "@/modules/sales-targets/_lib/constants";
 import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
 
 export default function SalesTargetsPage() {

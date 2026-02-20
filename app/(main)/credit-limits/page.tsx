@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CreditLimitTable,
   type CustomerRecord,
-} from "@/features/credit-limits";
+} from "@/modules/credit-limits";
 import { CreditCard } from "lucide-react";
 
 export default function CreditLimitsPage() {

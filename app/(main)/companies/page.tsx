@@ -2,8 +2,8 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getCompanies } from "@/features/companies/_lib/data-access";
-import { CompaniesView } from "@/features/companies/_components/companies-view";
+import { getCompanies } from "@/modules/companies/_lib/data-access";
+import { CompaniesView } from "@/modules/companies/_components/companies-view";
 
 interface PageProps {
   searchParams: Promise<{

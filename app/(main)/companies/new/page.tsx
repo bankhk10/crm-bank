@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { CompanyForm } from "@/features/companies";
+import { CompanyForm } from "@/modules/companies";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";

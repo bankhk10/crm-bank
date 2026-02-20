@@ -14,22 +14,22 @@ This module handles the main application layout, including sidebar navigation, h
 ### Components
 
 ```tsx
-import { DashboardShell, Sidebar, Navbar } from "@/features/layout";
+import { DashboardShell, Sidebar, Navbar } from "modules";
 
 // Main layout wrapper
-<DashboardShell 
-  roles={roles} 
+<DashboardShell
+  roles={roles}
   permissionKeys={permissionKeys}
   displayName={user.name}
 >
   {children}
-</DashboardShell>
+</DashboardShell>;
 ```
 
 ### Hooks
 
 ```tsx
-import { useSidebar } from "@/features/layout";
+import { useSidebar } from "modules";
 
 const { isOpen, open, close, toggle } = useSidebar();
 ```
@@ -37,46 +37,46 @@ const { isOpen, open, close, toggle } = useSidebar();
 ### Types
 
 ```tsx
-import { 
-  SidebarProps, 
-  SidebarNavItem, 
-  DashboardShellProps 
-} from "@/features/layout";
+import { SidebarProps, SidebarNavItem, DashboardShellProps } from "modules";
 ```
 
 ### Navigation Items
 
 ```tsx
-import { navigationItems } from "@/features/layout";
+import { navigationItems } from "modules";
 
 // Access sidebar navigation configuration
-navigationItems.forEach(item => console.log(item.label));
+navigationItems.forEach((item) => console.log(item.label));
 ```
 
 ## Components
 
 ### DashboardShell
+
 Main layout wrapper that includes:
+
 - Desktop sidebar (visible on md+ screens)
 - Mobile sidebar with overlay (visible on mobile)
 - Navbar with user info
 - Main content area with rounded corners
 
 ### Sidebar
+
 Navigation sidebar with:
+
 - Logo and branding
 - Permission-based navigation filtering
 - Collapsible menu items with children
 - Active route highlighting
 
 ### Navbar
+
 Top navigation bar with:
+
 - Mobile menu toggle
 - Notification bell
 - User info display
 - Logout button
-
-
 
 ## Dependencies
 
