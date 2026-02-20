@@ -101,6 +101,12 @@ const SalesRecordDocument = React.forwardRef<
           margin: 0;
           white-space: nowrap;
         }
+        .billing-address-text {
+          font-size: 11px;
+          color: #64748b;
+          margin: 0;
+          margin-top: 4px;
+        }
         .doc-title {
           font-size: 24px;
           font-weight: 800;
@@ -436,10 +442,11 @@ const SalesRecordDocument = React.forwardRef<
       <div className="info-grid">
         {/* Billing Address */}
         <div className="info-section">
-          <div className="info-section-header">ที่อยู่วางบิล</div>
+          <div className="info-section-header">ข้อมูลลูกค้า</div>
           <div className="info-section-body">
             <div className="name">{sale.customer.name}</div>
-            <div className="address-text">{billingAddress}</div>
+            <div className="name">ที่อยู่วางบิล</div>
+            <div className="billing-address-text">{billingAddress}</div>
             {sale.customer.taxId && (
               <div className="info-detail">
                 เลขผู้เสียภาษี: {sale.customer.taxId}
@@ -453,7 +460,7 @@ const SalesRecordDocument = React.forwardRef<
 
         {/* Shipping Address */}
         <div className="info-section">
-          <div className="info-section-header">ที่อยู่จัดส่ง</div>
+          <div className="info-section-header">ข้อมูลจัดส่ง</div>
           <div className="info-section-body">
             <div className="address-text">{displayShippingAddress}</div>
           </div>
