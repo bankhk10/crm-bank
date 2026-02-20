@@ -98,7 +98,7 @@ export default function CustomersTable({
 
                       {/* 2. รหัสลูกค้า (แยกออกมา) */}
                       <div className="w-32 px-2 text-center">
-                        <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">
+                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">
                           {subDealer.customerCode}
                         </span>
                       </div>
