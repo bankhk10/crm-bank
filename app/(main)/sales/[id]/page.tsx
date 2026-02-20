@@ -498,6 +498,13 @@ export default function SaleDetailPage({
                 label="ที่อยู่จัดส่ง"
                 value={displayShippingAddress}
               />
+              {(sale.shippingCompany || sale.pickupCompany) && (
+                <DetailItem
+                  icon={<Truck className="h-4 w-4" />}
+                  label="บริษัทขนส่ง"
+                  value={sale.shippingCompany?.name || sale.pickupCompany?.name}
+                />
+              )}
             </InfoCard>
           </div>
 

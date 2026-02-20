@@ -389,6 +389,7 @@ export async function PUT(
             : null,
           deliveryMethod: body.deliveryMethod,
           pickupCompanyId: body.pickupCompanyId,
+          shippingCompanyId: body.shippingCompanyId,
           // requestedDeliveryDate: body.requestedDeliveryDate
           //   ? new Date(body.requestedDeliveryDate)
           //   : null, // Keep existing if not provided or add to form

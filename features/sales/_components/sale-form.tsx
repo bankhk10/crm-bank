@@ -410,6 +410,7 @@ export function SaleForm({
             useCustomShippingAddress,
             customShippingAddress,
             deliveryMethod,
+            shippingCompanyId,
             items,
             shippingCost,
             otherCosts,
@@ -485,6 +486,8 @@ export function SaleForm({
                 selectedAddressId: selectedAddressId || undefined,
                 pickupCompanyId:
                     deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
+                shippingCompanyId:
+                    deliveryMethod === "COURIER" ? shippingCompanyId : undefined,
                 items,
                 shippingCost,
                 otherCosts,

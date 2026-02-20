@@ -43,6 +43,14 @@ export interface SaleWithRelations extends Sale {
     email: string;
   } | null;
   items: SaleItemWithProduct[];
+  shippingCompany?: {
+    id: string;
+    name: string;
+  } | null;
+  pickupCompany?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export interface SaleItemWithProduct extends SaleItem {
@@ -70,6 +78,7 @@ export interface SaleFormData {
   deliveryDate?: string;
   deliveryMethod?: string;
   pickupCompanyId?: string;
+  shippingCompanyId?: string;
   selectedAddressId?: string;
   billingAddress?: string;
   shippingAddress?: string;

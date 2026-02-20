@@ -136,6 +136,18 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          shippingCompany: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          pickupCompany: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -322,6 +334,7 @@ export async function POST(request: NextRequest) {
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
         deliveryMethod: body.deliveryMethod,
         pickupCompanyId: body.pickupCompanyId,
+        shippingCompanyId: body.shippingCompanyId,
         billingAddress: body.billingAddress,
         shippingAddress: body.shippingAddress,
         // Store flag indicating user specified custom shipping address

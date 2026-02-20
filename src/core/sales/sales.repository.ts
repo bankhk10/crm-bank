@@ -37,7 +37,7 @@ export interface PaginationParams {
  * Build where clause for sales query
  */
 export function buildSalesWhereClause(
-  filters: SalesQueryFilters
+  filters: SalesQueryFilters,
 ): Prisma.SaleWhereInput {
   const where: Prisma.SaleWhereInput = {
     deletedAt: null,
@@ -147,6 +147,18 @@ const salesInclude = {
       },
     },
   },
+  shippingCompany: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  pickupCompany: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 } as const;
 
 /**
@@ -154,7 +166,7 @@ const salesInclude = {
  */
 export async function findSales(
   filters: SalesQueryFilters,
-  pagination: PaginationParams
+  pagination: PaginationParams,
 ) {
   const where = buildSalesWhereClause(filters);
   const skip = (pagination.page - 1) * pagination.perPage;
@@ -211,7 +223,7 @@ export async function getLastSale() {
  */
 export async function createSale(
   data: Prisma.SaleCreateInput,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
   return db.sale.create({
@@ -226,7 +238,7 @@ export async function createSale(
 export async function updateSale(
   id: string,
   data: Prisma.SaleUpdateInput,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
   return db.sale.update({
@@ -244,7 +256,7 @@ export async function createStatusHistory(
   status: SaleStatus,
   changedById: string,
   notes?: string,
-  tx?: Prisma.TransactionClient
+  tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
   return db.saleStatusHistory.create({

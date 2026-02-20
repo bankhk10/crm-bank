@@ -53,9 +53,11 @@ const SalesRecordDocument = React.forwardRef<
     }
   };
 
-  const deliveryMethodLabel = getDeliveryMethodLabel((sale as any).deliveryMethod);
+  const deliveryMethod = (sale as any).deliveryMethod;
+  const deliveryMethodLabel = getDeliveryMethodLabel(deliveryMethod);
   const shippingCompanyName =
-    (sale as any).shippingAddress ||
+    sale.shippingCompany?.name ||
+    sale.pickupCompany?.name ||
     "-";
 
   return (
@@ -485,8 +487,8 @@ const SalesRecordDocument = React.forwardRef<
             <div className="info-detail">
               <strong>วิธีการจัดส่ง:</strong> {deliveryMethodLabel}
             </div>
-            {(sale as any).deliveryMethod !== "SALES_DELIVERY" &&
-              (sale as any).deliveryMethod !== "FACTORY_DELIVERY" && (
+            {deliveryMethod !== "SALES_DELIVERY" &&
+              deliveryMethod !== "FACTORY_DELIVERY" && (
                 <div className="info-detail">
                   <strong>บริษัทขนส่ง:</strong> {shippingCompanyName}
                 </div>
