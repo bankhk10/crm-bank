@@ -38,6 +38,26 @@ const SalesRecordDocument = React.forwardRef<
       .filter(Boolean)
       .join(" ");
 
+  const getDeliveryMethodLabel = (method?: string | null) => {
+    switch (method) {
+      case "SALES_DELIVERY":
+        return "พนักงานขายจัดส่งสินค้า";
+      case "CUSTOMER_PICKUP":
+        return "ลูกค้ามารับสินค้าเอง";
+      case "COURIER":
+        return "ส่งโดยบริษัทขนส่ง";
+      case "FACTORY_DELIVERY":
+        return "ส่งโดยรถโรงงาน";
+      default:
+        return method || "-";
+    }
+  };
+
+  const deliveryMethodLabel = getDeliveryMethodLabel((sale as any).deliveryMethod);
+  const shippingCompanyName =
+    (sale as any).shippingAddress ||
+    "-";
+
   return (
     <div ref={ref} className="sales-record-document">
       <style jsx>{`
@@ -462,6 +482,18 @@ const SalesRecordDocument = React.forwardRef<
         <div className="info-section">
           <div className="info-section-header">ข้อมูลจัดส่ง</div>
           <div className="info-section-body">
+            <div className="info-detail">
+              <strong>วิธีการจัดส่ง:</strong> {deliveryMethodLabel}
+            </div>
+            {(sale as any).deliveryMethod !== "SALES_DELIVERY" &&
+              (sale as any).deliveryMethod !== "FACTORY_DELIVERY" && (
+                <div className="info-detail">
+                  <strong>บริษัทขนส่ง:</strong> {shippingCompanyName}
+                </div>
+              )}
+            <div className="name" style={{ marginTop: "8px" }}>
+              ที่อยู่จัดส่งสินค้า
+            </div>
             <div className="address-text">{displayShippingAddress}</div>
           </div>
         </div>
