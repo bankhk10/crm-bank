@@ -86,10 +86,20 @@ const SalesRecordDocument = React.forwardRef<
           margin: 0;
           line-height: 1.2;
         }
+        .company-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #1e3a5f;
+          margin: 0;
+          margin-top: 2px;
+          margin-bottom: 4px;
+          line-height: 1.2;
+        }
         .company-subtitle {
           font-size: 11px;
           color: #64748b;
           margin: 0;
+          white-space: nowrap;
         }
         .doc-title {
           font-size: 24px;
@@ -97,6 +107,8 @@ const SalesRecordDocument = React.forwardRef<
           color: #1e3a5f;
           margin: 8px 0 0 0;
           letter-spacing: 1px;
+          text-align: right;
+          margin-bottom: 8px;
         }
         .doc-header-right {
           flex: 1;
@@ -403,7 +415,7 @@ const SalesRecordDocument = React.forwardRef<
             </div>
             <div className="company-info">
               <p className="company-name">บริษัท คร็อพ ซายน์ จำกัด</p>
-              <p className="company-subtitle">Crop Science CO., LTD.</p>
+              <p className="company-title">Crop Science CO., LTD.</p>
               <p className="company-subtitle">เลขที่ 22 อาคารไอซีจี ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพฯ 10400</p>
               <p className="company-subtitle">โทร. 02-271-4343 แฟกซ์: 02-618-4530</p>
             </div>
@@ -412,11 +424,11 @@ const SalesRecordDocument = React.forwardRef<
         </div>
         <div className="doc-header-right">
           {/* <p className="sale-number-label">เลขที่เอกสาร</p>
-                    <p className="sale-number">{sale.saleNumber}</p>
-                    <p className="sale-date">
-                        วันที่:{" "}
-                        {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
-                    </p> */}
+          <p className="sale-number">{sale.saleNumber}</p>
+          <p className="sale-date">
+            วันที่:{" "}
+            {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
+          </p> */}
         </div>
       </div>
 
