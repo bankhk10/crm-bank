@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -18,9 +18,15 @@ import {
   CreditCard,
   Tag,
   Receipt,
+  Printer,
+  Download,
+  Loader2,
+  Eye,
+  X,
 } from "lucide-react";
+import SalesRecordDocument from "@/components/sales/SalesRecordDocument";
+import { useSalesPdf } from "@/hooks/use-sales-pdf";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
@@ -46,6 +52,16 @@ export default function SaleDetailPage({
   const [data, setData] = useState<SaleDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const documentRef = useRef<HTMLDivElement>(null);
+  const {
+    handlePreview,
+    handleDownloadPdf,
+    handlePrintFromPreview,
+    closePreview,
+    isGenerating,
+    pdfUrl,
+    showPreview,
+  } = useSalesPdf(documentRef);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -193,110 +209,119 @@ export default function SaleDetailPage({
 
   if (sale.status === "COMPLETED") {
     return (
-      <div className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 space-y-4 sm:space-y-6 max-w-5xl">
-        <WarningsSection
-          stockWarnings={stockWarnings}
-          priceWarnings={priceWarnings}
-        />
-
-        <Card className="shadow-lg border-slate-200 bg-white overflow-hidden print:shadow-none print:border-none">
-          <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 uppercase tracking-wide">
-                ใบบันทึกการขาย
-              </h2>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">
-                {sale.saleNumber}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 border border-slate-300 divide-y md:divide-y-0 md:divide-x divide-slate-300">
-              <AddressSection
-                title="ที่อยู่วางบิล"
-                name={sale.customer.name}
-                address={
-                  sale.billingAddress ||
-                  [
-                    sale.customer.billingAddressLine ||
-                    sale.customer.addressLine,
-                    sale.customer.billingSubdistrict ||
-                      sale.customer.subdistrict
-                      ? `ต.${sale.customer.billingSubdistrict ||
-                      sale.customer.subdistrict
-                      }`
-                      : "",
-                    sale.customer.billingDistrict || sale.customer.district
-                      ? `อ.${sale.customer.billingDistrict ||
-                      sale.customer.district
-                      }`
-                      : "",
-                    sale.customer.billingProvince || sale.customer.province
-                      ? `จ.${sale.customer.billingProvince ||
-                      sale.customer.province
-                      }`
-                      : "",
-                    sale.customer.billingPostalCode || sale.customer.postalCode,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")
-                }
-                taxId={sale.customer.taxId}
-                phone={sale.customer.phone}
-              />
-
-              <AddressSection
-                title="ที่อยู่จัดส่ง"
-                address={displayShippingAddress}
-              />
-
-              <ReferenceSection
-                saleDate={sale.saleDate}
-                saleNumber={sale.saleNumber}
-                paymentTerm={paymentTermLabel}
-                creditDueDate={sale.creditDueDate}
-                deliveryDate={(sale as any).deliveryDate}
-                paymentDate={sale.paymentDate}
-                employeeName={sale.employee.name}
-              />
-            </div>
-
-            <ProductTable items={sale.items} />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-              <div className="space-y-4 sm:space-y-6">
-                {sale.notes && (
-                  <div className="border border-slate-300 rounded-sm p-3 sm:p-4">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">
-                      หมายเหตุ
-                    </h4>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                      {sale.notes}
-                    </p>
-                  </div>
-                )}
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
+          {/* Action Bar */}
+          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <Button
+                variant="ghost"
+                className="text-slate-600 hover:text-slate-900"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                ย้อนกลับ
+              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={handlePreview}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  ดูตัวอย่าง / พิมพ์
+                </Button>
+                <Button
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => handleDownloadPdf(sale.saleNumber)}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  ดาวน์โหลด PDF
+                </Button>
               </div>
+            </div>
+          </div>
 
-              <TotalsSection
-                subtotal={sale.subtotalAmount}
-                shippingCost={sale.shippingCost}
-                otherCosts={sale.otherCosts}
-                total={sale.totalAmount}
+          {/* Warnings */}
+          <div className="max-w-5xl mx-auto px-4 pt-4">
+            <WarningsSection
+              stockWarnings={stockWarnings}
+              priceWarnings={priceWarnings}
+            />
+          </div>
+
+          {/* Document */}
+          <div className="max-w-5xl mx-auto px-4 py-6">
+            <SalesRecordDocument
+              ref={documentRef}
+              sale={sale}
+              displayShippingAddress={displayShippingAddress}
+            />
+          </div>
+        </div>
+
+        {/* PDF Preview Dialog */}
+        {showPreview && pdfUrl && (
+          <div className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm">
+            {/* Dialog Header */}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-900 text-white shadow-lg">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-blue-400" />
+                <span className="font-semibold text-sm sm:text-base">
+                  {sale.saleNumber}.pdf
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/10 gap-2"
+                  onClick={handlePrintFromPreview}
+                >
+                  <Printer className="h-4 w-4" />
+                  <span className="hidden sm:inline">พิมพ์</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/10 gap-2"
+                  onClick={() => handleDownloadPdf(sale.saleNumber)}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">ดาวน์โหลด</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/10 ml-2"
+                  onClick={closePreview}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            {/* PDF Iframe */}
+            <div className="flex-1 p-2 sm:p-4">
+              <iframe
+                id="pdf-preview-iframe"
+                src={pdfUrl}
+                className="w-full h-full rounded-lg bg-white"
+                title="PDF Preview"
               />
             </div>
           </div>
-        </Card>
-
-        <div className="flex justify-center print:hidden">
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto text-slate-500 hover:text-slate-900"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            ย้อนกลับ
-          </Button>
-        </div>
-      </div>
+        )}
+      </>
     );
   }
 
@@ -737,207 +762,6 @@ function DetailItem({ icon, label, value }: any) {
   );
 }
 
-function AddressSection({ title, name, address, taxId, phone }: any) {
-  return (
-    <div className="flex flex-col">
-      <div className="bg-slate-100/80 px-3 sm:px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-xs sm:text-sm">
-        {title}
-      </div>
-      <div className="p-3 sm:p-4 text-xs sm:text-sm text-slate-600 space-y-1 flex-1">
-        <p className="font-bold text-slate-900 text-sm sm:text-base">{name}</p>
-        <p className="break-words">{address}</p>
-        {taxId && <p>Tax ID: {taxId}</p>}
-        {phone && <p>Tel: {phone}</p>}
-      </div>
-    </div>
-  );
-}
-
-function ReferenceSection({
-  saleDate,
-  saleNumber,
-  paymentTerm,
-  creditDueDate,
-  deliveryDate,
-  paymentDate,
-  employeeName,
-}: any) {
-  return (
-    <div className="flex flex-col">
-      <div className="bg-slate-100/80 px-3 sm:px-4 py-2 border-b border-slate-300 font-semibold text-slate-700 text-xs sm:text-sm">
-        ข้อมูลอ้างอิง
-      </div>
-      <div className="divide-y divide-slate-200">
-        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-          <span className="text-slate-500">วันที่:</span>
-          <span className="font-medium text-slate-900">
-            {format(new Date(saleDate), "dd/MM/yyyy", { locale: th })}
-          </span>
-        </div>
-        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-          <span className="text-slate-500">เลขที่:</span>
-          <span className="font-medium text-slate-900 truncate ml-2">
-            {saleNumber}
-          </span>
-        </div>
-        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-          <span className="text-slate-500">เงื่อนไขการชำระเงิน:</span>
-          <span className="font-medium text-slate-900 text-right ml-2">
-            {(() => {
-              const match = paymentTerm.match(/^(.+?)\s*(\(.+?\))$/);
-              if (match) {
-                return (
-                  <>
-                    <span className="block">{match[1]}</span>
-                    <span className="block text-slate-600">{match[2]}</span>
-                  </>
-                );
-              }
-              return paymentTerm;
-            })()}
-          </span>
-        </div>
-        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-          <span className="text-slate-500">วันที่จัดส่งของ:</span>
-          <span className="font-medium">
-            {deliveryDate
-              ? format(new Date(deliveryDate), "dd/MM/yyyy", { locale: th })
-              : "-"}
-          </span>
-        </div>
-        {paymentDate && (
-          <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-            <span className="text-slate-500">วันที่ชำระเงิน:</span>
-            <span
-              className={`font-medium ${creditDueDate && new Date(paymentDate) > new Date(creditDueDate)
-                ? "text-red-600"
-                : "text-green-600"
-                }`}
-            >
-              {format(new Date(paymentDate), "dd/MM/yyyy", { locale: th })}
-            </span>
-          </div>
-        )}
-        <div className="flex justify-between p-2 px-3 sm:px-4 text-xs sm:text-sm">
-          <span className="text-slate-500">ผู้ขาย:</span>
-          <span className="font-medium text-slate-900 truncate ml-2">
-            {employeeName}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProductTable({ items }: any) {
-  return (
-    <div className="border border-slate-300 overflow-x-auto">
-      <table className="w-full text-xs sm:text-sm">
-        <thead className="bg-slate-100/80 text-slate-700 font-semibold border-b border-slate-300">
-          <tr>
-            <th className="py-2 px-2 sm:px-3 text-left border-r border-slate-300 w-20 sm:w-32">
-              รหัสสินค้า
-            </th>
-            <th className="py-2 px-2 sm:px-3 text-left border-r border-slate-300">
-              รายละเอียดสินค้า
-            </th>
-            <th className="py-2 px-2 sm:px-3 text-right border-r border-slate-300 w-16 sm:w-20">
-              จำนวน
-            </th>
-            <th className="py-2 px-2 sm:px-3 text-right border-r border-slate-300 w-24 sm:w-32 hidden sm:table-cell">
-              ราคาต่อหน่วย
-            </th>
-            <th className="py-2 px-2 sm:px-3 text-right w-24 sm:w-32">รวม</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-200">
-          {items.map((item: any) => (
-            <tr key={item.id}>
-              <td className="py-2 sm:py-3 px-2 sm:px-3 text-slate-600 border-r border-slate-300 align-top text-xs">
-                {item.product.productCode}
-              </td>
-              <td className="py-2 sm:py-3 px-2 sm:px-3 text-slate-900 border-r border-slate-300 align-top">
-                <div>{item.product.name}</div>
-                <div className="sm:hidden text-xs text-gray-600 mt-1">
-                  ฿
-                  {Number(item.unitPrice).toLocaleString("th-TH", {
-                    minimumFractionDigits: 2,
-                  })}
-                </div>
-                {item.priceModified && (
-                  <span className="text-[10px] text-yellow-600 bg-yellow-50 px-1 rounded inline-block mt-1">
-                    *ราคาพิเศษ
-                  </span>
-                )}
-              </td>
-              <td className="py-2 sm:py-3 px-2 sm:px-3 text-right text-slate-900 border-r border-slate-300 align-top">
-                {item.quantity}
-              </td>
-              <td className="py-2 sm:py-3 px-2 sm:px-3 text-right text-slate-900 border-r border-slate-300 align-top hidden sm:table-cell">
-                {Number(item.unitPrice).toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-              <td className="py-2 sm:py-3 px-2 sm:px-3 text-right text-slate-900 font-medium align-top">
-                {Number(item.totalPrice).toLocaleString("th-TH", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function TotalsSection({ subtotal, shippingCost, otherCosts, total }: any) {
-  return (
-    <div className="flex flex-col gap-2 max-w-sm ml-auto w-full">
-      <div className="flex justify-between items-center p-2 sm:p-3 border border-slate-300 rounded-sm text-sm sm:text-base">
-        <span className="font-semibold text-slate-600">รวมเป็นเงิน</span>
-        <span className="font-bold text-slate-900">
-          {Number(subtotal).toLocaleString("th-TH", {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-      </div>
-
-      {Number(shippingCost) > 0 && (
-        <div className="flex justify-between items-center p-2 sm:p-3 border border-slate-300 rounded-sm text-sm sm:text-base">
-          <span className="font-semibold text-slate-600">ส่วนลดค่าขนส่ง</span>
-          <span className="font-bold text-red-500">
-            -
-            {Number(shippingCost).toLocaleString("th-TH", {
-              minimumFractionDigits: 2,
-            })}
-          </span>
-        </div>
-      )}
-
-      {Number(otherCosts) > 0 && (
-        <div className="flex justify-between items-center p-2 sm:p-3 border border-slate-300 rounded-sm text-sm sm:text-base">
-          <span className="font-semibold text-slate-600">ส่วนลดหน้าบิล</span>
-          <span className="font-bold text-red-500">
-            -
-            {Number(otherCosts).toLocaleString("th-TH", {
-              minimumFractionDigits: 2,
-            })}
-          </span>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center p-3 sm:p-4 bg-slate-100 border border-slate-300 rounded-sm mt-2">
-        <span className="font-bold text-slate-800 text-sm sm:text-base">
-          รวมเป็นเงิน
-        </span>
-        <span className="font-bold text-blue-700 text-lg sm:text-xl">
-          {Number(total).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function getDeliveryMethodLabel(method?: string | null) {
   switch (method) {
