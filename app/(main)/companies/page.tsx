@@ -24,23 +24,10 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
 
   const perms = session.user.permissionKeys ?? [];
   const canView = perms.includes("company.view");
-  const resourcePath = "/api/companies"; // Using same resource path for consistency
+  const resourcePath = "/api/companies";
   const authorized = isAuthorized(resourcePath, perms);
 
-  // If strict RBAC is needed, handle it here. 
-  // The client component also checks "menu.companies" & "company.view".
-  // But we should protect data access here too.
   if (!canView && !authorized) {
-    // If we want to be strict, redirect to 403 or show error.
-    // However, the original page showed an Alert if !canView.
-    // We can let the Client Component show the alert by passing empty data 
-    // or we can just render the Alert here. 
-    // Best practice: Server component returns Unauthorized UI or redirects.
-
-    // Let's pass empty data and let Client Component handle the specific "You don't have permission" UI 
-    // matching the original behavior, OR just show a simple Server "Forbidden".
-    // The original code returned: <Alert>...</Alert> if !canView.
-    // So if we detect !canView here, we can just return a localized error UI.
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
