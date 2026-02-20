@@ -4,70 +4,49 @@ This feature module manages company/customer data, including listing, creating, 
 
 ## Directory Structure
 
-- `_components/`: UI components (CompaniesTable, CompanyForm, etc.)
-- `_hooks/`: Custom hooks (useCompanyColumns)
-- `_lib/`: Utilities and constants
-- `_types/`: Shared type definitions
+- `features/`: Feature-specific components (list-view, detail-view, form)
+- `server/`: Server Actions and Data Access Queries
+- `types/`: Shared type definitions
+- `ui/`: Shared UI components
 
 ---
 
-## API Endpoints
+## Server Actions
 
-### List Companies
-
-| Method | Endpoint         | File Location                |
-| ------ | ---------------- | ---------------------------- |
-| `GET`  | `/api/companies` | `app/api/companies/route.ts` |
-
-**Query Parameters:**
-
-- `page` (number): Page number (default: 1)
-- `perPage` (number): Items per page (default: 12, max: 100)
-- `q` (string): Search query (searches name, shortName)
-- `from` (date string): Filter by createdAt start date
-- `to` (date string): Filter by createdAt end date
-
-**Required Permissions:** `/api/companies` or `sale.create`
-
----
+Instead of traditional API routes, this module uses **Server Actions** located in `modules/companies/server/actions.ts`.
 
 ### Create Company
 
-| Method | Endpoint         | File Location                |
-| ------ | ---------------- | ---------------------------- |
-| `POST` | `/api/companies` | `app/api/companies/route.ts` |
-
-**Required Permissions:** `company.create`
-
----
-
-### Get Single Company
-
-| Method | Endpoint                     | File Location                            |
-| ------ | ---------------------------- | ---------------------------------------- |
-| `GET`  | `/api/companies/[companyId]` | `app/api/companies/[companyId]/route.ts` |
-
-**Required Permissions:** `/api/companies`
-
----
+- **Action:** `createCompanyAction(rawData: unknown)`
+- **Required Permissions:** `company.create`
 
 ### Update Company
 
-| Method | Endpoint                     | File Location                            |
-| ------ | ---------------------------- | ---------------------------------------- |
-| `PUT`  | `/api/companies/[companyId]` | `app/api/companies/[companyId]/route.ts` |
-
-**Required Permissions:** `company.edit`
-
----
+- **Action:** `updateCompanyAction(id: string, rawData: unknown)`
+- **Required Permissions:** `company.edit`
 
 ### Delete Company (Soft Delete)
 
-| Method   | Endpoint                     | File Location                            |
-| -------- | ---------------------------- | ---------------------------------------- |
-| `DELETE` | `/api/companies/[companyId]` | `app/api/companies/[companyId]/route.ts` |
+- **Action:** `deleteCompanyAction(id: string)`
+- **Required Permissions:** `company.delete`
 
-**Required Permissions:** `company.delete`
+## Server Queries
+
+Data fetching operations are located in `modules/companies/server/queries.ts`.
+
+### List Companies
+
+- **Query:** `getCompanies(params: GetCompaniesParams)`
+- **Query Parameters:**
+  - `page` (number): Page number (default: 1)
+  - `perPage` (number): Items per page (default: 12, max: 100)
+  - `q` (string): Search query (searches name, shortName)
+  - `from` (date): Filter by createdAt start date
+  - `to` (date): Filter by createdAt end date
+
+### Get Single Company
+
+- **Query:** `getCompany(id: string)`
 
 ---
 
@@ -177,10 +156,13 @@ Derived from `CustomTable`. Handles responsive views:
 - **Mobile**: `CompaniesCards` view.
 - **Toolbar**: `CompaniesToolbar` with search and date filters.
 
+### CompanyFormWrapper
+
+A wrapper component that handles fetching initial data (if editing), checking user permissions, and submitting to the appropriate Server Action (Create or Update).
+
 ### CompanyForm
 
-Form for creating and editing companies. Handles validation and API submission.
-Includes "Random Fill" for development testing.
+Form for creating and editing companies. Driven by `react-hook-form` and `@hookform/resolvers/zod` using `companySchema` for real-time validation.
 
 ### CompaniesKanbanBoard
 
@@ -209,14 +191,22 @@ A Kanban-style view for companies (usage depends on requirements).
 
 ---
 
+### `CompanyFormWrapper`
+
+| Prop        | Type     | Required | Description                                |
+| ----------- | -------- | -------- | ------------------------------------------ |
+| `companyId` | `string` | ❌       | Company ID (if provided, enters Edit mode) |
+
+---
+
 ### `CompanyForm`
 
-| Prop          | Type                                                 | Required | Description                              |
-| ------------- | ---------------------------------------------------- | -------- | ---------------------------------------- |
-| `initial`     | `Partial<CompanyPayload>`                            | ❌       | ข้อมูลเริ่มต้นสำหรับ edit mode           |
-| `onSubmit`    | `(payload: CompanyPayload) => Promise<SubmitResult>` | ✅       | Callback เมื่อ submit form               |
-| `onCancel`    | `() => void`                                         | ❌       | Callback เมื่อกดยกเลิก                   |
-| `submitLabel` | `string`                                             | ❌       | Label ของปุ่ม submit (default: "บันทึก") |
+| Prop          | Type                                                    | Required | Description                              |
+| ------------- | ------------------------------------------------------- | -------- | ---------------------------------------- |
+| `initial`     | `Partial<CompanyFormValues>`                            | ❌       | ข้อมูลเริ่มต้นสำหรับ edit mode           |
+| `onSubmit`    | `(payload: CompanyFormValues) => Promise<SubmitResult>` | ✅       | Callback เมื่อ submit form               |
+| `onCancel`    | `() => void`                                            | ❌       | Callback เมื่อกดยกเลิก                   |
+| `submitLabel` | `string`                                                | ❌       | Label ของปุ่ม submit (default: "บันทึก") |
 
 ---
 
@@ -293,23 +283,18 @@ interface CompanyRecord {
 }
 ```
 
-### `CompanyPayload`
+### `CompanyFormValues`
+
+Generated from Zod schema in `server/validations.ts`:
 
 ```typescript
-interface CompanyPayload {
-  name: string;
-  companyCode?: string;
-  shortName?: string;
-  email?: string;
-  phone?: string;
-  taxId?: string;
-  addressLine?: string;
-  province?: string;
-  district?: string;
-  subdistrict?: string;
-  postalCode?: string;
-  status?: string;
-}
+export const companySchema = z.object({
+  name: z.string().min(2),
+  companyCode: z.string().optional(),
+  // ...
+});
+
+export type CompanyFormValues = z.infer<typeof companySchema>;
 ```
 
 ### `CompaniesPagination`
@@ -340,34 +325,23 @@ interface SubmitResult {
 ## Usage
 
 ```tsx
-import { CompaniesTable, CompanyForm } from "@/modules/companies";
+import { CompaniesView } from "@/modules/companies/features/list-view/companies-view";
+import { CompanyFormWrapper } from "@/modules/companies/features/form/company-form-wrapper";
 
-// List View
-<CompaniesTable
-  data={companies}
-  loading={loading}
-  canCreate={canCreate}
-  canDelete={canDelete}
-  onDeleteRequest={handleDelete}
-  searchValue={search}
-  onSearchChange={setSearch}
-  onSearchSubmit={handleSearchSubmit}
-  dateRange={dateRange}
-  onDateRangeChange={setDateRange}
-  pagination={{
-    page: 1,
-    perPage: 12,
-    total: 100,
-    onPageChange: setPage,
-    onPerPageChange: setPerPage,
-  }}
-/>
+// List View (Server Component calling Client Component)
+export default async function CompaniesPage({ searchParams }) {
+  const { total, companies } = await getCompanies({...});
+  return <CompaniesView initialCompanies={companies} total={total} />;
+}
 
-// Form
-<CompanyForm
-  initial={existingCompany}
-  onSubmit={handleSubmit}
-  onCancel={handleCancel}
-  submitLabel="บันทึก"
-/>
+// Form (Create Mode)
+export default function NewCompanyPage() {
+  return <CompanyFormWrapper />;
+}
+
+// Form (Edit Mode)
+export default function EditCompanyPage() {
+  const { companyId } = useParams();
+  return <CompanyFormWrapper companyId={companyId} />;
+}
 ```
