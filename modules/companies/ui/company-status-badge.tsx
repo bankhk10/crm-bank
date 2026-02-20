@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { STATUS_STYLES, DEFAULT_STATUS_STYLE } from "../_lib/constants";
+import { STATUS_STYLES, DEFAULT_STATUS_STYLE } from "@/modules/companies/constants";
 
 export function CompanyStatusBadge({ status }: { status?: string }) {
     // Try direct match or fallback

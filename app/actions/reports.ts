@@ -1901,9 +1901,6 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
       customerId: { in: customerIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-      customerId: { in: customerIds },
-      deletedAt: null,
-      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
       ...whereSales, // Apply scope to lifetime sales aggregation too
     },
     _sum: { totalAmount: true },
@@ -2027,7 +2024,6 @@ export async function getAllSalespersonsForReport(): Promise<
       sales: {
         where: {
           deletedAt: null,
-          deletedAt: null,
           status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
           // No need to add scope here explicitly if product access is not scoped,
           // but we are finding employees.
@@ -2049,8 +2045,6 @@ export async function getAllSalespersonsForReport(): Promise<
   const customerCounts = await prisma.sale.groupBy({
     by: ["employeeId", "customerId"],
     where: {
-      employeeId: { in: employeeIds },
-      deletedAt: null,
       employeeId: { in: employeeIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },

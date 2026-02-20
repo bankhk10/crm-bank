@@ -3,8 +3,8 @@
 import CustomTable from "@/components/custom/custom-table";
 import { CompaniesToolbar } from "./companies-toolbar";
 import { CompaniesCards } from "./companies-cards";
-import { useCompanyColumns } from "../_hooks/use-company-columns";
-import type { CompaniesTableProps } from "../_types/types";
+import { useCompanyColumns } from "@/modules/companies/features/list-view/use-company-columns";
+import type { CompaniesTableProps } from "@/modules/companies/types/types";
 
 export function CompaniesTable(props: CompaniesTableProps) {
     const {

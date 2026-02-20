@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import { CompanyForm } from "@/modules/companies";
+import CompanyForm from "@/modules/companies/features/form/company-form";
+import { updateCompanyAction, getCompanyAction } from "@/modules/companies/server/actions";
 import { toast } from "sonner";
 
 export default function EditCompanyPage() {
@@ -35,10 +36,10 @@ export default function EditCompanyPage() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/companies/${companyId}`);
-        if (!res.ok) throw new Error("Failed to load company");
-        const json = await res.json();
-        const src = (json && (json.company ?? json)) || {};
+        const res = await getCompanyAction(companyId);
+        if (!res.success || !res.company) throw new Error(res.error || "Failed to load company");
+
+        const src = res.company;
         if (mounted) {
           setPayload((prev: any) => ({
             ...prev,
@@ -73,15 +74,14 @@ export default function EditCompanyPage() {
     if (!canEdit) return { success: false, error: "No permission" };
     setError(null);
     try {
-      const res = await fetch(`/api/companies/${companyId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadData),
-      });
+      const res = await updateCompanyAction(companyId, payloadData);
 
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
+      if (!res.success) {
+        return {
+          success: false,
+          issues: typeof res.issues === "object" && res.issues !== null ? (res.issues as Record<string, string[]>) : undefined,
+          error: res.error
+        };
       }
 
       return { success: true };

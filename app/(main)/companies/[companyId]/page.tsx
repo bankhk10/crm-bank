@@ -2,9 +2,9 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getCompany } from "@/modules/companies/_lib/data-access";
-import { CompanyDetailView } from "@/modules/companies/_components/company-detail-view";
-import { CompanyDetail } from "@/modules/companies/_types/types";
+import { getCompany } from "@/modules/companies/server/queries";
+import { CompanyDetailView } from "@/modules/companies/features/detail-view/company-detail-view";
+import { CompanyDetail } from "@/modules/companies/types/types";
 
 interface PageProps {
   params: Promise<{ companyId: string }>;

@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import type { CompanyRecord } from "../_types/types";
+import type { CompanyRecord } from "@/modules/companies/types/types";
 
 const mockCompanies: CompanyRecord[] = [
   {

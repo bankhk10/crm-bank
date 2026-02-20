@@ -7,7 +7,7 @@ import Can from "@/components/rbac/Can";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 import FormActions from "@/components/custom/form-actions";
-import type { CompanyPayload, SubmitResult } from "../_types/types";
+import type { CompanyPayload, SubmitResult } from "@/modules/companies/types/types";
 
 interface Props {
   initial?: Partial<CompanyPayload>;

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Search, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { CompaniesTableProps } from "../_types/types";
+import type { CompaniesTableProps } from "@/modules/companies/types/types";
 
 type CompaniesToolbarProps = Pick<
     CompaniesTableProps,

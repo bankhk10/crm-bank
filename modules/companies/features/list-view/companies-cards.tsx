@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import CompanyCard from "./company-card";
-import type { CompaniesTableProps } from "../_types/types";
+import CompanyCard from "@/modules/companies/ui/company-card";
+import type { CompaniesTableProps } from "@/modules/companies/types/types";
 
 type CompaniesCardsProps = Pick<
     CompaniesTableProps,

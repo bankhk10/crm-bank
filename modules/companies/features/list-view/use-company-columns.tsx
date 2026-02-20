@@ -14,8 +14,8 @@ import {
     Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CompanyStatusBadge } from "../_components/company-status-badge";
-import type { CompanyRecord } from "../_types/types";
+import { CompanyStatusBadge } from "@/modules/companies/ui/company-status-badge";
+import type { CompanyRecord } from "@/modules/companies/types/types";
 
 export function useCompanyColumns(
     onDeleteRequest: (company: CompanyRecord) => void,
@@ -89,7 +89,7 @@ export function useCompanyColumns(
             {
                 accessorKey: "status",
                 header: "สถานะ",
-                cell: ({ row }) => <CompanyStatusBadge status={row.original.status} />,
+                cell: ({ row }) => <CompanyStatusBadge status={row.original.status || undefined} />,
             },
             {
                 accessorKey: "createdAt",

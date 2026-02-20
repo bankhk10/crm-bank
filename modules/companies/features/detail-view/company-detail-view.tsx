@@ -28,7 +28,8 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
-import type { CompanyRecord } from "../_types/types";
+import { deleteCompanyAction } from "@/modules/companies/server/actions";
+import type { CompanyRecord } from "@/modules/companies/types/types";
 
 // Type definition (using the one from types if possible, but the original page defined its own loose type)
 // The CompanyRecord type in _types seems compatible.
@@ -74,10 +75,8 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
         if (!company) return;
         setDeleting(true);
         try {
-            const res = await fetch(`/api/companies/${company.id}`, {
-                method: "DELETE",
-            });
-            if (!res.ok) throw new Error("ไม่สามารถลบข้อมูลบริษัทได้");
+            const res = await deleteCompanyAction(company.id);
+            if (!res.success) throw new Error(res.error || "ไม่สามารถลบข้อมูลบริษัทได้");
             router.push("/companies");
             router.refresh();
         } catch (err: any) {

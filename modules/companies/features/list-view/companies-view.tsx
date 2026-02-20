@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CompaniesTable } from "./companies-table";
 import { Building2 } from "lucide-react";
-import type { CompanyRecord } from "../_types/types";
+import type { CompanyRecord } from "@/modules/companies/types/types";
+import { deleteCompanyAction } from "@/modules/companies/server/actions";
 
 // Helper to convert DateRange to string key for comparison
 const mkRangeKey = (r?: DateRange) =>
@@ -105,11 +106,10 @@ export function CompaniesView({
         if (!deleteCandidate) return;
         setActionLoading(true);
         try {
-            const res = await fetch(`/api/companies/${deleteCandidate.id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Delete failed");
+            const res = await deleteCompanyAction(deleteCandidate.id);
+            if (!res.success) throw new Error(res.error || "Delete failed");
 
-            // Refresh data
-            router.refresh();
+            // Refresh data doesn't manually need router.refresh() if revalidatePath is used, but it's safe.
             setDeleteCandidate(null);
         } catch (error) {
             const err = error as Error;
