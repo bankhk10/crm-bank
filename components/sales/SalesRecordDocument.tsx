@@ -380,8 +380,8 @@ const SalesRecordDocument = React.forwardRef<
       {/* Header */}
       <div className="doc-header">
         <div className="doc-header-left">
-          {/* <p className="company-name">บริษัท เซ็นทรัล ฟู้ดส์ จำกัด</p>
-                    <p className="company-subtitle">Central Foods Co., Ltd.</p> */}
+          <p className="company-name">บริษัท เซ็นทรัล ฟู้ดส์ จำกัด</p>
+          <p className="company-subtitle">Central Foods Co., Ltd.</p>
         </div>
         <div className="doc-header-center">
           <h1 className="doc-title">ใบบันทึกการขาย</h1>
