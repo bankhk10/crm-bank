@@ -3,6 +3,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import Image from "next/image";
 import type { SaleWithRelations } from "@/types/sales";
 import { PaymentTermLabels } from "@/types/sales";
 
@@ -63,29 +64,39 @@ const SalesRecordDocument = React.forwardRef<
           border-bottom: 3px solid #1e3a5f;
         }
         .doc-header-left {
-          flex: 1;
+          flex: 2;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .company-main-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .company-logo {
+          position: relative;
+          width: 100px;
+          height: 100px;
         }
         .company-name {
           font-size: 18px;
           font-weight: 700;
           color: #1e3a5f;
           margin: 0;
+          line-height: 1.2;
         }
         .company-subtitle {
           font-size: 11px;
           color: #64748b;
-          margin: 2px 0 0 0;
-        }
-        .doc-header-center {
-          flex: 1;
-          text-align: center;
+          margin: 0;
         }
         .doc-title {
-          font-size: 22px;
+          font-size: 24px;
           font-weight: 800;
           color: #1e3a5f;
-          margin: 0;
-          letter-spacing: 2px;
+          margin: 8px 0 0 0;
+          letter-spacing: 1px;
         }
         .doc-header-right {
           flex: 1;
@@ -380,10 +391,23 @@ const SalesRecordDocument = React.forwardRef<
       {/* Header */}
       <div className="doc-header">
         <div className="doc-header-left">
-          <p className="company-name">บริษัท เซ็นทรัล ฟู้ดส์ จำกัด</p>
-          <p className="company-subtitle">Central Foods Co., Ltd.</p>
-        </div>
-        <div className="doc-header-center">
+          <div className="company-main-info">
+            <div className="company-logo">
+              <Image
+                src="/images/logo.png"
+                alt="Central Foods Logo"
+                fill
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </div>
+            <div className="company-info">
+              <p className="company-name">บริษัท คร็อพ ซายน์ จำกัด</p>
+              <p className="company-subtitle">Crop Science CO., LTD.</p>
+              <p className="company-subtitle">เลขที่ 22 อาคารไอซีจี ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพฯ 10400</p>
+              <p className="company-subtitle">โทร. 02-271-4343 แฟกซ์: 02-618-4530</p>
+            </div>
+          </div>
           <h1 className="doc-title">ใบบันทึกการขาย</h1>
         </div>
         <div className="doc-header-right">
