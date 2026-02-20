@@ -39,16 +39,16 @@ export async function createCompanyAction(rawData: unknown) {
     const company = await db.company.create({
       data: {
         name: parsed.data.name,
-        companyCode: parsed.data.companyCode,
-        shortName: parsed.data.shortName,
-        email: parsed.data.email,
-        phone: parsed.data.phone,
-        taxId: parsed.data.taxId,
-        addressLine: parsed.data.addressLine,
-        province: parsed.data.province,
-        district: parsed.data.district,
-        subdistrict: parsed.data.subdistrict,
-        postalCode: parsed.data.postalCode,
+        companyCode: parsed.data.companyCode || null,
+        shortName: parsed.data.shortName || null,
+        email: parsed.data.email || null,
+        phone: parsed.data.phone || null,
+        taxId: parsed.data.taxId || null,
+        addressLine: parsed.data.addressLine || null,
+        province: parsed.data.province || null,
+        district: parsed.data.district || null,
+        subdistrict: parsed.data.subdistrict || null,
+        postalCode: parsed.data.postalCode || null,
         status: parsed.data.status ?? "ACTIVE",
       },
     });
@@ -112,9 +112,29 @@ export async function updateCompanyAction(id: string, rawData: unknown) {
   }
 
   try {
+    const dataToUpdate = { ...parsed.data };
+    // Convert empty strings to null for optional unique fields
+    const fieldsToNullify = [
+      "companyCode",
+      "shortName",
+      "email",
+      "phone",
+      "taxId",
+      "addressLine",
+      "province",
+      "district",
+      "subdistrict",
+      "postalCode",
+    ];
+    for (const field of fieldsToNullify) {
+      if ((dataToUpdate as any)[field] === "") {
+        (dataToUpdate as any)[field] = null;
+      }
+    }
+
     const company = await db.company.update({
       where: { id },
-      data: parsed.data,
+      data: dataToUpdate,
     });
     revalidatePath("/companies");
     revalidatePath(`/companies/${id}`);
