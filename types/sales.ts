@@ -46,10 +46,21 @@ export interface SaleWithRelations extends Sale {
   shippingCompany?: {
     id: string;
     name: string;
+    address?: string | null;
+    addressLine?: string | null;
+    subdistrict?: string | null;
+    district?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
   } | null;
   pickupCompany?: {
     id: string;
     name: string;
+    addressLine?: string | null;
+    subdistrict?: string | null;
+    district?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
   } | null;
 }
 

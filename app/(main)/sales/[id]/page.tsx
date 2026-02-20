@@ -499,11 +499,53 @@ export default function SaleDetailPage({
                 value={displayShippingAddress}
               />
               {(sale.shippingCompany || sale.pickupCompany) && (
-                <DetailItem
-                  icon={<Truck className="h-4 w-4" />}
-                  label="บริษัทขนส่ง"
-                  value={sale.shippingCompany?.name || sale.pickupCompany?.name}
-                />
+                <>
+                  <DetailItem
+                    icon={<Truck className="h-4 w-4" />}
+                    label="บริษัทขนส่ง"
+                    value={sale.shippingCompany?.name || sale.pickupCompany?.name}
+                  />
+                  <DetailItem
+                    icon={<MapPin className="h-4 w-4" />}
+                    label="ที่อยู่บริษัทขนส่ง"
+                    value={
+                      sale.shippingCompany
+                        ? [
+                          sale.shippingCompany.address ||
+                          sale.shippingCompany.addressLine,
+                          sale.shippingCompany.subdistrict
+                            ? `ต.${sale.shippingCompany.subdistrict}`
+                            : "",
+                          sale.shippingCompany.district
+                            ? `อ.${sale.shippingCompany.district}`
+                            : "",
+                          sale.shippingCompany.province
+                            ? `จ.${sale.shippingCompany.province}`
+                            : "",
+                          sale.shippingCompany.postalCode,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                        : sale.pickupCompany
+                          ? [
+                            sale.pickupCompany.addressLine,
+                            sale.pickupCompany.subdistrict
+                              ? `ต.${sale.pickupCompany.subdistrict}`
+                              : "",
+                            sale.pickupCompany.district
+                              ? `อ.${sale.pickupCompany.district}`
+                              : "",
+                            sale.pickupCompany.province
+                              ? `จ.${sale.pickupCompany.province}`
+                              : "",
+                            sale.pickupCompany.postalCode,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")
+                          : "-"
+                    }
+                  />
+                </>
               )}
             </InfoCard>
           </div>

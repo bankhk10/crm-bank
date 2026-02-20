@@ -55,10 +55,21 @@ const SalesRecordDocument = React.forwardRef<
 
   const deliveryMethod = (sale as any).deliveryMethod;
   const deliveryMethodLabel = getDeliveryMethodLabel(deliveryMethod);
-  const shippingCompanyName =
-    sale.shippingCompany?.name ||
-    sale.pickupCompany?.name ||
-    "-";
+
+  // Build shipping company info
+  const shippingCompany = sale.shippingCompany || sale.pickupCompany;
+  const shippingCompanyName = shippingCompany?.name || "-";
+  const shippingCompanyAddress = shippingCompany
+    ? [
+      (shippingCompany as any).address || shippingCompany.addressLine,
+      shippingCompany.subdistrict ? `ต.${shippingCompany.subdistrict}` : "",
+      shippingCompany.district ? `อ.${shippingCompany.district}` : "",
+      shippingCompany.province ? `จ.${shippingCompany.province}` : "",
+      shippingCompany.postalCode,
+    ]
+      .filter(Boolean)
+      .join(" ")
+    : "-";
 
   return (
     <div ref={ref} className="sales-record-document">
@@ -491,6 +502,8 @@ const SalesRecordDocument = React.forwardRef<
               deliveryMethod !== "FACTORY_DELIVERY" && (
                 <div className="info-detail">
                   <strong>บริษัทขนส่ง:</strong> {shippingCompanyName}
+                  <br />
+                  <strong>ที่อยู่บริษัทขนส่ง:</strong> {shippingCompanyAddress}
                 </div>
               )}
             <div className="name" style={{ marginTop: "8px" }}>

@@ -151,12 +151,23 @@ const salesInclude = {
     select: {
       id: true,
       name: true,
+      address: true,
+      addressLine: true,
+      subdistrict: true,
+      district: true,
+      province: true,
+      postalCode: true,
     },
   },
   pickupCompany: {
     select: {
       id: true,
       name: true,
+      addressLine: true,
+      subdistrict: true,
+      district: true,
+      province: true,
+      postalCode: true,
     },
   },
 } as const;
