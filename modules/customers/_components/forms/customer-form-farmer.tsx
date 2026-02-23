@@ -132,15 +132,14 @@ export default function CustomerFormFarmer({
   useEffect(() => {
     async function fetchEmployees() {
       try {
-        const res = await fetch(`/api/employee`)
-          .then((r) => r.json())
-          .catch(() => ({ employees: [] }));
+        const { getEmployeesAction } = await import("@/modules/employee/server/actions");
+        const res = await getEmployeesAction();
         const emps = (res.employees || []).map((e: any) => ({
           value: e.id,
           label: e.name,
         }));
         setEmployeeOptions(emps);
-      } catch {
+      } catch (err) {
         // ignore
       }
     }

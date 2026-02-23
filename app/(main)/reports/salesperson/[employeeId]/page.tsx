@@ -147,10 +147,10 @@ export default function SalespersonDetailPage() {
     setLoading(true);
     try {
       // Fetch employee details
-      const empRes = await fetch(`/api/employee/${employeeId}`);
-      if (empRes.ok) {
-        const empData = await empRes.json();
-        setEmployee(empData.employee || empData);
+      const { getEmployeeAction } = await import("@/modules/employee/server/actions");
+      const empRes = await getEmployeeAction(employeeId);
+      if (empRes.success) {
+        setEmployee(empRes.employee as any);
       }
 
       // Fetch sales data for this employee
@@ -300,8 +300,8 @@ export default function SalespersonDetailPage() {
               )}
               <Badge
                 className={`border-0 ${employee.status === "ACTIVE" || !employee.status
-                    ? "bg-green-500/80 text-white"
-                    : "bg-gray-500/80 text-white"
+                  ? "bg-green-500/80 text-white"
+                  : "bg-gray-500/80 text-white"
                   }`}
               >
                 {employee.status === "ACTIVE" || !employee.status ? (
@@ -686,8 +686,8 @@ export default function SalespersonDetailPage() {
                                 )}
                                 <span
                                   className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
-                                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                      : "bg-slate-50 text-slate-700 border-slate-100"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                    : "bg-slate-50 text-slate-700 border-slate-100"
                                     }`}
                                 >
                                   {customer.status === "ACTIVE"

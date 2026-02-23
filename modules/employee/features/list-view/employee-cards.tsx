@@ -11,8 +11,8 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select";
-import { Employee } from "../_types/types";
-import { EmployeeStatusBadge } from "./employee-status-badge";
+import { Employee } from "../../types";
+import { EmployeeStatusBadge } from "../../ui/employee-status-badge";
 
 export function EmployeeCards({
     data,

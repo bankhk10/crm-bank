@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { STATUS_STYLE, DEFAULT_BADGE_STYLE } from "../_lib/constants";
+import { STATUS_STYLE, DEFAULT_BADGE_STYLE } from "../constants";
 
 export function EmployeeStatusBadge({
     status,

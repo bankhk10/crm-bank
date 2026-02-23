@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { getCompaniesAction } from "@/modules/companies/server/actions";
 import type {
   SaleFormCustomer,
   SaleFormEmployee,
@@ -39,9 +40,16 @@ export function useSaleFormData(): SaleFormData {
 
     Promise.all([
       fetch("/api/customers?type=DEALER").then((r) => r.json()),
-      fetch("/api/employee").then((r) => r.json()),
+      import("@/modules/employee/server/actions").then(
+        async ({ getEmployeesAction }) => {
+          const res = await getEmployeesAction();
+          return { employees: res.employees || [] };
+        },
+      ),
       fetch("/api/products").then((r) => r.json()),
-      fetch("/api/companies?perPage=100&status=ACTIVE").then((r) => r.json()),
+      getCompaniesAction().then((res) => {
+        return { companies: res.companies || [] };
+      }),
     ])
       .then(([customersData, employeesData, productsData, companiesData]) => {
         setCustomers(customersData.customers || []);

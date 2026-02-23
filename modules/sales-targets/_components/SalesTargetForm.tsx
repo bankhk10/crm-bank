@@ -114,11 +114,13 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const fetchInitialData = async () => {
         try {
             // Fetch Employees
-            const empRes = await fetch("/api/employee");
-            if (empRes.ok) {
-                const data = await empRes.json();
-                setEmployees(data.employees || data);
-            }
+            import("@/modules/employee/server/actions").then(async ({ getEmployeesAction }) => {
+                const empRes = await getEmployeesAction();
+                if (empRes.success) {
+                    setEmployees(empRes.employees || []);
+                }
+            });
+
 
             // Fetch Customers (Initial list)
             const custRes = await fetch("/api/customers?perPage=50");

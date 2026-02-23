@@ -1,71 +1,40 @@
 # Employee Feature
 
-This module manages employee records, including their personal details, employment information, assigned roles, and access permissions.
+This module manages employee records, including their personal details, employment information, assigned roles, and access permissions. It follows the project's standard enterprise module architecture using Next.js App Router features like Server Components, Server Actions, and Data Transfer Objects (DTOs).
 
 ## Directory Structure
 
-- `_components/`: UI components (EmployeeTable, EmployeeForm, Cards, etc.)
-- `_hooks/`: Custom hooks (useEmployeeColumns)
-- `_lib/`: Utilities and Constants
-- `_types/`: Shared type definitions
+- `features/`: Complex modular features:
+  - `list-view/`: List-related components (`employee-table.tsx`, `employee-cards.tsx`, `employee-toolbar.tsx`, `use-employee-columns.tsx`)
+  - `form/`: Form-related components (`employee-form.tsx`, `employee-form-wrapper.tsx`)
+- `server/`: Server-side logic:
+  - `actions.ts`: Server Actions for mutations (create, update, delete)
+  - `queries.ts`: Server Queries for data fetching (getEmployees, getEmployee)
+  - `validations.ts`: Zod schemas for data validation
+- `types/`: Shared type definitions specific to this module
+- `ui/`: Shared atomic UI components (e.g., `employee-status-badge.tsx`)
+- `constants.ts`: Shared constants and dropdown options (Prefix, Status, etc.)
+- `index.ts`: Public API export barrel file
 
 ---
 
-## API Endpoints
+## Server Layer (Data Access)
 
-### List Employees
+This module uses Server Actions for mutations and Server Queries (inside Server Components) for fetching. It does not use traditional API Routes for internal operations.
 
-| Method | Endpoint        | File Location               |
-| ------ | --------------- | --------------------------- |
-| `GET`  | `/api/employee` | `app/api/employee/route.ts` |
+### Queries (`server/queries.ts`)
 
-**Query Parameters:**
+- `getEmployees(params)`: Retrieves a list of employees with optional filtering (search) and pagination support.
+- `getEmployee(id)`: Retrieves a single employee's details including relations like company, department, and user roles.
 
-- None (Currently fetches all active employees)
+### Actions (`server/actions.ts`)
 
-**Required Permissions:** `employee.manage` OR `sale.create` (Partial access)
+These are Server Actions built to be called from client components:
 
----
-
-### Create Employee
-
-| Method | Endpoint                               | File Location                                      |
-| ------ | -------------------------------------- | -------------------------------------------------- |
-| `POST` | `/api/rbac/employees/create-with-user` | `app/api/rbac/employees/create-with-user/route.ts` |
-
-_Note: The actual creation is handled by RBAC API to ensure User account creation._
-
-**Required Permissions:** `employee.manage`
-
----
-
-### Get Single Employee
-
-| Method | Endpoint                     | File Location                            |
-| ------ | ---------------------------- | ---------------------------------------- |
-| `GET`  | `/api/employee/[employeeId]` | `app/api/employee/[employeeId]/route.ts` |
-
-**Required Permissions:** `/api/employee`
-
----
-
-### Update Employee
-
-| Method | Endpoint                     | File Location                            |
-| ------ | ---------------------------- | ---------------------------------------- |
-| `PUT`  | `/api/employee/[employeeId]` | `app/api/employee/[employeeId]/route.ts` |
-
-**Required Permissions:** `employee.manage`
-
----
-
-### Delete Employee (Soft Delete)
-
-| Method   | Endpoint                     | File Location                            |
-| -------- | ---------------------------- | ---------------------------------------- |
-| `DELETE` | `/api/employee/[employeeId]` | `app/api/employee/[employeeId]/route.ts` |
-
-**Required Permissions:** `employee.manage`
+- `createEmployeeAction(data)`: Creates an employee record and optionally constructs an associated `User` account.
+- `updateEmployeeAction(id, data)`: Synchronizes employee profile updates and manages linked user account details.
+- `deleteEmployeeAction(id)`: Performs a soft-delete by setting the `deletedAt` timestamp.
+- `getEmployeesAction()`: Server Action version used in client components for manual fetching or list synchronization.
 
 ---
 
@@ -103,7 +72,7 @@ _Note: The actual creation is handled by RBAC API to ensure User account creatio
 
 ```
 Employee
-├── user: User? (One-to-One, linked via email/logic)
+├── user: User? (One-to-One, linked via userId)
 ├── company: Company? (Many-to-One)
 ├── department: Department? (Many-to-One)
 ├── position: Position? (Many-to-One)
@@ -114,104 +83,70 @@ Employee
 
 ---
 
-## Validation Rules
+## Validation Rules (`server/validations.ts`)
 
-### Client-side Validation (EmployeeForm)
+Validation is handled via Zod schemas, shared between the client forms and server actions.
 
-| Field              | Rules                                    |
-| ------------------ | ---------------------------------------- |
-| `firstName`        | **Required**                             |
-| `lastName`         | **Required**                             |
-| `email`            | **Required**, Valid Email format         |
-| `password`         | Min 8 chars (Required for new employees) |
-| `phone`            | 9-10 digits numeric                      |
-| `roleDefinitionId` | **Required** (Must select a role)        |
-
-### Server-side Validation (Zod - PUT)
-
-| Field         | Rules                                                |
-| ------------- | ---------------------------------------------------- |
-| `email`       | Valid Email (Optional)                               |
-| `password`    | Min 8 chars (Optional)                               |
-| `address`     | Object (province, district, subdistrict, postalCode) |
-| `user.roleId` | String (Optional)                                    |
+| Field              | Rules                                          |
+| :----------------- | :--------------------------------------------- |
+| `firstName`        | **Required**, Minimum 1 character              |
+| `lastName`         | **Required**, Minimum 1 character              |
+| `email`            | **Required**, Valid Email format               |
+| `roleDefinitionId` | **Required**, Must select a valid role         |
+| `password`         | Optional (Required for new users if requested) |
+| `phone`            | Optional                                       |
 
 ---
 
 ## Key Components
 
-### EmployeeTable
+### EmployeeTable (`features/list-view/employee-table.tsx`)
 
-Displays list of employees with columns for Name, Role, Department, Company, Status, and Actions.
+The main desktop data grid. Supports search, pagination, and direct integration with `deleteEmployeeAction`.
 
-- **Features**: Search, Filter, Pagination (Client-side in current implementation).
+### EmployeeCards (`features/list-view/employee-cards.tsx`)
 
-### EmployeeForm
+A mobile-responsive card layout for employee records, used as an alternative to the table for smaller screens.
 
-Comprehensive form for creating/editing employees.
+### EmployeeFormWrapper (`features/form/employee-form-wrapper.tsx`)
 
-- **Sections**: Personal Info, Address (ThaiAddressPicker), Employment Info, Login Info.
-- **Interactions**: Fetches dynamic options for Company, Department, Position, Manager, Roles.
+A higher-order component that manages data preparation (fetching existing data for edits) and coordinates the submission process with Toast notifications and redirects.
 
----
+### EmployeeForm (`features/form/employee-form.tsx`)
 
-## Component Props
-
-### `EmployeeTable`
-
-(Uses generic `CustomTable` props structure internally or fetches data)
-
-_(Note: The current implementation often fetches data in the parent page and passes it down, or the component manages its own specific logic)_
-
-### `EmployeeForm`
-
-(Uses type `EmployeeFormProps`)
-
-| Prop                | Type                           | Required | Description                  |
-| ------------------- | ------------------------------ | -------- | ---------------------------- |
-| `initial`           | `Partial<EmployeeFormValues>`  | ❌       | ข้อมูลเริ่มต้น (Edit mode)   |
-| `employeeId`        | `string`                       | ❌       | ID พนักงาน (Edit mode)       |
-| `onSubmit`          | `(payload) => Promise<Result>` | ❌       | Custom submit handler        |
-| `onCancel`          | `() => void`                   | ❌       | Callback ยกเลิก              |
-| `registerRandomize` | `(fn) => void`                 | ❌       | For development data seeding |
+The core form UI using `react-hook-form`. Includes automatic Age calculation from birthDate and "Random Fill" capabilities for development.
 
 ---
 
-## Types
+## Usage Example
 
-### `Employee`
+### List Page (Server Component)
 
-```typescript
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  phone: string;
-  companyId: string;
-  employeeCode?: string;
-  status?: string;
-  position?: { id: string; name: string };
-  company?: { id: string; name: string };
-  // ...
+```tsx
+import { getEmployees } from "@/modules/employee/server/queries";
+import { EmployeeTable } from "@/modules/employee";
+
+export default async function EmployeePage(props: { searchParams: any }) {
+  const { employees } = await getEmployees(props.searchParams);
+
+  return (
+    <div className="space-y-4">
+      <EmployeeTable employees={employees} />
+    </div>
+  );
 }
 ```
 
-## Usage
+### Form Page (Client/Server Hybrid)
 
 ```tsx
-import { EmployeeTable, EmployeeForm } from "@/modules/employee";
+import { EmployeeFormWrapper } from "@/modules/employee";
 
-// List Page
-<div className="space-y-4">
-  <EmployeeToolbar />
-  <EmployeeTable data={employees} />
-</div>
-
-// Edit Page
-<EmployeeForm
-  employeeId={params.id}
-  initial={employeeData}
-  onCancel={() => router.back()}
-/>
+export default function Page({ params }: { params: { employeeId: string } }) {
+  return (
+    <EmployeeFormWrapper
+      employeeId={params.employeeId} // Undefined for "Create", String for "Edit"
+    />
+  );
+}
 ```

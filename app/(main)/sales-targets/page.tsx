@@ -120,14 +120,12 @@ export default function SalesTargetsPage() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const [empRes, custRes] = await Promise.all([
-          fetch("/api/employee"),
-          fetch("/api/customers?perPage=100"),
-        ]);
+        const { getEmployeesAction } = await import("@/modules/employee/server/actions");
+        const empRes = await getEmployeesAction();
+        const custRes = await fetch("/api/customers?perPage=100");
 
-        if (empRes.ok) {
-          const data = await empRes.json();
-          setFilterEmployees(data.employees || data);
+        if (empRes.success) {
+          setFilterEmployees(empRes.employees || []);
         }
         if (custRes.ok) {
           const data = await custRes.json();

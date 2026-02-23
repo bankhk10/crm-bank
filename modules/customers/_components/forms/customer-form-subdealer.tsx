@@ -162,13 +162,13 @@ export default function CustomerFormSubdealer({
   useEffect(() => {
     async function fetchOptions() {
       try {
-        const [cRes, eRes, pgRes, bRes] = await Promise.all([
+        const { getEmployeesAction } = await import("@/modules/employee/server/actions");
+        const eRes = await getEmployeesAction();
+
+        const [cRes, pgRes, bRes] = await Promise.all([
           fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
             .then((r) => r.json())
             .catch(() => ({ customers: [] })),
-          fetch(`/api/employee`)
-            .then((r) => r.json())
-            .catch(() => ({ employees: [] })),
           fetch(`/api/products/product-groups`)
             .then((r) => r.json())
             .catch(() => ({ productGroups: [] })),

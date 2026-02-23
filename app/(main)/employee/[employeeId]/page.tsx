@@ -130,11 +130,14 @@ export default function EmployeeDetailPage() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/employee/${employeeId}`);
-        if (!res.ok) throw new Error("Failed to load employee");
-        const json = await res.json();
-        const src = (json && (json.employee ?? json)) || null;
-        if (mounted) setEmployee(src);
+        const { getEmployeeAction } = await import("@/modules/employee/server/actions");
+        const res = await getEmployeeAction(employeeId);
+        if (!res.success) throw new Error("Failed to load employee");
+        const src: any = res.employee || null;
+        if (src && src.birthDate instanceof Date) {
+          src.birthDate = src.birthDate.toISOString();
+        }
+        if (mounted) setEmployee(src as EmployeeDetail);
       } catch (e: any) {
         if (mounted) setError(String(e?.message ?? e));
       } finally {
@@ -150,10 +153,9 @@ export default function EmployeeDetailPage() {
     if (!employee) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/employee/${employeeId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("ไม่สามารถลบข้อมูลพนักงานได้");
+      const { deleteEmployeeAction } = await import("@/modules/employee/server/actions");
+      const res = await deleteEmployeeAction(employeeId);
+      if (!res.success) throw new Error("ไม่สามารถลบข้อมูลพนักงานได้");
       router.push("/employee");
       router.refresh();
     } catch (err: any) {
@@ -367,10 +369,10 @@ export default function EmployeeDetailPage() {
                 fullWidth
                 value={
                   employee.addressLine ||
-                  employee.subdistrict ||
-                  employee.district ||
-                  employee.province ||
-                  employee.postalCode ? (
+                    employee.subdistrict ||
+                    employee.district ||
+                    employee.province ||
+                    employee.postalCode ? (
                     <span className="leading-relaxed">
                       {employee.addressLine && `${employee.addressLine} `}
                       {[
@@ -415,7 +417,7 @@ export default function EmployeeDetailPage() {
 
             <div className="p-6">
               {!employee.responsibleCustomers ||
-              employee.responsibleCustomers.length === 0 ? (
+                employee.responsibleCustomers.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                   <Store className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">

@@ -15,10 +15,14 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { usePermission } from "@/hooks/use-permission";
-import { Employee } from "../_types/types";
-import { useEmployeeColumns } from "../_hooks/use-employee-columns";
+import { Employee } from "../../types";
+import { useEmployeeColumns } from "./use-employee-columns";
 import { EmployeeToolbar } from "./employee-toolbar";
 import { EmployeeCards } from "./employee-cards";
+import {
+    deleteEmployeeAction,
+    getEmployeesAction,
+} from "../../server/actions";
 
 type EmployeesGridProps = {
     employees?: Employee[];
@@ -51,10 +55,9 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
             if (employees && employees.length > 0) return;
             setFetchLoading(true);
             try {
-                const res = await fetch(`/api/employee`, { method: "GET" });
-                if (res.ok) {
-                    const json = await res.json();
-                    if (mounted) setFetched(json.employees ?? []);
+                const res = await getEmployeesAction();
+                if (res.success) {
+                    if (mounted) setFetched((res.employees as any) ?? []);
                 }
             } catch (err) {
                 // ignore
@@ -68,8 +71,9 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         };
     }, [employees]);
 
-    const rawData: Employee[] =
-        employees && employees.length > 0 ? employees : (fetched ?? []);
+    const rawData: Employee[] = React.useMemo(() => {
+        return employees && employees.length > 0 ? employees : (fetched ?? []);
+    }, [employees, fetched]);
 
     // Filter logic
     const filteredData = React.useMemo(() => {
@@ -95,20 +99,18 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
     const handleDelete = async () => {
         if (!deleteTarget) return;
         try {
-            const res = await fetch(`/api/employee/${deleteTarget.id}`, {
-                method: "DELETE",
-            });
-            if (res.ok) {
+            const res = await deleteEmployeeAction(deleteTarget.id);
+            if (res.success) {
                 setDeleteTarget(null);
                 router.refresh();
-                // Force re-fetch if using client-side fetched data
                 if (!employees) {
-                    const reloadRes = await fetch(`/api/employee`, { method: "GET" });
-                    if (reloadRes.ok) {
-                        const json = await reloadRes.json();
-                        setFetched(json.employees ?? []);
+                    const reloadRes = await getEmployeesAction();
+                    if (reloadRes.success) {
+                        setFetched((reloadRes.employees as any) ?? []);
                     }
                 }
+            } else {
+                console.error("Failed to delete", res.error);
             }
         } catch (err) {
             console.error(err);

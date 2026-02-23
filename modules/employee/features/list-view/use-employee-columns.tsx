@@ -8,8 +8,8 @@ import {
     TooltipTrigger,
     TooltipContent,
 } from "@/components/ui/tooltip";
-import { Employee } from "../_types/types";
-import { EmployeeStatusBadge } from "../_components/employee-status-badge";
+import { Employee } from "../../types";
+import { EmployeeStatusBadge } from "../../ui/employee-status-badge";
 
 function TruncatedCell({ value }: { value: string }) {
     return (

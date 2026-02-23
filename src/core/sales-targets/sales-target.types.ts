@@ -61,7 +61,7 @@ export interface UpdateDetailedTargetInput extends CreateDetailedTargetInput {
   id: string;
 }
 
-export interface SalesTargetFilters {
+export interface ISalesTargetFilters {
   year: number;
   month?: number;
   employeeId?: string;

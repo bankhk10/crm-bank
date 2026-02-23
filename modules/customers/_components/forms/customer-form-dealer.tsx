@@ -173,18 +173,22 @@ export default function CustomerFormDealer({
 
   useEffect(() => {
     // fetch companies (for parent dealer) and employees (for responsible)
-    async function fetchOptions() {
+    async function fetchEmployees() {
       try {
-        const eRes = await fetch(`/api/employee`)
-          .then((r) => r.json())
-          .catch(() => ({ employees: [] }));
-
-        const emps = (eRes.employees || []).map((e: any) => ({
+        const { getEmployeesAction } = await import("@/modules/employee/server/actions");
+        const res = await getEmployeesAction();
+        const emps = (res.employees || []).map((e: any) => ({
           value: e.id,
           label: e.name,
         }));
         setEmployeeOptions(emps);
+      } catch (err) {
+        // ignore
+      }
+    }
 
+    async function fetchDealers() {
+      try {
         // Fetch dealer customers for parent dealer dropdown
         const cRes = await fetch(`/api/customers?type=DEALER`)
           .then((r) => r.json())
@@ -200,7 +204,8 @@ export default function CustomerFormDealer({
       }
     }
 
-    fetchOptions();
+    fetchEmployees();
+    fetchDealers();
   }, []);
 
   // when options or initial change, set labels for inputs

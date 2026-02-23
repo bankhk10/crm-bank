@@ -195,3 +195,25 @@ export async function getCompanyAction(id: string) {
     return { success: false, error: "Failed to fetch company." };
   }
 }
+
+export async function getCompaniesAction() {
+  const session = await auth();
+
+  if (!session?.user) {
+    return { success: false, companies: [] };
+  }
+
+  try {
+    const companies = await db.company.findMany({
+      where: { deletedAt: null, status: "ACTIVE" }, // Often requested with status=ACTIVE, filtering active by default is safer for dropdowns
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    return { success: true, companies };
+  } catch (err) {
+    return { success: false, companies: [] };
+  }
+}
