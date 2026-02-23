@@ -1,20 +1,7 @@
 import { NextResponse } from "next/server";
-import { db } from "@/src/infrastructure/database";
+import { getRBACCatalogUseCase } from "@/modules/rbac/application";
 
 export async function GET() {
-  const [departments, positions, roles] = await Promise.all([
-    db.department.findMany({ orderBy: { name: "asc" } }),
-    db.position.findMany({ orderBy: { name: "asc" } }),
-    db.role.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      include: {
-        permissions: {
-          include: { permission: true }
-        }
-      }
-    })
-  ]);
-
-  return NextResponse.json({ departments, positions, roles });
+  const data = await getRBACCatalogUseCase();
+  return NextResponse.json(data);
 }

@@ -1,162 +1,81 @@
-# RBAC Feature
+# RBAC Module
 
-This module handles Role-Based Access Control (RBAC) functionalities, including managing roles, permissions, departments, positions, and user access levels.
+Role-Based Access Control module for managing roles, permissions, departments, positions, and user access assignments.
 
-## Directory Structure
-
-- `_components/`: UI components (Console, Permission Editor, User List).
-- `_hooks/`: Custom hooks for data fetching (useRBACSummary).
-- `_lib/`: Zod schemas and utilities.
-- `_types/`: Types for RBAC responses and structures.
-
----
-
-## API Endpoints
-
-### Get RBAC Summary
-
-| Method | Endpoint            | File Location                   |
-| ------ | ------------------- | ------------------------------- |
-| `GET`  | `/api/rbac/summary` | `app/api/rbac/summary/route.ts` |
-
-**Description:** Fetches all RBAC related data (Roles, Permissions, Departments, Positions, Users) in one call for the console dashboard.
-
-**Required Permissions:** `rbac.manage`
-
----
-
-### List Roles
-
-| Method | Endpoint          | File Location                 |
-| ------ | ----------------- | ----------------------------- |
-| `GET`  | `/api/rbac/roles` | `app/api/rbac/roles/route.ts` |
-
-**Description:** Fetches list of roles. Used in dropdowns and settings.
-
-**Required Permissions:** `employee.manage` OR `rbac.manage` (See api-guard logic)
-
----
-
-### Create Role
-
-| Method | Endpoint          | File Location                 |
-| ------ | ----------------- | ----------------------------- |
-| `POST` | `/api/rbac/roles` | `app/api/rbac/roles/route.ts` |
-
-**Required Permissions:** `rbac.manage`
-
----
-
-## Database Schema
-
-### Table: `Role`
-
-| Column     | Type      | Description                |
-| ---------- | --------- | -------------------------- |
-| `id`       | `String`  | PK                         |
-| `name`     | `String`  | Display Name               |
-| `slug`     | `String`  | System identifier (Unique) |
-| `isSystem` | `Boolean` | If true, cannot be deleted |
-
-### Table: `Permission`
-
-| Column              | Type     | Description                   |
-| ------------------- | -------- | ----------------------------- |
-| `id`                | `String` | PK                            |
-| `key`               | `String` | Key string (e.g. `menu.rbac`) |
-| `category`          | `Enum`   | MENU, ACTION, DATA            |
-| `defaultDataAccess` | `Enum`   | VIEW_OWN, VIEW_ALL, etc.      |
-
-### Table: `RolePermission` (Pivot)
-
-| Column         | Type     | Description                     |
-| -------------- | -------- | ------------------------------- |
-| `roleId`       | `String` | FK to Role                      |
-| `permissionId` | `String` | FK to Permission                |
-| `dataAccess`   | `Enum`   | Custom data scope for this role |
-| `editAccess`   | `Enum`   | Custom edit scope               |
-| `deleteAccess` | `Enum`   | Custom delete scope             |
-
-### Relationships
+## Architecture
 
 ```
-Role
-├── permissions: RolePermission[]
-└── userRoles: UserRole[] (Users assigned to this role)
-
-User
-└── userRoles: UserRole[]
-    └── role: Role
+modules/rbac/
+ ┣ features/                          ← UI screens
+ ┃ ┣ detail-view/
+ ┃ ┃ ┗ role-permission-editor.tsx     (Role permission assignment editor)
+ ┃ ┗ list-view/
+ ┃   ┗ rbac-console.tsx               (Main RBAC dashboard with tabs)
+ ┃
+ ┣ application/                       ← use cases (business logic)
+ ┃ ┣ validations.ts                   (Zod schemas, shared client/server)
+ ┃ ┗ index.ts                         (facade + inline thin use cases)
+ ┃
+ ┣ server/                            ← transport (server actions only)
+ ┃ ┗ actions.ts
+ ┃
+ ┣ infrastructure/                    ← prisma / db access
+ ┃ ┗ rbac.repository.ts
+ ┃
+ ┣ types/
+ ┃ ┗ index.ts
+ ┃
+ ┣ constants.ts                       (access level options, group overrides)
+ ┣ index.ts                           (barrel exports)
+ ┗ README.md
 ```
 
----
+## Layers
 
-## Validation Rules
+### Infrastructure (`infrastructure/rbac.repository.ts`)
 
-### Role Creation (Zod)
+- Pure Prisma/database operations only
+- No business logic, no auth check, no validation
+- Functions: `findRBACSummary`, `findAllRoles`, `createRole`, `updateRole`, `softDeleteRole`, etc.
 
-| Field      | Rules                               |
-| ---------- | ----------------------------------- |
-| `name`     | Min 2 chars                         |
-| `slug`     | Min 2 chars, Regex `^[a-z0-9_\-]+$` |
-| `isActive` | Boolean (Optional)                  |
+### Application (`application/`)
 
----
+- Business logic lives here: validation, uniqueness checks, data mapping
+- `validations.ts` → Zod schemas shared between client forms and server
+- `index.ts` → Facade with inline thin use cases + re-exports
 
-## Key Components
+### Server (`server/actions.ts`)
 
-### RBACConsole
+- `"use server"` directive only
+- Each action: (1) Auth/Permission check → (2) Validate → (3) Call use case → (4) revalidatePath
+- No business logic in actions
 
-The main dashboard for managing RBAC.
+### Features (`features/`)
 
-- **Features**: Tabs for monitoring Overview, Roles, Permissions, Users.
-- **Props**: None (Fetches data internally via `useRBACSummary`).
-
-### RolePermissionEditor
-
-Component to toggle permissions for a specific role.
-
-- **Features**: Matrix view of permissions, Granular control (View/Edit/Delete scopes).
-- **Props**: `RolePermissionEditorProps`
-
----
-
-## Component Props
-
-### `RolePermissionEditor`
-
-(Uses type `RolePermissionEditorProps`)
-
-| Prop             | Type                  | Required | Description                              |
-| ---------------- | --------------------- | -------- | ---------------------------------------- |
-| `role`           | `RoleWithPermissions` | ✅       | Role object with current permissions     |
-| `allPermissions` | `Permission[]`        | ✅       | List of all available system permissions |
-
-### `RBACSummaryResponse`
-
-(Type returned by `useRBACSummary`)
-
-```typescript
-interface RBACSummaryResponse {
-  departments: Department[];
-  positions: Position[];
-  roles: RoleWithPermissions[];
-  permissions: Permission[];
-  users: UserWithRoles[];
-}
-```
+- `list-view/rbac-console.tsx` — Main RBAC dashboard with Roles, Permissions, Users, Organization tabs
+- `detail-view/role-permission-editor.tsx` — Granular permission assignment per role
 
 ## Usage
 
 ```tsx
 import { RBACConsole, RolePermissionEditor } from "@/modules/rbac";
-
-// Main Page
-<RBACConsole />
-
-// Editor usage
-<RolePermissionEditor
-  role={selectedRole}
-  allPermissions={permissionsList}
-/>
 ```
+
+## API Routes (kept for client-side fetch compatibility)
+
+The RBAC console uses client-side `fetch()` for real-time CRUD operations.
+API routes are thin wrappers that delegate to application layer use cases:
+
+- `GET /api/rbac/summary` — Full RBAC summary
+- `GET/POST /api/rbac/roles` — List/Create roles
+- `PATCH/DELETE /api/rbac/roles/[roleId]` — Update/Delete role
+- `PUT /api/rbac/roles/[roleId]/permissions` — Bulk update role permissions
+- `GET/POST /api/rbac/permissions` — List/Create permissions
+- `PATCH/DELETE /api/rbac/permissions/[id]` — Update/Delete permission
+- `GET/POST /api/rbac/departments` — List/Create departments
+- `PATCH/DELETE /api/rbac/departments/[id]` — Update/Delete department
+- `GET/POST /api/rbac/positions` — List/Create positions
+- `PATCH/DELETE /api/rbac/positions/[id]` — Update/Delete position
+- `PUT /api/rbac/users/[userId]/roles` — Update user role assignments
+- `PUT /api/rbac/users/[userId]/overrides` — Update user permission overrides
+- `GET /api/rbac/catalog` — Catalog for dropdowns

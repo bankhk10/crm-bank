@@ -1,23 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { DataAccessLevel, PermissionType } from "@/src/infrastructure/database";
-import { db } from "@/lib/db";
 import { guardPermission } from "@/lib/api-guard";
-
-const updateSchema = z.object({
-  key: z.string().min(2).optional(),
-  name: z.string().min(2).optional(),
-  description: z.string().optional(),
-  category: z.nativeEnum(PermissionType).optional(),
-  menuPath: z.string().nullable().optional(),
-  action: z.string().nullable().optional(),
-  resource: z.string().nullable().optional(),
-  defaultDataAccess: z.nativeEnum(DataAccessLevel).nullable().optional(),
-});
-
-interface RouteParams {
-  params: { permissionId: string };
-}
+import {
+  updatePermissionUseCase,
+  deletePermissionUseCase,
+  permissionUpdateSchema,
+} from "@/modules/rbac/application";
 
 export async function PATCH(request: Request, context: any) {
   const params =
@@ -30,11 +17,11 @@ export async function PATCH(request: Request, context: any) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = updateSchema.safeParse(body);
+  const parsed = permissionUpdateSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -43,26 +30,19 @@ export async function PATCH(request: Request, context: any) {
   if (!permissionId) {
     return NextResponse.json(
       { error: "Missing permission id" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  try {
-    const permission = await db.permission.update({
-      where: { id: permissionId },
-      data: parsed.data,
-    });
-
-    return NextResponse.json(permission);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
-      return NextResponse.json(
-        { error: "Permission key already exists" },
-        { status: 409 }
-      );
-    }
-    throw error;
+  const result = await updatePermissionUseCase(
+    permissionId,
+    parsed.data as any,
+  );
+  if (!result.success) {
+    return NextResponse.json({ error: result.error }, { status: 409 });
   }
+
+  return NextResponse.json(result.permission);
 }
 
 export async function DELETE(_: Request, context: any) {
@@ -80,13 +60,10 @@ export async function DELETE(_: Request, context: any) {
   if (!permissionId) {
     return NextResponse.json(
       { error: "Missing permission id" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  await db.permission.update({
-    where: { id: permissionId },
-    data: { deletedAt: new Date() },
-  });
+  await deletePermissionUseCase(permissionId);
   return NextResponse.json({ ok: true });
 }

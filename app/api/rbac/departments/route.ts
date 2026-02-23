@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { db } from "@/src/infrastructure/database";
 import { guardPermission } from "@/lib/api-guard";
-
-const departmentSchema = z.object({
-  name: z.string().min(2),
-  code: z.string().min(2),
-  description: z.string().optional(),
-});
+import {
+  listDepartmentsUseCase,
+  createDepartmentUseCase,
+  departmentSchema,
+} from "@/modules/rbac/application";
 
 export async function GET() {
   // Allow users with employee.manage to read departments for employee form
@@ -16,12 +13,7 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const departments = await db.department.findMany({
-    where: { deletedAt: null },
-    include: { positions: { where: { deletedAt: null } } },
-    orderBy: { name: "asc" },
-  });
-
+  const departments = await listDepartmentsUseCase();
   return NextResponse.json(departments);
 }
 
@@ -37,18 +29,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const payload = parsed.data;
-  const department = await db.department.create({
-    data: {
-      name: payload.name,
-      code: payload.code.toUpperCase(),
-      description: payload.description,
-    },
-  });
-
-  return NextResponse.json(department, { status: 201 });
+  const result = await createDepartmentUseCase(parsed.data);
+  return NextResponse.json(result.department, { status: 201 });
 }

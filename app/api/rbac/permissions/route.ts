@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { DataAccessLevel, PermissionType } from "@/src/infrastructure/database";
-import { db } from "@/src/infrastructure/database";
 import { guardPermission } from "@/lib/api-guard";
-
-const payloadSchema = z.object({
-  key: z.string().min(2),
-  name: z.string().min(2),
-  description: z.string().optional(),
-  category: z.nativeEnum(PermissionType),
-  menuPath: z.string().optional().nullable(),
-  action: z.string().optional().nullable(),
-  resource: z.string().optional().nullable(),
-  defaultDataAccess: z.nativeEnum(DataAccessLevel).optional().nullable(),
-});
+import {
+  listPermissionsUseCase,
+  createPermissionUseCase,
+  permissionSchema,
+} from "@/modules/rbac/application";
 
 export async function GET() {
   const guardResult = await guardPermission("rbac.manage");
@@ -21,10 +12,7 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const permissions = await db.permission.findMany({
-    where: { deletedAt: null },
-    orderBy: { name: "asc" },
-  });
+  const permissions = await listPermissionsUseCase();
   return NextResponse.json(permissions);
 }
 
@@ -35,25 +23,18 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = payloadSchema.safeParse(body);
+  const parsed = permissionSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  try {
-    const permission = await db.permission.create({ data: parsed.data });
-    return NextResponse.json(permission, { status: 201 });
-  } catch (error: any) {
-    // Prisma unique constraint on `key`
-    if (error?.code === "P2002") {
-      return NextResponse.json(
-        { error: "Permission key already exists" },
-        { status: 409 }
-      );
-    }
-    throw error;
+  const result = await createPermissionUseCase(parsed.data as any);
+  if (!result.success) {
+    return NextResponse.json({ error: result.error }, { status: 409 });
   }
+
+  return NextResponse.json(result.permission, { status: 201 });
 }

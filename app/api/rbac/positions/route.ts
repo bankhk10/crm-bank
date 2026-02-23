@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { db } from "@/src/infrastructure/database";
 import { guardPermission } from "@/lib/api-guard";
-
-const positionSchema = z.object({
-  name: z.string().min(2),
-  description: z.string().nullable().optional(),
-  level: z.number().int().min(1).max(10).default(1),
-  isManagerial: z.boolean().optional(),
-  departmentId: z.string().nullable().optional(),
-  defaultRoleId: z.string().nullable().optional(),
-});
+import {
+  listPositionsUseCase,
+  createPositionUseCase,
+  positionSchema,
+} from "@/modules/rbac/application";
 
 export async function GET() {
   // Allow users with employee.manage to read positions for employee form
@@ -19,16 +13,7 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const positions = await db.position.findMany({
-    where: {
-      deletedAt: null,
-      // Exclude Admin position from selection
-      name: { not: "Admin" },
-    },
-    include: { department: true, defaultRole: true },
-    orderBy: { name: "asc" },
-  });
-
+  const positions = await listPositionsUseCase();
   return NextResponse.json(positions);
 }
 
@@ -43,11 +28,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const data = parsed.data;
-  const position = await db.position.create({ data });
-  return NextResponse.json(position, { status: 201 });
+  const result = await createPositionUseCase(parsed.data as any);
+  return NextResponse.json(result.position, { status: 201 });
 }

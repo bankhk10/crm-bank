@@ -1,17 +1,10 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { db } from "@/src/infrastructure/database";
 import { guardPermission } from "@/lib/api-guard";
-
-const roleSchema = z.object({
-  name: z.string().min(2),
-  slug: z
-    .string()
-    .min(2)
-    .regex(/^[a-z0-9_\-]+$/),
-  description: z.string().optional(),
-  isActive: z.boolean().optional(),
-});
+import {
+  listRolesUseCase,
+  createRoleUseCase,
+  roleSchema,
+} from "@/modules/rbac/application";
 
 export async function GET() {
   // Allow users with employee.manage to read roles for employee form
@@ -20,20 +13,7 @@ export async function GET() {
     return guardResult.response;
   }
 
-  const roles = await db.role.findMany({
-    where: {
-      deletedAt: null,
-      // Exclude Administrator role from selection
-      slug: { not: "administrator" },
-    },
-    include: {
-      permissions: {
-        include: { permission: true },
-      },
-    },
-    orderBy: { name: "asc" },
-  });
-
+  const roles = await listRolesUseCase();
   return NextResponse.json(roles);
 }
 
@@ -48,19 +28,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid payload", issues: parsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const payload = parsed.data;
-  const role = await db.role.create({
-    data: {
-      name: payload.name,
-      slug: payload.slug.toLowerCase(),
-      description: payload.description,
-      isActive: payload.isActive ?? true,
-    },
-  });
-
-  return NextResponse.json(role, { status: 201 });
+  const result = await createRoleUseCase(parsed.data);
+  return NextResponse.json(result.role, { status: 201 });
 }
