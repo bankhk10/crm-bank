@@ -67,7 +67,7 @@ export function CompaniesView({
         filterDraft.query !== initialQ ||
         mkRangeKey(filterDraft.dateRange) !== mkRangeKey(initialDateRange);
 
-    const handleApplyFilters = (newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
+    const handleApplyFilters = React.useCallback((newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (newParams.q !== undefined) {
@@ -91,16 +91,32 @@ export function CompaniesView({
         startTransition(() => {
             router.push(`${pathname}?${params.toString()}`);
         });
-    };
+    }, [pathname, router, searchParams]);
 
-    const handleSearchSubmit = () => {
+    const handleSearchSubmit = React.useCallback(() => {
         handleApplyFilters({
             q: filterDraft.query,
             page: 1, // Reset page on search
             from: filterDraft.dateRange?.from?.toISOString(),
             to: filterDraft.dateRange?.to?.toISOString(),
         });
-    };
+    }, [filterDraft.query, filterDraft.dateRange, handleApplyFilters]);
+
+    // auto-apply filters (debounced)
+    useEffect(() => {
+        const delay = 500;
+
+        // Skip if nothing changed from current URL params
+        if (!isTyping) {
+            return;
+        }
+
+        const id = setTimeout(() => {
+            handleSearchSubmit();
+        }, delay);
+
+        return () => clearTimeout(id);
+    }, [handleSearchSubmit, isTyping]);
 
     const handleDelete = async () => {
         if (!deleteCandidate) return;
