@@ -6,15 +6,7 @@ import { findEmployees } from "@/modules/employee/infrastructure/employee.reposi
 import { EmployeeTable } from "@/modules/employee";
 import { Users } from "lucide-react";
 
-interface PageProps {
-  searchParams: Promise<{
-    page?: string;
-    perPage?: string;
-    q?: string;
-  }>;
-}
-
-export default async function EmployeePage({ searchParams }: PageProps) {
+export default async function EmployeePage() {
   const session = await auth();
 
   if (!session?.user) {
@@ -37,17 +29,9 @@ export default async function EmployeePage({ searchParams }: PageProps) {
     );
   }
 
-  const params = await searchParams;
-  const page = Math.max(1, parseInt(params.page || "1", 10));
-  const perPage = Math.min(100, Math.max(1, parseInt(params.perPage || "200", 10)));
-  const q = (params.q || "").trim();
-
-  // Load mostly all for client-side filtering backward compatibility, 
-  // or use the query params. Let's use server side pagination if possible, 
-  // but EmployeeTable expects all records. Let's fetch perPage=100 for now.
   const { employees } = await findEmployees({
     page: 1,
-    perPage: 500,
+    perPage: 100,
   });
 
   const serializedEmployees = employees.map(e => ({
