@@ -56,7 +56,8 @@ export async function getCustomersAction(params: any) {
     scopedWhere,
   });
 
-  return result;
+  // Serialize to convert Prisma Decimal/Date objects to plain values
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function getCustomerDetailAction(id: string) {
@@ -75,7 +76,8 @@ export async function getCustomerDetailAction(id: string) {
     throw new Error("Not found");
   }
 
-  return customer;
+  // Serialize to convert Prisma Decimal/Date objects to plain values
+  return JSON.parse(JSON.stringify(customer));
 }
 
 export async function createCustomerAction(payload: any) {

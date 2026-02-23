@@ -1,5 +1,4 @@
 export * from "./types";
-export * from "./application";
 
 export { default as CustomersTable } from "./features/list-view/customers-table";
 export * from "./features/list-view/customers-cards";
