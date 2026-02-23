@@ -22,19 +22,40 @@ export interface Employee {
   };
 }
 
-export interface EmployeeFormProps {
-  initial?: any; // To allow Partial<EmployeeFormValues>
-  initialData?: Employee; // For backward compatibility if needed
-  employeeId?: string;
-  isEdit?: boolean;
-  // Make onSubmit flexible to handle the Promise return type used in the form
-  onSubmit?: (payload: any) => Promise<{
-    success: boolean;
-    issues?: Record<string, string[]>;
-    error?: string;
-  }>; 
-  onCancel?: () => void;
-  registerRandomize?: (fn: () => void) => void;
-}
+/**
+ * Extended Employee type used for the detail view page.
+ * Matches Prisma Employee model fields + relations.
+ */
+export type EmployeeDetail = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  role?: string | null;
+  phone?: string | null;
+  company?: { id: string; name?: string | null } | null;
+  manager?: { id: string; name?: string | null } | null;
 
-export type DeleteRequestCallback = (employee: Employee) => void;
+  // Extended fields
+  employeeCode?: string | null;
+  birthDate?: string | null;
+  addressLine?: string | null;
+  province?: string | null;
+  district?: string | null;
+  subdistrict?: string | null;
+  postalCode?: string | null;
+  responsibilityArea?: string | null;
+  status?: string | null;
+  positionTitle?: string | null;
+  departmentName?: string | null;
+  department?: { id: string; name?: string | null } | null;
+  roleTitle?: string | null;
+  createdAt?: string | null;
+  responsibleCustomers?: {
+    id: string;
+    customerCode: string;
+    name: string;
+    province?: string | null;
+    region?: string | null;
+    status: string;
+  }[];
+};
