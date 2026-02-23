@@ -153,17 +153,31 @@ export default function RBACConsole() {
     });
 
     const fetchSummary = useCallback(async () => {
-        setIsLoading(true);
-        const response = await fetch("/api/rbac/summary", { cache: "no-store" });
-        if (!response.ok) {
+        try {
+            const response = await fetch("/api/rbac/summary", { cache: "no-store" });
+            if (!response.ok) {
+                notify("error", "ไม่สามารถดึงข้อมูล RBAC ได้");
+                return;
+            }
+            const payload: RBACSummaryResponse = await response.json();
+            setSummary(payload);
+        } catch (error) {
+            console.error("Fetch RBAC summary failed:", error);
+            notify("error", "เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล");
+        } finally {
             setIsLoading(false);
-            notify("error", "ไม่สามารถดึงข้อมูล RBAC ได้");
-            return;
         }
-        const payload: RBACSummaryResponse = await response.json();
-        setSummary(payload);
-        setIsLoading(false);
-    }, []);
+    }, [notify]);
+
+    // Use a separate function for refreshing that explicitly sets loading
+    const refreshSummary = useCallback(async () => {
+        setIsLoading(true);
+        await fetchSummary();
+    }, [fetchSummary]);
+
+    useEffect(() => {
+        fetchSummary();
+    }, [fetchSummary]);
 
     const showApiMessage = (type: "success" | "error", text: string) => {
         setApiMessage({ type, text });
@@ -171,13 +185,27 @@ export default function RBACConsole() {
         setTimeout(() => setApiMessage(null), 4000);
     };
 
-    useEffect(() => {
-        fetchSummary();
-    }, [fetchSummary]);
+    // Handle Dialog/Form resets in event handlers instead of useEffect 
+    // to avoid cascading renders and "setState in effect" warnings.
 
-    // Ensure permission form is reset when opening dialog for CREATE (editingPermissionId === null)
-    useEffect(() => {
-        if (permissionDialogOpen && editingPermissionId === null) {
+    const openRoleDialog = () => {
+        roleForm.reset({ name: "", slug: "", description: "" });
+        setRoleDialogOpen(true);
+    };
+
+    const openPermissionDialog = (permission: any = null) => {
+        if (permission) {
+            setEditingPermissionId(permission.id);
+            permissionForm.reset({
+                name: permission.name,
+                key: permission.key,
+                category: permission.category,
+                resource: permission.resource ?? "",
+                menuPath: permission.menuPath ?? "",
+                defaultDataAccess: (permission.defaultDataAccess as any) ?? undefined,
+            });
+        } else {
+            setEditingPermissionId(null);
             permissionForm.reset({
                 name: "",
                 key: "",
@@ -186,21 +214,34 @@ export default function RBACConsole() {
                 menuPath: "",
             });
         }
-    }, [permissionDialogOpen, editingPermissionId, permissionForm]);
+        setPermissionDialogOpen(true);
+    };
 
-    // Ensure department form is reset when opening dialog for CREATE
-    useEffect(() => {
-        if (deptDialogOpen && editingDepartmentId === null) {
+    const openDepartmentDialog = (dept: any = null) => {
+        if (dept) {
+            setEditingDepartmentId(dept.id);
+            departmentForm.reset({ name: dept.name, code: dept.code });
+        } else {
+            setEditingDepartmentId(null);
             departmentForm.reset({ name: "", code: "" });
         }
-    }, [deptDialogOpen, editingDepartmentId, departmentForm]);
+        setDeptDialogOpen(true);
+    };
 
-    // Ensure position form is reset when opening dialog for CREATE
-    useEffect(() => {
-        if (posDialogOpen && editingPositionId === null) {
+    const openPositionDialog = (pos: any = null) => {
+        if (pos) {
+            setEditingPositionId(pos.id);
+            positionForm.reset({
+                name: pos.name,
+                level: pos.level,
+                departmentId: pos.departmentId ?? undefined,
+            });
+        } else {
+            setEditingPositionId(null);
             positionForm.reset({ name: "", level: 1, departmentId: undefined });
         }
-    }, [posDialogOpen, editingPositionId, positionForm]);
+        setPosDialogOpen(true);
+    };
 
     const selectedUser = useMemo(
         () => summary?.users.find((user) => user.id === activeUserId) ?? null,
@@ -263,9 +304,8 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "สร้าง Role แล้ว");
-        roleForm.reset();
         setRoleDialogOpen(false);
-        fetchSummary();
+        refreshSummary();
     });
 
     const handleSavePermission = permissionForm.handleSubmit(async (values) => {
@@ -314,32 +354,12 @@ export default function RBACConsole() {
             showApiMessage("success", "สร้าง Permission แล้ว");
         }
 
-        permissionForm.reset();
-        setEditingPermissionId(null);
         setPermissionDialogOpen(false);
-        fetchSummary();
+        refreshSummary();
     });
 
-    const handleEditPermission = (permission: {
-        id: string;
-        name: string;
-        key: string;
-        category: string;
-        resource?: string | null;
-        menuPath?: string | null;
-        action?: string | null;
-        defaultDataAccess?: string | null;
-    }) => {
-        setEditingPermissionId(permission.id);
-        permissionForm.reset({
-            name: permission.name,
-            key: permission.key,
-            category: permission.category as any,
-            resource: permission.resource ?? "",
-            menuPath: permission.menuPath ?? "",
-            defaultDataAccess: (permission.defaultDataAccess as any) ?? undefined,
-        });
-        setPermissionDialogOpen(true);
+    const handleEditPermission = (permission: any) => {
+        openPermissionDialog(permission);
     };
 
     const handleDeletePermission = async (permissionId: string) => {
@@ -364,7 +384,7 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "ลบ Permission เรียบร้อย");
-        fetchSummary();
+        refreshSummary();
     };
 
     const handleCreateDepartment = departmentForm.handleSubmit(async (values) => {
@@ -390,10 +410,8 @@ export default function RBACConsole() {
             }
 
             showApiMessage("success", "แก้ไข Department แล้ว");
-            setEditingDepartmentId(null);
             setDeptDialogOpen(false);
-            departmentForm.reset();
-            fetchSummary();
+            refreshSummary();
             return;
         }
 
@@ -415,9 +433,8 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "เพิ่ม Department แล้ว");
-        departmentForm.reset();
         setDeptDialogOpen(false);
-        fetchSummary();
+        refreshSummary();
     });
 
     const handleCreatePosition = positionForm.handleSubmit(async (values) => {
@@ -440,10 +457,8 @@ export default function RBACConsole() {
             }
 
             showApiMessage("success", "แก้ไข Position แล้ว");
-            setEditingPositionId(null);
             setPosDialogOpen(false);
-            positionForm.reset();
-            fetchSummary();
+            refreshSummary();
             return;
         }
 
@@ -465,19 +480,12 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "เพิ่ม Position แล้ว");
-        positionForm.reset();
         setPosDialogOpen(false);
-        fetchSummary();
+        refreshSummary();
     });
 
-    const handleEditDepartment = (dept: {
-        id: string;
-        name: string;
-        code: string;
-    }) => {
-        setEditingDepartmentId(dept.id);
-        departmentForm.reset({ name: dept.name, code: dept.code });
-        setDeptDialogOpen(true);
+    const handleEditDepartment = (dept: any) => {
+        openDepartmentDialog(dept);
     };
 
     const handleDeleteDepartment = async (departmentId: string) => {
@@ -501,22 +509,11 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "ลบ Department เรียบร้อย");
-        fetchSummary();
+        refreshSummary();
     };
 
-    const handleEditPosition = (pos: {
-        id: string;
-        name: string;
-        level: number;
-        departmentId?: string | null;
-    }) => {
-        setEditingPositionId(pos.id);
-        positionForm.reset({
-            name: pos.name,
-            level: pos.level,
-            departmentId: pos.departmentId ?? undefined,
-        });
-        setPosDialogOpen(true);
+    const handleEditPosition = (pos: any) => {
+        openPositionDialog(pos);
     };
 
     const handleDeletePosition = async (positionId: string) => {
@@ -540,7 +537,7 @@ export default function RBACConsole() {
         }
 
         showApiMessage("success", "ลบ Position เรียบร้อย");
-        fetchSummary();
+        refreshSummary();
     };
 
     const handleDeleteRole = async (roleId: string) => {
@@ -567,7 +564,7 @@ export default function RBACConsole() {
 
         showApiMessage("success", "ลบ Role เรียบร้อย");
         // refresh data
-        fetchSummary();
+        refreshSummary();
     };
 
     const handleUserRoleChange = async (roleId: string, checked: boolean) => {
@@ -593,7 +590,7 @@ export default function RBACConsole() {
         }
 
         notify("success", "อัปเดต Role แล้ว");
-        fetchSummary();
+        refreshSummary();
     };
 
     if (isLoading) {
@@ -680,9 +677,11 @@ export default function RBACConsole() {
                                     บทบาทและกลุ่มสิทธิ์ในระบบ
                                 </p>
                             </div>
-                            <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                            <Dialog open={roleDialogOpen} onOpenChange={(open) => {
+                                if (!open) setRoleDialogOpen(false);
+                            }}>
                                 <DialogTrigger asChild>
-                                    <Button className="gap-2 shadow-sm">
+                                    <Button className="gap-2 shadow-sm" onClick={openRoleDialog}>
                                         <Plus className="h-4 w-4" />
                                         เพิ่ม Role
                                     </Button>
@@ -848,15 +847,17 @@ export default function RBACConsole() {
                             </div>
                             <Dialog
                                 open={permissionDialogOpen}
-                                onOpenChange={setPermissionDialogOpen}
+                                onOpenChange={(open) => {
+                                    if (!open) {
+                                        setPermissionDialogOpen(false);
+                                        setEditingPermissionId(null);
+                                    }
+                                }}
                             >
                                 <DialogTrigger asChild>
                                     <Button
                                         variant="outline"
-                                        onClick={() => {
-                                            setEditingPermissionId(null);
-                                            permissionForm.reset();
-                                        }}
+                                        onClick={() => openPermissionDialog()}
                                     >
                                         <Plus className="mr-2 h-4 w-4" /> เพิ่ม Permission
                                     </Button>
@@ -1303,15 +1304,17 @@ export default function RBACConsole() {
                                     <CardTitle>Departments</CardTitle>
                                     <CardDescription>แผนกในองค์กร</CardDescription>
                                 </div>
-                                <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
+                                <Dialog open={deptDialogOpen} onOpenChange={(open) => {
+                                    if (!open) {
+                                        setDeptDialogOpen(false);
+                                        setEditingDepartmentId(null);
+                                    }
+                                }}>
                                     <DialogTrigger asChild>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => {
-                                                setEditingDepartmentId(null);
-                                                departmentForm.reset();
-                                            }}
+                                            onClick={() => openDepartmentDialog()}
                                         >
                                             <Plus className="h-4 w-4 mr-2" /> เพิ่มแผนก
                                         </Button>
@@ -1413,15 +1416,17 @@ export default function RBACConsole() {
                                     <CardTitle>Positions</CardTitle>
                                     <CardDescription>ตำแหน่งงาน</CardDescription>
                                 </div>
-                                <Dialog open={posDialogOpen} onOpenChange={setPosDialogOpen}>
+                                <Dialog open={posDialogOpen} onOpenChange={(open) => {
+                                    if (!open) {
+                                        setPosDialogOpen(false);
+                                        setEditingPositionId(null);
+                                    }
+                                }}>
                                     <DialogTrigger asChild>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => {
-                                                setEditingPositionId(null);
-                                                positionForm.reset();
-                                            }}
+                                            onClick={() => openPositionDialog()}
                                         >
                                             <Plus className="h-4 w-4 mr-2" /> เพิ่มตำแหน่ง
                                         </Button>
