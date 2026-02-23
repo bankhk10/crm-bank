@@ -7,7 +7,7 @@ import FormActions from "@/components/custom/form-actions";
 import type { SubmitResult } from "@/modules/companies/types/types";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { companySchema, type CompanyFormValues } from "@/modules/companies/server/validations";
+import { companySchema, type CompanyFormValues } from "@/modules/companies/application/validations";
 
 interface Props {
   initial?: Partial<CompanyFormValues>;

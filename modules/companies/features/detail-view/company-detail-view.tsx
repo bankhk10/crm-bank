@@ -34,27 +34,7 @@ import type { CompanyRecord } from "@/modules/companies/types/types";
 // Type definition (using the one from types if possible, but the original page defined its own loose type)
 // The CompanyRecord type in _types seems compatible.
 
-function DetailItem({
-    icon,
-    label,
-    value,
-}: {
-    icon?: React.ReactNode;
-    label: string;
-    value: React.ReactNode;
-}) {
-    return (
-        <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-            {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
-            <div className="flex-1 min-w-0">
-                <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
-                <dd className="text-base text-gray-900 font-medium break-words">
-                    {value || "-"}
-                </dd>
-            </div>
-        </div>
-    );
-}
+import { DetailItem } from "@/components/custom/detail-item";
 
 interface CompanyDetailViewProps {
     company: CompanyRecord;

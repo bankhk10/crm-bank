@@ -10,7 +10,7 @@ export type GetCompaniesParams = {
   to?: Date;
 };
 
-export async function getCompanies(params: GetCompaniesParams) {
+export async function findCompanies(params: GetCompaniesParams) {
   const { page = 1, perPage = 12, q, from, to } = params;
 
   const where: Prisma.CompanyWhereInput = { deletedAt: null };
@@ -42,9 +42,42 @@ export async function getCompanies(params: GetCompaniesParams) {
   return { total, companies };
 }
 
-export async function getCompany(id: string) {
-  const company = await db.company.findFirst({
+export async function findCompanyById(id: string) {
+  return db.company.findFirst({
     where: { id, deletedAt: null },
   });
-  return company;
+}
+
+export async function findAllActiveCompanies() {
+  return db.company.findMany({
+    where: { deletedAt: null, status: "ACTIVE" },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+}
+
+export async function createCompany(data: Prisma.CompanyCreateInput) {
+  return db.company.create({
+    data,
+  });
+}
+
+export async function updateCompany(
+  id: string,
+  data: Prisma.CompanyUpdateInput,
+) {
+  return db.company.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function softDeleteCompany(id: string) {
+  return db.company.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
 }

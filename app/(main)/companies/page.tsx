@@ -2,7 +2,7 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getCompanies } from "@/modules/companies/server/queries";
+import { findCompanies } from "@/modules/companies/infrastructure/company.repository";
 import { CompaniesView } from "@/modules/companies/features/list-view/companies-view";
 
 interface PageProps {
@@ -52,7 +52,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
   const from = parseDate(params.from);
   const to = parseDate(params.to);
 
-  const { total, companies } = await getCompanies({
+  const { total, companies } = await findCompanies({
     page,
     perPage,
     q,
@@ -65,7 +65,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
   // Warning: "Only plain objects can be passed to Client Components from Server Components. Date objects are not supported."
   // So we must serialize Dates.
 
-  const serializedCompanies = companies.map(c => ({
+  const serializedCompanies = companies.map((c: any) => ({
     ...c,
     createdAt: c.createdAt?.toISOString(),
     updatedAt: c.updatedAt?.toISOString(),

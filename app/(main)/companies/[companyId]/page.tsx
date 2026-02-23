@@ -2,7 +2,7 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getCompany } from "@/modules/companies/server/queries";
+import { findCompanyById } from "@/modules/companies/infrastructure/company.repository";
 import { CompanyDetailView } from "@/modules/companies/features/detail-view/company-detail-view";
 import { CompanyDetail } from "@/modules/companies/types/types";
 
@@ -51,7 +51,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
     );
   }
 
-  const company = await getCompany(companyId);
+  const company = await findCompanyById(companyId);
 
   if (!company) {
     // Render "Not Found" UI
