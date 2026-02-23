@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import { CreditLimitForm } from "@/modules/credit-limits";
+import { CreditLimitForm, updateCreditLimitAction } from "@/modules/credit-limits";
 
 export default function EditCreditLimitPage() {
   const { creditLimitId } = useParams() as { creditLimitId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } =
+  const { hasPermission, isLoading } =
     usePermission("creditlimit.edit");
   const canEdit = !isLoading && hasPermission("creditlimit.edit");
 
@@ -24,9 +24,7 @@ export default function EditCreditLimitPage() {
     Array<{ id: string; name: string; customerCode: string }>
   >([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -79,26 +77,11 @@ export default function EditCreditLimitPage() {
 
   async function handleUpdate(payloadData: any) {
     if (!canEdit) return { success: false, error: "No permission" };
-    setSaving(true);
     setError(null);
-    setFieldErrors({});
     try {
-      const res = await fetch(`/api/credit-limits/${creditLimitId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadData),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
-      }
-
-      return { success: true };
+      return await updateCreditLimitAction(creditLimitId, payloadData);
     } catch (e: any) {
       return { success: false, error: String(e) };
-    } finally {
-      setSaving(false);
     }
   }
 

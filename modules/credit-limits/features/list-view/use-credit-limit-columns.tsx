@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Edit } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import type { CustomerRecord } from "../_types/types";
+import type { CustomerRecord } from "../../types";
 
 export function useCreditLimitColumns() {
     return useMemo<ColumnDef<CustomerRecord>[]>(() => {

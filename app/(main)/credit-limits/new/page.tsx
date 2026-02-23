@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { CreditLimitForm } from "@/modules/credit-limits";
+import { CreditLimitForm, createCreditLimitAction } from "@/modules/credit-limits";
 
 export default function NewCreditLimitPage() {
   const router = useRouter();
@@ -27,22 +27,7 @@ export default function NewCreditLimitPage() {
   }, []);
 
   async function handleCreate(payload: any) {
-    try {
-      const res = await fetch("/api/credit-limits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
-      }
-
-      return { success: true };
-    } catch (e: any) {
-      return { success: false, error: String(e) };
-    }
+    return createCreditLimitAction(payload);
   }
 
   return (

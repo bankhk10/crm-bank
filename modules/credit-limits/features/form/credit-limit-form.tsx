@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { CreditLimitPayload, SubmitResult } from "../_types/types";
+import type { CreditLimitPayload, SubmitResult } from "../../types";
 
 interface Props {
   initial?: Partial<CreditLimitPayload>;
@@ -109,6 +109,12 @@ export default function CreditLimitForm({
       <h3 className="text-xl font-semibold text-gray-800 bg-gray-200 py-3 px-4 rounded-2xl">
         ข้อมูลวงเงินเครดิตลูกค้า
       </h3>
+
+      {error && (
+        <div className="bg-red-50 text-red-700 p-3 rounded-xl border border-red-200">
+          {error}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">

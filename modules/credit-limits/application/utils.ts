@@ -1,8 +1,8 @@
-import type { CustomerRecord } from "../_types/types";
+import type { CustomerRecord } from "../types";
 
 export function calculateCreditInfo(r: CustomerRecord) {
   const cl = r.creditLimits && r.creditLimits[0];
-  
+
   if (!cl) {
     return {
       hasCreditLimit: false,
@@ -22,10 +22,10 @@ export function calculateCreditInfo(r: CustomerRecord) {
       : Number(cl.limitAmount) - (Number(cl.usedAmount) || 0);
 
   const totalRemaining = baseAmount;
-  
+
   const tempLimits = r.temporaryCreditLimits || [];
   const approvedLimits = tempLimits.filter(
-    (temp) => temp.status === "APPROVED"
+    (temp) => temp.status === "APPROVED",
   );
 
   let tempLimitAmount = 0;

@@ -5,17 +5,15 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import {
-    CreditCard,
     Edit,
     User,
-    AlertCircle,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { calculateCreditInfo, formatCurrency } from "../_lib/utils";
-import type { CustomersCreditTableProps } from "../_types/types";
+import { calculateCreditInfo, formatCurrency } from "../../application/utils";
+import type { CustomersCreditTableProps } from "../../types";
 
 type Props = Pick<CustomersCreditTableProps, "data" | "loading" | "pagination">;
 

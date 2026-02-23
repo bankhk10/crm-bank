@@ -4,10 +4,13 @@ This feature module manages customer credit limits, including displaying credit 
 
 ## Directory Structure
 
-- `_components/`: UI components (CreditLimitTable, CreditLimitForm, Cards, etc.)
-- `_hooks/`: Custom hooks (useCreditLimitColumns)
-- `_lib/`: Utilities for credit calculations
-- `_types/`: Shared type definitions
+- `application/`: Business logic, schemas, and use cases (`create-credit-limit.ts`, `update-credit-limit.ts`)
+- `features/`: UI components organized by feature
+  - `form/`: `credit-limit-form.tsx`
+  - `list-view/`: `credit-limit-table.tsx`, `credit-limit-cards.tsx`, `use-credit-limit-columns.tsx`
+- `infrastructure/`: Database access and repositories (`credit-limit.repository.ts`)
+- `server/`: Server actions for mutations (`actions.ts`)
+- `types/`: Shared type definitions (`index.ts`)
 
 ---
 
