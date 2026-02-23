@@ -2,7 +2,7 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getEmployees } from "@/modules/employee/server/queries";
+import { findEmployees } from "@/modules/employee/infrastructure/employee.repository";
 import { EmployeeTable } from "@/modules/employee";
 import { Users } from "lucide-react";
 
@@ -45,7 +45,7 @@ export default async function EmployeePage({ searchParams }: PageProps) {
   // Load mostly all for client-side filtering backward compatibility, 
   // or use the query params. Let's use server side pagination if possible, 
   // but EmployeeTable expects all records. Let's fetch perPage=100 for now.
-  const { employees } = await getEmployees({
+  const { employees } = await findEmployees({
     page: 1,
     perPage: 500,
   });

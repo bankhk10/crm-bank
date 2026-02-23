@@ -2,9 +2,9 @@ import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Edit, Trash2, Settings } from "lucide-react";
 import { ProductRecord } from "../_types/types";
-import { ActionButton } from "../_components/action-button";
+import { ActionButton } from "@/components/custom/action-button";
 import { ProductStatusBadge } from "../_components/product-status-badge";
-import { TruncatedCell } from "../_components/truncated-cell";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
 
 // Table Columns Hook
 export function useProductColumns(

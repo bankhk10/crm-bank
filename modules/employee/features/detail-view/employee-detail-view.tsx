@@ -35,7 +35,7 @@ import {
 import { usePermission } from "@/hooks/use-permission";
 import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "../../types";
-import { DetailItem } from "../../ui/detail-item";
+import { DetailItem } from "@/components/custom/detail-item";
 
 interface EmployeeDetailViewProps {
     employeeId: string;
@@ -72,7 +72,7 @@ export function EmployeeDetailView({ employeeId }: EmployeeDetailViewProps) {
                 const { getEmployeeAction } = await import("@/modules/employee/server/actions");
                 const res = await getEmployeeAction(employeeId);
                 if (!res.success) throw new Error("Failed to load employee");
-                const src: any = res.employee || null;
+                const src: any = ("employee" in res ? res.employee : null) || null;
                 if (src && src.birthDate instanceof Date) {
                     src.birthDate = src.birthDate.toISOString();
                 }

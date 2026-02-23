@@ -1,63 +1,10 @@
 import React from "react";
-import Link from "next/link";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-} from "@/components/ui/tooltip";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
+import { ActionButton } from "@/components/custom/action-button";
 import { Employee } from "../../types";
 import { EmployeeStatusBadge } from "../../ui/employee-status-badge";
-
-function TruncatedCell({ value }: { value: string }) {
-    return (
-        <div className="truncate" title={value}>
-            {value}
-        </div>
-    );
-}
-
-function ActionButton({
-    href,
-    icon: Icon,
-    label,
-    colorClass,
-    onClick,
-}: {
-    href?: string;
-    icon: React.ElementType;
-    label: string;
-    colorClass: string;
-    onClick?: () => void;
-}) {
-    const button = (
-        <Button
-            asChild={!!href}
-            size="icon-sm"
-            variant={onClick ? "destructive" : "outline"}
-            className={colorClass}
-            onClick={onClick}
-            aria-label={label}
-        >
-            {href ? (
-                <Link href={href}>
-                    <Icon className="size-4" />
-                </Link>
-            ) : (
-                <Icon className="size-4" />
-            )}
-        </Button>
-    );
-
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>{button}</TooltipTrigger>
-            <TooltipContent side="top">{label}</TooltipContent>
-        </Tooltip>
-    );
-}
 
 export function useEmployeeColumns(
     onDeleteRequest: (employee: Employee) => void,

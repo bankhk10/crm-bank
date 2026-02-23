@@ -9,7 +9,7 @@ import RandomFillButton from "@/components/custom/random-fill-button";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import { employeeUpdateSchema, type EmployeeUpdateFormValues } from "@/modules/employee/server/validations";
+import { employeeUpdateSchema, type EmployeeUpdateFormValues } from "@/modules/employee/application/validations";
 import { PREFIX_OPTIONS, RESPONSIBILITY_AREA_OPTIONS, STATUS_OPTIONS } from "@/modules/employee/constants";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import { getCompaniesAction } from "@/modules/companies/server/actions";

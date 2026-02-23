@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import type { CustomerRecord } from "../_types/types";
 import { CustomerStatusBadge } from "../_components/customer-status-badge";
 import { CustomerTypeBadge } from "../_components/customer-type-badge";
-import { ActionButton } from "../_components/action-button";
-import { TruncatedCell } from "../_components/truncated-cell";
+import { ActionButton } from "@/components/custom/action-button";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
 
 /**
  * useCustomerColumns Hook

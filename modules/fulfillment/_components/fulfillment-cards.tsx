@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "./status-badge";
-import { ActionButton } from "./action-button";
+import { ActionButton } from "@/components/custom/action-button";
 import type { SaleRecord } from "../_types/types";
 
 interface FulfillmentCardsProps {

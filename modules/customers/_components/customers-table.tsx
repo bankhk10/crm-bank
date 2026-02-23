@@ -9,7 +9,7 @@ import { CustomersToolbar } from "./customers-toolbar";
 import { CustomersCards } from "./customers-cards";
 import { CustomerTypeBadge } from "./customer-type-badge";
 import { CustomerStatusBadge } from "./customer-status-badge";
-import { ActionButton } from "./action-button";
+import { ActionButton } from "@/components/custom/action-button";
 
 export default function CustomersTable({
   data,

@@ -11,7 +11,7 @@ import type {
     TemporaryCreditStatus,
 } from "@/types/temporary-credit-limit";
 import { StatusBadge } from "../_components/status-badge";
-import { ActionButton } from "../_components/action-button";
+import { ActionButton } from "@/components/custom/action-button";
 
 export function useTemporaryCreditLimitColumns(
     canEdit: boolean,

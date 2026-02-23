@@ -36,7 +36,8 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
             setLoading(true);
             try {
                 const res = await getEmployeeAction(employeeId);
-                const src: any = res.employee || {};
+                if (!res.success) throw new Error("error" in res ? res.error : "Failed to load");
+                const src: any = ("employee" in res ? res.employee : null) || {};
 
                 if (mounted) {
                     const mappedPayload = {
@@ -91,10 +92,13 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
             }
 
             if (!res.success) {
+                const issues = "issues" in res && typeof res.issues === "object" && res.issues !== null
+                    ? (res.issues as Record<string, string[]>)
+                    : undefined;
                 return {
                     success: false,
-                    issues: typeof res.issues === "object" && res.issues !== null ? (res.issues as Record<string, string[]>) : undefined,
-                    error: res.error
+                    issues,
+                    error: "error" in res ? res.error : undefined,
                 };
             }
 

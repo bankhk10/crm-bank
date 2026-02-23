@@ -6,8 +6,8 @@ import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, ClipboardList } from "lucide-react";
 import { StatusBadge } from "../_components/status-badge";
-import { ActionButton } from "../_components/action-button";
-import { TruncatedCell } from "../_components/truncated-cell";
+import { ActionButton } from "@/components/custom/action-button";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
 import type { SaleRecord } from "../_types/types";
 
 export function useFulfillmentColumns() {
