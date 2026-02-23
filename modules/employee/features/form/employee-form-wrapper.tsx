@@ -46,7 +46,7 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
                         lastName: src.lastName ?? "",
                         email: src.email ?? "",
                         phone: src.phone ?? "",
-                        birthDate: src.birthDate ?? "",
+                        birthDate: src.birthDate ? (src.birthDate instanceof Date ? src.birthDate.toISOString().split('T')[0] : String(src.birthDate).split('T')[0]) : "",
                         employeeCode: src.employeeCode ?? "",
                         position: src.positionId ?? src.position ?? "",
                         department: src.departmentId ?? src.department ?? "",
