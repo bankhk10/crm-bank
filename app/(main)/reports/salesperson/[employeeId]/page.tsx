@@ -149,7 +149,7 @@ export default function SalespersonDetailPage() {
       // Fetch employee details
       const { getEmployeeAction } = await import("@/modules/employee/server/actions");
       const empRes = await getEmployeeAction(employeeId);
-      if (empRes.success) {
+      if (empRes.success && "employee" in empRes) {
         setEmployee(empRes.employee as any);
       }
 

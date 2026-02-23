@@ -1,0 +1,179 @@
+import { getRegionByProvince } from "@/lib/province-region-mapping";
+import { customerSchema } from "./validations";
+import {
+  getHighestCustomerCode,
+  createCustomer,
+} from "../infrastructure/customer.repository";
+
+export async function createCustomerUseCase(input: any, createdById: string) {
+  // Normalize postal codes to strings
+  const normalizedBody =
+    input && typeof input === "object" ? { ...input } : input;
+  if (normalizedBody && typeof normalizedBody === "object") {
+    if (typeof (normalizedBody as any).postalCode === "number") {
+      (normalizedBody as any).postalCode = String(
+        (normalizedBody as any).postalCode,
+      );
+    }
+    if (typeof (normalizedBody as any).billingPostalCode === "number") {
+      (normalizedBody as any).billingPostalCode = String(
+        (normalizedBody as any).billingPostalCode,
+      );
+    }
+    if (typeof (normalizedBody as any).shippingPostalCode === "number") {
+      (normalizedBody as any).shippingPostalCode = String(
+        (normalizedBody as any).shippingPostalCode,
+      );
+    }
+    if (Array.isArray((normalizedBody as any).shippingAddresses)) {
+      (normalizedBody as any).shippingAddresses.forEach((addr: any) => {
+        if (typeof addr.postalCode === "number") {
+          addr.postalCode = String(addr.postalCode);
+        }
+      });
+    }
+  }
+
+  const parsed = customerSchema.safeParse(normalizedBody);
+
+  if (!parsed.success) {
+    throw new Error(
+      JSON.stringify({
+        message: "Invalid payload",
+        issues: parsed.error.flatten().fieldErrors,
+      }),
+    );
+  }
+
+  const data = parsed.data;
+
+  // Auto-generate customer code if not provided
+  let customerCode = data.customerCode;
+
+  if (!customerCode) {
+    const now = new Date();
+    const thaiDate = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }),
+    );
+
+    const buddhistYear = thaiDate.getFullYear() + 543;
+    const yearSuffix = String(buddhistYear).slice(-2);
+    const month = String(thaiDate.getMonth() + 1).padStart(2, "0");
+
+    const prefixMap: Record<string, string> = {
+      FARMER: "F",
+      BROKER: "B",
+      DEALER: "D",
+      SUBDEALER: "S",
+    };
+    const prefix = prefixMap[data.customerType];
+    const pattern = `${prefix}${yearSuffix}${month}`;
+
+    const existingCustomers = await getHighestCustomerCode(pattern);
+
+    let runningNumber = 1;
+
+    if (existingCustomers.length > 0) {
+      const lastCode = existingCustomers[0].customerCode;
+      const lastRunningNumber = parseInt(lastCode.slice(-4), 10);
+      if (!isNaN(lastRunningNumber)) {
+        runningNumber = lastRunningNumber + 1;
+      }
+    }
+
+    if (runningNumber > 9999) {
+      throw new Error("Maximum customer codes reached for this month");
+    }
+
+    const runningNumberStr = String(runningNumber).padStart(4, "0");
+    customerCode = `${pattern}${runningNumberStr}`;
+  }
+
+  // Map to Prisma create data
+  const createData: any = {
+    customerCode,
+    customerType: data.customerType,
+    name: data.name,
+    prefix: data.prefix,
+    firstName: data.firstName,
+    birthDate: data.birthDate ? new Date(data.birthDate) : null,
+    lastName: data.lastName,
+    email: data.email || null,
+    phone: data.phone,
+    taxId: data.taxId,
+    addressLine: data.addressLine,
+    province: data.province,
+    region: data.province ? getRegionByProvince(data.province) : null,
+    district: data.district,
+    subdistrict: data.subdistrict,
+    postalCode: data.postalCode,
+    billingAddressLine: data.billingAddressLine,
+    billingProvince: data.billingProvince,
+    billingDistrict: data.billingDistrict,
+    billingSubdistrict: data.billingSubdistrict,
+    billingPostalCode: data.billingPostalCode,
+    shippingAddressLine: data.shippingAddressLine,
+    shippingProvince: data.shippingProvince,
+    shippingDistrict: data.shippingDistrict,
+    shippingSubdistrict: data.shippingSubdistrict,
+    shippingPostalCode: data.shippingPostalCode,
+    latitude: data.latitude ?? null,
+    longitude: data.longitude ?? null,
+    relationshipScore: data.relationshipScore ?? null,
+    parentDealer: data.parentDealerId
+      ? { connect: { id: data.parentDealerId } }
+      : undefined,
+    responsibleEmployee: data.responsibleEmployeeId
+      ? { connect: { id: data.responsibleEmployeeId } }
+      : undefined,
+    status: data.status ?? "ACTIVE",
+    contactPerson: data.contactPerson,
+    contactPhone: data.contactPhone,
+    contactEmail: data.contactEmail || null,
+    notes: data.notes,
+    receiveFromDealer: data.receiveFromDealer ?? null,
+    mainCompetitor: data.mainCompetitor ?? null,
+    areaCrops: data.areaCrops ?? null,
+    averageMonthlyPurchase: data.averageMonthlyPurchase ?? null,
+    mainProductSold: data.mainProductSold ?? [],
+    brandsSold: data.brandsSold ?? [],
+    areaType: data.areaType ?? null,
+    farmPlots: data.farmPlots ?? null,
+    cropTypes: data.cropTypes ?? null,
+    currentYield: data.currentYield ?? null,
+    farmerCount: data.farmerCount ?? null,
+    plotCount: data.plotCount ?? null,
+    totalAreaRai: data.totalAreaRai ?? null,
+    harvestPerYear: data.harvestPerYear ?? null,
+    creditDays: data.creditDays ?? null,
+    chemicalValuePerCycle: data.chemicalValuePerCycle ?? null,
+    chemicalQtyPerCycle: data.chemicalQtyPerCycle ?? null,
+    regularShops: data.regularShops ?? null,
+    serviceTypes: data.serviceTypes ?? null,
+    usedBrands: data.usedBrands ?? null,
+    addresses: data.shippingAddresses
+      ? {
+          create: data.shippingAddresses.map((addr) => ({
+            addressLine: addr.addressLine,
+            province: addr.province,
+            district: addr.district,
+            subdistrict: addr.subdistrict,
+            postalCode: addr.postalCode ? String(addr.postalCode) : undefined,
+          })),
+        }
+      : undefined,
+    contacts: data.contacts
+      ? {
+          create: data.contacts.map((contact) => ({
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            phone: contact.phone,
+            email: contact.email,
+          })),
+        }
+      : undefined,
+    createdById,
+  };
+
+  return createCustomer(createData);
+}

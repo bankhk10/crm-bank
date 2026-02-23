@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Eye, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CustomerRecord } from "../_types/types";
+import type { CustomerRecord } from "../../types";
 
 export function ParentDealerInfo({
     parentDealerId,

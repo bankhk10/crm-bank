@@ -3,12 +3,12 @@
 import * as React from "react";
 import { Eye, Edit } from "lucide-react";
 import CustomTable from "@/components/custom/custom-table";
-import { useCustomerColumns } from "../_hooks/use-customer-columns";
-import type { CustomersTableProps } from "../_types/types";
+import { useCustomerColumns } from "./use-customer-columns";
+import type { CustomersTableProps } from "../../types";
 import { CustomersToolbar } from "./customers-toolbar";
 import { CustomersCards } from "./customers-cards";
-import { CustomerTypeBadge } from "./customer-type-badge";
-import { CustomerStatusBadge } from "./customer-status-badge";
+import { CustomerTypeBadge } from "../../ui/customer-type-badge";
+import { CustomerStatusBadge } from "../../ui/customer-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 
 export default function CustomersTable({
@@ -188,4 +188,4 @@ export default function CustomersTable({
   );
 }
 
-export { ParentDealerInfo } from "./parent-dealer-info";
+export { ParentDealerInfo } from "../detail-view/parent-dealer-info";

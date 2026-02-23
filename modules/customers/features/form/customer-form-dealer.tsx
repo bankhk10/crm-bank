@@ -16,7 +16,7 @@ import {
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import RandomFillButton from "@/components/custom/random-fill-button";
 import { useRandomFill } from "@/hooks/use-random-fill";
-import type { CustomerFormProps, CustomerPayload, SelectOption } from "../../_types/types";
+import type { CustomerFormProps, CustomerPayload, SelectOption } from "../../types";
 import { ShippingAddressList } from "./shipping-address-list";
 import { ContactList } from "./contact-list";
 

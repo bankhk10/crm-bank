@@ -10,6 +10,7 @@ import {
   CustomerFormFarmer,
   CustomerFormBroker,
 } from "@/modules/customers";
+import { getCustomerDetailAction, updateCustomerAction } from "@/modules/customers/server/actions";
 
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };
@@ -81,10 +82,8 @@ export default function EditCustomerPage() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/customers/${customerId}`);
-        if (!res.ok) throw new Error("Failed to load customer");
-        const json = await res.json();
-        const src = (json && (json.customer ?? json)) || {};
+        const json = await getCustomerDetailAction(customerId);
+        const src = json ?? {};
         if (mounted) {
           setPayload((prev: any) => ({
             id: src.id ?? customerId,
@@ -182,19 +181,8 @@ export default function EditCustomerPage() {
     if (!canEdit) return { success: false, error: "No permission" };
     setError(null);
     try {
-      const res = await fetch(`/api/customers/${customerId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payloadData),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
-      }
-
-      const json = await res.json();
-      return { success: true, data: json };
+      const res = await updateCustomerAction(customerId, payloadData);
+      return res;
     } catch (e: any) {
       return { success: false, error: String(e) };
     }
@@ -235,7 +223,7 @@ export default function EditCustomerPage() {
               {payload.customerType === "DEALER" && (
                 <CustomerFormDealer
                   initial={payload}
-                  onSubmit={async (body) => {
+                  onSubmit={async (body: any) => {
                     const result = await handleUpdate(body);
                     return result;
                   }}
@@ -248,7 +236,7 @@ export default function EditCustomerPage() {
               {payload.customerType === "SUBDEALER" && (
                 <CustomerFormSubdealer
                   initial={payload}
-                  onSubmit={async (body) => {
+                  onSubmit={async (body: any) => {
                     const result = await handleUpdate(body);
                     return result;
                   }}
@@ -261,7 +249,7 @@ export default function EditCustomerPage() {
               {payload.customerType === "FARMER" && (
                 <CustomerFormFarmer
                   initial={payload}
-                  onSubmit={async (body) => {
+                  onSubmit={async (body: any) => {
                     const result = await handleUpdate(body);
                     return result;
                   }}
@@ -274,7 +262,7 @@ export default function EditCustomerPage() {
               {payload.customerType === "BROKER" && (
                 <CustomerFormBroker
                   initial={payload}
-                  onSubmit={async (body) => {
+                  onSubmit={async (body: any) => {
                     const result = await handleUpdate(body);
                     return result;
                   }}
@@ -288,7 +276,7 @@ export default function EditCustomerPage() {
               {!payload.customerType && (
                 <CustomerFormDealer
                   initial={payload}
-                  onSubmit={async (body) => {
+                  onSubmit={async (body: any) => {
                     const result = await handleUpdate(body);
                     return result;
                   }}

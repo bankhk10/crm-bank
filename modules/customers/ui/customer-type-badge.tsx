@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { getCustomerTypeStyle } from "../_lib/constants";
+import { getCustomerTypeStyle } from "../constants";
 
 export function CustomerTypeBadge({
     type,

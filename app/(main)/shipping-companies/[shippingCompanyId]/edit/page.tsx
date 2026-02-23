@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
 import { getShippingCompany } from "@/modules/shipping-companies/_lib/data-access";
-import { getCustomers } from "@/modules/customers/_lib/data-access";
+import { getCustomersAction } from "@/modules/customers/server/actions";
 import { ShippingCompanyEditView } from "@/modules/shipping-companies";
 
 interface PageProps {
@@ -48,8 +48,9 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
         );
     }
 
-    const customers = await getCustomers({ take: 1000 });
-    const customerOptions = customers.map(c => ({
+    const customersRes = await getCustomersAction({ perPage: 1000 });
+    const customers = customersRes.customers || [];
+    const customerOptions = customers.map((c: any) => ({
         value: c.id,
         label: `${c.customerCode} - ${c.name}`
     }));

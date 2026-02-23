@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { getStatusStyle } from "../_lib/constants";
+import { getStatusStyle } from "../constants";
 
 export function CustomerStatusBadge({
     status,

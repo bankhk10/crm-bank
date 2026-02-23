@@ -10,6 +10,7 @@ import {
   type CustomerRecord,
 } from "@/modules/customers";
 import { UserCog } from "lucide-react";
+import { getCustomersAction, deleteCustomerAction } from "@/modules/customers/server/actions";
 
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
@@ -103,27 +104,29 @@ export default function CustomersPage() {
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams();
-        params.set("page", String(page));
-        params.set("perPage", String(perPage));
+        const params: any = {};
+        params.page = Number(page);
+        params.perPage = Number(perPage);
         if (appliedFilters.query.trim())
-          params.set("q", appliedFilters.query.trim());
+          params.q = appliedFilters.query.trim();
         if (appliedFilters.customerType)
-          params.set("type", appliedFilters.customerType);
-        if (appliedFilters.status) params.set("status", appliedFilters.status);
+          params.typeFilter = appliedFilters.customerType;
+        if (appliedFilters.status) params.statusFilter = appliedFilters.status;
         if (appliedFilters.dateRange?.from)
-          params.set("from", appliedFilters.dateRange.from.toISOString());
+          params.from = appliedFilters.dateRange.from.toISOString();
         if (appliedFilters.dateRange?.to)
-          params.set("to", appliedFilters.dateRange.to.toISOString());
+          params.to = appliedFilters.dateRange.to.toISOString();
 
-        const res = await fetch(`/api/customers?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Failed to load customers");
-        const json = await res.json();
+        const res = await getCustomersAction(params);
         if (mounted) {
-          setCustomers(json.customers ?? []);
-          setTotal(typeof json.total === "number" ? json.total : 0);
+          const parsedCustomers = (res.customers ?? []).map((c: any) => ({
+            ...c,
+            email: c.email === null ? undefined : c.email,
+            phone: c.phone === null ? undefined : c.phone,
+            status: c.status === null ? undefined : c.status,
+          }));
+          setCustomers(parsedCustomers as any[]);
+          setTotal(typeof res.total === "number" ? res.total : 0);
         }
       } catch (error) {
         const err = error as Error;
@@ -180,11 +183,8 @@ export default function CustomersPage() {
                   if (!deleteCandidate) return;
                   setActionLoading(true);
                   try {
-                    const res = await fetch(
-                      `/api/customers/${deleteCandidate.id}`,
-                      { method: "DELETE" }
-                    );
-                    if (!res.ok) throw new Error("Delete failed");
+                    const res = await deleteCustomerAction(deleteCandidate.id);
+                    if (!res.success) throw new Error(res.error || "Delete failed");
                     setCustomers((prev) =>
                       prev.filter((c) => c.id !== deleteCandidate.id)
                     );
@@ -228,24 +228,24 @@ export default function CustomersPage() {
             canDelete={hasPermission("customer.delete")}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
-            onSearchChange={(value) =>
+            onSearchChange={(value: string) =>
               setFilterDraft((prev) => ({ ...prev, query: value }))
             }
             onSearchSubmit={handleSearchSubmit}
             customerTypeFilter={filterDraft.customerType}
-            onCustomerTypeFilterChange={(type) =>
+            onCustomerTypeFilterChange={(type: string) =>
               setFilterDraft((prev) => ({ ...prev, customerType: type }))
             }
             statusFilter={filterDraft.status}
-            onStatusFilterChange={(status) =>
+            onStatusFilterChange={(status: string) =>
               setFilterDraft((prev) => ({ ...prev, status }))
             }
             pagination={{
               page,
               perPage,
               total,
-              onPageChange: (nextPage) => setPage(nextPage),
-              onPerPageChange: (nextPerPage) => {
+              onPageChange: (nextPage: number) => setPage(nextPage),
+              onPerPageChange: (nextPerPage: number) => {
                 setPerPage(nextPerPage);
                 setPage(1);
               },

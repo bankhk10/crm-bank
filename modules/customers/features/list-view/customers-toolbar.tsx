@@ -16,8 +16,8 @@ import {
     ALL_STATUS_VALUE,
     CUSTOMER_TYPE_STYLE,
     STATUS_STYLE,
-} from "../_lib/constants";
-import type { CustomersTableProps } from "../_types/types";
+} from "../../constants";
+import type { CustomersTableProps } from "../../types";
 
 export function CustomersToolbar({
     canCreate,

@@ -4,9 +4,9 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Edit, Trash2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CustomerRecord } from "../_types/types";
-import { CustomerStatusBadge } from "../_components/customer-status-badge";
-import { CustomerTypeBadge } from "../_components/customer-type-badge";
+import type { CustomerRecord } from "../../types";
+import { CustomerStatusBadge } from "../../ui/customer-status-badge";
+import { CustomerTypeBadge } from "../../ui/customer-type-badge";
 import { ActionButton } from "@/components/custom/action-button";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 

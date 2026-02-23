@@ -10,6 +10,7 @@ import {
   type CustomerType,
 } from "@/modules/customers";
 import { toast } from "sonner";
+import { createCustomerAction } from "@/modules/customers/server/actions";
 
 export default function NewCustomerPage() {
   const router = useRouter();
@@ -29,48 +30,8 @@ export default function NewCustomerPage() {
 
   async function handleCreate(payload: any) {
     try {
-      const res = await fetch("/api/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-
-        if (res.status === 409) {
-          const errMsg: string = json?.error || "";
-          const issues: Record<string, string[]> = {};
-
-          const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
-          if (m && m[1]) {
-            const raw = m[1];
-            const fields = raw
-              .split(",")
-              .map((s) => s.replace(/[`"'\s]/g, "").trim());
-            for (const f of fields) {
-              if (!f) continue;
-              if (f.toLowerCase() === "customercode") {
-                issues.customerCode = ["รหัสลูกค้านี้ถูกใช้งานแล้ว"];
-              } else if (f.toLowerCase() === "email") {
-                issues.email = ["อีเมลนี้ถูกใช้งานแล้ว"];
-              } else {
-                issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
-              }
-            }
-          }
-
-          return {
-            success: false,
-            issues: Object.keys(issues).length ? issues : json?.issues,
-            error: json?.error,
-          };
-        }
-
-        return { success: false, issues: json?.issues, error: json?.error };
-      }
-
-      return { success: true, data: await res.json() };
+      const res = await createCustomerAction(payload);
+      return res;
     } catch (e: any) {
       return { success: false, error: String(e) };
     }
@@ -111,7 +72,7 @@ export default function NewCustomerPage() {
             <div>
               {selectedType === "DEALER" && (
                 <CustomerFormDealer
-                  onSubmit={async (payload) => {
+                  onSubmit={async (payload: any) => {
                     const result = await handleCreate(payload);
                     if (result.success) {
                       toast.success("สร้างตัวแทนจำหน่ายเรียบร้อยแล้ว");
@@ -126,7 +87,7 @@ export default function NewCustomerPage() {
 
               {selectedType === "SUBDEALER" && (
                 <CustomerFormSubdealer
-                  onSubmit={async (payload) => {
+                  onSubmit={async (payload: any) => {
                     const result = await handleCreate(payload);
                     if (result.success) {
                       toast.success("สร้างตัวแทนจำหน่ายย่อยเรียบร้อยแล้ว");
@@ -141,7 +102,7 @@ export default function NewCustomerPage() {
 
               {selectedType === "FARMER" && (
                 <CustomerFormFarmer
-                  onSubmit={async (payload) => {
+                  onSubmit={async (payload: any) => {
                     const result = await handleCreate(payload);
                     if (result.success) {
                       toast.success("สร้างเกษตรกรเรียบร้อยแล้ว");
@@ -156,7 +117,7 @@ export default function NewCustomerPage() {
 
               {selectedType === "BROKER" && (
                 <CustomerFormBroker
-                  onSubmit={async (payload) => {
+                  onSubmit={async (payload: any) => {
                     const result = await handleCreate(payload);
                     if (result.success) {
                       toast.success("สร้างนายหน้าเรียบร้อยแล้ว");

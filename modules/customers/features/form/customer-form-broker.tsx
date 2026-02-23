@@ -19,7 +19,7 @@ import type {
   CustomerPayload,
   SubmitResult,
   SelectOption,
-} from "../../_types/types";
+} from "../../types";
 import { ShippingAddressList } from "./shipping-address-list";
 import { ContactList } from "./contact-list";
 

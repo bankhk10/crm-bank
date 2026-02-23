@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CustomersTableProps } from "../_types/types";
-import { CustomerStatusBadge } from "./customer-status-badge";
-import { CustomerTypeBadge } from "./customer-type-badge";
+import type { CustomersTableProps } from "../../types";
+import { CustomerStatusBadge } from "../../ui/customer-status-badge";
+import { CustomerTypeBadge } from "../../ui/customer-type-badge";
 
 export function CustomersCards({
     data,
