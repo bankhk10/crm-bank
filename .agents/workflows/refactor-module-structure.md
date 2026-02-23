@@ -9,7 +9,7 @@ description: Refactor a module to follow the employee module's layered architect
 ## โครงสร้างเป้าหมาย
 
 ```
-modules/companies/
+modules/[MODULE_NAME]/
  ┣ features/                      ← UI screens
  ┃ ┣ detail-view/
  ┃ ┃ ┗ [MODULE]-detail-view.tsx
