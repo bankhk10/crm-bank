@@ -8,7 +8,7 @@
  * import {
  *   ProductsTable,
  *   ProductForm,
- *   useProductColumns,
+ *   listProductsAction,
  *   type Product
  * } from "@/modules/products";
  */
@@ -18,6 +18,24 @@ export * from "./types";
 
 // Constants
 export * from "./constants";
+
+// Application – ONLY types & validations (no server-side deps)
+export {
+  productSchema,
+  productUpdateSchema,
+  type ProductFormValues,
+  type ProductUpdateFormValues,
+} from "./application/validations";
+
+// Server Actions (safe for client import – marked "use server")
+export {
+  listProductsAction,
+  getProductAction,
+  createProductAction,
+  updateProductAction,
+  deleteProductAction,
+  getProductFormOptionsAction,
+} from "./server/actions";
 
 // UI Components
 export { ProductStatusBadge, statusStyle } from "./ui/product-status-badge";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import {
   ProductsTable,
   type ProductRecord,
+  listProductsAction,
+  deleteProductAction,
 } from "@/modules/products";
 import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -103,47 +105,32 @@ export default function ProductsPage() {
     setPage(1);
   };
 
-  useEffect(() => {
-    let mounted = true;
-    const controller = new AbortController();
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams();
-        params.set("page", String(page));
-        params.set("perPage", String(perPage));
-        if (appliedFilters.query.trim())
-          params.set("q", appliedFilters.query.trim());
-        if (appliedFilters.status.trim())
-          params.set("status", appliedFilters.status.trim());
-        if (appliedFilters.dateRange?.from)
-          params.set("from", appliedFilters.dateRange.from.toISOString());
-        if (appliedFilters.dateRange?.to)
-          params.set("to", appliedFilters.dateRange.to.toISOString());
-
-        const res = await fetch(`/api/products?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("Failed to load products");
-        const json = await res.json();
-        if (mounted) {
-          setProducts(json.products ?? []);
-          setTotal(typeof json.total === "number" ? json.total : 0);
-        }
-      } catch (error) {
-        const err = error as Error;
-        if (err.name === "AbortError") return;
-        setError(err.message || String(err));
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
+  // Fetch products using server action
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listProductsAction({
+        page,
+        perPage,
+        q: appliedFilters.query.trim() || undefined,
+        status: appliedFilters.status.trim() || undefined,
+        from: appliedFilters.dateRange?.from || undefined,
+        to: appliedFilters.dateRange?.to || undefined,
+      });
+      setProducts((result.products ?? []) as ProductRecord[]);
+      setTotal(typeof result.total === "number" ? result.total : 0);
+    } catch (error) {
+      const err = error as Error;
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
   }, [page, perPage, appliedFilters]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   if (!canView) {
     return (
@@ -187,11 +174,8 @@ export default function ProductsPage() {
                   if (!deleteCandidate) return;
                   setActionLoading(true);
                   try {
-                    const res = await fetch(
-                      `/api/products/${deleteCandidate.id}`,
-                      { method: "DELETE" }
-                    );
-                    if (!res.ok) throw new Error("Delete failed");
+                    const result = await deleteProductAction(deleteCandidate.id);
+                    if (!result.success) throw new Error(result.error || "Delete failed");
                     setProducts((prev) =>
                       prev.filter((c) => c.id !== deleteCandidate.id)
                     );

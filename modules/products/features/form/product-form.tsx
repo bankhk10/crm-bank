@@ -29,6 +29,7 @@ import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
 import { ProductFormProps } from "../../types";
+import { getProductFormOptionsAction } from "../../server/actions";
 
 interface SelectOption {
   value: string;
@@ -109,138 +110,27 @@ export function ProductForm({
   const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([]);
   const [productChainOptions, setProductChainOptions] = useState<SelectOption[]>([]);
 
-  // Fetch dynamic options from database
+  // Fetch dynamic options from server action (single call replaces 7 API calls)
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        // Fetch units
-        const unitsRes = await fetch("/api/products/units?perPage=100");
-        if (unitsRes.ok) {
-          const unitsData = await unitsRes.json();
-          if (unitsData.units && unitsData.units.length > 0) {
-            const options = unitsData.units.map(
-              (u: { code: string; description: string }) => ({
-                value: u.description,
-                label: u.description,
-              }),
-            );
-            // Deduplicate to prevent key errors
-            const uniqueOptions = options.filter(
-              (opt: any, index: number, self: any[]) =>
-                index === self.findIndex((t) => t.value === opt.value),
-            );
-            setUnitOptions(uniqueOptions);
-          }
-        }
+        const options = await getProductFormOptionsAction();
+        if (!options) return;
 
-        // Fetch product groups
-        const groupsRes = await fetch("/api/products/groups?perPage=100");
-        if (groupsRes.ok) {
-          const groupsData = await groupsRes.json();
-          if (groupsData.groups && groupsData.groups.length > 0) {
-            setGroupOptions(
-              groupsData.groups.map(
-                (g: { code: string; description: string }) => ({
-                  value: g.code,
-                  label: g.description,
-                }),
-              ),
-            );
-          }
-        }
+        // Deduplicate helper
+        const dedup = (arr: SelectOption[]) =>
+          arr.filter(
+            (opt, index, self) =>
+              index === self.findIndex((t) => t.value === opt.value),
+          );
 
-        // Fetch brands
-        const brandsRes = await fetch("/api/products/brands?perPage=100");
-        if (brandsRes.ok) {
-          const brandsData = await brandsRes.json();
-          if (brandsData.brands && brandsData.brands.length > 0) {
-            const options = brandsData.brands.map(
-              (b: { code: string; description: string }) => ({
-                value: b.description,
-                label: b.description,
-              }),
-            );
-            // Deduplicate
-            const uniqueOptions = options.filter(
-              (opt: any, index: number, self: any[]) =>
-                index === self.findIndex((t) => t.value === opt.value),
-            );
-            setBrandOptions(uniqueOptions);
-          }
-        }
-
-        // Fetch chemical groups
-        const chemicalGroupsRes = await fetch(
-          "/api/products/chemical-groups?perPage=100",
-        );
-        if (chemicalGroupsRes.ok) {
-          const chemicalGroupsData = await chemicalGroupsRes.json();
-          if (
-            chemicalGroupsData.groups &&
-            chemicalGroupsData.groups.length > 0
-          ) {
-            setChemicalGroupOptions(
-              chemicalGroupsData.groups.map(
-                (g: { code: string; name: string }) => ({
-                  value: g.code,
-                  label: g.code + " - " + g.name,
-                }),
-              ),
-            );
-          }
-        }
-
-        // Fetch plants
-        const plantsRes = await fetch("/api/products/plants?perPage=100");
-        if (plantsRes.ok) {
-          const plantsData = await plantsRes.json();
-          if (plantsData.plants && plantsData.plants.length > 0) {
-            const options = plantsData.plants.map(
-              (p: { code: string; name: string }) => ({
-                value: p.name,
-                label: p.name,
-              }),
-            );
-            // Deduplicate
-            const uniqueOptions = options.filter(
-              (opt: any, index: number, self: any[]) =>
-                index === self.findIndex((t) => t.value === opt.value),
-            );
-            setPlantOptions(uniqueOptions);
-          }
-        }
-
-        // Fetch categories (หมวดสินค้า)
-        const categoriesRes = await fetch("/api/products/categories?perPage=100");
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          if (categoriesData.categories && categoriesData.categories.length > 0) {
-            setCategoryOptions(
-              categoriesData.categories.map(
-                (c: { id: string; code: string; description: string }) => ({
-                  value: c.id,
-                  label: c.code + " - " + c.description,
-                }),
-              ),
-            );
-          }
-        }
-
-        // Fetch product chains (กรุ๊ปสินค้า)
-        const chainsRes = await fetch("/api/products/chains?perPage=100");
-        if (chainsRes.ok) {
-          const chainsData = await chainsRes.json();
-          if (chainsData.chains && chainsData.chains.length > 0) {
-            setProductChainOptions(
-              chainsData.chains.map(
-                (c: { id: string; name: string }) => ({
-                  value: c.id,
-                  label: c.name,
-                }),
-              ),
-            );
-          }
-        }
+        setUnitOptions(dedup(options.units));
+        setGroupOptions(options.groups);
+        setBrandOptions(dedup(options.brands));
+        setChemicalGroupOptions(options.chemicalGroups);
+        setPlantOptions(dedup(options.plants));
+        setCategoryOptions(options.categories);
+        setProductChainOptions(options.chains);
       } catch (err) {
         console.error("Failed to fetch options:", err);
       }

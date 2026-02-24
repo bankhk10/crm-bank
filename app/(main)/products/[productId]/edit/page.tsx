@@ -4,10 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ProductForm } from "@/modules/products";
+import { ProductForm, getProductAction, updateProductAction } from "@/modules/products";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import type { Product } from "@/types/product";
 
 export default function EditProductPage() {
@@ -25,10 +23,9 @@ export default function EditProductPage() {
 
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`/api/products/${productId}`);
-        if (!res.ok) throw new Error("ไม่สามารถโหลดข้อมูลสินค้าได้");
-        const data = await res.json();
-        setProduct(data.product);
+        const result = await getProductAction(productId);
+        if (!result.success) throw new Error(result.error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
+        setProduct((result as any).product);
       } catch (err) {
         const error = err as Error;
         setError(error.message);
@@ -114,6 +111,14 @@ export default function EditProductPage() {
             }}
             productId={productId}
             isEdit
+            onSubmit={async (payload) => {
+              const result = await updateProductAction(productId, payload);
+              return {
+                success: result.success,
+                error: result.error,
+                data: result.success ? { product: (result as any).product } : undefined,
+              };
+            }}
           />
         </div>
       </Card>

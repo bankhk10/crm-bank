@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductForm } from "@/modules/products";
+import { ProductForm, createProductAction } from "@/modules/products";
 import { Card } from "@/components/ui/card";
 import { usePermission } from "@/hooks/use-permission";
 
@@ -27,7 +27,16 @@ export default function NewProductPage() {
               เพิ่มสินค้าใหม่
             </h5>
           </div>
-          <ProductForm />
+          <ProductForm
+            onSubmit={async (payload) => {
+              const result = await createProductAction(payload);
+              return {
+                success: result.success,
+                error: result.error,
+                data: result.success ? { product: (result as any).product } : undefined,
+              };
+            }}
+          />
         </div>
       </Card>
     </section>

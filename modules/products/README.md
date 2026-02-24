@@ -1,96 +1,76 @@
 # Products Module
 
-This module handles product management including listing, creating, and editing products.
+This module handles product management including listing, creating, editing, and deleting products.
 
 ## Architecture
 
 ```
 modules/products/
- ┣ features/                      ← UI screens
+ ┣ infrastructure/                    ← Prisma / DB access
+ ┃ ┗ product.repository.ts            (CRUD + form options queries)
+ ┣ application/                       ← Business logic (use cases)
+ ┃ ┣ create-product.ts                (create use case with validation)
+ ┃ ┣ update-product.ts                (update use case with validation)
+ ┃ ┣ validations.ts                   (Zod schemas shared client/server)
+ ┃ ┗ index.ts                         (facade + inline thin use cases)
+ ┣ server/                            ← Transport (server actions)
+ ┃ ┗ actions.ts                       (auth → use case → revalidate)
+ ┣ features/                          ← UI screens
  ┃ ┣ form/
  ┃ ┃ ┗ product-form.tsx
  ┃ ┗ list-view/
- ┃   ┣ products-table.tsx          (รวม toolbar inline)
+ ┃   ┣ products-table.tsx              (includes toolbar inline)
  ┃   ┣ products-cards.tsx
  ┃   ┗ use-product-columns.tsx
- ┣ ui/                            ← module-specific UI components
+ ┣ ui/                                ← module-specific UI components
  ┃ ┗ product-status-badge.tsx
  ┣ types/
  ┃ ┗ index.ts
- ┣ constants.ts                   ← STATUS_STYLE, PACKAGE_UNIT_OPTIONS
- ┣ index.ts                       ← barrel exports
+ ┣ constants.ts
+ ┣ index.ts                           ← barrel exports
  ┗ README.md
 ```
 
 ### Layer Responsibilities
 
-| Layer          | Responsibility                                  |
-| -------------- | ----------------------------------------------- |
-| `features/`    | UI screen components grouped by screen type     |
-| `ui/`          | Module-specific reusable UI (e.g. status badge) |
-| `types/`       | TypeScript type definitions                     |
-| `constants.ts` | Static options and configuration values         |
+| Layer             | Responsibility                                              |
+| ----------------- | ----------------------------------------------------------- |
+| `infrastructure/` | Pure Prisma/DB operations — no auth, no validation          |
+| `application/`    | Business logic: validation, uniqueness checks, data mapping |
+| `server/`         | Server actions: auth → use case → revalidatePath            |
+| `features/`       | UI screen components grouped by screen type                 |
+| `ui/`             | Module-specific reusable UI (e.g. status badge)             |
+| `types/`          | TypeScript type definitions                                 |
+| `constants.ts`    | Static options and configuration values                     |
 
-> **Note**: This module currently uses API routes for data fetching
-> rather than server actions. No `infrastructure/`, `application/`,
-> or `server/` layers are needed at this time.
-
-## Usage
-
-### Components
+## Server Actions
 
 ```tsx
 import {
-  ProductsTable,
-  ProductForm,
-  ProductStatusBadge,
-  type ProductRecord,
+  listProductsAction,
+  getProductAction,
+  createProductAction,
+  updateProductAction,
+  deleteProductAction,
+  getProductFormOptionsAction,
 } from "@/modules/products";
 ```
 
-### Table Columns Hook
+### Key Design Decisions
 
-```tsx
-import { useProductColumns } from "@/modules/products";
-
-const columns = useProductColumns(
-  onDeleteRequest,
-  canView,
-  canUpdate,
-  canDelete,
-  canManage,
-);
-```
-
-### Constants
-
-```tsx
-import {
-  STATUS_STYLE,
-  PACKAGE_UNIT_OPTIONS,
-  ALL_STATUS_VALUE,
-} from "@/modules/products";
-```
+- **`getProductFormOptionsAction`** consolidates 7 separate API calls (units, groups, brands, chemical groups, plants, categories, chains) into a single server action
+- **Image upload** still uses API routes (`/api/products/[id]/images`) because server actions don't support upload progress tracking (`XHR.onprogress`)
+- **Existing API routes are preserved** for backward compatibility — they can be deprecated later
 
 ## Components
 
 ### ProductsTable
 
-Responsive product listing with:
-
-- Desktop: Data table with sortable columns
-- Mobile/Tablet: Card layout
-- Inline toolbar with search and status filter
-- Pagination support
+Responsive product listing with desktop table + mobile cards + inline toolbar.
 
 ### ProductForm
 
-Product create/edit form with:
-
-- Dynamic options fetched from API
-- Image gallery upload with drag-and-drop
-- Form validation
-- Random fill for development
+Product create/edit form with dynamic options (via server action), gallery upload, and validation.
 
 ### ProductStatusBadge
 
@@ -102,3 +82,6 @@ Status indicator badge showing ACTIVE/INACTIVE state.
 - `@/components/ui/`: UI primitives (Button, Card, Input, Select, etc.)
 - `@/types/product`: Shared product type definitions
 - `@/hooks/`: Shared hooks (useRandomFill, useFileUpload)
+- `@/src/infrastructure/database`: Prisma client
+- `@/lib/auth`: NextAuth session
+- `@/src/core/rbac`: Permission checking
