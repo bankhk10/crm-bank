@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Notification } from "../_types/types";
+import { useState, useEffect, useCallback } from "react";
+import type { Notification } from "../../types";
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
       if (res.ok) {
@@ -16,7 +16,7 @@ export function useNotifications() {
     } catch (error) {
       console.error("Failed to fetch notifications", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
@@ -24,13 +24,13 @@ export function useNotifications() {
     // Poll every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     try {
       await fetch(`/api/notifications/${id}/read`, { method: "POST" });
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
     } catch (error) {
       console.error("Failed to mark as read", error);

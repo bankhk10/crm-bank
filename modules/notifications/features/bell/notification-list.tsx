@@ -2,7 +2,7 @@
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell } from "lucide-react";
-import type { Notification } from "../_types/types";
+import type { Notification } from "../../types";
 import { NotificationItem } from "./notification-item";
 
 interface Props {

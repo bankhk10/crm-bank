@@ -1,10 +1,10 @@
-import {
-  Info,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-} from "lucide-react";
-import type { NotificationConfig } from "../_types/types";
+/**
+ * Notification Constants
+ * UI configuration for notification types
+ */
+
+import { Info, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import type { NotificationConfig } from "./types";
 
 export const NOTIFICATION_CONFIG: Record<string, NotificationConfig> = {
   SUCCESS: {

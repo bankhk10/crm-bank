@@ -4,7 +4,7 @@ import { db as prisma } from "@/src/infrastructure/database";
 import { SaleStatus, PaymentTerm, Prisma } from "@/src/infrastructure/database";
 import type { SalesFilterParams, SaleFormData } from "@/types/sales";
 import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
-import { sendNotification } from "@/src/core/notifications";
+import { sendNotificationUseCase } from "@/modules/notifications/application";
 import { applyDataScope } from "@/lib/data-scope";
 
 // GET /api/sales - List sales with filters
@@ -430,7 +430,7 @@ export async function POST(request: NextRequest) {
       });
 
       if (employee?.manager?.userId) {
-        await sendNotification({
+        await sendNotificationUseCase({
           userId: employee.manager.userId,
           title: "รออนุมัติ",
           message: `รายการ ${saleNumber} จาก ${employee.name} ต้องการอนุมัติ`,

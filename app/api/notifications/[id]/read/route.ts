@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { markAsRead } from "@/src/core/notifications";
+import { markAsReadUseCase } from "@/modules/notifications/application";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -12,6 +12,6 @@ export async function POST(
   }
 
   const { id } = await params;
-  await markAsRead(id);
+  await markAsReadUseCase(id);
   return NextResponse.json({ success: true });
 }

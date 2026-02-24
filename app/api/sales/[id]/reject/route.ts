@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { createApiContext, createApiLogger, logReject } from "@/lib/logger";
-import { sendNotification } from "@/src/core/notifications";
+import { sendNotificationUseCase } from "@/modules/notifications/application";
 
 // POST /api/sales/[id]/reject - Reject sale
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -24,7 +24,7 @@ export async function POST(
     if (!reason) {
       return NextResponse.json(
         { error: "Rejection reason is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function POST(
     if (sale.status !== "PENDING" && sale.status !== "PENDING_APPROVAL") {
       return NextResponse.json(
         { error: "Sale is not pending approval" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +98,7 @@ export async function POST(
         entityName: sale.saleNumber,
         module: "sales",
         errorMessage: reason,
-      }
+      },
     );
 
     reqLogger.info("Sale rejected", {
@@ -107,7 +107,7 @@ export async function POST(
     });
 
     // Send notification to sale creator
-    await sendNotification({
+    await sendNotificationUseCase({
       userId: updatedSale.createdById,
       title: "Sale Rejected",
       message: `Sale Order ${updatedSale.saleNumber} has been rejected. Reason: ${reason}`,
@@ -120,7 +120,7 @@ export async function POST(
     console.error("Error rejecting sale:", error);
     return NextResponse.json(
       { error: "Failed to reject sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

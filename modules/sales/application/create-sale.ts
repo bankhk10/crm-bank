@@ -6,7 +6,7 @@
  */
 
 import type { SaleFormData } from "@/types/sales";
-import { sendNotification } from "@/src/core/notifications";
+import { sendNotificationUseCase } from "@/modules/notifications/application";
 import {
   findCustomerWithCredit,
   findProductsByIds,
@@ -179,7 +179,7 @@ export async function createSaleUseCase(
   try {
     const employee = await findEmployeeWithManager(body.employeeId);
     if (employee?.manager?.userId) {
-      await sendNotification({
+      await sendNotificationUseCase({
         userId: employee.manager.userId,
         title: "รออนุมัติ",
         message: `รายการ ${saleNumber} จาก ${employee.name} ต้องการอนุมัติ`,

@@ -1,22 +1,38 @@
-import { db } from "@/src/infrastructure/database";
-import {
-  CreateNotificationInput,
-  NotificationFilter,
-} from "./notification.types";
+/**
+ * Notification Repository
+ * Pure database operations for notifications.
+ * No business logic, no auth checks.
+ */
 
-export async function createNotification(data: CreateNotificationInput) {
+import { db } from "@/src/infrastructure/database";
+import type { NotificationType } from "@/src/infrastructure/database";
+
+export interface CreateNotificationData {
+  userId: string;
+  title: string;
+  message: string;
+  type?: NotificationType;
+  link?: string;
+}
+
+export interface NotificationFilter {
+  userId: string;
+  isRead?: boolean;
+}
+
+export async function createNotification(data: CreateNotificationData) {
   return db.notification.create({
     data,
   });
 }
 
-export async function getNotifications(filter: NotificationFilter) {
+export async function findNotifications(filter: NotificationFilter) {
   return db.notification.findMany({
     where: filter,
     orderBy: {
       createdAt: "desc",
     },
-    take: 50, // Limit to recent 50
+    take: 50,
   });
 }
 

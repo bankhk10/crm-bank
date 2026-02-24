@@ -1,143 +1,102 @@
-# Notifications Feature
+# Notifications Module
 
-This feature module manages the notification system, including the bell icon, dropdown list, polling mechanism, and real-time updates for user alerts.
+This module handles the notification system, including creating notifications, reading/marking as read, rendering the bell icon with a dropdown list, and polling for updates.
+
+The module follows the **Enterprise Module Layered Architecture**.
 
 ## Directory Structure
 
-- `_components/`: UI components (NotificationBell, NotificationList, NotificationItem).
-- `_hooks/`: Custom state logic (useNotifications).
-- `_lib/`: Notification configuration and utilities.
-- `_types/`: Shared type definitions.
-
----
-
-## API Endpoints
-
-### List Notifications
-
-| Method | Endpoint             | File Location                    |
-| ------ | -------------------- | -------------------------------- |
-| `GET`  | `/api/notifications` | `app/api/notifications/route.ts` |
-
-**Description:** Fetches the latest notifications for the current authenticated user.
-
-**Required Permissions:** User must be authenticated (`session.user.id`).
-
----
-
-### Mark All as Read
-
-| Method | Endpoint                      | File Location                             |
-| ------ | ----------------------------- | ----------------------------------------- |
-| `POST` | `/api/notifications/read-all` | `app/api/notifications/read-all/route.ts` |
-
-**Description:** Marks all notifications for the current user as read.
-
-**Required Permissions:** User must be authenticated.
-
----
-
-### Mark Single as Read
-
-| Method | Endpoint                       | File Location                              |
-| ------ | ------------------------------ | ------------------------------------------ |
-| `POST` | `/api/notifications/[id]/read` | `app/api/notifications/[id]/read/route.ts` |
-
-**Description:** Marks a specific notification as read.
-
-**Required Permissions:** User must be authenticated.
-
----
-
-## Database Schema
-
-### Table: `Notification`
-
-| Column      | Type       | Description                                   |
-| ----------- | ---------- | --------------------------------------------- |
-| `id`        | `String`   | Primary Key (cuid)                            |
-| `userId`    | `String`   | Foreign Key to User                           |
-| `title`     | `String`   | หัวข้อการแจ้งเตือน                            |
-| `message`   | `String`   | เนื้อหา                                       |
-| `type`      | `String`   | ประเภท (INFO, SUCCESS, WARNING, ERROR)        |
-| `link`      | `String?`  | ลิงก์ที่เกี่ยวข้อง (เช่น ไปยังหน้ารายละเอียด) |
-| `isRead`    | `Boolean`  | สถานะการอ่าน (default: false)                 |
-| `createdAt` | `DateTime` | เวลาที่สร้าง                                  |
-| `updatedAt` | `DateTime` | เวลาแก้ไขล่าสุด                               |
-
-### Relationships
-
-```
-Notification
-└── user: User (Many-to-One)
-    └── Notification.userId → User.id
+```text
+modules/notifications/
+├── infrastructure/           # Database operations (Prisma)
+│   └── notification.repository.ts
+├── application/              # Business logic / use cases
+│   └── index.ts              (facade + inline thin use cases)
+├── server/                   # Next.js Server Actions
+│   └── actions.ts
+├── features/                 # UI screens & hooks
+│   └── bell/
+│       ├── notification-bell.tsx
+│       ├── notification-list.tsx
+│       ├── notification-item.tsx
+│       ├── use-notifications.ts
+│       └── utils.ts
+├── types/
+│   └── index.ts
+├── constants.ts              # Notification type UI config
+├── index.ts                  # Barrel exports
+└── README.md                 # This file
 ```
 
 ---
 
-## Validation Rules
+## Architecture Components
 
-### Authorization
+### 1. Infrastructure Layer (`infrastructure/`)
 
-- All endpoints require a valid user session (`auth()`).
-- Users can only access/modify their own notifications (`userId` match).
+Contains all direct database interactions using Prisma.
 
----
+- `notification.repository.ts`: CRUD operations for notifications (`createNotification`, `findNotifications`, `markAsRead`, `markAllAsRead`, `getUnreadCount`).
 
-## Key Components
+### 2. Application Layer (`application/`)
 
-### NotificationBell
+Contains business logic as use cases (thin wrappers in this module).
 
-The main entry point component.
+- `sendNotificationUseCase` — Public API used by other modules (e.g. sales) to create notifications.
+- `getUserNotificationsUseCase` — Get notifications for a user.
+- `markAsReadUseCase` / `markAllAsReadUseCase` — Mark notifications as read.
+- `getUnreadCountUseCase` — Get unread count.
 
-- **Features**: Polling every 30s, Unread badge count, Popover display.
-- **Usage**: Placed in top navigation bar.
+### 3. Server Layer (`server/`)
 
-### NotificationList
+Next.js Server Actions that handle auth and call use cases.
 
-Renders the list of notifications inside the Bell popover.
+- `getNotificationsAction` — Auth check → get notifications.
+- `markAsReadAction` — Auth check → mark single read.
+- `markAllAsReadAction` — Auth check → mark all read.
+- `getUnreadCountAction` — Auth check → get count.
 
-- **Features**: Groups by date (Today, Yesterday), Handles empty states.
+### 4. Features (`features/bell/`)
 
----
+UI components for the notification bell popover.
 
-## Component Props
-
-### `NotificationBell`
-
-_No props (Self-contained logic via `useNotifications` hook)._
-
-### `NotificationList`
-
-| Prop            | Type                   | Required | Description                                                       |
-| --------------- | ---------------------- | -------- | ----------------------------------------------------------------- |
-| `notifications` | `Notification[]`       | ✅       | List of notification objects                                      |
-| `onRead`        | `(id: string) => void` | ✅       | Callback when marking a single item as read                       |
-| `onAction`      | `() => void`           | ✅       | Callback when an item is clicked/interacting (e.g. close popover) |
+- `NotificationBell` — Main entry point (popover with unread badge).
+- `NotificationList` — Scrollable list inside the popover.
+- `NotificationItem` — Individual notification card.
+- `useNotifications` — Hook with polling (30s) and state management.
+- `utils.ts` — Link resolution logic (e.g. redirect to approval page).
 
 ---
 
-## Types
+## Data Flow
 
-### `Notification`
+1. **Client → Server Action**: UI components call functions from `server/actions.ts` via `useNotifications` hook.
+2. **Server Action → Use Case**: Server Actions verify auth and delegate to Application Layer.
+3. **Use Case → Repository**: Application Layer calls Infrastructure Layer for DB operations.
+4. **Cross-module usage**: Other modules import `sendNotificationUseCase` from `@/modules/notifications` to create notifications.
 
-```typescript
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  link?: string;
-  isRead: boolean;
-  createdAt: string;
-}
-```
+---
 
 ## Usage
+
+### NotificationBell (in Navbar)
 
 ```tsx
 import { NotificationBell } from "@/modules/notifications";
 
-// In Navbar or Header
 <NotificationBell />;
+```
+
+### Sending notifications from other modules
+
+```typescript
+import { sendNotificationUseCase } from "@/modules/notifications/application";
+
+await sendNotificationUseCase({
+  userId: managerId,
+  title: "รออนุมัติ",
+  message: `รายการ ${saleNumber} ต้องการอนุมัติ`,
+  type: "INFO",
+  link: `/sales/${saleId}`,
+});
 ```

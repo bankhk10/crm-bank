@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { th } from "date-fns/locale";
 import { Clock, CheckCircle2, ChevronRight } from "lucide-react";
-import type { Notification } from "../_types/types";
-import { getNotificationConfig } from "../_lib/constants";
-import { getNotificationLink } from "../_lib/utils";
+import type { Notification } from "../../types";
+import { getNotificationConfig } from "../../constants";
+import { getNotificationLink } from "./utils";
 import { usePermission } from "@/hooks/use-permission";
 
 interface Props {

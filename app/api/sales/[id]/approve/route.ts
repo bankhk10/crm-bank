@@ -4,12 +4,12 @@ import { db as prisma } from "@/src/infrastructure/database";
 import { allocateStock } from "@/src/core/stock";
 import { calculateOrderExpiryDate } from "@/src/core/sales";
 import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";
-import { sendNotification } from "@/src/core/notifications";
+import { sendNotificationUseCase } from "@/modules/notifications/application";
 
 // POST /api/sales/[id]/approve - Approve sale
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -34,7 +34,7 @@ export async function POST(
     if (sale.status !== "PENDING" && sale.status !== "PENDING_APPROVAL") {
       return NextResponse.json(
         { error: "Sale is not pending approval" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -67,7 +67,7 @@ export async function POST(
 
         if (availableCredit < saleTotal) {
           throw new Error(
-            `Insufficient credit limit. Available: ฿${availableCredit.toLocaleString()}, Required: ฿${saleTotal.toLocaleString()}`
+            `Insufficient credit limit. Available: ฿${availableCredit.toLocaleString()}, Required: ฿${saleTotal.toLocaleString()}`,
           );
         }
 
@@ -146,7 +146,7 @@ export async function POST(
     });
 
     // Send notification to sale creator
-    await sendNotification({
+    await sendNotificationUseCase({
       userId: updatedSale.sale.createdById,
       title: "Sale Approved",
       message: `Sale Order ${updatedSale.sale.saleNumber} has been approved.`,
@@ -170,7 +170,7 @@ export async function POST(
       {
         entityName: sale.saleNumber,
         module: "sales",
-      }
+      },
     );
 
     reqLogger.info("Sale approved successfully", {

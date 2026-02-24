@@ -1,8 +1,12 @@
-import type { Notification } from "../_types/types";
+/**
+ * Notification Link Utilities
+ */
+
+import type { Notification } from "../../types";
 
 export function getNotificationLink(
   n: Notification,
-  canApproveSale: boolean
+  canApproveSale: boolean,
 ): string | null {
   // If manager with approve permission and notification is about sale pending approval
   // Navigate to approval page instead of detail page

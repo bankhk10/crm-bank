@@ -9,7 +9,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { useNotifications } from "../_hooks/use-notifications";
+import { useNotifications } from "./use-notifications";
 import { NotificationList } from "./notification-list";
 
 export function NotificationBell() {

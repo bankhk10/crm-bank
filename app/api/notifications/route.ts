@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getUserNotifications } from "@/src/core/notifications";
+import { getUserNotificationsUseCase } from "@/modules/notifications/application";
 
 export async function GET() {
   const session = await auth();
@@ -8,6 +8,6 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const notifications = await getUserNotifications(session.user.id);
+  const notifications = await getUserNotificationsUseCase(session.user.id);
   return NextResponse.json({ notifications });
 }
