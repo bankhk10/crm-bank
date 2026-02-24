@@ -28,6 +28,7 @@ import {
     DELETE_ACCESS_OPTIONS,
     PERMISSION_GROUP_OVERRIDES,
 } from "../../constants";
+import { updateRolePermissionsAction } from "../../server/actions";
 
 export default function RolePermissionEditor({
     role,
@@ -150,18 +151,13 @@ export default function RolePermissionEditor({
                 deleteAccess: entry.deleteAccess,
             }));
 
-            const response = await fetch(
-                `/api/rbac/roles/${currentRole.id}/permissions`,
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ permissions: payload }),
-                }
+            const result = await updateRolePermissionsAction(
+                currentRole.id,
+                { permissions: payload },
             );
 
-            if (!response.ok) {
-                const body = await response.json().catch(() => ({}));
-                notify("error", body.error || "Save failed");
+            if (!result.success) {
+                notify("error", result.error || "Save failed");
                 setCurrentRole({ ...currentRole, permissions: previousPermissions });
             } else {
                 router.refresh();
@@ -231,16 +227,12 @@ export default function RolePermissionEditor({
                 deleteAccess: p.deleteAccess,
             }));
 
-            const response = await fetch(
-                `/api/rbac/roles/${currentRole.id}/permissions`,
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ permissions: payload }),
-                }
+            const result = await updateRolePermissionsAction(
+                currentRole.id,
+                { permissions: payload },
             );
 
-            if (!response.ok) {
+            if (!result.success) {
                 notify("error", "Update failed");
                 setCurrentRole({ ...currentRole, permissions: currentPerms });
             } else {

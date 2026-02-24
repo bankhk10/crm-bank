@@ -4,9 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type {
-    DataAccessLevel,
-} from "@/src/infrastructure/database";
 import {
     Dialog,
     DialogTrigger,
@@ -94,6 +91,21 @@ import {
     type DepartmentFormData,
     type PositionFormData,
 } from "../../application/validations";
+import {
+    getRBACSummaryAction,
+    createRoleAction,
+    deleteRoleAction,
+    createPermissionAction,
+    updatePermissionAction,
+    deletePermissionAction,
+    createDepartmentAction,
+    updateDepartmentAction,
+    deleteDepartmentAction,
+    createPositionAction,
+    updatePositionAction,
+    deletePositionAction,
+    updateUserRolesAction,
+} from "../../server/actions";
 
 const notify = (type: "success" | "error", message: string) => {
     if (type === "error") {
@@ -154,13 +166,12 @@ export default function RBACConsole() {
 
     const fetchSummary = useCallback(async () => {
         try {
-            const response = await fetch("/api/rbac/summary", { cache: "no-store" });
-            if (!response.ok) {
-                notify("error", "ไม่สามารถดึงข้อมูล RBAC ได้");
+            const result = await getRBACSummaryAction();
+            if (!result.success) {
+                notify("error", result.error || "ไม่สามารถดึงข้อมูล RBAC ได้");
                 return;
             }
-            const payload: RBACSummaryResponse = await response.json();
-            setSummary(payload);
+            setSummary(result.data as RBACSummaryResponse);
         } catch (error) {
             console.error("Fetch RBAC summary failed:", error);
             notify("error", "เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล");
@@ -286,76 +297,42 @@ export default function RBACConsole() {
     }, [summary]);
 
     const handleCreateRole = roleForm.handleSubmit(async (values) => {
-        const response = await fetch("/api/rbac/roles", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(values),
-        });
-
-        if (!response.ok) {
-            let msg = "สร้าง Role ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-                else if (body?.issues) msg = JSON.stringify(body.issues);
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
+        try {
+            const result = await createRoleAction(values);
+            if (!result.success) {
+                showApiMessage("error", result.error || "สร้าง Role ไม่สำเร็จ");
+                return;
+            }
+            showApiMessage("success", "สร้าง Role แล้ว");
+            setRoleDialogOpen(false);
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", "สร้าง Role ไม่สำเร็จ");
         }
-
-        showApiMessage("success", "สร้าง Role แล้ว");
-        setRoleDialogOpen(false);
-        refreshSummary();
     });
 
     const handleSavePermission = permissionForm.handleSubmit(async (values) => {
-        if (editingPermissionId) {
-            // Edit existing permission
-            const response = await fetch(
-                `/api/rbac/permissions/${editingPermissionId}`,
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(values),
+        try {
+            if (editingPermissionId) {
+                const result = await updatePermissionAction(editingPermissionId, values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "แก้ไข Permission ไม่สำเร็จ");
+                    return;
                 }
-            );
-
-            if (!response.ok) {
-                let msg = "แก้ไข Permission ไม่สำเร็จ";
-                try {
-                    const body = await response.json();
-                    if (body?.error) msg = body.error;
-                    else if (body?.issues) msg = JSON.stringify(body.issues);
-                } catch (_) { }
-                showApiMessage("error", msg);
-                return;
+                showApiMessage("success", "แก้ไข Permission แล้ว");
+            } else {
+                const result = await createPermissionAction(values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "สร้าง Permission ไม่สำเร็จ");
+                    return;
+                }
+                showApiMessage("success", "สร้าง Permission แล้ว");
             }
-
-            showApiMessage("success", "แก้ไข Permission แล้ว");
-        } else {
-            // Create new permission
-            const response = await fetch("/api/rbac/permissions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
-            });
-
-            if (!response.ok) {
-                let msg = "สร้าง Permission ไม่สำเร็จ";
-                try {
-                    const body = await response.json();
-                    if (body?.error) msg = body.error;
-                    else if (body?.issues) msg = JSON.stringify(body.issues);
-                } catch (_) { }
-                showApiMessage("error", msg);
-                return;
-            }
-
-            showApiMessage("success", "สร้าง Permission แล้ว");
+            setPermissionDialogOpen(false);
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", editingPermissionId ? "แก้ไข Permission ไม่สำเร็จ" : "สร้าง Permission ไม่สำเร็จ");
         }
-
-        setPermissionDialogOpen(false);
-        refreshSummary();
     });
 
     const handleEditPermission = (permission: any) => {
@@ -370,118 +347,65 @@ export default function RBACConsole() {
         )
             return;
 
-        const response = await fetch(`/api/rbac/permissions/${permissionId}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            let msg = "ลบ Permission ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
+        try {
+            const result = await deletePermissionAction(permissionId);
+            if (!result.success) {
+                showApiMessage("error", result.error || "ลบ Permission ไม่สำเร็จ");
+                return;
+            }
+            showApiMessage("success", "ลบ Permission เรียบร้อย");
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", "ลบ Permission ไม่สำเร็จ");
         }
-
-        showApiMessage("success", "ลบ Permission เรียบร้อย");
-        refreshSummary();
     };
 
     const handleCreateDepartment = departmentForm.handleSubmit(async (values) => {
-        // If editingDepartmentId exists -> PATCH, otherwise POST
-        if (editingDepartmentId) {
-            const response = await fetch(
-                `/api/rbac/departments/${editingDepartmentId}`,
-                {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(values),
+        try {
+            if (editingDepartmentId) {
+                const result = await updateDepartmentAction(editingDepartmentId, values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "แก้ไข Department ไม่สำเร็จ");
+                    return;
                 }
-            );
-
-            if (!response.ok) {
-                let msg = "แก้ไข Department ไม่สำเร็จ";
-                try {
-                    const body = await response.json();
-                    if (body?.error) msg = body.error;
-                } catch (_) { }
-                showApiMessage("error", msg);
-                return;
+                showApiMessage("success", "แก้ไข Department แล้ว");
+            } else {
+                const result = await createDepartmentAction(values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "สร้าง Department ไม่สำเร็จ");
+                    return;
+                }
+                showApiMessage("success", "เพิ่ม Department แล้ว");
             }
-
-            showApiMessage("success", "แก้ไข Department แล้ว");
             setDeptDialogOpen(false);
             refreshSummary();
-            return;
+        } catch (_) {
+            showApiMessage("error", editingDepartmentId ? "แก้ไข Department ไม่สำเร็จ" : "สร้าง Department ไม่สำเร็จ");
         }
-
-        const response = await fetch("/api/rbac/departments", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(values),
-        });
-
-        if (!response.ok) {
-            let msg = "สร้าง Department ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-                else if (body?.issues) msg = JSON.stringify(body.issues);
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
-        }
-
-        showApiMessage("success", "เพิ่ม Department แล้ว");
-        setDeptDialogOpen(false);
-        refreshSummary();
     });
 
     const handleCreatePosition = positionForm.handleSubmit(async (values) => {
-        // If editingPositionId exists -> PATCH, otherwise POST
-        if (editingPositionId) {
-            const response = await fetch(`/api/rbac/positions/${editingPositionId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(values),
-            });
-
-            if (!response.ok) {
-                let msg = "แก้ไข Position ไม่สำเร็จ";
-                try {
-                    const body = await response.json();
-                    if (body?.error) msg = body.error;
-                } catch (_) { }
-                showApiMessage("error", msg);
-                return;
+        try {
+            if (editingPositionId) {
+                const result = await updatePositionAction(editingPositionId, values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "แก้ไข Position ไม่สำเร็จ");
+                    return;
+                }
+                showApiMessage("success", "แก้ไข Position แล้ว");
+            } else {
+                const result = await createPositionAction(values);
+                if (!result.success) {
+                    showApiMessage("error", result.error || "สร้าง Position ไม่สำเร็จ");
+                    return;
+                }
+                showApiMessage("success", "เพิ่ม Position แล้ว");
             }
-
-            showApiMessage("success", "แก้ไข Position แล้ว");
             setPosDialogOpen(false);
             refreshSummary();
-            return;
+        } catch (_) {
+            showApiMessage("error", editingPositionId ? "แก้ไข Position ไม่สำเร็จ" : "สร้าง Position ไม่สำเร็จ");
         }
-
-        const response = await fetch("/api/rbac/positions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(values),
-        });
-
-        if (!response.ok) {
-            let msg = "สร้าง Position ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-                else if (body?.issues) msg = JSON.stringify(body.issues);
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
-        }
-
-        showApiMessage("success", "เพิ่ม Position แล้ว");
-        setPosDialogOpen(false);
-        refreshSummary();
     });
 
     const handleEditDepartment = (dept: any) => {
@@ -495,21 +419,18 @@ export default function RBACConsole() {
             )
         )
             return;
-        const response = await fetch(`/api/rbac/departments/${departmentId}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            let msg = "ลบ Department ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
-        }
 
-        showApiMessage("success", "ลบ Department เรียบร้อย");
-        refreshSummary();
+        try {
+            const result = await deleteDepartmentAction(departmentId);
+            if (!result.success) {
+                showApiMessage("error", result.error || "ลบ Department ไม่สำเร็จ");
+                return;
+            }
+            showApiMessage("success", "ลบ Department เรียบร้อย");
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", "ลบ Department ไม่สำเร็จ");
+        }
     };
 
     const handleEditPosition = (pos: any) => {
@@ -523,21 +444,18 @@ export default function RBACConsole() {
             )
         )
             return;
-        const response = await fetch(`/api/rbac/positions/${positionId}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            let msg = "ลบ Position ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
-        }
 
-        showApiMessage("success", "ลบ Position เรียบร้อย");
-        refreshSummary();
+        try {
+            const result = await deletePositionAction(positionId);
+            if (!result.success) {
+                showApiMessage("error", result.error || "ลบ Position ไม่สำเร็จ");
+                return;
+            }
+            showApiMessage("success", "ลบ Position เรียบร้อย");
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", "ลบ Position ไม่สำเร็จ");
+        }
     };
 
     const handleDeleteRole = async (roleId: string) => {
@@ -548,23 +466,17 @@ export default function RBACConsole() {
         )
             return;
 
-        const response = await fetch(`/api/rbac/roles/${roleId}`, {
-            method: "DELETE",
-        });
-
-        if (!response.ok) {
-            let msg = "ลบ Role ไม่สำเร็จ";
-            try {
-                const body = await response.json();
-                if (body?.error) msg = body.error;
-            } catch (_) { }
-            showApiMessage("error", msg);
-            return;
+        try {
+            const result = await deleteRoleAction(roleId);
+            if (!result.success) {
+                showApiMessage("error", result.error || "ลบ Role ไม่สำเร็จ");
+                return;
+            }
+            showApiMessage("success", "ลบ Role เรียบร้อย");
+            refreshSummary();
+        } catch (_) {
+            showApiMessage("error", "ลบ Role ไม่สำเร็จ");
         }
-
-        showApiMessage("success", "ลบ Role เรียบร้อย");
-        // refresh data
-        refreshSummary();
     };
 
     const handleUserRoleChange = async (roleId: string, checked: boolean) => {
@@ -578,19 +490,17 @@ export default function RBACConsole() {
             roleIds.delete(roleId);
         }
 
-        const response = await fetch(`/api/rbac/users/${selectedUser.id}/roles`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ roleIds: Array.from(roleIds) }),
-        });
-
-        if (!response.ok) {
+        try {
+            const result = await updateUserRolesAction(selectedUser.id, { roleIds: Array.from(roleIds) });
+            if (!result.success) {
+                notify("error", result.error || "อัปเดต Role ผู้ใช้ล้มเหลว");
+                return;
+            }
+            notify("success", "อัปเดต Role แล้ว");
+            refreshSummary();
+        } catch (_) {
             notify("error", "อัปเดต Role ผู้ใช้ล้มเหลว");
-            return;
         }
-
-        notify("success", "อัปเดต Role แล้ว");
-        refreshSummary();
     };
 
     if (isLoading) {

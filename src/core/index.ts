@@ -12,8 +12,5 @@ export * from "./sales";
 // RBAC domain
 export * from "./rbac";
 
-// Products domain
-export * from "./products";
-
 // Points domain
 export * from "./points";

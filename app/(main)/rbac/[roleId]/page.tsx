@@ -2,7 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
 import { RolePermissionEditor } from "@/modules/rbac";
-import { findRoleById, findAllPermissions } from "@/modules/rbac/infrastructure/rbac.repository";
+import { getRoleDetailUseCase, listPermissionsUseCase } from "@/modules/rbac/application";
 
 interface RolePermissionsPageProps {
   params: {
@@ -23,17 +23,17 @@ export default async function RolePermissionsPage({
 
   const { roleId } = await Promise.resolve(params);
 
-  const role = await findRoleById(roleId);
+  const result = await getRoleDetailUseCase(roleId);
 
-  if (!role) {
+  if (!result.success || !('role' in result)) {
     notFound();
   }
 
-  const permissions = await findAllPermissions();
+  const permissions = await listPermissionsUseCase();
 
   return (
     <div className="container mx-auto py-6">
-      <RolePermissionEditor role={role} allPermissions={permissions} />
+      <RolePermissionEditor role={result.role} allPermissions={permissions} />
     </div>
   );
 }

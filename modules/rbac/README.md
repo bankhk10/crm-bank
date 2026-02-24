@@ -1,32 +1,32 @@
 # RBAC Module
 
-Role-Based Access Control module for managing roles, permissions, departments, positions, and user access assignments.
+Role-Based Access Control management module.
 
 ## Architecture
 
 ```
 modules/rbac/
- ┣ features/                          ← UI screens
+ ┣ infrastructure/
+ ┃ ┗ rbac.repository.ts       ← Prisma database operations only
+ ┃
+ ┣ application/
+ ┃ ┣ validations.ts           ← Zod schemas (shared client/server)
+ ┃ ┗ index.ts                 ← Facade + inline use cases
+ ┃
+ ┣ server/
+ ┃ ┗ actions.ts               ← "use server" thin actions (auth → use case → revalidate)
+ ┃
+ ┣ features/
  ┃ ┣ detail-view/
- ┃ ┃ ┗ role-permission-editor.tsx     (Role permission assignment editor)
+ ┃ ┃ ┗ role-permission-editor.tsx
  ┃ ┗ list-view/
- ┃   ┗ rbac-console.tsx               (Main RBAC dashboard with tabs)
- ┃
- ┣ application/                       ← use cases (business logic)
- ┃ ┣ validations.ts                   (Zod schemas, shared client/server)
- ┃ ┗ index.ts                         (facade + inline thin use cases)
- ┃
- ┣ server/                            ← transport (server actions only)
- ┃ ┗ actions.ts
- ┃
- ┣ infrastructure/                    ← prisma / db access
- ┃ ┗ rbac.repository.ts
+ ┃   ┗ rbac-console.tsx
  ┃
  ┣ types/
  ┃ ┗ index.ts
  ┃
- ┣ constants.ts                       (access level options, group overrides)
- ┣ index.ts                           (barrel exports)
+ ┣ constants.ts
+ ┣ index.ts                   ← barrel exports
  ┗ README.md
 ```
 
@@ -34,48 +34,29 @@ modules/rbac/
 
 ### Infrastructure (`infrastructure/rbac.repository.ts`)
 
-- Pure Prisma/database operations only
-- No business logic, no auth check, no validation
-- Functions: `findRBACSummary`, `findAllRoles`, `createRole`, `updateRole`, `softDeleteRole`, etc.
+- Pure Prisma database operations
+- No business logic, auth checks, or validation
+- Functions: `findRBACSummary`, `findRBACCatalog`, `findAllRoles`, `createRole`, `updateRole`, `softDeleteRole`, `findAllPermissions`, `createPermission`, `updatePermission`, `softDeletePermission`, `findAllDepartments`, `createDepartment`, `updateDepartment`, `softDeleteDepartment`, `findAllPositions`, `createPosition`, `updatePosition`, `softDeletePosition`, `upsertRolePermissions`, `updateUserRoles`, `updateUserPermissionOverrides`
 
 ### Application (`application/`)
 
-- Business logic lives here: validation, uniqueness checks, data mapping
-- `validations.ts` → Zod schemas shared between client forms and server
-- `index.ts` → Facade with inline thin use cases + re-exports
+- Business logic: validation, uniqueness checks, data mapping
+- `validations.ts` — Zod schemas shared between client forms and server
+- `index.ts` — Facade + inline use cases (get summary, list, create, update, delete)
 
 ### Server (`server/actions.ts`)
 
-- `"use server"` directive only
-- Each action: (1) Auth/Permission check → (2) Validate → (3) Call use case → (4) revalidatePath
-- No business logic in actions
+- `"use server"` directive
+- (1) Auth/Permission check, (2) Call use case, (3) revalidatePath
+- No business logic
 
 ### Features (`features/`)
 
-- `list-view/rbac-console.tsx` — Main RBAC dashboard with Roles, Permissions, Users, Organization tabs
-- `detail-view/role-permission-editor.tsx` — Granular permission assignment per role
+- `list-view/rbac-console.tsx` — Main RBAC admin console with tabs (Roles, Users, Organization)
+- `detail-view/role-permission-editor.tsx` — Per-role permission toggle editor
 
-## Usage
+## Notes
 
-```tsx
-import { RBACConsole, RolePermissionEditor } from "@/modules/rbac";
-```
-
-## API Routes (kept for client-side fetch compatibility)
-
-The RBAC console uses client-side `fetch()` for real-time CRUD operations.
-API routes are thin wrappers that delegate to application layer use cases:
-
-- `GET /api/rbac/summary` — Full RBAC summary
-- `GET/POST /api/rbac/roles` — List/Create roles
-- `PATCH/DELETE /api/rbac/roles/[roleId]` — Update/Delete role
-- `PUT /api/rbac/roles/[roleId]/permissions` — Bulk update role permissions
-- `GET/POST /api/rbac/permissions` — List/Create permissions
-- `PATCH/DELETE /api/rbac/permissions/[id]` — Update/Delete permission
-- `GET/POST /api/rbac/departments` — List/Create departments
-- `PATCH/DELETE /api/rbac/departments/[id]` — Update/Delete department
-- `GET/POST /api/rbac/positions` — List/Create positions
-- `PATCH/DELETE /api/rbac/positions/[id]` — Update/Delete position
-- `PUT /api/rbac/users/[userId]/roles` — Update user role assignments
-- `PUT /api/rbac/users/[userId]/overrides` — Update user permission overrides
-- `GET /api/rbac/catalog` — Catalog for dropdowns
+- `src/core/rbac/` contains cross-cutting RBAC utilities (permission map building, route authorization, etc.) used throughout the app (middleware, sidebar, proxy)
+- API routes under `app/api/rbac/` are retained for backward compatibility with modules that still use `fetch()` (e.g., employee form)
+- UI components use server actions for all mutations
