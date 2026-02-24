@@ -3,6 +3,9 @@
  * Type definitions for product feature components
  */
 
+// Core product types from shared types
+export * from "@/types/product";
+
 import { Product, ProductFormData } from "@/types/product";
 
 export interface ProductFormProps {

@@ -1,9 +1,9 @@
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Eye, Edit, Trash2, Settings } from "lucide-react";
-import { ProductRecord } from "../_types/types";
+import { ProductRecord } from "../../types";
 import { ActionButton } from "@/components/custom/action-button";
-import { ProductStatusBadge } from "../_components/product-status-badge";
+import { ProductStatusBadge } from "../../ui/product-status-badge";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 
 // Table Columns Hook

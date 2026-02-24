@@ -28,7 +28,7 @@ import { STATUS_OPTIONS, type ProductFormData } from "@/types/product";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
-import { ProductFormProps } from "../_types/types";
+import { ProductFormProps } from "../../types";
 
 interface SelectOption {
   value: string;

@@ -14,13 +14,18 @@
  */
 
 // Types
-export * from "./_types";
+export * from "./types";
 
-// Components
-export * from "./_components";
+// Constants
+export * from "./constants";
 
-// Hooks
-export * from "./_hooks";
+// UI Components
+export { ProductStatusBadge, statusStyle } from "./ui/product-status-badge";
 
-// Lib/Utilities
-export * from "./_lib";
+// Features - List View
+export { ProductsTable } from "./features/list-view/products-table";
+export { ProductsCards } from "./features/list-view/products-cards";
+export { useProductColumns } from "./features/list-view/use-product-columns";
+
+// Features - Form
+export { ProductForm } from "./features/form/product-form";

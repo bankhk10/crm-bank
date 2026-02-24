@@ -11,8 +11,8 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select";
-import { ProductsTableProps } from "../_types/types";
-import { ProductStatusBadge } from "./product-status-badge";
+import { ProductsTableProps } from "../../types";
+import { ProductStatusBadge } from "../../ui/product-status-badge";
 
 export function ProductsCards({
     data,
