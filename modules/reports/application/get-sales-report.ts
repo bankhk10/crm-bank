@@ -1,5 +1,4 @@
-"use server";
-
+import { ReportType } from "../types";
 import { db as prisma, DataAccessLevel } from "@/src/infrastructure/database";
 import { startOfYear, endOfYear, format } from "date-fns";
 import { auth } from "@/lib/auth";
@@ -25,8 +24,6 @@ async function getTeamEmployeeIds(session: {
   });
   return [...new Set(teamMembers.map((m) => m.id))];
 }
-
-export type ReportType = "CUSTOMER" | "EMPLOYEE";
 
 export async function getFilterOptions() {
   const session = await auth();

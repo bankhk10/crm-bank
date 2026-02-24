@@ -8,7 +8,6 @@ import {
   endOfMonth,
   startOfYear,
   endOfYear,
-  subYears,
 } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,32 +35,14 @@ import {
   Award,
 } from "lucide-react";
 import Link from "next/link";
+
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import {
-  getProductSalesReport,
+  getProductSalesReportAction,
   type ProductSalesReportData,
   type DateRangeFilter,
-} from "@/app/actions/reports";
+} from "@/modules/reports";
 
-const COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-  "#f97316",
-];
+
 
 const quickDateRanges = [
   {
@@ -107,7 +88,7 @@ export default function ProductSalesReportPage() {
         startDate: format(dateRange.from, "yyyy-MM-dd"),
         endDate: format(dateRange.to, "yyyy-MM-dd"),
       };
-      const data = await getProductSalesReport(filter);
+      const data = await getProductSalesReportAction(filter);
       setReportData(data);
     });
   };
@@ -125,12 +106,7 @@ export default function ProductSalesReportPage() {
     return new Intl.NumberFormat("th-TH").format(num);
   };
 
-  const topProductsChartData =
-    reportData?.topProducts.slice(0, 10).map((p) => ({
-      name: p.name.length > 20 ? p.name.slice(0, 20) + "..." : p.name,
-      sales: p.totalSales,
-      quantity: p.totalQuantity,
-    })) || [];
+
 
   return (
     <div className="min-h-screen bg-slate-50/60">
@@ -183,9 +159,8 @@ export default function ProductSalesReportPage() {
 
             <div
               id={filtersPanelId}
-              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${
-                filtersOpen ? "block" : "hidden"
-              } sm:block`}
+              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
+                } sm:block`}
             >
               <div className="grid gap-1.5">
                 <label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -529,15 +504,14 @@ export default function ProductSalesReportPage() {
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <Badge
-                                className={`mt-1 ${
-                                  idx === 0
-                                    ? "bg-amber-500"
-                                    : idx === 1
-                                      ? "bg-slate-400"
-                                      : idx === 2
-                                        ? "bg-amber-700"
-                                        : "bg-slate-500"
-                                }`}
+                                className={`mt-1 ${idx === 0
+                                  ? "bg-amber-500"
+                                  : idx === 1
+                                    ? "bg-slate-400"
+                                    : idx === 2
+                                      ? "bg-amber-700"
+                                      : "bg-slate-500"
+                                  }`}
                               >
                                 {idx + 1}
                               </Badge>
@@ -721,7 +695,7 @@ export default function ProductSalesReportPage() {
                 เลือกช่วงเวลาและกดดูรายงาน
               </h3>
               <p className="text-muted-foreground text-sm mt-2">
-                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม "ดูรายงาน"
+                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม &quot;ดูรายงาน&quot;
               </p>
             </CardContent>
           </Card>

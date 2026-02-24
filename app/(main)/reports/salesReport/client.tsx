@@ -38,10 +38,10 @@ import {
   Wallet,
 } from "lucide-react";
 import {
-  getReportSummary,
-  getOrderHistory,
+  getReportSummaryAction,
+  getOrderHistoryAction,
   type ReportType,
-} from "@/app/actions/sales-report";
+} from "@/modules/reports";
 import {
   Table,
   TableBody,
@@ -130,9 +130,8 @@ function SalesReportFilters({
         {/* Mobile-first filters: sm=2 cols, lg=4 cols */}
         <div
           id={panelId}
-          className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 ${
-            isOpen ? "block" : "hidden"
-          } sm:block`}
+          className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 ${isOpen ? "block" : "hidden"
+            } sm:block`}
         >
           <div className="grid gap-1.5">
             <label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -192,15 +191,15 @@ function SalesReportFilters({
               <SelectContent>
                 {reportType === "CUSTOMER"
                   ? customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.customerCode} - {customer.name}
-                      </SelectItem>
-                    ))
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.customerCode} - {customer.name}
+                    </SelectItem>
+                  ))
                   : employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -309,9 +308,9 @@ function SalesSummaryCards({ summaryData }: { summaryData: SummaryData }) {
               <p className="text-xs sm:text-sm text-green-600 font-medium">
                 {summaryData.topProducts[0]
                   ? new Intl.NumberFormat("th-TH", {
-                      style: "currency",
-                      currency: "THB",
-                    }).format(summaryData.topProducts[0].amount)
+                    style: "currency",
+                    currency: "THB",
+                  }).format(summaryData.topProducts[0].amount)
                   : ""}
               </p>
             </div>
@@ -543,11 +542,10 @@ function PaginationBar({
             {pages.map((page) => (
               <span
                 key={page}
-                className={`h-9 min-w-[36px] px-2 rounded-lg text-sm flex items-center justify-center border ${
-                  page === currentPage
-                    ? "border-blue-600 text-blue-600 bg-blue-50"
-                    : "border-slate-200 text-slate-600"
-                }`}
+                className={`h-9 min-w-[36px] px-2 rounded-lg text-sm flex items-center justify-center border ${page === currentPage
+                  ? "border-blue-600 text-blue-600 bg-blue-50"
+                  : "border-slate-200 text-slate-600"
+                  }`}
               >
                 {page}
               </span>
@@ -589,8 +587,8 @@ export function SalesReportClient({ customers, employees, years }: SalesReportCl
 
     startTransition(async () => {
       const [summary, history] = await Promise.all([
-        getReportSummary(selectedYear, reportType, selectedEntityId),
-        getOrderHistory(selectedYear, reportType, selectedEntityId),
+        getReportSummaryAction(selectedYear, reportType, selectedEntityId),
+        getOrderHistoryAction(selectedYear, reportType, selectedEntityId),
       ]);
       setSummaryData(summary);
       setOrders(history as OrderHistory[]);

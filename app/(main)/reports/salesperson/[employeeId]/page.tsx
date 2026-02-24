@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import {
   User,
@@ -28,8 +27,6 @@ import {
   TrendingUp,
   ShoppingCart,
   DollarSign,
-  Package,
-  Clock,
   Building2,
   ExternalLink,
   ArrowUpRight,
@@ -37,9 +34,7 @@ import {
   Briefcase,
   Store,
   Search,
-  BadgeCheck,
   Layers,
-  Map,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
@@ -702,7 +697,7 @@ export default function SalespersonDetailPage() {
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
                         <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>ไม่พบข้อมูลที่ตรงกับการค้นหา "{searchTerm}"</p>
+                        <p>ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;</p>
                         <Button
                           variant="link"
                           className="mt-2 text-rose-600"

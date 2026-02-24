@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getDashboardData } from "@/app/actions/dashboard";
+import { getDashboardDataAction } from "@/modules/dashboard";
 import DashboardClient from "./dashboard-client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Server component usage? No, Alert is client?
 // Alert is "use client" likely if it uses context?
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const data = await getDashboardData();
+  const data = await getDashboardDataAction();
 
   return <DashboardClient data={data} />;
 }

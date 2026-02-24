@@ -26,9 +26,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import {
-  getAllSalespersonsForReport,
+  getAllSalespersonsForReportAction,
   type SalespersonListItem,
-} from "@/app/actions/reports";
+} from "@/modules/reports";
 
 export default function SalespersonReportPage() {
   const [isPending, startTransition] = useTransition();
@@ -43,7 +43,7 @@ export default function SalespersonReportPage() {
     startTransition(async () => {
       setIsLoading(true);
       try {
-        const data = await getAllSalespersonsForReport();
+        const data = await getAllSalespersonsForReportAction();
         setSalespersons(data);
       } catch (error) {
         console.error("Failed to fetch salespersons:", error);
@@ -339,7 +339,7 @@ export default function SalespersonReportPage() {
                     </span>
                   </div>
                   <div className="text-slate-400">
-                    คลิก "ดู" เพื่อดูรายละเอียดพนักงาน
+                    คลิก &quot;ดู&quot; เพื่อดูรายละเอียดพนักงาน
                   </div>
                 </div>
               </CardContent>

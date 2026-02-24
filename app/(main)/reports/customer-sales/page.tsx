@@ -17,9 +17,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, ArrowLeft, Eye, Search, TrendingUp, ShoppingCart, Award } from "lucide-react";
 import Link from "next/link";
 import {
-  getAllCustomersForReport,
+  getAllCustomersForReportAction,
   type CustomerListItem,
-} from "@/app/actions/reports";
+} from "@/modules/reports";
 
 const customerTypeLabels: Record<string, string> = {
   DEALER: "ดีลเลอร์",
@@ -41,7 +41,7 @@ export default function CustomerSalesReportPage() {
     startTransition(async () => {
       setIsLoading(true);
       try {
-        const data = await getAllCustomersForReport();
+        const data = await getAllCustomersForReportAction();
         setCustomers(data);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
@@ -339,7 +339,7 @@ export default function CustomerSalesReportPage() {
                     </span>
                   </div>
                   <div className="text-slate-400">
-                    คลิก "ดู" เพื่อดูรายละเอียดลูกค้า
+                    คลิก &quot;ดู&quot; เพื่อดูรายละเอียดลูกค้า
                   </div>
                 </div>
               </CardContent>

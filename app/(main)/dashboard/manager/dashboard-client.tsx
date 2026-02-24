@@ -26,7 +26,7 @@ import {
   Sparkles,
   BarChart3,
 } from "lucide-react";
-import type { DashboardData, DashboardPeriod } from "@/app/actions/dashboard";
+import type { DashboardData, DashboardPeriod } from "@/modules/dashboard";
 
 /* ================= Props ================= */
 interface DashboardClientProps {

@@ -25,7 +25,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import {
   Layers,
-  TrendingUp,
   TrendingDown,
   ArrowLeft,
   BarChart3,
@@ -45,18 +44,13 @@ import {
   LineChart,
   Line,
   Legend,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
   Cell,
 } from "recharts";
 import {
-  getProductGroupSalesReport,
+  getProductGroupSalesReportAction,
   type ProductGroupSalesReportData,
   type DateRangeFilter,
-} from "@/app/actions/reports";
+} from "@/modules/reports";
 
 const COLORS = [
   "#3b82f6",
@@ -112,7 +106,7 @@ export default function ProductGroupSalesReportPage() {
         startDate: format(dateRange.from, "yyyy-MM-dd"),
         endDate: format(dateRange.to, "yyyy-MM-dd"),
       };
-      const data = await getProductGroupSalesReport(filter);
+      const data = await getProductGroupSalesReportAction(filter);
       setReportData(data);
     });
   };
@@ -134,13 +128,7 @@ export default function ProductGroupSalesReportPage() {
     reportData?.groupPerformance.sort((a, b) => b.totalSales - a.totalSales) ||
     [];
 
-  const radarData =
-    reportData?.groupPerformance.map((g) => ({
-      group: g.group,
-      sales: g.totalSales / 10000, // Scale for radar
-      orders: g.orderCount * 100,
-      products: g.productCount * 1000,
-    })) || [];
+
 
   return (
     <div className="min-h-screen bg-slate-50/60">
@@ -193,9 +181,8 @@ export default function ProductGroupSalesReportPage() {
 
             <div
               id={filtersPanelId}
-              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${
-                filtersOpen ? "block" : "hidden"
-              } sm:block`}
+              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
+                } sm:block`}
             >
               <div className="grid gap-1.5">
                 <label className="text-xs font-semibold uppercase text-muted-foreground">
@@ -720,7 +707,7 @@ export default function ProductGroupSalesReportPage() {
                 เลือกช่วงเวลาและกดดูรายงาน
               </h3>
               <p className="text-muted-foreground text-sm mt-2">
-                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม "ดูรายงาน"
+                กรุณาเลือกช่วงวันที่ที่ต้องการแล้วกดปุ่ม &quot;ดูรายงาน&quot;
               </p>
             </CardContent>
           </Card>

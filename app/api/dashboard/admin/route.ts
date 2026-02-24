@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getDashboardData } from "@/app/actions/dashboard";
+import { getDashboardDataAction } from "@/modules/dashboard";
 
 export async function GET() {
   const session = await auth();
@@ -20,7 +20,7 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const data = await getDashboardData();
+  const data = await getDashboardDataAction();
 
   return NextResponse.json(data, {
     headers: {

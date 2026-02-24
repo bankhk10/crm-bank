@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { getFilterOptions } from "@/app/actions/sales-report";
+import { getFilterOptionsAction } from "@/modules/reports";
 import { SalesReportClient } from "./client";
 import { Loader2 } from "lucide-react";
 
 export default async function SalesReportPage() {
-  const { customers, employees, years } = await getFilterOptions();
+  const { customers, employees, years } = await getFilterOptionsAction();
 
   return (
     <div className="min-h-screen bg-slate-50/60">

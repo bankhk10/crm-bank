@@ -44,14 +44,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import {
-  getAuditLogs,
-  getSecurityLogs,
-  getApplicationLogs,
-  getLogStatistics,
+  getAuditLogsAction,
+  getSecurityLogsAction,
+  getApplicationLogsAction,
+  getLogStatisticsAction,
   type AuditLogFilter,
   type SecurityLogFilter,
   type AppLogFilter,
-} from "@/app/actions/logs";
+} from "@/modules/logs";
 
 // Types
 interface LogStats {
@@ -62,7 +62,7 @@ interface LogStats {
   errorsThisWeek: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 type LogEntry = Record<string, any>;
 
 export default function LogViewerClient() {
@@ -88,7 +88,7 @@ export default function LogViewerClient() {
   // Fetch statistics
   const fetchStats = useCallback(async () => {
     try {
-      const data = await getLogStatistics();
+      const data = await getLogStatisticsAction();
       setStats(data);
     } catch (error) {
       console.error("Failed to fetch stats:", error);
@@ -106,34 +106,34 @@ export default function LogViewerClient() {
           limit: pageSize,
           offset,
           ...(entityTypeFilter !== "all" && { entityType: entityTypeFilter }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           ...(actionFilter !== "all" && { action: actionFilter as any }),
         };
-        const result = await getAuditLogs(filter);
+        const result = await getAuditLogsAction(filter);
         setLogs(result.logs);
         setTotal(result.total);
       } else if (activeTab === "security") {
         const filter: SecurityLogFilter = {
           limit: pageSize,
           offset,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           ...(severityFilter !== "all" && { severity: severityFilter as any }),
 
           ...(eventTypeFilter !== "all" && {
             eventType: eventTypeFilter as any,
           }),
         };
-        const result = await getSecurityLogs(filter);
+        const result = await getSecurityLogsAction(filter);
         setLogs(result.logs);
         setTotal(result.total);
       } else {
         const filter: AppLogFilter = {
           limit: pageSize,
           offset,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           ...(severityFilter !== "all" && { level: severityFilter as any }),
         };
-        const result = await getApplicationLogs(filter);
+        const result = await getApplicationLogsAction(filter);
         setLogs(result.logs);
         setTotal(result.total);
       }
@@ -611,8 +611,8 @@ export default function LogViewerClient() {
                                   log.riskScore >= 60
                                     ? "bg-red-500 text-white"
                                     : log.riskScore >= 30
-                                    ? "bg-yellow-500 text-white"
-                                    : "bg-green-500 text-white"
+                                      ? "bg-yellow-500 text-white"
+                                      : "bg-green-500 text-white"
                                 }
                               >
                                 {log.riskScore}
