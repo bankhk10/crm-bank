@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { TemporaryCreditLimitForm } from "@/modules/temporary-credit-limits";
+import { createTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 
 export default function NewTemporaryCreditLimitPage() {
   const router = useRouter();
@@ -27,17 +28,10 @@ export default function NewTemporaryCreditLimitPage() {
 
   async function handleCreate(payload: any) {
     try {
-      const res = await fetch("/api/temporary-credit-limits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
+      const res = await createTemporaryCreditLimitAction(payload);
+      if (!res.success) {
+        return { success: false, error: res.error };
       }
-
       return { success: true };
     } catch (e: any) {
       return { success: false, error: String(e) };

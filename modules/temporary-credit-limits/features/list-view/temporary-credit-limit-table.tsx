@@ -14,27 +14,39 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import type { TemporaryCreditLimitTableProps } from "../_types/types";
 
-type Props = Pick<
-    TemporaryCreditLimitTableProps,
-    | "searchValue"
-    | "onSearchChange"
-    | "onSearchSubmit"
-    | "dateRange"
-    | "onDateRangeChange"
-    | "canCreate"
->;
+import CustomTable from "@/components/custom/custom-table";
+import type { TemporaryCreditLimitTableProps } from "../../types";
+import { useTemporaryCreditLimitColumns } from "./use-temporary-credit-limit-columns";
+import { TemporaryCreditLimitCards } from "./temporary-credit-limit-cards";
 
-export function TemporaryCreditLimitToolbar({
-    searchValue,
-    onSearchChange,
-    onSearchSubmit,
-    dateRange,
-    onDateRangeChange,
-    canCreate,
-}: Props) {
-    return (
+export function TemporaryCreditLimitTable(
+    props: TemporaryCreditLimitTableProps
+) {
+    const {
+        data,
+        loading,
+        pagination,
+        searchValue,
+        onSearchChange,
+        onSearchSubmit,
+        dateRange,
+        onDateRangeChange,
+        canCreate,
+        canEdit = false,
+        canDelete = false,
+        canApprove = false,
+        onDelete,
+    } = props;
+
+    const columns = useTemporaryCreditLimitColumns(
+        canEdit,
+        canDelete,
+        canApprove,
+        onDelete
+    );
+
+    const toolbarNode = (
         <div className="rounded-md border bg-background/60 p-4 grid gap-4">
             <div className="grid gap-4 lg:grid-cols-3">
                 {/* Search */}
@@ -114,6 +126,40 @@ export function TemporaryCreditLimitToolbar({
                         </Button>
                     )}
                 </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="space-y-6">
+            {/* Mobile & Tablet: card layout */}
+            <div className="xl:hidden space-y-4">
+                {toolbarNode}
+                <TemporaryCreditLimitCards
+                    data={data}
+                    loading={loading}
+                    canApprove={canApprove}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    onDelete={onDelete}
+                    pagination={pagination}
+                />
+            </div>
+
+            {/* Desktop & up: table layout */}
+            <div className="hidden xl:block">
+                <CustomTable
+                    columns={columns}
+                    data={data}
+                    loading={loading}
+                    pagination={pagination}
+                    toolbar={toolbarNode}
+                    emptyState={{
+                        title: "ไม่พบข้อมูลรายการคำขอ",
+                        description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างคำขอใหม่",
+                    }}
+                    className="w-full"
+                />
             </div>
         </div>
     );

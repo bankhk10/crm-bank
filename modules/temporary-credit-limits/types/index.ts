@@ -18,7 +18,7 @@ export interface TemporaryCreditLimitTableProps {
   onSearchSubmit?: () => void;
   dateRange?: DateRange;
   onDateRangeChange?: (range: DateRange | undefined) => void;
-  
+
   canCreate?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;

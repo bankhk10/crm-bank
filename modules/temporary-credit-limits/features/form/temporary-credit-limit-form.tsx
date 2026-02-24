@@ -25,7 +25,7 @@ interface Props {
     readonly?: boolean;
 }
 
-export default function TemporaryCreditLimitForm({
+export function TemporaryCreditLimitForm({
     initial = {},
     customers = [],
     onSubmit,

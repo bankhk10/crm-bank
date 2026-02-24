@@ -3,6 +3,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { TemporaryCreditLimitForm } from "@/modules/temporary-credit-limits";
+import { updateTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function EditTemporaryCreditLimitPage() {
@@ -57,17 +58,10 @@ export default function EditTemporaryCreditLimitPage() {
 
   async function handleUpdate(payload: any) {
     try {
-      const res = await fetch(`/api/temporary-credit-limits/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        return { success: false, issues: json?.issues, error: json?.error };
+      const res = await updateTemporaryCreditLimitAction(id, payload);
+      if (!res.success) {
+        return { success: false, error: res.error };
       }
-
       return { success: true };
     } catch (e: any) {
       return { success: false, error: String(e) };

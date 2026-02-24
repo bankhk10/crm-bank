@@ -18,8 +18,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import type { TemporaryCreditLimitTableProps } from "../_types/types";
-import { StatusBadge } from "./status-badge";
+import type { TemporaryCreditLimitTableProps } from "../../types";
+import { TemporaryCreditLimitStatusBadge } from "../../ui/temporary-credit-limit-status-badge";
 
 type Props = Pick<
     TemporaryCreditLimitTableProps,
@@ -130,7 +130,7 @@ export function TemporaryCreditLimitCards({
                                             {item.customer?.customerCode || "-"}
                                         </div>
                                     </div>
-                                    <StatusBadge status={item.status} />
+                                    <TemporaryCreditLimitStatusBadge status={item.status} />
                                 </div>
 
                                 <div className="flex items-baseline justify-between py-1">

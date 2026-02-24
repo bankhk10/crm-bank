@@ -10,7 +10,7 @@ import type {
     TemporaryCreditLimitWithRelations,
     TemporaryCreditStatus,
 } from "@/types/temporary-credit-limit";
-import { StatusBadge } from "../_components/status-badge";
+import { TemporaryCreditLimitStatusBadge } from "../../ui/temporary-credit-limit-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 
 export function useTemporaryCreditLimitColumns(
@@ -69,7 +69,7 @@ export function useTemporaryCreditLimitColumns(
                 header: "สถานะ",
                 cell: (info) => {
                     const status = info.getValue() as TemporaryCreditStatus;
-                    return <StatusBadge status={status} />;
+                    return <TemporaryCreditLimitStatusBadge status={status} />;
                 },
                 meta: { minWidth: 100, width: 120, align: "center" },
             },

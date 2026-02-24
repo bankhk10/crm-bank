@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { TemporaryCreditLimitTable } from "@/modules/temporary-credit-limits";
 import type { TemporaryCreditLimitWithRelations } from "@/types/temporary-credit-limit";
 import { CreditCard } from "lucide-react";
-
+import { deleteTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 export default function TemporaryCreditLimitsPage() {
   const { hasPermission, allowed, isLoading } = usePermission(
     "menu.temporary_credit_limits"
@@ -191,13 +191,9 @@ export default function TemporaryCreditLimitsPage() {
                   if (!deleteCandidate) return;
                   setActionLoading(true);
                   try {
-                    const res = await fetch(
-                      `/api/temporary-credit-limits/${deleteCandidate.id}`,
-                      { method: "DELETE" }
-                    );
-                    if (!res.ok) {
-                      const json = await res.json();
-                      throw new Error(json.error || "Failed to delete");
+                    const res = await deleteTemporaryCreditLimitAction(deleteCandidate.id);
+                    if (!res.success) {
+                      throw new Error(res.error || "Failed to delete");
                     }
                     setTemporaryCreditLimits((prev) =>
                       prev.filter((item) => item.id !== deleteCandidate.id)

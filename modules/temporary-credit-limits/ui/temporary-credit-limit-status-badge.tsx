@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 import type { TemporaryCreditStatus } from "@/types/temporary-credit-limit";
-import { STATUS_STYLES, DEFAULT_BADGE_STYLE } from "../_lib/constants";
+import { STATUS_STYLES, DEFAULT_BADGE_STYLE } from "../constants";
 
-export function StatusBadge({
+export function TemporaryCreditLimitStatusBadge({
     status,
     className,
 }: {

@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/types/temporary-credit-limit";
+import { approveTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -111,15 +112,9 @@ export default function ApproveTemporaryCreditLimitPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/temporary-credit-limits/${id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ approve: true }),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Failed to approve");
+      const res = await approveTemporaryCreditLimitAction(id, { approve: true });
+      if (!res.success) {
+        throw new Error(res.error || "Failed to approve");
       }
 
       setSuccessType("approve");
@@ -146,15 +141,9 @@ export default function ApproveTemporaryCreditLimitPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/temporary-credit-limits/${id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ approve: false, rejectionReason }),
-      });
-
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Failed to reject");
+      const res = await approveTemporaryCreditLimitAction(id, { approve: false, rejectionReason });
+      if (!res.success) {
+        throw new Error(res.error || "Failed to reject");
       }
 
       setSuccessType("reject");
