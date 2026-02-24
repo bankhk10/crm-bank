@@ -5,10 +5,10 @@ import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, ClipboardList } from "lucide-react";
-import { StatusBadge } from "../_components/status-badge";
+import { StatusBadge } from "../../ui/fulfillment-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
-import type { SaleRecord } from "../_types/types";
+import type { SaleRecord } from "../../types/types";
 
 export function useFulfillmentColumns() {
     const columns = useMemo<ColumnDef<SaleRecord>[]>(

@@ -4,8 +4,8 @@ import * as React from "react";
 import CustomTable from "@/components/custom/custom-table";
 import { FulfillmentToolbar } from "./fulfillment-toolbar";
 import { FulfillmentCards } from "./fulfillment-cards";
-import { useFulfillmentColumns } from "../_hooks/use-fulfillment-columns";
-import type { FulfillmentTableProps } from "../_types/types";
+import { useFulfillmentColumns } from "./use-fulfillment-columns";
+import type { FulfillmentTableProps } from "../../types/types";
 
 export function FulfillmentTable(props: FulfillmentTableProps) {
     const columns = useFulfillmentColumns();

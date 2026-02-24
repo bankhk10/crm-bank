@@ -11,7 +11,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import type { FulfillmentTableProps } from "../_types/types";
+import type { FulfillmentTableProps } from "../../types/types";
 
 type FulfillmentToolbarProps = Pick<
     FulfillmentTableProps,

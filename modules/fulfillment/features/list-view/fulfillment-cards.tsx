@@ -11,9 +11,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StatusBadge } from "./status-badge";
+import { StatusBadge } from "../../ui/fulfillment-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
-import type { SaleRecord } from "../_types/types";
+import type { SaleRecord } from "../../types/types";
 
 interface FulfillmentCardsProps {
     data: SaleRecord[];

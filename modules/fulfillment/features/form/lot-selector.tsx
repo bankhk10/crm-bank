@@ -14,7 +14,7 @@ import type {
   LotSelectorProps,
   SaleItemLotOption,
   LotAllocation
-} from "../_types/types";
+} from "../../types/types";
 export function LotSelector({
   saleId,
   onAllocationsChange,

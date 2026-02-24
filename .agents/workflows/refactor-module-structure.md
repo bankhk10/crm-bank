@@ -4,7 +4,7 @@ description: Refactor a module to follow the employee module's layered architect
 
 # Refactor Module Structure (Employee Pattern)
 
-ต้องการปรับโครงสร้างของ module `sales` ให้เป็นไปตามรูปแบบเดียวกับ `modules/employee`
+ต้องการปรับโครงสร้างของ module `fulfillment` ให้เป็นไปตามรูปแบบเดียวกับ `modules/employee`
 
 ## โครงสร้างเป้าหมาย
 

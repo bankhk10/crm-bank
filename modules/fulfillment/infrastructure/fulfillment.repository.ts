@@ -1,0 +1,358 @@
+import { db } from "@/src/infrastructure/database";
+import {
+  StockRepository,
+  confirmStockDeduction,
+  confirmStockDeductionWithLots,
+  releaseStock,
+  revertStockDeductionFromLots,
+} from "@/src/core/stock";
+import { finalizePointsForSale } from "@/src/core/points";
+import type { LotAllocation, LotInfo } from "@/src/core/stock/stock.types";
+import { Prisma, SaleStatus } from "@/src/infrastructure/database";
+
+export interface UpdateFulfillmentData {
+  status?: SaleStatus;
+  deliveryDate?: Date | null;
+  creditDueDate?: Date | null;
+  paymentDate?: Date | null;
+  notes?: string;
+  lotAllocations?: LotAllocation[];
+  shippingCompanyId?: string | null;
+  saleOrderRef?: string | null;
+  changedById: string;
+}
+
+export const FulfillmentRepository = {
+  async getSaleForFulfillment(id: string) {
+    return db.sale.findUnique({
+      where: { id },
+    });
+  },
+
+  async updateFulfillment(id: string, data: UpdateFulfillmentData) {
+    const sale = await this.getSaleForFulfillment(id);
+    if (!sale) {
+      throw new Error("Sale not found");
+    }
+
+    const {
+      status,
+      deliveryDate,
+      creditDueDate,
+      paymentDate,
+      notes,
+      lotAllocations,
+      shippingCompanyId,
+      saleOrderRef,
+      changedById,
+    } = data;
+
+    const updateData: any = {};
+
+    // 1. Status
+    if (status) {
+      updateData.status = status;
+      if (status === "PAID" && !sale.paymentDate && !paymentDate) {
+        updateData.paymentDate = new Date();
+      }
+    }
+
+    // Protect against modifying LOTs if already delivered
+    const targetStatus = status || sale.status;
+    const isCurrentlyDelivered = [
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+    ].includes(sale.status);
+    const isStayingDelivered = [
+      "DELIVERED",
+      "DELIVERY_COMPLETED",
+      "COMPLETED",
+    ].includes(targetStatus);
+
+    if (
+      isCurrentlyDelivered &&
+      isStayingDelivered &&
+      lotAllocations !== undefined
+    ) {
+      throw new Error(
+        "ไม่สามารถแก้ไข LOT สินค้าได้หลังจากสถานะเป็น 'ระหว่างขนส่ง' หรือ 'เสร็จสิ้น'",
+      );
+    }
+
+    // 2. Delivery Date - with update count tracking
+    let shouldMarkOverdue = false;
+
+    if (deliveryDate !== undefined) {
+      const newDate = deliveryDate ? new Date(deliveryDate) : null;
+      const oldDate = sale.deliveryDate;
+      const isAddingDate = !oldDate && newDate;
+      const isChangingDate =
+        oldDate && newDate && oldDate.getTime() !== newDate.getTime();
+
+      // Check if delivery is locked
+      if ((isAddingDate || isChangingDate) && sale.isDeliveryLocked) {
+        throw new Error("ใบคำสั่งซื้อนี้ถูกล็อคการแก้ไขวันที่ระหว่างขนส่ง");
+      }
+
+      // Increment update count only when changing existing date (not first time setting)
+      if (isChangingDate) {
+        const maxUpdates = sale.maxDeliveryUpdates ?? 3;
+        const newCount = sale.deliveryUpdateCount + 1;
+
+        if (newCount > maxUpdates) {
+          shouldMarkOverdue = true;
+          updateData.status = "OVERDUE";
+          updateData.isDeliveryLocked = true;
+          updateData.deliveryUpdateCount = newCount;
+          updateData.lastDeliveryUpdate = new Date();
+        } else {
+          updateData.deliveryUpdateCount = newCount;
+          updateData.lastDeliveryUpdate = new Date();
+          updateData.deliveryDate = newDate;
+        }
+      } else if (isAddingDate) {
+        updateData.lastDeliveryUpdate = new Date();
+        updateData.deliveryDate = newDate;
+      } else {
+        updateData.deliveryDate = newDate;
+      }
+    }
+
+    // 3. Credit Due Date
+    if (creditDueDate !== undefined) {
+      updateData.creditDueDate = creditDueDate ? new Date(creditDueDate) : null;
+    }
+
+    // 4. Payment Date
+    if (paymentDate !== undefined) {
+      updateData.paymentDate = paymentDate ? new Date(paymentDate) : null;
+    }
+
+    // 5. Notes
+    if (notes !== undefined) {
+      updateData.notes = notes;
+    }
+
+    // 6. Shipping Company
+    if (shippingCompanyId !== undefined) {
+      updateData.shippingCompanyId = shippingCompanyId || null;
+    }
+
+    // 7. Sale Order Reference
+    if (saleOrderRef !== undefined) {
+      updateData.saleOrderRef = saleOrderRef || null;
+    }
+
+    // Add history if status changed
+    if (updateData.status && updateData.status !== sale.status) {
+      const historyNotes =
+        updateData.status === "OVERDUE"
+          ? `ใบคำสั่งซื้อถูกปิดการแก้ไขเนื่องจากอัปเดตวันที่จัดส่งเกิน ${sale.maxDeliveryUpdates ?? 3} ครั้ง`
+          : "Updated from fulfillment management";
+
+      updateData.statusHistory = {
+        create: {
+          status: updateData.status,
+          notes: historyNotes,
+          changedById,
+        },
+      };
+    }
+
+    const updatedSale = await db.$transaction(async (tx) => {
+      // Handle CANCELLED or OVERDUE status: Release stock and restore credit limit
+      const shouldReleaseResources =
+        (status === "CANCELLED" && sale.status !== "CANCELLED") ||
+        (shouldMarkOverdue && sale.status !== "OVERDUE");
+
+      if (shouldReleaseResources) {
+        // 1. Release stock (return to available)
+        await releaseStock(id, tx);
+
+        // 2. Restore credit limit (for non-PREPAID and not yet paid)
+        if (sale.paymentTerm !== "PREPAID" && !sale.paymentDate) {
+          const creditLimit = await tx.creditLimit.findFirst({
+            where: {
+              customerId: sale.customerId,
+              status: "ACTIVE",
+              deletedAt: null,
+            },
+          });
+
+          if (creditLimit) {
+            await tx.creditLimit.update({
+              where: { id: creditLimit.id },
+              data: {
+                usedAmount: { decrement: sale.totalAmount },
+                availableAmount: { increment: sale.totalAmount },
+              },
+            });
+          }
+        }
+      }
+
+      // Handle stock status transition based on delivery date change
+      if (deliveryDate !== undefined && status !== "CANCELLED") {
+        const newDate = deliveryDate ? new Date(deliveryDate) : null;
+        const oldDate = sale.deliveryDate;
+
+        if (!oldDate && newDate) {
+          if (lotAllocations && lotAllocations.length > 0) {
+            await confirmStockDeductionWithLots(id, lotAllocations, tx);
+          } else {
+            await confirmStockDeduction(id, tx);
+          }
+        } else if (oldDate && !newDate) {
+          await revertStockDeductionFromLots(id, tx);
+        } else if (
+          oldDate &&
+          newDate &&
+          lotAllocations &&
+          lotAllocations.length > 0
+        ) {
+          await revertStockDeductionFromLots(id, tx);
+          await confirmStockDeductionWithLots(id, lotAllocations, tx);
+        }
+      } else if (
+        lotAllocations &&
+        lotAllocations.length > 0 &&
+        sale.deliveryDate &&
+        status !== "CANCELLED"
+      ) {
+        await revertStockDeductionFromLots(id, tx);
+        await confirmStockDeductionWithLots(id, lotAllocations, tx);
+      }
+
+      // Handle Credit Limit restoration on Payment (for non-PREPAID)
+      if (
+        paymentDate !== undefined &&
+        sale.paymentTerm !== "PREPAID" &&
+        status !== "CANCELLED"
+      ) {
+        const newPaymentDate = paymentDate ? new Date(paymentDate) : null;
+        const oldPaymentDate = sale.paymentDate;
+
+        const isPaying = !oldPaymentDate && newPaymentDate;
+        const isUnpaying = oldPaymentDate && !newPaymentDate;
+
+        if (isPaying || isUnpaying) {
+          const creditLimit = await tx.creditLimit.findFirst({
+            where: {
+              customerId: sale.customerId,
+              status: "ACTIVE",
+              deletedAt: null,
+            },
+          });
+
+          if (creditLimit) {
+            if (isPaying) {
+              await tx.creditLimit.update({
+                where: { id: creditLimit.id },
+                data: {
+                  usedAmount: { decrement: sale.totalAmount },
+                  availableAmount: { increment: sale.totalAmount },
+                },
+              });
+            } else if (isUnpaying) {
+              await tx.creditLimit.update({
+                where: { id: creditLimit.id },
+                data: {
+                  usedAmount: { increment: sale.totalAmount },
+                  availableAmount: { decrement: sale.totalAmount },
+                },
+              });
+            }
+          }
+        }
+      }
+
+      return await tx.sale.update({
+        where: { id },
+        data: updateData,
+      });
+    });
+
+    const shouldFinalizePoints =
+      updatedSale.status !== sale.status &&
+      ["COMPLETED", "DELIVERY_COMPLETED"].includes(updatedSale.status);
+
+    if (shouldFinalizePoints) {
+      try {
+        await finalizePointsForSale(updatedSale.id);
+      } catch (error) {
+        console.error("Error finalizing sale points:", error);
+      }
+    }
+
+    return updatedSale;
+  },
+
+  async getLotOptions(saleId: string) {
+    const sale = await db.sale.findUnique({
+      where: { id: saleId },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                productCode: true,
+                name: true,
+              },
+            },
+            lotAllocations: {
+              include: {
+                lot: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!sale) return null;
+
+    const items = await Promise.all(
+      sale.items.map(async (item) => {
+        const availableLots =
+          await StockRepository.getAvailableLotsOrderByQuantity(item.productId);
+
+        const lotInfos: LotInfo[] = availableLots.map((lot) => ({
+          id: lot.id,
+          lotNumber: lot.lotNumber,
+          quantity: lot.quantity,
+          expiryDate: lot.expiryDate,
+          storageLocation: lot.storageLocation,
+          productId: lot.productId,
+        }));
+
+        const existingAllocations =
+          item.lotAllocations?.map((la) => ({
+            lotId: la.lotId,
+            lotNumber: la.lot.lotNumber,
+            quantity: la.quantity,
+          })) || [];
+
+        return {
+          saleItemId: item.id,
+          productId: item.productId,
+          productCode: item.product.productCode,
+          productName: item.product.name,
+          requiredQuantity: item.quantity,
+          availableLots: lotInfos,
+          existingAllocations,
+        };
+      }),
+    );
+
+    return {
+      saleId: sale.id,
+      saleNumber: sale.saleNumber,
+      hasExistingAllocations: sale.items.some(
+        (item) => item.lotAllocations && item.lotAllocations.length > 0,
+      ),
+      items,
+    };
+  },
+};

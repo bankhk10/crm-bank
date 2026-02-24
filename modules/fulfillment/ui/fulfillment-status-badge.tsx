@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { STATUS_STYLE, DEFAULT_BADGE_STYLE } from "../_lib/constants";
-import type { SaleStatus } from "../_types/types";
+import { STATUS_STYLE, DEFAULT_BADGE_STYLE } from "../constants";
+import type { SaleStatus } from "../types/types";
 
 export function StatusBadge({
     status,
