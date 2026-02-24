@@ -36,8 +36,6 @@ export interface SidebarProps {
   onClose?: () => void;
 }
 
-
-
 /**
  * Navbar user type
  */

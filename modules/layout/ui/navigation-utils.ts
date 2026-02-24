@@ -3,15 +3,15 @@
  * Helper functions for navigation filtering and route matching
  */
 
-import type { SidebarChildItem } from "../_types";
+import type { SidebarChildItem, SidebarNavItem } from "../types";
 
 /**
- * Recursive helper to filter navigation items based on permission keys
+ * Filter child items based on permission keys (recursive)
  */
-export function filterNavItems<T extends { permissionKey?: string; children?: T[] }>(
-  items: T[],
-  permissionKeys: string[]
-): T[] {
+function filterChildItems(
+  items: SidebarChildItem[],
+  permissionKeys: string[],
+): SidebarChildItem[] {
   return items
     .filter((item) => {
       if (!item.permissionKey) return true;
@@ -21,7 +21,30 @@ export function filterNavItems<T extends { permissionKey?: string; children?: T[
       if (item.children && item.children.length > 0) {
         return {
           ...item,
-          children: filterNavItems(item.children, permissionKeys),
+          children: filterChildItems(item.children, permissionKeys),
+        };
+      }
+      return item;
+    });
+}
+
+/**
+ * Filter top-level navigation items based on permission keys
+ */
+export function filterNavItems(
+  items: SidebarNavItem[],
+  permissionKeys: string[],
+): SidebarNavItem[] {
+  return items
+    .filter((item) => {
+      if (!item.permissionKey) return true;
+      return permissionKeys.includes(item.permissionKey);
+    })
+    .map((item) => {
+      if (item.children && item.children.length > 0) {
+        return {
+          ...item,
+          children: filterChildItems(item.children, permissionKeys),
         };
       }
       return item;
@@ -33,6 +56,7 @@ export function filterNavItems<T extends { permissionKey?: string; children?: T[
  */
 export function isRouteActive(href: string, pathname: string): boolean {
   if (href === "/") return pathname === "/";
+  if (href.startsWith("#")) return false;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -41,7 +65,7 @@ export function isRouteActive(href: string, pathname: string): boolean {
  */
 export function isChildActive(
   item: SidebarChildItem,
-  pathname: string
+  pathname: string,
 ): boolean {
   if (isRouteActive(item.href, pathname)) return true;
   if (item.children) {

@@ -1,0 +1,125 @@
+/**
+ * Layout Constants
+ * Navigation items configuration for sidebar
+ */
+
+import {
+  LayoutDashboard,
+  Users2,
+  Building2,
+  ShieldCheck,
+  UserCog,
+  ClipboardList,
+  ClipboardPen,
+  ChartPie,
+  Package,
+  TrendingUp,
+  Target,
+  Truck,
+} from "lucide-react";
+import type { SidebarNavItem } from "./types";
+
+/**
+ * Main navigation items for the sidebar
+ */
+export const navigationItems: SidebarNavItem[] = [
+  {
+    href: "/dashboard/manager",
+    label: "แดชบอร์ดผู้จัดการ",
+    permissionKey: "menu.dashboard.manager",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
+    href: "/show-product",
+    label: "หน้าแรก",
+    permissionKey: "menu.show_product",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
+    href: "/reports",
+    label: "รายงาน",
+    permissionKey: "menu.reports",
+    icon: <ChartPie className="h-4 w-4" />,
+  },
+  {
+    href: "/sales-forecast",
+    label: "คาดการณ์ยอดขาย",
+    permissionKey: "menu.sales_forecast",
+    icon: <TrendingUp className="h-4 w-4" />,
+  },
+  {
+    href: "/sales-targets",
+    label: "ตั้งเป้าหมายยอดขาย",
+    permissionKey: "menu.sales_targets",
+    icon: <Target className="h-4 w-4" />,
+  },
+  {
+    href: "/sales",
+    label: "การขาย",
+    permissionKey: "menu.sales",
+    icon: <ClipboardPen className="h-4 w-4" />,
+  },
+  {
+    href: "/fulfillment",
+    label: "จัดการคำสั่งขาย",
+    permissionKey: "menu.fulfillment",
+    icon: <ClipboardList className="h-4 w-4" />,
+  },
+  {
+    href: "/products",
+    label: "สินค้า",
+    permissionKey: "menu.products",
+    icon: <Package className="h-4 w-4" />,
+    children: [
+      { href: "/products", label: "ข้อมูลสินค้า" },
+      {
+        href: "#attributes",
+        label: "หมวดหมู่และคุณลักษณะ",
+        children: [
+          { href: "/products/plants", label: "พืช" },
+          { href: "/products/groups", label: "กลุ่มชื่อการค้า" },
+          { href: "/products/chemical-groups", label: "กลุ่มสินค้า" },
+          { href: "/products/categories", label: "หมวดสินค้า" },
+          { href: "/products/units", label: "หน่วยนับ" },
+          { href: "/products/brands", label: "แบรนด์" },
+          { href: "/products/chains", label: "กรุ๊ปสินค้า" },
+        ],
+      },
+    ],
+  },
+  {
+    href: "/employee",
+    label: "พนักงาน",
+    permissionKey: "menu.employees",
+    icon: <Users2 className="h-4 w-4" />,
+  },
+  {
+    href: "/companies",
+    label: "บริษัท",
+    permissionKey: "menu.companies",
+    icon: <Building2 className="h-4 w-4" />,
+  },
+  {
+    href: "/customers",
+    label: "ลูกค้า",
+    permissionKey: "menu.customers",
+    icon: <UserCog className="h-4 w-4" />,
+    children: [
+      { href: "/customers", label: "ข้อมูลลูกค้า" },
+      { href: "/credit-limits", label: "วงเงินเครดิต", permissionKey: "menu.credit_limits" },
+      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว", permissionKey: "menu.temporary_credit_limits" },
+    ],
+  },
+  {
+    href: "/shipping-companies",
+    label: "บริษัทขนส่ง",
+    permissionKey: "menu.shipping-companies",
+    icon: <Truck className="h-4 w-4" />,
+  },
+  {
+    href: "/rbac",
+    label: "สิทธิ์",
+    permissionKey: "rbac.manage",
+    icon: <ShieldCheck className="h-4 w-4" />,
+  },
+];

@@ -1,20 +1,44 @@
-# Layout Feature
+# Layout Module
 
 This module handles the main application layout, including sidebar navigation, header, navbar, and the dashboard shell that wraps the main content area.
 
-## Directory Structure
+## Architecture
 
-- `_components/`: UI components (DashboardShell, Sidebar, Navbar).
-- `_hooks/`: Custom hooks (sidebar state management).
-- `_lib/`: Navigation utilities (filtering, route matching).
-- `_types/`: TypeScript definitions for layout components.
+```
+modules/layout/
+ ┣ features/              ← UI screens (DashboardShell, Sidebar, Navbar)
+ ┃ ┣ dashboard-shell.tsx
+ ┃ ┣ navbar.tsx
+ ┃ ┗ sidebar.tsx
+ ┣ ui/                    ← Module-specific utilities & hooks
+ ┃ ┣ navigation-utils.ts
+ ┃ ┗ use-sidebar.ts
+ ┣ types/
+ ┃ ┗ index.ts
+ ┣ constants.ts           ← Navigation items configuration
+ ┣ index.ts               ← Barrel exports
+ ┗ README.md
+```
+
+### Layer Responsibilities
+
+| Layer          | Responsibility                                         |
+| -------------- | ------------------------------------------------------ |
+| `features/`    | UI screen components (DashboardShell, Sidebar, Navbar) |
+| `ui/`          | Module-specific hooks and navigation utility functions |
+| `types/`       | TypeScript type definitions                            |
+| `constants.ts` | Navigation items configuration data                    |
+
+> **Note**: This module is UI-only — no `infrastructure/`, `application/`,
+> or `server/` layers are needed since there are no database operations,
+> business logic, or server actions.
 
 ## Usage
 
 ### Components
 
 ```tsx
-import { DashboardShell, Sidebar, Navbar } from "modules";
+import { DashboardShell, Sidebar, Navbar } from "@/modules/layout";
 
 // Main layout wrapper
 <DashboardShell
@@ -29,7 +53,7 @@ import { DashboardShell, Sidebar, Navbar } from "modules";
 ### Hooks
 
 ```tsx
-import { useSidebar } from "modules";
+import { useSidebar } from "@/modules/layout";
 
 const { isOpen, open, close, toggle } = useSidebar();
 ```
@@ -37,13 +61,17 @@ const { isOpen, open, close, toggle } = useSidebar();
 ### Types
 
 ```tsx
-import { SidebarProps, SidebarNavItem, DashboardShellProps } from "modules";
+import type {
+  SidebarProps,
+  SidebarNavItem,
+  DashboardShellProps,
+} from "@/modules/layout";
 ```
 
 ### Navigation Items
 
 ```tsx
-import { navigationItems } from "modules";
+import { navigationItems } from "@/modules/layout";
 
 // Access sidebar navigation configuration
 navigationItems.forEach((item) => console.log(item.label));
@@ -84,3 +112,4 @@ Top navigation bar with:
 - `@/src/core/rbac`: RBAC utilities.
 - `next/navigation`: Next.js navigation.
 - `next-auth/react`: Authentication.
+- `@/modules/notifications`: NotificationBell (dynamic import).
