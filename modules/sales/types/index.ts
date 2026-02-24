@@ -56,6 +56,26 @@ export interface SaleFormCustomer {
     createdAt: string;
     updatedAt: string;
   }>;
+  subDealers?: Array<{
+    id: string;
+    name: string;
+    customerCode: string;
+    shippingAddressLine?: string | null;
+    shippingProvince?: string | null;
+    shippingDistrict?: string | null;
+    shippingSubdistrict?: string | null;
+    shippingPostalCode?: string | null;
+    addresses?: Array<{
+      id: string;
+      addressLine?: string | null;
+      province?: string | null;
+      district?: string | null;
+      subdistrict?: string | null;
+      postalCode?: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  }>;
 }
 
 /**

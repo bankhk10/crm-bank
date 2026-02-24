@@ -57,7 +57,7 @@ export function AddressSelector({
   } : null;
 
   // Combine primary address and additional addresses
-  const allAddresses: Array<CustomerAddress & { isPrimary?: boolean }> = [];
+  const allAddresses: Array<CustomerAddress & { isPrimary?: boolean; isSubDealer?: boolean; subDealerName?: string }> = [];
 
   // Add primary address first if it exists
   if (primaryAddress && (primaryAddress.addressLine || primaryAddress.province)) {
@@ -77,6 +77,36 @@ export function AddressSelector({
   // Add additional addresses
   if (customer?.addresses) {
     allAddresses.push(...customer.addresses);
+  }
+
+  // Add sub-dealer addresses (Child companies)
+  if (customer?.subDealers) {
+    customer.subDealers.forEach((subDealer) => {
+      if (subDealer.shippingAddressLine || subDealer.shippingProvince) {
+        allAddresses.push({
+          id: `subdealer_${subDealer.id}_primary`,
+          addressLine: subDealer.shippingAddressLine,
+          province: subDealer.shippingProvince,
+          district: subDealer.shippingDistrict,
+          subdistrict: subDealer.shippingSubdistrict,
+          postalCode: subDealer.shippingPostalCode,
+          createdAt: "",
+          updatedAt: "",
+          isSubDealer: true,
+          subDealerName: subDealer.name,
+        });
+      }
+      if (subDealer.addresses && subDealer.addresses.length > 0) {
+        subDealer.addresses.forEach((addr) => {
+          allAddresses.push({
+            ...addr,
+            id: `subdealer_${subDealer.id}_${addr.id}`,
+            isSubDealer: true,
+            subDealerName: subDealer.name,
+          });
+        });
+      }
+    });
   }
 
   const hasAddresses = allAddresses.length > 0;
@@ -163,7 +193,11 @@ export function AddressSelector({
                   <div className="flex items-center gap-2 mb-1">
                     <MapPin className="h-4 w-4 text-gray-500" />
                     <span className="font-medium text-gray-900">
-                      {address.isPrimary ? "ที่อยู่หลัก" : `ที่อยู่ที่ ${allAddresses.indexOf(address)}`}
+                      {address.isPrimary
+                        ? "ที่อยู่หลัก"
+                        : address.isSubDealer
+                          ? `ที่อยู่บริษัทลูก: ${address.subDealerName}`
+                          : `ที่อยู่ที่ ${allAddresses.findIndex(a => !a.isSubDealer && a.id === address.id)}`}
                     </span>
                   </div>
 
