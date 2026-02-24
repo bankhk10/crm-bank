@@ -23,8 +23,10 @@ export * from "./constants";
 export {
   productSchema,
   productUpdateSchema,
+  productManagementSchema,
   type ProductFormValues,
   type ProductUpdateFormValues,
+  type ProductManagementFormValues,
 } from "./application/validations";
 
 // Server Actions (safe for client import – marked "use server")
@@ -33,6 +35,7 @@ export {
   getProductAction,
   createProductAction,
   updateProductAction,
+  manageProductAction,
   deleteProductAction,
   getProductFormOptionsAction,
 } from "./server/actions";
@@ -47,3 +50,4 @@ export { useProductColumns } from "./features/list-view/use-product-columns";
 
 // Features - Form
 export { ProductForm } from "./features/form/product-form";
+export { ProductManageForm } from "./features/form/product-manage-form";

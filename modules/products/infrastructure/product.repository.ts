@@ -212,6 +212,217 @@ export async function softDeleteProduct(id: string) {
 }
 
 // ─────────────────────────────────────────────
+// Product Management (Pricing, Stock, Promotions)
+// ─────────────────────────────────────────────
+
+export async function manageProduct(productId: string, parsedData: any) {
+  return db.$transaction(async (tx) => {
+    // Update price and promotion budget
+    await tx.product.update({
+      where: { id: productId, deletedAt: null },
+      data: {
+        price: parsedData.price,
+        cartonPrice: parsedData.cartonPrice,
+        packageSizePerBox: parsedData.packageSizePerBox,
+        promotionBudget: parsedData.promotionBudget,
+        pointPerUnit: parsedData.pointPerUnit,
+      },
+    });
+
+    // Handle free items
+    if (parsedData.freeItems) {
+      const freeItemsToKeep = parsedData.freeItems
+        .filter((item: any) => item.id)
+        .map((item: any) => item.id);
+
+      // Delete removed items
+      await tx.productFreeItem.deleteMany({
+        where: {
+          productId,
+          id: {
+            notIn: freeItemsToKeep.length > 0 ? freeItemsToKeep : undefined,
+          },
+        },
+      });
+
+      // Update or create free items
+      for (const item of parsedData.freeItems) {
+        if (item.id) {
+          await tx.productFreeItem.update({
+            where: { id: item.id },
+            data: {
+              purchaseQty: item.purchaseQty,
+              freeQty: item.freeQty,
+              netPrice: item.netPrice,
+              notes: item.notes,
+            },
+          });
+        } else {
+          await tx.productFreeItem.create({
+            data: {
+              productId,
+              purchaseQty: item.purchaseQty,
+              freeQty: item.freeQty,
+              netPrice: item.netPrice,
+              notes: item.notes,
+            },
+          });
+        }
+      }
+    }
+
+    // Handle promotion items
+    if (parsedData.promotionItems) {
+      const promotionItemsToKeep = parsedData.promotionItems
+        .filter((item: any) => item.id)
+        .map((item: any) => item.id);
+
+      await tx.productPromotionItem.deleteMany({
+        where: {
+          productId,
+          id: {
+            notIn:
+              promotionItemsToKeep.length > 0
+                ? promotionItemsToKeep
+                : undefined,
+          },
+        },
+      });
+
+      for (const item of parsedData.promotionItems) {
+        if (item.id) {
+          await tx.productPromotionItem.update({
+            where: { id: item.id },
+            data: {
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              notes: item.notes,
+            },
+          });
+        } else {
+          await tx.productPromotionItem.create({
+            data: {
+              productId,
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              notes: item.notes,
+            },
+          });
+        }
+      }
+    }
+
+    // Handle stock lots
+    if (parsedData.stockLots) {
+      const existingLots = await tx.productStockLot.findMany({
+        where: { productId },
+      });
+
+      const stockLotsToKeep = parsedData.stockLots
+        .filter((item: any) => item.id)
+        .map((item: any) => item.id);
+
+      const lotsToDelete = existingLots.filter(
+        (lot) => !stockLotsToKeep.includes(lot.id) && !lot.isUsed,
+      );
+
+      if (lotsToDelete.length > 0) {
+        await tx.productStockLot.deleteMany({
+          where: {
+            id: { in: lotsToDelete.map((lot) => lot.id) },
+          },
+        });
+      }
+
+      const lotCount = existingLots.length;
+      let newLotIndex = 0;
+
+      for (const item of parsedData.stockLots) {
+        if (item.id) {
+          const existingLot = existingLots.find((lot) => lot.id === item.id);
+          if (existingLot && !existingLot.isUsed) {
+            await tx.productStockLot.update({
+              where: { id: item.id },
+              data: {
+                quantity: item.quantity,
+                initialQuantity: item.initialQuantity,
+                importDate: new Date(item.importDate),
+                expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+                storageLocation: item.storageLocation,
+                notes: item.notes,
+              },
+            });
+          }
+        } else {
+          const newLotNumber =
+            item.lotNumber?.trim() ||
+            `LOT-${String(lotCount + newLotIndex + 1)}`;
+          newLotIndex++;
+          await tx.productStockLot.create({
+            data: {
+              productId,
+              lotNumber: newLotNumber,
+              quantity: item.quantity,
+              initialQuantity: item.initialQuantity ?? item.quantity,
+              importDate: new Date(item.importDate),
+              expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+              storageLocation: item.storageLocation,
+              notes: item.notes,
+              isUsed: false,
+            },
+          });
+        }
+      }
+    }
+
+    // Sync ProductStock table
+    if (parsedData.stockLots) {
+      const allLots = await tx.productStockLot.findMany({
+        where: { productId, isUsed: false },
+      });
+
+      const physicalBalance = allLots.reduce(
+        (sum, lot) => sum + lot.quantity,
+        0,
+      );
+
+      const currentStock = await tx.productStock.findUnique({
+        where: { productId },
+      });
+
+      const currentReserved = currentStock?.reservedQuantity || 0;
+      const availableQuantity = physicalBalance - currentReserved;
+
+      await tx.productStock.upsert({
+        where: { productId },
+        create: {
+          productId,
+          availableQuantity: physicalBalance,
+          reservedQuantity: 0,
+          physicalBalance: physicalBalance,
+        },
+        update: {
+          availableQuantity: availableQuantity,
+          physicalBalance: physicalBalance,
+        },
+      });
+    }
+
+    return tx.product.findUnique({
+      where: { id: productId },
+      include: {
+        images: true,
+        freeItems: true,
+        promotionItems: true,
+        stockLots: true,
+      },
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
 // Form Options (for dropdowns)
 // ─────────────────────────────────────────────
 

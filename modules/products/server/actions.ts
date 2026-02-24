@@ -6,6 +6,7 @@ import { isAuthorized } from "@/modules/rbac";
 import {
   createProductUseCase,
   updateProductUseCase,
+  manageProductUseCase,
   getProductDetailUseCase,
   listProductsUseCase,
   getProductFormOptionsUseCase,
@@ -121,6 +122,41 @@ export async function updateProductAction(id: string, rawData: unknown) {
       revalidatePath("/products");
       revalidatePath(`/products/${id}`);
       revalidatePath(`/products/${id}/edit`);
+    }
+    return JSON.parse(JSON.stringify(result));
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message ?? "An unexpected error occurred.",
+    };
+  }
+}
+
+/**
+ * Manage a product (pricing, stock, promotion).
+ */
+export async function manageProductAction(id: string, rawData: unknown) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const permissionKeys = session.user.permissionKeys ?? [];
+  if (!isAuthorized(resourcePath, permissionKeys)) {
+    return { success: false, error: "Forbidden" };
+  }
+
+  if (!permissionKeys.includes("product.manage")) {
+    return { success: false, error: "Forbidden - missing product.manage" };
+  }
+
+  try {
+    const result = await manageProductUseCase(id, rawData);
+    if (result.success) {
+      revalidatePath("/products");
+      revalidatePath(`/products/${id}`);
+      revalidatePath(`/products/${id}/manage`);
     }
     return JSON.parse(JSON.stringify(result));
   } catch (err: any) {

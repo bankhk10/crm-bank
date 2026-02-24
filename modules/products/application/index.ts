@@ -82,6 +82,7 @@ export async function getProductFormOptionsUseCase() {
 
 export { createProductUseCase } from "./create-product";
 export { updateProductUseCase } from "./update-product";
+export { manageProductUseCase } from "./manage-product";
 
 // ─────────────────────────────────────────────
 // Validations & Types
@@ -90,6 +91,8 @@ export { updateProductUseCase } from "./update-product";
 export {
   productSchema,
   productUpdateSchema,
+  productManagementSchema,
   type ProductFormValues,
   type ProductUpdateFormValues,
+  type ProductManagementFormValues,
 } from "./validations";
