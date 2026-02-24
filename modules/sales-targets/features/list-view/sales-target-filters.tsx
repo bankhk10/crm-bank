@@ -12,7 +12,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
-import { MONTHS } from "@/modules/sales-targets/_lib/constants";
+import { MONTHS } from "../../constants";
 
 interface SalesTargetFiltersProps {
     year: number;
@@ -61,7 +61,6 @@ export function SalesTargetFilters({
                 <div className="space-y-5">
                     <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
                         <div className="p-4 sm:p-5">
-                            {/* ✅ one row on lg, equal height, clean alignment */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[140px_160px_1.2fr_1.2fr_auto] gap-4 lg:gap-5 items-end">
                                 {/* Year */}
                                 <div className="space-y-2">

@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, Target } from "lucide-react";
 import { SalesTargetForm } from "@/modules/sales-targets";
+import { getSalesTargetAction } from "@/modules/sales-targets/server/actions";
 
 export default function EditSalesTargetPage() {
   const params = useParams<{ id: string }>();
@@ -16,12 +17,12 @@ export default function EditSalesTargetPage() {
   useEffect(() => {
     const fetchTarget = async () => {
       try {
-        const res = await fetch(`/api/sales-targets?id=${params.id}`);
-        if (!res.ok) {
-          throw new Error("ไม่พบข้อมูลเป้าหมายการขาย");
+        const result = await getSalesTargetAction(params.id);
+        if (result.success && "salesTarget" in result) {
+          setTarget(result.salesTarget);
+        } else {
+          setError(result.error || "ไม่พบข้อมูลเป้าหมายการขาย");
         }
-        const data = await res.json();
-        setTarget(data.detailedTarget);
       } catch (err) {
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       } finally {

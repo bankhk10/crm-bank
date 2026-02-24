@@ -8,18 +8,33 @@
  * import {
  *   SalesTargetForm,
  *   SalesTargetDetailDialog,
- *   useSalesTargets,
+ *   SalesTargetTable,
  * } from "@/modules/sales-targets";
  */
 
 // Types
-export * from "./_types";
+export * from "./types";
 
-// Components
-export * from "./_components";
+// Constants
+export * from "./constants";
 
-// Hooks
-export * from "./_hooks";
+// Application Layer – DO NOT re-export here.
+// Application imports infrastructure (Prisma) which is server-only.
+// Server code should import directly: import { ... } from "@/modules/sales-targets/application";
+// Only re-export client-safe validations:
+export {
+  salesTargetSchema,
+  salesTargetItemSchema,
+  type SalesTargetFormValues,
+} from "./application/validations";
 
-// Lib/Utilities
-export * from "./_lib";
+// Features - List View
+export { SalesTargetTable } from "./features/list-view/sales-target-table";
+export { YearlyTargetCard } from "./features/list-view/yearly-target-card";
+export { SalesTargetFilters } from "./features/list-view/sales-target-filters";
+
+// Features - Detail View
+export { SalesTargetDetailDialog } from "./features/detail-view/sales-target-detail-dialog";
+
+// Features - Form
+export { SalesTargetForm } from "./features/form/sales-target-form";

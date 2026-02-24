@@ -28,10 +28,10 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatCurrency } from "@/src/shared/utils/currency.utils";
-import { MONTHS } from "@/modules/sales-targets/_lib/constants";
+import { MONTHS } from "../../constants";
 import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
 
-interface DetailedTargetsTableProps {
+interface SalesTargetTableProps {
     targets: DetailedTarget[];
     paginatedTargets: DetailedTarget[];
     currentPage: number;
@@ -41,7 +41,7 @@ interface DetailedTargetsTableProps {
     onDelete: (id: string) => void;
 }
 
-export function DetailedTargetsTable({
+export function SalesTargetTable({
     targets,
     paginatedTargets,
     currentPage,
@@ -49,7 +49,7 @@ export function DetailedTargetsTable({
     onPageChange,
     onView,
     onDelete,
-}: DetailedTargetsTableProps) {
+}: SalesTargetTableProps) {
     const renderPaginationItems = () => {
         const items = [];
         const maxVisible = 5;
@@ -166,7 +166,7 @@ export function DetailedTargetsTable({
                                 ยังไม่มีข้อมูลเป้าหมาย
                             </p>
                             <p className="mt-1 text-xs text-slate-500">
-                                กด “เพิ่มเป้าหมาย” เพื่อเริ่มต้น
+                                กด "เพิ่มเป้าหมาย" เพื่อเริ่มต้น
                             </p>
                         </div>
                     ) : (
@@ -300,7 +300,7 @@ export function DetailedTargetsTable({
                                                 ยังไม่มีข้อมูลเป้าหมาย
                                             </p>
                                             <p className="mt-1 text-xs text-slate-500">
-                                                กด “เพิ่มเป้าหมาย” เพื่อเริ่มต้น
+                                                กด "เพิ่มเป้าหมาย" เพื่อเริ่มต้น
                                             </p>
                                         </TableCell>
                                     </TableRow>

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Target, ChevronLeft, Loader2 } from "lucide-react";
 import NextLink from "next/link";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,11 +20,15 @@ import {
 import {
   SalesTargetDetailDialog,
   YearlyTargetCard,
-  DetailedTargetsTable,
+  SalesTargetTable,
   SalesTargetFilters,
+  CURRENT_YEAR,
+  YEARS,
 } from "@/modules/sales-targets";
-import { useSalesTargets } from "@/modules/sales-targets";
-import { CURRENT_YEAR, YEARS } from "@/modules/sales-targets/_lib/constants";
+import {
+  getSalesTargetsAction,
+  deleteSalesTargetAction,
+} from "@/modules/sales-targets/server/actions";
 import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
 
 export default function SalesTargetsPage() {
@@ -55,14 +60,12 @@ export default function SalesTargetsPage() {
   const [employeeFilter, setEmployeeFilter] = useState(queryFilters.employeeId);
   const [shopFilter, setShopFilter] = useState(queryFilters.shopId);
 
-  // Hook Usage
-  const {
-    loading,
-    monthlyTargets,
-    detailedTargets,
-    fetchTargets,
-    deleteTarget,
-  } = useSalesTargets();
+  // Data States
+  const [loading, setLoading] = useState(true);
+  const [monthlyTargets, setMonthlyTargets] = useState<
+    Record<number | string, number>
+  >({});
+  const [detailedTargets, setDetailedTargets] = useState<DetailedTarget[]>([]);
 
   // Local UI State
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
@@ -85,6 +88,47 @@ export default function SalesTargetsPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage,
   );
+
+  // --- Fetch Data via Server Action ---
+  const fetchTargets = async (filters: {
+    year: number;
+    month: number | "all";
+    employeeId?: string;
+    shopId?: string;
+  }) => {
+    setLoading(true);
+    try {
+      const result = await getSalesTargetsAction({
+        year: filters.year,
+        month: filters.month !== "all" ? filters.month : undefined,
+        employeeId: filters.employeeId || undefined,
+        shopId: filters.shopId || undefined,
+      });
+
+      if (result.success) {
+        // Process monthly targets
+        const monthlyMap: Record<number | string, number> = {};
+        if (result.monthlyTargets) {
+          (result.monthlyTargets as any[]).forEach(
+            (t: { month: number | null; targetAmount: string }) => {
+              if (t.month !== null) {
+                monthlyMap[t.month] = Number(t.targetAmount);
+              }
+            },
+          );
+        }
+        setMonthlyTargets(monthlyMap);
+        setDetailedTargets((result.detailedTargets as DetailedTarget[]) || []);
+      } else {
+        toast.error("ไม่สามารถโหลดข้อมูลเป้าหมายได้");
+      }
+    } catch (error) {
+      console.error("Error fetching targets:", error);
+      toast.error("ไม่สามารถโหลดข้อมูลเป้าหมายได้");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --- Effects ---
 
@@ -146,7 +190,7 @@ export default function SalesTargetsPage() {
       employeeId: employeeFilter,
       shopId: shopFilter,
     });
-  }, [fetchTargets, year, monthFilter, employeeFilter, shopFilter]);
+  }, [year, monthFilter, employeeFilter, shopFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -163,14 +207,17 @@ export default function SalesTargetsPage() {
 
   const handleDelete = async () => {
     if (!deletingTargetId) return;
-    const success = await deleteTarget(deletingTargetId);
-    if (success) {
+    const result = await deleteSalesTargetAction(deletingTargetId);
+    if (result.success) {
+      toast.success("ลบข้อมูลสำเร็จ");
       fetchTargets({
         year,
         month: monthFilter,
         employeeId: employeeFilter,
         shopId: shopFilter,
       });
+    } else {
+      toast.error(result.error || "ไม่สามารถลบข้อมูลได้");
     }
     setDeletingTargetId(null);
   };
@@ -247,7 +294,7 @@ export default function SalesTargetsPage() {
       {/* Content */}
       <div className="space-y-6">
         <YearlyTargetCard year={year} totalTarget={calculateMonthlyTotal()} />
-        <DetailedTargetsTable
+        <SalesTargetTable
           targets={detailedTargets}
           paginatedTargets={paginatedTargets}
           currentPage={currentPage}

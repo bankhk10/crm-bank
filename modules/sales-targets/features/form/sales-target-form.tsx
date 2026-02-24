@@ -24,6 +24,11 @@ import {
     Target,
     Trash2,
 } from "lucide-react";
+import { MONTHS, YEARS } from "../../constants";
+import {
+    createSalesTargetAction,
+    updateSalesTargetAction,
+} from "../../server/actions";
 
 interface ProductItem {
     productId: string;
@@ -32,24 +37,6 @@ interface ProductItem {
     price: number;
     amount: number;
 }
-
-const MONTHS = [
-    { value: 1, label: "มกราคม" },
-    { value: 2, label: "กุมภาพันธ์" },
-    { value: 3, label: "มีนาคม" },
-    { value: 4, label: "เมษายน" },
-    { value: 5, label: "พฤษภาคม" },
-    { value: 6, label: "มิถุนายน" },
-    { value: 7, label: "กรกฎาคม" },
-    { value: 8, label: "สิงหาคม" },
-    { value: 9, label: "กันยายน" },
-    { value: 10, label: "ตุลาคม" },
-    { value: 11, label: "พฤศจิกายน" },
-    { value: 12, label: "ธันวาคม" },
-];
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 interface SalesTargetFormProps {
     mode: "create" | "edit";
@@ -97,7 +84,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         productId: i.productId,
                         name: i.product?.name || i.name,
                         quantity: qty,
-                        price: amt / qty, // Derive price from amount and quantity
+                        price: amt / qty,
                         amount: amt,
                     };
                 }) || [],
@@ -120,7 +107,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                     setEmployees(empRes.employees || []);
                 }
             });
-
 
             // Fetch Customers (Initial list)
             const custRes = await fetch("/api/customers?perPage=50");
@@ -153,7 +139,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 name: product.name,
                 quantity: 1,
                 price: price,
-                amount: price, // 1 * price
+                amount: price,
             },
         ]);
     };
@@ -193,34 +179,31 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         setSaving(true);
         try {
             const payload = {
-                type: "detailed",
-                targets: [
-                    {
-                        id: initialData?.id,
-                        year,
-                        month,
-                        employeeId,
-                        customerId,
-                        items: items.map((i) => ({
-                            productId: i.productId,
-                            quantity: i.quantity,
-                            amount: i.amount,
-                        })),
-                    },
-                ],
+                year,
+                month,
+                employeeId,
+                customerId,
+                items: items.map((i) => ({
+                    productId: i.productId,
+                    quantity: i.quantity,
+                    amount: i.amount,
+                })),
             };
 
-            const res = await fetch("/api/sales-targets", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            let result;
+            if (isEdit && initialData?.id) {
+                result = await updateSalesTargetAction(initialData.id, payload);
+            } else {
+                result = await createSalesTargetAction(payload);
+            }
 
-            if (!res.ok) throw new Error("Failed");
-
-            toast.success("บันทึกสำเร็จ");
-            router.push("/sales-targets");
-            router.refresh();
+            if (result.success) {
+                toast.success("บันทึกสำเร็จ");
+                router.push("/sales-targets");
+                router.refresh();
+            } else {
+                toast.error(result.error || "เกิดข้อผิดพลาดในการบันทึก");
+            }
         } catch {
             toast.error("เกิดข้อผิดพลาดในการบันทึก");
         } finally {
