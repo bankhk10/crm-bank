@@ -1,9 +1,8 @@
 import React from "react";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
 import { getCustomersAction } from "@/modules/customers/server/actions";
-import { ShippingCompanyNewView } from "@/modules/shipping-companies/_components/shipping-company-new-view";
+import { ShippingCompanyNewView } from "@/modules/shipping-companies/features/form/shipping-company-new-view";
 
 export default async function NewShippingCompanyPage() {
     const session = await auth();
@@ -19,7 +18,6 @@ export default async function NewShippingCompanyPage() {
         perms.includes("menu.shipping-companies");
 
     if (!canCreate) {
-        // Basic check
         return (
             <div className="p-6">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">

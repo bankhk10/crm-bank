@@ -2,9 +2,9 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getShippingCompany } from "@/modules/shipping-companies/_lib/data-access";
-import { ShippingCompanyDetailView } from "@/modules/shipping-companies/_components/shipping-company-detail-view";
-import type { ShippingCompanyRecord } from "@/modules/shipping-companies/_types";
+import { getShippingCompanyDetailUseCase } from "@/modules/shipping-companies/application";
+import { ShippingCompanyDetailView } from "@/modules/shipping-companies/features/detail-view/shipping-company-detail-view";
+import type { ShippingCompanyRecord } from "@/modules/shipping-companies/types";
 
 interface PageProps {
     params: Promise<{ shippingCompanyId: string }>;
@@ -20,9 +20,6 @@ export default async function ShippingCompanyDetailPage({ params }: PageProps) {
 
     const perms = session.user.permissionKeys ?? [];
     const resourcePath = "/api/shipping-companies";
-    const authorized = isAuthorized(resourcePath, perms);
-
-    // Enforce server-side permission check
     const canView = isAuthorized(resourcePath, perms);
 
     if (!canView) {
@@ -36,9 +33,9 @@ export default async function ShippingCompanyDetailPage({ params }: PageProps) {
         );
     }
 
-    const shippingCompany = await getShippingCompany(shippingCompanyId);
+    const result = await getShippingCompanyDetailUseCase(shippingCompanyId);
 
-    if (!shippingCompany) {
+    if (!result.success || !('shippingCompany' in result)) {
         return (
             <div className="container max-w-4xl mx-auto p-6 text-center">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -49,11 +46,13 @@ export default async function ShippingCompanyDetailPage({ params }: PageProps) {
         );
     }
 
+    const sc = result.shippingCompany;
+
     // Serialize dates and ensure type safety
     const serializedShippingCompany: ShippingCompanyRecord = {
-        ...shippingCompany,
-        createdAt: shippingCompany.createdAt?.toISOString() ?? undefined,
-        customerList: shippingCompany.customerList.map(c => ({
+        ...sc,
+        createdAt: sc.createdAt?.toISOString() ?? undefined,
+        customerList: sc.customerList.map(c => ({
             id: c.id,
             name: c.name,
             customerCode: c.customerCode

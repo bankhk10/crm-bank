@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { STATUS_STYLES, DEFAULT_STATUS_STYLE } from "../_lib/constants";
+import { STATUS_STYLES, DEFAULT_STATUS_STYLE } from "../constants";
 
 export function ShippingCompanyStatusBadge({ status }: { status?: string }) {
     const style = STATUS_STYLES[status || ""] || DEFAULT_STATUS_STYLE;

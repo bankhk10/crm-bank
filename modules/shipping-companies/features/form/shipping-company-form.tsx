@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FormInput, FormSelect, FormTextarea } from "@/components/custom/form-components";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
-import type { ShippingCompanyPayload } from "../_types";
+import type { ShippingCompanyPayload } from "../../types";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { PhoneInput } from "@/components/custom/PhoneInput";
 import FormActions from "@/components/custom/form-actions";

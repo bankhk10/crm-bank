@@ -2,19 +2,23 @@
 
 import React, { useEffect, useState, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ShippingCompaniesTable } from "./shipping-companies-table";
-import { Truck } from "lucide-react";
-import type { ShippingCompanyRecord } from "../_types";
+import { Input } from "@/components/ui/input";
+import CustomTable from "@/components/custom/custom-table";
+import { useShippingCompanyColumns } from "./use-shipping-company-columns";
+import { deleteShippingCompanyAction } from "../../server/actions";
+import { Truck, Search, PlusCircle } from "lucide-react";
+import type { ShippingCompanyRecord } from "../../types";
 
 // Helper to convert DateRange to string key for comparison
 const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
 
-interface ShippingCompaniesViewProps {
+interface ShippingCompaniesTableProps {
     initialShippingCompanies: ShippingCompanyRecord[];
     total: number;
     initialPage: number;
@@ -23,14 +27,14 @@ interface ShippingCompaniesViewProps {
     initialDateRange?: DateRange;
 }
 
-export function ShippingCompaniesView({
+export function ShippingCompaniesTable({
     initialShippingCompanies,
     total,
     initialPage,
     initialPerPage,
     initialQ,
     initialDateRange,
-}: ShippingCompaniesViewProps) {
+}: ShippingCompaniesTableProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -97,7 +101,7 @@ export function ShippingCompaniesView({
     const handleSearchSubmit = () => {
         handleApplyFilters({
             q: filterDraft.query,
-            page: 1, // Reset page on search
+            page: 1,
             from: filterDraft.dateRange?.from?.toISOString(),
             to: filterDraft.dateRange?.to?.toISOString(),
         });
@@ -107,10 +111,8 @@ export function ShippingCompaniesView({
         if (!deleteCandidate) return;
         setActionLoading(true);
         try {
-            const res = await fetch(`/api/shipping-companies/${deleteCandidate.id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Delete failed");
-
-            router.refresh(); // Refresh server component
+            const result = await deleteShippingCompanyAction(deleteCandidate.id);
+            if (!result.success) throw new Error(result.error || "Delete failed");
             setDeleteCandidate(null);
         } catch (error) {
             const err = error as Error;
@@ -119,6 +121,8 @@ export function ShippingCompaniesView({
             setActionLoading(false);
         }
     };
+
+    const columns = useShippingCompanyColumns(setDeleteCandidate, canDelete);
 
     if (!canView) {
         return (
@@ -176,34 +180,52 @@ export function ShippingCompaniesView({
                         </div>
                     </div>
 
-                    <ShippingCompaniesTable
-                        data={initialShippingCompanies}
-                        loading={isPending}
-                        canCreate={canCreate}
-                        canDelete={canDelete}
-                        onDeleteRequest={setDeleteCandidate}
-                        searchValue={filterDraft.query}
-                        onSearchChange={(value) =>
-                            setFilterDraft((prev) => ({ ...prev, query: value }))
-                        }
-                        isTyping={isTyping}
-                        onSearchSubmit={handleSearchSubmit}
-                        dateRange={filterDraft.dateRange}
-                        onDateRangeChange={(range) =>
-                            setFilterDraft((prev) => ({
-                                ...prev,
-                                dateRange: range ?? undefined,
-                            }))
-                        }
-                        pagination={{
-                            page: initialPage,
-                            perPage: initialPerPage,
-                            total,
-                            onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
-                            onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
-                            perPageOptions: [6, 12, 24, 48],
-                        }}
-                    />
+                    <div className="space-y-4">
+                        {/* Toolbar inline */}
+                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                            <div className="relative w-full sm:max-w-xl">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Input
+                                    placeholder="ค้นหาชื่อบริษัทขนส่ง, เบอร์โทร, ที่อยู่"
+                                    value={filterDraft.query}
+                                    onChange={(e) =>
+                                        setFilterDraft((prev) => ({ ...prev, query: e.target.value }))
+                                    }
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleSearchSubmit();
+                                        }
+                                    }}
+                                    className="pl-9 bg-white"
+                                />
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 ml-auto">
+                                {canCreate && (
+                                    <Button asChild className="bg-orange-600 hover:bg-orange-700">
+                                        <Link href="/shipping-companies/new">
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            เพิ่มบริษัทขนส่ง
+                                        </Link>
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        <CustomTable
+                            data={initialShippingCompanies}
+                            columns={columns}
+                            loading={isPending}
+                            pagination={{
+                                page: initialPage,
+                                perPage: initialPerPage,
+                                total,
+                                onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
+                                onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
+                                perPageOptions: [6, 12, 24, 48],
+                            }}
+                            toolbar={<></>}
+                        />
+                    </div>
                 </div>
             </div>
         </section>

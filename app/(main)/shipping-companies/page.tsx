@@ -2,8 +2,8 @@ import React from "react";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getShippingCompanies } from "@/modules/shipping-companies/_lib/data-access";
-import { ShippingCompaniesView } from "@/modules/shipping-companies/_components/shipping-companies-view";
+import { listShippingCompaniesUseCase } from "@/modules/shipping-companies/application";
+import { ShippingCompaniesTable } from "@/modules/shipping-companies/features/list-view/shipping-companies-table";
 
 interface PageProps {
     searchParams: Promise<{
@@ -24,27 +24,17 @@ export default async function ShippingCompaniesPage({ searchParams }: PageProps)
 
     const perms = session.user.permissionKeys ?? [];
     const resourcePath = "/api/shipping-companies";
-    const authorized = isAuthorized(resourcePath, perms);
+    const canView = isAuthorized(resourcePath, perms);
 
-    // !isLoading && allowed is checked in Client component using usePermission which checks session permissions on client.
-    // We should enforce basic access on server.
-    if (!authorized) {
-        // similar to companies, we can return error UI or let Client handle it.
-        // But typically for pages we want to redirect or show error.
-        // The original page showed <Alert> if !canView.
-        const canView = isAuthorized(resourcePath, perms); // Re-check strictly?
-        // Actually isAuthorized returns true if path matches permissions.
-
-        if (!canView) {
-            return (
-                <div className="p-6">
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        <strong className="font-bold">Error: </strong>
-                        <span className="block sm:inline">คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทขนส่ง</span>
-                    </div>
+    if (!canView) {
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Error: </strong>
+                    <span className="block sm:inline">คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทขนส่ง</span>
                 </div>
-            );
-        }
+            </div>
+        );
     }
 
     const params = await searchParams;
@@ -61,7 +51,7 @@ export default async function ShippingCompaniesPage({ searchParams }: PageProps)
     const from = parseDate(params.from);
     const to = parseDate(params.to);
 
-    const { total, shippingCompanies } = await getShippingCompanies({
+    const { total, shippingCompanies } = await listShippingCompaniesUseCase({
         page,
         perPage,
         q,
@@ -72,15 +62,12 @@ export default async function ShippingCompaniesPage({ searchParams }: PageProps)
     const serializedShippingCompanies = shippingCompanies.map(c => ({
         ...c,
         createdAt: c.createdAt?.toISOString(),
-        updatedAt: c.updatedAt?.toISOString(), // if exists in type
-        deletedAt: c.deletedAt?.toISOString(), // if exists in type
-        // Handle nested arrays?
-        // The type ShippingCompanyRecord has customerList which is array of {id, name, customerCode}.
-        // These should be serializable as they are plain objects.
+        updatedAt: c.updatedAt?.toISOString(),
+        deletedAt: c.deletedAt?.toISOString(),
     }));
 
     return (
-        <ShippingCompaniesView
+        <ShippingCompaniesTable
             initialShippingCompanies={serializedShippingCompanies}
             total={total}
             initialPage={page}

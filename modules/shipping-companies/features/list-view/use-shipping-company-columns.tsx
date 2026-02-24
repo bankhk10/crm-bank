@@ -13,8 +13,8 @@ import {
     Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ShippingCompanyStatusBadge } from "../_components/shipping-company-status-badge";
-import type { ShippingCompanyRecord } from "../_types";
+import { ShippingCompanyStatusBadge } from "../../ui/shipping-company-status-badge";
+import type { ShippingCompanyRecord } from "../../types";
 import { Badge } from "@/components/ui/badge";
 
 export function useShippingCompanyColumns(

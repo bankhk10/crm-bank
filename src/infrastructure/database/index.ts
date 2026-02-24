@@ -19,6 +19,8 @@ export {
   CustomerStatus,
   NotificationType,
   ProductStatus,
+  CompanyStatus,
+  ShippingCompanyStatus,
   // Add other specific exports you need from @prisma/client
 } from "@prisma/client";
 

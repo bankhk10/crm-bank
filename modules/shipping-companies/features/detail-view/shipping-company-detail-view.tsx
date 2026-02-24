@@ -28,7 +28,8 @@ import {
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { Badge } from "@/components/ui/badge";
-import type { ShippingCompanyRecord } from "../_types";
+import { deleteShippingCompanyAction } from "../../server/actions";
+import type { ShippingCompanyRecord } from "../../types";
 
 interface ShippingCompanyDetailViewProps {
     shippingCompany: ShippingCompanyRecord;
@@ -71,10 +72,8 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
         if (!shippingCompany) return;
         setDeleting(true);
         try {
-            const res = await fetch(`/api/shipping-companies/${shippingCompany.id}`, {
-                method: "DELETE",
-            });
-            if (!res.ok) throw new Error("ไม่สามารถลบข้อมูลบริษัทขนส่งได้");
+            const result = await deleteShippingCompanyAction(shippingCompany.id);
+            if (!result.success) throw new Error(result.error || "ไม่สามารถลบข้อมูลบริษัทขนส่งได้");
             router.push("/shipping-companies");
             router.refresh();
         } catch (err: any) {

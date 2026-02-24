@@ -1,10 +1,9 @@
 import React from "react";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
 import { redirect } from "next/navigation";
-import { getShippingCompany } from "@/modules/shipping-companies/_lib/data-access";
 import { getCustomersAction } from "@/modules/customers/server/actions";
-import { ShippingCompanyEditView } from "@/modules/shipping-companies";
+import { getShippingCompanyDetailUseCase } from "@/modules/shipping-companies/application";
+import { ShippingCompanyEditView } from "@/modules/shipping-companies/features/form/shipping-company-edit-view";
 
 interface PageProps {
     params: Promise<{ shippingCompanyId: string }>;
@@ -35,9 +34,9 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
         );
     }
 
-    const shippingCompany = await getShippingCompany(shippingCompanyId);
+    const result = await getShippingCompanyDetailUseCase(shippingCompanyId);
 
-    if (!shippingCompany) {
+    if (!result.success || !('shippingCompany' in result)) {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
@@ -48,6 +47,8 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
         );
     }
 
+    const shippingCompany = result.shippingCompany;
+
     const customersRes = await getCustomersAction({ perPage: 1000 });
     const customers = customersRes.customers || [];
     const customerOptions = customers.map((c: any) => ({
@@ -57,7 +58,7 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
 
     const initialData = {
         name: shippingCompany.name,
-        phone: shippingCompany.phone ?? undefined, // Form expects string | undefined
+        phone: shippingCompany.phone ?? undefined,
         address: shippingCompany.address ?? undefined,
         addressLine: shippingCompany.addressLine ?? undefined,
         province: shippingCompany.province ?? undefined,

@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import ShippingCompanyForm from "./shipping-company-form";
-import type { ShippingCompanyPayload } from "../_types";
+import type { ShippingCompanyPayload } from "../../types";
+import { createShippingCompanyAction } from "../../server/actions";
 
 interface Props {
     customerOptions: Array<{ value: string; label: string }>;
@@ -13,39 +14,14 @@ export function ShippingCompanyNewView({ customerOptions }: Props) {
 
     async function handleCreate(payload: ShippingCompanyPayload) {
         try {
-            const res = await fetch("/api/shipping-companies", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const result = await createShippingCompanyAction(payload);
 
-            if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-
-                if (res.status === 409) {
-                    const errMsg: string = json?.error || "";
-                    const issues: Record<string, string[]> = {};
-
-                    const m = errMsg.match(/fields:\s*\(([^)]+)\)/i);
-                    if (m && m[1]) {
-                        const raw = m[1];
-                        const fields = raw
-                            .split(",")
-                            .map((s) => s.replace(/[`"'\s]/g, "").trim());
-                        for (const f of fields) {
-                            if (!f) continue;
-                            issues[f] = [`${f} นี้ถูกใช้งานแล้ว`];
-                        }
-                    }
-
-                    return {
-                        success: false,
-                        issues: Object.keys(issues).length ? issues : json?.issues,
-                        error: json?.error,
-                    };
-                }
-
-                return { success: false, issues: json?.issues, error: json?.error };
+            if (!result.success) {
+                return {
+                    success: false,
+                    issues: (result as any).issues,
+                    error: result.error,
+                };
             }
 
             return { success: true };

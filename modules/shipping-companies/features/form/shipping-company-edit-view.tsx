@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import ShippingCompanyForm from "./shipping-company-form";
-import type { ShippingCompanyPayload } from "../_types";
+import type { ShippingCompanyPayload } from "../../types";
+import { updateShippingCompanyAction } from "../../server/actions";
 
 interface Props {
     shippingCompanyId: string;
@@ -23,15 +24,14 @@ export function ShippingCompanyEditView({
         if (!canEdit) return { success: false, error: "No permission" };
 
         try {
-            const res = await fetch(`/api/shipping-companies/${shippingCompanyId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payloadData),
-            });
+            const result = await updateShippingCompanyAction(shippingCompanyId, payloadData);
 
-            if (!res.ok) {
-                const json = await res.json().catch(() => ({}));
-                return { success: false, issues: json?.issues, error: json?.error };
+            if (!result.success) {
+                return {
+                    success: false,
+                    issues: (result as any).issues,
+                    error: result.error,
+                };
             }
 
             return { success: true };
@@ -62,7 +62,7 @@ export function ShippingCompanyEditView({
                                 const result = await handleUpdate(body);
                                 if (result.success) {
                                     router.push("/shipping-companies");
-                                    router.refresh(); // Refresh server data
+                                    router.refresh();
                                 }
                                 return result;
                             }}
