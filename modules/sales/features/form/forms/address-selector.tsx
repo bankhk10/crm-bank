@@ -196,7 +196,7 @@ export function AddressSelector({
                       {address.isPrimary
                         ? "ที่อยู่หลัก"
                         : address.isSubDealer
-                          ? `ที่อยู่บริษัทลูก: ${address.subDealerName}`
+                          ? `ที่อยู่: ${address.subDealerName}`
                           : `ที่อยู่ที่ ${allAddresses.findIndex(a => !a.isSubDealer && a.id === address.id)}`}
                     </span>
                   </div>
