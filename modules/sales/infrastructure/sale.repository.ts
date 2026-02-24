@@ -286,6 +286,7 @@ export async function createSale(data: {
   billingAddress?: string;
   shippingAddress?: string;
   useCustomShipping?: boolean;
+  selectedAddressId?: string | null;
   subtotalAmount: number;
   shippingCost: number;
   otherCosts: number;
@@ -324,6 +325,7 @@ export async function createSale(data: {
       billingAddress: data.billingAddress,
       shippingAddress: data.shippingAddress,
       useCustomShipping: data.useCustomShipping ?? false,
+      selectedAddressId: data.selectedAddressId || null,
       subtotalAmount: new Prisma.Decimal(data.subtotalAmount),
       shippingCost: new Prisma.Decimal(data.shippingCost),
       otherCosts: new Prisma.Decimal(data.otherCosts),

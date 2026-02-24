@@ -154,6 +154,7 @@ export async function createSaleUseCase(
     billingAddress: body.billingAddress,
     shippingAddress: body.shippingAddress,
     useCustomShipping: body.useCustomShipping,
+    selectedAddressId: body.selectedAddressId,
     subtotalAmount: subtotal,
     shippingCost: body.shippingCost,
     otherCosts: body.otherCosts,
