@@ -17,7 +17,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { ProductDetailModalProps } from "../../_types/types";
+import type { ProductDetailModalProps } from "../../../types";
 
 export function ProductDetailModal({
     product,

@@ -7,7 +7,7 @@
 
 import React from "react";
 import { FormInput } from "@/components/custom/form-components";
-import type { SaleFormCustomer } from "../../_types/types";
+import type { SaleFormCustomer } from "../../../types";
 
 interface CustomerCreditInfoProps {
     customer: SaleFormCustomer;

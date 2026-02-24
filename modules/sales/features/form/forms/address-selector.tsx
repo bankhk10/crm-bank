@@ -4,7 +4,7 @@ import React from "react";
 import { MapPin, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { SaleFormCustomer } from "../../_types/types";
+import type { SaleFormCustomer } from "../../../types";
 
 interface CustomerAddress {
   id: string;

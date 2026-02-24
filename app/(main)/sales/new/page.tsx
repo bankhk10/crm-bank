@@ -2,7 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { SaleForm } from "@/modules/sales";
+import { SaleForm } from "@/modules/sales/features/form/sale-form";
+import { createSaleAction } from "@/modules/sales/server/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
@@ -14,22 +15,17 @@ export default function NewSalePage() {
   const { allowed, isLoading } = usePermission("sale.create");
 
   const handleSubmit = async (data: SaleFormData) => {
-    const res = await fetch("/api/sales", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    const res = await createSaleAction(data);
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Failed to create sale");
+    if (!res.success || !("sale" in res)) {
+      throw new Error(res.error || "Failed to create sale");
     }
 
-    const result = await res.json();
+    const { stockWarnings } = res as any;
 
     // Show warnings if any
-    if (result.stockWarnings && result.stockWarnings.length > 0) {
-      console.warn("Stock warnings:", result.stockWarnings);
+    if (stockWarnings && stockWarnings.length > 0) {
+      console.warn("Stock warnings:", stockWarnings);
     }
 
     // Redirect to sales list page

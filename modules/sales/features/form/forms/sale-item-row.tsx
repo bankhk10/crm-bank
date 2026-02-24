@@ -10,7 +10,7 @@ import { Trash2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormInput, FormCombobox } from "@/components/custom/form-components";
-import type { SaleItemRowProps } from "../../_types/types";
+import type { SaleItemRowProps } from "../../../types";
 
 export function SaleItemRow({
     item,

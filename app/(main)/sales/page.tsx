@@ -14,10 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  SalesTable,
-  type SaleRecord,
-} from "@/modules/sales";
+import { SalesTable } from "@/modules/sales/features/list-view/sales-table";
+import type { SaleRecord } from "@/modules/sales/types";
+import { listSalesAction, deleteSaleAction } from "@/modules/sales/server/actions";
 import type { SaleStatus } from "@/types/sales";
 
 export default function SalesPage() {
@@ -129,36 +128,23 @@ export default function SalesPage() {
       setError(null);
 
       try {
-        const params = new URLSearchParams({
-          page: String(page),
-          perPage: String(perPage),
-        });
-        if (appliedFilters.query) {
-          params.set("search", appliedFilters.query);
-        }
-        if (dateRange?.from) {
-          params.set("dateFrom", dateRange.from.toISOString());
-        }
-        if (dateRange?.to) {
-          params.set("dateTo", dateRange.to.toISOString());
-        }
-        if (status) {
-          params.set("status", status);
-        }
-
-        const res = await fetch(`/api/sales?${params.toString()}`, {
-          signal: controller.signal,
+        const res = await listSalesAction({
+          page,
+          perPage,
+          search: appliedFilters.query || undefined,
+          dateFrom: dateRange?.from?.toISOString(),
+          dateTo: dateRange?.to?.toISOString(),
+          status: status || undefined,
         });
 
         if (!mounted) return;
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch sales");
+        if (!res.success) {
+          throw new Error((res as any).error || "Failed to fetch sales");
         }
 
-        const data = await res.json();
-        setSales(data.sales || []);
-        setTotal(data.total || 0);
+        setSales((res as any).sales || []);
+        setTotal((res as any).total || 0);
       } catch (err: any) {
         if (err.name === "AbortError") return;
         console.error("Error loading sales:", err);
@@ -179,13 +165,10 @@ export default function SalesPage() {
     setActionLoading(true);
 
     try {
-      const res = await fetch(`/api/sales/${deleteCandidate.id}`, {
-        method: "DELETE",
-      });
+      const res = await deleteSaleAction(deleteCandidate.id);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to delete sale");
+      if (!res.success) {
+        throw new Error(res.error || "Failed to delete sale");
       }
 
       setSales((prev) => prev.filter((s) => s.id !== deleteCandidate.id));

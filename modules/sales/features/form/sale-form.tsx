@@ -31,25 +31,25 @@ import {
     SectionHeader,
     FormActionButtons,
 } from "./forms";
+import { useSaleFormData } from "./use-sale-form-data";
 import {
-    useSaleFormData,
     useSaleFormValidation,
-    useSaleItems,
     isCreditBasedPayment,
     getCreditDaysForTerm,
-} from "../_hooks";
+} from "./use-sale-form-validation";
+import { useSaleItems } from "./use-sale-items";
 import {
     parseAddress,
     buildCustomerShippingAddress,
     buildCompanyAddress,
-} from "../_lib";
+} from "../../application/address-utils";
 import type {
     SaleFormProps,
     SaleFormCustomer,
     SaleFormProduct,
     PaymentTermType,
     DeliveryMethodType,
-} from "../_types/types";
+} from "../../types";
 
 export function SaleForm({
     initialData,
@@ -360,8 +360,7 @@ export function SaleForm({
         setCreditDays(getCreditDaysForTerm(value));
     };
 
-    // Handle address selection
-    const handleAddressSelect = (addressId: string, _fullAddress: string) => {
+    const handleAddressSelect = (addressId: string) => {
         setSelectedAddressId(addressId);
         // Don't automatically set custom shipping address when selecting from list
         // setCustomShippingAddress(fullAddress);

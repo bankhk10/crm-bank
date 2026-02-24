@@ -14,12 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { SaleStatus } from "@/types/sales";
 import { PaymentTermLabels } from "@/types/sales";
-import {
-    TruncatedCell,
-    SaleStatusBadge,
-    ActionButton,
-} from "../_components";
-import type { SaleRecord } from "../_types/types";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
+import { ActionButton } from "@/components/custom/action-button";
+import { SaleStatusBadge } from "../../ui/sale-status-badge";
+import type { SaleRecord } from "../../types";
 
 export function useSaleColumns(
     canEdit: boolean,

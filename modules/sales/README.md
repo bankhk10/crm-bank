@@ -4,10 +4,12 @@ This module handles sales management functionalities, including creating sale re
 
 ## Directory Structure
 
-- `_components/`: UI components (Form, Table, Toolbar, Cards).
-- `_hooks/`: Custom hooks (Form logic, validation, table columns).
-- `_lib/`: Constants and utilities.
-- `_types/`: Feature-specific type definitions.
+- `features/`: UI screens and components grouped by feature (`detail-view`, `form`, `list-view`).
+- `application/`: Business logic, use cases, and validations.
+- `infrastructure/`: Prisma database operations (pure functions).
+- `server/`: Next.js server actions (transport layer, auth checks).
+- `types/`: Module-specific TypeScript types.
+- `ui/`: Module-specific UI components (e.g., status badges).
 
 ---
 

@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import type { SaleItemFormData } from "@/types/sales";
-import type { SaleFormProduct } from "../_types/types";
+import type { SaleFormProduct } from "../../types";
 
 interface UseSaleItemsOptions {
   initialItems?: SaleItemFormData[];
@@ -92,7 +92,7 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
   /**
    * Clear error for item (placeholder for UI integration)
    */
-  const clearItemError = useCallback((index: number) => {
+  const clearItemError = useCallback(() => {
     // This can be used to clear field errors in parent component
   }, []);
 

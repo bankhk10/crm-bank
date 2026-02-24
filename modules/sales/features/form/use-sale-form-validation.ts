@@ -12,7 +12,7 @@ import type {
   SaleFormCustomer,
   SaleFormProduct,
   PaymentTermType,
-} from "../_types/types";
+} from "../../types";
 
 interface ValidationOptions {
   selectedCustomer: SaleFormCustomer | null;

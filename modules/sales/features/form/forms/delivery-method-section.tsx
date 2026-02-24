@@ -14,9 +14,9 @@ import {
     FormTextarea,
 } from "@/components/custom/form-components";
 import DatePicker from "@/components/custom/DatePicker";
-import type { DeliveryMethodSectionProps, DeliveryMethodType } from "../../_types/types";
+import type { DeliveryMethodSectionProps, DeliveryMethodType } from "../../../types";
 import { AddressSelector } from "./address-selector";
-import { buildCompanyAddress } from "../../_lib";
+import { buildCompanyAddress } from "../../../application/address-utils";
 
 const DELIVERY_METHODS = [
     {

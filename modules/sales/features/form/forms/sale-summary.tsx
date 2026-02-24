@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import type { SaleSummaryProps } from "../../_types/types";
+import type { SaleSummaryProps } from "../../../types";
 
 /**
  * Format number as Thai currency without symbol

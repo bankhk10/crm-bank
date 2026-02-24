@@ -46,7 +46,8 @@ export function CompanyFormWrapper({ companyId }: CompanyFormWrapperProps) {
             setLoading(true);
             try {
                 const res = await getCompanyAction(companyId);
-                if (!res.success || !res.company) throw new Error(res.error || "Failed to load company");
+                if (!res.success) throw new Error("error" in res ? res.error : "Failed to load company");
+                if (!("company" in res) || !res.company) throw new Error("Failed to load company");
 
                 const src = res.company;
                 if (mounted) {
@@ -91,8 +92,8 @@ export function CompanyFormWrapper({ companyId }: CompanyFormWrapperProps) {
             if (!res.success) {
                 return {
                     success: false,
-                    issues: typeof res.issues === "object" && res.issues !== null ? (res.issues as Record<string, string[]>) : undefined,
-                    error: res.error
+                    issues: "issues" in res && typeof res.issues === "object" && res.issues !== null ? (res.issues as Record<string, string[]>) : undefined,
+                    error: "error" in res ? res.error : "Unknown error"
                 };
             }
 

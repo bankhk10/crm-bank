@@ -12,7 +12,7 @@ import type {
   SaleFormEmployee,
   SaleFormProduct,
   SaleFormCompany,
-} from "../_types/types";
+} from "../../types";
 
 interface SaleFormData {
   customers: SaleFormCustomer[];
@@ -53,7 +53,13 @@ export function useSaleFormData(): SaleFormData {
     ])
       .then(([customersData, employeesData, productsData, companiesData]) => {
         setCustomers(customersData.customers || []);
-        setEmployees(employeesData.employees || []);
+        setEmployees(
+          (employeesData.employees || []).map((e: any) => ({
+            id: e.id,
+            name: e.name,
+            employeeCode: e.employeeCode || undefined,
+          })),
+        );
         setProducts(productsData.products || []);
         setCompanies(companiesData.companies || []);
       })

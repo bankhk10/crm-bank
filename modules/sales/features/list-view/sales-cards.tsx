@@ -25,8 +25,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { SalesTableProps, SaleRecord } from "../../_types/types";
-import { SaleStatusBadge } from "..";
+import type { SalesTableProps, SaleRecord } from "../../types";
+import { SaleStatusBadge } from "../../ui/sale-status-badge";
 
 type SalesCardsProps = Pick<
     SalesTableProps,
@@ -70,7 +70,7 @@ export function SalesCards({
                         key={`loading-${idx}`}
                         className="h-full border border-slate-200/80 shadow-sm"
                     >
-                        <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
+                        <div className="h-1 w-full bg-linear-to-r from-slate-100 via-slate-200 to-slate-100" />
                         <div className="space-y-3 p-4">
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -126,7 +126,6 @@ export function SalesCards({
                     const isPendingApproval = item.status === "PENDING_APPROVAL";
                     const isApproved = item.status === "APPROVED";
                     const isRejected = item.status === "REJECTED";
-                    // const isWaitingForCorrection = item.status === "WAITING_FOR_CORRECTION"; // Not used in color calc but might be useful?
                     const isCreator = currentUserId && item.createdById === currentUserId;
 
                     const canEditThis = canEditItem
@@ -141,7 +140,6 @@ export function SalesCards({
                             isRejected ||
                             item.status === "WAITING_FOR_CORRECTION");
 
-                    // Use canDeleteItem callback if provided, otherwise fallback to simple logic
                     const canDeleteThis = canDeleteItem
                         ? canDeleteItem(item) && (isPending || isPendingApproval)
                         : (canDelete || isCreator) && (isPending || isPendingApproval);

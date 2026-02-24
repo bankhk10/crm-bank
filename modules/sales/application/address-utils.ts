@@ -3,7 +3,7 @@
  * Helper functions for parsing and formatting Thai addresses
  */
 
-import type { ParsedAddress } from "../_types/types";
+import type { ParsedAddress } from "../types";
 
 /**
  * Parse Thai address from string
@@ -66,7 +66,7 @@ export function buildFullAddress(
   subdistrict: string | undefined,
   district: string | undefined,
   province: string | undefined,
-  postalCode: string | undefined
+  postalCode: string | undefined,
 ): string {
   const parts = [
     addressLine,
@@ -94,7 +94,7 @@ export function buildCustomerShippingAddress(customer: {
     customer.shippingSubdistrict,
     customer.shippingDistrict,
     customer.shippingProvince,
-    customer.shippingPostalCode
+    customer.shippingPostalCode,
   );
 }
 
@@ -113,7 +113,7 @@ export function buildCompanyAddress(company: {
     company.subdistrict,
     company.district,
     company.province,
-    company.postalCode
+    company.postalCode,
   );
 }
 
@@ -122,7 +122,7 @@ export function buildCompanyAddress(company: {
  */
 export function cleanAddressPrefix(
   value: string | undefined,
-  prefixes: string[]
+  prefixes: string[],
 ): string {
   if (!value) return "";
   let cleaned = value;

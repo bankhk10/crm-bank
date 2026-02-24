@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SaleForm } from "@/modules/sales";
+import { SaleForm } from "@/modules/sales/features/form/sale-form";
+import { updateSaleAction, getSaleAction } from "@/modules/sales/server/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/types/sales";
@@ -25,12 +26,12 @@ export default function EditSalePage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/sales/${id}`)
+    getSaleAction(id)
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch sale");
-        return res.json();
+        if (!res.success || !("sale" in res)) throw new Error(res.error || "Failed to fetch sale");
+        return res;
       })
-      .then((data) => {
+      .then((data: any) => {
         const sale = data.sale;
         const useCustomShipping =
           sale.useCustomShipping ??
@@ -83,15 +84,10 @@ export default function EditSalePage({
   }, [id]);
 
   const handleSubmit = async (data: SaleFormData) => {
-    const res = await fetch(`/api/sales/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    const res = await updateSaleAction(id, data);
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Failed to update sale");
+    if (!res.success) {
+      throw new Error(res.error || "Failed to update sale");
     }
 
     toast.success("บันทึกการแก้ไขสำเร็จ");
