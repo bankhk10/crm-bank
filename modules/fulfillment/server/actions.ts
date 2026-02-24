@@ -82,6 +82,7 @@ export async function getFulfillmentsAction(params: {
         ...item,
         unitPrice: item.unitPrice.toNumber(),
         originalPrice: item.originalPrice.toNumber(),
+        totalPrice: item.totalPrice.toNumber(),
         product: {
           ...item.product,
           price: item.product.price ? item.product.price.toNumber() : null,
