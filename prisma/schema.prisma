@@ -724,72 +724,72 @@ enum PaymentTerm {
 }
 
 model Sale {
-  id                    String      @id @default(cuid())
-  saleNumber            String      @unique
-  customerId            String
-  employeeId            String
-  status                SaleStatus  @default(PENDING)
-  paymentTerm           PaymentTerm
+  id                    String      @id @default(cuid()) // รหัสเอกสารการขาย (Primary Key)
+  saleNumber            String      @unique // เลขที่เอกสาร (เช่น SN-202310-001)
+  customerId            String // รหัสลูกค้า
+  employeeId            String // รหัสพนักงานขายที่ดูแล (เซลส์)
+  status                SaleStatus  @default(PENDING) // สถานะบันทึกการขาย (เช่น รออนุมัติ, อนุมัติแล้ว)
+  paymentTerm           PaymentTerm // เงื่อนไขการชำระเงิน (เช่น เงินสด, เครดิต)
   
-  // Credit information
-  creditDays            Int?
-  creditDueDate         DateTime?
-  usePromotionalCredit  Boolean     @default(false)
-  promotionalCreditUsed Decimal?    @db.Decimal(15, 2)
+  // Credit information (ข้อมูลเครดิต)
+  creditDays            Int? // จำนวนวันเครดิต (เช่น 30, 60, 90 วัน)
+  creditDueDate         DateTime? // วันครบกำหนดชำระเงิน
+  usePromotionalCredit  Boolean     @default(false) // ใช้เครดิตโปรโมชั่นหรือไม่
+  promotionalCreditUsed Decimal?    @db.Decimal(15, 2) // จำนวนวงเงินเครดิตโปรโมชั่นที่ถูกใช้งาน
   
-  // Dates
-  saleDate              DateTime
-  requestedDeliveryDate DateTime?  // วันที่ต้องการของ
-  deliveryDate          DateTime?
-  actualDeliveryDate    DateTime?
+  // Dates (ข้อมูลวันที่)
+  saleDate              DateTime // วันที่ทำเอกสารการขาย
+  requestedDeliveryDate DateTime?  // วันที่ลูกค้าต้องการให้จัดส่งสินค้า
+  deliveryDate          DateTime? // วันที่กำหนดส่งสินค้า
+  actualDeliveryDate    DateTime? // วันที่จัดส่งสินค้าสำเร็จจริง
   deliveryUpdateCount   Int         @default(0)  // จำนวนครั้งที่อัปเดตวันส่ง
   maxDeliveryUpdates    Int         @default(3)  // จำนวนครั้งสูงสุดที่อนุญาตให้แก้ไขวันส่ง
-  isDeliveryLocked      Boolean     @default(false) // ล็อคการแก้ไขใบสั่งซื้อ
-  orderExpiryDate       DateTime?   // วันหมดอายุใบคำสั่งซื้อ (approvedAt + 3 วัน)
+  isDeliveryLocked      Boolean     @default(false) // ล็อคการแก้ไขวันที่จัดส่ง/ใบสั่งซื้อ
+  orderExpiryDate       DateTime?   // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
   lastDeliveryUpdate    DateTime?   // วันที่อัปเดตวันส่งล่าสุด
-  deliveryMethod        String?     // SALES_DELIVERY or CUSTOMER_PICKUP
-  pickupCompanyId       String?
+  deliveryMethod        String?     // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
+  pickupCompanyId       String? // รหัสบริษัท/สาขา กรณีลูกค้ารับสินค้าเอง
   pickupCompany         Company?    @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
-  shippingCompanyId     String?
+  shippingCompanyId     String? // รหัสบริษัทขนส่งเอกชน (กรณีใช้ขนส่งภายนอก)
   shippingCompany       ShippingCompany? @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
   
-  // Addresses
-  billingAddress        String?
-  shippingAddress       String?
-  useCustomShipping     Boolean     @default(false) // Flag to indicate if user specified custom shipping address
-  selectedAddressId     String?     // ID of the selected shipping address from customer's addresses
+  // Addresses (ข้อมูลที่อยู่)
+  billingAddress        String? // ที่อยู่สำหรับออกใบเตือนหนี้/ใบเสร็จรับเงิน
+  shippingAddress       String? // ข้อความเต็มของที่อยู่สำหรับจัดส่ง
+  useCustomShipping     Boolean     @default(false) // ระบุว่ากรอกที่อยู่จัดส่งเองหรือไม่ (ไม่ได้ดึงจากประวัติลูกค้า)
+  selectedAddressId     String?     // รหัสที่อยู่จัดส่งที่เลือกจากประวัติที่อยู่ของลูกค้า
   
-  // Amounts
-  subtotalAmount        Decimal     @db.Decimal(15, 2)
-  shippingCost          Decimal     @default(0) @db.Decimal(15, 2)
-  otherCosts            Decimal     @default(0) @db.Decimal(15, 2)
-  otherCostsDescription String?
-  totalAmount           Decimal     @db.Decimal(15, 2)
+  // Amounts (จำนวนเงินและการคำนวณ)
+  subtotalAmount        Decimal     @db.Decimal(15, 2) // ยอดรวมสินค้า (ก่อนหักส่วนลด หรือบวกเพิ่ม)
+  shippingCost          Decimal     @default(0) @db.Decimal(15, 2) // ค่าจัดส่ง
+  otherCosts            Decimal     @default(0) @db.Decimal(15, 2) // ค่าใช้จ่ายอื่นๆ เพิ่มเติม
+  otherCostsDescription String? // คำอธิบายค่าใช้จ่ายอื่นๆ
+  totalAmount           Decimal     @db.Decimal(15, 2) // ยอดรวมสุทธิ (Net Total)
   
-  // External reference
-  saleOrderRef          String?   // เลขที่คำสั่งขาย (Ref จากระบบอื่น)
+  // External reference (เลขอ้างอิง)
+  saleOrderRef          String?   // เลขที่เอกสารอ้างอิง (เช่น PO จากลูกค้า, Ref จากระบบอื่น)
   
-  // Notes
-  notes                 String?
+  // Notes (หมายเหตุ)
+  notes                 String? // หมายเหตุทั่วไป (Internal Note สำหรับเซลส์หรือออฟฟิศ)
   
-  // Payment information
-  paymentDate           DateTime?
-  paymentNotes          String?
+  // Payment information (ข้อมูลการชำระเงิน)
+  paymentDate           DateTime? // วันที่ชำระเงินจริง
+  paymentNotes          String? // หมายเหตุการรับชำระเงิน
   
-  // Delivery notes
-  deliveryNotes         String?
+  // Delivery notes (หมายเหตุจัดส่ง)
+  deliveryNotes         String? // หมายเหตุการจัดส่ง (ข้อความถึงคนขับรถ หรือบริษัทขนส่ง)
   
-  // Approval information
-  approvedById          String?
-  approvedAt            DateTime?
-  rejectionReason       String?
-  rejectedAt            DateTime?
+  // Approval information (ข้อมูลการอนุมัติ)
+  approvedById          String? // รหัสผู้ทำการอนุมัติเอกสาร
+  approvedAt            DateTime? // วันและเวลาที่เอกสารได้รับการอนุมัติ
+  rejectionReason       String? // เหตุผลที่ไม่อนุมัติ (ปัดตก)
+  rejectedAt            DateTime? // วันและเวลาที่ถูกไม่อนุมัติ
   
-  // Audit fields
-  createdById           String
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  deletedAt             DateTime?
+  // Audit fields (ข้อมูลบันทึกระบบ)
+  createdById           String // รหัสผู้สร้างบันทึกการขาย
+  createdAt             DateTime    @default(now()) // วันและเวลาที่สร้างเอกสาร
+  updatedAt             DateTime    @updatedAt // วันและเวลาที่แก้ไขบันทึกล่าสุด
+  deletedAt             DateTime? // วันเวลาที่ลบเอกสาร (Soft Delete)
   
   // Relations
   customer              Customer    @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
