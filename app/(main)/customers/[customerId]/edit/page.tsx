@@ -86,8 +86,8 @@ export default function EditCustomerPage() {
         const src = json ?? {};
         if (mounted) {
           setPayload((prev: any) => ({
-            id: src.id ?? customerId,
             ...prev,
+            id: src.id ?? customerId,
             customerCode: src.customerCode ?? "",
             customerType: src.customerType ?? "DEALER",
             name: src.name ?? "",
