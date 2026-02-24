@@ -1,8 +1,8 @@
 # AI Context - CRM System
 
 > **Document Type**: Master Context Document  
-> **Version**: 1.2.0  
-> **Last Updated**: 2026-02-09  
+> **Version**: 2.0.0  
+> **Last Updated**: 2026-02-24  
 > **Related Documents**: [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md) | [ARCHITECTURE.md](./ARCHITECTURE.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
 ---
@@ -10,7 +10,9 @@
 ## 1. System Overview
 
 ### 1.1 What is this system?
+
 ระบบ CRM (Customer Relationship Management) สำหรับบริหารจัดการ:
+
 - **ลูกค้า** (Customer) - ร้านค้า/เกษตรกรในประเทศไทย
 - **การขาย** (Sales) - ใบสั่งซื้อและกระบวนการจัดส่ง
 - **สินค้า** (Product) - สินค้าเกษตร/เคมีภัณฑ์
@@ -21,6 +23,7 @@
 - **แจ้งเตือน** (Notifications) - แจ้งเตือนเหตุการณ์สำคัญในระบบ
 
 ### 1.2 Business Domain
+
 - **Industry**: Agricultural Chemicals / Agrochemicals
 - **Geography**: Thailand (ใช้ระบบที่อยู่ไทย, ภาค, จังหวัด, อำเภอ, ตำบล)
 - **Customer Types**: Dealer → Subdealer → Farmer → Broker (ลำดับชั้น)
@@ -31,15 +34,17 @@
 ## 2. Goals & Objectives
 
 ### 2.1 Business Goals
-| Goal | Priority | Measured By |
-|------|----------|-------------|
-| เพิ่มประสิทธิภาพการขาย | HIGH | ยอดขาย vs. เป้าหมายรายเดือน |
-| ติดตามลูกค้าอย่างเป็นระบบ | HIGH | จำนวนลูกค้า Active / Customer Churn Rate |
-| จัดการวงเงินเครดิต | HIGH | Credit Utilization Rate |
-| กระตุ้นพนักงานด้วยระบบคะแนน | MEDIUM | คะแนนรวมพนักงาน vs. Target |
-| วิเคราะห์ข้อมูลการขาย | MEDIUM | Report Accuracy / Time-to-Report |
+
+| Goal                        | Priority | Measured By                              |
+| --------------------------- | -------- | ---------------------------------------- |
+| เพิ่มประสิทธิภาพการขาย      | HIGH     | ยอดขาย vs. เป้าหมายรายเดือน              |
+| ติดตามลูกค้าอย่างเป็นระบบ   | HIGH     | จำนวนลูกค้า Active / Customer Churn Rate |
+| จัดการวงเงินเครดิต          | HIGH     | Credit Utilization Rate                  |
+| กระตุ้นพนักงานด้วยระบบคะแนน | MEDIUM   | คะแนนรวมพนักงาน vs. Target               |
+| วิเคราะห์ข้อมูลการขาย       | MEDIUM   | Report Accuracy / Time-to-Report         |
 
 ### 2.2 Technical Goals
+
 - **Mobile First**: ใช้งานบนมือถือเป็นหลัก
 - **Real-time Data**: ข้อมูลอัปเดตทันที
 - **Scalability**: รองรับการเติบโต
@@ -50,6 +55,7 @@
 ## 3. System Scope
 
 ### 3.1 In Scope (ภายในขอบเขต)
+
 ```
 ✅ Customer Management (CRUD, Credit, Hierarchy)
 ✅ Product Management (CRUD, Stock, LOT Tracking)
@@ -61,9 +67,12 @@
 ✅ Sales Target & Forecast (Monthly, Region, Product Group)
 ✅ Audit Logging (Security, Application, Audit)
 ✅ Notifications (User-level alerts)
+✅ Fulfillment (จัดส่งสินค้า)
+✅ Shipping Companies (บริษัทขนส่ง)
 ```
 
 ### 3.2 Out of Scope (นอกขอบเขต)
+
 ```
 ❌ Inventory Management (ไม่ใช่ระบบคลังสินค้าหลัก, แค่ track stock reference)
 ❌ Accounting / Finance (ไม่มี invoice, receipt, VAT calculation)
@@ -73,6 +82,7 @@
 ```
 
 ### 3.3 Module Dependency Map
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      RBAC Layer                             │
@@ -108,15 +118,17 @@
 > ⚠️ **IMPORTANT**: ดูรายละเอียดเพิ่มเติมที่ [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)
 
 ### 4.1 Core Entities
-| Term | Thai | Definition |
-|------|------|------------|
-| Customer | ลูกค้า | ร้านค้าหรือบุคคลที่ซื้อสินค้า |
-| Employee | พนักงาน | ผู้ใช้งานระบบที่มี profile แยกจาก User |
-| Sale | ใบขาย | คำสั่งซื้อจากลูกค้า |
-| Product | สินค้า | สินค้าที่ขาย รวม stock และ LOT |
-| User | ผู้ใช้ระบบ | บัญชีสำหรับ login + permission |
+
+| Term     | Thai       | Definition                             |
+| -------- | ---------- | -------------------------------------- |
+| Customer | ลูกค้า     | ร้านค้าหรือบุคคลที่ซื้อสินค้า          |
+| Employee | พนักงาน    | ผู้ใช้งานระบบที่มี profile แยกจาก User |
+| Sale     | ใบขาย      | คำสั่งซื้อจากลูกค้า                    |
+| Product  | สินค้า     | สินค้าที่ขาย รวม stock และ LOT         |
+| User     | ผู้ใช้ระบบ | บัญชีสำหรับ login + permission         |
 
 ### 4.2 Critical Status Values
+
 ```typescript
 // Sale Status Flow:
 PENDING → PENDING_APPROVAL → APPROVED → AWAITING_PAYMENT → PAID → AWAITING_DELIVERY →
@@ -142,15 +154,17 @@ PENDING_APPROVAL → WAITING_FOR_CORRECTION
    └── เป็น source of truth สำหรับ data model
    └── ถ้า docs ขัดแย้งกับ schema → เชื่อ schema
 
-🟠 LEVEL 2 (High Trust): API Implementation  
-   └── app/api/**/route.ts
-   └── src/core/**/*.ts
+🟠 LEVEL 2 (High Trust): Module Implementation
+   └── modules/*/server/actions.ts
+   └── modules/*/application/**/*.ts
+   └── modules/*/infrastructure/**/*.ts
    └── เป็น source of truth สำหรับ business logic
    └── ถ้า docs ขัดแย้งกับ code → เชื่อ code
 
 🟡 LEVEL 3 (Medium Trust): Type Definitions
+   └── modules/*/types/**/*.ts
    └── types/**/*.ts
-   └── เป็น contract ระหว่าง frontend/backend
+   └── เป็น contract ระหว่าง layers
 
 🟢 LEVEL 4 (Reference): Documentation
    └── docs/**/*.md
@@ -159,21 +173,32 @@ PENDING_APPROVAL → WAITING_FOR_CORRECTION
 ```
 
 ### 5.2 Code Conventions to Follow
+
 ```yaml
 # ดูรายละเอียดที่ CODING_STANDARDS.md
 
 file_naming:
-  - use kebab-case for files: create-sale.ts
-  - use PascalCase for components: SaleForm.tsx
-  
-folder_structure:
+  - use kebab-case for files: create-employee.ts
+  - use kebab-case for components: employee-form.tsx
+
+module_structure:
+  - modules/[MODULE]/infrastructure/  ← database access
+  - modules/[MODULE]/application/     ← business logic
+  - modules/[MODULE]/server/          ← server actions (auth + transport)
+  - modules/[MODULE]/features/        ← UI screens
+  - modules/[MODULE]/ui/              ← module-specific UI components
+  - modules/[MODULE]/types/           ← type definitions
+
+page_routes:
   - app/(main)/* for pages
-  - app/api/* for API routes
-  - app/actions/* for Server Actions
-  - src/core/* for domain logic
-  - components/* for UI components
-  - features/* for feature modules
-  
+
+shared:
+  - components/custom/  ← TruncatedCell, ActionButton, DetailItem
+  - components/ui/      ← shadcn/ui components
+  - lib/db.ts           ← Prisma client
+  - lib/auth.ts         ← NextAuth config
+  - lib/rbac.ts         ← RBAC helpers
+
 database:
   - always use lib/db.ts for prisma client
   - wrap mutations in transactions when needed
@@ -181,97 +206,121 @@ database:
 ```
 
 ### 5.3 Decision Making Rules
+
 ```yaml
 when_creating_new_feature:
-  1. Check if entity exists in schema.prisma
-  2. Check existing API patterns in app/api/
+  1. Follow the module pattern (see modules/employee/ as reference)
+  2. Create infrastructure/ → application/ → server/ → features/
   3. Follow RBAC rules from RBAC_POLICY.md
-  4. Match UI patterns from existing components
+  4. Use shared components from @/components/custom/
 
-when_editing_existing_code:
-  1. Preserve existing patterns
-  2. Don't break backward compatibility
-  3. Add type safety (no 'any' types)
-  4. Maintain audit log where applicable
+when_editing_existing_module: 1. Preserve the layered architecture
+  2. Don't put business logic in server/actions.ts
+  3. Don't put auth checks in application/ layer
+  4. Add type safety (no 'any' types)
+  5. Maintain audit log where applicable
 
-when_uncertain:
-  1. Ask for clarification
+when_uncertain: 1. Ask for clarification
   2. Refer to schema.prisma first
-  3. Check existing similar implementations
+  3. Check modules/employee/ as the reference implementation
   4. Document assumptions made
 ```
 
 ### 5.4 Common Pitfalls to Avoid
+
 ```yaml
 # ❌ DON'T do these:
 - Don't create new prisma client instances (use lib/db.ts)
-- Don't skip permission checks in API routes
+- Don't skip permission checks in server actions
 - Don't hard-delete records (use deletedAt)
 - Don't calculate points manually (use EmployeePointHistory)
 - Don't bypass credit limit validation
 - Don't use deprecated Sale statuses
+- Don't put business logic in server/actions.ts (keep it thin)
+- Don't put database queries in application/ layer (use infrastructure/)
 
 # ✅ DO these:
 - Always include `where: { deletedAt: null }` in queries
-- Always check user permissions before data access
+- Always check user permissions in server actions
 - Always use transactions for multi-step operations
 - Always log security-sensitive actions
-- Always validate input with Zod or similar
+- Always validate input with Zod (in application/validations.ts)
+- Always follow the 4-layer architecture
 ```
 
 ---
 
 ## 6. Tech Stack Summary
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Frontend | Next.js + React | 16.1.5 + 19.2.0 |
-| Styling | Tailwind CSS | 4.x |
-| UI Components | shadcn/ui (Radix UI) | latest |
-| Backend | Next.js API Routes | 16.x |
-| ORM | Prisma | 7.x |
-| Database | PostgreSQL | 15+ |
-| Auth | NextAuth.js | 5.0.0-beta.30 |
-| Containerization | Docker + Docker Compose | latest |
-| State Management | React (built-in) | 19.x |
+| Layer            | Technology                          | Version         |
+| ---------------- | ----------------------------------- | --------------- |
+| Frontend         | Next.js + React                     | 16.1.5 + 19.2.0 |
+| Styling          | Tailwind CSS                        | 4.x             |
+| UI Components    | shadcn/ui (Radix UI)                | latest          |
+| Backend          | Next.js Server Actions + API Routes | 16.x            |
+| ORM              | Prisma                              | 7.x             |
+| Database         | PostgreSQL                          | 15+             |
+| Auth             | NextAuth.js                         | 5.0.0-beta.30   |
+| Containerization | Docker + Docker Compose             | latest          |
+| State Management | React (built-in)                    | 19.x            |
 
 ---
 
 ## 7. Quick Reference Links
 
 ### Related Docs
+
 - [Domain Glossary](./DOMAIN_GLOSSARY.md) - คำศัพท์และ business rules
 - [Architecture](./ARCHITECTURE.md) - สถาปัตยกรรมระบบ
 - [Data Model](./DATA_MODEL.md) - อธิบาย entities และ relationships
-- [API Contracts](./API_CONTRACTS.md) - รายละเอียด endpoints
 - [RBAC Policy](./RBAC_POLICY.md) - กฎการเข้าถึงข้อมูล
 - [Coding Standards](./CODING_STANDARDS.md) - มาตรฐานการเขียน code
 - [Decisions](./DECISIONS.md) - เหตุผลเชิงสถาปัตยกรรม
 
 ### Key Files in Codebase
+
 ```yaml
 schema: prisma/schema.prisma
-main_layout: app/(main)/layout.tsx  
+main_layout: app/(main)/layout.tsx
 auth: lib/auth.ts
 db_client: lib/db.ts
 rbac: lib/rbac.ts
-api: app/api/
-actions: app/actions/
-core_logic: src/core/
-components: components/
-features: features/
-types: types/
+modules: modules/ # ⭐ Primary module location
+reference_module: modules/employee/ # Reference implementation
+shared_components: components/custom/
+pages: app/(main)/
 ```
 
 ---
 
-## 8. Changelog
+## 8. Module Index
 
-| Date | Version | Changes |
-|------|---------|---------|
-| 2026-02-09 | 1.2.0 | Updated sale status flow + scope alignment with notifications and forecast |
-| 2026-02-02 | 1.1.0 | Updated Tech Stack versions (Next.js 16.1.5, React 19.2.0, Prisma 7.x, NextAuth v5 beta) |
-| 2026-01-28 | 1.0.0 | Initial documentation created |
+| Module                  | Path                               | Description                 |
+| ----------------------- | ---------------------------------- | --------------------------- |
+| employee                | `modules/employee/`                | ⭐ Reference implementation |
+| customers               | `modules/customers/`               | ลูกค้าและผู้ดูแล            |
+| companies               | `modules/companies/`               | บริษัทและองค์กร             |
+| products                | `modules/products/`                | สินค้า กลุ่มสินค้า และราคา  |
+| sales                   | `modules/sales/`                   | ใบขายและ approval flow      |
+| fulfillment             | `modules/fulfillment/`             | การจัดส่งสินค้า             |
+| credit-limits           | `modules/credit-limits/`           | วงเงินเครดิตถาวร            |
+| temporary-credit-limits | `modules/temporary-credit-limits/` | วงเงินเครดิตชั่วคราว        |
+| sales-targets           | `modules/sales-targets/`           | เป้าหมายยอดขาย              |
+| shipping-companies      | `modules/shipping-companies/`      | บริษัทขนส่ง                 |
+| rbac                    | `modules/rbac/`                    | การจัดการสิทธิ์             |
+| notifications           | `modules/notifications/`           | ระบบแจ้งเตือน               |
+| layout                  | `modules/layout/`                  | Components สำหรับ Layout    |
+
+---
+
+## 9. Changelog
+
+| Date       | Version | Changes                                                                                  |
+| ---------- | ------- | ---------------------------------------------------------------------------------------- |
+| 2026-02-24 | 2.0.0   | Major update: reflect new modules/ architecture, updated paths, added module index       |
+| 2026-02-09 | 1.2.0   | Updated sale status flow + scope alignment with notifications and forecast               |
+| 2026-02-02 | 1.1.0   | Updated Tech Stack versions (Next.js 16.1.5, React 19.2.0, Prisma 7.x, NextAuth v5 beta) |
+| 2026-01-28 | 1.0.0   | Initial documentation created                                                            |
 
 ---
 

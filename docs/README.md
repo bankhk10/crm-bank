@@ -1,7 +1,7 @@
 # CRM System Documentation
 
 > **Single Source of Truth** สำหรับ AI Agents และทีมพัฒนา  
-> **Version**: 1.2.0 | **Updated**: 2026-02-09
+> **Version**: 2.0.0 | **Updated**: 2026-02-24
 
 ---
 
@@ -11,9 +11,8 @@
 | -------------------------------------------- | --------------------------------------- | ---------- |
 | [AI_CONTEXT.md](./AI_CONTEXT.md)             | ภาพรวมระบบ, เป้าหมาย, กฎการทำงาน AI     | ⭐ YES     |
 | [DOMAIN_GLOSSARY.md](./DOMAIN_GLOSSARY.md)   | คำศัพท์, Entity, Status, Business Rules | ⭐ YES     |
-| [ARCHITECTURE.md](./ARCHITECTURE.md)         | สถาปัตยกรรม, Layers, Flows              |            |
+| [ARCHITECTURE.md](./ARCHITECTURE.md)         | สถาปัตยกรรม, Module Layers, Flows       |            |
 | [DATA_MODEL.md](./DATA_MODEL.md)             | ERD, Tables, Relationships              |            |
-| [API_CONTRACTS.md](./API_CONTRACTS.md)       | Endpoints, Request/Response             |            |
 | [RBAC_POLICY.md](./RBAC_POLICY.md)           | Roles, Permissions, Access Levels       |            |
 | [CODING_STANDARDS.md](./CODING_STANDARDS.md) | Coding Style, Patterns                  |            |
 | [DECISIONS.md](./DECISIONS.md)               | Architecture Decision Records           |            |
@@ -27,31 +26,30 @@
 ```
 1. Read AI_CONTEXT.md first
 2. Review DOMAIN_GLOSSARY.md for terminology
-3. Check relevant sections as needed
+3. Check ARCHITECTURE.md for module structure
+4. Check relevant sections as needed
 ```
 
 ### Step 2: Trust Hierarchy
 
 ```
 LEVEL 1 (Highest): prisma/schema.prisma
-LEVEL 2 (High):    app/api/**/route.ts, app/actions/*.ts, src/core/**/*.ts
-LEVEL 3 (Medium):  types/**/*.ts
+LEVEL 2 (High):    modules/*/server/actions.ts, modules/*/application/**/*.ts
+LEVEL 3 (Medium):  modules/*/types/**/*.ts, types/**/*.ts
 LEVEL 4 (Ref):     docs/**/*.md
 ```
 
 ### Step 3: Key Files
 
 ```
-Schema:       prisma/schema.prisma
-DB Client:    lib/db.ts
-Auth:         lib/auth.ts
-RBAC:         lib/rbac.ts
-Core Logic:   src/core/
-API Routes:   app/api/
-Actions:      app/actions/
-Pages:        app/(main)/
-Components:   components/
-Features:     features/          # Feature modules
+Schema:             prisma/schema.prisma
+DB Client:          lib/db.ts
+Auth:               lib/auth.ts
+RBAC:               lib/rbac.ts
+Modules:            modules/           ← ⭐ Primary module location
+Reference Module:   modules/employee/  ← Reference implementation
+Shared Components:  components/custom/ ← TruncatedCell, ActionButton, DetailItem
+Pages:              app/(main)/
 ```
 
 ---
@@ -64,16 +62,19 @@ Features:     features/          # Feature modules
 # 1) ตรวจ schema และ enum ล่าสุด (source of truth)
 sed -n '1,200p' prisma/schema.prisma
 
-# 2) ดูรายการ API routes ทั้งหมด
+# 2) ดูโครงสร้าง modules ทั้งหมด
+find modules -maxdepth 2 -type d
+
+# 3) ดู reference module (employee)
+find modules/employee -type f
+
+# 4) ดู Server Actions ทุก module
+find modules -name 'actions.ts' -path '*/server/*'
+
+# 5) ดู API routes ที่ยังใช้อยู่
 find app/api -maxdepth 3 -type f -name 'route.ts'
 
-# 3) ดูโครงสร้าง feature modules
-find features -maxdepth 2 -type d
-
-# 4) ดู Server Actions
-ls app/actions
-
-# 5) ตรวจ RBAC seed เพื่อดู permission ล่าสุด
+# 6) ตรวจ RBAC seed เพื่อดู permission ล่าสุด
 sed -n '1,200p' prisma/seed/rbac.ts
 ```
 
@@ -137,7 +138,7 @@ Sale COMPLETED → Calculate per SaleItem → EmployeePointHistory → Summary
 | Layer     | Technology                                   |
 | --------- | -------------------------------------------- |
 | Frontend  | Next.js 16.1.5, React 19.2.0, Tailwind CSS 4 |
-| Backend   | Next.js API Routes + Server Actions          |
+| Backend   | Next.js Server Actions + API Routes          |
 | ORM       | Prisma 7.x                                   |
 | Database  | PostgreSQL 15+                               |
 | Auth      | NextAuth.js 5.0.0-beta.30                    |
@@ -145,42 +146,53 @@ Sale COMPLETED → Calculate per SaleItem → EmployeePointHistory → Summary
 
 ---
 
-## 📦 Feature Modules
+## 📦 Enterprise Modules
 
-**Pattern**: `features/[feature-name]/_[layer]/`
+> **Pattern**: `modules/[MODULE_NAME]/` with layered architecture  
+> **Reference**: `modules/employee/` — ดูตัวอย่างเต็ม
 
-| Feature                     | Description                | Status |
-| --------------------------- | -------------------------- | ------ |
-| **companies**               | บริษัทและองค์กร            | ✅     |
-| **credit-limits**           | วงเงินเครดิตถาวร           | ✅     |
-| **customers**               | ลูกค้าและผู้ดูแล           | ✅     |
-| **employee**                | พนักงานและโครงสร้างองค์กร  | ✅     |
-| **fulfillment**             | การจัดส่งสินค้า            | ✅     |
-| **layout**                  | Components สำหรับ Layout   | ✅     |
-| **notifications**           | ระบบแจ้งเตือน              | ✅     |
-| **products**                | สินค้า กลุ่มสินค้า และราคา | ✅     |
-| **rbac**                    | การจัดการสิทธิ์            | ✅     |
-| **sales**                   | ใบขายและ approval flow     | ✅     |
-| **temporary-credit-limits** | วงเงินเครดิตชั่วคราว       | ✅     |
-
-### Module Structure
+### Module Architecture
 
 ```
-features/[feature-name]/
-├── _components/     # UI components
-├── _hooks/          # Custom hooks
-├── _lib/            # Utils, constants
-├── _types/          # Type definitions
-├── index.ts         # Barrel export
-└── README.md        # Feature documentation
+modules/[MODULE_NAME]/
+├── infrastructure/              ← Database access (repository)
+├── application/                 ← Business logic (use cases)
+├── server/                      ← Transport (server actions)
+├── features/                    ← UI screens
+│   ├── list-view/
+│   ├── form/
+│   └── detail-view/
+├── ui/                          ← Module-specific UI components
+├── types/                       ← Type definitions
+├── constants.ts
+├── index.ts                     ← Barrel exports
+└── README.md
 ```
+
+### Module List
+
+| Module                      | Path                               | Description                 | Status |
+| --------------------------- | ---------------------------------- | --------------------------- | ------ |
+| **employee**                | `modules/employee/`                | ⭐ Reference implementation | ✅     |
+| **customers**               | `modules/customers/`               | ลูกค้าและผู้ดูแล            | ✅     |
+| **companies**               | `modules/companies/`               | บริษัทและองค์กร             | ✅     |
+| **products**                | `modules/products/`                | สินค้า กลุ่มสินค้า และราคา  | ✅     |
+| **sales**                   | `modules/sales/`                   | ใบขายและ approval flow      | ✅     |
+| **fulfillment**             | `modules/fulfillment/`             | การจัดส่งสินค้า             | ✅     |
+| **credit-limits**           | `modules/credit-limits/`           | วงเงินเครดิตถาวร            | ✅     |
+| **temporary-credit-limits** | `modules/temporary-credit-limits/` | วงเงินเครดิตชั่วคราว        | ✅     |
+| **sales-targets**           | `modules/sales-targets/`           | เป้าหมายยอดขาย              | ✅     |
+| **shipping-companies**      | `modules/shipping-companies/`      | บริษัทขนส่ง                 | ✅     |
+| **rbac**                    | `modules/rbac/`                    | การจัดการสิทธิ์             | ✅     |
+| **notifications**           | `modules/notifications/`           | ระบบแจ้งเตือน               | ✅     |
+| **layout**                  | `modules/layout/`                  | Components สำหรับ Layout    | ✅     |
 
 ### Usage Example
 
 ```tsx
-// Import from feature module
+// Import from module
+import { EmployeeTable, EmployeeForm } from "@/modules/employee";
 import { CompaniesTable, CompanyForm } from "@/modules/companies";
-import { NotificationBell } from "@/modules/notifications";
 ```
 
 ---
@@ -191,27 +203,30 @@ import { NotificationBell } from "@/modules/notifications";
 
 - ✅ Use `lib/db.ts` for Prisma client
 - ✅ Include `where: { deletedAt: null }` in queries
-- ✅ Check permissions before data access
+- ✅ Check permissions in server actions
 - ✅ Use transactions for multi-step operations
-- ✅ Log security-sensitive actions
+- ✅ Follow the 4-layer module architecture
+- ✅ Use shared components from `@/components/custom/`
 
 ### DON'T
 
 - ❌ Create new Prisma client instances
 - ❌ Hard delete records
-- ❌ Skip permission checks
+- ❌ Skip permission checks in server actions
 - ❌ Use `any` types
-- ❌ Bypass credit limit validation
+- ❌ Put business logic in `server/actions.ts`
+- ❌ Put database queries in `application/` layer
 
 ---
 
 ## 📝 Changelog
 
-| Date       | Changes                                                    |
-| ---------- | ---------------------------------------------------------- |
-| 2026-02-09 | Updated AI reading commands + feature module list (v1.2.0) |
-| 2026-02-04 | Added feature modules structure (v1.1.0)                   |
-| 2026-01-28 | Initial documentation created (v1.0.0)                     |
+| Date       | Changes                                                         |
+| ---------- | --------------------------------------------------------------- |
+| 2026-02-24 | Major update: modules/ architecture, removed old features/ refs |
+| 2026-02-09 | Updated AI reading commands + feature module list (v1.2.0)      |
+| 2026-02-04 | Added feature modules structure (v1.1.0)                        |
+| 2026-01-28 | Initial documentation created (v1.0.0)                          |
 
 ---
 
