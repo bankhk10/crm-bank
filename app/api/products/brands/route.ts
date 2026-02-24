@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db, Prisma } from "@/src/infrastructure/database";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 
 const resourcePath = "/api/products";
 

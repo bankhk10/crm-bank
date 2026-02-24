@@ -23,7 +23,7 @@ import {
     getDefaultRouteForRoles,
     isAdministrator,
     isManager,
-} from "@/src/core/rbac";
+} from "@/modules/rbac/application/authorization";
 import type { SidebarChildItem, SidebarNavItem, SidebarProps } from "../types";
 import { navigationItems } from "../constants";
 import { filterNavItems, isRouteActive, isChildActive } from "../ui/navigation-utils";

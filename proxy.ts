@@ -5,8 +5,8 @@ import {
   DEFAULT_AUTH_REDIRECT,
   getDefaultRouteForRoles,
   isAuthorized,
-  isRoutePublic
-} from "@/src/core/rbac";
+  isRoutePublic,
+} from "@/modules/rbac/application/authorization";
 
 export async function proxy(request: NextRequest) {
   const { nextUrl } = request;
@@ -31,11 +31,15 @@ export async function proxy(request: NextRequest) {
     const permissionKeys = session.user.permissionKeys ?? [];
 
     if (isPublic && pathname.startsWith("/login")) {
-      return NextResponse.redirect(new URL(getDefaultRouteForRoles(roles), nextUrl.origin));
+      return NextResponse.redirect(
+        new URL(getDefaultRouteForRoles(roles), nextUrl.origin),
+      );
     }
 
     if (!isPublic && !isAuthorized(pathname, permissionKeys)) {
-      return NextResponse.redirect(new URL(DEFAULT_AUTH_REDIRECT, nextUrl.origin));
+      return NextResponse.redirect(
+        new URL(DEFAULT_AUTH_REDIRECT, nextUrl.origin),
+      );
     }
   }
 
@@ -44,6 +48,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
-  ]
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

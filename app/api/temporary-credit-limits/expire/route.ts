@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/src/infrastructure/database";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import { Prisma } from "@/src/infrastructure/database";
 
 const resourcePath = "/api/temporary-credit-limits";

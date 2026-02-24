@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import {
   createShippingCompanyUseCase,
   updateShippingCompanyUseCase,

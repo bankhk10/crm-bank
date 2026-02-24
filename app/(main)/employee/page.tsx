@@ -1,6 +1,6 @@
 import React from "react";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { findEmployees } from "@/modules/employee/infrastructure/employee.repository";
 import { EmployeeTable } from "@/modules/employee";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import fs from "fs";
 import path from "path";
 

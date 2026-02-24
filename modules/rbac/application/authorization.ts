@@ -15,7 +15,7 @@ import type {
   OverrideInput,
   AccessScopeCheckOptions,
   AccessScopeCheckResult,
-} from "./rbac.types";
+} from "../types/authorization";
 
 /**
  * Public paths that don't require authentication

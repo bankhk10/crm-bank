@@ -1,6 +1,6 @@
 import React from "react";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { findCompanyById } from "@/modules/companies/infrastructure/company.repository";
 import { CompanyDetailView } from "@/modules/companies/features/detail-view/company-detail-view";

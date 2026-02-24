@@ -1,6 +1,6 @@
 import React from "react";
 import { auth } from "@/lib/auth";
-import { isAuthorized } from "@/src/core/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { getShippingCompanyDetailUseCase } from "@/modules/shipping-companies/application";
 import { ShippingCompanyDetailView } from "@/modules/shipping-companies/features/detail-view/shipping-company-detail-view";

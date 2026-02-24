@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/modules/layout";
 import { auth } from "@/lib/auth";
-import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
+import { DEFAULT_AUTH_REDIRECT } from "@/modules/rbac";
 
 interface MainLayoutProps {
   children: ReactNode;

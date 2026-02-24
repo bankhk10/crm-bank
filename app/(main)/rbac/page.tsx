@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { RBACConsole } from "@/modules/rbac";
 import { auth } from "@/lib/auth";
-import { DEFAULT_AUTH_REDIRECT } from "@/src/core/rbac";
+import { DEFAULT_AUTH_REDIRECT } from "@/modules/rbac";
 
 export default async function RBACPage() {
   const session = await auth();

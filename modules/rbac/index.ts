@@ -12,6 +12,8 @@ export type {
   APIMessage,
 } from "./types";
 
+export * from "./types/authorization";
+
 // ─── Constants ───
 export {
   DATA_ACCESS_OPTIONS,
@@ -60,6 +62,8 @@ export {
   type DepartmentFormData,
   type PositionFormData,
 } from "./application";
+
+export * from "./application/authorization";
 
 // ─── Features (UI Screens) ───
 export { default as RBACConsole } from "./features/list-view/rbac-console";
