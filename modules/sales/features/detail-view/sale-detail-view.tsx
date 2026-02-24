@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -334,17 +334,12 @@ export function SaleDetailView({ id }: { id: string }) {
                         <InfoCard
                             title="ข้อมูลลูกค้า"
                             icon={<User className="h-5 w-5 text-blue-600" />}
-                            bgColor="bg-blue-100"
+                            bgColor="bg-blue-200"
                         >
                             <DetailItem
                                 icon={<User className="h-4 w-4" />}
                                 label="ชื่อลูกค้า"
                                 value={sale.customer.name}
-                            />
-                            <DetailItem
-                                icon={<FileText className="h-4 w-4" />}
-                                label="Tax ID"
-                                value={(sale.customer as any).taxId}
                             />
                             <DetailItem
                                 icon={<MapPin className="h-4 w-4" />}
