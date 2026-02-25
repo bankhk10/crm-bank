@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/pagination";
 import { formatCurrency } from "@/src/shared/utils/currency.utils";
 import { MONTHS } from "../../constants";
-import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
+import { DetailedTarget } from "../../types";
 
 interface SalesTargetTableProps {
     targets: DetailedTarget[];

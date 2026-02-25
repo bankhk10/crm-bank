@@ -134,6 +134,49 @@ export async function updateSalesTarget(
 }
 
 /**
+ * Find a legacy monthly sales target by year and month.
+ */
+export async function findMonthlySalesTarget(year: number, month: number) {
+  return db.monthlySalesTarget.findFirst({
+    where: { year, month, deletedAt: null },
+  });
+}
+
+/**
+ * Create or update a legacy monthly sales target.
+ */
+export async function upsertMonthlySalesTarget(data: {
+  id?: string;
+  year: number;
+  month: number;
+  targetAmount: number;
+  notes?: string;
+  createdById: string;
+}) {
+  const { id, targetAmount, ...rest } = data;
+
+  if (id) {
+    return db.monthlySalesTarget.update({
+      where: { id },
+      data: {
+        targetAmount,
+        notes: rest.notes,
+      },
+    });
+  }
+
+  return db.monthlySalesTarget.create({
+    data: {
+      year: rest.year,
+      month: rest.month,
+      targetAmount,
+      notes: rest.notes,
+      createdById: rest.createdById,
+    },
+  });
+}
+
+/**
  * Delete a sales target by ID.
  */
 export async function deleteSalesTargetById(id: string) {

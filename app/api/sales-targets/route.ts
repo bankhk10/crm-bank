@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { salesTargetService } from "@/src/core/sales-targets/sales-target.service";
+import {
+  listSalesTargetsUseCase,
+  saveDetailedTargetsUseCase,
+  saveMonthlyTargetsUseCase,
+  deleteSalesTargetUseCase,
+  getSalesTargetDetailUseCase,
+} from "@/modules/sales-targets/application";
+import { DetailedTarget } from "@/modules/sales-targets/types";
 
 // GET: Fetch all sales targets for a specific year
 export async function GET(request: NextRequest) {
@@ -24,22 +31,20 @@ export async function GET(request: NextRequest) {
     const month =
       monthParam && monthParam !== "all" ? Number(monthParam) : undefined;
 
-    const data = await salesTargetService.getSalesTargets({
+    if (targetId) {
+      const result = await getSalesTargetDetailUseCase(targetId);
+      if (!result.success) {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ detailedTarget: result.salesTarget });
+    }
+
+    const data = await listSalesTargetsUseCase({
       year,
       month,
       employeeId,
       shopId,
-      targetId,
     });
-
-    if (targetId && data.detailedTarget) {
-      return NextResponse.json({ detailedTarget: data.detailedTarget });
-    } else if (targetId && !data.detailedTarget) {
-      return NextResponse.json(
-        { error: "Sales target not found" },
-        { status: 404 },
-      );
-    }
 
     return NextResponse.json(data);
   } catch (error) {
@@ -83,25 +88,12 @@ export async function POST(request: NextRequest) {
     let results;
 
     if (type === "detailed") {
-      results = await salesTargetService.saveDetailedTargets(
-        targets,
-        session.user.id,
-        isAdmin || false,
-        hasCreatePermission || false,
-        hasEditPermission || false,
-      );
+      const res = await saveDetailedTargetsUseCase(targets, session.user.id);
+      results = res.results;
     } else if (type === "monthly") {
-      // Only allow monthly if explicitly asked
-      results = await salesTargetService.saveLegacyTargets(
-        type,
-        targets,
-        session.user.id,
-        isAdmin || false,
-        hasCreatePermission || false,
-        hasEditPermission || false,
-      );
+      const res = await saveMonthlyTargetsUseCase(targets, session.user.id);
+      results = res.results;
     } else {
-      // Disallow other types
       return NextResponse.json(
         { error: "Invalid target type" },
         { status: 400 },
@@ -138,18 +130,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    await salesTargetService.deleteSalesTarget(
-      id,
-      isAdmin || false,
-      hasDeletePermission || false,
-    );
+    if (!isAdmin && !hasDeletePermission) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await deleteSalesTargetUseCase(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting sales target:", error);
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
     return NextResponse.json(
       { error: "Failed to delete sales target" },
       { status: 500 },

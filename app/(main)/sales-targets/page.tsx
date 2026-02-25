@@ -29,7 +29,7 @@ import {
   getSalesTargetsAction,
   deleteSalesTargetAction,
 } from "@/modules/sales-targets/server/actions";
-import { DetailedTarget } from "@/src/core/sales-targets/sales-target.types";
+import { DetailedTarget } from "@/modules/sales-targets";
 
 export default function SalesTargetsPage() {
   const router = useRouter();

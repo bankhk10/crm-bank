@@ -39,6 +39,17 @@ export async function listSalesTargetsUseCase(params: FindSalesTargetsParams) {
 
 export { createSalesTargetUseCase } from "./create-sales-target";
 export { updateSalesTargetUseCase } from "./update-sales-target";
+export { saveDetailedTargetsUseCase } from "./save-detailed-targets";
+export { saveMonthlyTargetsUseCase } from "./save-monthly-targets";
+
+import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
+
+/**
+ * Use case: Delete a sales target by ID.
+ */
+export async function deleteSalesTargetUseCase(id: string) {
+  return deleteSalesTargetById(id);
+}
 
 // ─────────────────────────────────────────────
 // Validations & Types
