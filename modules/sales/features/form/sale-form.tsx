@@ -360,8 +360,9 @@ export function SaleForm({
         setCreditDays(getCreditDaysForTerm(value));
     };
 
-    const handleAddressSelect = (addressId: string) => {
+    const handleAddressSelect = (addressId: string, fullAddress: string) => {
         setSelectedAddressId(addressId);
+        setShippingAddress(fullAddress);
         // Don't automatically set custom shipping address when selecting from list
         // setCustomShippingAddress(fullAddress);
         // setUseCustomShippingAddress(true);
@@ -472,9 +473,7 @@ export function SaleForm({
                         : deliveryMethod === "SALES_DELIVERY"
                             ? useCustomShippingAddress
                                 ? customShippingAddress
-                                : selectedAddressId
-                                    ? undefined // Use selectedAddressId instead of shippingAddress
-                                    : shippingAddress
+                                : shippingAddress
                             : useCustomShippingAddress
                                 ? customShippingAddress
                                 : shippingAddress,

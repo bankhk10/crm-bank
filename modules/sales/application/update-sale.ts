@@ -123,12 +123,16 @@ export async function updateSaleUseCase(
     shippingCustomerAddressId:
       body.shippingCustomerAddressId || body.selectedAddressId,
     pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId,
-    shippingCompanyAddressId: body.shippingCompanyAddressId,
+    shippingCompanyAddressId:
+      body.shippingCompanyAddressId || body.shippingCompanyId,
 
     // Snapshots
     billingAddressSnapshot: body.billingAddress,
     shippingAddressSnapshot:
-      body.deliveryMethod === "SALES_DELIVERY" ? body.shippingAddress : null,
+      body.deliveryMethod === "SALES_DELIVERY" ||
+      body.deliveryMethod === "FACTORY_DELIVERY"
+        ? body.shippingAddress
+        : null,
     pickupAddressSnapshot:
       body.deliveryMethod === "CUSTOMER_PICKUP" ? body.shippingAddress : null,
     shippingCompanyAddressSnapshot:
