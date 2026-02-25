@@ -9,7 +9,7 @@ import { Eye, Edit, Trash2, CheckCircle } from "lucide-react";
 import type {
     TemporaryCreditLimitWithRelations,
     TemporaryCreditStatus,
-} from "@/types/temporary-credit-limit";
+} from "@/modules/temporary-credit-limits/types";
 import { TemporaryCreditLimitStatusBadge } from "../../ui/temporary-credit-limit-status-badge";
 import { ActionButton } from "@/components/custom/action-button";
 

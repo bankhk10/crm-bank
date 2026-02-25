@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/types/temporary-credit-limit";
+import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/modules/temporary-credit-limits/types";
 import { approveTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 import Link from "next/link";
 import {

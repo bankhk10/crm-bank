@@ -6,7 +6,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TemporaryCreditLimitTable } from "@/modules/temporary-credit-limits";
-import type { TemporaryCreditLimitWithRelations } from "@/types/temporary-credit-limit";
+import type { TemporaryCreditLimitWithRelations } from "@/modules/temporary-credit-limits/types";
 import { CreditCard } from "lucide-react";
 import { deleteTemporaryCreditLimitAction } from "@/modules/temporary-credit-limits/server/actions";
 export default function TemporaryCreditLimitsPage() {

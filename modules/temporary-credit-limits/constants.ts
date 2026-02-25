@@ -1,4 +1,4 @@
-import type { TemporaryCreditStatus } from "@/types/temporary-credit-limit";
+import type { TemporaryCreditStatus } from "@/modules/temporary-credit-limits/types";
 
 export const STATUS_STYLES: Record<
   TemporaryCreditStatus,

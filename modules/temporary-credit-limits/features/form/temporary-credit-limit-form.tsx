@@ -8,7 +8,7 @@ import {
     FormSelect,
     FormTextarea,
 } from "@/components/custom/form-components";
-import type { TemporaryCreditLimitFormData } from "@/types/temporary-credit-limit";
+import type { TemporaryCreditLimitFormData } from "@/modules/temporary-credit-limits/types";
 
 type SubmitResult = {
     success: boolean;

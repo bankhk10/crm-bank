@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/types/temporary-credit-limit";
+import type { TemporaryCreditLimitWithRelations, TemporaryCreditStatus } from "@/modules/temporary-credit-limits/types";
 import Link from "next/link";
 import {
   Edit,
