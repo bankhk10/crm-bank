@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 export interface InvoiceData {
   invoiceNumber: string;
   date: string;
@@ -122,6 +125,14 @@ export const sampleInvoiceData: InvoiceData = {
  * @returns HTML string representation of the invoice
  */
 export function renderInvoiceTemplate(data: InvoiceData): string {
+  // Read localized image as base64 strings so puppeteer can easily render it offline / headless without issues.
+  const logoPath = path.join(process.cwd(), "public", "images", "logo.png");
+  let base64Logo = "";
+  if (fs.existsSync(logoPath)) {
+    const bitmap = fs.readFileSync(logoPath);
+    base64Logo = "data:image/png;base64," + bitmap.toString("base64");
+  }
+
   const itemsHtml = data.items
     .map(
       (item) => `
@@ -166,10 +177,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           font-size: 28px;
           text-transform: uppercase;
         }
-        .header .company-name {
-          font-size: 20px;
-          font-weight: bold;
-          color: #555;
+        .header .company-logo {
+          max-height: 50px; /* ปรับขนาด Logo ตามต้องการ */
+          object-fit: contain;
         }
         .customer-info-container {
           display: flex;
@@ -271,7 +281,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     </head>
     <body>
       <div class="header">
-        <div class="company-name">CRM Bank Co., Ltd.</div>
+        <div>
+           ${base64Logo ? `<img src="${base64Logo}" class="company-logo" alt="CRM Bank Logo" />` : `<div class="company-name">CRM Bank Co., Ltd.</div>`}
+        </div>
         <div>
           <h1>ใบแจ้งหนี้ (INVOICE)</h1>
         </div>
