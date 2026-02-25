@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db as prisma } from "@/lib/db";
 import { Prisma } from "@/lib/db";
 import type { SaleFormData } from "@/modules/sales/types";
@@ -593,3 +593,4 @@ export async function DELETE(
     );
   }
 }
+

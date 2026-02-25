@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { findCompanyById } from "@/modules/companies/infrastructure/company.repository";
@@ -77,3 +77,4 @@ export default async function CompanyDetailPage({ params }: PageProps) {
 
   return <CompanyDetailView company={serializedCompany} />;
 }
+

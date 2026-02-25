@@ -1,7 +1,7 @@
 import { ReportType } from "../types";
 import { db as prisma, DataAccessLevel } from "@/lib/db";
 import { startOfYear, endOfYear, format } from "date-fns";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 
 // Helper to get team employee IDs (employees with same manager)
 async function getTeamEmployeeIds(session: {
@@ -292,3 +292,4 @@ export async function getOrderHistory(
 
   return mappedOrders;
 }
+

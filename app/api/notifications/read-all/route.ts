@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { markAllAsReadUseCase } from "@/modules/notifications/application";
 
 export async function POST() {
@@ -11,3 +11,4 @@ export async function POST() {
   await markAllAsReadUseCase(session.user.id);
   return NextResponse.json({ success: true });
 }
+

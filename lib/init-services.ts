@@ -4,7 +4,7 @@
  */
 
 import { temporaryCreditExpiryService } from "./services/temporary-credit-expiry.service";
-import { invalidateAllSessions } from "./force-logout.service";
+import { invalidateAllSessions } from "@/modules/auth/application/force-logout.service";
 
 let isInitialized = false;
 

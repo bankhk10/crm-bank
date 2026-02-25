@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db as prisma } from "@/lib/db";
 import { allocateStockUseCase as allocateStock } from "@/modules/products/application";
 import { calculateOrderExpiryDate } from "@/modules/sales";
@@ -194,3 +194,4 @@ export async function POST(
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
+

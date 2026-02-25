@@ -3,7 +3,11 @@
  * สคริปต์ทดสอบการทำงานของระบบบังคับ logout
  */
 
-import { invalidateAllSessions, getSessionVersion, isSessionValid } from "../lib/force-logout.service";
+import {
+  invalidateAllSessions,
+  getSessionVersion,
+  isSessionValid,
+} from "../modules/auth/application/force-logout.service";
 
 async function testForceLogout() {
   console.log("🧪 Testing Force Logout Functionality\n");
@@ -52,12 +56,17 @@ async function testForceLogout() {
     console.log(`   Old version invalid: ${!isOldVersionValid}`);
     console.log(`   New version valid: ${isNewVersionValid}`);
 
-    if (initialVersion !== newVersion && !isOldVersionValid && isNewVersionValid) {
-      console.log("\n✅ All tests passed! Force logout functionality is working correctly.");
+    if (
+      initialVersion !== newVersion &&
+      !isOldVersionValid &&
+      isNewVersionValid
+    ) {
+      console.log(
+        "\n✅ All tests passed! Force logout functionality is working correctly.",
+      );
     } else {
       console.log("\n❌ Some tests failed. Please check the implementation.");
     }
-
   } catch (error) {
     console.error("\n❌ Test failed with error:", error);
   }

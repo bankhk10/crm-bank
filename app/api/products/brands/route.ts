@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db, Prisma } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 
 const resourcePath = "/api/products";
@@ -101,3 +101,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

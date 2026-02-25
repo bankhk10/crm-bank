@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { redirect } from "next/navigation";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { getShippingCompanyDetailUseCase } from "@/modules/shipping-companies/application";
@@ -79,3 +79,4 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
         />
     );
 }
+

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { applyDataScope } from "@/lib/data-scope";
 import type { SaleFormData } from "@/modules/sales/types";
 import type { SaleStatus, PaymentTerm } from "@/lib/db";
@@ -138,3 +138,4 @@ export async function listSalesAction(params: {
     return { success: false, sales: [], total: 0 };
   }
 }
+

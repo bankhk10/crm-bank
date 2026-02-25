@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db as prisma } from "@/lib/db";
 import { SaleStatus, PaymentTerm, Prisma } from "@/lib/db";
 import type { SalesFilterParams, SaleFormData } from "@/modules/sales/types";
@@ -498,3 +498,4 @@ function generateSaleNumber(lastNumber?: string | null): string {
   const newSeq = String(lastSeq + 1).padStart(4, "0");
   return `${prefix}${newSeq}`;
 }
+

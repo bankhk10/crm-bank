@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "./auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 
 interface GuardSuccess<TSession> {
   session: TSession;
@@ -10,7 +10,7 @@ interface GuardFailure {
 }
 
 export async function guardPermission(
-  required: string | string[]
+  required: string | string[],
 ): Promise<GuardSuccess<any> | GuardFailure> {
   // `auth` exported from NextAuth is a handler; call it as-is at runtime but avoid depending on its compile-time type.
   // Use `any` here to avoid tight coupling with NextAuth handler types.
@@ -19,7 +19,7 @@ export async function guardPermission(
 
   if (!session?.user) {
     return {
-      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     };
   }
 
@@ -28,7 +28,7 @@ export async function guardPermission(
 
   if (!allowed) {
     return {
-      response: NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
     };
   }
 

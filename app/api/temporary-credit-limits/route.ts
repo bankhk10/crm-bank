@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { startOfDay, endOfDay } from "date-fns";
 import { Prisma } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/modules/rbac";
 import { applyDataScope } from "@/lib/data-scope";
@@ -101,3 +101,4 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ temporaryCreditLimits, total, page, perPage });
 }
+

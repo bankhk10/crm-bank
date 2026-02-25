@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db as prisma } from "@/lib/db";
 import { createApiContext, createApiLogger, logReject } from "@/lib/logger";
 import { sendNotificationUseCase } from "@/modules/notifications/application";
@@ -124,3 +124,4 @@ export async function POST(
     );
   }
 }
+

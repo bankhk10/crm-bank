@@ -1,7 +1,7 @@
 "use server";
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { getDashboardDataAction } from "@/modules/dashboard";
 
 export async function GET() {
@@ -28,3 +28,4 @@ export async function GET() {
     },
   });
 }
+

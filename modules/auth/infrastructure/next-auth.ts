@@ -7,15 +7,18 @@ import type {
   EditAccessLevel,
   DeleteAccessLevel,
 } from "@/lib/db";
-import type { SessionPermission } from "@/types/next-auth";
-import { db } from "./db";
+import type { SessionPermission } from "../types/next-auth";
+import { db } from "@/lib/db";
 import {
   buildDataAccessByResource,
   buildEditAccessByResource,
   buildDeleteAccessByResource,
   buildPermissionMap,
-} from "./rbac";
-import { getSessionVersion, isSessionValid } from "./force-logout.service";
+} from "@/lib/rbac";
+import {
+  getSessionVersion,
+  isSessionValid,
+} from "../application/force-logout.service";
 
 const credentialsSchema = z.object({
   email: z.string().email(),

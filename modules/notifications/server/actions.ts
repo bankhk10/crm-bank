@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import {
   getUserNotificationsUseCase,
   markAsReadUseCase,
@@ -69,3 +69,4 @@ export async function getUnreadCountAction() {
 
   return getUnreadCountUseCase(session.user.id);
 }
+

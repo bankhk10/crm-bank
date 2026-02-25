@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { getUserNotificationsUseCase } from "@/modules/notifications/application";
 
 export async function GET() {
@@ -11,3 +11,4 @@ export async function GET() {
   const notifications = await getUserNotificationsUseCase(session.user.id);
   return NextResponse.json({ notifications });
 }
+

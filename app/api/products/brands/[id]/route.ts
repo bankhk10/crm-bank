@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -131,3 +131,4 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     );
   }
 }
+

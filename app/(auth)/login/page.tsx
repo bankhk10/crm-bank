@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import LoginForm from "./login-form";
-import { auth } from "@/lib/auth";
+import LoginForm from "@/modules/auth/features/login/components/login-form";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { getDefaultRouteForRoles } from "@/modules/rbac/application/authorization";
 import { safeRedirect } from "@/lib/safe-redirect";
 

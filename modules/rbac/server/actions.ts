@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import {
   getRBACSummaryUseCase,
@@ -514,3 +514,4 @@ export async function updateUserOverridesAction(
     };
   }
 }
+

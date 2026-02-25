@@ -14,7 +14,7 @@ import {
   subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { DataAccessLevel } from "@/lib/db";
 
 // Helper to get team employee IDs (employees with same manager)
@@ -1827,3 +1827,4 @@ export async function getAllSalespersonsForReport(): Promise<
     };
   });
 }
+

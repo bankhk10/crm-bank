@@ -3,7 +3,7 @@
  * บริการสำหรับบังคับให้ผู้ใช้ทั้งหมด logout เมื่อเริ่มต้น application
  */
 
-import { db } from "./db";
+import { db } from "@/lib/db";
 
 // Session version ใช้สำหรับบังคับ logout ทุกครั้งที่มีการเปลี่ยนแปลง
 let currentSessionVersion: string | null = null;
@@ -21,7 +21,7 @@ async function getCurrentSessionVersion(): Promise<string> {
     // หรือสร้าง system config ถ้าจำเป็น
     const systemConfig = await db.user.findFirst({
       where: { email: "system@session.version" },
-      select: { updatedAt: true }
+      select: { updatedAt: true },
     });
 
     if (systemConfig) {
@@ -34,8 +34,8 @@ async function getCurrentSessionVersion(): Promise<string> {
           email: "system@session.version",
           name: "System Session Version",
           password: "system", // ไม่ต้องการความปลอดภัยจริง
-          isActive: false
-        }
+          isActive: false,
+        },
       });
       currentSessionVersion = now.getTime().toString();
     }
@@ -54,16 +54,16 @@ async function getCurrentSessionVersion(): Promise<string> {
 export async function invalidateAllSessions(): Promise<void> {
   try {
     console.log("Invalidating all user sessions...");
-    
+
     // อัปเดต session version โดยการอัปเดต updatedAt ของ system config
     await db.user.updateMany({
       where: { email: "system@session.version" },
-      data: { updatedAt: new Date() }
+      data: { updatedAt: new Date() },
     });
 
     // Reset cache
     currentSessionVersion = null;
-    
+
     console.log("All sessions invalidated successfully");
   } catch (error) {
     console.error("Error invalidating sessions:", error);
@@ -74,7 +74,9 @@ export async function invalidateAllSessions(): Promise<void> {
 /**
  * ตรวจสอบว่า session ยังถูกต้องหรือไม่
  */
-export async function isSessionValid(sessionVersion?: string): Promise<boolean> {
+export async function isSessionValid(
+  sessionVersion?: string,
+): Promise<boolean> {
   if (!sessionVersion) {
     return false;
   }

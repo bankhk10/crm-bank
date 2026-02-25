@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { listShippingCompaniesUseCase } from "@/modules/shipping-companies/application";
@@ -77,3 +77,4 @@ export default async function ShippingCompaniesPage({ searchParams }: PageProps)
         />
     );
 }
+

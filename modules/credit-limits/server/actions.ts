@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/lib/rbac";
 import { createCreditLimitUseCase } from "../application/create-credit-limit";
 import { updateCreditLimitUseCase } from "../application/update-credit-limit";
@@ -66,3 +66,4 @@ export async function deleteCreditLimitAction(id: string) {
   revalidatePath("/credit-limits");
   return { success: true };
 }
+

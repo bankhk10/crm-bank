@@ -4,17 +4,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { invalidateAllSessions } from "@/lib/force-logout.service";
-
+import { invalidateAllSessions } from "@/modules/auth/application/force-logout.service";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 export async function POST(request: NextRequest) {
   try {
     // ตรวจสอบ authorization (ถ้าต้องการ)
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // ในที่นี้สามารถเพิ่มการตรวจสอบ token หรือ API key ได้
@@ -27,13 +24,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "All sessions have been invalidated. Users will need to login again."
+      message:
+        "All sessions have been invalidated. Users will need to login again.",
     });
   } catch (error) {
     console.error("Error in force logout API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -41,6 +39,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   return NextResponse.json({
     message: "Force logout API. Use POST to invalidate all sessions.",
-    usage: "POST /api/admin/force-logout"
+    usage: "POST /api/admin/force-logout",
   });
 }

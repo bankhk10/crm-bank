@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db as prisma } from "@/lib/db";
 import { SaleStatus } from "@/lib/db";
 import {
@@ -370,3 +370,4 @@ export async function POST(
     );
   }
 }
+

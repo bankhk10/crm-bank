@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { RBACConsole } from "@/modules/rbac";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/modules/rbac";
 
 export default async function RBACPage() {
@@ -24,3 +24,4 @@ export default async function RBACPage() {
     </div>
   );
 }
+

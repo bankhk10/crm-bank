@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { AuditLogFilter, SecurityLogFilter, AppLogFilter } from "../types";
 import * as application from "../application";
 
@@ -104,3 +104,4 @@ export async function getSecurityEventsByTypeAction() {
   await requireAdminAccess();
   return application.getSecurityEventsByTypeUseCase();
 }
+

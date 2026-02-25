@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { revalidatePath } from "next/cache";
 import { updateFulfillmentUseCase, getLotOptionsUseCase } from "../application";
 import { findSales } from "@/modules/sales/infrastructure/sale.repository";
@@ -100,3 +100,4 @@ export async function getFulfillmentsAction(params: {
     throw new Error("Failed to fetch fulfillments");
   }
 }
+

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
 
@@ -274,3 +274,4 @@ export async function GET(
     topProducts,
   });
 }
+

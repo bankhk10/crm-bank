@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
 import { Prisma } from "@/lib/db";
@@ -210,3 +210,4 @@ export async function POST(request: Request, context: any) {
     return NextResponse.json({ temporaryCreditLimit });
   }
 }
+

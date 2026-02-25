@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { findEmployees } from "@/modules/employee/infrastructure/employee.repository";
@@ -59,3 +59,4 @@ export default async function EmployeePage() {
     </section>
   );
 }
+

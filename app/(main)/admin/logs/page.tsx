@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { redirect } from "next/navigation";
 import LogViewerClient from "./log-viewer-client";
 
@@ -71,3 +71,4 @@ function LogViewerSkeleton() {
     </div>
   );
 }
+

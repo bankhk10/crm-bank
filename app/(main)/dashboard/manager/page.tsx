@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { redirect } from "next/navigation";
 import { getDashboardDataAction } from "@/modules/dashboard";
 import DashboardClient from "./dashboard-client";
@@ -29,3 +29,4 @@ export default async function DashboardPage() {
 
   return <DashboardClient data={data} />;
 }
+

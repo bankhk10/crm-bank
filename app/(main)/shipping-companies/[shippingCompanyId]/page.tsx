@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import { redirect } from "next/navigation";
 import { getShippingCompanyDetailUseCase } from "@/modules/shipping-companies/application";
@@ -61,3 +61,4 @@ export default async function ShippingCompanyDetailPage({ params }: PageProps) {
 
     return <ShippingCompanyDetailView shippingCompany={serializedShippingCompany} />;
 }
+

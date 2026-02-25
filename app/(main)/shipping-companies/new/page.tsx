@@ -1,5 +1,5 @@
 import React from "react";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { redirect } from "next/navigation";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { ShippingCompanyNewView } from "@/modules/shipping-companies/features/form/shipping-company-new-view";
@@ -37,3 +37,4 @@ export default async function NewShippingCompanyPage() {
 
     return <ShippingCompanyNewView customerOptions={customerOptions} />;
 }
+

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { isAuthorized } from "@/modules/rbac";
 import fs from "fs";
 import path from "path";
@@ -50,3 +50,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
+
