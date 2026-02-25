@@ -8,7 +8,7 @@ import {
   revertStockDeductionFromLots,
   releaseStock,
 } from "@/src/core/stock";
-import { finalizePointsForSale } from "@/src/core/points";
+import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
 import type { LotAllocation } from "@/src/core/stock/stock.types";
 
 export async function POST(

@@ -6,9 +6,9 @@ import {
   releaseStock,
   revertStockDeductionFromLots,
 } from "@/src/core/stock";
-import { finalizePointsForSale } from "@/src/core/points";
+import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
 import type { LotAllocation, LotInfo } from "@/src/core/stock/stock.types";
-import { Prisma, SaleStatus } from "@/src/infrastructure/database";
+import { SaleStatus } from "@/src/infrastructure/database";
 
 export interface UpdateFulfillmentData {
   status?: SaleStatus;

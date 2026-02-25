@@ -8,6 +8,3 @@ export * from "./stock";
 
 // Sales domain
 export * from "./sales";
-
-// Points domain
-export * from "./points";
