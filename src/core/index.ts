@@ -5,6 +5,3 @@
 
 // Stock domain
 export * from "./stock";
-
-// Sales domain
-export * from "./sales";

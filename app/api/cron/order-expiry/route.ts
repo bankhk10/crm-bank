@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkExpiredOrders, checkOverdueOrders } from "@/src/core/sales";
+import {
+  checkExpiredOrdersUseCase as checkExpiredOrders,
+  checkOverdueOrdersUseCase as checkOverdueOrders,
+} from "@/modules/sales";
 
 /**
  * API Route for Order Expiry Cron Job
@@ -59,7 +62,7 @@ export async function GET(request: NextRequest) {
       (results.overdue?.errors.length || 0);
 
     console.log(
-      `Order expiry check completed: ${totalProcessed} processed, ${totalErrors} errors`
+      `Order expiry check completed: ${totalProcessed} processed, ${totalErrors} errors`,
     );
 
     return NextResponse.json({
@@ -75,7 +78,7 @@ export async function GET(request: NextRequest) {
         error: "Internal server error",
         message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,8 +1,3 @@
-/**
- * Sales Types
- * Type definitions for sales domain
- */
-
 import type { SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
 
 /**
@@ -31,52 +26,6 @@ export interface DeliveryDateUpdateResult {
 export interface OrderCheckResult {
   processed: number;
   errors: string[];
-}
-
-/**
- * Sale order input for creating a sale
- */
-export interface CreateSaleInput {
-  customerId: string;
-  employeeId: string;
-  paymentTerm: PaymentTerm;
-  saleDate: Date;
-  requestedDeliveryDate?: Date;
-  deliveryMethod?: string;
-  pickupCompanyId?: string;
-  billingAddress?: string;
-  shippingAddress?: string;
-  useCustomShipping?: boolean;
-  notes?: string;
-  items: CreateSaleItemInput[];
-  createdById: string;
-}
-
-/**
- * Sale item input
- */
-export interface CreateSaleItemInput {
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-  originalPrice: number;
-  priceModified?: boolean;
-}
-
-/**
- * Sale filter parameters
- */
-export interface SalesFilterParams {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  status?: SaleStatus | SaleStatus[];
-  startDate?: Date | string;
-  endDate?: Date | string;
-  customerId?: string;
-  employeeId?: string;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
 }
 
 /**

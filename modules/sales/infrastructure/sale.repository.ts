@@ -557,3 +557,67 @@ export async function softDeleteSale(id: string, userId: string) {
 
   return sale;
 }
+/**
+ * Find a single sale by its sequential sale number.
+ */
+export async function findSaleBySaleNumber(saleNumber: string) {
+  return db.sale.findFirst({
+    where: { saleNumber, deletedAt: null },
+    include: listIncludes,
+  });
+}
+
+/**
+ * Find the last sale record's number.
+ */
+export async function getLastSale() {
+  return db.sale.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { saleNumber: true },
+  });
+}
+
+/**
+ * Create a history entry for a sale's status change.
+ */
+export async function createStatusHistory(
+  saleId: string,
+  status: SaleStatus,
+  changedById: string,
+  notes?: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const client = tx || db;
+  return client.saleStatusHistory.create({
+    data: {
+      saleId,
+      status,
+      notes,
+      changedById,
+    },
+  });
+}
+
+/**
+ * Get product with its active stock lots.
+ */
+export async function getProductWithStock(productId: string) {
+  return db.product.findUnique({
+    where: { id: productId },
+    include: {
+      stockLots: {
+        where: { isUsed: false },
+      },
+    },
+  });
+}
+
+/**
+ * Verify if a user exists in the database.
+ */
+export async function findUserExists(userId: string) {
+  return db.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+}

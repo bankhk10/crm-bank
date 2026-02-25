@@ -61,3 +61,22 @@ export {
   buildCompanyAddress,
   cleanAddressPrefix,
 } from "./address-utils";
+
+// ─────────────────────────────────────────────
+// Order Management & Utils
+// ─────────────────────────────────────────────
+
+export {
+  checkExpiredOrdersUseCase,
+  checkOverdueOrdersUseCase,
+  updateDeliveryDateUseCase,
+  getOrderExpiryInfoUseCase,
+} from "./order-management";
+
+export {
+  generateSaleNumber,
+  calculateTotals,
+  calculateOrderExpiryDate,
+} from "./utils";
+
+export { applyDataAccessFilters } from "./authorization";
