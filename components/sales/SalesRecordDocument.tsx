@@ -462,12 +462,12 @@ const SalesRecordDocument = React.forwardRef<
           <h1 className="doc-title">ใบบันทึกการขาย</h1>
         </div>
         <div className="doc-header-right">
-          {/* <p className="sale-number-label">เลขที่เอกสาร</p>
+          <p className="sale-number-label">เลขที่เอกสาร</p>
           <p className="sale-number">{sale.saleNumber}</p>
           <p className="sale-date">
             วันที่:{" "}
             {format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th })}
-          </p> */}
+          </p>
         </div>
       </div>
 
