@@ -1,4 +1,4 @@
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import { getRegionByProvince } from "@/lib/province-region-mapping";
 
 async function main() {

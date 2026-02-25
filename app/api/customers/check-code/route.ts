@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 /**
  * GET /api/customers/check-code?code=C00001&excludeId=xxx

@@ -6,7 +6,7 @@
 import type {
   CustomerType,
   CustomerStatus,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 /**
  * Customer type labels in Thai

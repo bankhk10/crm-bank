@@ -3,7 +3,7 @@
  * Centralized sale status definitions and labels
  */
 
-import type { SaleStatus } from "@/src/infrastructure/database";
+import type { SaleStatus } from "@/lib/db";
 
 /**
  * Sale status labels in Thai

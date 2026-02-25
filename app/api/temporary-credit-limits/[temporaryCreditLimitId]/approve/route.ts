@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 
 const resourcePath = "/api/temporary-credit-limits";
 

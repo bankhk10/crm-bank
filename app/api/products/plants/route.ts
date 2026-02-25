@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { db, Prisma } from "@/src/infrastructure/database";
+import { db, Prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { isAuthorized } from "@/modules/rbac";
 

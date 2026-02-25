@@ -1,4 +1,4 @@
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 import { AuditLogFilter, SecurityLogFilter, AppLogFilter } from "../types";
 
 // ==========================================

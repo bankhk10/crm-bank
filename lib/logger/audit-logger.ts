@@ -3,8 +3,8 @@
  * บริการสำหรับ Audit Logging
  */
 
-import { AuditAction } from "@/src/infrastructure/database";
-import { db as prisma } from "@/src/infrastructure/database";
+import { AuditAction } from "@/lib/db";
+import { db as prisma } from "@/lib/db";
 import {
   AuditLogCreateInput,
   AuditableEntity,

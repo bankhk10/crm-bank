@@ -5,7 +5,7 @@ import {
   countTemporaryCreditLimits,
   FindTemporaryCreditLimitsArgs,
 } from "../infrastructure/temporary-credit-limit.repository";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 
 export * from "./validations";
 export * from "./create-temporary-credit-limit";

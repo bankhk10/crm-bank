@@ -11,7 +11,7 @@ import type {
   PermissionType,
   RolePermission,
   UserPermissionOverride,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 /**
  * Session permission structure

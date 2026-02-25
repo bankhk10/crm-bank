@@ -4,8 +4,8 @@
  * No business logic, no auth checks.
  */
 
-import { db } from "@/src/infrastructure/database";
-import type { NotificationType } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
+import type { NotificationType } from "@/lib/db";
 
 export interface CreateNotificationData {
   userId: string;

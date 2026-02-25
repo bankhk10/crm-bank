@@ -3,7 +3,7 @@ import {
   SaleItem,
   SaleStatus,
   PaymentTerm,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 export type { Sale, SaleItem, SaleStatus, PaymentTerm };
 

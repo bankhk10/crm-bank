@@ -1,4 +1,4 @@
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import * as StockRepository from "@/modules/products/infrastructure/stock.repository";
 import {
   confirmStockDeductionUseCase as confirmStockDeduction,
@@ -8,7 +8,7 @@ import {
 } from "@/modules/products/application";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
 import type { LotAllocation, LotInfo } from "@/modules/products/types/stock";
-import { SaleStatus } from "@/src/infrastructure/database";
+import { SaleStatus } from "@/lib/db";
 
 export interface UpdateFulfillmentData {
   status?: SaleStatus;

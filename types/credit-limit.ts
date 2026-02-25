@@ -1,4 +1,4 @@
-import { CreditLimit, CreditLimitStatus } from "@/src/infrastructure/database";
+import { CreditLimit, CreditLimitStatus } from "@/lib/db";
 import { Customer } from "./customers";
 
 export type { CreditLimit, CreditLimitStatus };

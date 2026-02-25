@@ -7,7 +7,7 @@ import {
   AuditAction,
   LogSeverity,
   SecurityEventType,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 // ==========================================
 // Common Types

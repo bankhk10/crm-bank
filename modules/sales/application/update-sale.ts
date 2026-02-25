@@ -11,7 +11,7 @@ import {
   findProductsByIds,
   updateSale,
 } from "../infrastructure/sale.repository";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 // ─────────────────────────────────────────────
 // Helpers

@@ -12,7 +12,7 @@ import {
   extractUserAgent,
 } from "@/lib/logger";
 import type { RequestContext, AuditableEntity } from "@/lib/logger/types";
-import type { AuditAction } from "@/src/infrastructure/database";
+import type { AuditAction } from "@/lib/db";
 
 // Session type
 interface SessionUser {

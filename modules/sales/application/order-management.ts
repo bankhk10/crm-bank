@@ -1,4 +1,4 @@
-import { db as prisma, Prisma } from "@/src/infrastructure/database";
+import { db as prisma, Prisma } from "@/lib/db";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 import { ORDER_CONFIG } from "@/src/shared/constants";
 import {

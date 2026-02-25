@@ -1,5 +1,5 @@
-import { Prisma, SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
-import { db } from "@/src/infrastructure/database";
+import { Prisma, SaleStatus, PaymentTerm } from "@/lib/db";
+import { db } from "@/lib/db";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 
 // ─────────────────────────────────────────────

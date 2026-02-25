@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma, SaleStatus } from "@/src/infrastructure/database";
+import { db as prisma, SaleStatus } from "@/lib/db";
 
 /**
  * GET /api/sales/summary

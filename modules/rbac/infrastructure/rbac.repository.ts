@@ -1,10 +1,10 @@
-import { db, Prisma } from "@/src/infrastructure/database";
+import { db, Prisma } from "@/lib/db";
 import type {
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
   PermissionType,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 // ─────────────────────────────────────────────
 // Types

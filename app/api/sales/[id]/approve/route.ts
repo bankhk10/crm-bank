@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 import { allocateStockUseCase as allocateStock } from "@/modules/products/application";
 import { calculateOrderExpiryDate } from "@/modules/sales";
 import { createApiContext, createApiLogger, logApprove } from "@/lib/logger";

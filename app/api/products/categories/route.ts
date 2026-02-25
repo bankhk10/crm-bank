@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { db, Prisma } from "@/src/infrastructure/database";
+import { db, Prisma } from "@/lib/db";
 
 // GET - List all product categories
 export async function GET(request: NextRequest) {

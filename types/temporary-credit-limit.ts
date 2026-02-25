@@ -1,4 +1,4 @@
-import { TemporaryCreditStatus, User } from "@/src/infrastructure/database";
+import { TemporaryCreditStatus, User } from "@/lib/db";
 import { Customer } from "./customers";
 
 export type { TemporaryCreditStatus };
@@ -20,8 +20,7 @@ export interface TemporaryCreditLimit {
   deletedAt?: Date | string | null;
 }
 
-export interface TemporaryCreditLimitWithRelations
-  extends TemporaryCreditLimit {
+export interface TemporaryCreditLimitWithRelations extends TemporaryCreditLimit {
   customer: Customer;
   requestedBy?: Partial<User> | null;
   approvedBy?: Partial<User> | null;

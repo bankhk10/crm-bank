@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isAuthorized } from "@/lib/rbac";

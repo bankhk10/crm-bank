@@ -1,4 +1,4 @@
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import { createCreditLimit as createRepoCreditLimit } from "../infrastructure/credit-limit.repository";
 import { creditLimitSchema } from "./validations";
 

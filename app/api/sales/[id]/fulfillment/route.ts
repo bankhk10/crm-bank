@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/src/infrastructure/database";
-import { SaleStatus } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
+import { SaleStatus } from "@/lib/db";
 import {
   confirmStockDeductionUseCase as confirmStockDeduction,
   confirmStockDeductionWithLotsUseCase as confirmStockDeductionWithLots,

@@ -1,5 +1,5 @@
-import { db } from "@/src/infrastructure/database";
-import type { Prisma } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
+import type { Prisma } from "@/lib/db";
 
 export async function findCreditLimitById(id: string) {
   return db.creditLimit.findFirst({

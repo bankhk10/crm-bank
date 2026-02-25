@@ -1,4 +1,4 @@
-import { db, Prisma } from "@/src/infrastructure/database";
+import { db, Prisma } from "@/lib/db";
 import { PointsRepository } from "../infrastructure/points.repository";
 
 /**

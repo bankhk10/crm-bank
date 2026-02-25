@@ -2,8 +2,8 @@ import { startOfDay, endOfDay } from "date-fns";
 import {
   Prisma,
   type ShippingCompanyStatus,
-} from "@/src/infrastructure/database";
-import { db } from "@/src/infrastructure/database";
+} from "@/lib/db";
+import { db } from "@/lib/db";
 
 // ─────────────────────────────────────────────
 // Types

@@ -6,7 +6,7 @@ import {
   findTemporaryCreditLimitById,
   updateTemporaryCreditLimit,
 } from "../infrastructure/temporary-credit-limit.repository";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 
 export async function updateTemporaryCreditLimitUseCase(
   id: string,

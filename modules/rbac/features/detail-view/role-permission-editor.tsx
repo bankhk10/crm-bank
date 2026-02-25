@@ -8,7 +8,7 @@ import type {
     DataAccessLevel,
     EditAccessLevel,
     DeleteAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {

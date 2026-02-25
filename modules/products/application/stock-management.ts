@@ -3,8 +3,8 @@
  * Business logic for stock management
  */
 
-import { db as prisma } from "@/src/infrastructure/database";
-import type { Prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
+import type { Prisma } from "@/lib/db";
 import type {
   StockAllocationResult,
   BackorderItem,

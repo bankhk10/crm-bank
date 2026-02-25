@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 
 export const dynamic = "force-dynamic";

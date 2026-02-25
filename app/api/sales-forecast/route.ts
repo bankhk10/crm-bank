@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 
 const buildEmployeeName = (employee: {
   name: string;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/src/infrastructure/database";
-import { SaleStatus, PaymentTerm, Prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
+import { SaleStatus, PaymentTerm, Prisma } from "@/lib/db";
 import type { SalesFilterParams, SaleFormData } from "@/types/sales";
 import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
 import { sendNotificationUseCase } from "@/modules/notifications/application";

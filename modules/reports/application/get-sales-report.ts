@@ -1,5 +1,5 @@
 import { ReportType } from "../types";
-import { db as prisma, DataAccessLevel } from "@/src/infrastructure/database";
+import { db as prisma, DataAccessLevel } from "@/lib/db";
 import { startOfYear, endOfYear, format } from "date-fns";
 import { auth } from "@/lib/auth";
 

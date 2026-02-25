@@ -1,6 +1,6 @@
 import { startOfDay, endOfDay } from "date-fns";
-import { Prisma } from "@/src/infrastructure/database";
-import { db } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export type GetCompaniesParams = {
   page?: number;

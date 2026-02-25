@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

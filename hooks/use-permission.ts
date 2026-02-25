@@ -5,7 +5,7 @@ import type {
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 import { useCurrentUser } from "./use-current-user";
 
 interface AccessScopeCheck {

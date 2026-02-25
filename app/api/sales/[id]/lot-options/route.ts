@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 import * as StockRepository from "@/modules/products/infrastructure/stock.repository";
 import type { LotInfo } from "@/modules/products/types/stock";
 

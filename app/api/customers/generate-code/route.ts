@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import { isAuthorized } from "@/modules/rbac";
 
 const resourcePath = "/api/customers";

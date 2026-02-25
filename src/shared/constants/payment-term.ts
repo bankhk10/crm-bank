@@ -3,7 +3,7 @@
  * Centralized payment term definitions and labels
  */
 
-import type { PaymentTerm } from "@/src/infrastructure/database";
+import type { PaymentTerm } from "@/lib/db";
 
 /**
  * Payment term labels in Thai

@@ -1,4 +1,4 @@
-import type { SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
+import type { SaleStatus, PaymentTerm } from "@/lib/db";
 
 /**
  * Order expiry info result

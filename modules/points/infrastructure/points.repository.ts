@@ -1,4 +1,4 @@
-import { db, Prisma } from "@/src/infrastructure/database";
+import { db, Prisma } from "@/lib/db";
 
 export const PointsRepository = {
   /**

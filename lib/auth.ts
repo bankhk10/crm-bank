@@ -6,7 +6,7 @@ import type {
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 import type { SessionPermission } from "@/types/next-auth";
 import { db } from "./db";
 import {

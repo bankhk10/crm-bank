@@ -3,7 +3,7 @@ import type {
   EditAccessLevel,
   DeleteAccessLevel,
   PermissionType,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 import type { DefaultSession } from "next-auth";
 
 export interface SessionPermission {

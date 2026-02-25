@@ -5,8 +5,8 @@
  * โดยอัตโนมัติ
  */
 
-import { db } from "@/src/infrastructure/database";
-import { Prisma } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
+import { Prisma } from "@/lib/db";
 
 export class TemporaryCreditExpiryService {
   private intervalId: NodeJS.Timeout | null = null;

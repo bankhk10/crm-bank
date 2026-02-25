@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 interface RouteParams {

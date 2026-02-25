@@ -1,4 +1,4 @@
-import { db as prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
 import {
   startOfDay,
   endOfDay,
@@ -15,7 +15,7 @@ import {
 } from "date-fns";
 import { th } from "date-fns/locale";
 import { auth } from "@/lib/auth";
-import { DataAccessLevel } from "@/src/infrastructure/database";
+import { DataAccessLevel } from "@/lib/db";
 
 // Helper to get team employee IDs (employees with same manager)
 async function getTeamEmployeeIds(session: {

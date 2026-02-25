@@ -1,6 +1,6 @@
 import { findExpiredTemporaryCredits } from "../infrastructure/temporary-credit-limit.repository";
-import { db } from "@/src/infrastructure/database";
-import { Prisma } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
+import { Prisma } from "@/lib/db";
 
 export async function expireTemporaryCreditLimitsUseCase() {
   const expiredTemporaryCredits = await findExpiredTemporaryCredits();

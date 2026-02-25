@@ -1,4 +1,4 @@
-import { SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
+import { SaleStatus, PaymentTerm } from "@/lib/db";
 
 export interface SalesQueryFilters {
   search?: string;

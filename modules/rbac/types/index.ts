@@ -11,7 +11,7 @@ import {
   RolePermission,
   User,
   UserPermissionOverride,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 /**
  * RBAC Summary Response

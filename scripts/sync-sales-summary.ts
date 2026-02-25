@@ -1,5 +1,5 @@
 import { syncSalesSummary } from "@/lib/sales-summary-service";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 async function main() {
   await syncSalesSummary();

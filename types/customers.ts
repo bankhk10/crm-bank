@@ -4,7 +4,7 @@ import {
   CustomerStatus,
   CreditLimit,
   CreditLimitStatus,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 export type {
   Customer,

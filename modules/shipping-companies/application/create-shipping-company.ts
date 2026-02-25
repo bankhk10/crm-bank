@@ -1,4 +1,4 @@
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import { shippingCompanySchema } from "./validations";
 import { createShippingCompany } from "../infrastructure/shipping-company.repository";
 

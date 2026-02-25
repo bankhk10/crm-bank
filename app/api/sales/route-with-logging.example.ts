@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import {
   logger,
   auditLogger,

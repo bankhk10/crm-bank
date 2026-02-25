@@ -1,4 +1,4 @@
-import { Prisma, db } from "@/src/infrastructure/database";
+import { Prisma, db } from "@/lib/db";
 
 export interface FindTemporaryCreditLimitsArgs {
   where?: Prisma.TemporaryCreditLimitWhereInput;

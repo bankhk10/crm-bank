@@ -1,4 +1,4 @@
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import type { SaleFormData, SaleItemFormData } from "@/types/sales";
 import {
   RANDOM_OTHER_COSTS_DESCRIPTION,

@@ -1,4 +1,4 @@
-import { db as prisma, SaleStatus } from "@/src/infrastructure/database";
+import { db as prisma, SaleStatus } from "@/lib/db";
 
 export async function aggregateSalesAmount(
   start: Date,

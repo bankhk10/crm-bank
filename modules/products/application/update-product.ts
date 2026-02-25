@@ -1,4 +1,4 @@
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import {
   findProductById,
   updateProduct,

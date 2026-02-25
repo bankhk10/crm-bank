@@ -2,7 +2,7 @@ import type {
   DataAccessLevel,
   EditAccessLevel,
   DeleteAccessLevel,
-} from "@/src/infrastructure/database";
+} from "@/lib/db";
 
 export interface CurrentUser {
   id: string;

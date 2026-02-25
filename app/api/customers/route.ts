@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { startOfDay, endOfDay } from "date-fns";
-import { Prisma } from "@/src/infrastructure/database";
+import { Prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 import { isAuthorized } from "@/modules/rbac";
 import { applyDataScope } from "@/lib/data-scope";
 import { getRegionByProvince } from "@/lib/province-region-mapping";

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { db } from "@/src/infrastructure/database";
+import { db } from "@/lib/db";
 
 type RouteContext = { params: Promise<{ id: string }> };
 

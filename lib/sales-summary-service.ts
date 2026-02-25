@@ -1,5 +1,5 @@
-import { db as prisma } from "@/src/infrastructure/database";
-import { Prisma } from "@/src/infrastructure/database";
+import { db as prisma } from "@/lib/db";
+import { Prisma } from "@/lib/db";
 
 export async function syncSalesSummary(targetDate?: Date) {
   console.log("Starting Sales Summary Sync...");

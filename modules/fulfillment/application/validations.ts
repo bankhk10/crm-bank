@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SaleStatus } from "@/src/infrastructure/database";
+import { SaleStatus } from "@/lib/db";
 
 export const ObjectWithStatuses = z.object({
   status: z.nativeEnum(SaleStatus).optional(),
