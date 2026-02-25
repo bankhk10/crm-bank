@@ -17,7 +17,7 @@ export async function updateFulfillmentAction(id: string, payload: unknown) {
     revalidatePath(`/sales/${id}`);
     revalidatePath("/fulfillment");
 
-    return { success: true, sale };
+    return { success: true, saleId: sale.id };
   } catch (error) {
     console.error("updateFulfillment object:", error);
     return {
