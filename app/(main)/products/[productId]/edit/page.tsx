@@ -6,7 +6,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ProductForm, getProductAction, updateProductAction } from "@/modules/products";
 import { Card } from "@/components/ui/card";
-import type { Product } from "@/types/product";
+import type { Product } from "@/modules/products/types";
 
 export default function EditProductPage() {
   const params = useParams();

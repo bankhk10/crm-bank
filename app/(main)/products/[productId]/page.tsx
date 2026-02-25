@@ -32,7 +32,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-import type { Product } from "@/types/product";
+import type { Product } from "@/modules/products/types";
 
 export default function ProductDetailPage() {
   const params = useParams();

@@ -24,7 +24,7 @@ import {
 } from "@/components/custom/form-components";
 import FormActions from "@/components/custom/form-actions";
 import { MultiSelect } from "@/components/custom/multi-select";
-import { STATUS_OPTIONS, type ProductFormData } from "@/types/product";
+import { STATUS_OPTIONS, type ProductFormData } from "@/modules/products/types";
 import { useRandomFill } from "@/hooks/use-random-fill";
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 

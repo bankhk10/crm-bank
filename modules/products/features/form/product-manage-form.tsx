@@ -29,8 +29,8 @@ import {
   Save,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
-import type { Product, ProductManagementFormData } from "@/types/product";
-import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/types/product";
+import type { Product, ProductManagementFormData } from "@/modules/products/types";
+import { STORAGE_LOCATION_OPTIONS as storageOptions } from "@/modules/products/types";
 
 // ----------------------------------------------------------------------
 // Types & Helper Components

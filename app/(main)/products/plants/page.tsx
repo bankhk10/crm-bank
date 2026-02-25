@@ -34,7 +34,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
-import { Plant, PlantFormData } from "@/types/product";
+import { Plant, PlantFormData } from "@/modules/products/types";
 
 export default function PlantsPage() {
   const {
