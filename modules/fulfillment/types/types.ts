@@ -3,7 +3,7 @@
  */
 
 import type { DateRange } from "react-day-picker";
-import type { SaleWithRelations, SaleStatus } from "@/types/sales";
+import type { SaleWithRelations, SaleStatus } from "@/modules/sales/types";
 
 export type { SaleStatus };
 export type SaleRecord = SaleWithRelations;

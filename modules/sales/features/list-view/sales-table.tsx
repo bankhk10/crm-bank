@@ -26,7 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { SaleStatusLabels, type SaleStatus } from "@/types/sales";
+import { SaleStatusLabels, type SaleStatus } from "@/modules/sales/types";
 import CustomTable from "@/components/custom/custom-table";
 import { useSaleColumns } from "./use-sale-columns";
 import { SalesCards } from "./sales-cards";

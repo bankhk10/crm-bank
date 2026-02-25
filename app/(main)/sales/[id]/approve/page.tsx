@@ -31,8 +31,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePermission } from "@/hooks/use-permission";
-import type { SaleDetailResponse } from "@/types/sales";
-import { PaymentTermLabels } from "@/types/sales";
+import type { SaleDetailResponse } from "@/modules/sales/types";
+import { PaymentTermLabels } from "@/modules/sales/types";
 
 export default function ApproveSalePage({
   params,

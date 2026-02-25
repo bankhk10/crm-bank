@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { SaleStatus, PaymentTerm, Prisma } from "@/lib/db";
-import type { SalesFilterParams, SaleFormData } from "@/types/sales";
+import type { SalesFilterParams, SaleFormData } from "@/modules/sales/types";
 import { createApiContext, createApiLogger, logCreate } from "@/lib/logger";
 import { sendNotificationUseCase } from "@/modules/notifications/application";
 import { applyDataScope } from "@/lib/data-scope";

@@ -2,8 +2,8 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { SaleStatusLabels } from "@/types/sales";
-import type { SaleStatus } from "@/types/sales";
+import { SaleStatusLabels } from "@/modules/sales/types";
+import type { SaleStatus } from "@/modules/sales/types";
 import { STATUS_STYLE, DEFAULT_BADGE_STYLE } from "../constants";
 
 interface StatusBadgeProps {

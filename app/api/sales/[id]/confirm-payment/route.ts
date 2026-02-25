@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
-import type { PaymentConfirmationData } from "@/types/sales";
+import type { PaymentConfirmationData } from "@/modules/sales/types";
 
 // POST /api/sales/[id]/confirm-payment - Confirm payment
 export async function POST(

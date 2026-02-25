@@ -35,8 +35,8 @@ import {
     PaymentTermLabels,
     SaleStatusLabels,
     getSaleStatusColor,
-} from "@/types/sales";
-import type { SaleDetailResponse, StockWarning } from "@/types/sales";
+} from "@/modules/sales/types";
+import type { SaleDetailResponse, StockWarning } from "@/modules/sales/types";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { LotSelector } from "../../features/form/lot-selector";

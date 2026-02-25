@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/lib/db";
 import { Prisma } from "@/lib/db";
-import type { SaleFormData } from "@/types/sales";
+import type { SaleFormData } from "@/modules/sales/types";
 import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 import {
   logger,

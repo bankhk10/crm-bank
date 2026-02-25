@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useMemo } from "react";
-import type { SaleItemFormData } from "@/types/sales";
+import type { SaleItemFormData } from "@/modules/sales/types";
 import type { SaleFormProduct } from "../../types";
 
 interface UseSaleItemsOptions {

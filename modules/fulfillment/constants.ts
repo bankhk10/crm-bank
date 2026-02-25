@@ -1,4 +1,4 @@
-import type { SaleStatus } from "@/types/sales";
+import type { SaleStatus } from "@/modules/sales/types";
 
 export const STATUS_STYLE: Record<
   SaleStatus,

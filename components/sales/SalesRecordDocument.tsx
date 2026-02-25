@@ -4,8 +4,8 @@ import React from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import Image from "next/image";
-import type { SaleWithRelations } from "@/types/sales";
-import { PaymentTermLabels } from "@/types/sales";
+import type { SaleWithRelations } from "@/modules/sales/types";
+import { PaymentTermLabels } from "@/modules/sales/types";
 
 interface SalesRecordDocumentProps {
   sale: SaleWithRelations;

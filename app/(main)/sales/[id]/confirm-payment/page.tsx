@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import DatePicker from "@/components/custom/DatePicker";
 import { FormTextarea } from "@/components/custom/FormTextarea";
 import { usePermission } from "@/hooks/use-permission";
-import type { SaleWithRelations, PaymentConfirmationData } from "@/types/sales";
+import type { SaleWithRelations, PaymentConfirmationData } from "@/modules/sales/types";
 import { use } from "react";
 
 export default function ConfirmPaymentPage({

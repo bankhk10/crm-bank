@@ -5,7 +5,7 @@
  * recalculation, and persistence for updating an existing sale.
  */
 
-import type { SaleFormData } from "@/types/sales";
+import type { SaleFormData } from "@/modules/sales/types";
 import {
   findSaleById,
   findProductsByIds,

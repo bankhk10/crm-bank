@@ -5,7 +5,7 @@
  * persistence and notification for creating a new sale.
  */
 
-import type { SaleFormData } from "@/types/sales";
+import type { SaleFormData } from "@/modules/sales/types";
 import { sendNotificationUseCase } from "@/modules/notifications/application";
 import {
   findCustomerWithCredit,

@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { SaleStatus } from "@/types/sales";
-import { PaymentTermLabels } from "@/types/sales";
+import type { SaleStatus } from "@/modules/sales/types";
+import { PaymentTermLabels } from "@/modules/sales/types";
 import { TruncatedCell } from "@/components/custom/truncated-cell";
 import { ActionButton } from "@/components/custom/action-button";
 import { SaleStatusBadge } from "../../ui/sale-status-badge";

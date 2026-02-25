@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { SalesTable } from "@/modules/sales/features/list-view/sales-table";
 import type { SaleRecord } from "@/modules/sales/types";
 import { listSalesAction, deleteSaleAction } from "@/modules/sales/server/actions";
-import type { SaleStatus } from "@/types/sales";
+import type { SaleStatus } from "@/modules/sales/types";
 
 export default function SalesPage() {
   const {

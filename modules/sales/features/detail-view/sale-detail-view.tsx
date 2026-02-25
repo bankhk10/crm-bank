@@ -28,13 +28,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DetailItem } from "@/components/custom/detail-item";
-import type { SaleDetailResponse } from "@/types/sales";
+import type { SaleDetailResponse } from "@/modules/sales/types";
 import {
     SaleStatusLabels,
     PaymentTermLabels,
     getSaleStatusColor,
     getSaleStatusDotColor,
-} from "@/types/sales";
+} from "@/modules/sales/types";
 import { getSaleAction } from "../../server/actions";
 
 export function SaleDetailView({ id }: { id: string }) {

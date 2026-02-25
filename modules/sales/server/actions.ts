@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { applyDataScope } from "@/lib/data-scope";
-import type { SaleFormData } from "@/types/sales";
+import type { SaleFormData } from "@/modules/sales/types";
 import type { SaleStatus, PaymentTerm } from "@/lib/db";
 import {
   createSaleUseCase,

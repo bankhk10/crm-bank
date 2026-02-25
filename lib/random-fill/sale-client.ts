@@ -1,4 +1,4 @@
-import type { SaleFormData, SaleItemFormData } from "@/types/sales";
+import type { SaleFormData, SaleItemFormData } from "@/modules/sales/types";
 import {
   RANDOM_OTHER_COSTS_DESCRIPTION,
   RANDOM_NOTE,

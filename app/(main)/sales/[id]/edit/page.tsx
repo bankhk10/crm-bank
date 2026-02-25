@@ -6,7 +6,7 @@ import { SaleForm } from "@/modules/sales/features/form/sale-form";
 import { updateSaleAction, getSaleAction } from "@/modules/sales/server/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePermission } from "@/hooks/use-permission";
-import type { SaleFormData } from "@/types/sales";
+import type { SaleFormData } from "@/modules/sales/types";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
