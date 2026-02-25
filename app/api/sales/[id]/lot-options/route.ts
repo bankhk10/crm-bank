@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
-import { StockRepository } from "@/src/core/stock";
-import type { LotInfo } from "@/src/core/stock/stock.types";
+import * as StockRepository from "@/modules/products/infrastructure/stock.repository";
+import type { LotInfo } from "@/modules/products/types/stock";
 
 interface SuggestedAllocation {
   lotId: string;

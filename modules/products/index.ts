@@ -15,6 +15,7 @@
 
 // Types
 export * from "./types";
+export * from "./types/stock";
 
 // Constants
 export * from "./constants";

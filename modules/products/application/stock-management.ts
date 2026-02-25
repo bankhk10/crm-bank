@@ -1,11 +1,6 @@
 /**
- * Stock Service
+ * Stock Management Use Cases
  * Business logic for stock management
- *
- * Flow:
- * 1. On APPROVE: Reserve stock (increase reservedQuantity) but DON'T deduct from lots
- * 2. On SET DELIVERY DATE: Deduct from lots using FIFO, decrease availableQuantity/reservedQuantity/physicalBalance
- * 3. On REMOVE DELIVERY DATE: Return stock to lots, increase all quantities back
  */
 
 import { db as prisma } from "@/src/infrastructure/database";
@@ -14,15 +9,13 @@ import type {
   StockAllocationResult,
   BackorderItem,
   LotAllocation,
-} from "./stock.types";
-import * as StockRepository from "./stock.repository";
+} from "../types/stock";
+import * as StockRepository from "../infrastructure/stock.repository";
 
 /**
- * Reserves stock for a sale on approval.
- * Only tracks reservation in reservedQuantity - does NOT deduct from lots.
- * Lots will be deducted when delivery date is set via confirmStockDeduction.
+ * Use case: Reserves stock for a sale on approval.
  */
-export async function allocateStock(
+export async function allocateStockUseCase(
   saleId: string,
   tx?: Prisma.TransactionClient,
 ): Promise<StockAllocationResult> {
@@ -51,34 +44,26 @@ export async function allocateStock(
     for (const item of sale.items) {
       const requestedQty = item.quantity;
 
-      // Fetch available lots to check stock availability
       const lots = await StockRepository.getAvailableLots(
         item.productId,
         client,
       );
 
-      // Calculate total available
       const totalAvailable = lots.reduce((sum, lot) => sum + lot.quantity, 0);
 
-      // Calculate how much we can reserve vs backorder
       const canReserve = Math.min(totalAvailable, requestedQty);
       const backorderQty = Math.max(0, requestedQty - totalAvailable);
 
-      // Track backorder if stock is insufficient
       if (backorderQty > 0) {
         backorders.push({
           productId: item.productId,
-          productName: (item as { product?: { name?: string } }).product?.name,
+          productName: (item as any).product?.name,
           requested: item.quantity,
           allocated: canReserve,
           backorder: backorderQty,
         });
       }
 
-      // DON'T deduct from lots here - that happens when delivery date is set
-      // Just reserve the stock in reservedQuantity
-
-      // Update ProductStock summary - only add to reservedQuantity
       if (requestedQty > 0) {
         await StockRepository.upsertProductStock(
           item.productId,
@@ -102,13 +87,6 @@ export async function allocateStock(
     });
   }
 
-  const hasBackorders = backorders.length > 0;
-  console.log(
-    `Stock reserved for sale ${saleId}${
-      hasBackorders ? ` with ${backorders.length} backorders` : ""
-    }`,
-  );
-
   return {
     success: true,
     backorders,
@@ -116,12 +94,9 @@ export async function allocateStock(
 }
 
 /**
- * Releases stock for a sale (e.g., cancellation or status revert).
- * Handles two scenarios:
- * 1. If delivery date was set: Lots were deducted, so return stock to lots
- * 2. If no delivery date: Lots were NOT deducted, just release reservation
+ * Use case: Releases stock for a sale (e.g., cancellation or status revert).
  */
-export async function releaseStock(
+export async function releaseStockUseCase(
   saleId: string,
   tx?: Prisma.TransactionClient,
 ) {
@@ -145,7 +120,6 @@ export async function releaseStock(
       const releaseQty = item.quantity;
 
       if (hadDeliveryDate) {
-        // Delivery date was set, so lots were deducted - return stock to lots
         const lot = await StockRepository.getFirstAvailableLot(
           item.productId,
           client,
@@ -164,13 +138,11 @@ export async function releaseStock(
           }
         }
 
-        // Update ProductStock summary - restore all quantities
         try {
           await StockRepository.updateProductStock(
             item.productId,
             {
               availableQuantityIncrement: releaseQty,
-              // reservedQuantityIncrement: -releaseQty, // Removed: Stock was already deducted, so reserved is 0. No need to decrement.
               physicalBalanceIncrement: releaseQty,
             },
             client,
@@ -179,7 +151,6 @@ export async function releaseStock(
           console.warn(`Could not update product stock for ${item.productId}`);
         }
       } else {
-        // No delivery date was set, lots were NOT deducted - just release reservation
         try {
           await StockRepository.updateProductStock(
             item.productId,
@@ -202,21 +173,12 @@ export async function releaseStock(
       await release(client);
     });
   }
-
-  console.log(
-    `Stock released for sale ${saleId} (hadDeliveryDate: ${hadDeliveryDate})`,
-  );
 }
 
 /**
- * Confirms stock deduction when a delivery date is set for a previously reserved sale.
- * This is when the ACTUAL stock deduction happens:
- * - Deducts from physical lots using FIFO
- * - Decreases availableQuantity (the stock that can be sold)
- * - Decreases reservedQuantity (moving from reserved to deducted)
- * - Decreases physicalBalance (actual physical stock)
+ * Use case: Confirms stock deduction when a delivery date is set.
  */
-export async function confirmStockDeduction(
+export async function confirmStockDeductionUseCase(
   saleId: string,
   tx?: Prisma.TransactionClient,
 ) {
@@ -232,13 +194,11 @@ export async function confirmStockDeduction(
     for (const item of sale.items) {
       const requestedQty = item.quantity;
 
-      // Fetch available lots ordered by lotNumber ASC (FIFO)
       const lots = await StockRepository.getAvailableLots(
         item.productId,
         client,
       );
 
-      // Deduct from physical lots (FIFO)
       let deductedFromLots = 0;
       for (const lot of lots) {
         if (deductedFromLots >= requestedQty) break;
@@ -252,10 +212,6 @@ export async function confirmStockDeduction(
         deductedFromLots += deduction;
       }
 
-      // Update ProductStock summary
-      // - Decrease availableQuantity (stock is now committed/shipped)
-      // - Decrease reservedQuantity (moving from reserved to deducted)
-      // - Decrease physicalBalance (actual physical stock leaving warehouse)
       await StockRepository.updateProductStock(
         item.productId,
         {
@@ -275,19 +231,12 @@ export async function confirmStockDeduction(
       await confirm(client);
     });
   }
-
-  console.log(`Stock deducted for sale ${saleId}`);
 }
 
 /**
- * Reverts stock deduction to reservation when a delivery date is removed.
- * This reverses the confirmStockDeduction operation:
- * - Returns stock to physical lots
- * - Increases availableQuantity
- * - Increases reservedQuantity (back to reserved state)
- * - Increases physicalBalance
+ * Use case: Reverts stock deduction to reservation when a delivery date is removed.
  */
-export async function revertStockDeduction(
+export async function revertStockDeductionUseCase(
   saleId: string,
   tx?: Prisma.TransactionClient,
 ) {
@@ -303,7 +252,6 @@ export async function revertStockDeduction(
     for (const item of sale.items) {
       const returnQty = item.quantity;
 
-      // Return stock to the first available lot (or reactivate a lot)
       const lot = await StockRepository.getFirstAvailableLot(
         item.productId,
         client,
@@ -312,7 +260,6 @@ export async function revertStockDeduction(
       if (lot) {
         await StockRepository.updateLotQuantity(lot.id, returnQty, client);
       } else {
-        // No available lot found, try to reactivate any lot
         const anyLot = await StockRepository.getAnyLot(item.productId, client);
 
         if (anyLot) {
@@ -320,10 +267,6 @@ export async function revertStockDeduction(
         }
       }
 
-      // Update ProductStock summary
-      // - Increase availableQuantity (stock is available again)
-      // - Increase reservedQuantity (back to reserved state)
-      // - Increase physicalBalance (stock returned to warehouse)
       await StockRepository.updateProductStock(
         item.productId,
         {
@@ -343,18 +286,12 @@ export async function revertStockDeduction(
       await revert(client);
     });
   }
-
-  console.log(`Stock deduction reverted for sale ${saleId}`);
 }
 
 /**
- * Confirms stock deduction with specific LOT selection.
- * This is the NEW function that allows user to specify which LOTs to use.
- * - Deducts from specific physical lots as specified
- * - Saves LOT allocations to SaleItemLot
- * - Updates ProductStock summary
+ * Use case: Confirms stock deduction with specific LOT selection.
  */
-export async function confirmStockDeductionWithLots(
+export async function confirmStockDeductionWithLotsUseCase(
   saleId: string,
   lotAllocations: LotAllocation[],
   tx?: Prisma.TransactionClient,
@@ -369,7 +306,6 @@ export async function confirmStockDeductionWithLots(
   if (!sale) throw new Error("Sale not found");
 
   const confirm = async (client: Prisma.TransactionClient) => {
-    // Group allocations by saleItemId
     const allocationsByItem = new Map<string, LotAllocation[]>();
     for (const alloc of lotAllocations) {
       const existing = allocationsByItem.get(alloc.saleItemId) || [];
@@ -380,7 +316,6 @@ export async function confirmStockDeductionWithLots(
     for (const item of sale.items) {
       const itemAllocations = allocationsByItem.get(item.id) || [];
 
-      // Calculate total allocated for this item
       const totalAllocated = itemAllocations.reduce(
         (sum, a) => sum + a.quantity,
         0,
@@ -393,9 +328,7 @@ export async function confirmStockDeductionWithLots(
         );
       }
 
-      // Deduct from each specified LOT
       for (const alloc of itemAllocations) {
-        // Verify LOT exists and has enough quantity
         const lot = await StockRepository.getLotById(alloc.lotId, client);
         if (!lot) {
           throw new Error(`LOT ${alloc.lotId} not found`);
@@ -410,14 +343,12 @@ export async function confirmStockDeductionWithLots(
           throw new Error(`LOT ${lot.lotNumber} is for a different product`);
         }
 
-        // Deduct from LOT
         await StockRepository.updateLotQuantity(
           lot.id,
           -alloc.quantity,
           client,
         );
 
-        // Save LOT allocation record
         await StockRepository.createSaleItemLot(
           {
             saleItemId: item.id,
@@ -428,7 +359,6 @@ export async function confirmStockDeductionWithLots(
         );
       }
 
-      // Update ProductStock summary
       await StockRepository.updateProductStock(
         item.productId,
         {
@@ -448,29 +378,21 @@ export async function confirmStockDeductionWithLots(
       await confirm(client);
     });
   }
-
-  console.log(`Stock deducted with LOT selection for sale ${saleId}`);
 }
 
 /**
- * Reverts stock deduction and restores LOT allocations.
- * This version uses saved SaleItemLot records to know exactly which LOTs to restore.
+ * Use case: Reverts stock deduction and restores LOT allocations.
  */
-export async function revertStockDeductionFromLots(
+export async function revertStockDeductionFromLotsUseCase(
   saleId: string,
   tx?: Prisma.TransactionClient,
 ) {
   const db = tx || prisma;
 
-  // Get saved LOT allocations for this sale
   const saleItemLots = await StockRepository.getSaleItemLots(saleId, db);
 
   if (!saleItemLots || saleItemLots.length === 0) {
-    // No LOT allocations found - fall back to regular revert
-    console.log(
-      `No LOT allocations found for sale ${saleId}, using fallback revert`,
-    );
-    return revertStockDeduction(saleId, tx);
+    return revertStockDeductionUseCase(saleId, tx);
   }
 
   const sale = await db.sale.findUnique({
@@ -481,16 +403,14 @@ export async function revertStockDeductionFromLots(
   if (!sale) throw new Error("Sale not found");
 
   const revert = async (client: Prisma.TransactionClient) => {
-    // Restore stock to each LOT based on saved allocations
     for (const saleItemLot of saleItemLots) {
       await StockRepository.updateLotQuantity(
         saleItemLot.lotId,
-        saleItemLot.quantity, // Add back to LOT
+        saleItemLot.quantity,
         client,
       );
     }
 
-    // Update ProductStock summary for each item
     for (const item of sale.items) {
       await StockRepository.updateProductStock(
         item.productId,
@@ -503,7 +423,6 @@ export async function revertStockDeductionFromLots(
       );
     }
 
-    // Delete saved LOT allocations
     await StockRepository.deleteSaleItemLots(saleId, client);
   };
 
@@ -514,8 +433,4 @@ export async function revertStockDeductionFromLots(
       await revert(client);
     });
   }
-
-  console.log(
-    `Stock deduction reverted from LOT allocations for sale ${saleId}`,
-  );
 }

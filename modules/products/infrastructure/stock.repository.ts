@@ -5,7 +5,7 @@
 
 import { db as prisma } from "@/src/infrastructure/database";
 import type { Prisma } from "@/src/infrastructure/database";
-import type { StockLot, ProductStockSummary } from "./stock.types";
+import type { StockLot, ProductStockSummary } from "../types/stock";
 
 /**
  * Get stock lots for a product ordered by lot number (FIFO)
@@ -23,12 +23,11 @@ export async function getAvailableLots(
       quantity: { gt: 0 },
     },
     orderBy: { lotNumber: "asc" },
-  });
+  }) as unknown as Promise<StockLot[]>;
 }
 
 /**
  * Get stock lots for a product ordered by quantity ascending (least stock first)
- * This is used to prioritize using lots with less stock first
  */
 export async function getAvailableLotsOrderByQuantity(
   productId: string,
@@ -43,7 +42,7 @@ export async function getAvailableLotsOrderByQuantity(
       quantity: { gt: 0 },
     },
     orderBy: { lotNumber: "asc" },
-  });
+  }) as unknown as Promise<StockLot[]>;
 }
 
 /**
@@ -57,7 +56,7 @@ export async function getProductStock(
 
   return db.productStock.findUnique({
     where: { productId },
-  });
+  }) as unknown as Promise<ProductStockSummary | null>;
 }
 
 /**

@@ -1,13 +1,13 @@
 import { db } from "@/src/infrastructure/database";
+import * as StockRepository from "@/modules/products/infrastructure/stock.repository";
 import {
-  StockRepository,
-  confirmStockDeduction,
-  confirmStockDeductionWithLots,
-  releaseStock,
-  revertStockDeductionFromLots,
-} from "@/src/core/stock";
+  confirmStockDeductionUseCase as confirmStockDeduction,
+  confirmStockDeductionWithLotsUseCase as confirmStockDeductionWithLots,
+  releaseStockUseCase as releaseStock,
+  revertStockDeductionFromLotsUseCase as revertStockDeductionFromLots,
+} from "@/modules/products/application";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
-import type { LotAllocation, LotInfo } from "@/src/core/stock/stock.types";
+import type { LotAllocation, LotInfo } from "@/modules/products/types/stock";
 import { SaleStatus } from "@/src/infrastructure/database";
 
 export interface UpdateFulfillmentData {

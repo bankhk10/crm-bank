@@ -84,6 +84,16 @@ export { createProductUseCase } from "./create-product";
 export { updateProductUseCase } from "./update-product";
 export { manageProductUseCase } from "./manage-product";
 
+// Stock Management
+export {
+  allocateStockUseCase,
+  releaseStockUseCase,
+  confirmStockDeductionUseCase,
+  revertStockDeductionUseCase,
+  confirmStockDeductionWithLotsUseCase,
+  revertStockDeductionFromLotsUseCase,
+} from "./stock-management";
+
 // ─────────────────────────────────────────────
 // Validations & Types
 // ─────────────────────────────────────────────

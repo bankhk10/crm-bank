@@ -1,6 +1,6 @@
 import { Prisma, SaleStatus, PaymentTerm } from "@/src/infrastructure/database";
 import { db } from "@/src/infrastructure/database";
-import { releaseStock } from "@/src/core/stock";
+import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 
 // ─────────────────────────────────────────────
 // Types

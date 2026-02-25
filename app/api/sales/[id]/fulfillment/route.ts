@@ -3,13 +3,13 @@ import { auth } from "@/lib/auth";
 import { db as prisma } from "@/src/infrastructure/database";
 import { SaleStatus } from "@/src/infrastructure/database";
 import {
-  confirmStockDeduction,
-  confirmStockDeductionWithLots,
-  revertStockDeductionFromLots,
-  releaseStock,
-} from "@/src/core/stock";
+  confirmStockDeductionUseCase as confirmStockDeduction,
+  confirmStockDeductionWithLotsUseCase as confirmStockDeductionWithLots,
+  revertStockDeductionFromLotsUseCase as revertStockDeductionFromLots,
+  releaseStockUseCase as releaseStock,
+} from "@/modules/products/application";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
-import type { LotAllocation } from "@/src/core/stock/stock.types";
+import type { LotAllocation } from "@/modules/products/types/stock";
 
 export async function POST(
   request: NextRequest,

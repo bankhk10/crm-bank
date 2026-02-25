@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db as prisma } from "@/src/infrastructure/database";
-import { releaseStock } from "@/src/core/stock";
+import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +83,7 @@ export async function GET() {
     console.error("Cron job error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

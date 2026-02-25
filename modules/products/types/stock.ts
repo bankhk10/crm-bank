@@ -1,19 +1,12 @@
 /**
  * Stock Types
- * Type definitions for stock domain
  */
 
-/**
- * Result of stock allocation
- */
 export interface StockAllocationResult {
   success: boolean;
   backorders: BackorderItem[];
 }
 
-/**
- * Backorder item details
- */
 export interface BackorderItem {
   productId: string;
   productName?: string;
@@ -22,9 +15,6 @@ export interface BackorderItem {
   backorder: number;
 }
 
-/**
- * Stock lot information
- */
 export interface StockLot {
   id: string;
   productId: string;
@@ -37,9 +27,6 @@ export interface StockLot {
   isUsed: boolean;
 }
 
-/**
- * Product stock summary
- */
 export interface ProductStockSummary {
   productId: string;
   physicalBalance: number;
@@ -47,9 +34,6 @@ export interface ProductStockSummary {
   availableQuantity: number;
 }
 
-/**
- * Stock adjustment input
- */
 export interface StockAdjustmentInput {
   productId: string;
   lotId?: string;
@@ -58,9 +42,6 @@ export interface StockAdjustmentInput {
   notes?: string;
 }
 
-/**
- * Stock adjustment reasons
- */
 export type StockAdjustmentReason =
   | "PURCHASE"
   | "SALE"
@@ -70,9 +51,6 @@ export type StockAdjustmentReason =
   | "TRANSFER"
   | "CORRECTION";
 
-/**
- * Stock warning for low stock products
- */
 export interface StockWarning {
   productId: string;
   productName: string;
@@ -81,38 +59,26 @@ export interface StockWarning {
   shortfall: number;
 }
 
-/**
- * LOT allocation for a sale item - used when confirming stock deduction
- */
 export interface LotAllocation {
   saleItemId: string;
   lotId: string;
   quantity: number;
 }
 
-/**
- * Input for confirming stock deduction with LOT selection
- */
 export interface ConfirmStockDeductionInput {
   saleId: string;
   lotAllocations: LotAllocation[];
 }
 
-/**
- * LOT info for display in UI
- */
 export interface LotInfo {
   id: string;
   lotNumber: string;
-  quantity: number; // available quantity in this lot
+  quantity: number;
   expiryDate?: Date | null;
   storageLocation?: string | null;
   productId: string;
 }
 
-/**
- * Available LOTs for a sale item
- */
 export interface SaleItemLotOptions {
   saleItemId: string;
   productId: string;

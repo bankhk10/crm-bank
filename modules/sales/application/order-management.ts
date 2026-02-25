@@ -1,5 +1,5 @@
 import { db as prisma, Prisma } from "@/src/infrastructure/database";
-import { releaseStock } from "@/src/core/stock";
+import { releaseStockUseCase as releaseStock } from "@/modules/products/application";
 import { ORDER_CONFIG } from "@/src/shared/constants";
 import {
   OrderCheckResult,

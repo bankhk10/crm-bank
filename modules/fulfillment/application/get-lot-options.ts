@@ -1,5 +1,5 @@
 import { FulfillmentRepository } from "../infrastructure/fulfillment.repository";
-import type { LotInfo } from "@/src/core/stock/stock.types";
+import type { LotInfo } from "@/modules/products/types/stock";
 
 export interface SuggestedAllocation {
   lotId: string;

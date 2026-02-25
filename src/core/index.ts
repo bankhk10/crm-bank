@@ -3,5 +3,5 @@
  * Centralized exports for all core domain modules
  */
 
-// Stock domain
-export * from "./stock";
+// All core modules have been migrated to the modules directory.
+export {};
