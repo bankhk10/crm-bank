@@ -2,7 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/src/shared/utils/currency.utils";
+import { formatCurrency } from "@/lib/currency-utils";
 
 interface YearlyTargetCardProps {
     year: number;

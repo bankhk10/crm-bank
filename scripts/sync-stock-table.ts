@@ -2,7 +2,7 @@
  * Script to sync ProductStock table
  * Run with: npx tsx scripts/sync-stock-table.ts
  */
-import { prisma } from "../src/infrastructure/database";
+import { prisma } from "@/lib/db";
 
 async function main() {
   console.log("Starting ProductStock sync...");

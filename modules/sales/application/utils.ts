@@ -1,4 +1,4 @@
-import { ORDER_CONFIG } from "@/src/shared/constants";
+import { ORDER_CONFIG } from "@/modules/sales/constants";
 
 /**
  * Generate sale number sequentially

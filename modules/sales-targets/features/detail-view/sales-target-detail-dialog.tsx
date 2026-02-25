@@ -6,7 +6,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { formatCurrency } from "@/src/shared/utils/currency.utils";
+import { formatCurrency } from "@/lib/currency-utils";
 import {
     Table,
     TableBody,

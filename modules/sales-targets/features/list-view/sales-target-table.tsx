@@ -27,7 +27,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { formatCurrency } from "@/src/shared/utils/currency.utils";
+import { formatCurrency } from "@/lib/currency-utils";
 import { MONTHS } from "../../constants";
 import { DetailedTarget } from "../../types";
 

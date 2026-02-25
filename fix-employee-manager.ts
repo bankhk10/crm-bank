@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { db } from "./src/infrastructure/database";
+import { db } from "./lib/db";
 
 async function main() {
   const somchai = await db.employee.findFirst({

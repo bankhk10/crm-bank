@@ -2,7 +2,7 @@
  * Script to delete 'product.reject' permission
  * Run with: npx tsx scripts/delete-product-reject.ts
  */
-import { prisma } from "../src/infrastructure/database";
+import { prisma } from "@/lib/db";
 
 async function main() {
   console.log("Deleting 'product.reject' permission...");
