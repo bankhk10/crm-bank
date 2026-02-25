@@ -55,6 +55,11 @@ export async function findAllActiveCompanies() {
     select: {
       id: true,
       name: true,
+      addressLine: true,
+      subdistrict: true,
+      district: true,
+      province: true,
+      postalCode: true,
     },
   });
 }
