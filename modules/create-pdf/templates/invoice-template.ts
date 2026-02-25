@@ -35,6 +35,78 @@ export const sampleInvoiceData: InvoiceData = {
       total: 15000,
     },
     {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
+      description: "ค่าบริการคลาวด์เซิฟเวอร์",
+      quantity: 1,
+      price: 15000,
+      total: 15000,
+    },
+    {
       description: "ค่าที่ปรึกษาด้านความปลอดภัย",
       quantity: 10,
       price: 1200,
@@ -127,6 +199,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           margin-bottom: 40px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
+        thead {
+          display: table-header-group; /* ทำให้ Header ซ้ำทุกหน้า (Repeating Header) */
+        }
+        tr {
+          page-break-inside: avoid; /* ห้ามให้ Row แตกครึ่งหน้า (Row break prevent) */
+        }
         th {
           background-color: #2c3e50;
           color: white;
@@ -163,6 +241,11 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           font-weight: bold;
           font-size: 16px;
         }
+        
+        .footer-section {
+          page-break-inside: avoid; /* ห้าม Footer แตกครึ่งหน้า */
+        }
+
         .footer {
           clear: both;
           padding-top: 80px;
@@ -223,9 +306,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </tbody>
       </table>
 
-      <div class="total-section">
-        <div class="total-row">
-          <span>รวมเป็นเงิน (Subtotal):</span>
+      <div class="footer-section">
+        <div class="total-section">
+          <div class="total-row">
+            <span>รวมเป็นเงิน (Subtotal):</span>
           <span>${data.totalAmount.toLocaleString()} THB</span>
         </div>
         <div class="total-row">
@@ -247,7 +331,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <div>ผู้อนุมัติ / Authorized Signature</div>
           </div>
         </div>
-        <p style="margin-top: 40px;">ขอบคุณที่ใช้บริการ / Thank you for your business</p>
+          <p style="margin-top: 40px;">ขอบคุณที่ใช้บริการ / Thank you for your business</p>
+        </div>
       </div>
     </body>
     </html>

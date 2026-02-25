@@ -6,7 +6,7 @@ export async function GET() {
     const pdfBuffer = await createSamplePdf();
 
     // สร้าง Response ส่งกลับไปเป็นไฟล์ PDF
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
