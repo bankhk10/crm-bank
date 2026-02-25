@@ -302,6 +302,18 @@ export async function createSale(data: {
     priceModified: boolean;
     totalPrice: number;
   }>;
+  // SaleAddress Fields
+  companyAddressId?: string | null;
+  billingCustomerAddressId?: string | null;
+  shippingCustomerAddressId?: string | null;
+  pickupCompanyAddressId?: string | null;
+  shippingCompanyAddressId?: string | null;
+
+  companyAddressSnapshot?: string | null;
+  billingAddressSnapshot?: string | null;
+  shippingAddressSnapshot?: string | null;
+  pickupAddressSnapshot?: string | null;
+  shippingCompanyAddressSnapshot?: string | null;
 }) {
   return db.sale.create({
     data: {
@@ -350,9 +362,25 @@ export async function createSale(data: {
           changedById: data.createdById,
         },
       },
+      saleAddress: {
+        create: {
+          companyAddressId: data.companyAddressId,
+          billingCustomerAddressId: data.billingCustomerAddressId,
+          shippingCustomerAddressId: data.shippingCustomerAddressId,
+          pickupCompanyAddressId: data.pickupCompanyAddressId,
+          shippingCompanyAddressId: data.shippingCompanyAddressId,
+
+          companyAddressSnapshot: data.companyAddressSnapshot,
+          billingAddressSnapshot: data.billingAddressSnapshot,
+          shippingAddressSnapshot: data.shippingAddressSnapshot,
+          pickupAddressSnapshot: data.pickupAddressSnapshot,
+          shippingCompanyAddressSnapshot: data.shippingCompanyAddressSnapshot,
+        },
+      },
     },
     include: {
       ...listIncludes,
+      saleAddress: true,
     },
   });
 }
@@ -399,6 +427,18 @@ export async function updateSale(
       priceModified: boolean;
       totalPrice: number;
     }>;
+    // SaleAddress Fields
+    companyAddressId?: string | null;
+    billingCustomerAddressId?: string | null;
+    shippingCustomerAddressId?: string | null;
+    pickupCompanyAddressId?: string | null;
+    shippingCompanyAddressId?: string | null;
+
+    companyAddressSnapshot?: string | null;
+    billingAddressSnapshot?: string | null;
+    shippingAddressSnapshot?: string | null;
+    pickupAddressSnapshot?: string | null;
+    shippingCompanyAddressSnapshot?: string | null;
   },
 ) {
   return db.$transaction(async (tx) => {
@@ -480,11 +520,44 @@ export async function updateSale(
               },
             }
           : undefined,
+        saleAddress: {
+          upsert: {
+            create: {
+              companyAddressId: data.companyAddressId,
+              billingCustomerAddressId: data.billingCustomerAddressId,
+              shippingCustomerAddressId: data.shippingCustomerAddressId,
+              pickupCompanyAddressId: data.pickupCompanyAddressId,
+              shippingCompanyAddressId: data.shippingCompanyAddressId,
+
+              companyAddressSnapshot: data.companyAddressSnapshot,
+              billingAddressSnapshot: data.billingAddressSnapshot,
+              shippingAddressSnapshot: data.shippingAddressSnapshot,
+              pickupAddressSnapshot: data.pickupAddressSnapshot,
+              shippingCompanyAddressSnapshot:
+                data.shippingCompanyAddressSnapshot,
+            },
+            update: {
+              companyAddressId: data.companyAddressId,
+              billingCustomerAddressId: data.billingCustomerAddressId,
+              shippingCustomerAddressId: data.shippingCustomerAddressId,
+              pickupCompanyAddressId: data.pickupCompanyAddressId,
+              shippingCompanyAddressId: data.shippingCompanyAddressId,
+
+              companyAddressSnapshot: data.companyAddressSnapshot,
+              billingAddressSnapshot: data.billingAddressSnapshot,
+              shippingAddressSnapshot: data.shippingAddressSnapshot,
+              pickupAddressSnapshot: data.pickupAddressSnapshot,
+              shippingCompanyAddressSnapshot:
+                data.shippingCompanyAddressSnapshot,
+            },
+          },
+        },
       },
       include: {
         customer: true,
         employee: true,
         items: { include: { product: true } },
+        saleAddress: true,
       },
     });
   });

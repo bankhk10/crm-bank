@@ -95,6 +95,14 @@ export interface SaleFormData {
   billingAddress?: string;
   shippingAddress?: string;
   useCustomShipping?: boolean;
+
+  // New Reference Address IDs
+  companyAddressId?: string;
+  billingCustomerAddressId?: string;
+  shippingCustomerAddressId?: string;
+  pickupCompanyAddressId?: string;
+  shippingCompanyAddressId?: string;
+
   items: SaleItemFormData[];
   shippingCost: number;
   otherCosts: number;

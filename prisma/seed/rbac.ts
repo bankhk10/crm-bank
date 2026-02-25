@@ -1090,7 +1090,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.view" },
     { key: "sales_target.view" },
     { key: "sales_target.delete" },
-    { key: "menu.show_product" },
   ];
 
   await prisma.rolePermission.createMany({

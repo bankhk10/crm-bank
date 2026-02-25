@@ -155,6 +155,24 @@ export async function createSaleUseCase(
     shippingAddress: body.shippingAddress,
     useCustomShipping: body.useCustomShipping,
     selectedAddressId: body.selectedAddressId,
+
+    // Pass SaleAddress relation fields
+    companyAddressId: body.companyAddressId,
+    billingCustomerAddressId: body.billingCustomerAddressId,
+    shippingCustomerAddressId:
+      body.shippingCustomerAddressId || body.selectedAddressId,
+    pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId,
+    shippingCompanyAddressId: body.shippingCompanyAddressId,
+
+    // Snapshots
+    billingAddressSnapshot: body.billingAddress,
+    shippingAddressSnapshot:
+      body.deliveryMethod === "SALES_DELIVERY" ? body.shippingAddress : null,
+    pickupAddressSnapshot:
+      body.deliveryMethod === "CUSTOMER_PICKUP" ? body.shippingAddress : null,
+    shippingCompanyAddressSnapshot:
+      body.deliveryMethod === "COURIER" ? body.shippingAddress : null,
+
     subtotalAmount: subtotal,
     shippingCost: body.shippingCost,
     otherCosts: body.otherCosts,

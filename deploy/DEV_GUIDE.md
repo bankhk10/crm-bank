@@ -206,7 +206,7 @@ npx prisma migrate status
 
 ```bash
 # รัน seed ทั้งหมด
-npx prisma db seed
+npm run seed
 
 # Seed script อยู่ที่:
 # prisma/seed/index.ts    → Entry point
