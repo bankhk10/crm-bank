@@ -1,5 +1,4 @@
-import { TemporaryCreditStatus, User } from "@/lib/db";
-import { Customer } from "./customers";
+import { TemporaryCreditStatus, User, Customer } from "@/lib/db";
 
 export type { TemporaryCreditStatus };
 
