@@ -1,6 +1,6 @@
 # CRM-Bank: คำสั่งสำหรับ Development (Local)
 
-> **Last Updated:** 2026-02-16  
+> **Last Updated:** 2026-02-25  
 > **สำหรับ:** Developer ที่ทำงานฝั่ง Local Development
 
 ---
@@ -16,6 +16,7 @@
 7. [Seed Data](#7-seed-data)
 8. [เปรียบเทียบคำสั่ง Prisma](#8-เปรียบเทียบคำสั่ง-prisma)
 9. [Troubleshooting](#9-troubleshooting)
+10. [Workflow: การนำ Database จาก Production มาลง Local (เพื่อป้องกันปัญหาตอน Deploy)](#10-workflow-การนำ-database-จาก-production-มาลง-local)
 
 ---
 
@@ -289,3 +290,90 @@ npx prisma migrate status
 # แล้วรันใหม่
 npx prisma migrate dev
 ```
+
+---
+
+## 10. Workflow: การนำ Database จาก Production มาลง Local
+
+ในกรณีที่คุณใช้วิธี dump ข้อมูลจาก Production มาใส่ Local เพื่อทดสอบกับข้อมูลจริง คุณจำเป็นต้องปฏิบัติตาม workflow นี้อย่างเคร่งครัด **เพื่อป้องกันปัญหาโครงสร้างพัง (Data Loss / Schema Mismatch) เมื่อมีการนำโค้ดขึ้น Production อีกครั้ง**
+
+### 🛠️ วิธีการ Export / Import Database (PostgreSQL)
+
+วิธีดึง Database จาก Server Production มาจำลองลงที่ Local ของคุณ แนะนำให้ใช้เครื่องมือ `pg_dump` และ `pg_restore` (กรณีใช้ PostgreSQL) มีขั้นตอนดังนี้:
+
+**1. Export (Dump) ข้อมูลจาก Production**
+รันคำสั่งเพื่อสำรองโครงสร้างและข้อมูลออกมาเป็นไฟล์:
+
+```bash
+# เลือกใช้แบบใดแบบหนึ่ง
+
+# แบบที่ 1: แบบ Plain-text SQL (อ่านง่าย ไฟล์ใหญ่)
+pg_dump -h <host_prod> -p <port_prod> -U <username_prod> -d <db_name_prod> -W -F p -f prod_backup.sql
+
+# แบบที่ 2: แบบ Custom format (แนะนำ: บีบอัดขนาดไฟล์ และนำกลับมาลงได้เสถียรกว่า)
+pg_dump -h <host_prod> -p <port_prod> -U <username_prod> -d <db_name_prod> -W -F c -f prod_backup.dump
+```
+
+**2. Import (Restore) นำข้อมูลเข้าเครื่อง Local**
+เพื่อป้องกันปัญหาเรื่อง schema ทับซ้อน แนะนำให้ Reset ฐานข้อมูลฝั่ง Local ตัวเก่าก่อน
+
+```bash
+# เคลียร์ Local DB เก่า (ห้ามรันคำสั่งนี้บน Production!! รันเฉพาะที่เครื่อง Dev เท่านั้น!!)
+npx prisma migrate reset --skip-seed
+
+# จากนั้นนำก้อนข้อมูล Prod ใส่เข้า Local DB
+# 2.1 กรณีใช้ไฟล์ Plain-text (แบบที่ 1)
+psql -h localhost -p 5432 -U <username_local> -d <db_name_local> -W -f prod_backup.sql
+
+# 2.2 กรณีใช้ไฟล์ Custom format (แบบที่ 2)
+pg_restore -h localhost -p 5432 -U <username_local> -d <db_name_local> -W -1 -x -O -c prod_backup.dump
+```
+
+> **คำอธิบาย Option ของ `pg_restore`:**
+>
+> - `-1`: รันแบบ Single Transaction (ถ้ามีปัญหา ให้ Rollback ทิ้งทั้งหมด ไม่เซฟแค่ครึ่งเดียว)
+> - `-x`: ไม่ต้องดึงสิทธิ (Privilege) ของ Prod มา เพราะ Local ระบบ user ไม่เหมือนกัน
+> - `-O`: ยกเลิกระบบ Owner เดิมจาก Prod โดยตั้งค่าให้ user Local เป็นเจ้าของแทน
+> - `-c`: สั่ง Drop (ลบ) ตารางเก่าทิ้งทั้งหมดก่อนทำการสร้างใหม่
+
+_หลังจาก restore เสร็จ ให้คุณรัน `npx prisma generate` เพื่ออัพเดทสเปก Prisma Client ให้ sync กับ Database ล่าสุดครับ!_
+
+### ⚠️ สิ่งที่ต้องเข้าใจเมื่อนำ Database จาก Prod มาลง Local
+
+เมื่อคุณ restore ก้อนข้อมูลจาก Prod มาที่ Local สำเร็จ Database ของคุณที่ Local จะมีโครงสร้างและประวัติการแก้โครงสร้าง (ในตาราง `_prisma_migrations`) ตรงกับ Production 100% ณ เวลานั้นเสมอ
+
+### 🔄 ขั้นตอนการทำงานที่ปลอดภัย
+
+**1. ห้ามแก้ไข Database ฝั่ง Local ผ่าน GUI โดยตรงเด็ดขาด**
+หากต้องการเพิ่มคอลัมน์ใหม่ หรือแก้ชื่อตาราง ให้ทำผ่านการเขียนโค้ดแก้ที่ไฟล์ `prisma/schema.prisma` เท่านั้น
+
+**2. สร้าง Migration File หลังจากแก้ `schema.prisma`**
+ให้รันคำสั่ง `prisma migrate dev` เสมอ เพื่อให้ตัว Prisma รวบรวมสิ่งที่แก้ไขมาแปลงเป็นคำสั่ง SQL สะสมไว้ในโฟลเดอร์ฝั่ง Local ก่อน
+
+```bash
+npx prisma migrate dev --name <ชื่อการแก้ไข_เช่น_add_user_address>
+```
+
+_Prisma จะเพิ่มคำสั่ง SQL ใหม่เข้าโฟลเดอร์ `prisma/migrations/` และรันลง Local Database ให้อัตโนมัติ_
+
+**3. นำโค้ดที่สร้างใหม่ขึ้น Git เสมอ**
+โปรดตรวจทานให้แน่ใจว่าได้ทำการ `git add` และ `git commit` ไฟล์โครงสร้างใหม่ ทั้งคู่:
+
+- ไฟล์ `prisma/schema.prisma`
+- โฟลเดอร์ที่เพิ่งถูกสร้างใน `prisma/migrations/<ชื่อการแก้ไข>`
+
+**4. ตอนนำขึ้น Production (Deploy)**
+Production ใช้คำสั่ง `deploy` (ไม่ใช่ `dev` เหมือนอย่างในเครื่องเรา)
+
+```bash
+# ใน Production Pipeline หรือ Server จริง
+npx prisma migrate deploy
+```
+
+_คำสั่งนี้จะไปอ่านประวัติและทำการรัน "เฉพาะ" ไฟล์ Migration ตัวใหม่ที่คุณเพิ่ง commit ลงไป ทำให้โครงสร้างฝั่ง Production ปรับไปตามการแก้โดยที่ข้อมูลเก่าไม่หาย_
+
+### ⛔️ ข้อควรระวังขั้นสูง
+
+- **ห้าม** รัน `npx prisma db push` เด็ดขาด เพราะมันจะไม่บันทึกประวัติ SQL ลงในโฟลเดอร์ migrations พอขึ้น Prod ไป Prod จะพังเพราะไม่มีการอัพเดท
+- **ห้าม** กลับไปแก้ไขไฟล์ `.sql` เก่าๆ ที่ส่งขึ้น Production หรือ Commit ลง Git ไปแล้ว หากทำผิด ให้ทำตามขั้นตอนที่ 1 และ 2 ใหม่อีกครั้งเพื่อสร้างไฟล์แก้ทับไปเรื่อยๆ
+- **ระวังการ Import ทับกัน** หากวันก่อนคุณดึง Prod มา แล้วสร้าง migration เพิ่มแล้วในเครื่อง Local ทว่าวันนี้คุณกลับดึงฐานข้อมูล Prod มาทับอีกครั้ง ฐานข้อมูลที่ Local คุณจะขาดการรับรู้ถึง migration ล่าสุดของคุณ... วิธีแก้คือให้สั่งรัน `npx prisma migrate dev` แบบเปล่าๆ อีกรอบ หรือ `npx prisma migrate reset` เพื่อให้มันรันโครงสร้างขึ้นมาให้ใหม่ทั้งหมดก่อนรันแอปครับ
