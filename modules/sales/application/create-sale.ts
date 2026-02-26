@@ -14,6 +14,7 @@ import {
   findEmployeeWithManager,
   createSale,
 } from "../infrastructure/sale.repository";
+import { buildExplodedSaleAddresses } from "./address-builder";
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -133,6 +134,9 @@ export async function createSaleUseCase(
   const lastNumber = await findLastSaleNumber();
   const saleNumber = generateSaleNumber(lastNumber);
 
+  // 8. Build exploded addresses
+  const explodedAddresses = await buildExplodedSaleAddresses(body, customer);
+
   // 8. Create sale
   const sale = await createSale({
     saleNumber,
@@ -165,17 +169,8 @@ export async function createSaleUseCase(
     shippingCompanyAddressId:
       body.shippingCompanyAddressId || body.shippingCompanyId,
 
-    // Snapshots
-    billingAddressSnapshot: body.billingAddress,
-    shippingAddressSnapshot:
-      body.deliveryMethod === "SALES_DELIVERY" ||
-      body.deliveryMethod === "FACTORY_DELIVERY"
-        ? body.shippingAddress
-        : null,
-    pickupAddressSnapshot:
-      body.deliveryMethod === "CUSTOMER_PICKUP" ? body.shippingAddress : null,
-    shippingCompanyAddressSnapshot:
-      body.deliveryMethod === "COURIER" ? body.shippingAddress : null,
+    // Snapshots: Exploded Address Fields
+    ...explodedAddresses,
 
     subtotalAmount: subtotal,
     shippingCost: body.shippingCost,

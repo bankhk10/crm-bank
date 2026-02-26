@@ -904,12 +904,51 @@ model SaleAddress {
   pickupCompanyAddressId    String? // ที่อยู่รับสินค้า (สาขา/โกดังเรา)
   shippingCompanyAddressId  String? // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
 
-  // Snapshots (บันทึกข้อความที่อยู่แบบ Text กันสะเทือนเมื่อ Master Data ถูกแก้ไขในอนาคต)
-  companyAddressSnapshot         Json? // ที่อยู่บริษัทเรา (ออกเอกสาร)
-  billingAddressSnapshot         Json? // ที่อยู่วางบิล (ของลูกค้า)
-  shippingAddressSnapshot        Json? // ที่อยู่จัดส่ง (ของลูกค้า)
-  pickupAddressSnapshot          Json? // ที่อยู่รับสินค้า (สาขา/โกดังเรา)
-  shippingCompanyAddressSnapshot Json? // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
+  // ที่อยู่บริษัท
+  company_name        String?
+  company_phone       String?
+  address_line        String?
+  address_province    String?
+  address_district    String?
+  address_subdistrict String?
+  address_code        String?
+  company_note        String?
+
+  // ที่อยู่วางบิล
+  billing_address_line String?
+  billing_province     String?
+  billing_district     String?
+  billing_subdistrict  String?
+  billing_postal_code  String?
+  billing_note         String?
+
+  // ที่อยู่จัดส่งสินค้า
+  shipping_address_line String?
+  shipping_province     String?
+  shipping_district     String?
+  shipping_subdistrict  String?
+  shipping_postal_code  String?
+  shipping_note         String?
+
+  // ที่อยู่รับสินค้า
+  receiving_name         String?
+  receiving_phone        String?
+  receiving_address_line String?
+  receiving_province     String?
+  receiving_district     String?
+  receiving_subdistrict  String?
+  receiving_postal_code  String?
+  receiving_note         String?
+
+  // ที่อยู่ขนส่ง
+  sender_name        String?
+  sender_phone       String?
+  sender_line        String?
+  sender_province    String?
+  sender_district    String?
+  sender_subdistrict String?
+  sender_postal_code String?
+  sender_note        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

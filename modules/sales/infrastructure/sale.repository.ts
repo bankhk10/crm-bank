@@ -325,11 +325,46 @@ export async function createSale(data: {
   pickupCompanyAddressId?: string | null;
   shippingCompanyAddressId?: string | null;
 
-  companyAddressSnapshot?: string | null;
-  billingAddressSnapshot?: string | null;
-  shippingAddressSnapshot?: string | null;
-  pickupAddressSnapshot?: string | null;
-  shippingCompanyAddressSnapshot?: string | null;
+  company_name?: string | null;
+  company_phone?: string | null;
+  address_line?: string | null;
+  address_province?: string | null;
+  address_district?: string | null;
+  address_subdistrict?: string | null;
+  address_code?: string | null;
+  company_note?: string | null;
+
+  billing_address_line?: string | null;
+  billing_province?: string | null;
+  billing_district?: string | null;
+  billing_subdistrict?: string | null;
+  billing_postal_code?: string | null;
+  billing_note?: string | null;
+
+  shipping_address_line?: string | null;
+  shipping_province?: string | null;
+  shipping_district?: string | null;
+  shipping_subdistrict?: string | null;
+  shipping_postal_code?: string | null;
+  shipping_note?: string | null;
+
+  receiving_name?: string | null;
+  receiving_phone?: string | null;
+  receiving_address_line?: string | null;
+  receiving_province?: string | null;
+  receiving_district?: string | null;
+  receiving_subdistrict?: string | null;
+  receiving_postal_code?: string | null;
+  receiving_note?: string | null;
+
+  sender_name?: string | null;
+  sender_phone?: string | null;
+  sender_line?: string | null;
+  sender_province?: string | null;
+  sender_district?: string | null;
+  sender_subdistrict?: string | null;
+  sender_postal_code?: string | null;
+  sender_note?: string | null;
 }) {
   return db.sale.create({
     data: {
@@ -405,22 +440,46 @@ export async function createSale(data: {
           pickupCompanyAddressId: data.pickupCompanyAddressId,
           shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-          companyAddressSnapshot: data.companyAddressSnapshot as
-            | Prisma.InputJsonValue
-            | undefined,
-          billingAddressSnapshot: data.billingAddressSnapshot as
-            | Prisma.InputJsonValue
-            | undefined,
-          shippingAddressSnapshot: data.shippingAddressSnapshot as
-            | Prisma.InputJsonValue
-            | undefined,
-          pickupAddressSnapshot: data.pickupAddressSnapshot as
-            | Prisma.InputJsonValue
-            | undefined,
-          shippingCompanyAddressSnapshot:
-            data.shippingCompanyAddressSnapshot as
-              | Prisma.InputJsonValue
-              | undefined,
+          company_name: data.company_name,
+          company_phone: data.company_phone,
+          address_line: data.address_line,
+          address_province: data.address_province,
+          address_district: data.address_district,
+          address_subdistrict: data.address_subdistrict,
+          address_code: data.address_code,
+          company_note: data.company_note,
+
+          billing_address_line: data.billing_address_line,
+          billing_province: data.billing_province,
+          billing_district: data.billing_district,
+          billing_subdistrict: data.billing_subdistrict,
+          billing_postal_code: data.billing_postal_code,
+          billing_note: data.billing_note,
+
+          shipping_address_line: data.shipping_address_line,
+          shipping_province: data.shipping_province,
+          shipping_district: data.shipping_district,
+          shipping_subdistrict: data.shipping_subdistrict,
+          shipping_postal_code: data.shipping_postal_code,
+          shipping_note: data.shipping_note,
+
+          receiving_name: data.receiving_name,
+          receiving_phone: data.receiving_phone,
+          receiving_address_line: data.receiving_address_line,
+          receiving_province: data.receiving_province,
+          receiving_district: data.receiving_district,
+          receiving_subdistrict: data.receiving_subdistrict,
+          receiving_postal_code: data.receiving_postal_code,
+          receiving_note: data.receiving_note,
+
+          sender_name: data.sender_name,
+          sender_phone: data.sender_phone,
+          sender_line: data.sender_line,
+          sender_province: data.sender_province,
+          sender_district: data.sender_district,
+          sender_subdistrict: data.sender_subdistrict,
+          sender_postal_code: data.sender_postal_code,
+          sender_note: data.sender_note,
         },
       },
     },
@@ -495,11 +554,46 @@ export async function updateSale(
     pickupCompanyAddressId?: string | null;
     shippingCompanyAddressId?: string | null;
 
-    companyAddressSnapshot?: string | null;
-    billingAddressSnapshot?: string | null;
-    shippingAddressSnapshot?: string | null;
-    pickupAddressSnapshot?: string | null;
-    shippingCompanyAddressSnapshot?: string | null;
+    company_name?: string | null;
+    company_phone?: string | null;
+    address_line?: string | null;
+    address_province?: string | null;
+    address_district?: string | null;
+    address_subdistrict?: string | null;
+    address_code?: string | null;
+    company_note?: string | null;
+
+    billing_address_line?: string | null;
+    billing_province?: string | null;
+    billing_district?: string | null;
+    billing_subdistrict?: string | null;
+    billing_postal_code?: string | null;
+    billing_note?: string | null;
+
+    shipping_address_line?: string | null;
+    shipping_province?: string | null;
+    shipping_district?: string | null;
+    shipping_subdistrict?: string | null;
+    shipping_postal_code?: string | null;
+    shipping_note?: string | null;
+
+    receiving_name?: string | null;
+    receiving_phone?: string | null;
+    receiving_address_line?: string | null;
+    receiving_province?: string | null;
+    receiving_district?: string | null;
+    receiving_subdistrict?: string | null;
+    receiving_postal_code?: string | null;
+    receiving_note?: string | null;
+
+    sender_name?: string | null;
+    sender_phone?: string | null;
+    sender_line?: string | null;
+    sender_province?: string | null;
+    sender_district?: string | null;
+    sender_subdistrict?: string | null;
+    sender_postal_code?: string | null;
+    sender_note?: string | null;
   },
 ) {
   return db.$transaction(async (tx) => {
@@ -609,22 +703,46 @@ export async function updateSale(
               pickupCompanyAddressId: data.pickupCompanyAddressId,
               shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-              companyAddressSnapshot: data.companyAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              billingAddressSnapshot: data.billingAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              shippingAddressSnapshot: data.shippingAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              pickupAddressSnapshot: data.pickupAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              shippingCompanyAddressSnapshot:
-                data.shippingCompanyAddressSnapshot as
-                  | Prisma.InputJsonValue
-                  | undefined,
+              company_name: data.company_name,
+              company_phone: data.company_phone,
+              address_line: data.address_line,
+              address_province: data.address_province,
+              address_district: data.address_district,
+              address_subdistrict: data.address_subdistrict,
+              address_code: data.address_code,
+              company_note: data.company_note,
+
+              billing_address_line: data.billing_address_line,
+              billing_province: data.billing_province,
+              billing_district: data.billing_district,
+              billing_subdistrict: data.billing_subdistrict,
+              billing_postal_code: data.billing_postal_code,
+              billing_note: data.billing_note,
+
+              shipping_address_line: data.shipping_address_line,
+              shipping_province: data.shipping_province,
+              shipping_district: data.shipping_district,
+              shipping_subdistrict: data.shipping_subdistrict,
+              shipping_postal_code: data.shipping_postal_code,
+              shipping_note: data.shipping_note,
+
+              receiving_name: data.receiving_name,
+              receiving_phone: data.receiving_phone,
+              receiving_address_line: data.receiving_address_line,
+              receiving_province: data.receiving_province,
+              receiving_district: data.receiving_district,
+              receiving_subdistrict: data.receiving_subdistrict,
+              receiving_postal_code: data.receiving_postal_code,
+              receiving_note: data.receiving_note,
+
+              sender_name: data.sender_name,
+              sender_phone: data.sender_phone,
+              sender_line: data.sender_line,
+              sender_province: data.sender_province,
+              sender_district: data.sender_district,
+              sender_subdistrict: data.sender_subdistrict,
+              sender_postal_code: data.sender_postal_code,
+              sender_note: data.sender_note,
             },
             update: {
               companyAddressId: data.companyAddressId,
@@ -633,22 +751,46 @@ export async function updateSale(
               pickupCompanyAddressId: data.pickupCompanyAddressId,
               shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-              companyAddressSnapshot: data.companyAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              billingAddressSnapshot: data.billingAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              shippingAddressSnapshot: data.shippingAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              pickupAddressSnapshot: data.pickupAddressSnapshot as
-                | Prisma.InputJsonValue
-                | undefined,
-              shippingCompanyAddressSnapshot:
-                data.shippingCompanyAddressSnapshot as
-                  | Prisma.InputJsonValue
-                  | undefined,
+              company_name: data.company_name,
+              company_phone: data.company_phone,
+              address_line: data.address_line,
+              address_province: data.address_province,
+              address_district: data.address_district,
+              address_subdistrict: data.address_subdistrict,
+              address_code: data.address_code,
+              company_note: data.company_note,
+
+              billing_address_line: data.billing_address_line,
+              billing_province: data.billing_province,
+              billing_district: data.billing_district,
+              billing_subdistrict: data.billing_subdistrict,
+              billing_postal_code: data.billing_postal_code,
+              billing_note: data.billing_note,
+
+              shipping_address_line: data.shipping_address_line,
+              shipping_province: data.shipping_province,
+              shipping_district: data.shipping_district,
+              shipping_subdistrict: data.shipping_subdistrict,
+              shipping_postal_code: data.shipping_postal_code,
+              shipping_note: data.shipping_note,
+
+              receiving_name: data.receiving_name,
+              receiving_phone: data.receiving_phone,
+              receiving_address_line: data.receiving_address_line,
+              receiving_province: data.receiving_province,
+              receiving_district: data.receiving_district,
+              receiving_subdistrict: data.receiving_subdistrict,
+              receiving_postal_code: data.receiving_postal_code,
+              receiving_note: data.receiving_note,
+
+              sender_name: data.sender_name,
+              sender_phone: data.sender_phone,
+              sender_line: data.sender_line,
+              sender_province: data.sender_province,
+              sender_district: data.sender_district,
+              sender_subdistrict: data.sender_subdistrict,
+              sender_postal_code: data.sender_postal_code,
+              sender_note: data.sender_note,
             },
           },
         },

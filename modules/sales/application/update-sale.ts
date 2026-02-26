@@ -11,6 +11,7 @@ import {
   updateSale,
 } from "../infrastructure/sale.repository";
 import { db } from "@/lib/db";
+import { buildExplodedSaleAddresses } from "./address-builder";
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -93,7 +94,17 @@ export async function updateSaleUseCase(
   }, 0);
   const total = subtotal - body.shippingCost - body.otherCosts;
 
-  // 7. Persist
+  // 7. Build exploded addresses
+  const targetCustomer =
+    body.customerId === existingSale.customerId
+      ? existingSale.customer
+      : await db.customer.findUnique({ where: { id: body.customerId } });
+  const explodedAddresses = await buildExplodedSaleAddresses(
+    body,
+    targetCustomer,
+  );
+
+  // 8. Persist
   const sale = await updateSale(id, {
     existingSale,
     customerId: body.customerId,
@@ -126,17 +137,8 @@ export async function updateSaleUseCase(
     shippingCompanyAddressId:
       body.shippingCompanyAddressId || body.shippingCompanyId,
 
-    // Snapshots
-    billingAddressSnapshot: body.billingAddress,
-    shippingAddressSnapshot:
-      body.deliveryMethod === "SALES_DELIVERY" ||
-      body.deliveryMethod === "FACTORY_DELIVERY"
-        ? body.shippingAddress
-        : null,
-    pickupAddressSnapshot:
-      body.deliveryMethod === "CUSTOMER_PICKUP" ? body.shippingAddress : null,
-    shippingCompanyAddressSnapshot:
-      body.deliveryMethod === "COURIER" ? body.shippingAddress : null,
+    // Snapshots: Exploded Address Fields
+    ...explodedAddresses,
 
     subtotalAmount: subtotal,
     shippingCost: body.shippingCost,

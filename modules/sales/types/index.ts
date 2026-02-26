@@ -103,6 +103,52 @@ export interface SaleFormData {
   pickupCompanyAddressId?: string;
   shippingCompanyAddressId?: string;
 
+  // Company Address Exploded
+  company_name?: string | null;
+  company_phone?: string | null;
+  address_line?: string | null;
+  address_province?: string | null;
+  address_district?: string | null;
+  address_subdistrict?: string | null;
+  address_code?: string | null;
+  company_note?: string | null;
+
+  // Billing Address Exploded
+  billing_address_line?: string | null;
+  billing_province?: string | null;
+  billing_district?: string | null;
+  billing_subdistrict?: string | null;
+  billing_postal_code?: string | null;
+  billing_note?: string | null;
+
+  // Shipping Address Exploded
+  shipping_address_line?: string | null;
+  shipping_province?: string | null;
+  shipping_district?: string | null;
+  shipping_subdistrict?: string | null;
+  shipping_postal_code?: string | null;
+  shipping_note?: string | null;
+
+  // Receiving Address (Pickup) Exploded
+  receiving_name?: string | null;
+  receiving_phone?: string | null;
+  receiving_address_line?: string | null;
+  receiving_province?: string | null;
+  receiving_district?: string | null;
+  receiving_subdistrict?: string | null;
+  receiving_postal_code?: string | null;
+  receiving_note?: string | null;
+
+  // Sender Address (Shipping Company) Exploded
+  sender_name?: string | null;
+  sender_phone?: string | null;
+  sender_line?: string | null;
+  sender_province?: string | null;
+  sender_district?: string | null;
+  sender_subdistrict?: string | null;
+  sender_postal_code?: string | null;
+  sender_note?: string | null;
+
   items: SaleItemFormData[];
   shippingCost: number;
   otherCosts: number;
