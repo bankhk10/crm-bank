@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
     ArrowLeft,
     AlertTriangle,
+    Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function SaleDetailView({ id }: { id: string }) {
 
     const [data, setData] = useState<SaleDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [pdfLoading, setPdfLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -119,11 +121,18 @@ export function SaleDetailView({ id }: { id: string }) {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-6">
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden" style={{ height: "calc(100vh - 180px)" }}>
+                <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative" style={{ height: "calc(100vh - 180px)" }}>
+                    {pdfLoading && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[2px] z-10">
+                            <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
+                            <p className="text-slate-600 font-medium animate-pulse">กำลังเตรียมไฟล์เอกสาร...</p>
+                        </div>
+                    )}
                     <iframe
                         src={`/api/pdf?saleId=${sale.id}`}
                         className="w-full h-full border-0"
                         title="Sale Detail PDF"
+                        onLoad={() => setPdfLoading(false)}
                     />
                 </div>
             </div>
