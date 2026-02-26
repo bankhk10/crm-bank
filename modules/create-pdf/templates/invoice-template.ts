@@ -283,9 +283,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
         <div class="invoice-details">
           <h3>ข้อมูลอ้างอิง</h3>
-          <p><strong>เลขที่ใบแจ้งหนี้:</strong> ${data.invoiceNumber}</p>
-          <p><strong>วันที่ออกเอกสาร:</strong> ${data.date}</p>
+          <p><strong>วันที่:</strong> ${data.invoiceNumber}</p>
+          <p><strong>เลขที่ออเดอร์:</strong> ${data.date}</p>
           <p><strong>เงื่อนไขการชำระเงิน:</strong> 30 วัน</p>
+          <p><strong>วันที่จัดส่ง:</strong> ${data.invoiceNumber}</p>
+          <p><strong>วันที่ครบกำหนดชำระเงิน:</strong> ${data.invoiceNumber}</p>
+          <p><strong>วันที่ชำระเงิน:</strong> ${data.invoiceNumber}</p>
+          <p><strong>ผู้ขาย:</strong> ${data.invoiceNumber}</p>
         </div>
       </div>
 
