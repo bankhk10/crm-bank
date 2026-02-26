@@ -228,7 +228,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
 .doc-title {
   text-align: center;
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
   margin: 30px 0 10px;
   color: #24364b;
