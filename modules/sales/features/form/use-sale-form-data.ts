@@ -61,7 +61,17 @@ export function useSaleFormData(): SaleFormData {
           })),
         );
         setProducts(productsData.products || []);
-        setCompanies(companiesData.companies || []);
+        setCompanies(
+          (companiesData.companies || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            addressLine: c.addressLine || undefined,
+            province: c.province || undefined,
+            district: c.district || undefined,
+            subdistrict: c.subdistrict || undefined,
+            postalCode: c.postalCode || undefined,
+          })),
+        );
       })
       .catch((err) => {
         console.error("Error loading data:", err);

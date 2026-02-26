@@ -151,6 +151,24 @@ export async function updateSaleUseCase(
       const multiplier = getPackMultiplier(product?.packageSizePerBox);
       return {
         productId: item.productId,
+        // Product Snapshot
+        productCode: product?.productCode,
+        name: product?.name,
+        commonName: product?.commonName,
+        unit: product?.unit,
+        productGroup: product?.productGroup,
+        brand: product?.brand,
+        packageSize: product?.packageSize,
+        packageSizePerBox: product?.packageSizePerBox,
+        totalPackageSizePerBox: product?.totalPackageSizePerBox,
+        price: product?.price ? Number(product.price) : null,
+        cartonPrice: product?.cartonPrice ? Number(product.cartonPrice) : null,
+        promotionBudget: product?.promotionBudget
+          ? Number(product.promotionBudget)
+          : null,
+        pointPerUnit: product?.pointPerUnit,
+        productChain: product?.productChain?.name,
+
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         originalPrice: item.originalPrice,

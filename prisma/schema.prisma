@@ -812,6 +812,23 @@ model SaleItem {
   id            String   @id @default(cuid())
   saleId        String
   productId     String
+
+  // Product Snapshot (ข้อมูลสินค้าย้อนหลัง)
+  productCode            String?
+  name                   String?
+  commonName             String?
+  unit                   String?
+  productGroup           String?
+  brand                  String?
+  packageSize            String?
+  packageSizePerBox      String?
+  totalPackageSizePerBox String?
+  price                  Decimal?  @db.Decimal(15, 2)
+  cartonPrice            Decimal?  @db.Decimal(15, 2)
+  promotionBudget        Decimal?  @db.Decimal(15, 2)
+  pointPerUnit           Int?
+  productChain           String?
+
   quantity      Int
   unitPrice     Decimal  @db.Decimal(15, 2)
   originalPrice Decimal  @db.Decimal(15, 2)

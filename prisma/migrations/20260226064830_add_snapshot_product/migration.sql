@@ -1,0 +1,15 @@
+-- AlterTable
+ALTER TABLE "SaleItem" ADD COLUMN     "brand" TEXT,
+ADD COLUMN     "cartonPrice" DECIMAL(15,2),
+ADD COLUMN     "commonName" TEXT,
+ADD COLUMN     "name" TEXT,
+ADD COLUMN     "packageSize" TEXT,
+ADD COLUMN     "packageSizePerBox" TEXT,
+ADD COLUMN     "pointPerUnit" INTEGER,
+ADD COLUMN     "price" DECIMAL(15,2),
+ADD COLUMN     "productChain" TEXT,
+ADD COLUMN     "productCode" TEXT,
+ADD COLUMN     "productGroup" TEXT,
+ADD COLUMN     "promotionBudget" DECIMAL(15,2),
+ADD COLUMN     "totalPackageSizePerBox" TEXT,
+ADD COLUMN     "unit" TEXT;

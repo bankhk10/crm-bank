@@ -244,6 +244,7 @@ export async function findProductsByIds(productIds: string[]) {
     where: { id: { in: productIds } },
     include: {
       stockLots: { where: { isUsed: false } },
+      productChain: true,
     },
   });
 }
@@ -296,6 +297,21 @@ export async function createSale(data: {
   createdById: string;
   items: Array<{
     productId: string;
+    productCode?: string | null;
+    name?: string | null;
+    commonName?: string | null;
+    unit?: string | null;
+    productGroup?: string | null;
+    brand?: string | null;
+    packageSize?: string | null;
+    packageSizePerBox?: string | null;
+    totalPackageSizePerBox?: string | null;
+    price?: number | null;
+    cartonPrice?: number | null;
+    promotionBudget?: number | null;
+    pointPerUnit?: number | null;
+    productChain?: string | null;
+
     quantity: number;
     unitPrice: number;
     originalPrice: number;
@@ -348,6 +364,25 @@ export async function createSale(data: {
       items: {
         create: data.items.map((item) => ({
           productId: item.productId,
+          productCode: item.productCode,
+          name: item.name,
+          commonName: item.commonName,
+          unit: item.unit,
+          productGroup: item.productGroup,
+          brand: item.brand,
+          packageSize: item.packageSize,
+          packageSizePerBox: item.packageSizePerBox,
+          totalPackageSizePerBox: item.totalPackageSizePerBox,
+          price: item.price ? new Prisma.Decimal(item.price) : null,
+          cartonPrice: item.cartonPrice
+            ? new Prisma.Decimal(item.cartonPrice)
+            : null,
+          promotionBudget: item.promotionBudget
+            ? new Prisma.Decimal(item.promotionBudget)
+            : null,
+          pointPerUnit: item.pointPerUnit,
+          productChain: item.productChain,
+
           quantity: item.quantity,
           unitPrice: new Prisma.Decimal(item.unitPrice),
           originalPrice: new Prisma.Decimal(item.originalPrice),
@@ -370,11 +405,22 @@ export async function createSale(data: {
           pickupCompanyAddressId: data.pickupCompanyAddressId,
           shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-          companyAddressSnapshot: data.companyAddressSnapshot,
-          billingAddressSnapshot: data.billingAddressSnapshot,
-          shippingAddressSnapshot: data.shippingAddressSnapshot,
-          pickupAddressSnapshot: data.pickupAddressSnapshot,
-          shippingCompanyAddressSnapshot: data.shippingCompanyAddressSnapshot,
+          companyAddressSnapshot: data.companyAddressSnapshot as
+            | Prisma.InputJsonValue
+            | undefined,
+          billingAddressSnapshot: data.billingAddressSnapshot as
+            | Prisma.InputJsonValue
+            | undefined,
+          shippingAddressSnapshot: data.shippingAddressSnapshot as
+            | Prisma.InputJsonValue
+            | undefined,
+          pickupAddressSnapshot: data.pickupAddressSnapshot as
+            | Prisma.InputJsonValue
+            | undefined,
+          shippingCompanyAddressSnapshot:
+            data.shippingCompanyAddressSnapshot as
+              | Prisma.InputJsonValue
+              | undefined,
         },
       },
     },
@@ -421,6 +467,21 @@ export async function updateSale(
     needsReapproval: boolean;
     items: Array<{
       productId: string;
+      productCode?: string | null;
+      name?: string | null;
+      commonName?: string | null;
+      unit?: string | null;
+      productGroup?: string | null;
+      brand?: string | null;
+      packageSize?: string | null;
+      packageSizePerBox?: string | null;
+      totalPackageSizePerBox?: string | null;
+      price?: number | null;
+      cartonPrice?: number | null;
+      promotionBudget?: number | null;
+      pointPerUnit?: number | null;
+      productChain?: string | null;
+
       quantity: number;
       unitPrice: number;
       originalPrice: number;
@@ -504,6 +565,25 @@ export async function updateSale(
           deleteMany: {},
           create: data.items.map((item) => ({
             productId: item.productId,
+            productCode: item.productCode,
+            name: item.name,
+            commonName: item.commonName,
+            unit: item.unit,
+            productGroup: item.productGroup,
+            brand: item.brand,
+            packageSize: item.packageSize,
+            packageSizePerBox: item.packageSizePerBox,
+            totalPackageSizePerBox: item.totalPackageSizePerBox,
+            price: item.price ? new Prisma.Decimal(item.price) : null,
+            cartonPrice: item.cartonPrice
+              ? new Prisma.Decimal(item.cartonPrice)
+              : null,
+            promotionBudget: item.promotionBudget
+              ? new Prisma.Decimal(item.promotionBudget)
+              : null,
+            pointPerUnit: item.pointPerUnit,
+            productChain: item.productChain,
+
             quantity: item.quantity,
             unitPrice: new Prisma.Decimal(item.unitPrice),
             originalPrice: new Prisma.Decimal(item.originalPrice),
@@ -529,12 +609,22 @@ export async function updateSale(
               pickupCompanyAddressId: data.pickupCompanyAddressId,
               shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-              companyAddressSnapshot: data.companyAddressSnapshot,
-              billingAddressSnapshot: data.billingAddressSnapshot,
-              shippingAddressSnapshot: data.shippingAddressSnapshot,
-              pickupAddressSnapshot: data.pickupAddressSnapshot,
+              companyAddressSnapshot: data.companyAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              billingAddressSnapshot: data.billingAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              shippingAddressSnapshot: data.shippingAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              pickupAddressSnapshot: data.pickupAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
               shippingCompanyAddressSnapshot:
-                data.shippingCompanyAddressSnapshot,
+                data.shippingCompanyAddressSnapshot as
+                  | Prisma.InputJsonValue
+                  | undefined,
             },
             update: {
               companyAddressId: data.companyAddressId,
@@ -543,12 +633,22 @@ export async function updateSale(
               pickupCompanyAddressId: data.pickupCompanyAddressId,
               shippingCompanyAddressId: data.shippingCompanyAddressId,
 
-              companyAddressSnapshot: data.companyAddressSnapshot,
-              billingAddressSnapshot: data.billingAddressSnapshot,
-              shippingAddressSnapshot: data.shippingAddressSnapshot,
-              pickupAddressSnapshot: data.pickupAddressSnapshot,
+              companyAddressSnapshot: data.companyAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              billingAddressSnapshot: data.billingAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              shippingAddressSnapshot: data.shippingAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
+              pickupAddressSnapshot: data.pickupAddressSnapshot as
+                | Prisma.InputJsonValue
+                | undefined,
               shippingCompanyAddressSnapshot:
-                data.shippingCompanyAddressSnapshot,
+                data.shippingCompanyAddressSnapshot as
+                  | Prisma.InputJsonValue
+                  | undefined,
             },
           },
         },
