@@ -2,7 +2,10 @@ import { generatePdfFromHtml } from "../server/pdf-service";
 import {
   renderInvoiceTemplate,
   sampleInvoiceData,
+  InvoiceData,
 } from "../templates/invoice-template";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
 
 /**
  * ใช้งานข้อมูลตัวอย่างเพื่อสร้าง PDF
@@ -16,6 +19,39 @@ export async function createSamplePdf(): Promise<Buffer> {
   const pdfBuffer = await generatePdfFromHtml(html);
 
   return pdfBuffer;
+}
+
+/**
+ * สร้าง PDF จากข้อมูลการขายจริง
+ */
+export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
+  const customerAddress = [
+    sale.customer.addressLine,
+    sale.customer.subdistrict ? `ต.${sale.customer.subdistrict}` : "",
+    sale.customer.district ? `อ.${sale.customer.district}` : "",
+    sale.customer.province ? `จ.${sale.customer.province}` : "",
+    sale.customer.postalCode,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const invoiceData: InvoiceData = {
+    invoiceNumber: sale.saleNumber,
+    date: format(new Date(sale.saleDate), "dd MMMM yyyy", { locale: th }),
+    customerName: sale.customer.name,
+    customerAddress: customerAddress || "-",
+    contactName: sale.employee?.name || "-",
+    items: sale.items.map((item: any) => ({
+      description: item.product.name,
+      quantity: item.quantity,
+      price: Number(item.unitPrice),
+      total: Number(item.totalPrice),
+    })),
+    totalAmount: Number(sale.totalAmount),
+  };
+
+  const html = renderInvoiceTemplate(invoiceData);
+  return generatePdfFromHtml(html);
 }
 
 /**
