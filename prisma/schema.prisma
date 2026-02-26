@@ -888,11 +888,11 @@ model SaleAddress {
   shippingCompanyAddressId  String? // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
 
   // Snapshots (บันทึกข้อความที่อยู่แบบ Text กันสะเทือนเมื่อ Master Data ถูกแก้ไขในอนาคต)
-  companyAddressSnapshot         String? @db.Text // ที่อยู่บริษัทเรา (ออกเอกสาร)
-  billingAddressSnapshot         String? @db.Text // ที่อยู่วางบิล (ของลูกค้า)
-  shippingAddressSnapshot        String? @db.Text // ที่อยู่จัดส่ง (ของลูกค้า)
-  pickupAddressSnapshot          String? @db.Text // ที่อยู่รับสินค้า (สาขา/โกดังเรา)
-  shippingCompanyAddressSnapshot String? @db.Text // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
+  companyAddressSnapshot         Json? // ที่อยู่บริษัทเรา (ออกเอกสาร)
+  billingAddressSnapshot         Json? // ที่อยู่วางบิล (ของลูกค้า)
+  shippingAddressSnapshot        Json? // ที่อยู่จัดส่ง (ของลูกค้า)
+  pickupAddressSnapshot          Json? // ที่อยู่รับสินค้า (สาขา/โกดังเรา)
+  shippingCompanyAddressSnapshot Json? // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
