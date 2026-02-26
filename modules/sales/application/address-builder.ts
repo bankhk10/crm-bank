@@ -53,20 +53,15 @@ export async function buildExplodedSaleAddresses(
     sender_note: null,
   };
 
-  // 1. Company Address
-  if (body.companyAddressId) {
-    const company = await db.company.findUnique({
-      where: { id: body.companyAddressId },
-    });
-    if (company) {
-      addresses.company_name = company.name;
-      addresses.company_phone = company.phone;
-      addresses.address_line = company.addressLine;
-      addresses.address_province = company.province;
-      addresses.address_district = company.district;
-      addresses.address_subdistrict = company.subdistrict;
-      addresses.address_code = company.postalCode;
-    }
+  // 1. Customer Address Snapshot (Stored in company_* fields per Prisma schema)
+  if (customer) {
+    addresses.company_name = customer.name || null;
+    addresses.company_phone = customer.phone || null;
+    addresses.address_line = customer.addressLine || null;
+    addresses.address_province = customer.province || null;
+    addresses.address_district = customer.district || null;
+    addresses.address_subdistrict = customer.subdistrict || null;
+    addresses.address_code = customer.postalCode || null;
   }
 
   // 2. Billing: the UI allows them to pass a fully composed `billingAddress` string

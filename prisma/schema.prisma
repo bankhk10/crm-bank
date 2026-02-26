@@ -904,7 +904,7 @@ model SaleAddress {
   pickupCompanyAddressId    String? // ที่อยู่รับสินค้า (สาขา/โกดังเรา)
   shippingCompanyAddressId  String? // ที่อยู่บริษัทขนส่ง (สำนักงาน/จุดรับ)
 
-  // ที่อยู่บริษัท
+  // ที่อยู่ลูกค้า
   company_name        String?
   company_phone       String?
   address_line        String?
