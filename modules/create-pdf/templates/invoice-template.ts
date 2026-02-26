@@ -285,10 +285,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 <div class="doc-divider"></div>
       <div class="customer-details">
         <h3>ข้อมูลลูกค้า</h3>
-        <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
+        <p><strong>ชื่อบริษัท:</strong> ${data.customerName}<strong> เบอร์โทรศัพท์:</strong> ${data.customerPhone}</p>
         <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
         <p><strong>ที่อยู่วางบิล:</strong> ${data.billingAddress}</p>
-        <p><strong>เบอร์โทรศัพท์:</strong> ${data.customerPhone}</p>
       </div>
       <div class="customer-info-container">
         <div class="logistics-details">
