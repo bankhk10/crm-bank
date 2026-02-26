@@ -1,8 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import {
-  createPdfFromSaleData,
-  createSamplePdf,
-} from "@/modules/create-pdf/application/generate-pdf";
+import { createPdfFromSaleData } from "@/modules/create-pdf/application/generate-pdf";
 import { getSaleAction } from "@/modules/sales/server/actions";
 
 export async function GET(request: NextRequest) {
@@ -26,7 +23,10 @@ export async function GET(request: NextRequest) {
       filename = `${saleResult.sale.saleNumber}.pdf`;
     } else {
       // ใช้ข้อมูลตัวอย่าง
-      pdfBuffer = await createSamplePdf();
+      return NextResponse.json(
+        { error: "ไม่พบข้อมูลรายการขาย" },
+        { status: 404 },
+      );
     }
 
     // สร้าง Response ส่งกลับไปเป็นไฟล์ PDF
