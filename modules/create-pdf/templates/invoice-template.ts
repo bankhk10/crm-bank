@@ -90,6 +90,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           border-radius: 6px;
           background-color: #f8f9fa;
         }
+        .logistics-details {
+          width: 48%;
+          padding: 15px;
+          border-radius: 6px;
+          background-color: #f8f9fa;
+        }
         h3 {
           margin-top: 0;
           color: #444;
@@ -264,14 +270,23 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
           <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
           <p><strong>ที่อยู่วางบิล:</strong> ${data.customerAddress}</p>
+          <p><strong>เบอร์โทรศัพท์:</strong> ${"081-234-5678"}</p>
         </div>
         <div class="invoice-details">
-          <h3>รายละเอียดใบแจ้งหนี้</h3>
+          <h3>ข้อมูลอ้างอิง</h3>
           <p><strong>เลขที่ใบแจ้งหนี้:</strong> ${data.invoiceNumber}</p>
           <p><strong>วันที่ออกเอกสาร:</strong> ${data.date}</p>
           <p><strong>เงื่อนไขการชำระเงิน:</strong> 30 วัน</p>
         </div>
       </div>
+         <div class="logistics-details">
+          <h3>ข้อมูลการจัดส่ง</h3>
+          <p><strong>วิธีการจัดส่ง:</strong> ${data.invoiceNumber}</p>
+          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.date}</p>
+          <p><strong>ที่อยู่รับสินค้า:</strong> 30 วัน</p>
+          <p><strong>ชื่อบริษัทขนส่ง:</strong> 30 วัน</p>
+          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> 30 วัน</p>
+        </div>
 
       <table>
         <thead>
