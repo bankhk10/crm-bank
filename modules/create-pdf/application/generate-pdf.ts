@@ -33,6 +33,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
       total: Number(item.totalPrice),
     })),
     totalAmount: Number(sale.totalAmount),
+    title: sale.status === "COMPLETED" ? "ใบบันทึกการขาย" : "ใบเสนอราคา",
   };
 
   const html = renderInvoiceTemplate(invoiceData);

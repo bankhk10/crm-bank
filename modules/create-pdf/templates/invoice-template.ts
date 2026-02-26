@@ -14,6 +14,7 @@ export interface InvoiceData {
   }[];
   contactName: string;
   totalAmount: number;
+  title: string;
 }
 
 /**
@@ -254,7 +255,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
 </div>
 
-<div class="doc-title">ใบสั่งขาย</div>
+<div class="doc-title">${data.title}</div>
 <div class="doc-divider"></div>
       
       <div class="customer-info-container">
