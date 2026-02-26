@@ -46,6 +46,19 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     base64Logo = "data:image/png;base64," + bitmap.toString("base64");
   }
 
+  // Read CSS from file
+  const cssPath = path.join(
+    process.cwd(),
+    "modules",
+    "create-pdf",
+    "templates",
+    "invoice.css",
+  );
+  let cssContent = "";
+  if (fs.existsSync(cssPath)) {
+    cssContent = fs.readFileSync(cssPath, "utf-8");
+  }
+
   const itemsHtml = data.items
     .map(
       (item) => `
@@ -71,195 +84,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <title>เลขที่ออเดอร์ - ${data.invoiceNumber}</title>
       <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <style>
-        body {
-          font-family: 'Sarabun', sans-serif; /* รองรับภาษาไทยได้สมบูรณ์ */
-          color: #333;
-          margin: 0;
-          padding: 0;
-          background: #fff;
-          font-size: 14px;
-        }
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 40px;
-          border-bottom: 2px solid #2c3e50;
-          padding-bottom: 20px;
-        }
-        .header h1 {
-          color: #2c3e50;
-          margin: 0;
-          font-size: 28px;
-          text-transform: uppercase;
-        }
-        .header .company-logo {
-          max-height: 50px; /* ปรับขนาด Logo ตามต้องการ */
-          object-fit: contain;
-        }
-        .customer-info-container {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 15px;
-        }
-        .logistics-details, .invoice-details {
-          width: 48%;
-          padding: 15px;
-          border-radius: 6px;
-          background-color: #f8f9fa;
-        }
-        .customer-details {
-          width: 100%;
-          padding: 15px;
-          border-radius: 6px;
-          background-color: #f8f9fa;
-          margin-bottom: 12px;
-          box-sizing: border-box;
-        }
-        h3 {
-          margin-top: 0;
-          color: #444;
-          font-size: 16px;
-          border-bottom: 1px solid #dee2e6;
-          padding-bottom: 5px;
-        }
-        p {
-          margin: 5px 0;
-          line-height: 1.5;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 40px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        thead {
-          display: table-header-group; /* ทำให้ Header ซ้ำทุกหน้า (Repeating Header) */
-        }
-        tr {
-          page-break-inside: avoid; /* ห้ามให้ Row แตกครึ่งหน้า (Row break prevent) */
-        }
-        th {
-          background-color: #2c3e50;
-          color: white;
-          padding: 12px 10px;
-          text-align: left;
-        }
-        td {
-          padding: 12px 10px;
-          border-bottom: 1px solid #dee2e6;
-        }
-        .col-desc { text-align: left; }
-        .col-center { text-align: center; }
-        .col-right { text-align: right; }
-        .fw-bold { font-weight: 600; }
-        
-        .total-section {
-          width: 40%;
-          float: right;
-          border: 1px solid #dee2e6;
-          border-radius: 6px;
-        }
-        .total-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 10px 15px;
-          border-bottom: 1px solid #dee2e6;
-        }
-        .total-row:last-child {
-          border-bottom: none;
-        }
-        .grand-total {
-          background-color: #2c3e50;
-          color: white;
-          font-weight: bold;
-          font-size: 16px;
-        }
-        
-        .footer-section {
-          page-break-inside: avoid; /* ห้าม Footer แตกครึ่งหน้า */
-        }
-
-        .footer {
-          clear: both;
-          padding-top: 80px;
-          text-align: center;
-          font-size: 12px;
-          color: #777;
-        }
-        .signature-box {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 50px;
-        }
-        .signature {
-          text-align: center;
-          width: 200px;
-        }
-        .signature div {
-          border-top: 1px solid #333;
-          margin-top: 50px;
-          padding-top: 10px;
-        }
-          .doc-header {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  margin-bottom: 10px;
-}
-
-.company {
-  display: flex;
-  gap: 14px;
-}
-
-.company-logo {
-  width: 90px;
-}
-
-.company-text h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.company-text p {
-  margin: 2px 0;
-  font-size: 13px;
-  color: #555;
-}
-
-.doc-meta {
-  text-align: right;
-}
-
-.doc-meta .label {
-  color: #777;
-  font-size: 13px;
-}
-
-.doc-meta .doc-no {
-  font-size: 22px;
-  font-weight: 700;
-  color: #24364b;
-}
-
-.doc-title {
-  text-align: center;
-  font-size: 26px;
-  font-weight: 700;
-  margin: 30px 0 10px;
-  color: #24364b;
-}
-
-.doc-divider {
-  height: 3px;
-  background: #24364b;
-  margin-bottom: 25px;
-}
-  .phone {
-  margin-left: 40px;
-}
+        ${cssContent}
       </style>
     </head>
     <body>
