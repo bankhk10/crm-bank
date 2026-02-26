@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -16,14 +16,8 @@ import {
     Calendar,
     CreditCard,
     Tag,
-    Printer,
-    Download,
-    Loader2,
-    Eye,
-    X,
 } from "lucide-react";
-import SalesRecordDocument from "@/components/sales/SalesRecordDocument";
-import { useSalesPdf } from "@/hooks/use-sales-pdf";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -43,16 +37,6 @@ export function SaleDetailView({ id }: { id: string }) {
     const [data, setData] = useState<SaleDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const documentRef = useRef<HTMLDivElement>(null);
-    const {
-        handlePreview,
-        handleDownloadPdf,
-        handlePrintFromPreview,
-        closePreview,
-        isGenerating,
-        pdfUrl,
-        showPreview,
-    } = useSalesPdf(documentRef);
 
     useEffect(() => {
         getSaleAction(id)
@@ -180,33 +164,7 @@ export function SaleDetailView({ id }: { id: string }) {
                                 <ArrowLeft className="h-4 w-4 mr-2" />
                                 ย้อนกลับ
                             </Button>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="gap-2"
-                                    onClick={handlePreview}
-                                    disabled={isGenerating}
-                                >
-                                    {isGenerating ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Eye className="h-4 w-4" />
-                                    )}
-                                    ดูตัวอย่าง / พิมพ์
-                                </Button>
-                                <Button
-                                    className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-                                    onClick={() => handleDownloadPdf(sale.saleNumber)}
-                                    disabled={isGenerating}
-                                >
-                                    {isGenerating ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Download className="h-4 w-4" />
-                                    )}
-                                    ดาวน์โหลด PDF
-                                </Button>
-                            </div>
+
                         </div>
                     </div>
 
@@ -217,64 +175,7 @@ export function SaleDetailView({ id }: { id: string }) {
                             sale={sale}
                         />
                     </div>
-
-                    <div className="max-w-5xl mx-auto px-4 py-6">
-                        <SalesRecordDocument
-                            ref={documentRef}
-                            sale={sale}
-                            displayShippingAddress={displayShippingAddress}
-                        />
-                    </div>
                 </div>
-
-                {showPreview && pdfUrl && (
-                    <div className="fixed inset-0 z-50 flex flex-col bg-black/60 backdrop-blur-sm">
-                        <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-900 text-white shadow-lg">
-                            <div className="flex items-center gap-3">
-                                <FileText className="h-5 w-5 text-blue-400" />
-                                <span className="font-semibold text-sm sm:text-base">
-                                    {sale.saleNumber}.pdf
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-white hover:bg-white/10 gap-2"
-                                    onClick={handlePrintFromPreview}
-                                >
-                                    <Printer className="h-4 w-4" />
-                                    <span className="hidden sm:inline">พิมพ์</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-white hover:bg-white/10 gap-2"
-                                    onClick={() => handleDownloadPdf(sale.saleNumber)}
-                                >
-                                    <Download className="h-4 w-4" />
-                                    <span className="hidden sm:inline">ดาวน์โหลด</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-white hover:bg-white/10 ml-2"
-                                    onClick={closePreview}
-                                >
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="flex-1 p-2 sm:p-4">
-                            <iframe
-                                id="pdf-preview-iframe"
-                                src={pdfUrl}
-                                className="w-full h-full rounded-lg bg-white"
-                                title="PDF Preview"
-                            />
-                        </div>
-                    </div>
-                )}
             </>
         );
     }
