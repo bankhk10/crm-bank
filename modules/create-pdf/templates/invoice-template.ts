@@ -257,6 +257,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
   background: #24364b;
   margin-bottom: 25px;
 }
+  .phone {
+  margin-left: 40px;
+}
       </style>
     </head>
     <body>
@@ -285,7 +288,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 <div class="doc-divider"></div>
       <div class="customer-details">
         <h3>ข้อมูลลูกค้า</h3>
-        <p><strong>ชื่อบริษัท:</strong> ${data.customerName}<strong> เบอร์โทรศัพท์:</strong> ${data.customerPhone}</p>
+       <p>
+  <strong>ชื่อบริษัท:</strong> ${data.customerName}
+  <span class="phone"><strong>เบอร์โทรศัพท์:</strong> ${data.customerPhone}</span>
+    </p>
         <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
         <p><strong>ที่อยู่วางบิล:</strong> ${data.billingAddress}</p>
       </div>
