@@ -91,10 +91,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           background-color: #f8f9fa;
         }
         .logistics-details {
-          width: 48%;
+          width: 100%;
           padding: 15px;
           border-radius: 6px;
           background-color: #f8f9fa;
+          margin-bottom: 25px;
+          box-sizing: border-box;
         }
         h3 {
           margin-top: 0;
