@@ -175,6 +175,16 @@ export function SaleDetailView({ id }: { id: string }) {
                             sale={sale}
                         />
                     </div>
+
+                    <div className="max-w-5xl mx-auto px-4 py-6">
+                        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden" style={{ height: "calc(100vh - 180px)" }}>
+                            <iframe
+                                src={`/api/pdf?saleId=${sale.id}`}
+                                className="w-full h-full border-0"
+                                title="Sale Detail PDF"
+                            />
+                        </div>
+                    </div>
                 </div>
             </>
         );
