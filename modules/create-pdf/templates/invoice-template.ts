@@ -84,13 +84,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           justify-content: space-between;
           margin-bottom: 30px;
         }
-        .customer-details, .invoice-details {
+        .logistics-details, .invoice-details {
           width: 48%;
           padding: 15px;
           border-radius: 6px;
           background-color: #f8f9fa;
         }
-        .logistics-details {
+        .customer-details {
           width: 100%;
           padding: 15px;
           border-radius: 6px;
@@ -265,14 +265,21 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
 <div class="doc-title">${data.title}</div>
 <div class="doc-divider"></div>
-      
+      <div class="customer-details">
+        <h3>ข้อมูลลูกค้า</h3>
+        <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
+        <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
+        <p><strong>ที่อยู่วางบิล:</strong> ${data.customerAddress}</p>
+        <p><strong>เบอร์โทรศัพท์:</strong> ${"081-234-5678"}</p>
+      </div>
       <div class="customer-info-container">
-        <div class="customer-details">
-          <h3>ข้อมูลลูกค้า</h3>
-          <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
-          <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
-          <p><strong>ที่อยู่วางบิล:</strong> ${data.customerAddress}</p>
-          <p><strong>เบอร์โทรศัพท์:</strong> ${"081-234-5678"}</p>
+        <div class="logistics-details">
+          <h3>ข้อมูลการจัดส่ง</h3>
+          <p><strong>วิธีการจัดส่ง:</strong> ${data.invoiceNumber}</p>
+          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.date}</p>
+          <p><strong>ที่อยู่รับสินค้า:</strong> 30 วัน</p>
+          <p><strong>ชื่อบริษัทขนส่ง:</strong> 30 วัน</p>
+          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> 30 วัน</p>
         </div>
         <div class="invoice-details">
           <h3>ข้อมูลอ้างอิง</h3>
@@ -281,14 +288,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <p><strong>เงื่อนไขการชำระเงิน:</strong> 30 วัน</p>
         </div>
       </div>
-         <div class="logistics-details">
-          <h3>ข้อมูลการจัดส่ง</h3>
-          <p><strong>วิธีการจัดส่ง:</strong> ${data.invoiceNumber}</p>
-          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.date}</p>
-          <p><strong>ที่อยู่รับสินค้า:</strong> 30 วัน</p>
-          <p><strong>ชื่อบริษัทขนส่ง:</strong> 30 วัน</p>
-          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> 30 วัน</p>
-        </div>
+
 
       <table>
         <thead>
