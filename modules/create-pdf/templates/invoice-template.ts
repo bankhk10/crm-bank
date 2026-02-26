@@ -3,9 +3,23 @@ import path from "path";
 
 export interface InvoiceData {
   invoiceNumber: string;
-  date: string;
+  date: string; // Sale Date
   customerName: string;
-  customerAddress: string;
+  customerPhone: string;
+  customerAddress: string; // Main address or Company Address depending on context
+  billingAddress: string;
+
+  deliveryMethod: string;
+  shippingAddress: string;
+  receivingAddress: string;
+  shippingCompanyName: string;
+  senderAddress: string;
+
+  paymentTerm: string;
+  deliveryDate: string;
+  creditDueDate: string;
+  paymentDate: string;
+
   items: {
     code: string;
     description: string;
@@ -273,27 +287,27 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <h3>ข้อมูลลูกค้า</h3>
         <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
         <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
-        <p><strong>ที่อยู่วางบิล:</strong> ${data.customerAddress}</p>
-        <p><strong>เบอร์โทรศัพท์:</strong> ${"081-234-5678"}</p>
+        <p><strong>ที่อยู่วางบิล:</strong> ${data.billingAddress}</p>
+        <p><strong>เบอร์โทรศัพท์:</strong> ${data.customerPhone}</p>
       </div>
       <div class="customer-info-container">
         <div class="logistics-details">
           <h3>ข้อมูลการจัดส่ง</h3>
-          <p><strong>วิธีการจัดส่ง:</strong> ${data.invoiceNumber}</p>
-          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.date}</p>
-          <p><strong>ที่อยู่รับสินค้า:</strong> 30 วัน</p>
-          <p><strong>ชื่อบริษัทขนส่ง:</strong> 30 วัน</p>
-          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> 30 วัน</p>
+          <p><strong>วิธีการจัดส่ง:</strong> ${data.deliveryMethod}</p>
+          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.shippingAddress}</p>
+          <p><strong>ที่อยู่รับสินค้า:</strong> ${data.receivingAddress}</p>
+          <p><strong>ชื่อบริษัทขนส่ง:</strong> ${data.shippingCompanyName}</p>
+          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> ${data.senderAddress}</p>
         </div>
         <div class="invoice-details">
           <h3>ข้อมูลอ้างอิง</h3>
-          <p><strong>วันที่:</strong> ${data.invoiceNumber}</p>
-          <p><strong>เลขที่ออเดอร์:</strong> ${data.date}</p>
-          <p><strong>เงื่อนไขการชำระเงิน:</strong> 30 วัน</p>
-          <p><strong>วันที่จัดส่ง:</strong> ${data.invoiceNumber}</p>
-          <p><strong>วันที่ครบกำหนดชำระเงิน:</strong> ${data.invoiceNumber}</p>
-          <p><strong>วันที่ชำระเงิน:</strong> ${data.invoiceNumber}</p>
-          <p><strong>ผู้ขาย:</strong> ${data.invoiceNumber}</p>
+          <p><strong>วันที่:</strong> ${data.date}</p>
+          <p><strong>เลขที่ออเดอร์:</strong> ${data.invoiceNumber}</p>
+          <p><strong>เงื่อนไขการชำระเงิน:</strong> ${data.paymentTerm}</p>
+          <p><strong>วันที่จัดส่ง:</strong> ${data.deliveryDate}</p>
+          <p><strong>วันที่ครบกำหนดชำระเงิน:</strong> ${data.creditDueDate}</p>
+          <p><strong>วันที่ชำระเงิน:</strong> ${data.paymentDate}</p>
+          <p><strong>ผู้ขาย:</strong> ${data.contactName}</p>
         </div>
       </div>
 

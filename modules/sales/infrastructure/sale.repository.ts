@@ -202,6 +202,7 @@ export async function findSaleById(id: string) {
         include: { changedBy: true },
         orderBy: { changedAt: "desc" },
       },
+      saleAddress: true,
     },
   });
 }
