@@ -51,18 +51,6 @@ export {
 } from "./validations";
 
 // ─────────────────────────────────────────────
-// Re-export address utils (business logic)
-// ─────────────────────────────────────────────
-
-export {
-  parseAddress,
-  buildFullAddress,
-  buildCustomerShippingAddress,
-  buildCompanyAddress,
-  cleanAddressPrefix,
-} from "./address-utils";
-
-// ─────────────────────────────────────────────
 // Order Management & Utils
 // ─────────────────────────────────────────────
 

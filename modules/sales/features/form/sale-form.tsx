@@ -42,7 +42,7 @@ import {
     parseAddress,
     buildCustomerShippingAddress,
     buildCompanyAddress,
-} from "../../application/address-utils";
+} from "@/lib/address-utils";
 import type {
     SaleFormProps,
     SaleFormCustomer,

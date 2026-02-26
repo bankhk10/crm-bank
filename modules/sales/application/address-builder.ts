@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { parseAddress } from "./address-utils";
+import { parseAddress } from "@/lib/address-utils";
 import type { SaleFormData } from "@/modules/sales/types";
 
 /**

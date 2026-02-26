@@ -16,7 +16,7 @@ import {
 import DatePicker from "@/components/custom/DatePicker";
 import type { DeliveryMethodSectionProps, DeliveryMethodType } from "../../../types";
 import { AddressSelector } from "./address-selector";
-import { buildCompanyAddress } from "../../../application/address-utils";
+import { buildCompanyAddress } from "@/lib/address-utils";
 
 const DELIVERY_METHODS = [
     {
