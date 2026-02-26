@@ -141,7 +141,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
       </div>
 
-
       <table>
         <thead>
           <tr>
