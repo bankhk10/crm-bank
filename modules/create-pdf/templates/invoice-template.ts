@@ -37,11 +37,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       (item) => `
     <tr>
       <td class="col-center">${item.code}</td>
-      <td class="col-center">${"1"}</td>
       <td class="col-desc">${item.description}</td>
       <td class="col-center">${item.quantity}</td>
-      <td class="col-right">${item.price.toLocaleString()} THB</td>
-      <td class="col-right fw-bold">${item.total.toLocaleString()} THB</td>
+      <td class="col-center">${"-" /* บรรจุ */}</td>
+      <td class="col-right">${item.price.toLocaleString()}</td>
+      <td class="col-right">${"-" /* ราคา/ลัง */}</td>
+      <td class="col-right fw-bold">${item.total.toLocaleString()}</td>
     </tr>
   `,
     )

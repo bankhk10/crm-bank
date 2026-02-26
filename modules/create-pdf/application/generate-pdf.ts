@@ -27,6 +27,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     customerAddress: customerAddress || "-",
     contactName: sale.employee?.name || "-",
     items: sale.items.map((item: any) => ({
+      code: item.product.code || "-",
       description: item.product.name,
       quantity: item.quantity,
       price: Number(item.unitPrice),
