@@ -7,6 +7,7 @@ export interface InvoiceData {
   customerName: string;
   customerAddress: string;
   items: {
+    code: string;
     description: string;
     quantity: number;
     price: number;
@@ -35,6 +36,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     .map(
       (item) => `
     <tr>
+      <td class="col-center">${item.code}</td>
+      <td class="col-center">${"1"}</td>
       <td class="col-desc">${item.description}</td>
       <td class="col-center">${item.quantity}</td>
       <td class="col-right">${item.price.toLocaleString()} THB</td>
@@ -297,10 +300,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table>
         <thead>
           <tr>
-            <th class="col-desc">รายละเอียดสินค้า/บริการ (Description)</th>
-            <th class="col-center" style="width: 10%;">จำนวน (Qty)</th>
-            <th class="col-right" style="width: 20%;">ราคาต่อหน่วย (Unit Price)</th>
-            <th class="col-right" style="width: 20%;">จำนวนเงินรวม (Amount)</th>
+            <th class="col-center" style="width: 10%;">รหัสสินค้า</th>
+            <th class="col-desc">รายละเอียดสินค้า</th>
+            <th class="col-center" style="width: 5%;">จำนวน</th>
+            <th class="col-center" style="width: 5%;">บรรจุ</th>
+            <th class="col-center" style="width: 10%;">ราคา/หน่วย</th>
+            <th class="col-center" style="width: 5%;">ราคา/ลัง</th>
+            <th class="col-right" style="width: 20%;">จำนวนเงินรวม</th>
           </tr>
         </thead>
         <tbody>
