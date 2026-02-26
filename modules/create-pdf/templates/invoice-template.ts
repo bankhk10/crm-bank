@@ -82,7 +82,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         .customer-info-container {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 30px;
+          margin-bottom: 15px;
         }
         .logistics-details, .invoice-details {
           width: 48%;
@@ -95,7 +95,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           padding: 15px;
           border-radius: 6px;
           background-color: #f8f9fa;
-          margin-bottom: 25px;
+          margin-bottom: 12px;
           box-sizing: border-box;
         }
         h3 {
