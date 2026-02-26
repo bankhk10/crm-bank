@@ -23,7 +23,7 @@ export interface InvoiceData {
  */
 export function renderInvoiceTemplate(data: InvoiceData): string {
   // Read localized image as base64 strings so puppeteer can easily render it offline / headless without issues.
-  const logoPath = path.join(process.cwd(), "public", "images", "logo.png");
+  const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
   let base64Logo = "";
   if (fs.existsSync(logoPath)) {
     const bitmap = fs.readFileSync(logoPath);
@@ -49,14 +49,14 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>ใบแจ้งหนี้ - ${data.invoiceNumber}</title>
+      <title>เลขที่คำสั่งซื้อ - ${data.invoiceNumber}</title>
       <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
       <style>
         body {
           font-family: 'Sarabun', sans-serif; /* รองรับภาษาไทยได้สมบูรณ์ */
           color: #333;
           margin: 0;
-          padding: 20px 30px;
+          padding: 0;
           background: #fff;
           font-size: 14px;
         }
@@ -174,27 +174,98 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           margin-top: 50px;
           padding-top: 10px;
         }
+          .doc-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  margin-bottom: 10px;
+}
+
+.company {
+  display: flex;
+  gap: 14px;
+}
+
+.company-logo {
+  width: 90px;
+}
+
+.company-text h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.company-text p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.doc-meta {
+  text-align: right;
+}
+
+.doc-meta .label {
+  color: #777;
+  font-size: 13px;
+}
+
+.doc-meta .doc-no {
+  font-size: 22px;
+  font-weight: 700;
+  color: #24364b;
+}
+
+.doc-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 30px 0 10px;
+  color: #24364b;
+}
+
+.doc-divider {
+  height: 3px;
+  background: #24364b;
+  margin-bottom: 25px;
+}
       </style>
     </head>
     <body>
-      <div class="header">
-        <div>
-           ${base64Logo ? `<img src="${base64Logo}" class="company-logo" alt="CRM Bank Logo" />` : `<div class="company-name">CRM Bank Co., Ltd.</div>`}
-        </div>
-        <div>
-          <h1>ใบแจ้งหนี้ (INVOICE)</h1>
-        </div>
-      </div>
+<div class="page">
+   <div class="doc-header">
+  <div class="company">
+    ${base64Logo ? `<img src="${base64Logo}" class="company-logo" />` : ""}
+
+    <div class="company-text">
+      <h2>บริษัท คร็อพ ซายน์ จำกัด</h2>
+      <p>Crop Sciences CO., LTD.</p>
+      <p>เลขที่ 22 อาคารไอซี ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพฯ 10400</p>
+      <p>โทร. 02-271-4343 แฟกซ์: 02-618-4530</p>
+    </div>
+  </div>
+
+  <div class="doc-meta">
+    <div class="label">เลขที่เอกสาร</div>
+    <div class="doc-no">${data.invoiceNumber}</div>
+    <div class="label">วันที่: ${data.date}</div>
+  </div>
+
+</div>
+
+<div class="doc-title">ใบสั่งขาย</div>
+<div class="doc-divider"></div>
       
       <div class="customer-info-container">
         <div class="customer-details">
-          <h3>ข้อมูลลูกค้า (Customer)</h3>
+          <h3>ข้อมูลลูกค้า</h3>
           <p><strong>ชื่อบริษัท:</strong> ${data.customerName}</p>
-          <p><strong>ผู้ติดต่อ:</strong> ${data.contactName}</p>
-          <p><strong>ที่อยู่:</strong> ${data.customerAddress}</p>
+          <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
+          <p><strong>ที่อยู่วางบิล:</strong> ${data.customerAddress}</p>
         </div>
         <div class="invoice-details">
-          <h3>รายละเอียดใบแจ้งหนี้ (Invoice Info)</h3>
+          <h3>รายละเอียดใบแจ้งหนี้</h3>
           <p><strong>เลขที่ใบแจ้งหนี้:</strong> ${data.invoiceNumber}</p>
           <p><strong>วันที่ออกเอกสาร:</strong> ${data.date}</p>
           <p><strong>เงื่อนไขการชำระเงิน:</strong> 30 วัน</p>
@@ -242,6 +313,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
           <p style="margin-top: 40px;">ขอบคุณที่ใช้บริการ / Thank you for your business</p>
         </div>
+      </div>
       </div>
     </body>
     </html>
