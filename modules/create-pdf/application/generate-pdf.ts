@@ -6,7 +6,7 @@ import {
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
-import { buildFullAddress } from "@/modules/sales/application/address-utils";
+import { formatAddress } from "@/lib/address-utils";
 
 function safeFormatDate(d: Date | string | null | undefined, fmt: string) {
   if (!d) return "-";
@@ -31,54 +31,54 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
   const sa = sale.saleAddress || {};
 
   const customerAddress = sa.address_line
-    ? buildFullAddress(
-        sa.address_line,
-        sa.address_subdistrict,
-        sa.address_district,
-        sa.address_province,
-        sa.address_code,
-      )
-    : buildFullAddress(
-        sale.customer?.addressLine,
-        sale.customer?.subdistrict,
-        sale.customer?.district,
-        sale.customer?.province,
-        sale.customer?.postalCode,
-      );
+    ? formatAddress({
+        addressLine: sa.address_line,
+        subdistrict: sa.address_subdistrict,
+        district: sa.address_district,
+        province: sa.address_province,
+        postalCode: sa.address_code,
+      })
+    : formatAddress({
+        addressLine: sale.customer?.addressLine,
+        subdistrict: sale.customer?.subdistrict,
+        district: sale.customer?.district,
+        province: sale.customer?.province,
+        postalCode: sale.customer?.postalCode,
+      });
 
   const billingAddress = sa.billing_address_line
-    ? buildFullAddress(
-        sa.billing_address_line,
-        sa.billing_subdistrict,
-        sa.billing_district,
-        sa.billing_province,
-        sa.billing_postal_code,
-      )
+    ? formatAddress({
+        addressLine: sa.billing_address_line,
+        subdistrict: sa.billing_subdistrict,
+        district: sa.billing_district,
+        province: sa.billing_province,
+        postalCode: sa.billing_postal_code,
+      })
     : customerAddress;
 
-  const shippingAddress = buildFullAddress(
-    sa.shipping_address_line,
-    sa.shipping_subdistrict,
-    sa.shipping_district,
-    sa.shipping_province,
-    sa.shipping_postal_code,
-  );
+  const shippingAddress = formatAddress({
+    addressLine: sa.shipping_address_line,
+    subdistrict: sa.shipping_subdistrict,
+    district: sa.shipping_district,
+    province: sa.shipping_province,
+    postalCode: sa.shipping_postal_code,
+  });
 
-  const receivingAddress = buildFullAddress(
-    sa.receiving_address_line,
-    sa.receiving_subdistrict,
-    sa.receiving_district,
-    sa.receiving_province,
-    sa.receiving_postal_code,
-  );
+  const receivingAddress = formatAddress({
+    addressLine: sa.receiving_address_line,
+    subdistrict: sa.receiving_subdistrict,
+    district: sa.receiving_district,
+    province: sa.receiving_province,
+    postalCode: sa.receiving_postal_code,
+  });
 
-  const senderAddress = buildFullAddress(
-    sa.sender_line,
-    sa.sender_subdistrict,
-    sa.sender_district,
-    sa.sender_province,
-    sa.sender_postal_code,
-  );
+  const senderAddress = formatAddress({
+    addressLine: sa.sender_line,
+    subdistrict: sa.sender_subdistrict,
+    district: sa.sender_district,
+    province: sa.sender_province,
+    postalCode: sa.sender_postal_code,
+  });
 
   const invoiceData: InvoiceData = {
     invoiceNumber: sale.saleNumber || "-",
