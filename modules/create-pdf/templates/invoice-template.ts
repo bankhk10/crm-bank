@@ -310,9 +310,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <div class="signature">
             <div>ผู้อนุมัติ / Authorized Signature</div>
           </div>
-        </div>
-          <p style="margin-top: 40px;">ขอบคุณที่ใช้บริการ / Thank you for your business</p>
-        </div>
       </div>
       </div>
     </body>
