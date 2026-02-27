@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { code, description, categoryId } = body;
+    const { code, description } = body;
 
     if (!code || !description) {
       return NextResponse.json(
@@ -62,34 +62,33 @@ export async function POST(request: NextRequest) {
       where: { code },
     });
 
+    let group;
     if (existing) {
-      return NextResponse.json(
-        { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
-        { status: 400 },
-      );
-    }
-
-    // Verify category exists if provided
-    if (categoryId) {
-      const category = await db.productCategory.findUnique({
-        where: { id: categoryId, deletedAt: null },
-      });
-      if (!category) {
+      if (!existing.deletedAt) {
         return NextResponse.json(
-          { error: "ไม่พบหมวดสินค้าที่ระบุ" },
+          { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
           { status: 400 },
         );
       }
-    }
 
-    const group = await db.productGroupMaster.create({
-      data: { code, description, categoryId },
-      include: {
-        category: {
-          select: { id: true, code: true, description: true },
+      // Update and restore the soft-deleted record
+      group = await db.productGroupMaster.update({
+        where: { id: existing.id },
+        data: {
+          description,
+          deletedAt: null,
         },
-      },
-    });
+      });
+    } else {
+      group = await db.productGroupMaster.create({
+        data: { code, description },
+        include: {
+          category: {
+            select: { id: true, code: true, description: true },
+          },
+        },
+      });
+    }
 
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
