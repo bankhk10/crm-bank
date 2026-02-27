@@ -94,23 +94,40 @@ export async function POST(request: NextRequest) {
       where: { code },
     });
 
-    if (existing && !existing.deletedAt) {
-      return NextResponse.json(
-        { error: "รหัสพืชนี้มีอยู่แล้ว" },
-        { status: 400 },
-      );
-    }
+    let plant;
+    if (existing) {
+      if (!existing.deletedAt) {
+        return NextResponse.json(
+          { error: "รหัสพืชนี้มีอยู่แล้ว" },
+          { status: 400 },
+        );
+      }
 
-    const plant = await db.plant.create({
-      data: {
-        code,
-        name,
-        abbreviation,
-        group,
-        recommendedMedicines,
-        description,
-      },
-    });
+      // Update and restore the soft-deleted record
+      plant = await db.plant.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          abbreviation,
+          group,
+          recommendedMedicines,
+          description,
+          deletedAt: null, // restore
+        },
+      });
+    } else {
+      // Create new
+      plant = await db.plant.create({
+        data: {
+          code,
+          name,
+          abbreviation,
+          group,
+          recommendedMedicines,
+          description,
+        },
+      });
+    }
 
     return NextResponse.json({ plant }, { status: 201 });
   } catch (error) {
@@ -121,4 +138,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
