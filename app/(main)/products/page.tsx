@@ -20,7 +20,7 @@ export default function ProductsPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.products");
   const canCreate = hasPermission("product.create");
   const canView = !isLoading && allowed;
-  const canUpdate = hasPermission("product.edit") || hasPermission("product.update");
+  const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
   const canManage = hasPermission("product.manage");
 

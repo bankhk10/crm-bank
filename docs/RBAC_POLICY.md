@@ -98,7 +98,7 @@ enum PermissionType {
 | Key              | Name (TH)                             | Action |
 | ---------------- | ------------------------------------- | ------ |
 | `product.create` | สร้างสินค้า                           | create |
-| `product.update` | แก้ไขสินค้า                           | update |
+| `product.edit`   | แก้ไขสินค้า                           | edit   |
 | `product.delete` | ลบสินค้า                              | delete |
 | `product.view`   | ดูรายละเอียดสินค้า                    | view   |
 | `product.manage` | จัดการสินค้า (ราคา, สต็อก, โปรโมชั่น) | manage |

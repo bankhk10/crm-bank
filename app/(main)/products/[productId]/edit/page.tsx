@@ -12,7 +12,7 @@ export default function EditProductPage() {
   const params = useParams();
   const productId = params.productId as string;
   const { hasPermission: checkPerm, isLoading: permissionLoading } = usePermission();
-  const hasPermission = checkPerm("product.edit") || checkPerm("product.update");
+  const hasPermission = checkPerm("product.edit");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);

@@ -91,7 +91,7 @@ export async function DELETE(request: Request, { params }: { params: any }) {
 
   if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json(
-      { error: "Forbidden - missing product.update" },
+      { error: "Forbidden - missing product.edit" },
       { status: 403 },
     );
   }
@@ -154,7 +154,7 @@ export async function PUT(request: Request, { params }: { params: any }) {
 
   if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
     return NextResponse.json(
-      { error: "Forbidden - missing product.update" },
+      { error: "Forbidden - missing product.edit" },
       { status: 403 },
     );
   }
@@ -192,4 +192,3 @@ export async function PUT(request: Request, { params }: { params: any }) {
     return NextResponse.json({ error: "Reorder failed" }, { status: 500 });
   }
 }
-

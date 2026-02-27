@@ -94,9 +94,9 @@ export async function PATCH(
   }
 
   const perms = session.user.permissionKeys ?? [];
-  if (!perms.includes("product.edit") && !perms.includes("product.update")) {
+  if (!perms.includes("product.edit")) {
     return NextResponse.json(
-      { error: "Forbidden - missing product.update" },
+      { error: "Forbidden - missing product.edit" },
       { status: 403 },
     );
   }
