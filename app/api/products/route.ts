@@ -13,9 +13,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  productGroup: z.string().optional(),    // กลุ่มชื่อการค้า (Trade Name Group)
+  productGroup: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  chemicalGroup: z.string().optional(),   // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   totalPackageSizePerBox: z.string().optional(),
@@ -25,8 +25,9 @@ const productSchema = z.object({
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
-  categoryId: z.string().optional(),      // FK to ProductCategory (หมวดสินค้า)
-  productChainId: z.string().optional(),  // FK to ProductChain (กรุ๊ปสินค้า)
+  categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
+  productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
+  parentId: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -61,13 +62,59 @@ export async function GET(request: Request) {
   const fromDate = parseDate(fromParam);
   const toDate = parseDate(toParam);
 
-  const where: Prisma.ProductWhereInput = { deletedAt: null };
+  const where: Prisma.ProductWhereInput = { deletedAt: null, parentId: null };
+  const childWhere: Prisma.ProductWhereInput = { deletedAt: null };
 
   if (q) {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
       { productCode: { contains: q, mode: "insensitive" } },
       { commonName: { contains: q, mode: "insensitive" } },
+    ];
+    childWhere.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { productCode: { contains: q, mode: "insensitive" } },
+      { commonName: { contains: q, mode: "insensitive" } },
+    ];
+  }
+
+  if (status && (status === "ACTIVE" || status === "INACTIVE")) {
+    where.status = status;
+    childWhere.status = status;
+  }
+
+  if (fromDate || toDate) {
+    const dateRange = {
+      ...(fromDate ? { gte: startOfDay(fromDate) } : {}),
+      ...(toDate ? { lte: endOfDay(toDate) } : {}),
+    };
+    where.createdAt = dateRange;
+    childWhere.createdAt = dateRange;
+  }
+
+  // If we are searching for a specific term, we shouldn't restrict to parentId: null
+  // We want to find the product regardless of whether it's a parent or child.
+  // We will let the findProducts function handle finding the parent and passing children down.
+  // Wait, the API doesn't know about findProducts. It just returns data.
+  // Let me just update where if q is not present. Actually, we should always query parents and include children.
+  // If q is present, maybe we should search children too. Let's keep it simple: just where: { ...where, parentId: null }
+  // unless we want to find children directly. The standard way is find all parents matching, or whose children match.
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { productCode: { contains: q, mode: "insensitive" } },
+      { commonName: { contains: q, mode: "insensitive" } },
+      {
+        children: {
+          some: {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { productCode: { contains: q, mode: "insensitive" } },
+              { commonName: { contains: q, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
     ];
   }
 
@@ -101,6 +148,15 @@ export async function GET(request: Request) {
           },
         },
         stock: true, // NEW: Include dedicated stock table
+        children: {
+          where: { deletedAt: null },
+          include: {
+            stock: true,
+            stockLots: {
+              where: { isUsed: false },
+            },
+          },
+        },
         _count: {
           select: {
             freeItems: true,
@@ -122,6 +178,29 @@ export async function GET(request: Request) {
         availableQuantity: product.stock.availableQuantity,
         reservedQuantity: product.stock.reservedQuantity,
         physicalQuantity: product.stock.physicalBalance,
+        children: product.children?.map((child) => {
+          let childAvail = 0;
+          let childRes = 0;
+          let childPhys = 0;
+          if ((child as any).stock) {
+            childAvail = (child as any).stock.availableQuantity;
+            childRes = (child as any).stock.reservedQuantity;
+            childPhys = (child as any).stock.physicalBalance;
+          } else if ((child as any).stockLots) {
+            childAvail = (child as any).stockLots.reduce(
+              (sum: number, lot: any) => sum + lot.quantity,
+              0,
+            );
+            childPhys = childAvail;
+          }
+          return {
+            ...child,
+            stockQuantity: childPhys,
+            availableQuantity: childAvail,
+            reservedQuantity: childRes,
+            physicalQuantity: childPhys,
+          };
+        }),
       };
     }
 
@@ -141,6 +220,29 @@ export async function GET(request: Request) {
       availableQuantity,
       reservedQuantity,
       physicalQuantity: availableQuantity + reservedQuantity,
+      children: product.children?.map((child) => {
+        let childAvail = 0;
+        let childRes = 0;
+        let childPhys = 0;
+        if ((child as any).stock) {
+          childAvail = (child as any).stock.availableQuantity;
+          childRes = (child as any).stock.reservedQuantity;
+          childPhys = (child as any).stock.physicalBalance;
+        } else if ((child as any).stockLots) {
+          childAvail = (child as any).stockLots.reduce(
+            (sum: number, lot: any) => sum + lot.quantity,
+            0,
+          );
+          childPhys = childAvail;
+        }
+        return {
+          ...child,
+          stockQuantity: childPhys,
+          availableQuantity: childAvail,
+          reservedQuantity: childRes,
+          physicalQuantity: childPhys,
+        };
+      }),
     };
   });
 
@@ -197,6 +299,7 @@ export async function POST(request: Request) {
         // New fields
         categoryId: parsed.data.categoryId || null,
         productChainId: parsed.data.productChainId || null,
+        parentId: parsed.data.parentId || null,
       },
       include: {
         images: true,
@@ -220,4 +323,3 @@ export async function POST(request: Request) {
     throw err;
   }
 }
-

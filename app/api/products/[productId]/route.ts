@@ -35,6 +35,7 @@ const productSchema = z.object({
   // New fields
   categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
   productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
+  parentId: z.string().optional(),
 });
 
 export async function GET(request: Request, { params }: { params: any }) {
@@ -92,7 +93,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("product.edit")) {
+  const perms = session.user.permissionKeys ?? [];
+  if (!perms.includes("product.edit") && !perms.includes("product.update")) {
     return NextResponse.json(
       { error: "Forbidden - missing product.update" },
       { status: 403 },
@@ -313,4 +315,3 @@ export async function DELETE(request: Request, { params }: { params: any }) {
     throw err;
   }
 }
-

@@ -11,8 +11,8 @@ import type { Product } from "@/modules/products/types";
 export default function EditProductPage() {
   const params = useParams();
   const productId = params.productId as string;
-  const { hasPermission, isLoading: permissionLoading } =
-    usePermission("product.edit");
+  const { hasPermission: checkPerm, isLoading: permissionLoading } = usePermission();
+  const hasPermission = checkPerm("product.edit") || checkPerm("product.update");
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -99,6 +99,7 @@ export default function EditProductPage() {
               properties: product.properties || "",
               categoryId: product.categoryId || undefined,
               productChainId: product.productChainId || undefined,
+              parentId: product.parentId || undefined,
               images:
                 product.images?.map((img: any) => ({
                   id: img.id,

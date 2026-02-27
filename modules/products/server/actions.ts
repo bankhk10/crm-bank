@@ -111,9 +111,13 @@ export async function updateProductAction(id: string, rawData: unknown) {
 
   if (
     !permissionKeys.includes("product.edit") &&
+    !permissionKeys.includes("product.update") &&
     !permissionKeys.includes("product.manage")
   ) {
-    return { success: false, error: "Forbidden - missing product.edit" };
+    return {
+      success: false,
+      error: "Forbidden - missing product.edit or product.update",
+    };
   }
 
   try {
@@ -216,4 +220,3 @@ export async function getProductFormOptionsAction() {
     return null;
   }
 }
-

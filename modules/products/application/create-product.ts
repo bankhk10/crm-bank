@@ -23,6 +23,7 @@ export async function createProductUseCase(rawData: unknown) {
       status: parsed.data.status as "ACTIVE" | "INACTIVE",
       categoryId: parsed.data.categoryId || null,
       productChainId: parsed.data.productChainId || null,
+      parentId: parsed.data.parentId || null,
     });
 
     return { success: true as const, product };

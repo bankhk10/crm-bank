@@ -73,6 +73,7 @@ export function ProductForm({
     coverIndex: (initialData as any)?.coverIndex ?? null,
     categoryId: (initialData as any)?.categoryId || "",
     productChainId: (initialData as any)?.productChainId || "",
+    parentId: (initialData as any)?.parentId || "",
   });
 
   // Convert initial images to FileMetadata format for GalleryUpload
@@ -88,7 +89,6 @@ export function ProductForm({
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const originalExistingIdsRef = useRef<string[]>([]);
-  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
   useEffect(() => {
     const ids = (initialData?.images || [])
@@ -109,6 +109,7 @@ export function ProductForm({
   const [plantOptions, setPlantOptions] = useState<SelectOption[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([]);
   const [productChainOptions, setProductChainOptions] = useState<SelectOption[]>([]);
+  const [parentOptions, setParentOptions] = useState<SelectOption[]>([]);
 
   // Fetch dynamic options from server action (single call replaces 7 API calls)
   useEffect(() => {
@@ -134,10 +135,23 @@ export function ProductForm({
       } catch (err) {
         console.error("Failed to fetch options:", err);
       }
+      try {
+        const res = await fetch('/api/products?page=1&perPage=1000');
+        const data = await res.json();
+        if (data?.products) {
+          setParentOptions(
+            data.products
+              .filter((p: any) => p.id !== productId)
+              .map((p: any) => ({ value: p.id, label: `${p.productCode} - ${p.name}` }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+      }
     };
 
     fetchOptions();
-  }, []);
+  }, [productId]);
 
   // Calculate total package size per box when packageSize or packageSizePerBox changes
   useEffect(() => {
@@ -221,6 +235,7 @@ export function ProductForm({
         coverIndex: formData.coverIndex ?? undefined,
         categoryId: (formData as any).categoryId || undefined,
         productChainId: (formData as any).productChainId || undefined,
+        parentId: (formData as any).parentId || undefined,
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -382,7 +397,6 @@ export function ProductForm({
           }
         }
 
-        setRemovedImageIds([]);
         toast.success("บันทึกข้อมูลสำเร็จ");
 
         setTimeout(() => {
@@ -476,7 +490,7 @@ export function ProductForm({
           try {
             const json = JSON.parse(xhr.responseText || "{}");
             resolve(json);
-          } catch (err) {
+          } catch {
             resolve({});
           }
         } else {
@@ -621,6 +635,17 @@ export function ProductForm({
           placeholder="เลือกกรุ๊ปสินค้า"
           searchPlaceholder="ค้นหากรุ๊ปสินค้า..."
           emptyText="ไม่พบกรุ๊ปสินค้า"
+          disabled={loading}
+        />
+
+        <FormCombobox
+          label="สินค้าแม่/หลัก (ถ้ามี)"
+          value={(formData as any).parentId || ""}
+          onChange={(v) => updateField("parentId" as keyof ProductFormData, v)}
+          options={parentOptions}
+          placeholder="เลือกสินค้าหลัก"
+          searchPlaceholder="ค้นหาสินค้าหลัก..."
+          emptyText="ไม่พบสินค้า"
           disabled={loading}
         />
 

@@ -99,10 +99,12 @@ export interface Product {
   // New fields
   categoryId: string | null; // FK to ProductCategory (หมวดสินค้า)
   productChainId: string | null; // FK to ProductChain (กรุ๊ปสินค้า)
+  parentId: string | null; // FK to parent Product
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
   freeItems?: ProductFreeItem[];
   stockLots?: ProductStockLot[];
+  children?: Product[];
 }
 
 export interface ProductFormData {
@@ -134,6 +136,7 @@ export interface ProductFormData {
   // New fields
   categoryId?: string; // FK to ProductCategory (หมวดสินค้า)
   productChainId?: string; // FK to ProductChain (กรุ๊ปสินค้า)
+  parentId?: string; // FK to parent Product
 }
 
 export interface ProductManagementFormData {
@@ -206,6 +209,7 @@ export interface ProductRecord extends Product {
   reservedQuantity?: number;
   availableQuantity?: number;
   physicalQuantity?: number;
+  children?: ProductRecord[];
 }
 
 export type ProductsPagination = {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Eye, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,8 @@ import { ProductsTableProps } from "../../types";
 import { STATUS_STYLE, ALL_STATUS_VALUE } from "../../constants";
 import { useProductColumns } from "./use-product-columns";
 import { ProductsCards } from "./products-cards";
+import { ActionButton } from "@/components/custom/action-button";
+import { ProductStatusBadge } from "../../ui/product-status-badge";
 
 // Inline toolbar (used only by this table)
 function ProductsToolbar({
@@ -154,6 +156,92 @@ export function ProductsTable(props: ProductsTableProps) {
                     loading={loading}
                     pagination={pagination}
                     toolbar={<ProductsToolbar {...toolbarProps} />}
+                    renderSubComponent={({ row }) => {
+                        const product = row.original;
+                        const children = product.children || [];
+
+                        if (!children || children.length === 0) {
+                            return null;
+                        }
+
+                        return (
+                            <div className="bg-gray-50/50 border-t">
+                                {/* Header */}
+                                <div className="px-8 py-2 bg-gray-100/80 border-b flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                    <div className="flex-1 px-2">ชื่อสินค้า</div>
+                                    <div className="w-32 px-2 text-center">รหัสสินค้า</div>
+                                    <div className="w-32 px-2 text-center">ราคา</div>
+                                    <div className="w-32 px-2 text-center">หน่วยนับ</div>
+                                    <div className="w-32 px-2 text-center">สถานะ</div>
+                                    <div className="w-24 px-2 text-right">จัดการ</div>
+                                </div>
+
+                                {/* Items */}
+                                <div className="divide-y divide-gray-200">
+                                    {children.map((child: any) => (
+                                        <div
+                                            key={child.id}
+                                            className="px-8 py-3 flex items-center hover:bg-white transition-colors group"
+                                        >
+                                            <div className="flex-1 px-2 flex items-center gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+                                                <div className="text-sm font-semibold text-gray-900 truncate">
+                                                    {child.name}
+                                                </div>
+                                            </div>
+
+                                            <div className="w-32 px-2 text-center">
+                                                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">
+                                                    {child.productCode}
+                                                </span>
+                                            </div>
+
+                                            <div className="w-32 px-2 text-center text-sm text-gray-600">
+                                                {child.price ? `฿${Number(child.price).toLocaleString("th-TH", { minimumFractionDigits: 2 })}` : "-"}
+                                            </div>
+
+                                            <div className="w-32 px-2 text-center text-sm text-gray-600">
+                                                {child.unit || "-"}
+                                            </div>
+
+                                            <div className="w-32 px-2 flex justify-center">
+                                                {child.status ? (
+                                                    <ProductStatusBadge
+                                                        status={child.status}
+                                                        className="text-[11px] px-2 py-0.5"
+                                                    />
+                                                ) : (
+                                                    "-"
+                                                )}
+                                            </div>
+
+                                            <div className="w-24 px-2 flex justify-end items-center gap-1">
+                                                {canView && (
+                                                    <ActionButton
+                                                        href={`/products/${child.id}`}
+                                                        icon={Eye}
+                                                        label="ดู"
+                                                        colorClass="text-blue-600 border-transparent hover:bg-blue-50 shadow-none p-1.5 rounded-md"
+                                                    />
+                                                )}
+                                                {canUpdate && (
+                                                    <ActionButton
+                                                        href={`/products/${child.id}/edit`}
+                                                        icon={Edit}
+                                                        label="แก้ไข"
+                                                        colorClass="text-purple-600 border-transparent hover:bg-purple-50 shadow-none p-1.5 rounded-md"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    }}
+                    getRowCanExpand={(row) => {
+                        return Boolean(row.original.children && row.original.children.length > 0);
+                    }}
                     emptyState={{
                         title: "ยังไม่มีสินค้า",
                         description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างสินค้าใหม่",

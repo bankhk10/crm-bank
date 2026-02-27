@@ -25,13 +25,24 @@ export type ListProductsParams = {
 export async function findProducts(params: ListProductsParams) {
   const { page = 1, perPage = 12, q, status, from, to } = params;
 
-  const where: Prisma.ProductWhereInput = { deletedAt: null };
+  const where: Prisma.ProductWhereInput = { deletedAt: null, parentId: null };
 
   if (q) {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
       { productCode: { contains: q, mode: "insensitive" } },
       { commonName: { contains: q, mode: "insensitive" } },
+      {
+        children: {
+          some: {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { productCode: { contains: q, mode: "insensitive" } },
+              { commonName: { contains: q, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
     ];
   }
 
@@ -65,11 +76,22 @@ export async function findProducts(params: ListProductsParams) {
           },
         },
         stock: true,
+        children: {
+          where: { deletedAt: null },
+          include: {
+            stock: true,
+            stockLots: {
+              where: { isUsed: false },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
         _count: {
           select: {
             freeItems: true,
             promotionItems: true,
             stockLots: true,
+            children: true,
           },
         },
       },
@@ -86,6 +108,29 @@ export async function findProducts(params: ListProductsParams) {
         availableQuantity: product.stock.availableQuantity,
         reservedQuantity: product.stock.reservedQuantity,
         physicalQuantity: product.stock.physicalBalance,
+        children: product.children?.map((child) => {
+          let childAvail = 0;
+          let childRes = 0;
+          let childPhys = 0;
+          if ((child as any).stock) {
+            childAvail = (child as any).stock.availableQuantity;
+            childRes = (child as any).stock.reservedQuantity;
+            childPhys = (child as any).stock.physicalBalance;
+          } else if ((child as any).stockLots) {
+            childAvail = (child as any).stockLots.reduce(
+              (sum: number, lot: any) => sum + lot.quantity,
+              0,
+            );
+            childPhys = childAvail;
+          }
+          return {
+            ...child,
+            stockQuantity: childPhys,
+            availableQuantity: childAvail,
+            reservedQuantity: childRes,
+            physicalQuantity: childPhys,
+          };
+        }),
       };
     }
 
@@ -102,6 +147,29 @@ export async function findProducts(params: ListProductsParams) {
       availableQuantity,
       reservedQuantity,
       physicalQuantity: availableQuantity + reservedQuantity,
+      children: product.children?.map((child) => {
+        let childAvail = 0;
+        let childRes = 0;
+        let childPhys = 0;
+        if ((child as any).stock) {
+          childAvail = (child as any).stock.availableQuantity;
+          childRes = (child as any).stock.reservedQuantity;
+          childPhys = (child as any).stock.physicalBalance;
+        } else if ((child as any).stockLots) {
+          childAvail = (child as any).stockLots.reduce(
+            (sum: number, lot: any) => sum + lot.quantity,
+            0,
+          );
+          childPhys = childAvail;
+        }
+        return {
+          ...child,
+          stockQuantity: childPhys,
+          availableQuantity: childAvail,
+          reservedQuantity: childRes,
+          physicalQuantity: childPhys,
+        };
+      }),
     };
   });
 
@@ -129,6 +197,13 @@ export async function findProductById(id: string) {
       },
       category: true,
       productChain: true,
+      parent: {
+        select: {
+          id: true,
+          name: true,
+          productCode: true,
+        },
+      },
     },
   });
 }
@@ -154,6 +229,7 @@ export async function createProduct(data: {
   pointPerUnit?: number;
   categoryId?: string | null;
   productChainId?: string | null;
+  parentId?: string | null;
 }) {
   return db.product.create({
     data: {
@@ -174,6 +250,7 @@ export async function createProduct(data: {
       pointPerUnit: data.pointPerUnit ?? 0,
       categoryId: data.categoryId || null,
       productChainId: data.productChainId || null,
+      parentId: data.parentId || null,
     },
     include: {
       images: true,

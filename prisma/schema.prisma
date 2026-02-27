@@ -608,6 +608,10 @@ model Product {
   detailedSalesTargets SalesTargetItem[]
   chemicalGroup        String? // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   pointHistories       EmployeePointHistory[]
+
+  parentId             String?
+  parent               Product?               @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children             Product[]              @relation("ProductChildren")
 }
 
 // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"

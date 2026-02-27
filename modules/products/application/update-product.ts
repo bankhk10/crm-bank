@@ -27,7 +27,11 @@ export async function updateProductUseCase(id: string, rawData: unknown) {
   }
 
   try {
-    const product = await updateProduct(id, parsed.data);
+    const payloadToUpdate: Record<string, any> = { ...parsed.data };
+    if ("parentId" in payloadToUpdate) {
+      payloadToUpdate.parentId = payloadToUpdate.parentId || null;
+    }
+    const product = await updateProduct(id, payloadToUpdate);
     return { success: true as const, product };
   } catch (err) {
     if (

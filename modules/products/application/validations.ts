@@ -18,6 +18,7 @@ export const productSchema = z.object({
   pointPerUnit: z.number().int().min(0).optional(),
   categoryId: z.string().optional(),
   productChainId: z.string().optional(),
+  parentId: z.string().optional(),
 });
 
 export const productUpdateSchema = productSchema.partial();
