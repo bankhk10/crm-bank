@@ -30,6 +30,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/modules/products/types";
@@ -45,6 +47,9 @@ export default function ProductDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Image gallery state
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -124,7 +129,6 @@ export default function ProductDetailPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedImageIndex]);
 
-  // Reset zoom and pan when dialog closes
   useEffect(() => {
     if (selectedImageIndex === null) {
       setZoom(1);
@@ -132,7 +136,6 @@ export default function ProductDetailPage() {
     }
   }, [selectedImageIndex]);
 
-  // Zoom and Pan Handlers
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.2 : 0.2;
@@ -201,225 +204,200 @@ export default function ProductDetailPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen from-slate-50 to-blue-50">
-      {/* Hero Header Section */}
-      {/* <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white"> */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Product Header */}
-        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
-          <Link
-            href="/products"
-            className="inline-flex items-center text-blue-100 hover:text-white mb-6 transition-colors group"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            กลับไปหน้ารายการสินค้า
-          </Link>
+  const images = product.images ?? [];
+  const activeImage = images[activeImageIndex];
 
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <Package className="h-8 w-8" />
-                <h1 className="text-3xl lg:text-4xl font-bold">{product.name}</h1>
-              </div>
-              <div className="flex flex-wrap items-center gap-4 text-blue-100">
-                <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  <span>รหัสสินค้า: {product.productCode}</span>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Back link */}
+        <Link
+          href="/products"
+          className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-6 transition-colors group text-sm font-medium"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
+          กลับไปหน้ารายการสินค้า
+        </Link>
+
+        {/* Main product layout */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* ─── LEFT: Image Gallery ─── */}
+            <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-100">
+              {images.length > 0 ? (
+                <div className="space-y-3">
+                  {/* Main large image */}
+                  <div
+                    className="relative aspect-square w-full rounded-xl overflow-hidden bg-gray-50 border border-gray-200 cursor-zoom-in group"
+                    onClick={() => {
+                      setSelectedImageIndex(activeImageIndex);
+                    }}
+                  >
+                    <img
+                      src={activeImage.url}
+                      alt={product.name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
+                    <div className="absolute bottom-3 right-3 bg-black/40 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                      คลิกเพื่อดูขนาดเต็ม
+                    </div>
+                  </div>
+
+                  {/* Thumbnails */}
+                  {images.length > 1 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {images.map((image, index) => (
+                        <button
+                          key={image.id}
+                          onClick={() => setActiveImageIndex(index)}
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === activeImageIndex
+                              ? "border-blue-500 ring-2 ring-blue-200"
+                              : "border-gray-200 hover:border-blue-300"
+                            }`}
+                        >
+                          <img
+                            src={image.url}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {product.status === "ACTIVE" ? (
-                  <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
-                    <CheckCircle2 className="h-4 w-4 text-green-300" />
-                    <span className="text-green-100">ใช้งาน</span>
+              ) : (
+                <div className="aspect-square w-full rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+                  <div className="text-center text-gray-400">
+                    <Package className="h-16 w-16 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">ไม่มีรูปภาพ</p>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 bg-gray-500/20 px-3 py-1 rounded-full">
-                    <XCircle className="h-4 w-4 text-gray-300" />
-                    <span className="text-gray-100">ไม่ใช้งาน</span>
-                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ─── RIGHT: Product Info ─── */}
+            <div className="p-6 lg:p-8 flex flex-col gap-6">
+              {/* Header */}
+              <div>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+                    {product.name}
+                  </h1>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${product.status === "ACTIVE"
+                        ? "bg-green-100 text-green-700 border border-green-200"
+                        : "bg-gray-100 text-gray-500 border border-gray-200"
+                      }`}
+                  >
+                    {product.status === "ACTIVE" ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" />
+                    )}
+                    {product.status === "ACTIVE" ? "ใช้งาน" : "ไม่ใช้งาน"}
+                  </span>
+                </div>
+                {product.commonName && (
+                  <p className="text-gray-500 text-sm">{product.commonName}</p>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Product Images Gallery */}
-          {product.images && product.images.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Package className="h-6 w-6 text-blue-600" />
-                  รูปภาพสินค้า
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {product.images.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className="group relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl cursor-pointer"
-                      onClick={() => {
-                        setSelectedImageIndex(index);
-                        setZoom(1);
-                        setPan({ x: 0, y: 0 });
-                      }}
-                    >
-                      <img
-                        src={image.url}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                        <div className="text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          คลิกเพื่อดูขนาดเต็ม
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Product Information Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Basic Information Card */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-blue-200">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-blue-600" />
-                  ข้อมูลพื้นฐาน
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <DetailItem icon={<Package className="h-5 w-5" />} label="ชื่อสินค้า" value={product.name} />
-                <DetailItem icon={<Tag className="h-5 w-5" />} label="ชื่อสามัญ" value={product.commonName} />
-                <DetailItem icon={<Tag className="h-5 w-5" />} label="รหัสสินค้า" value={product.productCode} />
-                <DetailItem icon={<Ruler className="h-5 w-5" />} label="หน่วยนับ" value={product.unit} />
-                <DetailItem icon={<Layers className="h-5 w-5" />} label="กลุ่มสินค้า" value={product.productGroup} />
-                <DetailItem icon={<Tag className="h-5 w-5" />} label="แบรนด์สินค้า" value={product.brand} />
-                <DetailItem icon={<Beaker className="h-5 w-5" />} label="กลุ่มสาร" value={product.chemicalGroup} />
-              </div>
-            </div>
-
-            {/* Package Information Card */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-purple-200">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Box className="h-6 w-6 text-purple-600" />
-                  ข้อมูลบรรจุภัณฑ์
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <DetailItem icon={<Box className="h-5 w-5" />} label="ขนาดบรรจุ" value={product.packageSize} />
-                <DetailItem icon={<Layers className="h-5 w-5" />} label="ขนาดบรรจุต่อลัง" value={product.packageSizePerBox} />
-                <DetailItem icon={<Ruler className="h-5 w-5" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
-                <DetailItem
-                  icon={<Leaf className="h-5 w-5" />}
-                  label="ใช้กับพืช"
-                  value={
-                    product.usedForPlants.length > 0 ? (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {product.usedForPlants.map((plant, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1.5 text-sm font-medium text-green-800 border border-green-200"
-                          >
-                            <Leaf className="h-3.5 w-3.5" />
-                            {plant}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      "-"
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sales Point & Properties */}
-          {(product.salesPoint || product.properties) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {product.salesPoint && (
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="p-6 border-b border-gray-100 bg-amber-100">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                      <Target className="h-6 w-6 text-amber-600" />
-                      จุดขายสินค้า
-                    </h2>
-                  </div>
-                  <div className="p-6">
-                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                      {product.salesPoint}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {product.properties && (
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="p-6 border-b border-gray-100 bg-teal-100">
-                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                      <FileText className="h-6 w-6 text-teal-600" />
-                      คุณสมบัติ
-                    </h2>
-                  </div>
-                  <div className="p-6">
-                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                      {product.properties}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Pricing Information */}
-          {(product.price || product.promotionBudget) && (
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="p-6 border-b border-gray-100 bg-emerald-100">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <DollarSign className="h-6 w-6 text-emerald-600" />
-                  ข้อมูลราคา
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {product.price && (
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-600 rounded-lg">
-                          <DollarSign className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-sm font-medium text-blue-900">ราคาสินค้า</span>
-                      </div>
-                      <p className="text-3xl font-bold text-blue-900">
-                        {Number(product.price).toLocaleString()}
-                        <span className="text-lg ml-2">บาท</span>
-                      </p>
-                    </div>
-                  )}
+              {/* Price */}
+              {product.price && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                  <p className="text-xs font-medium text-blue-500 uppercase tracking-wide mb-1">ราคาสินค้า</p>
+                  <p className="text-3xl font-bold text-blue-700">
+                    {Number(product.price).toLocaleString()}
+                    <span className="text-base font-normal text-blue-500 ml-2">บาท</span>
+                  </p>
                   {product.promotionBudget && (
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-purple-600 rounded-lg">
-                          <TrendingUp className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="text-sm font-medium text-purple-900">งบส่งเสริมการขาย</span>
-                      </div>
-                      <p className="text-3xl font-bold text-purple-900">
-                        {Number(product.promotionBudget).toLocaleString()}
-                        <span className="text-lg ml-2">บาท</span>
-                      </p>
-                    </div>
+                    <p className="text-sm text-purple-600 mt-1 flex items-center gap-1">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
+                    </p>
                   )}
                 </div>
+              )}
+
+              {/* Attributes */}
+              <div className="space-y-0 divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                <AttributeRow icon={<Tag className="h-4 w-4" />} label="รหัสสินค้า" value={product.productCode} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.productGroup} />
+                <AttributeRow icon={<Tag className="h-4 w-4" />} label="แบรนด์" value={product.brand} />
+                <AttributeRow icon={<Ruler className="h-4 w-4" />} label="หน่วยนับ" value={product.unit} />
+                <AttributeRow icon={<Box className="h-4 w-4" />} label="ขนาดบรรจุ" value={product.packageSize} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="ขนาดบรรจุต่อลัง" value={product.packageSizePerBox} />
+                <AttributeRow icon={<Ruler className="h-4 w-4" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
+                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสาร" value={product.chemicalGroup} />
               </div>
+
+              {/* Used For Plants */}
+              {product.usedForPlants && product.usedForPlants.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <Leaf className="h-3.5 w-3.5" />
+                    ใช้กับพืช
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {product.usedForPlants.map((plant, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1.5 text-xs font-medium text-green-800 border border-green-200"
+                      >
+                        <Leaf className="h-3 w-3" />
+                        {plant}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2 mt-auto">
+                <Link href={`/products/${productId}/edit`} className="flex-1">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="lg">
+                    <Edit className="h-4 w-4 mr-2" />
+                    แก้ไขสินค้า
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── BOTTOM: Sales Point & Properties ─── */}
+          {(product.salesPoint || product.properties) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border-t border-gray-100">
+              {product.salesPoint && (
+                <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-100">
+                  <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-3">
+                    <Target className="h-5 w-5 text-amber-500" />
+                    จุดขายสินค้า
+                  </h2>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed text-sm">
+                    {product.salesPoint}
+                  </p>
+                </div>
+              )}
+              {product.properties && (
+                <div className="p-6">
+                  <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 mb-3">
+                    <FileText className="h-5 w-5 text-teal-500" />
+                    คุณสมบัติสินค้า
+                  </h2>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed text-sm">
+                    {product.properties}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -452,7 +430,7 @@ export default function ProductDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Image Viewer Dialog */}
+      {/* Image Lightbox Dialog */}
       {selectedImageIndex !== null && product?.images && (
         <Dialog
           open={selectedImageIndex !== null}
@@ -462,7 +440,7 @@ export default function ProductDetailPage() {
             <DialogTitle className="sr-only">Image Preview</DialogTitle>
 
             {selectedImageIndex !== null && product.images && (
-              <div className="relative w-full h-full flex items-center justify-center px-full">
+              <div className="relative w-full h-full flex items-center justify-center">
                 {/* Close Button */}
                 <button
                   onClick={() => setSelectedImageIndex(null)}
@@ -505,7 +483,7 @@ export default function ProductDetailPage() {
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                   onDoubleClick={handleDoubleClick}
-                  style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+                  style={{ cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default" }}
                 >
                   <img
                     src={product.images[selectedImageIndex].url}
@@ -513,24 +491,21 @@ export default function ProductDetailPage() {
                     className="max-w-full max-h-[85vh] object-contain select-none transition-transform duration-200"
                     style={{
                       transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
-                      transformOrigin: 'center center',
+                      transformOrigin: "center center",
                     }}
                     draggable={false}
                   />
 
-                  {/* Zoom Level Indicator */}
                   {zoom > 1 && (
                     <div className="absolute top-6 left-6 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md text-white text-sm font-bold border border-white/20 shadow-2xl">
                       🔍 {Math.round(zoom * 100)}%
                     </div>
                   )}
 
-                  {/* Instructions Overlay */}
                   <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl bg-black/60 backdrop-blur-md text-white text-xs font-medium border border-white/10 shadow-2xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                     🖱️ ล้อเมาส์เพื่อซูม • ลากเพื่อเลื่อน • ดับเบิลคลิกเพื่อรีเซ็ต
                   </div>
 
-                  {/* Image Counter Badge */}
                   <div className="mt-6 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md text-white text-base font-bold border border-white/20 shadow-2xl">
                     {selectedImageIndex + 1} / {product.images.length}
                   </div>
@@ -544,22 +519,21 @@ export default function ProductDetailPage() {
   );
 }
 
-function DetailItem({
+function AttributeRow({
   icon,
   label,
   value,
 }: {
   icon?: React.ReactNode;
   label: string;
-  value: React.ReactNode;
+  value?: React.ReactNode;
 }) {
+  if (!value) return null;
   return (
-    <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-      {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
-      <div className="flex-1 min-w-0">
-        <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
-        <dd className="text-base text-gray-900 font-medium break-words">{value || "-"}</dd>
-      </div>
+    <div className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 transition-colors">
+      {icon && <span className="text-gray-400 shrink-0">{icon}</span>}
+      <span className="text-sm text-gray-500 shrink-0 w-32">{label}</span>
+      <span className="text-sm font-medium text-gray-900 break-words">{value}</span>
     </div>
   );
 }
