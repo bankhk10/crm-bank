@@ -25,13 +25,16 @@ import {
   Leaf,
   Target,
   FileText,
-  DollarSign,
   TrendingUp,
   X,
   ChevronLeft,
   ChevronRight,
   Edit,
   Trash2,
+  Star,
+  FolderOpen,
+  Link2,
+  Hash,
 } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/modules/products/types";
@@ -252,8 +255,8 @@ export default function ProductDetailPage() {
                           key={image.id}
                           onClick={() => setActiveImageIndex(index)}
                           className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === activeImageIndex
-                              ? "border-blue-500 ring-2 ring-blue-200"
-                              : "border-gray-200 hover:border-blue-300"
+                            ? "border-blue-500 ring-2 ring-blue-200"
+                            : "border-gray-200 hover:border-blue-300"
                             }`}
                         >
                           <img
@@ -286,8 +289,8 @@ export default function ProductDetailPage() {
                   </h1>
                   <span
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${product.status === "ACTIVE"
-                        ? "bg-green-100 text-green-700 border border-green-200"
-                        : "bg-gray-100 text-gray-500 border border-gray-200"
+                      ? "bg-green-100 text-green-700 border border-green-200"
+                      : "bg-gray-100 text-gray-500 border border-gray-200"
                       }`}
                   >
                     {product.status === "ACTIVE" ? (
@@ -304,17 +307,39 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price */}
-              {product.price && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                  <p className="text-xs font-medium text-blue-500 uppercase tracking-wide mb-1">ราคาสินค้า</p>
-                  <p className="text-3xl font-bold text-blue-700">
-                    {Number(product.price).toLocaleString()}
-                    <span className="text-base font-normal text-blue-500 ml-2">บาท</span>
-                  </p>
+              {(product.price || product.cartonPrice) && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 space-y-2">
+                  <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">ราคาสินค้า</p>
+                  <div className="flex flex-wrap gap-4">
+                    {product.price && (
+                      <div>
+                        <p className="text-xs text-blue-400">ราคาปลีก</p>
+                        <p className="text-2xl font-bold text-blue-700">
+                          {Number(product.price).toLocaleString()}
+                          <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                        </p>
+                      </div>
+                    )}
+                    {product.cartonPrice && (
+                      <div>
+                        <p className="text-xs text-blue-400">ราคาต่อลัง</p>
+                        <p className="text-2xl font-bold text-blue-700">
+                          {Number(product.cartonPrice).toLocaleString()}
+                          <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                   {product.promotionBudget && (
-                    <p className="text-sm text-purple-600 mt-1 flex items-center gap-1">
+                    <p className="text-sm text-purple-600 flex items-center gap-1">
                       <TrendingUp className="h-3.5 w-3.5" />
                       งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
+                    </p>
+                  )}
+                  {product.pointPerUnit && (
+                    <p className="text-sm text-amber-600 flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5" />
+                      คะแนนต่อหน่วย: {product.pointPerUnit} คะแนน
                     </p>
                   )}
                 </div>
@@ -322,14 +347,34 @@ export default function ProductDetailPage() {
 
               {/* Attributes */}
               <div className="space-y-0 divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
-                <AttributeRow icon={<Tag className="h-4 w-4" />} label="รหัสสินค้า" value={product.productCode} />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.productGroup} />
+                <AttributeRow icon={<Hash className="h-4 w-4" />} label="รหัสสินค้า" value={product.productCode} />
+                <AttributeRow icon={<Tag className="h-4 w-4" />} label="ชื่อสามัญ" value={product.commonName} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มชื่อการค้า" value={product.productGroup} />
+                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.chemicalGroup} />
                 <AttributeRow icon={<Tag className="h-4 w-4" />} label="แบรนด์" value={product.brand} />
+                <AttributeRow
+                  icon={<FolderOpen className="h-4 w-4" />}
+                  label="หมวดสินค้า"
+                  value={product.category?.name ?? (product.categoryId ? product.categoryId : undefined)}
+                />
+                <AttributeRow
+                  icon={<Layers className="h-4 w-4" />}
+                  label="กรุ๊ปสินค้า"
+                  value={product.productChain?.name ?? (product.productChainId ? product.productChainId : undefined)}
+                />
+                <AttributeRow
+                  icon={<Link2 className="h-4 w-4" />}
+                  label="สินค้าหลัก"
+                  value={
+                    product.parent
+                      ? `${product.parent.productCode} - ${product.parent.name}`
+                      : undefined
+                  }
+                />
                 <AttributeRow icon={<Ruler className="h-4 w-4" />} label="หน่วยนับ" value={product.unit} />
                 <AttributeRow icon={<Box className="h-4 w-4" />} label="ขนาดบรรจุ" value={product.packageSize} />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="ขนาดบรรจุต่อลัง" value={product.packageSizePerBox} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox} />
                 <AttributeRow icon={<Ruler className="h-4 w-4" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
-                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสาร" value={product.chemicalGroup} />
               </div>
 
               {/* Used For Plants */}

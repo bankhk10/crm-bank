@@ -27,6 +27,18 @@ export interface PlantFormData {
   description?: string;
 }
 
+export interface ProductCategory {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface ProductChain {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface ProductImage {
   id: string;
   productId: string;
@@ -100,6 +112,10 @@ export interface Product {
   categoryId: string | null; // FK to ProductCategory (หมวดสินค้า)
   productChainId: string | null; // FK to ProductChain (กรุ๊ปสินค้า)
   parentId: string | null; // FK to parent Product
+  // Relations
+  category?: ProductCategory | null;
+  productChain?: ProductChain | null;
+  parent?: Pick<Product, "id" | "productCode" | "name"> | null;
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
   freeItems?: ProductFreeItem[];

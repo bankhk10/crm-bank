@@ -68,6 +68,9 @@ export async function GET(request: Request, { params }: { params: any }) {
       },
       category: true,
       productChain: true,
+      parent: {
+        select: { id: true, productCode: true, name: true },
+      },
     },
   });
 
