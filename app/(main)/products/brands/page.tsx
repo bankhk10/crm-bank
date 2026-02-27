@@ -210,7 +210,7 @@ export default function BrandsPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">รหัส</TableHead>
-                  <TableHead className="font-semibold">คำอธิบาย</TableHead>
+                  <TableHead className="font-semibold">ชื่อแบรนด์</TableHead>
                   <TableHead className="font-semibold text-right w-32">
                     จัดการ
                   </TableHead>
@@ -305,7 +305,7 @@ export default function BrandsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">คำอธิบาย *</Label>
+              <Label htmlFor="description">ชื่อแบรนด์ *</Label>
               <Input
                 id="description"
                 value={formData.description}
