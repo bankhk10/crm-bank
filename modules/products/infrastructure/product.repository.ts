@@ -25,7 +25,7 @@ export type ListProductsParams = {
 export async function findProducts(params: ListProductsParams) {
   const { page = 1, perPage = 12, q, status, from, to } = params;
 
-  const where: Prisma.ProductWhereInput = { deletedAt: null, parentId: null };
+  const where: Prisma.ProductWhereInput = { deletedAt: null };
 
   if (q) {
     where.OR = [

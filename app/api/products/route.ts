@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   const fromDate = parseDate(fromParam);
   const toDate = parseDate(toParam);
 
-  const where: Prisma.ProductWhereInput = { deletedAt: null, parentId: null };
+  const where: Prisma.ProductWhereInput = { deletedAt: null };
   const childWhere: Prisma.ProductWhereInput = { deletedAt: null };
 
   if (q) {
