@@ -7,7 +7,6 @@
 
 import React from "react";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin } from "lucide-react";
 import {
     FormCombobox,
@@ -57,9 +56,7 @@ export function DeliveryMethodSection({
     onRequestedDeliveryDateChange,
     shippingAddress = "",
     customShippingAddress = "",
-    useCustomShippingAddress = false,
     onCustomShippingAddressChange,
-    onUseCustomShippingAddressChange,
     fieldErrors = {},
     onFieldErrorClear,
 }: DeliveryMethodSectionProps) {
@@ -241,53 +238,13 @@ export function DeliveryMethodSection({
                 ) : customer ? (
                     <>
                         {/* Address Selector Section for SALES_DELIVERY and FACTORY_DELIVERY */}
-                        {!useCustomShippingAddress && (
-                            <div className="space-y-4">
-                                <AddressSelector
-                                    customer={customer}
-                                    selectedAddressId={selectedAddressId}
-                                    onAddressSelect={onAddressSelect || (() => { })}
-                                    onUseCustomAddress={onUseCustomAddress || (() => { })}
-                                />
-                            </div>
-                        )}
-
-                        {/* Custom Address Section */}
-                        <div className="mt-6">
-                            <div className="flex items-start gap-3">
-                                {/* 1. วาง Checkbox ไว้หน้าสุด */}
-                                <div className="pt-1.5"> {/* ปรับ pt เพื่อให้ Checkbox ตรงกับบรรทัดแรกของ Label/Textarea */}
-                                    <Checkbox
-                                        id="customShippingAddress"
-                                        checked={useCustomShippingAddress}
-                                        onCheckedChange={(checked) =>
-                                            onUseCustomShippingAddressChange?.(checked as boolean)
-                                        }
-                                    />
-                                </div>
-
-                                {/* 2. ส่วนของเนื้อหา (Label และ Textarea) */}
-                                <div className="flex-1 space-y-3">
-                                    <label
-                                        htmlFor="customShippingAddress"
-                                        className="text-base font-medium cursor-pointer select-none"
-                                    >
-                                        ระบุที่อยู่จัดส่งสำหรับรายการขายนี้เท่านั้น
-                                    </label>
-
-                                    {useCustomShippingAddress && (
-                                        <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                                            <FormTextarea
-                                                label="" // ส่งค่าว่างไปที่ label เพราะเราใช้ label ด้านบนแล้ว
-                                                value={customShippingAddress}
-                                                onChange={(e) => onCustomShippingAddressChange?.(e.target.value)}
-                                                rows={4}
-                                                placeholder="กรอกที่อยู่จัดส่งสำหรับรายการขายนี้..."
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                        <div className="space-y-4">
+                            <AddressSelector
+                                customer={customer}
+                                selectedAddressId={selectedAddressId}
+                                onAddressSelect={onAddressSelect || (() => { })}
+                                onUseCustomAddress={onUseCustomAddress || (() => { })}
+                            />
                         </div>
                     </>
                 ) : (

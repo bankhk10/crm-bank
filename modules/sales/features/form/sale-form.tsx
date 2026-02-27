@@ -128,20 +128,6 @@ export function SaleForm({
     const [shippingAddress, setShippingAddress] = useState(
         initialData?.shippingAddress || "",
     );
-    const [useCustomShippingAddress, setUseCustomShippingAddress] = useState(
-        () => {
-            if (!initialData) return false;
-            if (initialData.useCustomShipping === true) return true;
-            const deliveryMethodValue = initialData.deliveryMethod;
-            if (
-                deliveryMethodValue === "COURIER" ||
-                deliveryMethodValue === "CUSTOMER_PICKUP"
-            ) {
-                return true;
-            }
-            return false;
-        },
-    );
     const [customShippingAddress, setCustomShippingAddress] = useState(
         initialData?.shippingAddress || "",
     );
@@ -267,19 +253,16 @@ export function SaleForm({
                     timer = setTimeout(() => {
                         setShippingAddress(fullAddress);
                         setCustomShippingAddress(fullAddress);
-                        setUseCustomShippingAddress(true);
                     }, 0);
                 }
             } else {
                 timer = setTimeout(() => {
                     setShippingAddress("");
                     setCustomShippingAddress("");
-                    setUseCustomShippingAddress(true);
                 }, 0);
             }
         } else if (deliveryMethod === "COURIER") {
             timer = setTimeout(() => {
-                setUseCustomShippingAddress(true);
                 const wasInitiallyCourier = initialData?.deliveryMethod === "COURIER";
                 if (pickupCompanyId && !wasInitiallyCourier) {
                     setCustomShippingAddress("");
@@ -302,7 +285,6 @@ export function SaleForm({
                     }
                     setPickupCompanyId("");
                 } else if (!isEdit || !isInitialCustomer) {
-                    setUseCustomShippingAddress(false);
                     setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
                     setPickupCompanyId("");
                 }
@@ -371,15 +353,6 @@ export function SaleForm({
     // Handle custom address input
     const handleUseCustomAddress = () => {
         setSelectedAddressId("");
-        setUseCustomShippingAddress(true);
-    };
-
-    // Handle custom shipping address change
-    const handleUseCustomShippingAddressChange = (checked: boolean) => {
-        setUseCustomShippingAddress(checked);
-        if (checked) {
-            setSelectedAddressId(""); // Clear selected address when switching to custom
-        }
     };
 
 
@@ -407,7 +380,6 @@ export function SaleForm({
             deliveryDate,
             billingAddress,
             shippingAddress,
-            useCustomShippingAddress,
             customShippingAddress,
             deliveryMethod,
             shippingCompanyId,
@@ -470,16 +442,8 @@ export function SaleForm({
                 shippingAddress:
                     deliveryMethod === "COURIER"
                         ? customShippingAddress // Always use custom address for COURIER
-                        : deliveryMethod === "SALES_DELIVERY"
-                            ? useCustomShippingAddress
-                                ? customShippingAddress
-                                : shippingAddress
-                            : useCustomShippingAddress
-                                ? customShippingAddress
-                                : shippingAddress,
-                useCustomShipping:
-                    deliveryMethod === "COURIER" ||
-                    (deliveryMethod === "SALES_DELIVERY" && useCustomShippingAddress),
+                        : shippingAddress,
+                useCustomShipping: deliveryMethod === "COURIER",
                 deliveryMethod,
                 selectedAddressId: selectedAddressId || undefined,
                 pickupCompanyId:
@@ -692,9 +656,7 @@ export function SaleForm({
                 onRequestedDeliveryDateChange={setRequestedDeliveryDate}
                 shippingAddress={shippingAddress}
                 customShippingAddress={customShippingAddress}
-                useCustomShippingAddress={useCustomShippingAddress}
                 onCustomShippingAddressChange={setCustomShippingAddress}
-                onUseCustomShippingAddressChange={handleUseCustomShippingAddressChange}
                 fieldErrors={fieldErrors}
                 onFieldErrorClear={(field) => setFieldErrors((prev) => ({ ...prev, [field]: "" }))}
             />

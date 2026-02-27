@@ -499,7 +499,6 @@ export interface SaleFormState {
   deliveryDate: string;
   billingAddress: string;
   shippingAddress: string;
-  useCustomShippingAddress: boolean;
   customShippingAddress: string;
   deliveryMethod: DeliveryMethodType;
   items: SaleItemFormData[];
@@ -563,9 +562,7 @@ export interface DeliveryMethodSectionProps {
   onRequestedDeliveryDateChange?: (value: string) => void;
   shippingAddress?: string;
   customShippingAddress?: string;
-  useCustomShippingAddress?: boolean;
   onCustomShippingAddressChange?: (value: string) => void;
-  onUseCustomShippingAddressChange?: (value: boolean) => void;
   fieldErrors?: Record<string, string>;
   onFieldErrorClear?: (field: string) => void;
 }
