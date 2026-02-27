@@ -280,15 +280,13 @@ export default function ProductDetailPage() {
             </div>
 
             {/* ─── RIGHT: Product Info ─── */}
-            <div className="p-6 lg:p-8 flex flex-col gap-6">
+            <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-5">
               {/* Header */}
               <div>
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
-                    {product.name}
-                  </h1>
+                {/* Status badge – แสดงอยู่บนสุดบนมือถือ */}
+                <div className="flex items-center justify-between gap-2 mb-2">
                   <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${product.status === "ACTIVE"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${product.status === "ACTIVE"
                       ? "bg-green-100 text-green-700 border border-green-200"
                       : "bg-gray-100 text-gray-500 border border-gray-200"
                       }`}
@@ -301,8 +299,12 @@ export default function ProductDetailPage() {
                     {product.status === "ACTIVE" ? "ใช้งาน" : "ไม่ใช้งาน"}
                   </span>
                 </div>
+                {/* ชื่อสินค้า – ให้ขึ้นบรรทัดใหม่ได้ */}
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight break-words">
+                  {product.name}
+                </h1>
                 {product.commonName && (
-                  <p className="text-gray-500 text-sm">{product.commonName}</p>
+                  <p className="text-gray-500 text-sm mt-1 break-words">{product.commonName}</p>
                 )}
               </div>
 
@@ -569,10 +571,17 @@ function AttributeRow({
 }) {
   if (!value) return null;
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 transition-colors">
-      {icon && <span className="text-gray-400 shrink-0">{icon}</span>}
-      <span className="text-sm text-gray-500 shrink-0 w-32">{label}</span>
-      <span className="text-sm font-medium text-gray-900 break-words">{value}</span>
+    <div className="px-4 py-3 bg-white hover:bg-gray-50 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex items-center gap-2 shrink-0 sm:w-36 mb-0.5 sm:mb-0">
+          {icon && <span className="text-gray-400 shrink-0">{icon}</span>}
+          <span className="text-xs sm:text-sm text-gray-500 font-medium">{label}</span>
+        </div>
+        <span className="text-sm font-semibold text-gray-900 overflow-wrap-anywhere break-words min-w-0 pl-6 sm:pl-0 leading-snug">
+          {value}
+        </span>
+      </div>
     </div>
   );
+
 }
