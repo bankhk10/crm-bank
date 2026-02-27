@@ -58,23 +58,35 @@ export async function POST(request: NextRequest) {
     const existing = await db.chemicalGroup.findUnique({
       where: { code },
     });
-
+    let group;
     if (existing) {
-      return NextResponse.json(
-        { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
-        { status: 400 },
-      );
+      if (!existing.deletedAt) {
+        return NextResponse.json(
+          { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
+          { status: 400 },
+        );
+      }
+
+      // Update and restore the soft-deleted record
+      group = await db.chemicalGroup.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          abbreviation: abbreviation || "",
+          description: description || "",
+          deletedAt: null,
+        },
+      });
+    } else {
+      group = await db.chemicalGroup.create({
+        data: {
+          code,
+          name,
+          abbreviation: abbreviation || "",
+          description: description || "",
+        },
+      });
     }
-
-    const group = await db.chemicalGroup.create({
-      data: {
-        code,
-        name,
-        abbreviation: abbreviation || null,
-        description: description || null,
-      },
-    });
-
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
     console.error("Error creating chemical group:", error);
