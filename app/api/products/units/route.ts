@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         where,
         skip: (page - 1) * perPage,
         take: perPage,
-        orderBy: { code: "asc" },
+        orderBy: { createdAt: "desc" },
       }),
       db.unit.count({ where }),
     ]);
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (!code || !description) {
       return NextResponse.json(
-        { error: "รหัสและคำอธิบายจำเป็นต้องระบุ" },
+        { error: "รหัสและชื่อหน่วยนับจำเป็นต้องระบุ" },
         { status: 400 },
       );
     }
@@ -57,16 +57,30 @@ export async function POST(request: NextRequest) {
       where: { code },
     });
 
+    let unit;
     if (existing) {
-      return NextResponse.json(
-        { error: "รหัสหน่วยนับนี้มีอยู่แล้ว" },
-        { status: 400 },
-      );
-    }
+      if (!existing.deletedAt) {
+        return NextResponse.json(
+          { error: "รหัสหน่วยนับนี้มีอยู่แล้ว" },
+          { status: 400 },
+        );
+      }
 
-    const unit = await db.unit.create({
-      data: { code, description },
-    });
+      // Update and restore the soft-deleted record
+      unit = await db.unit.update({
+        where: { id: existing.id },
+        data: {
+          code,
+          description,
+          deletedAt: null, // restore
+        },
+      });
+    } else {
+      // Create new
+      unit = await db.unit.create({
+        data: { code, description },
+      });
+    }
 
     return NextResponse.json({ unit }, { status: 201 });
   } catch (error) {
