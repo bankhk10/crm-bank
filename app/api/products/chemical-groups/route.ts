@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         where,
         skip: (page - 1) * perPage,
         take: perPage,
-        orderBy: { code: "asc" },
+        orderBy: { createdAt: "desc" },
       }),
       db.chemicalGroup.count({ where }),
     ]);
