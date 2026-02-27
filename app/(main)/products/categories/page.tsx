@@ -210,7 +210,7 @@ export default function ProductCategoriesPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">รหัส</TableHead>
-                  <TableHead className="font-semibold">คำอธิบาย</TableHead>
+                  <TableHead className="font-semibold">ชื่อหมวดสินค้า</TableHead>
                   <TableHead className="font-semibold text-right w-32">
                     จัดการ
                   </TableHead>
@@ -303,7 +303,7 @@ export default function ProductCategoriesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">คำอธิบาย *</Label>
+              <Label htmlFor="description">ชื่อหมวดสินค้า *</Label>
               <Input
                 id="description"
                 value={formData.description}
@@ -313,7 +313,7 @@ export default function ProductCategoriesPage() {
                     description: e.target.value,
                   }))
                 }
-                placeholder="คำอธิบายหมวดสินค้า"
+                placeholder="ชื่อหมวดสินค้า"
                 required
               />
             </div>
