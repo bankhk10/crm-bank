@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (!code || !description) {
       return NextResponse.json(
-        { error: "รหัสและคำอธิบายจำเป็นต้องระบุ" },
+        { error: "รหัสและชื่อจำเป็นต้องระบุ" },
         { status: 400 },
       );
     }

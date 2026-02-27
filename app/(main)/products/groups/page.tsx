@@ -253,8 +253,8 @@ export default function ProductGroupsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="font-semibold">รหัส</TableHead>
-                  <TableHead className="font-semibold">คำอธิบาย</TableHead>
+                  <TableHead className="font-semibold">รหัสกลุ่มชื่อการค้า</TableHead>
+                  <TableHead className="font-semibold">ชื่อกลุ่มชื่อการค้า</TableHead>
                   <TableHead className="font-semibold text-right">
                     จัดการ
                   </TableHead>
@@ -347,7 +347,7 @@ export default function ProductGroupsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">คำอธิบาย *</Label>
+              <Label htmlFor="description">ชื่อกลุ่มชื่อการค้า *</Label>
               <Input
                 id="description"
                 value={formData.description}
@@ -357,7 +357,7 @@ export default function ProductGroupsPage() {
                     description: e.target.value,
                   }))
                 }
-                placeholder="คำอธิบายกลุ่มชื่อการค้า"
+                placeholder="ชื่อกลุ่มชื่อการค้า"
                 required
               />
             </div>
