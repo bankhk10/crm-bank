@@ -138,8 +138,8 @@ export default function FulfillmentDetailPage({
                 if (data.sale.notes) {
                     setNotes(data.sale.notes);
                 }
-                if (data.sale.shippingCompanyId) {
-                    setShippingCompanyId(data.sale.shippingCompanyId);
+                if (data.sale.saleAddress?.shippingCompanyAddressId) {
+                    setShippingCompanyId(data.sale.saleAddress.shippingCompanyAddressId);
                 }
                 if (data.sale.saleOrderRef) {
                     setSaleOrderRef(data.sale.saleOrderRef);

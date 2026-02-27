@@ -156,7 +156,6 @@ export async function createSaleUseCase(
     pickupCompanyId: body.pickupCompanyId,
     shippingCompanyId: body.shippingCompanyId,
     billingAddress: body.billingAddress,
-    shippingAddress: body.shippingAddress,
     useCustomShipping: body.useCustomShipping,
     selectedAddressId: body.selectedAddressId,
 

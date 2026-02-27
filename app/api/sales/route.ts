@@ -136,29 +136,6 @@ export async function GET(request: NextRequest) {
               },
             },
           },
-          shippingCompany: {
-            select: {
-              id: true,
-              name: true,
-              address: true,
-              addressLine: true,
-              subdistrict: true,
-              district: true,
-              province: true,
-              postalCode: true,
-            },
-          },
-          pickupCompany: {
-            select: {
-              id: true,
-              name: true,
-              addressLine: true,
-              subdistrict: true,
-              district: true,
-              province: true,
-              postalCode: true,
-            },
-          },
         },
         orderBy: {
           createdAt: "desc",
@@ -344,10 +321,7 @@ export async function POST(request: NextRequest) {
           : null,
         deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
         deliveryMethod: body.deliveryMethod,
-        pickupCompanyId: body.pickupCompanyId,
-        shippingCompanyId: body.shippingCompanyId,
-        billingAddress: body.billingAddress,
-        shippingAddress: body.shippingAddress,
+
         // Store flag indicating user specified custom shipping address
         useCustomShipping: body.useCustomShipping ?? false,
         subtotalAmount: new Prisma.Decimal(subtotal),
@@ -498,4 +472,3 @@ function generateSaleNumber(lastNumber?: string | null): string {
   const newSeq = String(lastSeq + 1).padStart(4, "0");
   return `${prefix}${newSeq}`;
 }
-

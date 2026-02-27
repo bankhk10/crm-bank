@@ -33,9 +33,7 @@ export default function EditSalePage({
       })
       .then((data: any) => {
         const sale = data.sale;
-        const useCustomShipping =
-          sale.useCustomShipping ??
-          (sale.deliveryMethod === "SALES_DELIVERY" && !!sale.shippingAddress);
+        const useCustomShipping = sale.useCustomShipping ?? false;
 
         setInitialData({
           id: sale.id,
@@ -60,7 +58,23 @@ export default function EditSalePage({
           deliveryMethod: sale.deliveryMethod,
           pickupCompanyId: sale.pickupCompanyId,
           billingAddress: sale.billingAddress || "",
-          shippingAddress: sale.shippingAddress || "",
+          shippingAddress: sale.saleAddress
+            ? [
+              sale.saleAddress.shipping_address_line,
+              sale.saleAddress.shipping_subdistrict
+                ? `ต.${sale.saleAddress.shipping_subdistrict}`
+                : "",
+              sale.saleAddress.shipping_district
+                ? `อ.${sale.saleAddress.shipping_district}`
+                : "",
+              sale.saleAddress.shipping_province
+                ? `จ.${sale.saleAddress.shipping_province}`
+                : "",
+              sale.saleAddress.shipping_postal_code,
+            ]
+              .filter(Boolean)
+              .join(" ")
+            : "",
           useCustomShipping, // Flag to indicate custom shipping was used
           selectedAddressId: sale.selectedAddressId || "",
           items: sale.items.map((item: any) => ({

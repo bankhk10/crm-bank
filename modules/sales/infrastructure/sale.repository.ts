@@ -68,29 +68,7 @@ const listIncludes = {
       },
     },
   },
-  shippingCompany: {
-    select: {
-      id: true,
-      name: true,
-      address: true,
-      addressLine: true,
-      subdistrict: true,
-      district: true,
-      province: true,
-      postalCode: true,
-    },
-  },
-  pickupCompany: {
-    select: {
-      id: true,
-      name: true,
-      addressLine: true,
-      subdistrict: true,
-      district: true,
-      province: true,
-      postalCode: true,
-    },
-  },
+  saleAddress: true,
 } as const;
 
 // ─────────────────────────────────────────────
@@ -186,8 +164,8 @@ export async function findSaleById(id: string) {
       employee: true,
       createdBy: true,
       approvedBy: true,
-      pickupCompany: true,
-      shippingCompany: true,
+      saleAddress: true,
+
       items: {
         include: {
           product: {
@@ -202,7 +180,6 @@ export async function findSaleById(id: string) {
         include: { changedBy: true },
         orderBy: { changedAt: "desc" },
       },
-      saleAddress: true,
     },
   });
 }
@@ -286,7 +263,6 @@ export async function createSale(data: {
   pickupCompanyId?: string | null;
   shippingCompanyId?: string | null;
   billingAddress?: string;
-  shippingAddress?: string;
   useCustomShipping?: boolean;
   selectedAddressId?: string | null;
   subtotalAmount: number;
@@ -384,10 +360,7 @@ export async function createSale(data: {
       requestedDeliveryDate: data.requestedDeliveryDate,
       deliveryDate: data.deliveryDate,
       deliveryMethod: data.deliveryMethod,
-      pickupCompanyId: data.pickupCompanyId,
-      shippingCompanyId: data.shippingCompanyId,
-      billingAddress: data.billingAddress,
-      shippingAddress: data.shippingAddress,
+
       useCustomShipping: data.useCustomShipping ?? false,
       selectedAddressId: data.selectedAddressId || null,
       subtotalAmount: new Prisma.Decimal(data.subtotalAmount),
@@ -514,7 +487,6 @@ export async function updateSale(
     deliveryDate?: Date | null;
     deliveryUpdateCount: number;
     billingAddress?: string;
-    shippingAddress?: string;
     useCustomShipping?: boolean;
     selectedAddressId?: string | null;
     subtotalAmount: number;
@@ -637,14 +609,10 @@ export async function updateSale(
           ? new Prisma.Decimal(data.promotionalCreditUsed)
           : null,
         deliveryMethod: data.deliveryMethod,
-        pickupCompanyId: data.pickupCompanyId,
-        shippingCompanyId: data.shippingCompanyId,
         saleDate: data.saleDate,
         requestedDeliveryDate: data.requestedDeliveryDate,
         deliveryDate: data.deliveryDate,
         deliveryUpdateCount: data.deliveryUpdateCount,
-        billingAddress: data.billingAddress,
-        shippingAddress: data.shippingAddress,
         useCustomShipping: data.useCustomShipping ?? false,
         selectedAddressId: data.selectedAddressId || null,
         subtotalAmount: new Prisma.Decimal(data.subtotalAmount),

@@ -45,24 +45,12 @@ export interface SaleWithRelations extends Sale {
     email: string;
   } | null;
   items: SaleItemWithProduct[];
-  shippingCompany?: {
-    id: string;
-    name: string;
-    address?: string | null;
-    addressLine?: string | null;
-    subdistrict?: string | null;
-    district?: string | null;
-    province?: string | null;
-    postalCode?: string | null;
-  } | null;
-  pickupCompany?: {
-    id: string;
-    name: string;
-    addressLine?: string | null;
-    subdistrict?: string | null;
-    district?: string | null;
-    province?: string | null;
-    postalCode?: string | null;
+  saleAddress?: {
+    companyAddressId?: string | null;
+    billingCustomerAddressId?: string | null;
+    shippingCustomerAddressId?: string | null;
+    pickupCompanyAddressId?: string | null;
+    shippingCompanyAddressId?: string | null;
   } | null;
 }
 

@@ -44,8 +44,7 @@ export async function GET(
         employee: true,
         createdBy: true,
         approvedBy: true,
-        pickupCompany: true, // Include pickup company for CUSTOMER_PICKUP delivery method
-        shippingCompany: true, // Include shipping company for delivery
+
         items: {
           include: {
             product: {
@@ -388,8 +387,7 @@ export async function PUT(
             ? new Prisma.Decimal(body.promotionalCreditUsed)
             : null,
           deliveryMethod: body.deliveryMethod,
-          pickupCompanyId: body.pickupCompanyId,
-          shippingCompanyId: body.shippingCompanyId,
+
           // requestedDeliveryDate: body.requestedDeliveryDate
           //   ? new Date(body.requestedDeliveryDate)
           //   : null, // Keep existing if not provided or add to form
@@ -399,8 +397,7 @@ export async function PUT(
             : null,
           deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
           deliveryUpdateCount: newDeliveryUpdateCount,
-          billingAddress: body.billingAddress,
-          shippingAddress: body.shippingAddress,
+
           // Store flag indicating user specified custom shipping address
           useCustomShipping: body.useCustomShipping ?? false,
           selectedAddressId: body.selectedAddressId || null,
@@ -593,4 +590,3 @@ export async function DELETE(
     );
   }
 }
-

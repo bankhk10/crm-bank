@@ -124,7 +124,6 @@ export async function updateSaleUseCase(
     deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
     deliveryUpdateCount: newDeliveryUpdateCount,
     billingAddress: body.billingAddress,
-    shippingAddress: body.shippingAddress,
     useCustomShipping: body.useCustomShipping,
     selectedAddressId: body.selectedAddressId,
 

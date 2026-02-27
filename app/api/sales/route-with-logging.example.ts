@@ -21,7 +21,9 @@ import type { RequestContext } from "@/lib/logger/types";
 // Helper to create request context
 function createContext(
   request: NextRequest,
-  session: { user: { id: string; email?: string | null; name?: string | null } }
+  session: {
+    user: { id: string; email?: string | null; name?: string | null };
+  },
 ): RequestContext {
   const headersObj = Object.fromEntries(request.headers.entries());
 
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
       reqLogger.warn("Session user not found in database", { module: "sales" });
       return NextResponse.json(
         { error: "Session expired or invalid. Please sign in again." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
     if (!customer) {
       return NextResponse.json(
         { error: "Customer not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -106,7 +108,7 @@ export async function POST(request: NextRequest) {
     const subtotal = body.items.reduce(
       (sum: number, item: { quantity: number; unitPrice: number }) =>
         sum + item.quantity * item.unitPrice,
-      0
+      0,
     );
     const total = subtotal - (body.shippingCost || 0) - (body.otherCosts || 0);
 
@@ -132,8 +134,6 @@ export async function POST(request: NextRequest) {
         paymentTerm: body.paymentTerm,
         creditDays: body.creditDays,
         saleDate: new Date(body.saleDate),
-        billingAddress: body.billingAddress,
-        shippingAddress: body.shippingAddress,
         subtotalAmount: new Prisma.Decimal(subtotal),
         shippingCost: new Prisma.Decimal(body.shippingCost || 0),
         otherCosts: new Prisma.Decimal(body.otherCosts || 0),
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
               originalPrice: new Prisma.Decimal(item.originalPrice),
               priceModified: item.priceModified,
               totalPrice: new Prisma.Decimal(item.quantity * item.unitPrice),
-            })
+            }),
           ),
         },
         statusHistory: {
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
         entityName: sale.saleNumber,
         module: "sales",
         duration,
-      }
+      },
     );
 
     reqLogger.info("Sale created successfully", {
@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: "Failed to create sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -329,7 +329,7 @@ export async function PUT_example(request: NextRequest) {
         entityName: oldSale.saleNumber,
         module: "sales",
         duration,
-      }
+      },
     );
 
     reqLogger.info("Sale updated successfully", {
@@ -343,7 +343,7 @@ export async function PUT_example(request: NextRequest) {
     reqLogger.error("Failed to update sale", error, { module: "sales" });
     return NextResponse.json(
       { error: "Failed to update sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -384,7 +384,7 @@ export async function PATCH_approve_example(request: NextRequest) {
       });
       return NextResponse.json(
         { error: "Sale is not pending" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -413,7 +413,7 @@ export async function PATCH_approve_example(request: NextRequest) {
       {
         entityName: oldSale.saleNumber,
         module: "sales",
-      }
+      },
     );
 
     reqLogger.info("Sale approved successfully", {
@@ -426,7 +426,7 @@ export async function PATCH_approve_example(request: NextRequest) {
     reqLogger.error("Failed to approve sale", error, { module: "sales" });
     return NextResponse.json(
       { error: "Failed to approve sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -491,7 +491,7 @@ export async function DELETE_example(request: NextRequest) {
       {
         entityName: sale.saleNumber,
         module: "sales",
-      }
+      },
     );
 
     reqLogger.info("Sale deleted successfully", {
@@ -504,8 +504,7 @@ export async function DELETE_example(request: NextRequest) {
     reqLogger.error("Failed to delete sale", error, { module: "sales" });
     return NextResponse.json(
       { error: "Failed to delete sale" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
