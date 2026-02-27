@@ -253,7 +253,7 @@ export default function ProductGroupsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="font-semibold">รหัสกลุ่มชื่อการค้า</TableHead>
+                  <TableHead className="font-semibold">รหัส</TableHead>
                   <TableHead className="font-semibold">ชื่อกลุ่มชื่อการค้า</TableHead>
                   <TableHead className="font-semibold text-right">
                     จัดการ
@@ -335,7 +335,7 @@ export default function ProductGroupsPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="code">รหัสกลุ่มชื่อการค้า *</Label>
+              <Label htmlFor="code">รหัส *</Label>
               <Input
                 id="code"
                 value={formData.code}
