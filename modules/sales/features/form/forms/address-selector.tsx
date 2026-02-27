@@ -5,6 +5,8 @@ import { MapPin, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { SaleFormCustomer } from "../../../types";
+import { formatAddress } from "@/lib/address-utils";
+
 
 interface CustomerAddress {
   id: string;
@@ -32,20 +34,6 @@ export function AddressSelector({
   onUseCustomAddress,
   disabled = false,
 }: AddressSelectorProps) {
-  // Build full address string from address components
-  const buildFullAddress = (address: CustomerAddress | null): string => {
-    if (!address) return "";
-
-    const parts = [
-      address.addressLine,
-      address.subdistrict,
-      address.district,
-      address.province,
-      address.postalCode,
-    ].filter(Boolean);
-
-    return parts.join(" ");
-  };
 
   // Get primary shipping address (single address from customer model)
   const primaryAddress = customer ? {
@@ -158,7 +146,7 @@ export function AddressSelector({
 
       <div className="space-y-2">
         {allAddresses.map((address) => {
-          const fullAddress = buildFullAddress(address);
+          const fullAddress = formatAddress(address);
           const isSelected = selectedAddressId === address.id;
 
           return (
