@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         where,
         skip: (page - 1) * perPage,
         take: perPage,
-        orderBy: { name: "asc" },
+        orderBy: { createdAt: "desc" },
       }),
       db.productChain.count({ where }),
     ]);
