@@ -27,7 +27,7 @@ const productSchema = z.object({
   // New fields
   categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
   productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
 });
 
 export async function GET(request: Request) {

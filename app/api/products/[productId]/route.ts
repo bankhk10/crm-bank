@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@/lib/db";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
@@ -35,7 +35,7 @@ const productSchema = z.object({
   // New fields
   categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
   productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
-  parentId: z.string().optional(),
+  parentId: z.string().nullable().optional(),
 });
 
 export async function GET(request: Request, { params }: { params: any }) {

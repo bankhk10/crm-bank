@@ -139,11 +139,14 @@ export function ProductForm({
         const res = await fetch('/api/products?page=1&perPage=1000');
         const data = await res.json();
         if (data?.products) {
-          setParentOptions(
-            data.products
-              .filter((p: any) => p.id !== productId)
-              .map((p: any) => ({ value: p.id, label: `${p.productCode} - ${p.name}` }))
-          );
+          const parentItems = data.products
+            .filter((p: any) => p.id !== productId)
+            .map((p: any) => ({ value: p.id, label: `${p.productCode} - ${p.name}` }));
+
+          setParentOptions([
+            { value: "none", label: "ไม่มี" },
+            ...parentItems
+          ]);
         }
       } catch (err) {
         console.error("Failed to fetch products:", err);
@@ -235,7 +238,7 @@ export function ProductForm({
         coverIndex: formData.coverIndex ?? undefined,
         categoryId: (formData as any).categoryId || undefined,
         productChainId: (formData as any).productChainId || undefined,
-        parentId: (formData as any).parentId || undefined,
+        parentId: (formData as any).parentId === "none" ? null : ((formData as any).parentId || undefined),
       };
 
       const url = isEdit ? `/api/products/${productId}` : "/api/products";
@@ -761,7 +764,7 @@ export function ProductForm({
 
         <FormCombobox
           label="สินค้าหลัก (ถ้ามี)"
-          value={(formData as any).parentId || ""}
+          value={(formData as any).parentId || "none"}
           onChange={(v) => updateField("parentId" as keyof ProductFormData, v)}
           options={parentOptions}
           placeholder="เลือกสินค้าหลัก"
