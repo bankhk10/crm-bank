@@ -67,12 +67,12 @@ export function DeliveryMethodSection({
                 วิธีการจัดส่ง <span className="text-red-500">*</span>
             </Label>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {DELIVERY_METHODS.map((method) => (
                     <div
                         key={method.value}
                         onClick={() => onChange(method.value)}
-                        className={`group relative cursor-pointer rounded-2xl border-2 p-5 transition-all
+                        className={`group relative cursor-pointer rounded-2xl border-2 p-3 transition-all
               ${value === method.value
                                 ? "border-blue-500 bg-blue-50 shadow-md"
                                 : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
