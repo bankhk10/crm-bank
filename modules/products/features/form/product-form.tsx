@@ -639,17 +639,6 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="สินค้าแม่/หลัก (ถ้ามี)"
-          value={(formData as any).parentId || ""}
-          onChange={(v) => updateField("parentId" as keyof ProductFormData, v)}
-          options={parentOptions}
-          placeholder="เลือกสินค้าหลัก"
-          searchPlaceholder="ค้นหาสินค้าหลัก..."
-          emptyText="ไม่พบสินค้า"
-          disabled={loading}
-        />
-
-        <FormCombobox
           label="หน่วยนับ"
           value={formData.unit || ""}
           onChange={(v) => updateField("unit", v)}
@@ -769,6 +758,18 @@ export function ProductForm({
             searchable={true}
           />
         </div>
+
+        <FormCombobox
+          label="สินค้าหลัก (ถ้ามี)"
+          value={(formData as any).parentId || ""}
+          onChange={(v) => updateField("parentId" as keyof ProductFormData, v)}
+          options={parentOptions}
+          placeholder="เลือกสินค้าหลัก"
+          searchPlaceholder="ค้นหาสินค้าหลัก..."
+          emptyText="ไม่พบสินค้า"
+          disabled={loading}
+        />
+
 
         <FormSelect
           label="สถานะสินค้า"
