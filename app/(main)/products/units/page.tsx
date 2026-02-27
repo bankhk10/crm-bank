@@ -220,7 +220,7 @@ export default function UnitsPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50">
                   <TableHead className="font-semibold">รหัส</TableHead>
-                  <TableHead className="font-semibold">คำอธิบาย</TableHead>
+                  <TableHead className="font-semibold">ชื่อหน่วยนับ</TableHead>
                   <TableHead className="font-semibold text-right w-32">
                     จัดการ
                   </TableHead>
@@ -345,7 +345,7 @@ export default function UnitsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">คำอธิบาย *</Label>
+              <Label htmlFor="description">ชื่อหน่วยนับ *</Label>
               <Input
                 id="description"
                 value={formData.description}
@@ -355,7 +355,7 @@ export default function UnitsPage() {
                     description: e.target.value,
                   }))
                 }
-                placeholder="คำอธิบายหน่วยนับ เช่น ชิ้น, กิโลกรัม, กล่อง"
+                placeholder="ชื่อหน่วยนับ เช่น ชิ้น, กิโลกรัม, กล่อง"
                 required
               />
             </div>
