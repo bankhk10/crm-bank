@@ -161,7 +161,7 @@ export function ProductForm({
       : 0;
     const packageSizePerBox = parseFloat(formData.packageSizePerBox || "0");
     const packageSizeUnit =
-      (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] || "g";
+      (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] || "G";
 
     if (packageSizeValue && packageSizePerBox) {
       const total = packageSizeValue * packageSizePerBox;
@@ -668,7 +668,7 @@ export function ProductForm({
             <Input
               value={(() => {
                 const match = (formData.packageSize || "").match(/^([\d.]+)/);
-                return match ? match[1] : formData.packageSize || "";
+                return match ? match[1] : "";
               })()}
               onChange={(e) => {
                 const newValue = e.target.value;
@@ -677,10 +677,10 @@ export function ProductForm({
                   (PACKAGE_UNIT_OPTIONS.find((opt) =>
                     (formData.packageSize || "").endsWith(opt.value),
                   )?.value ??
-                    "g");
+                    "G");
                 updateField(
                   "packageSize",
-                  newValue ? `${newValue} ${currentUnit}` : "",
+                  newValue ? `${newValue} ${currentUnit}` : currentUnit,
                 );
               }}
               placeholder="ระบุขนาด"
@@ -706,16 +706,12 @@ export function ProductForm({
                   }
                 }
                 const match = str.match(/[a-zA-Z]+$/);
-                return match ? match[0] : "g";
+                return match ? match[0] : "G";
               })()}
               onValueChange={(newUnit) => {
                 const match = (formData.packageSize || "").match(/^([\d.]+)/);
-                const currentValue = match
-                  ? match[1]
-                  : formData.packageSize || "";
-                if (currentValue) {
-                  updateField("packageSize", `${currentValue} ${newUnit}`);
-                }
+                const currentValue = match ? match[1] : "";
+                updateField("packageSize", currentValue ? `${currentValue} ${newUnit}` : newUnit);
               }}
               disabled={loading}
             >

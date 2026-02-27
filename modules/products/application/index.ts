@@ -57,7 +57,10 @@ export async function getProductFormOptionsUseCase() {
     ]);
 
   return {
-    units: units.map((u) => ({ value: u.description, label: u.description })),
+    units: units.map((u) => ({
+      value: u.description,
+      label: `${u.code} - ${u.description}`,
+    })),
     groups: groups.map((g) => ({ value: g.code, label: g.description })),
     brands: brands.map((b) => ({
       value: b.description,
@@ -72,7 +75,10 @@ export async function getProductFormOptionsUseCase() {
       value: c.id,
       label: c.code + " - " + c.description,
     })),
-    chains: chains.map((c) => ({ value: c.id, label: c.name })),
+    chains: chains.map((c) => ({
+      value: c.id,
+      label: c.description ? `${c.name} - ${c.description}` : c.name,
+    })),
   };
 }
 
