@@ -1,6 +1,6 @@
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Settings, ChevronRightIcon, ChevronDownIcon } from "lucide-react";
+import { Eye, Edit, Trash2, Settings, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { ProductRecord } from "../../types";
 import { ActionButton } from "@/components/custom/action-button";
 import { ProductStatusBadge } from "../../ui/product-status-badge";
@@ -26,16 +26,13 @@ export function useProductColumns(
                 cell: ({ row }) => {
                     return row.getCanExpand() ? (
                         <button
-                            {...{
-                                onClick: row.getToggleExpandedHandler(),
-                                style: { cursor: "pointer" },
-                            }}
-                            className="p-1 rounded bg-blue-100 hover:bg-blue-200 text-blue-700 transition"
+                            onClick={row.getToggleExpandedHandler()}
+                            className="p-1 rounded transition cursor-pointer"
                         >
                             {row.getIsExpanded() ? (
-                                <ChevronDownIcon className="h-4 w-4" />
+                                <ChevronUpIcon className="h-4 w-4" />
                             ) : (
-                                <ChevronRightIcon className="h-4 w-4" />
+                                <ChevronDownIcon className="h-4 w-4" />
                             )}
                         </button>
                     ) : null;
