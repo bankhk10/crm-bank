@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         where,
         skip: (page - 1) * perPage,
         take: perPage,
-        orderBy: { code: "asc" },
+        orderBy: { createdAt: "desc" },
       }),
       db.productCategory.count({ where }),
     ]);
@@ -52,9 +52,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const category = await db.productCategory.create({
-      data: { code, description },
+    const existing = await db.productCategory.findFirst({
+      where: { code },
     });
+
+    let category;
+    if (existing) {
+      if (!existing.deletedAt) {
+        return NextResponse.json(
+          { error: "รหัสหมวดหมู่ชื่อการค้ามีอยู่แล้ว" },
+          { status: 400 },
+        );
+      }
+
+      // Update and restore the soft-deleted record
+      category = await db.productCategory.update({
+        where: { id: existing.id },
+        data: {
+          description,
+          deletedAt: null, // restore
+        },
+      });
+    } else {
+      // Create new
+      category = await db.productCategory.create({
+        data: { code, description },
+      });
+    }
 
     return NextResponse.json({ category }, { status: 201 });
   } catch (error) {
