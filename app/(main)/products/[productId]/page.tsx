@@ -355,12 +355,22 @@ export default function ProductDetailPage() {
                 <AttributeRow
                   icon={<FolderOpen className="h-4 w-4" />}
                   label="หมวดสินค้า"
-                  value={product.category?.name ?? (product.categoryId ? product.categoryId : undefined)}
+                  value={
+                    product.category
+                      ? `${product.category.code} - ${product.category.description}`
+                      : undefined
+                  }
                 />
                 <AttributeRow
                   icon={<Layers className="h-4 w-4" />}
                   label="กรุ๊ปสินค้า"
-                  value={product.productChain?.name ?? (product.productChainId ? product.productChainId : undefined)}
+                  value={
+                    product.productChain
+                      ? product.productChain.description
+                        ? `${product.productChain.name} - ${product.productChain.description}`
+                        : product.productChain.name
+                      : undefined
+                  }
                 />
                 <AttributeRow
                   icon={<Link2 className="h-4 w-4" />}
@@ -398,7 +408,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-      
+
             </div>
           </div>
 

@@ -30,13 +30,13 @@ export interface PlantFormData {
 export interface ProductCategory {
   id: string;
   code: string;
-  name: string;
+  description: string; // หมวดสินค้า
 }
 
 export interface ProductChain {
   id: string;
-  code: string;
   name: string;
+  description?: string | null; // รายละเอียดกรุ๊ปสินค้า
 }
 
 export interface ProductImage {
