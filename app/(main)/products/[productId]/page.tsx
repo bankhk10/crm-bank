@@ -398,23 +398,7 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2 mt-auto">
-                <Link href={`/products/${productId}/edit`} className="flex-1">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="lg">
-                    <Edit className="h-4 w-4 mr-2" />
-                    แก้ไขสินค้า
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+      
             </div>
           </div>
 
