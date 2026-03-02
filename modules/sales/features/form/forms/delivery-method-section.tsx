@@ -148,7 +148,7 @@ export function DeliveryMethodSection({
                             รายละเอียดการจัดส่งโดยบริษัทขนส่ง
                         </h4>
 
-                        <div className="grid gap-x-4 gap-y-3 md:grid-cols-1">
+                        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
                             <div className="space-y-1">
                                 <DatePicker
                                     label="วันที่ต้องการให้ส่งของ"
@@ -205,7 +205,7 @@ export function DeliveryMethodSection({
 
                             {/* Show address display only when shipping company is selected */}
                             {shippingCompanyId && (
-                                <div className="space-y-1">
+                                <div className="space-y-1 md:col-span-2">
                                     <Label className="text-base font-medium mx-2 mb-2 block">
                                         ที่อยู่สำหรับส่งให้บริษัทขนส่ง
                                     </Label>
@@ -220,7 +220,7 @@ export function DeliveryMethodSection({
 
                             {/* Address Selector Section for COURIER */}
                             {customer && (
-                                <div className="space-y-4">
+                                <div className="space-y-4 md:col-span-2">
                                     <AddressSelector
                                         customer={customer}
                                         selectedAddressId={selectedAddressId}
