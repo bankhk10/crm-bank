@@ -205,6 +205,7 @@ export function SaleForm({
             setBillingStreet(parsedBill.street);
             setBillingThaiAddress(parsedBill.thaiAddress);
             setShippingAddress(buildCustomerShippingAddress(customer));
+            setSelectedAddressId("primary");
         }
     };
 
