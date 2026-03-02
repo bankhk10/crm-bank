@@ -26,15 +26,16 @@ body {
 }
 .customer-info-container {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  flex-direction: column;
+  margin-bottom: 0;
 }
 .logistics-details,
 .invoice-details {
-  width: 48%;
+  width: 100%;
   padding: 15px;
   border-radius: 6px;
   background-color: #f8f9fa;
+  box-sizing: border-box;
 }
 .customer-details {
   width: 100%;
@@ -194,5 +195,5 @@ td {
   margin-bottom: 10px;
 }
 .phone {
-  margin-left: 40px;
+  margin-left: 25px;
 }

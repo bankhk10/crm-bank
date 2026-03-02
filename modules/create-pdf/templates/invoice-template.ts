@@ -39,13 +39,6 @@ export interface InvoiceData {
  * @returns HTML string representation of the invoice
  */
 export function renderInvoiceTemplate(data: InvoiceData): string {
-  // Helper: returns empty string if value is "-" or blank, otherwise returns a <p> with label + value
-  const field = (label: string, value: string | undefined | null) => {
-    const v = (value ?? "").trim();
-    if (!v || v === "-") return "";
-    return `<p><strong>${label}:</strong> ${v}</p>`;
-  };
-
   // Read localized image as base64 strings so puppeteer can easily render it offline / headless without issues.
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
   let base64Logo = "";
@@ -116,6 +109,104 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     return `<p>${billingPart} ${phonePart}</p>`;
   })();
 
+  // Build shipping method + company name row
+  const deliveryMethodAndCompanyRow = (() => {
+    const method = (data.deliveryMethod ?? "").trim();
+    const company = (data.shippingCompanyName ?? "").trim();
+    const hasMethod = method && method !== "-";
+    const hasCompany = company && company !== "-";
+
+    if (!hasMethod && !hasCompany) return "";
+
+    const methodPart = hasMethod
+      ? `<strong>วิธีการจัดส่ง:</strong> ${method}`
+      : "";
+    const companyPart = hasCompany
+      ? `<span class="${hasMethod ? "phone" : ""}"><strong>ชื่อบริษัทขนส่ง:</strong> ${company}</span>`
+      : "";
+
+    return `<p>${methodPart} ${companyPart}</p>`;
+  })();
+
+  // Build shipping company address row
+  const shippingCompanyAddressRow = (() => {
+    const address = (data.senderAddress ?? "").trim();
+    if (!address || address === "-") return "";
+    return `<p><strong>ที่อยู่บริษัทขนส่ง:</strong> ${address}</p>`;
+  })();
+
+  // Build reference: Date + Order Number + Payment Term row
+  const refHeaderRow = (() => {
+    const date = (data.date ?? "").trim();
+    const no = (data.invoiceNumber ?? "").trim();
+    const term = (data.paymentTerm ?? "").trim();
+
+    const hasDate = date && date !== "-";
+    const hasNo = no && no !== "-";
+    const hasTerm = term && term !== "-";
+
+    if (!hasDate && !hasNo && !hasTerm) return "";
+
+    const datePart = hasDate ? `<strong>วันที่:</strong> ${date}` : "";
+    const noPart = hasNo
+      ? `<span class="${hasDate ? "phone" : ""}"><strong>เลขที่ออเดอร์:</strong> ${no}</span>`
+      : "";
+    const termPart = hasTerm
+      ? `<span class="${hasDate || hasNo ? "phone" : ""}"><strong>เงื่อนไขการชำระเงิน:</strong> ${term}</span>`
+      : "";
+
+    return `<p>${datePart} ${noPart} ${termPart}</p>`;
+  })();
+
+  // Build reference: Delivery Date + Seller + Credit Due Date row
+  const refDatesRow = (() => {
+    const dDate = (data.deliveryDate ?? "").trim();
+    const seller = (data.contactName ?? "").trim();
+    const credit = (data.creditDueDate ?? "").trim();
+
+    const hasDDate = dDate && dDate !== "-";
+    const hasSeller = seller && seller !== "-";
+    const hasCredit = credit && credit !== "-";
+
+    if (!hasDDate && !hasSeller && !hasCredit) return "";
+
+    const dDatePart = hasDDate ? `<strong>วันที่จัดส่ง:</strong> ${dDate}` : "";
+    const sellerPart = hasSeller
+      ? `<span class="${hasDDate ? "phone" : ""}"><strong>ผู้ขาย:</strong> ${seller}</span>`
+      : "";
+    const creditPart = hasCredit
+      ? `<span class="${hasDDate || hasSeller ? "phone" : ""}"><strong>วันที่ครบกำหนดชำระเงิน:</strong> ${credit}</span>`
+      : "";
+
+    return `<p>${dDatePart} ${creditPart} ${sellerPart}</p>`;
+  })();
+
+  // Build reference: Payment Date row
+  const refOtherRow = (() => {
+    const pDate = (data.paymentDate ?? "").trim();
+    if (!pDate || pDate === "-") return "";
+    return `<p><strong>วันที่ชำระเงิน:</strong> ${pDate}</p>`;
+  })();
+
+  // Build receiving + shipping address row
+  const receivingAndShippingRow = (() => {
+    const shipping = (data.shippingAddress ?? "").trim();
+    const receiving = (data.receivingAddress ?? "").trim();
+    const hasShipping = shipping && shipping !== "-";
+    const hasReceiving = receiving && receiving !== "-";
+
+    if (!hasShipping && !hasReceiving) return "";
+
+    const shippingPart = hasShipping
+      ? `<strong>ที่อยู่จัดส่งสินค้า:</strong> ${shipping}`
+      : "";
+    const receivingPart = hasReceiving
+      ? `<span class="${hasShipping ? "phone" : ""}"><strong>ที่อยู่รับสินค้า:</strong> ${receiving}</span>`
+      : "";
+
+    return `<p>${shippingPart} ${receivingPart}</p>`;
+  })();
+
   // Build sale order ref row for header
   const saleOrderRefRow = (() => {
     const v = (data.saleOrderRef ?? "").trim();
@@ -163,23 +254,17 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         ${phoneAndBillingRow}
       </div>
       <div class="customer-info-container">
-        <div class="logistics-details">
+        <div class="logistics-details" style="margin-bottom: 12px;">
           <h3>ข้อมูลการจัดส่ง</h3>
-          ${field("วิธีการจัดส่ง", data.deliveryMethod)}
-          ${field("ที่อยู่จัดส่งสินค้า", data.shippingAddress)}
-          ${field("ที่อยู่รับสินค้า", data.receivingAddress)}
-          ${field("ชื่อบริษัทขนส่ง", data.shippingCompanyName)}
-          ${field("ที่อยู่บริษัทขนส่ง", data.senderAddress)}
+          ${deliveryMethodAndCompanyRow}
+          ${shippingCompanyAddressRow}
+          ${receivingAndShippingRow}
         </div>
         <div class="invoice-details">
           <h3>ข้อมูลอ้างอิง</h3>
-          ${field("วันที่", data.date)}
-          ${field("เลขที่ออเดอร์", data.invoiceNumber)}
-          ${field("เงื่อนไขการชำระเงิน", data.paymentTerm)}
-          ${field("วันที่จัดส่ง", data.deliveryDate)}
-          ${field("วันที่ครบกำหนดชำระเงิน", data.creditDueDate)}
-          ${field("วันที่ชำระเงิน", data.paymentDate)}
-          ${field("ผู้ขาย", data.contactName)}
+          ${refHeaderRow}
+          ${refDatesRow}
+          ${refOtherRow}
         </div>
       </div>
 
