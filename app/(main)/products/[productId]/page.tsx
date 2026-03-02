@@ -213,15 +213,6 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Back link */}
-        <Link
-          href="/products"
-          className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-6 transition-colors group text-sm font-medium"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1.5 group-hover:-translate-x-1 transition-transform" />
-          กลับไปหน้ารายการสินค้า
-        </Link>
-
         {/* Main product layout */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -315,7 +306,7 @@ export default function ProductDetailPage() {
                   <div className="flex flex-wrap gap-4">
                     {product.price && (
                       <div>
-                        <p className="text-xs text-blue-400">ราคาปลีก</p>
+                        <p className="text-xs text-blue-400">ราคาต่อชิ้น</p>
                         <p className="text-2xl font-bold text-blue-700">
                           {Number(product.price).toLocaleString()}
                           <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
@@ -384,8 +375,8 @@ export default function ProductDetailPage() {
                   }
                 />
                 <AttributeRow icon={<Ruler className="h-4 w-4" />} label="หน่วยนับ" value={product.unit} />
-                <AttributeRow icon={<Box className="h-4 w-4" />} label="ขนาดบรรจุ" value={product.packageSize} />
                 <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox} />
+                <AttributeRow icon={<Box className="h-4 w-4" />} label="ขนาดบรรจุ" value={product.packageSize} />
                 <AttributeRow icon={<Ruler className="h-4 w-4" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
               </div>
 
@@ -556,6 +547,30 @@ export default function ProductDetailPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Back Navigation */}
+      <div className="flex justify-center pt-6">
+        <Link
+          href="/products"
+          className="group flex items-center gap-2
+               px-4 py-2
+               text-sm
+               rounded-2xl
+               bg-white
+               text-gray-700
+               border-2 border-gray-200
+               hover:border-indigo-300
+               hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50
+               transition-all duration-300
+               hover:scale-105
+               shadow-lg hover:shadow-xl
+               font-semibold"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          ย้อนกลับ
+        </Link>
+      </div>
+
     </div>
   );
 }
