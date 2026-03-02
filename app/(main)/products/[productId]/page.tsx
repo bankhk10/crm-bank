@@ -302,34 +302,32 @@ export default function ProductDetailPage() {
               {/* Price */}
               {(product.price || product.cartonPrice) && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 space-y-2">
-                  <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">ราคาสินค้า</p>
-                  <div className="flex flex-wrap gap-4">
-                    {product.price && (
-                      <div>
-                        <p className="text-xs text-blue-400">ราคาต่อชิ้น</p>
-                        <p className="text-2xl font-bold text-blue-700">
-                          {Number(product.price).toLocaleString()}
-                          <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
-                        </p>
-                      </div>
-                    )}
-                    {product.cartonPrice && (
-                      <div>
-                        <p className="text-xs text-blue-400">ราคาต่อลัง</p>
-                        <p className="text-2xl font-bold text-blue-700">
-                          {Number(product.cartonPrice).toLocaleString()}
-                          <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-xl font-semibold text-blue-700 uppercase tracking-wide">ราคาสินค้า</p>
+                  {product.price && (
+                    <div>
+                      <p className="text-sm text-blue-400">ราคาต่อชิ้น</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {Number(product.price).toLocaleString()}
+                        <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                      </p>
+                    </div>
+                  )}
+                  {product.cartonPrice && (
+                    <div>
+                      <p className="text-sm text-blue-400">ราคาต่อลัง</p>
+                      <p className="text-2xl font-bold text-blue-700">
+                        {Number(product.cartonPrice).toLocaleString()}
+                        <span className="text-sm font-normal text-blue-500 ml-1">บาท</span>
+                      </p>
+                    </div>
+                  )}
                   {product.promotionBudget && (
                     <p className="text-sm text-purple-600 flex items-center gap-1">
                       <TrendingUp className="h-3.5 w-3.5" />
                       งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
                     </p>
                   )}
-                  {product.pointPerUnit && (
+                  {product.pointPerUnit || product.pointPerUnit == 0 && (
                     <p className="text-sm text-amber-600 flex items-center gap-1">
                       <Star className="h-3.5 w-3.5" />
                       คะแนนต่อหน่วย: {product.pointPerUnit} คะแนน
