@@ -56,6 +56,7 @@ import {
 import { usePermission } from "@/hooks/use-permission";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { formatAddress } from "@/lib/address-utils";
 
 type Customer = {
   id: string;
@@ -285,16 +286,15 @@ const AddressBlock: React.FC<{
         </h3>
         <div className="pl-11 space-y-2 text-sm/relaxed">
           {hasAddress ? (
-            <>
-              {addressLine && (
-                <div className="font-semibold text-gray-800">{addressLine}</div>
-              )}
-              <div className="text-gray-600 font-medium">
-                {[subdistrict, district, province, postalCode]
-                  .filter(Boolean)
-                  .join(" • ")}
-              </div>
-            </>
+            <div className="text-gray-700 font-medium whitespace-pre-wrap">
+              {formatAddress({
+                addressLine,
+                subdistrict,
+                district,
+                province,
+                postalCode,
+              })}
+            </div>
           ) : (
             <div className="text-gray-400 italic flex items-center gap-2">
               <span className="text-xl">📭</span>
