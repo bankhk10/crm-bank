@@ -83,16 +83,37 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     )
     .join("");
 
-  // Build customer name + phone row — hide phone span if empty
-  const customerNameRow = (() => {
+  // Build customer name + address row
+  const customerNameAndAddressRow = (() => {
     const name = (data.customerName ?? "").trim();
-    const phone = (data.customerPhone ?? "").trim();
+    const address = (data.customerAddress ?? "").trim();
     if (!name || name === "-") return "";
-    const phoneSpan =
-      phone && phone !== "-"
-        ? `<span class="phone"><strong>เบอร์โทรศัพท์:</strong> ${phone}</span>`
+
+    const addressSpan =
+      address && address !== "-"
+        ? `<span class="phone"><strong>ที่อยู่บริษัท:</strong> ${address}</span>`
         : "";
-    return `<p><strong>ชื่อบริษัท:</strong> ${name} ${phoneSpan}</p>`;
+
+    return `<p><strong>ชื่อบริษัท:</strong> ${name} ${addressSpan}</p>`;
+  })();
+
+  // Build row with Phone and Billing Address on the same line
+  const phoneAndBillingRow = (() => {
+    const phone = (data.customerPhone ?? "").trim();
+    const billing = (data.billingAddress ?? "").trim();
+    const hasPhone = phone && phone !== "-";
+    const hasBilling = billing && billing !== "-";
+
+    if (!hasPhone && !hasBilling) return "";
+
+    const billingPart = hasBilling
+      ? `<strong>ที่อยู่วางบิล:</strong> ${billing}`
+      : "";
+    const phonePart = hasPhone
+      ? `<span class="${hasBilling ? "phone" : ""}"><strong>เบอร์โทรศัพท์:</strong> ${phone}</span>`
+      : "";
+
+    return `<p>${billingPart} ${phonePart}</p>`;
   })();
 
   // Build sale order ref row for header
@@ -138,9 +159,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 <div class="doc-divider"></div>
       <div class="customer-details">
         <h3>ข้อมูลลูกค้า</h3>
-        ${customerNameRow}
-        ${field("ที่อยู่บริษัท", data.customerAddress)}
-        ${field("ที่อยู่วางบิล", data.billingAddress)}
+        ${customerNameAndAddressRow}
+        ${phoneAndBillingRow}
       </div>
       <div class="customer-info-container">
         <div class="logistics-details">
