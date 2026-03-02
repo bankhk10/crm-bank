@@ -72,7 +72,7 @@ export function ShippingCompaniesTable({
         filterDraft.query !== initialQ ||
         mkRangeKey(filterDraft.dateRange) !== mkRangeKey(initialDateRange);
 
-    const handleApplyFilters = (newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
+    const handleApplyFilters = React.useCallback((newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (newParams.q !== undefined) {
@@ -96,16 +96,32 @@ export function ShippingCompaniesTable({
         startTransition(() => {
             router.push(`${pathname}?${params.toString()}`);
         });
-    };
+    }, [pathname, router, searchParams]);
 
-    const handleSearchSubmit = () => {
+    const handleSearchSubmit = React.useCallback(() => {
         handleApplyFilters({
             q: filterDraft.query,
             page: 1,
             from: filterDraft.dateRange?.from?.toISOString(),
             to: filterDraft.dateRange?.to?.toISOString(),
         });
-    };
+    }, [filterDraft.query, filterDraft.dateRange, handleApplyFilters]);
+
+    // auto-apply filters (debounced)
+    useEffect(() => {
+        const delay = 500;
+
+        // Skip if nothing changed from current URL params
+        if (!isTyping) {
+            return;
+        }
+
+        const id = setTimeout(() => {
+            handleSearchSubmit();
+        }, delay);
+
+        return () => clearTimeout(id);
+    }, [handleSearchSubmit, isTyping]);
 
     const handleDelete = async () => {
         if (!deleteCandidate) return;
@@ -186,7 +202,7 @@ export function ShippingCompaniesTable({
                             <div className="relative w-full sm:max-w-xl">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
-                                    placeholder="ค้นหาชื่อบริษัทขนส่ง, เบอร์โทร, ที่อยู่"
+                                    placeholder="ค้นหาชื่อบริษัทขนส่ง"
                                     value={filterDraft.query}
                                     onChange={(e) =>
                                         setFilterDraft((prev) => ({ ...prev, query: e.target.value }))
