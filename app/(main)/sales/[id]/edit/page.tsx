@@ -9,6 +9,8 @@ import { usePermission } from "@/hooks/use-permission";
 import type { SaleFormData } from "@/modules/sales/types";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { formatAddress } from "@/lib/address-utils";
+
 
 export default function EditSalePage({
   params,
@@ -64,38 +66,32 @@ export default function EditSalePage({
             const sa = sale.saleAddress;
             // COURIER: ที่อยู่บริษัทขนส่งถูกเก็บใน sender_* fields
             if (sale.deliveryMethod === "COURIER") {
-              return [
-                sa.sender_line,
-                sa.sender_subdistrict ? `ต.${sa.sender_subdistrict}` : "",
-                sa.sender_district ? `อ.${sa.sender_district}` : "",
-                sa.sender_province ? `จ.${sa.sender_province}` : "",
-                sa.sender_postal_code,
-              ]
-                .filter(Boolean)
-                .join(" ");
+              return formatAddress({
+                addressLine: sa.sender_line,
+                subdistrict: sa.sender_subdistrict,
+                district: sa.sender_district,
+                province: sa.sender_province,
+                postalCode: sa.sender_postal_code,
+              });
             }
             // CUSTOMER_PICKUP: ที่อยู่รับสินค้าถูกเก็บใน receiving_* fields
             if (sale.deliveryMethod === "CUSTOMER_PICKUP") {
-              return [
-                sa.receiving_address_line,
-                sa.receiving_subdistrict ? `ต.${sa.receiving_subdistrict}` : "",
-                sa.receiving_district ? `อ.${sa.receiving_district}` : "",
-                sa.receiving_province ? `จ.${sa.receiving_province}` : "",
-                sa.receiving_postal_code,
-              ]
-                .filter(Boolean)
-                .join(" ");
+              return formatAddress({
+                addressLine: sa.receiving_address_line,
+                subdistrict: sa.receiving_subdistrict,
+                district: sa.receiving_district,
+                province: sa.receiving_province,
+                postalCode: sa.receiving_postal_code,
+              });
             }
             // SALES_DELIVERY / FACTORY_DELIVERY: ใช้ shipping_* fields
-            return [
-              sa.shipping_address_line,
-              sa.shipping_subdistrict ? `ต.${sa.shipping_subdistrict}` : "",
-              sa.shipping_district ? `อ.${sa.shipping_district}` : "",
-              sa.shipping_province ? `จ.${sa.shipping_province}` : "",
-              sa.shipping_postal_code,
-            ]
-              .filter(Boolean)
-              .join(" ");
+            return formatAddress({
+              addressLine: sa.shipping_address_line,
+              subdistrict: sa.shipping_subdistrict,
+              district: sa.shipping_district,
+              province: sa.shipping_province,
+              postalCode: sa.shipping_postal_code,
+            });
           })(),
           useCustomShipping, // Flag to indicate custom shipping was used
           selectedAddressId: sale.selectedAddressId || "",
