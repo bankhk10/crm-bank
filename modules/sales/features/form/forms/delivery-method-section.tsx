@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import {
     FormCombobox,
-    FormTextarea,
 } from "@/components/custom/form-components";
 import DatePicker from "@/components/custom/DatePicker";
 import type { DeliveryMethodSectionProps, DeliveryMethodType } from "../../../types";
@@ -137,7 +136,7 @@ export function DeliveryMethodSection({
                                 <Label className="text-base font-medium mx-2 mb-2 block">
                                     ที่อยู่สถานที่รับสินค้า
                                 </Label>
-                                <div className="p-3 bg-white border rounded-md min-h-[60px] text-gray-700">
+                                <div className="p-3 bg-white border rounded-md min-h-[50px] text-gray-700">
                                     {shippingAddress || "-"}
                                 </div>
                             </div>
@@ -204,20 +203,19 @@ export function DeliveryMethodSection({
                                 </div>
                             )}
 
-                            {/* Show custom address only when shipping company is selected */}
+                            {/* Show address display only when shipping company is selected */}
                             {shippingCompanyId && (
-                                <FormTextarea
-                                    label="ที่อยู่สำหรับส่งให้บริษัทขนส่ง"
-                                    value={customShippingAddress}
-                                    onChange={(e) => {
-                                        onCustomShippingAddressChange?.(e.target.value);
-                                        onFieldErrorClear?.("customShippingAddress");
-                                    }}
-                                    placeholder="กรุณาเลือกบริษัทขนส่งเพื่อระบุที่อยู่"
-                                    rows={1}
-                                    disabled
-                                    error={fieldErrors.customShippingAddress}
-                                />
+                                <div className="space-y-1">
+                                    <Label className="text-base font-medium mx-2 mb-2 block">
+                                        ที่อยู่สำหรับส่งให้บริษัทขนส่ง
+                                    </Label>
+                                    <div className="p-3 bg-white border rounded-md min-h-[50px] text-gray-700">
+                                        {customShippingAddress || "-"}
+                                    </div>
+                                    {fieldErrors.customShippingAddress && (
+                                        <p className="text-xs text-red-600 mt-1">{fieldErrors.customShippingAddress}</p>
+                                    )}
+                                </div>
                             )}
 
                             {/* Address Selector Section for COURIER */}
