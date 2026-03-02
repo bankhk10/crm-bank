@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LocateFixed, X, Save } from "lucide-react";
+import { LocateFixed, X, Save, Loader2 } from "lucide-react";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,7 @@ export default function CustomerFormDealer({
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Check if customer code already exists
   const checkCustomerCode = useCallback(
@@ -497,6 +498,7 @@ export default function CustomerFormDealer({
       return;
     }
 
+    setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setValues((prev: any) => ({
@@ -504,10 +506,12 @@ export default function CustomerFormDealer({
           latitude: position.coords.latitude.toFixed(6),
           longitude: position.coords.longitude.toFixed(6),
         }));
+        setIsLocating(false);
       },
       (error) => {
         console.error("Error getting location", error);
         alert("Unable to retrieve your location");
+        setIsLocating(false);
       },
     );
   };
@@ -607,8 +611,13 @@ export default function CustomerFormDealer({
             className="mb-1 shrink-0 bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200"
             onClick={getCurrentLocation}
             title="ดึงพิกัดปัจจุบัน"
+            disabled={isLocating}
           >
-            <LocateFixed className="h-4 w-4" />
+            {isLocating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LocateFixed className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
