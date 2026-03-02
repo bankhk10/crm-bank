@@ -42,6 +42,7 @@ import {
     parseAddress,
     buildCustomerShippingAddress,
     buildCompanyAddress,
+    formatAddress,
 } from "@/lib/address-utils";
 import type {
     SaleFormProps,
@@ -222,20 +223,17 @@ export function SaleForm({
 
     // Combine billing address parts
     useEffect(() => {
-        const parts = [
-            billingStreet,
-            billingThaiAddress.subdistrict
-                ? `ตำบล${billingThaiAddress.subdistrict}`
-                : "",
-            billingThaiAddress.district ? `อำเภอ${billingThaiAddress.district}` : "",
-            billingThaiAddress.province
-                ? `จังหวัด${billingThaiAddress.province}`
-                : "",
-            billingThaiAddress.postalCode || "",
-        ].filter(Boolean);
-        if (parts.length > 0) {
+        const fullAddress = formatAddress({
+            addressLine: billingStreet,
+            subdistrict: billingThaiAddress.subdistrict,
+            district: billingThaiAddress.district,
+            province: billingThaiAddress.province,
+            postalCode: billingThaiAddress.postalCode,
+        });
+
+        if (fullAddress && fullAddress !== "-") {
             const timer = setTimeout(() => {
-                setBillingAddress(parts.join(" "));
+                setBillingAddress(fullAddress);
             }, 0);
             return () => clearTimeout(timer);
         }
