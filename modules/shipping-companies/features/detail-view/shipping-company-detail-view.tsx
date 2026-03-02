@@ -45,7 +45,7 @@ function DetailItem({
 }) {
     return (
         <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-            {icon && <div className="text-gray-400 mt-0.5">{icon}</div>}
+            {icon && <div className="text-gray-400 mt-0.5 shrink-0">{icon}</div>}
             <div className="flex-1 min-w-0">
                 <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
                 <dd className="text-base text-gray-900 font-medium break-words">
@@ -85,7 +85,7 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
 
     if (!canView) {
         return (
-            <div className="container max-w-4xl mx-auto p-6">
+            <div className="container max-w-4xl mx-auto p-4 sm:p-6">
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
@@ -99,7 +99,7 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
 
     if (error) {
         return (
-            <div className="container max-w-4xl mx-auto p-6">
+            <div className="container max-w-4xl mx-auto p-4 sm:p-6">
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>ข้อผิดพลาด</AlertTitle>
@@ -112,54 +112,60 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
     return (
         <div className="min-h-screen pb-12 rounded-3xl">
             {/* Hero Header */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white border-t-4 border-red-600 rounded-3xl shadow-xl p-6 sm:p-8">
-                    <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+                <div className="bg-white border-t-4 border-red-600 rounded-3xl shadow-xl p-4 sm:p-6 lg:p-8">
+
+                    {/* Top bar: back link + action buttons */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <Link
                             href="/shipping-companies"
-                            className="inline-flex items-center text-gray-500 hover:text-red-600 transition-colors group"
+                            className="inline-flex items-center text-gray-500 hover:text-red-600 transition-colors group text-sm"
                         >
                             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                             กลับไปหน้ารายการบริษัทขนส่ง
                         </Link>
 
-                        <div className="flex gap-2">
-                            {canEdit && (
-                                <Button asChild size="sm">
-                                    <Link href={`/shipping-companies/${shippingCompany.id}/edit`}>
-                                        <Pencil className="h-4 w-4 mr-2" />
-                                        แก้ไข
-                                    </Link>
-                                </Button>
-                            )}
-                            {canDelete && (
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => setDeleteDialogOpen(true)}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    ลบ
-                                </Button>
-                            )}
-                        </div>
+                        {/* Action buttons — full-width on mobile, auto on sm+ */}
+                        {(canEdit || canDelete) && (
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                {canEdit && (
+                                    <Button asChild size="sm" className="flex-1 sm:flex-none">
+                                        <Link href={`/shipping-companies/${shippingCompany.id}/edit`}>
+                                            <Pencil className="h-4 w-4 mr-2" />
+                                            แก้ไข
+                                        </Link>
+                                    </Button>
+                                )}
+                                {canDelete && (
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => setDeleteDialogOpen(true)}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        ลบ
+                                    </Button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-6">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="flex items-center justify-center w-14 h-14 bg-orange-100 rounded-xl">
-                                    <Truck className="h-7 w-7 text-orange-600" />
-                                </div>
-                                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
-                                    {shippingCompany.name}
-                                </h1>
-                            </div>
+                    {/* Company identity */}
+                    <div className="mt-5 flex flex-col sm:flex-row sm:items-start gap-4">
+                        <div className="flex items-center justify-center w-14 h-14 bg-orange-100 rounded-xl shrink-0">
+                            <Truck className="h-7 w-7 text-orange-600" />
+                        </div>
 
-                            <div className="flex flex-wrap items-center gap-4 text-gray-600">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 break-words">
+                                {shippingCompany.name}
+                            </h1>
+
+                            <div className="flex flex-wrap items-center gap-3 mt-2 text-gray-600">
                                 {shippingCompany.phone && (
-                                    <div className="flex items-center gap-2">
-                                        <Phone className="h-4 w-4" />
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Phone className="h-4 w-4 shrink-0" />
                                         <span>{shippingCompany.phone}</span>
                                     </div>
                                 )}
@@ -182,18 +188,19 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
             </div>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 sm:pb-8">
+                {/* Single column on mobile/tablet, 2 columns on lg+ */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
                     {/* General Info */}
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-gray-600">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <FileText className="h-6 w-6 text-white" />
+                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-600">
+                            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                 ข้อมูลทั่วไป
                             </h2>
                         </div>
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             <DetailItem
                                 icon={<MapPin className="h-5 w-5" />}
                                 label="ที่อยู่บริษัทขนส่ง"
@@ -217,25 +224,25 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
 
                     {/* Customers */}
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-gray-600">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Users className="h-6 w-6 text-white" />
+                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-600">
+                            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                 ลูกค้าที่ใช้บริการ ({shippingCompany.customerList?.length || 0} ราย)
                             </h2>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             {shippingCompany.customerList?.length ? (
-                                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                                     {shippingCompany.customerList.map((customer) => (
                                         <div
                                             key={customer.id}
                                             className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition"
                                         >
-                                            <Badge variant="secondary">
+                                            <Badge variant="secondary" className="shrink-0">
                                                 {customer.customerCode}
                                             </Badge>
-                                            <span className="text-sm font-medium text-gray-700">
+                                            <span className="text-sm font-medium text-gray-700 break-words min-w-0">
                                                 {customer.name}
                                             </span>
                                         </div>
@@ -257,17 +264,18 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
 
             {/* Delete Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent>
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md rounded-2xl">
                     <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
                     <DialogDescription>
                         คุณต้องการลบบริษัทขนส่ง <strong>{shippingCompany.name}</strong> ใช่หรือไม่?
                         การกระทำนี้ไม่สามารถย้อนกลับได้
                     </DialogDescription>
-                    <DialogFooter>
+                    <DialogFooter className="flex-col-reverse sm:flex-row gap-2 sm:gap-0">
                         <Button
                             variant="outline"
                             onClick={() => setDeleteDialogOpen(false)}
                             disabled={deleting}
+                            className="w-full sm:w-auto"
                         >
                             ยกเลิก
                         </Button>
@@ -275,6 +283,7 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={deleting}
+                            className="w-full sm:w-auto"
                         >
                             {deleting ? "กำลังลบ..." : "ลบข้อมูล"}
                         </Button>
