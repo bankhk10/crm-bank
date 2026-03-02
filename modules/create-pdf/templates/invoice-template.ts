@@ -3,6 +3,7 @@ import path from "path";
 
 export interface InvoiceData {
   invoiceNumber: string;
+  saleOrderRef?: string;
   date: string; // Sale Date
   customerName: string;
   customerPhone: string;
@@ -94,6 +95,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     return `<p><strong>ชื่อบริษัท:</strong> ${name} ${phoneSpan}</p>`;
   })();
 
+  // Build sale order ref row for header
+  const saleOrderRefRow = (() => {
+    const v = (data.saleOrderRef ?? "").trim();
+    if (!v || v === "-") return "";
+    return `<div class="label">เลขที่คำสั่งขาย</div><div class="doc-no">${v}</div>`;
+  })();
+
   return `
     <!DOCTYPE html>
     <html lang="th">
@@ -121,9 +129,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
   </div>
 
   <div class="doc-meta">
-    <div class="label">เลขที่เอกสาร</div>
-    <div class="doc-no">${data.invoiceNumber}</div>
-    <div class="label">วันที่: ${data.date}</div>
+    ${saleOrderRefRow}
   </div>
 
 </div>

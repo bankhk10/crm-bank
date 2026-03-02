@@ -87,6 +87,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
 
   const invoiceData: InvoiceData = {
     invoiceNumber: sale.saleNumber || "-",
+    saleOrderRef: sale.saleOrderRef,
     date: safeFormatDate(sale.saleDate, "dd MMMM yyyy"),
     customerName: sa.company_name || sale.customer?.name || "-",
     customerPhone: sa.company_phone || sale.customer?.phone || "-",
