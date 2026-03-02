@@ -59,23 +59,44 @@ export default function EditSalePage({
           pickupCompanyId: sale.pickupCompanyId || "",
           shippingCompanyId: sale.shippingCompanyId || "",
           billingAddress: sale.billingAddress || "",
-          shippingAddress: sale.saleAddress
-            ? [
-              sale.saleAddress.shipping_address_line,
-              sale.saleAddress.shipping_subdistrict
-                ? `ต.${sale.saleAddress.shipping_subdistrict}`
-                : "",
-              sale.saleAddress.shipping_district
-                ? `อ.${sale.saleAddress.shipping_district}`
-                : "",
-              sale.saleAddress.shipping_province
-                ? `จ.${sale.saleAddress.shipping_province}`
-                : "",
-              sale.saleAddress.shipping_postal_code,
+          shippingAddress: (() => {
+            if (!sale.saleAddress) return "";
+            const sa = sale.saleAddress;
+            // COURIER: ที่อยู่บริษัทขนส่งถูกเก็บใน sender_* fields
+            if (sale.deliveryMethod === "COURIER") {
+              return [
+                sa.sender_line,
+                sa.sender_subdistrict ? `ต.${sa.sender_subdistrict}` : "",
+                sa.sender_district ? `อ.${sa.sender_district}` : "",
+                sa.sender_province ? `จ.${sa.sender_province}` : "",
+                sa.sender_postal_code,
+              ]
+                .filter(Boolean)
+                .join(" ");
+            }
+            // CUSTOMER_PICKUP: ที่อยู่รับสินค้าถูกเก็บใน receiving_* fields
+            if (sale.deliveryMethod === "CUSTOMER_PICKUP") {
+              return [
+                sa.receiving_address_line,
+                sa.receiving_subdistrict ? `ต.${sa.receiving_subdistrict}` : "",
+                sa.receiving_district ? `อ.${sa.receiving_district}` : "",
+                sa.receiving_province ? `จ.${sa.receiving_province}` : "",
+                sa.receiving_postal_code,
+              ]
+                .filter(Boolean)
+                .join(" ");
+            }
+            // SALES_DELIVERY / FACTORY_DELIVERY: ใช้ shipping_* fields
+            return [
+              sa.shipping_address_line,
+              sa.shipping_subdistrict ? `ต.${sa.shipping_subdistrict}` : "",
+              sa.shipping_district ? `อ.${sa.shipping_district}` : "",
+              sa.shipping_province ? `จ.${sa.shipping_province}` : "",
+              sa.shipping_postal_code,
             ]
               .filter(Boolean)
-              .join(" ")
-            : "",
+              .join(" ");
+          })(),
           useCustomShipping, // Flag to indicate custom shipping was used
           selectedAddressId: sale.selectedAddressId || "",
           items: sale.items.map((item: any) => ({
