@@ -715,7 +715,6 @@ export default function CustomerDetailPage() {
                   label="ร้านค้าหลัก (Parent Dealer)"
                   value={
                     <span className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg font-semibold">
-                      <TrendingUp className="h-4 w-4" />
                       {customer.parentDealer.name}
                     </span>
                   }
