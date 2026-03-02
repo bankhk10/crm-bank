@@ -38,6 +38,13 @@ export interface InvoiceData {
  * @returns HTML string representation of the invoice
  */
 export function renderInvoiceTemplate(data: InvoiceData): string {
+  // Helper: returns empty string if value is "-" or blank, otherwise returns a <p> with label + value
+  const field = (label: string, value: string | undefined | null) => {
+    const v = (value ?? "").trim();
+    if (!v || v === "-") return "";
+    return `<p><strong>${label}:</strong> ${v}</p>`;
+  };
+
   // Read localized image as base64 strings so puppeteer can easily render it offline / headless without issues.
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
   let base64Logo = "";
@@ -74,6 +81,18 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
   `,
     )
     .join("");
+
+  // Build customer name + phone row — hide phone span if empty
+  const customerNameRow = (() => {
+    const name = (data.customerName ?? "").trim();
+    const phone = (data.customerPhone ?? "").trim();
+    if (!name || name === "-") return "";
+    const phoneSpan =
+      phone && phone !== "-"
+        ? `<span class="phone"><strong>เบอร์โทรศัพท์:</strong> ${phone}</span>`
+        : "";
+    return `<p><strong>ชื่อบริษัท:</strong> ${name} ${phoneSpan}</p>`;
+  })();
 
   return `
     <!DOCTYPE html>
@@ -113,31 +132,28 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 <div class="doc-divider"></div>
       <div class="customer-details">
         <h3>ข้อมูลลูกค้า</h3>
-       <p>
-  <strong>ชื่อบริษัท:</strong> ${data.customerName}
-  <span class="phone"><strong>เบอร์โทรศัพท์:</strong> ${data.customerPhone}</span>
-    </p>
-        <p><strong>ที่อยู่บริษัท:</strong> ${data.customerAddress}</p>
-        <p><strong>ที่อยู่วางบิล:</strong> ${data.billingAddress}</p>
+        ${customerNameRow}
+        ${field("ที่อยู่บริษัท", data.customerAddress)}
+        ${field("ที่อยู่วางบิล", data.billingAddress)}
       </div>
       <div class="customer-info-container">
         <div class="logistics-details">
           <h3>ข้อมูลการจัดส่ง</h3>
-          <p><strong>วิธีการจัดส่ง:</strong> ${data.deliveryMethod}</p>
-          <p><strong>ที่อยู่จัดส่งสินค้า:</strong> ${data.shippingAddress}</p>
-          <p><strong>ที่อยู่รับสินค้า:</strong> ${data.receivingAddress}</p>
-          <p><strong>ชื่อบริษัทขนส่ง:</strong> ${data.shippingCompanyName}</p>
-          <p><strong>ที่อยู่บริษัทขนส่ง:</strong> ${data.senderAddress}</p>
+          ${field("วิธีการจัดส่ง", data.deliveryMethod)}
+          ${field("ที่อยู่จัดส่งสินค้า", data.shippingAddress)}
+          ${field("ที่อยู่รับสินค้า", data.receivingAddress)}
+          ${field("ชื่อบริษัทขนส่ง", data.shippingCompanyName)}
+          ${field("ที่อยู่บริษัทขนส่ง", data.senderAddress)}
         </div>
         <div class="invoice-details">
           <h3>ข้อมูลอ้างอิง</h3>
-          <p><strong>วันที่:</strong> ${data.date}</p>
-          <p><strong>เลขที่ออเดอร์:</strong> ${data.invoiceNumber}</p>
-          <p><strong>เงื่อนไขการชำระเงิน:</strong> ${data.paymentTerm}</p>
-          <p><strong>วันที่จัดส่ง:</strong> ${data.deliveryDate}</p>
-          <p><strong>วันที่ครบกำหนดชำระเงิน:</strong> ${data.creditDueDate}</p>
-          <p><strong>วันที่ชำระเงิน:</strong> ${data.paymentDate}</p>
-          <p><strong>ผู้ขาย:</strong> ${data.contactName}</p>
+          ${field("วันที่", data.date)}
+          ${field("เลขที่ออเดอร์", data.invoiceNumber)}
+          ${field("เงื่อนไขการชำระเงิน", data.paymentTerm)}
+          ${field("วันที่จัดส่ง", data.deliveryDate)}
+          ${field("วันที่ครบกำหนดชำระเงิน", data.creditDueDate)}
+          ${field("วันที่ชำระเงิน", data.paymentDate)}
+          ${field("ผู้ขาย", data.contactName)}
         </div>
       </div>
 
