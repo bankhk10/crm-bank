@@ -254,7 +254,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         ${phoneAndBillingRow}
       </div>
       <div class="customer-info-container">
-        <div class="logistics-details" style="margin-bottom: 12px;">
+        <div class="logistics-details">
           <h3>ข้อมูลการจัดส่ง</h3>
           ${deliveryMethodAndCompanyRow}
           ${shippingCompanyAddressRow}

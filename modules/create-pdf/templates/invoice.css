@@ -33,16 +33,14 @@ body {
 .invoice-details {
   width: 100%;
   padding: 15px;
-  border-radius: 6px;
   background-color: #f8f9fa;
   box-sizing: border-box;
 }
 .customer-details {
   width: 100%;
   padding: 15px;
-  border-radius: 6px;
   background-color: #f8f9fa;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   box-sizing: border-box;
 }
 h3 {
