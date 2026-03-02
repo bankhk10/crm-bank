@@ -213,21 +213,6 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
                                 label="หมายเหตุ"
                                 value={shippingCompany.notes}
                             />
-                            <DetailItem
-                                icon={<Calendar className="h-5 w-5" />}
-                                label="วันที่สร้างข้อมูล"
-                                value={
-                                    shippingCompany.createdAt
-                                        ? new Date(shippingCompany.createdAt).toLocaleDateString("th-TH", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })
-                                        : "-"
-                                }
-                            />
                         </div>
                     </div>
 
