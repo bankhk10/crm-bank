@@ -588,7 +588,7 @@ function AttributeRow({
   return (
     <div className="px-4 py-3 bg-white hover:bg-gray-50 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
-        <div className="flex items-center gap-2 shrink-0 sm:w-36 mb-0.5 sm:mb-0">
+        <div className="flex items-center gap-2 shrink-0 sm:w-40 mb-0.5 sm:mb-0">
           {icon && <span className="text-gray-400 shrink-0">{icon}</span>}
           <span className="text-xs sm:text-sm text-gray-500 font-medium">{label}</span>
         </div>
