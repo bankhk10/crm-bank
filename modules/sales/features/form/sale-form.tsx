@@ -5,7 +5,7 @@
  * Refactored version of sale-form using modular components and hooks
  */
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
@@ -97,14 +97,7 @@ export function SaleForm({
     const [saleDate, setSaleDate] = useState(
         initialData?.saleDate || new Date().toISOString().split("T")[0],
     );
-    const creditDueDate = useMemo(() => {
-        if (saleDate && creditDays > 0) {
-            const date = new Date(saleDate);
-            date.setDate(date.getDate() + creditDays);
-            return date.toISOString().split("T")[0];
-        }
-        return "";
-    }, [saleDate, creditDays]);
+    const creditDueDate = null;
     const [usePromotionalCredit, setUsePromotionalCredit] = useState(
         initialData?.usePromotionalCredit || false,
     );
@@ -432,7 +425,7 @@ export function SaleForm({
                 employeeId,
                 paymentTerm,
                 creditDays: isCreditPayment ? creditDays : undefined,
-                creditDueDate: isCreditPayment ? creditDueDate : undefined,
+                creditDueDate: null,
                 usePromotionalCredit,
                 promotionalCreditUsed: usePromotionalCredit
                     ? promotionalCreditUsed

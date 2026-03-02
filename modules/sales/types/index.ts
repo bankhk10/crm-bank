@@ -70,7 +70,7 @@ export interface SaleFormData {
   employeeId: string;
   paymentTerm: PaymentTerm;
   creditDays?: number;
-  creditDueDate?: string;
+  creditDueDate?: string | null;
   usePromotionalCredit: boolean;
   promotionalCreditUsed?: number;
   saleDate: string;
@@ -480,7 +480,7 @@ export interface SaleFormState {
   pickupCompanyId: string;
   paymentTerm: PaymentTermType;
   creditDays: number;
-  creditDueDate: string;
+  creditDueDate: string | null;
   saleDate: string;
   usePromotionalCredit: boolean;
   promotionalCreditUsed: number;
