@@ -319,7 +319,8 @@ const InfoChip: React.FC<{
 export default function CustomerDetailPage() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
-  const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
+  const { allowed, isLoading } = usePermission("menu.customers");
+  const { allowed: canEdit } = usePermission("customer.edit");
   const canView = !isLoading && allowed;
 
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -531,90 +532,107 @@ export default function CustomerDetailPage() {
         : "text-emerald-500";
 
   return (
-    <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="max-w-[1600px] mx-auto p-3 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Enhanced Hero Header Section */}
-      <div className="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white shadow-2xl">
+      <div className="relative rounded-2xl sm:rounded-4xl overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white shadow-2xl">
         {/* Animated Background Elements */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl animate-pulse pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl animate-pulse delay-700 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-400/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse delay-1000 pointer-events-none" />
-        <div className="relative p-8 md:p-12 flex flex-col xl:flex-row justify-between gap-10">
-          {/* ================= Left Content ================= */}
-          <div className="space-y-6 max-w-4xl flex-1">
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-3">
+
+        <div className="relative p-5 sm:p-8 md:p-12">
+          {/* Top row: back + actions */}
+          <div className="flex items-center justify-between mb-5 sm:mb-8">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl backdrop-blur-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">ย้อนกลับ</span>
+            </button>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              {customer.latitude && customer.longitude && (
+                <Button
+                  size="sm"
+                  className="bg-white/15 hover:bg-white/25 text-white border border-white/30 backdrop-blur-sm font-semibold rounded-xl transition-all hover:scale-[1.03] text-xs sm:text-sm px-3 sm:px-5"
+                  onClick={() =>
+                    window.open(
+                      `https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`,
+                      "_blank",
+                    )
+                  }
+                >
+                  <Navigation className="mr-1.5 h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">เปิดแผนที่</span>
+                  <span className="sm:hidden">แผนที่</span>
+                </Button>
+              )}
+              {canEdit && (
+                <Link href={`/customers/${customer.id}/edit`}>
+                  <Button
+                    size="sm"
+                    className="bg-white text-indigo-600 hover:bg-white/90 shadow-xl font-semibold rounded-xl transition-all hover:scale-[1.03] text-xs sm:text-sm px-3 sm:px-5"
+                  >
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">แก้ไขข้อมูล</span>
+                    <span className="sm:hidden">แก้ไข</span>
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Badges + Name + Chips */}
+          <div className="space-y-4 sm:space-y-5">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {customerTypeInfo && (
                 <Badge
-                  className={`bg-gradient-to-r ${customerTypeInfo.gradient} text-white border-0 px-4 py-1.5 shadow-lg font-semibold`}
+                  className={`bg-gradient-to-r ${customerTypeInfo.gradient} text-white border-0 px-3 sm:px-4 py-1 sm:py-1.5 shadow-lg font-semibold text-xs sm:text-sm`}
                 >
                   <span className="mr-1.5">{customerTypeInfo.icon}</span>
                   {customerTypeInfo.label}
                 </Badge>
               )}
-
               {statusInfo && (
                 <Badge
-                  className={`${statusInfo.className} px-4 py-1.5 font-semibold`}
+                  className={`${statusInfo.className} px-3 sm:px-4 py-1 sm:py-1.5 font-semibold text-xs sm:text-sm`}
                 >
-                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  <Sparkles className="mr-1.5 h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   {statusInfo.label}
                 </Badge>
               )}
             </div>
 
-            {/* Customer Name */}
-            <h1 className="text-4xl md:text-5xl xl:text-6xl font-black tracking-tight text-white drop-shadow-xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-black tracking-tight text-white drop-shadow-xl leading-tight">
               {customer.name}
             </h1>
 
-            {/* Info Row */}
-            <div className="flex flex-wrap gap-3 text-white/90 text-sm md:text-base">
-              <InfoChip icon={<Building className="h-4 w-4" />}>
-                รหัสลูกค้า: {customer.customerCode}
+            <div className="flex flex-wrap gap-2 sm:gap-3 text-white/90 text-xs sm:text-sm md:text-base">
+              <InfoChip icon={<Building className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}>
+                {customer.customerCode}
               </InfoChip>
-
-              <InfoChip icon={<MapPin className="h-4 w-4" />}>
+              <InfoChip icon={<MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}>
                 {customer.province || "ไม่ระบุจังหวัด"}
               </InfoChip>
-
-              <InfoChip icon={<MapPlus className="h-4 w-4" />}>
-                เขต: {customer.region}
-              </InfoChip>
-
+              {customer.region && (
+                <InfoChip icon={<MapPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}>
+                  เขต: {customer.region}
+                </InfoChip>
+              )}
               {customer.responsibleEmployee && (
-                <InfoChip icon={<UserCheck className="h-4 w-4" />}>
-                  ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName}{" "}
-                  {customer.responsibleEmployee.lastName}
+                <InfoChip icon={<UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}>
+                  ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}
                 </InfoChip>
               )}
             </div>
-          </div>
-
-          {/* ================= Right Actions ================= */}
-          <div className="flex flex-col sm:flex-row gap-3 self-start xl:self-end">
-            {customer.latitude && customer.longitude && (
-              <Button
-                size="lg"
-                className="bg-white text-indigo-600 hover:bg-white/90 shadow-2xl font-semibold px-7 py-6 rounded-2xl transition-all hover:scale-[1.03]"
-                onClick={() =>
-                  window.open(
-                    `https://www.google.com/maps/search/?api=1&query=${customer.latitude},${customer.longitude}`,
-                    "_blank",
-                  )
-                }
-              >
-                <Navigation className="mr-2 h-5 w-5" />
-                เปิดแผนที่
-              </Button>
-            )}
           </div>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
         {/* Left Column: Info & Contact */}
-        <div className="xl:col-span-8 space-y-8">
+        <div className="xl:col-span-8 order-2 xl:order-1 space-y-6 sm:space-y-8">
           {/* Section: Company Info */}
           <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
             <CardHeader className="pt-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 pb-5">
@@ -1241,7 +1259,7 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Right Column: Images & Meta */}
-        <div className="xl:col-span-4 space-y-8">
+        <div className="xl:col-span-4 order-1 xl:order-2 space-y-6 sm:space-y-8">
           {/* Images Gallery */}
           <Card className="p-0 gap-0 border-0 shadow-xl ring-1 ring-gray-200 overflow-hidden rounded-3xl hover:shadow-2xl transition-all duration-300">
             <CardHeader className="pt-6 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-gray-200 pb-5">
@@ -1422,19 +1440,6 @@ export default function CustomerDetailPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Back Navigation */}
-      <div className="flex justify-center pt-4">
-        <Button
-          variant="outline"
-          size="lg"
-          className="rounded-2xl pl-4 pr-6 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-700 border-2 hover:border-indigo-300 transition-all hover:scale-105 shadow-lg hover:shadow-xl font-semibold"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          ย้อนกลับ
-        </Button>
       </div>
     </div>
   );
