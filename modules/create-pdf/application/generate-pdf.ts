@@ -8,6 +8,8 @@ import { th } from "date-fns/locale";
 
 import { formatAddress } from "@/lib/address-utils";
 
+import { PaymentTermLabels } from "@/modules/sales/types";
+
 function safeFormatDate(d: Date | string | null | undefined, fmt: string) {
   if (!d) return "-";
   try {
@@ -95,7 +97,10 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     shippingCompanyName: sa.sender_name || sale.shippingCompany?.name || "-",
     senderAddress: senderAddress || "-",
 
-    paymentTerm: sale.paymentTerm || "-",
+    paymentTerm:
+      PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
+      sale.paymentTerm ||
+      "-",
     deliveryDate: safeFormatDate(sale.deliveryDate, "dd MMMM yyyy"),
     creditDueDate: safeFormatDate(sale.creditDueDate, "dd MMMM yyyy"),
     paymentDate: "-", // Not natively mapped yet in Sale
