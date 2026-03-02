@@ -85,7 +85,10 @@ export function SaleForm({
     const [pickupCompanyId, setPickupCompanyId] = useState(
         initialData?.pickupCompanyId || "",
     );
-    const [shippingCompanyId, setShippingCompanyId] = useState("");
+    const [shippingCompanyId, setShippingCompanyId] = useState(
+        initialData?.shippingCompanyId || "",
+    );
+
     const [paymentTerm, setPaymentTerm] = useState<PaymentTermType>(
         initialData?.paymentTerm || "CREDIT_90",
     );

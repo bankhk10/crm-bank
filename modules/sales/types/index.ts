@@ -465,6 +465,7 @@ export interface SaleFormProps {
     useCustomShipping?: boolean;
     deliveryMethod?: DeliveryMethodType;
     pickupCompanyId?: string;
+    shippingCompanyId?: string;
     requestedDeliveryDate?: string;
     selectedAddressId?: string;
   };

@@ -472,6 +472,7 @@ model ShippingCompany {
   deletedAt   DateTime? // Soft delete
 
   customers CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
+  sales     Sale[]                    @relation("SaleShippingCompany") // การขายที่ใช้บริษัทขนส่งนี้
 
 }
 
@@ -752,6 +753,7 @@ model Sale {
   orderExpiryDate       DateTime? // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
   lastDeliveryUpdate    DateTime? // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
+  shippingCompanyId     String? // รหัสบริษัทขนส่งที่เลือก (FK to ShippingCompany)
 
   // Addresses (ข้อมูลที่อยู่เดิม - อาจจะยกเลิกใช้ในอนาคต)
   useCustomShipping Boolean @default(false) // ระบุว่ากรอกที่อยู่จัดส่งเองหรือไม่ (ไม่ได้ดึงจากประวัติลูกค้า)
@@ -793,10 +795,11 @@ model Sale {
   deletedAt   DateTime? // วันเวลาที่ลบเอกสาร (Soft Delete)
 
   // Relations
-  customer   Customer @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
-  employee   Employee @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
-  createdBy  User     @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  approvedBy User?    @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  customer         Customer          @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  employee         Employee          @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy        User              @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy       User?             @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  shippingCompany  ShippingCompany?  @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
 
   items          SaleItem[]
   statusHistory  SaleStatusHistory[]

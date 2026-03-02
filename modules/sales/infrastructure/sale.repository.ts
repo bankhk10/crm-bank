@@ -360,6 +360,7 @@ export async function createSale(data: {
       requestedDeliveryDate: data.requestedDeliveryDate,
       deliveryDate: data.deliveryDate,
       deliveryMethod: data.deliveryMethod,
+      shippingCompanyId: data.shippingCompanyId || null,
 
       useCustomShipping: data.useCustomShipping ?? false,
       selectedAddressId: data.selectedAddressId || null,
@@ -609,6 +610,7 @@ export async function updateSale(
           ? new Prisma.Decimal(data.promotionalCreditUsed)
           : null,
         deliveryMethod: data.deliveryMethod,
+        shippingCompanyId: data.shippingCompanyId || null,
         saleDate: data.saleDate,
         requestedDeliveryDate: data.requestedDeliveryDate,
         deliveryDate: data.deliveryDate,

@@ -56,7 +56,8 @@ export default function EditSalePage({
             ? new Date(sale.requestedDeliveryDate).toISOString().split("T")[0]
             : "",
           deliveryMethod: sale.deliveryMethod,
-          pickupCompanyId: sale.pickupCompanyId,
+          pickupCompanyId: sale.pickupCompanyId || "",
+          shippingCompanyId: sale.shippingCompanyId || "",
           billingAddress: sale.billingAddress || "",
           shippingAddress: sale.saleAddress
             ? [
