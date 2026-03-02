@@ -92,15 +92,68 @@ export async function buildExplodedSaleAddresses(
       addresses.shipping_subdistrict = parsed.thaiAddress.subdistrict || null;
       addresses.shipping_postal_code = parsed.thaiAddress.postalCode || null;
     } else if (body.selectedAddressId) {
-      const custAddr = await db.customerAddress.findUnique({
-        where: { id: body.selectedAddressId },
-      });
-      if (custAddr) {
-        addresses.shipping_address_line = custAddr.addressLine;
-        addresses.shipping_province = custAddr.province;
-        addresses.shipping_district = custAddr.district;
-        addresses.shipping_subdistrict = custAddr.subdistrict;
-        addresses.shipping_postal_code = custAddr.postalCode;
+      const addressId = body.selectedAddressId;
+
+      if (addressId === "primary") {
+        // ที่อยู่หลักของลูกค้า
+        if (customer) {
+          addresses.shipping_address_line = customer.shippingAddressLine;
+          addresses.shipping_province = customer.shippingProvince;
+          addresses.shipping_district = customer.shippingDistrict;
+          addresses.shipping_subdistrict = customer.shippingSubdistrict;
+          addresses.shipping_postal_code = customer.shippingPostalCode;
+        }
+      } else if (addressId.startsWith("subdealer_")) {
+        // รูปแบบ: "subdealer_{customerId}_primary" หรือ "subdealer_{customerId}_{addressId}"
+        const parts = addressId.split("_");
+        // parts[0] = "subdealer", parts[1] = customerId, parts[2] = "primary" หรือ addressId
+        const subDealerId = parts[1];
+        const addrPart = parts.slice(2).join("_");
+
+        if (addrPart === "primary") {
+          // ดึงที่อยู่หลักของร้านลูก (shippingAddress fields ใน Customer)
+          const subDealer = await db.customer.findUnique({
+            where: { id: subDealerId },
+            select: {
+              shippingAddressLine: true,
+              shippingProvince: true,
+              shippingDistrict: true,
+              shippingSubdistrict: true,
+              shippingPostalCode: true,
+            },
+          });
+          if (subDealer) {
+            addresses.shipping_address_line = subDealer.shippingAddressLine;
+            addresses.shipping_province = subDealer.shippingProvince;
+            addresses.shipping_district = subDealer.shippingDistrict;
+            addresses.shipping_subdistrict = subDealer.shippingSubdistrict;
+            addresses.shipping_postal_code = subDealer.shippingPostalCode;
+          }
+        } else {
+          // ดึงที่อยู่เพิ่มเติมของร้านลูกจาก CustomerAddress
+          const custAddr = await db.customerAddress.findUnique({
+            where: { id: addrPart },
+          });
+          if (custAddr) {
+            addresses.shipping_address_line = custAddr.addressLine;
+            addresses.shipping_province = custAddr.province;
+            addresses.shipping_district = custAddr.district;
+            addresses.shipping_subdistrict = custAddr.subdistrict;
+            addresses.shipping_postal_code = custAddr.postalCode;
+          }
+        }
+      } else {
+        // ที่อยู่เพิ่มเติมของลูกค้าหลัก (CustomerAddress id จริง)
+        const custAddr = await db.customerAddress.findUnique({
+          where: { id: addressId },
+        });
+        if (custAddr) {
+          addresses.shipping_address_line = custAddr.addressLine;
+          addresses.shipping_province = custAddr.province;
+          addresses.shipping_district = custAddr.district;
+          addresses.shipping_subdistrict = custAddr.subdistrict;
+          addresses.shipping_postal_code = custAddr.postalCode;
+        }
       }
     } else if (customer) {
       addresses.shipping_address_line = customer.shippingAddressLine;
