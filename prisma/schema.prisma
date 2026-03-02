@@ -126,6 +126,7 @@ model Company {
   deletedAt   DateTime?
 
   employees   Employee[]
+  salesAsPickup    Sale[] @relation("SalePickupCompany")
 
 }
 
@@ -753,6 +754,7 @@ model Sale {
   orderExpiryDate       DateTime? // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
   lastDeliveryUpdate    DateTime? // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
+  pickupCompanyId       String? // รหัสสถานที่รับสินค้าเอง (FK to Company)
   shippingCompanyId     String? // รหัสบริษัทขนส่งที่เลือก (FK to ShippingCompany)
 
   // Addresses (ข้อมูลที่อยู่เดิม - อาจจะยกเลิกใช้ในอนาคต)
@@ -799,6 +801,7 @@ model Sale {
   employee         Employee          @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
   createdBy        User              @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
   approvedBy       User?             @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  pickupCompany    Company?          @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
   shippingCompany  ShippingCompany?  @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
 
   items          SaleItem[]
