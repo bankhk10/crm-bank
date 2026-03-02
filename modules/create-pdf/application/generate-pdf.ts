@@ -13,8 +13,11 @@ import { PaymentTermLabels } from "@/modules/sales/types";
 function safeFormatDate(d: Date | string | null | undefined, fmt: string) {
   if (!d) return "-";
   try {
-    return format(new Date(d), fmt, { locale: th });
-  } catch (e) {
+    const date = new Date(d);
+    const year = date.getFullYear() + 543;
+    const fmtWithBE = fmt.replace("yyyy", year.toString());
+    return format(date, fmtWithBE, { locale: th });
+  } catch {
     return "-";
   }
 }
