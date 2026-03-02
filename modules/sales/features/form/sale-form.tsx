@@ -441,11 +441,10 @@ export function SaleForm({
                 requestedDeliveryDate: requestedDeliveryDate || undefined,
                 deliveryDate: deliveryDate || undefined,
                 billingAddress,
-                shippingAddress:
-                    deliveryMethod === "COURIER"
-                        ? customShippingAddress // Always use custom address for COURIER
-                        : shippingAddress,
-                useCustomShipping: deliveryMethod === "COURIER",
+                // สำหรับ COURIER: shippingAddress = ที่อยู่ปลายทางลูกค้า (ไม่ใช่ที่อยู่บริษัทขนส่ง)
+                // customShippingAddress = ที่อยู่บริษัทขนส่ง → ถูก populate ลง sender_* ผ่าน shippingCompanyId
+                shippingAddress,
+                useCustomShipping: false, // ให้ address-builder ใช้ selectedAddressId สำหรับ shipping_* ทุก method
                 deliveryMethod,
                 selectedAddressId: selectedAddressId || undefined,
                 pickupCompanyId:

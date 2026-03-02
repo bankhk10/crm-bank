@@ -79,10 +79,12 @@ export async function buildExplodedSaleAddresses(
       parsed.thaiAddress.postalCode || addresses.billing_postal_code;
   }
 
-  // 3. Shipping Address
+  // 3. Shipping Address (ที่อยู่จัดส่งปลายทางของลูกค้า)
+  // COURIER ก็ต้องบันทึก shipping_* เพราะมีที่อยู่ปลายทางของลูกค้าเช่นกัน
   if (
     body.deliveryMethod === "SALES_DELIVERY" ||
-    body.deliveryMethod === "FACTORY_DELIVERY"
+    body.deliveryMethod === "FACTORY_DELIVERY" ||
+    body.deliveryMethod === "COURIER"
   ) {
     if (body.useCustomShipping && body.shippingAddress) {
       const parsed = parseAddress(body.shippingAddress);

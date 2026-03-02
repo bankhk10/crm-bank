@@ -64,14 +64,14 @@ export default function EditSalePage({
           shippingAddress: (() => {
             if (!sale.saleAddress) return "";
             const sa = sale.saleAddress;
-            // COURIER: ที่อยู่บริษัทขนส่งถูกเก็บใน sender_* fields
+            // COURIER: ที่อยู่ปลายทางลูกค้าเก็บใน shipping_* fields (ที่อยู่บริษัทขนส่งอยู่ใน sender_* แยกต่างหาก)
             if (sale.deliveryMethod === "COURIER") {
               return formatAddress({
-                addressLine: sa.sender_line,
-                subdistrict: sa.sender_subdistrict,
-                district: sa.sender_district,
-                province: sa.sender_province,
-                postalCode: sa.sender_postal_code,
+                addressLine: sa.shipping_address_line,
+                subdistrict: sa.shipping_subdistrict,
+                district: sa.shipping_district,
+                province: sa.shipping_province,
+                postalCode: sa.shipping_postal_code,
               });
             }
             // CUSTOMER_PICKUP: ที่อยู่รับสินค้าถูกเก็บใน receiving_* fields
