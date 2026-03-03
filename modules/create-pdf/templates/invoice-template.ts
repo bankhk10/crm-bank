@@ -23,9 +23,11 @@ export interface InvoiceData {
 
   items: {
     code: string;
+    packageSizePerBox: number;
     description: string;
     quantity: number;
     price: number;
+    cartonPrice: number;
     total: number;
   }[];
   contactName: string;
@@ -67,9 +69,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <td class="col-center">${item.code}</td>
       <td class="col-desc">${item.description}</td>
       <td class="col-center">${item.quantity}</td>
-      <td class="col-center">${"-" /* บรรจุ */}</td>
+      <td class="col-center">${item.packageSizePerBox}</td>
       <td class="col-right">${item.price.toLocaleString()}</td>
-      <td class="col-right">${"-" /* ราคา/ลัง */}</td>
+      <td class="col-right">${item.cartonPrice.toLocaleString()}</td>
       <td class="col-right fw-bold">${item.total.toLocaleString()}</td>
     </tr>
   `,

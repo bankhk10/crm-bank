@@ -112,6 +112,8 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     contactName: sale.employee?.name || "-",
     items: (sale.items || []).map((item: any) => ({
       code: item.product?.productCode || item.productCode || "-",
+      packageSizePerBox: item.product?.packageSizePerBox || item.packageSizePerBox || "-",
+      cartonPrice: item.product?.cartonPrice || item.cartonPrice || "-",
       description: item.product?.name || item.name || "-",
       quantity: item.quantity || 0,
       price: Number(item.unitPrice || 0),
