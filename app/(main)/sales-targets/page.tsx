@@ -80,14 +80,7 @@ export default function SalesTargetsPage() {
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(detailedTargets.length / itemsPerPage);
-  const paginatedTargets = detailedTargets.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+
 
   // --- Fetch Data via Server Action ---
   const fetchTargets = async (filters: {
@@ -192,9 +185,7 @@ export default function SalesTargetsPage() {
     });
   }, [year, monthFilter, employeeFilter, shopFilter]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [detailedTargets]);
+
 
   // --- Handlers ---
 
@@ -300,10 +291,6 @@ export default function SalesTargetsPage() {
         <YearlyTargetCard year={year} totalTarget={calculateMonthlyTotal()} />
         <SalesTargetTable
           targets={detailedTargets}
-          paginatedTargets={paginatedTargets}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
           onView={(target) => {
             setViewingTarget(target);
             setIsDetailDialogOpen(true);

@@ -1,6 +1,6 @@
 # RBAC Policy - CRM System
 
-> **Version**: 1.2.2 | **Updated**: 2026-01-29  
+> **Version**: 1.2.3 | **Updated**: 2026-03-03  
 > **Source of Truth**: `prisma/seed/rbac.ts`  
 > **Related**: [AI_CONTEXT.md](./AI_CONTEXT.md) | [DATA_MODEL.md](./DATA_MODEL.md)
 
@@ -174,10 +174,11 @@ enum PermissionType {
 
 | Key                   | Name (TH)           | Action |
 | --------------------- | ------------------- | ------ |
-| `sales_target.view`   | ดูเป้าหมายยอดขาย    | view   |
-| `sales_target.create` | สร้างเป้าหมายยอดขาย | create |
-| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย | edit   |
-| `sales_target.delete` | ลบเป้าหมายยอดขาย    | delete |
+| `sales_target.view`   | ดูเป้าหมายยอดขาย              | view   |
+| `sales_target.create` | สร้างเป้าหมายยอดขาย           | create |
+| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย           | edit   |
+| `sales_target.delete` | ลบเป้าหมายยอดขาย              | delete |
+| `sales_target.manage` | จัดการเป้าหมายยอดขาย (ครอบคลุม create/edit/delete) | manage |
 
 ### 4.12 Stock/Inventory Permissions (คลังสินค้า)
 
@@ -560,6 +561,7 @@ node scripts/migrate-permissions.js
 
 | Date       | Version | Changes                                                                                               |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| 2026-03-03 | 1.2.3   | Added `sales_target.manage` super permission; fixed permission keys (underscore naming) |
 | 2026-01-29 | 1.2.2   | Added `CEO` role (read-only executive access) and `ธุรการขาย` (sales_admin) role for fulfillment      |
 | 2026-01-29 | 1.2.1   | Added `employee.edit` permission; clarified `employee.manage` as super permission                     |
 | 2026-01-28 | 1.2.0   | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |

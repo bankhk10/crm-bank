@@ -641,6 +641,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "sales_target",
         action: "delete",
       },
+      {
+        key: "sales_target.manage",
+        name: "จัดการเป้าหมายยอดขาย",
+        resource: "sales_target",
+        action: "manage",
+      },
     ],
     data: {
       key: "data.sales_targets",
@@ -1295,6 +1301,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.create" },
     { key: "sales_target.edit" },
     { key: "sales_target.delete" },
+    { key: "sales_target.manage" },
     { key: "stock.view" },
     { key: "stock.adjust" },
     { key: "stock.lot.manage" },
