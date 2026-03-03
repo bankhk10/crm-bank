@@ -29,16 +29,16 @@ import {
 import type { DashboardData, DashboardPeriod } from "@/modules/dashboard";
 
 /* ================= Hook ================= */
-function useWindowWidth() {
-  const [width, setWidth] = useState<number>(
-    typeof window !== "undefined" ? window.innerWidth : 1024,
-  );
+// Default false เพื่อให้ SSR และ client initial render ตรงกัน (hydration safe)
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const handler = () => setWidth(window.innerWidth);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check(); // run เมื่อ mount แล้ว
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
-  return width;
+  return isMobile;
 }
 
 /* ================= Utils ================= */
@@ -94,8 +94,8 @@ const tooltipStyle = {
 };
 
 function RegionChart({ regionData }: { regionData: { region: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[] }) {
-  const width = useWindowWidth();
-  const isMobile = width < 640;
+  const isMobile = useIsMobile();
+
 
   // Dynamic height: taller on mobile because vertical layout needs more vertical space per region
   const chartHeight = isMobile
@@ -126,6 +126,16 @@ function RegionChart({ regionData }: { regionData: { region: string; lastYearInv
               tickLine={false}
               axisLine={false}
               width={72}
+              tick={({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                const MAX_CHARS = 10;
+                const raw: string = payload.value.replace(/^ภาค/, "");
+                const label = raw.length > MAX_CHARS ? raw.slice(0, MAX_CHARS) + "…" : raw;
+                return (
+                  <text x={68} y={y} dy="0.35em" textAnchor="end" fontSize={10} fill="#64748b">
+                    {label}
+                  </text>
+                );
+              }}
             />
             <Tooltip
               cursor={{ fill: "#F5F5F5" }}
@@ -175,8 +185,8 @@ function ProductGroupChart({
 }: {
   filteredProductGroupData: { group: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[];
 }) {
-  const width = useWindowWidth();
-  const isMobile = width < 640;
+  const isMobile = useIsMobile();
+
 
   if (filteredProductGroupData.length === 0) {
     return (
