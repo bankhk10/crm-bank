@@ -28,9 +28,17 @@ import {
 } from "lucide-react";
 import type { DashboardData, DashboardPeriod } from "@/modules/dashboard";
 
-/* ================= Props ================= */
-interface DashboardClientProps {
-  data: DashboardData;
+/* ================= Hook ================= */
+function useWindowWidth() {
+  const [width, setWidth] = useState<number>(
+    typeof window !== "undefined" ? window.innerWidth : 1024,
+  );
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return width;
 }
 
 /* ================= Utils ================= */
@@ -64,6 +72,201 @@ const formatTHBWithCompact = (value: number) => {
     maximumFractionDigits: 1,
   }).format(value);
 };
+
+/* ================= Chart Sub-Components ================= */
+
+const CHART_BARS = [
+  {
+    dataKey: "lastYearInvoice",
+    name: "ยอดขาย (ปีที่แล้ว)",
+    fill: "#ad31e2ff",
+  },
+  { dataKey: "target", name: "Target", fill: "#3b82f6" },
+  { dataKey: "salesNote", name: "Sales Note", fill: "#f97316" },
+  { dataKey: "invoice", name: "Invoice", fill: "#22c55e" },
+] as const;
+
+const tooltipStyle = {
+  borderRadius: 12,
+  border: "none",
+  boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+  fontSize: 12,
+};
+
+function RegionChart({ regionData }: { regionData: { region: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[] }) {
+  const width = useWindowWidth();
+  const isMobile = width < 640;
+
+  // Dynamic height: taller on mobile because vertical layout needs more vertical space per region
+  const chartHeight = isMobile
+    ? Math.max(280, regionData.length * 80)
+    : 320;
+
+  if (isMobile) {
+    return (
+      <CardContent className="pt-2 px-1" style={{ height: chartHeight }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={regionData}
+            layout="vertical"
+            margin={{ left: 4, right: 16, top: 5, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatCompact(v)}
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="region"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              width={72}
+            />
+            <Tooltip
+              cursor={{ fill: "#F5F5F5" }}
+              contentStyle={tooltipStyle}
+              formatter={(value: number) => formatNumber(value)}
+            />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+            {CHART_BARS.map((b) => (
+              <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[0, 4, 4, 0]} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    );
+  }
+
+  return (
+    <CardContent className="h-[280px] md:h-[320px] lg:h-[350px] pt-4 px-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={regionData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis dataKey="region" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis
+            tickFormatter={(v) => `${v / 1000}k`}
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            width={50}
+          />
+          <Tooltip
+            cursor={{ fill: "#F5F5F5" }}
+            contentStyle={tooltipStyle}
+            formatter={(value: number) => formatNumber(value)}
+          />
+          <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+          {CHART_BARS.map((b) => (
+            <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[4, 4, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </CardContent>
+  );
+}
+
+function ProductGroupChart({
+  filteredProductGroupData,
+}: {
+  filteredProductGroupData: { group: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[];
+}) {
+  const width = useWindowWidth();
+  const isMobile = width < 640;
+
+  if (filteredProductGroupData.length === 0) {
+    return (
+      <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
+        <div className="flex items-center justify-center h-full text-slate-400">
+          <div className="text-center">
+            <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">กรุณาเลือกกรุ๊ปสินค้าที่ต้องการแสดง</p>
+          </div>
+        </div>
+      </CardContent>
+    );
+  }
+
+  const chartHeight = isMobile
+    ? Math.max(280, filteredProductGroupData.length * 80)
+    : 320;
+
+  if (isMobile) {
+    return (
+      <CardContent className="pt-2 px-1" style={{ height: chartHeight }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={filteredProductGroupData}
+            layout="vertical"
+            margin={{ left: 4, right: 16, top: 5, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+            <XAxis
+              type="number"
+              tickFormatter={(v) => formatCompact(v)}
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="group"
+              fontSize={10}
+              tickLine={false}
+              axisLine={false}
+              width={80}
+            />
+            <Tooltip
+              cursor={{ fill: "#F5F5F5" }}
+              contentStyle={tooltipStyle}
+              formatter={(value: number) => formatNumber(value)}
+            />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+            {CHART_BARS.map((b) => (
+              <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[0, 4, 4, 0]} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    );
+  }
+
+  return (
+    <CardContent className="h-[280px] md:h-[320px] lg:h-[350px] pt-4 px-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={filteredProductGroupData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis dataKey="group" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis
+            tickFormatter={(v) => `${v / 1000}k`}
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            width={50}
+          />
+          <Tooltip
+            cursor={{ fill: "#F5F5F5" }}
+            contentStyle={tooltipStyle}
+            formatter={(value: number) => formatNumber(value)}
+          />
+          <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+          {CHART_BARS.map((b) => (
+            <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[4, 4, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </CardContent>
+  );
+}
+
+/* ================= Props ================= */
+interface DashboardClientProps {
+  data: DashboardData;
+}
 
 /* ================= Component ================= */
 export default function DashboardClient({ data }: DashboardClientProps) {
@@ -449,72 +652,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={regionData}
-                margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E2E8F0"
-                />
-                <XAxis
-                  dataKey="region"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tickFormatter={(v) => `${v / 1000}k`}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  width={50}
-                />
-                <Tooltip
-                  cursor={{ fill: "#F5F5F5" }}
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: "none",
-                    boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                    fontSize: 12,
-                  }}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                  iconSize={8}
-                />
-                <Bar
-                  dataKey="lastYearInvoice"
-                  name="ยอดขาย (ปีที่แล้ว)"
-                  fill="#ad31e2ff"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="target"
-                  name="Target"
-                  fill="#3b82f6"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="salesNote"
-                  name="Sales Note"
-                  fill="#f97316"
-                  radius={[4, 4, 0, 0]}
-                />
-
-                <Bar
-                  dataKey="invoice"
-                  name="Invoice"
-                  fill="#22c55e"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
+          <RegionChart regionData={regionData} />
         </Card>
 
         {/* Product Group Chart */}
@@ -587,81 +725,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
-            {filteredProductGroupData.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-slate-400">
-                <div className="text-center">
-                  <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">กรุณาเลือกกรุ๊ปสินค้าที่ต้องการแสดง</p>
-                </div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={filteredProductGroupData}
-                  margin={{ left: 0, right: 5, top: 5, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#E2E8F0"
-                  />
-                  <XAxis
-                    dataKey="group"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tickFormatter={(v) => `${v / 1000}k`}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    width={50}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#F5F5F5" }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "none",
-                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                      fontSize: 12,
-                    }}
-                    formatter={(value: number) => formatNumber(value)}
-                  />
-                  <Legend
-                    wrapperStyle={{ fontSize: 10, paddingTop: 10 }}
-                    iconSize={8}
-                  />
-                  <Bar
-                    dataKey="lastYearInvoice"
-                    name="ยอดขาย (ปีที่แล้ว)"
-                    fill="#ad31e2ff"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="target"
-                    name="Target"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="salesNote"
-                    name="Sales Note"
-                    fill="#f97316"
-                    radius={[4, 4, 0, 0]}
-                  />
-
-                  <Bar
-                    dataKey="invoice"
-                    name="Invoice"
-                    fill="#22c55e"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
+          <ProductGroupChart filteredProductGroupData={filteredProductGroupData} />
         </Card>
       </div>
     </div>
