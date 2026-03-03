@@ -24,10 +24,10 @@ export async function generatePdfFromHtml(html: string): Promise<Buffer> {
       format: "A4",
       printBackground: true, // Important to render CSS backgrounds and colors
       margin: {
-        top: "15mm",
-        bottom: "15mm",
-        left: "15mm",
-        right: "15mm",
+        top: "5mm",
+        bottom: "8mm",
+        left: "8mm",
+        right: "8mm",
       },
     });
 
