@@ -32,19 +32,16 @@ body {
 .logistics-details {
   width: 100%;
   padding: 5px 15px 5px;
-  background-color: #f8f9fa;
   box-sizing: border-box;
 }
 .invoice-details {
   width: 100%;
   padding: 5px 15px 15px;
-  background-color: #f8f9fa;
   box-sizing: border-box;
 }
 .customer-details {
   width: 100%;
   padding: 15px 15px 5px;
-  background-color: #f8f9fa;
   margin-bottom: 0;
   box-sizing: border-box;
 }
@@ -188,7 +185,7 @@ td {
   text-align: center;
   font-size: 22px;
   font-weight: 700;
-  margin: 30px 0 10px;
+  margin: 15px 0 10px;
   color: #24364b;
 }
 
