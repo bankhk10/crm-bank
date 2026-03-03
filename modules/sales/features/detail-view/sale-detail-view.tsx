@@ -86,7 +86,7 @@ export function SaleDetailView({ id }: { id: string }) {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
-            <div className="bg-white/80 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between shadow-sm">
+            <div className="bg-white/80 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between shadow-sm rounded-xl">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
