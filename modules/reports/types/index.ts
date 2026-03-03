@@ -218,3 +218,30 @@ export interface SalespersonReportData {
 }
 
 export type ReportType = "CUSTOMER" | "EMPLOYEE";
+
+export interface CustomerListItem {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  province: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+  purchaseFrequency: number;
+  lifetimeValue: number;
+  lastPurchaseDate?: string;
+}
+
+export interface SalespersonListItem {
+  id: string;
+  name: string;
+  employeeCode: string;
+  department: string;
+  totalSales: number;
+  orderCount: number;
+  avgOrderValue: number;
+  customerCount: number;
+  totalPoints: number;
+  lastSaleDate?: string;
+}
