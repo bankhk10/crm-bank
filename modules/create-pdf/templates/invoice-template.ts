@@ -293,7 +293,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <div class="footer-section">
         <div class="total-section">
           <div class="total-row">
-            <span>รวมเป็นเงิน (Subtotal):</span>
+            <span>รวมเป็นเงิน:</span>
             <span>${data.subtotalAmount.toLocaleString()} THB</span>
           </div>
           ${
@@ -315,20 +315,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
               : ""
           }
           <div class="total-row grand-total">
-            <span>ยอดรวมทั้งสิ้น (Grand Total):</span>
+            <span>ยอดรวมทั้งสิ้น:</span>
             <span>${data.totalAmount.toLocaleString()} THB</span>
           </div>
         </div>
-
-      <div class="footer">
-        <div class="signature-box">
-          <div class="signature">
-            <div>ผู้รับวางบิล / Received By</div>
-          </div>
-          <div class="signature">
-            <div>ผู้อนุมัติ / Authorized Signature</div>
-          </div>
-      </div>
       </div>
     </body>
     </html>
