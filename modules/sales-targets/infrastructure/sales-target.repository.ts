@@ -92,6 +92,34 @@ export async function findSalesTargets(params: FindSalesTargetsParams) {
 }
 
 /**
+ * Check if a sales target with the same year, month, employee, and customer already exists.
+ * Pass excludeId to exclude the current record when checking during update.
+ */
+export async function findDuplicateSalesTarget(params: {
+  year: number;
+  month: number;
+  employeeId: string;
+  customerId: string;
+  excludeId?: string;
+}) {
+  const { year, month, employeeId, customerId, excludeId } = params;
+
+  return db.salesTarget.findFirst({
+    where: {
+      year,
+      month,
+      employeeId,
+      customerId,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+    include: {
+      employee: { select: { id: true, name: true, employeeCode: true } },
+      customer: { select: { id: true, name: true, customerCode: true } },
+    },
+  });
+}
+
+/**
  * Create a new sales target with items.
  */
 export async function createSalesTarget(data: {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
     Calendar,
+    Copy,
     Eye,
     Pencil,
     PlusCircle,
@@ -39,6 +40,7 @@ interface SalesTargetTableProps {
     onPageChange: (page: number) => void;
     onView: (target: DetailedTarget) => void;
     onDelete: (id: string) => void;
+    onCopy: (target: DetailedTarget) => void;
 }
 
 export function SalesTargetTable({
@@ -49,6 +51,7 @@ export function SalesTargetTable({
     onPageChange,
     onView,
     onDelete,
+    onCopy,
 }: SalesTargetTableProps) {
     const renderPaginationItems = () => {
         const items = [];
@@ -216,6 +219,16 @@ export function SalesTargetTable({
                                                     <Eye className="h-4 w-4 text-slate-600" />
                                                 </Button>
 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="rounded-xl hover:bg-amber-50"
+                                                    onClick={() => onCopy(target)}
+                                                    aria-label="คัดลอก"
+                                                >
+                                                    <Copy className="h-4 w-4 text-amber-600" />
+                                                </Button>
+
                                                 <Link href={`/sales-targets/${target.id}/edit`}>
                                                     <Button
                                                         variant="ghost"
@@ -373,6 +386,17 @@ export function SalesTargetTable({
                                                             aria-label="ดูรายละเอียด"
                                                         >
                                                             <Eye className="h-4 w-4 text-slate-600" />
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="rounded-xl hover:bg-amber-50"
+                                                            onClick={() => onCopy(target)}
+                                                            aria-label="คัดลอก"
+                                                            title="คัดลอกรายการนี้"
+                                                        >
+                                                            <Copy className="h-4 w-4 text-amber-600" />
                                                         </Button>
 
                                                         <Link href={`/sales-targets/${target.id}/edit`}>

@@ -17,9 +17,12 @@ import {
 } from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import {
+    AlertTriangle,
     ChevronLeft,
+    Copy,
     Loader2,
     Package,
+    Pencil,
     ShoppingCart,
     Target,
     Trash2,
@@ -38,8 +41,9 @@ interface ProductItem {
     amount: number;
 }
 
+/** mode="copy" = สร้างใหม่โดยคัดลอกข้อมูลจาก initialData (ไม่มี id) */
 interface SalesTargetFormProps {
-    mode: "create" | "edit";
+    mode: "create" | "edit" | "copy";
     initialData?: any | null;
 }
 
@@ -60,6 +64,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const [products, setProducts] = useState<any[]>([]);
 
     const isEdit = mode === "edit";
+    const isCopy = mode === "copy";
 
     const totalAmount = useMemo(
         () => items.reduce((s, i) => s + i.amount, 0),
@@ -170,12 +175,15 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         setItems(newItems);
     };
 
+    const [duplicateId, setDuplicateId] = useState<string | null>(null);
+
     const handleSave = async () => {
         if (!employeeId || !customerId || items.length === 0) {
             toast.error("กรุณากรอกข้อมูลให้ครบถ้วน");
             return;
         }
 
+        setDuplicateId(null);
         setSaving(true);
         try {
             const payload = {
@@ -202,6 +210,10 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 router.push("/sales-targets");
                 router.refresh();
             } else {
+                // Store duplicateId for redirect button
+                if ("duplicateId" in result && result.duplicateId) {
+                    setDuplicateId(result.duplicateId as string);
+                }
                 toast.error(result.error || "เกิดข้อผิดพลาดในการบันทึก");
             }
         } catch {
@@ -232,9 +244,19 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         <Target className="w-5 h-5 text-white" />
                                     </div>
                                     <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                                        {isEdit ? "แก้ไขเป้าหมายการขาย" : "เพิ่มเป้าหมายการขาย"}
+                                        {isEdit
+                                            ? "แก้ไขเป้าหมายการขาย"
+                                            : isCopy
+                                                ? "คัดลอกเป้าหมายการขาย"
+                                                : "เพิ่มเป้าหมายการขาย"}
                                     </h1>
                                 </div>
+                                {isCopy && (
+                                    <p className="text-sm text-amber-600 flex items-center gap-1.5 mt-1">
+                                        <Copy className="w-3.5 h-3.5" />
+                                        คัดลอกจากรายการเดิม — กรุณาตรวจสอบข้อมูลก่อนบันทึก
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -509,6 +531,28 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Duplicate warning banner */}
+                            {duplicateId && (
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
+                                    <div className="flex items-center gap-2 flex-1">
+                                        <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
+                                        <span className="text-sm font-medium">
+                                            มีรายการนี้อยู่แล้ว คุณสามารถไปแก้ไขรายการที่มีอยู่ได้
+                                        </span>
+                                    </div>
+                                    <Link href={`/sales-targets/${duplicateId}/edit`} className="shrink-0">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="rounded-xl border-amber-300 bg-white hover:bg-amber-50 text-amber-700 font-semibold"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                                            ไปแก้ไขรายการ
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
 
                             {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8 border-t border-slate-100">

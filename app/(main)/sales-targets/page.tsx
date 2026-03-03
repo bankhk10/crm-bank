@@ -205,6 +205,10 @@ export default function SalesTargetsPage() {
     setShopFilter("");
   };
 
+  const handleCopy = (target: DetailedTarget) => {
+    router.push(`/sales-targets/copy?from=${target.id}`);
+  };
+
   const handleDelete = async () => {
     if (!deletingTargetId) return;
     const result = await deleteSalesTargetAction(deletingTargetId);
@@ -304,6 +308,7 @@ export default function SalesTargetsPage() {
             setViewingTarget(target);
             setIsDetailDialogOpen(true);
           }}
+          onCopy={handleCopy}
           onDelete={setDeletingTargetId}
         />
       </div>
