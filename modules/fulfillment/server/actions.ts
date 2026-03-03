@@ -80,13 +80,16 @@ export async function getFulfillmentsAction(params: {
       promotionalCreditUsed: sale.promotionalCreditUsed?.toNumber() || null,
       items: sale.items.map((item) => ({
         ...item,
+        price: item.price ? item.price.toNumber() : null,
+        cartonPrice: item.cartonPrice ? item.cartonPrice.toNumber() : null,
+        promotionBudget: item.promotionBudget ? item.promotionBudget.toNumber() : null,
         unitPrice: item.unitPrice.toNumber(),
         originalPrice: item.originalPrice.toNumber(),
         totalPrice: item.totalPrice.toNumber(),
-        product: {
+        product: item.product ? {
           ...item.product,
           price: item.product.price ? item.product.price.toNumber() : null,
-        },
+        } : null,
       })),
     }));
 
