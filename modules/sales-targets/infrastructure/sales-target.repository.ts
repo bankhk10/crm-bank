@@ -35,10 +35,20 @@ const salesTargetInclude = {
  * Find a single sales target by ID with all relations.
  */
 export async function findSalesTargetById(id: string) {
-  return db.salesTarget.findUnique({
+  const target = await db.salesTarget.findUnique({
     where: { id },
     include: salesTargetInclude,
   });
+
+  if (!target) return null;
+
+  return {
+    ...target,
+    items: target.items.map((i) => ({
+      ...i,
+      amount: Number(i.amount),
+    })),
+  };
 }
 
 /**
@@ -66,7 +76,19 @@ export async function findSalesTargets(params: FindSalesTargetsParams) {
     }),
   ]);
 
-  return { monthlyTargets, detailedTargets };
+  return {
+    monthlyTargets: monthlyTargets.map((t) => ({
+      ...t,
+      targetAmount: Number(t.targetAmount),
+    })),
+    detailedTargets: detailedTargets.map((t) => ({
+      ...t,
+      items: t.items.map((i) => ({
+        ...i,
+        amount: Number(i.amount),
+      })),
+    })),
+  };
 }
 
 /**
@@ -82,7 +104,7 @@ export async function createSalesTarget(data: {
 }) {
   const { items, ...targetData } = data;
 
-  return db.salesTarget.create({
+  const target = await db.salesTarget.create({
     data: {
       ...targetData,
       items: {
@@ -95,6 +117,14 @@ export async function createSalesTarget(data: {
     },
     include: { items: true },
   });
+
+  return {
+    ...target,
+    items: target.items.map((i) => ({
+      ...i,
+      amount: Number(i.amount),
+    })),
+  };
 }
 
 /**
@@ -117,7 +147,7 @@ export async function updateSalesTarget(
     where: { salesTargetId: id },
   });
 
-  return db.salesTarget.update({
+  const target = await db.salesTarget.update({
     where: { id },
     data: {
       ...targetData,
@@ -131,6 +161,14 @@ export async function updateSalesTarget(
     },
     include: { items: true },
   });
+
+  return {
+    ...target,
+    items: target.items.map((i) => ({
+      ...i,
+      amount: Number(i.amount),
+    })),
+  };
 }
 
 /**
