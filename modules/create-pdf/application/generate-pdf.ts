@@ -111,14 +111,19 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
 
     contactName: sale.employee?.name || "-",
     items: (sale.items || []).map((item: any) => ({
-      code: item.product?.productCode || item.productCode || "-",
-      packageSizePerBox: item.product?.packageSizePerBox || item.packageSizePerBox || "-",
-      cartonPrice: item.product?.cartonPrice || item.cartonPrice || "-",
-      description: item.product?.name || item.name || "-",
+      code: item.productCode || item.product?.productCode || "-",
+      packageSizePerBox: Number(
+        item.packageSizePerBox || item.product?.packageSizePerBox || 1,
+      ),
+      description: item.name || item.product?.name || "-",
       quantity: item.quantity || 0,
       price: Number(item.unitPrice || 0),
+      cartonPrice: Number(item.cartonPrice || item.product?.cartonPrice || 0),
       total: Number(item.totalPrice || 0),
     })),
+    subtotalAmount: Number(sale.subtotalAmount || 0),
+    shippingDiscount: Number(sale.shippingCost || 0),
+    billDiscount: Number(sale.otherCosts || 0),
     totalAmount: Number(sale.totalAmount || 0),
     title: sale.status === "COMPLETED" ? "ใบบันทึกการขาย" : "ใบเสนอราคา",
   };

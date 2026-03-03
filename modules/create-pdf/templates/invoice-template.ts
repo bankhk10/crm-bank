@@ -31,7 +31,10 @@ export interface InvoiceData {
     total: number;
   }[];
   contactName: string;
-  totalAmount: number;
+  subtotalAmount: number;
+  shippingDiscount: number;
+  billDiscount: number;
+  totalAmount: number; // This is the amount after discounts, before VAT
   title: string;
 }
 
@@ -291,17 +294,31 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="total-section">
           <div class="total-row">
             <span>รวมเป็นเงิน (Subtotal):</span>
-          <span>${data.totalAmount.toLocaleString()} THB</span>
+            <span>${data.subtotalAmount.toLocaleString()} THB</span>
+          </div>
+          ${
+            data.shippingDiscount > 0
+              ? `
+          <div class="total-row">
+            <span>ส่วนลดค่าขนส่ง:</span>
+            <span>-${data.shippingDiscount.toLocaleString()} THB</span>
+          </div>`
+              : ""
+          }
+          ${
+            data.billDiscount > 0
+              ? `
+          <div class="total-row">
+            <span>ส่วนลดหน้าบิล:</span>
+            <span>-${data.billDiscount.toLocaleString()} THB</span>
+          </div>`
+              : ""
+          }
+          <div class="total-row grand-total">
+            <span>ยอดรวมทั้งสิ้น (Grand Total):</span>
+            <span>${data.totalAmount.toLocaleString()} THB</span>
+          </div>
         </div>
-        <div class="total-row">
-          <span>ภาษีมูลค่าเพิ่ม (VAT 7%):</span>
-          <span>${(data.totalAmount * 0.07).toLocaleString()} THB</span>
-        </div>
-        <div class="total-row grand-total">
-          <span>ยอดรวมทั้งสิ้น (Grand Total):</span>
-          <span>${(data.totalAmount * 1.07).toLocaleString()} THB</span>
-        </div>
-      </div>
 
       <div class="footer">
         <div class="signature-box">
