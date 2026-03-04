@@ -51,14 +51,18 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
         });
 
         if (result?.error) {
-          setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+          if (result.error === "InactiveAccount" || result.error?.includes("InactiveAccount")) {
+            setError("บัญชีของคุณไม่ได้อยู่ในสถานะใช้งาน");
+          } else {
+            setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+          }
           setIsSubmitting(false); // Only stop loading on error
           return;
         }
 
         router.push(result?.url ?? "/dashboard");
         // Keep loading=true during navigation
-      } catch (error) {
+      } catch {
         setIsSubmitting(false);
         setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       }
@@ -90,7 +94,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
 
       router.push(result?.url ?? "/dashboard");
       // Keep loading=true during navigation
-    } catch (error) {
+    } catch {
       setIsSubmitting(false);
       setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ Admin");
     }

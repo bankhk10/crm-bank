@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { z } from "zod";
@@ -9,16 +9,15 @@ import type {
 } from "@/lib/db";
 import type { SessionPermission } from "../types/next-auth";
 import { db } from "@/lib/db";
-import {
-  buildDataAccessByResource,
-  buildEditAccessByResource,
-  buildDeleteAccessByResource,
-  buildPermissionMap,
-} from "@/lib/rbac";
+import { buildPermissionMap } from "@/lib/rbac";
 import {
   getSessionVersion,
   isSessionValid,
 } from "../application/force-logout.service";
+
+class InactiveAccountError extends CredentialsSignin {
+  code = "InactiveAccount";
+}
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -59,6 +58,22 @@ function createCompactPermissions(
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  logger: {
+    error(error: any) {
+      const errName = error?.name;
+      const originalErrName = error?.cause?.err?.name || error?.cause?.name;
+
+      if (
+        errName === "CredentialsSignin" ||
+        originalErrName === "CredentialsSignin" ||
+        originalErrName === "InactiveAccountError" ||
+        errName === "InactiveAccountError"
+      ) {
+        return; // Suppress expected auth errors from the console
+      }
+      console.error(error);
+    },
+  },
   trustHost: true,
   session: {
     strategy: "jwt",
@@ -107,6 +122,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!passwordMatches) {
           return null;
         }
+
+        if (user.employeeProfile && user.employeeProfile.status !== "ACTIVE") {
+          throw new InactiveAccountError();
+        }
+
         const rolePermissions = user.userRoles.flatMap(
           (userRole) => userRole.role.permissions,
         );

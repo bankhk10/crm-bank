@@ -9,9 +9,8 @@ export const PREFIX_OPTIONS = [
 ];
 
 export const STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "ปฏิบัติงาน" },
-  { value: "ON_LEAVE", label: "ลาพัก" },
-  { value: "INACTIVE", label: "ออกจากงาน" },
+  { value: "ACTIVE", label: "ใช้งาน" },
+  { value: "INACTIVE", label: "ไม่ใช้งาน" },
 ];
 
 export const POSITION_OPTIONS = [
