@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import Link from "next/link";
 import { Package } from "lucide-react";
+import { PAGINATION } from "@/lib/constants";
 
 export default function ProductsPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.products");
@@ -26,8 +27,8 @@ export default function ProductsPage() {
 
   const [products, setProducts] = useState<ProductRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(12);
+  const [page, setPage] = useState<number>(PAGINATION.DEFAULT_PAGE);
+  const [perPage, setPerPage] = useState<number>(PAGINATION.DEFAULT_PER_PAGE);
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<{
@@ -86,6 +87,7 @@ export default function ProductsPage() {
     total,
     appliedFilters.query,
     appliedFilters.status,
+    appliedFilters.dateRange,
   ]);
 
   const mkRangeKey = (r?: DateRange) =>
@@ -293,7 +295,7 @@ export default function ProductsPage() {
                   setPerPage(nextPerPage);
                   setPage(1);
                 },
-                perPageOptions: [6, 12, 24, 48],
+                perPageOptions: [...PAGINATION.PER_PAGE_OPTIONS],
               }}
             />
           </div>

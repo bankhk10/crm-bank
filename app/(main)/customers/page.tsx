@@ -11,6 +11,7 @@ import {
 } from "@/modules/customers";
 import { UserCog } from "lucide-react";
 import { getCustomersAction, deleteCustomerAction } from "@/modules/customers/server/actions";
+import { PAGINATION } from "@/lib/constants";
 
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
@@ -24,8 +25,8 @@ export default function CustomersPage() {
 
   const [customers, setCustomers] = useState<CustomerRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(12);
+  const [page, setPage] = useState<number>(PAGINATION.DEFAULT_PAGE);
+  const [perPage, setPerPage] = useState<number>(PAGINATION.DEFAULT_PER_PAGE);
   const [total, setTotal] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [filterDraft, setFilterDraft] = useState<{
@@ -85,6 +86,9 @@ export default function CustomersPage() {
     filterDraft.status,
     total,
     appliedFilters.query,
+    appliedFilters.customerType,
+    appliedFilters.dateRange,
+    appliedFilters.status,
   ]);
 
   const handleSearchSubmit = () => {
@@ -249,7 +253,7 @@ export default function CustomersPage() {
                 setPerPage(nextPerPage);
                 setPage(1);
               },
-              perPageOptions: [6, 12, 24, 48],
+              perPageOptions: [...PAGINATION.PER_PAGE_OPTIONS],
             }}
           />
         </div>
