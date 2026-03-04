@@ -498,6 +498,14 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         <div className="col-span-2 grid grid-cols-3 gap-3">
                                             <div className="bg-gray-50 rounded-lg p-2">
                                                 <span className="text-gray-500 text-xs block mb-1">
+                                                    จำนวน
+                                                </span>
+                                                <p className="font-bold text-gray-900">
+                                                    {item.quantity}
+                                                </p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <span className="text-gray-500 text-xs block mb-1">
                                                     หน่วยนับ
                                                 </span>
                                                 <p className="font-bold text-gray-900">
@@ -510,14 +518,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                 </span>
                                                 <p className="font-bold text-gray-900">
                                                     {item.product.packageSizePerBox || "-"}
-                                                </p>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-2">
-                                                <span className="text-gray-500 text-xs block mb-1">
-                                                    จำนวน
-                                                </span>
-                                                <p className="font-bold text-gray-900">
-                                                    {item.quantity} ลัง
                                                 </p>
                                             </div>
                                         </div>
