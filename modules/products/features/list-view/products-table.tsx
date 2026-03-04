@@ -196,8 +196,8 @@ export function ProductsTable(props: ProductsTableProps) {
                                                 </span>
                                             </div>
 
-                                            <div className="w-32 px-2 text-center text-sm text-gray-600">
-                                                {child.price ? `฿${Number(child.price).toLocaleString("th-TH", { minimumFractionDigits: 2 })}` : "-"}
+                                            <div className="w-32 px-2 text-center text-sm font-semibold text-blue-600">
+                                                {child.cartonPrice ? `฿${Number(child.cartonPrice).toLocaleString("th-TH", { minimumFractionDigits: 2 })}` : "-"}
                                             </div>
 
                                             <div className="w-32 px-2 text-center text-sm text-gray-600">

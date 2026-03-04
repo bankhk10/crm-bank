@@ -80,7 +80,7 @@ export function useProductColumns(
                 ),
             },
             {
-                accessorKey: "price",
+                accessorKey: "cartonPrice",
                 header: "ราคา",
                 meta: {
                     headerAlign: "left",
@@ -90,9 +90,9 @@ export function useProductColumns(
                     align: "left",
                 },
                 cell: ({ row }) => {
-                    const price = row.original.price;
+                    const price = row.original.cartonPrice;
                     return (
-                        <div className="text-sm">
+                        <div className="text-sm font-medium text-blue-600">
                             {price == null ? (
                                 "-"
                             ) : (

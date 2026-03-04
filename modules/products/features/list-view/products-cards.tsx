@@ -42,7 +42,7 @@ export function ProductsCards({
                         key={`loading-${idx}`}
                         className="h-full border border-slate-200/80 shadow-sm"
                     >
-                        <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
+                        <div className="h-1 w-full bg-linear-to-r from-slate-100 via-slate-200 to-slate-100" />
                         <div className="space-y-3 p-4">
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -104,7 +104,7 @@ export function ProductsCards({
                             key={product.id}
                             className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
-                            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+                            <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500" />
                             <div className="p-4 space-y-3">
                                 <ProductStatusBadge status={product.status} />
                                 <div className="flex items-start justify-between gap-3">
@@ -131,11 +131,11 @@ export function ProductsCards({
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
-                                        <span className="text-slate-600">ราคา:</span>
-                                        <span className="font-medium">
-                                            {product.price == null
+                                        <span className="text-slate-600">ราคาต่อลัง:</span>
+                                        <span className="font-medium text-blue-600">
+                                            {product.cartonPrice == null
                                                 ? "-"
-                                                : `฿${Number(product.price).toLocaleString("th-TH", {
+                                                : `฿${Number(product.cartonPrice).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
                                                 })}`}
                                         </span>
