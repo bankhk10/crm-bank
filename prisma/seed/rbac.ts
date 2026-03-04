@@ -1094,7 +1094,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "sales_target.create" },
     { key: "sales_target.edit" },
     { key: "sales_target.view" },
-    { key: "sales_target.view" },
     { key: "sales_target.delete" },
   ];
 
@@ -1145,7 +1144,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "report.product_sales" },
     { key: "report.customer_sales" },
     { key: "report.salesperson" },
-    { key: "menu.temporary_credit_limits" },
     { key: "menu.temporary_credit_limits" },
     { key: "temporary_creditlimit.create" },
     { key: "menu.dashboard.manager" },
@@ -1482,12 +1480,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
     {
       key: "data.temporary_creditlimits",
-      dataAccess: "VIEW_ALL",
-      editAccess: "EDIT_ALL",
-      deleteAccess: "DELETE_ALL",
-    },
-    {
-      key: "data.stock",
       dataAccess: "VIEW_ALL",
       editAccess: "EDIT_ALL",
       deleteAccess: "DELETE_ALL",
