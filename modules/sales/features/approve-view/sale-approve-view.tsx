@@ -620,9 +620,9 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                     <div className="p-6 space-y-3">
                         <div className="grid grid-cols-12 gap-4 px-5 py-2 text-sm text-gray-500 font-semibold border-b border-gray-100">
                             <div className="col-span-3">สินค้า</div>
+                            <div className="col-span-1 text-center">จำนวน</div>
                             <div className="col-span-1 text-center">หน่วยนับ</div>
                             <div className="col-span-1 text-center">บรรจุ</div>
-                            <div className="col-span-1 text-center">จำนวน (ลัง)</div>
                             <div className="col-span-2 text-right">ราคา (หน่วย)</div>
                             <div className="col-span-2 text-right">ราคา (ลัง)</div>
                             <div className="col-span-2 text-right">รวม</div>
@@ -669,6 +669,13 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                             )}
                                         </div>
 
+                                        {/* Quantity */}
+                                        <div className="col-span-1 text-center">
+                                            <p className="font-bold text-gray-900 text-lg">
+                                                {item.quantity}
+                                            </p>
+                                        </div>
+
                                         {/* Unit */}
                                         <div className="col-span-1 text-center">
                                             <p className="text-gray-900">
@@ -680,13 +687,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         <div className="col-span-1 text-center">
                                             <p className="text-gray-900">
                                                 {item.product.packageSizePerBox || "-"}
-                                            </p>
-                                        </div>
-
-                                        {/* Quantity */}
-                                        <div className="col-span-1 text-center">
-                                            <p className="font-bold text-gray-900 text-lg">
-                                                {item.quantity}
                                             </p>
                                         </div>
 
