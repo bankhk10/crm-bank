@@ -978,61 +978,57 @@ export default function FulfillmentDetailPage({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 space-y-8">
-                            {/* 1. Payment Status */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
-                                        1
-                                    </span>
-                                    <ClipboardCheck className="h-4 w-4 text-blue-600" />
-                                    สถานะ
-                                </label>
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
-                                        <SelectValue placeholder="เลือกสถานะ" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        {FULFILLMENT_STATUSES.map((st) => {
-                                            // Disable delivery-related statuses if stock is insufficient
-                                            const deliveryStatuses = [
-                                                "AWAITING_DELIVERY",
-                                                "DELIVERED",
-                                                "DELIVERY_COMPLETED",
-                                                "COMPLETED",
-                                            ];
-                                            const isDeliveryStatus = deliveryStatuses.includes(st);
-                                            const isDisabled =
-                                                isDeliveryStatus && stockWarnings.length > 0;
-
-                                            return (
-                                                <SelectItem
-                                                    key={st}
-                                                    value={st}
-                                                    className={`rounded-lg ${isDisabled ? "opacity-50" : ""
-                                                        }`}
-                                                    disabled={isDisabled}
-                                                >
-                                                    {SaleStatusLabels[
-                                                        st as keyof typeof SaleStatusLabels
-                                                    ] || st}
-                                                    {isDisabled && " (สต็อกไม่พอ)"}
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                                    <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
-                                    เลือกสถานะปัจจุบันของรายการขาย
-                                    {stockWarnings.length > 0 && (
-                                        <span className="text-amber-600 font-medium ml-2">
-                                            (สถานะจัดส่งถูกปิดเนื่องจากสต็อกไม่เพียงพอ)
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                {/* 1. Payment Status */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+                                            1
                                         </span>
-                                    )}
-                                </p>
-                            </div>
+                                        <ClipboardCheck className="h-4 w-4 text-blue-600" />
+                                        สถานะ
+                                    </label>
+                                    <Select value={status} onValueChange={setStatus}>
+                                        <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
+                                            <SelectValue placeholder="เลือกสถานะ" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                            {FULFILLMENT_STATUSES.map((st) => {
+                                                // Disable delivery-related statuses if stock is insufficient
+                                                const deliveryStatuses = [
+                                                    "AWAITING_DELIVERY",
+                                                    "DELIVERED",
+                                                    "DELIVERY_COMPLETED",
+                                                    "COMPLETED",
+                                                ];
+                                                const isDeliveryStatus = deliveryStatuses.includes(st);
+                                                const isDisabled =
+                                                    isDeliveryStatus && stockWarnings.length > 0;
 
-                            <div className="grid md:grid-cols-2 gap-8">
+                                                return (
+                                                    <SelectItem
+                                                        key={st}
+                                                        value={st}
+                                                        className={`rounded-lg ${isDisabled ? "opacity-50" : ""
+                                                            }`}
+                                                        disabled={isDisabled}
+                                                    >
+                                                        {SaleStatusLabels[
+                                                            st as keyof typeof SaleStatusLabels
+                                                        ] || st}
+                                                        {isDisabled && " (สต็อกไม่พอ)"}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                        <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
+                                        เลือกสถานะปัจจุบันของรายการขาย
+                                    </p>
+                                </div>
+
+                                {/* 2. Delivery Date */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">
@@ -1061,7 +1057,7 @@ export default function FulfillmentDetailPage({
                                         !deliveryDate && (
                                             <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
                                                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                                จำเป็นต้องระบุวันที่จัดส่งของเมื่อสถานะเป็น &ldquo;
+                                                ระบุวันที่จัดส่งเมื่อสถานะเป็น &ldquo;
                                                 {status === "COMPLETED"
                                                     ? "เสร็จสิ้น"
                                                     : status === "DELIVERED"
@@ -1092,12 +1088,14 @@ export default function FulfillmentDetailPage({
                                     </div>
                                     <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-2 rounded-lg">
                                         <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block"></span>
-                                        คำนวณอัตโนมัติจาก วันที่จัดส่ง + {sale.creditDays || 0} วัน
+                                        คำนวณจาก วันส่ง + {sale.creditDays || 0} วัน
                                     </p>
                                 </div>
+                            </div>
 
+                            <div className="grid md:grid-cols-2 gap-8">
                                 {/* 4. Payment Date */}
-                                <div className="space-y-3 group/field md:col-span-2">
+                                <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs font-bold">
                                             4
@@ -1108,7 +1106,7 @@ export default function FulfillmentDetailPage({
                                             <span className="text-red-500 ml-1">*</span>
                                         )}
                                     </label>
-                                    <div className="relative max-w-md">
+                                    <div className="relative">
                                         <DatePicker
                                             value={paymentDate}
                                             onChange={(val) => setPaymentDate(val || "")}
@@ -1120,8 +1118,7 @@ export default function FulfillmentDetailPage({
                                     {status === "COMPLETED" && !paymentDate && (
                                         <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
                                             <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                            จำเป็นต้องระบุวันที่ชำระเงินเมื่อสถานะเป็น
-                                            &ldquo;เสร็จสิ้น&rdquo;
+                                            จำเป็นต้องระบุเมื่อสถานะเป็น &ldquo;เสร็จสิ้น&rdquo;
                                         </p>
                                     )}
                                 </div>
