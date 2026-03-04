@@ -60,7 +60,7 @@ export default function EmployeeForm({
             position: initial.position ?? "",
             department: initial.department ?? "",
             company: initial.company ?? "",
-            managerId: initial.managerId ?? "",
+            managerId: initial.managerId === null ? "none" : (initial.managerId ?? ""),
             responsibilityArea: initial.responsibilityArea ?? "",
             addressLine: initial.addressLine ?? "",
             province: initial.province ?? "",
@@ -118,11 +118,12 @@ export default function EmployeeForm({
                     setPositionOptions(d.map((x: any) => ({ value: x.id, label: x.name })));
                 }
                 if (mRes?.employees && mounted) {
-                    setManagerOptions(
-                        mRes.employees
+                    setManagerOptions([
+                        { value: "none", label: "ไม่มี" },
+                        ...mRes.employees
                             .filter((e: any) => e.id !== employeeId)
                             .map((e: any) => ({ value: e.id, label: e.name }))
-                    );
+                    ]);
                 }
             } catch (e) {
                 // ignore
@@ -168,9 +169,14 @@ export default function EmployeeForm({
             return;
         }
 
+        const payload = { ...data };
+        if (payload.managerId === "none" || payload.managerId === "") {
+            payload.managerId = null;
+        }
+
         setError(null);
         try {
-            const res = await onSubmit(data);
+            const res = await onSubmit(payload);
             if (!res.success) {
                 if (res.issues) {
                     setError(
