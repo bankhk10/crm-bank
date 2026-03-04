@@ -43,7 +43,7 @@ export function useProductColumns(
                 header: "รหัสสินค้า",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 100,
+                    minWidth: 130,
                     width: 130,
                     maxWidth: 130,
                     align: "left",
@@ -57,27 +57,24 @@ export function useProductColumns(
                 header: "ชื่อสินค้า",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 180,
-                    width: 180,
-                    maxWidth: 180,
+                    minWidth: 250,
+                    width: 250,
+                    maxWidth: 250,
                     align: "left",
                 },
                 cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
             },
             {
-                accessorKey: "productGroup",
-                header: "กลุ่มสินค้า",
-                enableSorting: false,
+                accessorKey: "unit",
+                header: "หน่วยนับ",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 100,
-                    width: 100,
-                    maxWidth: 100,
+                    minWidth: 110,
+                    width: 110,
+                    maxWidth: 110,
                     align: "left",
                 },
-                cell: ({ row }) => (
-                    <TruncatedCell value={row.original.productGroup ?? "-"} />
-                ),
+                cell: ({ row }) => <span className="text-sm">{row.original.unit ?? "-"}</span>,
             },
             {
                 accessorKey: "cartonPrice",
@@ -112,9 +109,9 @@ export function useProductColumns(
                 header: "ทั้งหมด",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 110,
-                    width: 110,
-                    maxWidth: 110,
+                    minWidth: 100,
+                    width: 100,
+                    maxWidth: 100,
                     align: "left",
                 },
                 cell: ({ row }) => {
@@ -124,7 +121,7 @@ export function useProductColumns(
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{totalStock.toLocaleString()}</span>
-                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                            {/* {unit && <span className="text-gray-500 text-xs">{unit}</span>} */}
                         </div>
                     );
                 },
@@ -135,9 +132,9 @@ export function useProductColumns(
                 enableSorting: false,
                 meta: {
                     headerAlign: "left",
-                    minWidth: 70,
-                    width: 70,
-                    maxWidth: 70,
+                    minWidth: 50,
+                    width: 50,
+                    maxWidth: 50,
                     align: "left",
                 },
                 cell: ({ row }) => {
@@ -147,7 +144,7 @@ export function useProductColumns(
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{reserved.toLocaleString()}</span>
-                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                            {/* {unit && <span className="text-gray-500 text-xs">{unit}</span>} */}
                         </div>
                     );
                 },
@@ -158,9 +155,9 @@ export function useProductColumns(
                 accessorFn: (row) => row.availableQuantity ?? 0,
                 meta: {
                     headerAlign: "left",
-                    minWidth: 110,
-                    width: 110,
-                    maxWidth: 110,
+                    minWidth: 105,
+                    width: 105,
+                    maxWidth: 105,
                     align: "left",
                 },
                 cell: ({ row }) => {
@@ -172,7 +169,7 @@ export function useProductColumns(
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{remaining.toLocaleString()}</span>
-                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                            {/* {unit && <span className="text-gray-500 text-xs">{unit}</span>} */}
                         </div>
                     );
                 },
@@ -183,9 +180,9 @@ export function useProductColumns(
                 enableSorting: false,
                 meta: {
                     headerAlign: "left",
-                    minWidth: 120,
-                    width: 120,
-                    maxWidth: 120,
+                    minWidth: 100,
+                    width: 100,
+                    maxWidth: 100,
                     align: "left",
                 },
                 cell: ({ row }) => {
