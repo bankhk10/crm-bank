@@ -978,13 +978,28 @@ export default function FulfillmentDetailPage({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-teal-600" />
+                                        เลขที่คำสั่งขาย
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-teal-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        placeholder="กรอกเลขที่คำสั่งขาย"
+                                        value={saleOrderRef}
+                                        onChange={(e) => setSaleOrderRef(e.target.value)}
+                                    />
+                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                        <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
+                                        เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
+                                    </p>
+                                </div>
                                 {/* 1. Payment Status */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
-                                            1
-                                        </span>
                                         <ClipboardCheck className="h-4 w-4 text-blue-600" />
                                         สถานะ
                                     </label>
@@ -1028,12 +1043,13 @@ export default function FulfillmentDetailPage({
                                     </p>
                                 </div>
 
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
                                 {/* 2. Delivery Date */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold">
-                                            2
-                                        </span>
                                         <Truck className="h-4 w-4 text-emerald-600" />
                                         วันที่จัดส่งของ
                                         {(status === "COMPLETED" ||
@@ -1071,9 +1087,6 @@ export default function FulfillmentDetailPage({
                                 {/* 3. Due Date */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-600 text-xs font-bold">
-                                            3
-                                        </span>
                                         <Calendar className="h-4 w-4 text-amber-600" />
                                         วันครบกำหนดชำระ
                                     </label>
@@ -1093,13 +1106,33 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
 
+
+                            {/* 6. Notes */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2 px-2">
+                                    หมายเหตุ
+                                    {status === "CANCELLED" && (
+                                        <span className="text-red-500 ml-1">*</span>
+                                    )}
+                                </label>
+                                <textarea
+                                    className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                />
+                                {status === "CANCELLED" && !notes.trim() && (
+                                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg mt-2">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
+                                        จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="grid md:grid-cols-2 gap-8">
                                 {/* 4. Payment Date */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs font-bold">
-                                            4
-                                        </span>
                                         <CreditCard className="h-4 w-4 text-purple-600" />
                                         วันที่ชำระเงิน
                                         {status === "COMPLETED" && (
@@ -1124,59 +1157,10 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
 
-                            {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-600 text-xs font-bold">
-                                        5
-                                    </span>
-                                    <FileText className="h-4 w-4 text-teal-600" />
-                                    เลขที่คำสั่งขาย
-                                </label>
-                                <input
-                                    type="text"
-                                    className="flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-teal-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="กรอกเลขที่คำสั่งขาย"
-                                    value={saleOrderRef}
-                                    onChange={(e) => setSaleOrderRef(e.target.value)}
-                                />
-                                <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                                    <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
-                                    เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
-                                </p>
-                            </div>
-
-                            {/* 7. Notes */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                                        7
-                                    </span>
-                                    หมายเหตุ
-                                    {status === "CANCELLED" && (
-                                        <span className="text-red-500 ml-1">*</span>
-                                    )}
-                                </label>
-                                <textarea
-                                    className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                />
-                                {status === "CANCELLED" && !notes.trim() && (
-                                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg mt-2">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                        จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
-                                    </p>
-                                )}
-                            </div>
 
                             {/* 8. LOT Selection - Always show for selecting stock lots */}
                             <div className="space-y-3 group/field pt-4 border-t border-slate-200">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
-                                        8
-                                    </span>
                                     <Package className="h-4 w-4 text-indigo-600" />
                                     <span className="text-sm font-semibold text-slate-700">
                                         เลือก LOT สินค้า
