@@ -84,76 +84,80 @@ export function SaleItemRow({
                 </div>
             </div>
 
-            <div className="grid gap-x-4 gap-y-3 md:grid-cols-5">
-                <FormInput
-                    label="จำนวน (ลัง)"
-                    type="number"
-                    value={String(item.quantity)}
-                    onChange={(e) => onUpdate(index, "quantity", Number(e.target.value))}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-                />
-                <FormInput
-                    label="ราคาต่อหน่วย"
-                    type="number"
-                    value={String(item.unitPrice)}
-                    onChange={(e) => onUpdate(index, "unitPrice", Number(e.target.value))}
-                    onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-                />
-                <FormInput
-                    label="จำนวนบรรจุในลัง"
-                    value={product?.packageSizePerBox || "-"}
-                    onChange={() => { }}
-                    disabled
-                    readOnly
-                    className="bg-gray-100 text-gray-500"
-                />
-                <FormInput
-                    label="ราคาต่อลัง"
-                    value={(() => {
-                        // Try to parse pack size (e.g. "12", "12x1L")
-                        const packSize = parseFloat(product?.packageSizePerBox || "0");
+            {product && (
+                <>
+                    <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-3">
+                        <FormInput
+                            label="จำนวน (ลัง)"
+                            type="number"
+                            value={String(item.quantity)}
+                            onChange={(e) => onUpdate(index, "quantity", Number(e.target.value))}
+                            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                        />
+                        <FormInput
+                            label="ราคาต่อหน่วย"
+                            type="number"
+                            value={String(item.unitPrice)}
+                            onChange={(e) => onUpdate(index, "unitPrice", Number(e.target.value))}
+                            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+                        />
+                        <FormInput
+                            label="จำนวนบรรจุในลัง"
+                            value={product?.packageSizePerBox || "-"}
+                            onChange={() => { }}
+                            disabled
+                            readOnly
+                            className="bg-gray-100 text-gray-500"
+                        />
+                        <FormInput
+                            label="ราคาต่อลัง"
+                            value={(() => {
+                                // Try to parse pack size (e.g. "12", "12x1L")
+                                const packSize = parseFloat(product?.packageSizePerBox || "0");
 
-                        // If we have a valid pack size, calculate carton price based on current unit price
-                        if (!isNaN(packSize) && packSize > 0) {
-                            const calculatedCartonPrice = item.unitPrice * packSize;
-                            return `฿${calculatedCartonPrice.toLocaleString()}`;
-                        }
+                                // If we have a valid pack size, calculate carton price based on current unit price
+                                if (!isNaN(packSize) && packSize > 0) {
+                                    const calculatedCartonPrice = item.unitPrice * packSize;
+                                    return `฿${calculatedCartonPrice.toLocaleString()}`;
+                                }
 
-                        // Fallback to master data or standard dash
-                        return product?.cartonPrice
-                            ? `฿${Number(product.cartonPrice).toLocaleString()}`
-                            : "-";
-                    })()}
-                    onChange={() => { }}
-                    disabled
-                    readOnly
-                    className="bg-gray-100 text-gray-500"
-                />
-                <FormInput
-                    label="ราคารวม (บาท)"
-                    value={(() => {
-                        const packSize = parseFloat(product?.packageSizePerBox || "1");
-                        const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                        return (item.quantity * item.unitPrice * multiplier).toLocaleString(
-                            undefined,
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            },
-                        );
-                    })()}
-                    onChange={() => { }}
-                    disabled
-                    readOnly
-                />
-            </div>
+                                // Fallback to master data or standard dash
+                                return product?.cartonPrice
+                                    ? `฿${Number(product.cartonPrice).toLocaleString()}`
+                                    : "-";
+                            })()}
+                            onChange={() => { }}
+                            disabled
+                            readOnly
+                            className="bg-gray-100 text-gray-500"
+                        />
+                        <FormInput
+                            label="ราคารวม (บาท)"
+                            value={(() => {
+                                const packSize = parseFloat(product?.packageSizePerBox || "1");
+                                const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                                return (item.quantity * item.unitPrice * multiplier).toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    },
+                                );
+                            })()}
+                            onChange={() => { }}
+                            disabled
+                            readOnly
+                        />
+                    </div>
 
-            {item.priceModified && (
-                <Alert className="bg-yellow-100 border-yellow-300">
-                    <AlertDescription className="text-sm">
-                        ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿{item.originalPrice.toLocaleString()}
-                    </AlertDescription>
-                </Alert>
+                    {item.priceModified && (
+                        <Alert className="bg-yellow-100 border-yellow-300 mt-3">
+                            <AlertDescription className="text-sm">
+                                ⚠️ ราคาถูกแก้ไขจากราคามาตรฐาน ฿{item.originalPrice.toLocaleString()}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </>
             )}
         </div>
     );

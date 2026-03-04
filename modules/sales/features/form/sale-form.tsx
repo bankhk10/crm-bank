@@ -132,7 +132,6 @@ export function SaleForm({
         initialData?.deliveryMethod || "SALES_DELIVERY",
     );
 
-
     // Address selection state
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
         initialData?.selectedAddressId || "",
@@ -166,8 +165,6 @@ export function SaleForm({
 
     // User permissions
     // User permissions (moved to top)
-
-
 
     // Auto-fill employeeId for current user (if they have an employeeId)
     useEffect(() => {
@@ -272,7 +269,9 @@ export function SaleForm({
             timer = setTimeout(() => {
                 const isInitialCustomer = initialData?.customerId === customerId;
                 const hadCustomShipping =
-                    isEdit && isInitialCustomer && initialData?.useCustomShipping === true;
+                    isEdit &&
+                    isInitialCustomer &&
+                    initialData?.useCustomShipping === true;
 
                 if (hadCustomShipping) {
                     if (!hasInitializedDeliveryMethod) {
@@ -329,7 +328,12 @@ export function SaleForm({
                 return () => clearTimeout(timer);
             }
         }
-    }, [deliveryMethod, selectedCustomer, shippingCompanyId, customShippingAddress]);
+    }, [
+        deliveryMethod,
+        selectedCustomer,
+        shippingCompanyId,
+        customShippingAddress,
+    ]);
 
     // Handle payment term change
     const handlePaymentTermChange = (value: PaymentTermType) => {
@@ -349,7 +353,6 @@ export function SaleForm({
     const handleUseCustomAddress = () => {
         setSelectedAddressId("");
     };
-
 
     // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
@@ -652,7 +655,9 @@ export function SaleForm({
                 customShippingAddress={customShippingAddress}
                 onCustomShippingAddressChange={setCustomShippingAddress}
                 fieldErrors={fieldErrors}
-                onFieldErrorClear={(field) => setFieldErrors((prev) => ({ ...prev, [field]: "" }))}
+                onFieldErrorClear={(field) =>
+                    setFieldErrors((prev) => ({ ...prev, [field]: "" }))
+                }
             />
 
             {/* Products Section */}
@@ -750,7 +755,6 @@ export function SaleForm({
             <FormActionButtons loading={loading} onCancel={handleCancel} />
 
             <div className="w-full h-12 sm:hidden"></div>
-
             <div className="w-full sm:w-auto">
                 <RandomFillButton
                     size="lg"
