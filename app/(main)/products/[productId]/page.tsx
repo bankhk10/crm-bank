@@ -327,7 +327,7 @@ export default function ProductDetailPage() {
                       งบส่งเสริม: {Number(product.promotionBudget).toLocaleString()} บาท
                     </p>
                   )}
-                  {product.pointPerUnit || product.pointPerUnit == 0 && (
+                  {product.pointPerUnit && (
                     <p className="text-sm text-amber-600 flex items-center gap-1">
                       <Star className="h-3.5 w-3.5" />
                       คะแนนต่อหน่วย: {product.pointPerUnit} คะแนน
