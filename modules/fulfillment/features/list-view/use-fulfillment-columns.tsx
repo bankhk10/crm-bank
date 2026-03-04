@@ -71,22 +71,23 @@ export function useFulfillmentColumns() {
             },
             {
                 id: "actions",
+                header: "จัดการ",
                 enableHiding: false,
                 cell: ({ row }) => {
                     const sale = row.original;
                     return (
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-start gap-3">
                             <ActionButton
                                 href={`/sales/${sale.id}`}
                                 icon={Eye}
                                 label="รายละเอียด"
-                                colorClass="text-slate-700 hover:text-white border-slate-200 hover:border-slate-300 hover:bg-slate-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                                colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                             />
                             <ActionButton
                                 href={`/fulfillment/${sale.id}`}
                                 icon={ClipboardList}
                                 label="จัดการคำสั่งขาย"
-                                colorClass="text-blue-700 hover:text-white border-blue-200 hover:border-blue-400 hover:bg-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                                colorClass="text-green-700 hover:text-white border-green-200 hover:border-green-400 hover:bg-green-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                             />
                         </div>
                     );
