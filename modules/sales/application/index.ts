@@ -39,6 +39,11 @@ export async function listSalesUseCase(params: ListSalesParams) {
 
 export { createSaleUseCase } from "./create-sale";
 export { updateSaleUseCase } from "./update-sale";
+export {
+  getSaleDetailForApproval,
+  approveSaleUseCase,
+  rejectSaleUseCase,
+} from "./approve-sale";
 
 // ─────────────────────────────────────────────
 // Validations & Types

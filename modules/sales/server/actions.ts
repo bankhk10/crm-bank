@@ -12,6 +12,11 @@ import {
   listSalesUseCase,
 } from "../application";
 import { softDeleteSale } from "../infrastructure/sale.repository";
+import {
+  getSaleDetailForApproval,
+  approveSaleUseCase,
+  rejectSaleUseCase,
+} from "../application/approve-sale";
 
 // Helper to convert Prisma.Decimal objects to numbers, as they are not supported by Server Actions
 function serializeData(obj: any): any {
@@ -139,3 +144,56 @@ export async function listSalesAction(params: {
   }
 }
 
+// ─────────────────────────────────────────────
+// Approve / Reject
+// ─────────────────────────────────────────────
+
+export async function getSaleForApprovalAction(id: string) {
+  const session = await auth();
+  if (!session?.user?.id)
+    return { success: false as const, error: "Unauthorized" };
+
+  try {
+    const data = await getSaleDetailForApproval(id);
+    if (!data) return { success: false as const, error: "Not found" };
+    return { success: true as const, data: serializeData(data) };
+  } catch (_err) {
+    return { success: false as const, error: "Failed to fetch" };
+  }
+}
+
+export async function approveSaleAction(id: string, notes?: string) {
+  const session = await auth();
+  if (!session?.user?.id)
+    return { success: false as const, error: "Unauthorized" };
+
+  try {
+    const result = await approveSaleUseCase(id, session.user.id, notes);
+    revalidatePath("/sales");
+    revalidatePath(`/sales/${id}`);
+    return serializeData(result);
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message ?? "Failed to approve",
+    };
+  }
+}
+
+export async function rejectSaleAction(id: string, reason: string) {
+  const session = await auth();
+  if (!session?.user?.id)
+    return { success: false as const, error: "Unauthorized" };
+
+  try {
+    const result = await rejectSaleUseCase(id, session.user.id, reason);
+    revalidatePath("/sales");
+    revalidatePath(`/sales/${id}`);
+    return serializeData(result);
+  } catch (err: any) {
+    return {
+      success: false as const,
+      error: err.message ?? "Failed to reject",
+    };
+  }
+}
