@@ -623,9 +623,9 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                             <div className="col-span-1 text-center">จำนวน</div>
                             <div className="col-span-1 text-center">หน่วยนับ</div>
                             <div className="col-span-1 text-center">บรรจุ</div>
-                            <div className="col-span-2 text-right">ราคา (หน่วย)</div>
-                            <div className="col-span-2 text-right">ราคา (ลัง)</div>
-                            <div className="col-span-2 text-right">รวม</div>
+                            <div className="col-span-2 text-center">ราคา (หน่วย)</div>
+                            <div className="col-span-1 text-center">ราคา (ลัง)</div>
+                            <div className="col-span-3 text-center">รวม</div>
                         </div>
                         {sale.items.map((item, i) => {
                             const originalUnitPrice = Number(
@@ -691,7 +691,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </div>
 
                                         {/* Unit Price */}
-                                        <div className="col-span-2 text-right">
+                                        <div className="col-span-2 text-center">
                                             <p
                                                 className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-gray-900"
                                                     }`}
@@ -710,7 +710,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </div>
 
                                         {/* Carton Price */}
-                                        <div className="col-span-2 text-right">
+                                        <div className="col-span-2 text-left">
                                             <p className="font-bold text-gray-900 text-lg">
                                                 {cartonPrice.toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -719,7 +719,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </div>
 
                                         {/* Total */}
-                                        <div className="col-span-2 text-right">
+                                        <div className="col-span-2 text-left">
                                             <p
                                                 className={`font-bold text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"
                                                     }`}
