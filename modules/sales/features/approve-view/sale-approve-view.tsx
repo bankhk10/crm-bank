@@ -100,9 +100,9 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
     /* Loading */
     if (permLoading || loading)
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+            <div className="flex flex-wrap items-center justify-center gap-4 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
                 <div className="animate-spin h-14 w-14 border-4 border-blue-300 border-t-blue-700 rounded-full"></div>
-                <p className="text-gray-600 ml-4 text-lg">กำลังโหลดข้อมูล...</p>
+                <p className="text-gray-600 text-lg">กำลังโหลดข้อมูล...</p>
             </div>
         );
 
@@ -167,27 +167,27 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                         <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         กลับไปหน้ารายการขาย
                     </Button>
-                    <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg">
+                    <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 min-w-0">
+                        <div className="flex items-center gap-4 min-w-0 overflow-hidden">
+                            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg shrink-0">
                                 <FileText className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
                             </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                            <div className="min-w-0">
+                                <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-white mb-1 sm:mb-2">
                                     พิจารณาอนุมัติรายการขาย
                                 </h1>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base">
-                                    <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm sm:text-base min-w-0">
+                                    <span className="font-mono font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-lg w-fit shrink-0">
                                         {sale.saleNumber}
                                     </span>
-                                    <span className="text-blue-100 hidden sm:inline">•</span>
-                                    <span className="text-blue-50 font-medium truncate">
+                                    <span className="text-blue-100 hidden sm:inline shrink-0">•</span>
+                                    <span className="text-blue-50 font-medium truncate block min-w-0">
                                         {sale.customer.name}
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <Badge className="px-4 py-2 bg-amber-400 text-amber-900 border-0 text-sm font-bold shadow-lg w-fit">
+                        <Badge className="px-4 py-2 bg-amber-400 text-amber-900 border-0 text-sm font-bold shadow-lg w-fit shrink-0">
                             รอการอนุมัติ
                         </Badge>
                     </CardTitle>
@@ -413,7 +413,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                         )}
                     </h3>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                         <div className="bg-white p-4 rounded-xl border shadow-sm">
                             <span className="text-sm text-gray-600">วงเงิน</span>
                             <p className="font-bold text-xl text-gray-900 mt-1">
@@ -453,7 +453,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                 </CardHeader>
 
                 {/* Mobile Card View */}
-                <div className="block lg:hidden">
+                <div className="block md:hidden">
                     <div className="p-4 space-y-3">
                         {sale.items.map((item, i) => {
                             const currentUnitPrice = Number(item.unitPrice ?? 0);
@@ -616,16 +616,16 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                 </div>
 
                 {/* Desktop Table View */}
-                <div className="hidden lg:block">
+                <div className="hidden md:block">
                     <div className="p-6 space-y-3">
-                        <div className="grid grid-cols-12 gap-4 px-5 py-2 text-sm text-gray-500 font-semibold border-b border-gray-100">
-                            <div className="col-span-3">สินค้า</div>
+                        <div className="grid grid-cols-12 gap-2 md:gap-4 px-3 md:px-5 py-2 text-xs md:text-sm text-gray-500 font-semibold border-b border-gray-100">
+                            <div className="col-span-4">สินค้า</div>
                             <div className="col-span-1 text-center">จำนวน</div>
-                            <div className="col-span-1 text-center">หน่วยนับ</div>
+                            <div className="col-span-1 text-center">หน่วย</div>
                             <div className="col-span-1 text-center">บรรจุ</div>
-                            <div className="col-span-2 text-center">ราคา (หน่วย)</div>
-                            <div className="col-span-1 text-center">ราคา (ลัง)</div>
-                            <div className="col-span-3 text-center">รวม</div>
+                            <div className="col-span-2 text-center">ราคา/หน่วย</div>
+                            <div className="col-span-1 text-center">ราคา/ลัง</div>
+                            <div className="col-span-2 text-center">รวม</div>
                         </div>
                         {sale.items.map((item, i) => {
                             const originalUnitPrice = Number(
@@ -648,22 +648,22 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                             return (
                                 <div
                                     key={item.id ?? i}
-                                    className={`rounded-2xl border-2 p-4 transition-all shadow-sm hover:shadow-md ${priceChanged
+                                    className={`rounded-2xl border-2 p-3 md:p-4 transition-all shadow-sm hover:shadow-md ${priceChanged
                                         ? "bg-orange-50/70 border-orange-300"
                                         : "bg-white border-gray-100"
                                         }`}
                                 >
-                                    <div className="grid grid-cols-12 gap-4 items-center">
+                                    <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
                                         {/* Product Info */}
-                                        <div className="col-span-3">
-                                            <p className="font-bold text-gray-900 text-base">
+                                        <div className="col-span-4">
+                                            <p className="font-bold text-gray-900 text-sm md:text-base leading-tight">
                                                 {item.product.name}
                                             </p>
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="text-xs text-gray-500 mt-0.5">
                                                 {item.product.productCode}
                                             </p>
                                             {priceChanged && (
-                                                <Badge className="mt-2 bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                                                <Badge className="mt-1 bg-orange-100 text-orange-700 border-orange-200 text-xs">
                                                     รายการพิเศษ
                                                 </Badge>
                                             )}
@@ -671,21 +671,21 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
                                         {/* Quantity */}
                                         <div className="col-span-1 text-center">
-                                            <p className="font-bold text-gray-900 text-lg">
+                                            <p className="font-bold text-gray-900 text-sm md:text-base">
                                                 {item.quantity}
                                             </p>
                                         </div>
 
                                         {/* Unit */}
                                         <div className="col-span-1 text-center">
-                                            <p className="text-gray-900">
+                                            <p className="text-gray-900 text-sm md:text-base">
                                                 {item.product.unit || "-"}
                                             </p>
                                         </div>
 
                                         {/* Package Size */}
                                         <div className="col-span-1 text-center">
-                                            <p className="text-gray-900">
+                                            <p className="text-gray-900 text-sm md:text-base">
                                                 {item.product.packageSizePerBox || "-"}
                                             </p>
                                         </div>
@@ -693,7 +693,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         {/* Unit Price */}
                                         <div className="col-span-2 text-center">
                                             <p
-                                                className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-gray-900"
+                                                className={`font-bold text-sm md:text-base ${priceChanged ? "text-orange-700" : "text-gray-900"
                                                     }`}
                                             >
                                                 {currentUnitPrice.toLocaleString("th-TH", {
@@ -701,7 +701,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                 })}
                                             </p>
                                             {priceChanged && (
-                                                <p className="text-xs text-gray-500 line-through mt-1">
+                                                <p className="text-xs text-gray-500 line-through mt-0.5">
                                                     {originalUnitPrice.toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
@@ -710,8 +710,8 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </div>
 
                                         {/* Carton Price */}
-                                        <div className="col-span-2 text-left">
-                                            <p className="font-bold text-gray-900 text-lg">
+                                        <div className="col-span-1 text-right">
+                                            <p className="font-bold text-gray-900 text-sm md:text-base">
                                                 {cartonPrice.toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
                                                 })}
@@ -719,9 +719,9 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </div>
 
                                         {/* Total */}
-                                        <div className="col-span-2 text-left">
+                                        <div className="col-span-2 text-right">
                                             <p
-                                                className={`font-bold text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"
+                                                className={`font-bold text-sm md:text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
                                                     }`}
                                             >
                                                 {currentTotal.toLocaleString("th-TH", {
@@ -729,7 +729,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                 })}
                                             </p>
                                             {priceChanged && (
-                                                <p className="text-xs text-gray-500 line-through mt-1">
+                                                <p className="text-xs text-gray-500 line-through mt-0.5">
                                                     {originalTotal.toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
@@ -796,7 +796,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
             </Card>
 
             {/* Sticky Bottom Action Bar */}
-            <div className="sticky bottom-24 sm:bottom-6 z-50 px-4 sm:px-6">
+            <div className="sticky bottom-4 z-50 px-4 sm:px-6">
                 <div className="max-w-6xl mx-auto flex flex-row justify-center items-center gap-3 sm:gap-4">
                     <Button
                         variant="destructive"
@@ -821,7 +821,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex gap-2 items-center">
                             <CheckCircle className="text-green-600" /> ยืนยันอนุมัติ
@@ -861,7 +861,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* REJECT DIALOG */}
             <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex gap-2 items-center text-red-600">
                             <XCircle /> ไม่อนุมัติรายการ
