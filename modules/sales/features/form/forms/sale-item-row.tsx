@@ -59,7 +59,7 @@ export function SaleItemRow({
                             onChange={handleProductChange}
                             options={products.map((p) => ({
                                 value: p.id,
-                                label: `${p.name} - ${p.productCode}`,
+                                label: `${p.productCode} - ${p.name}`,
                             }))}
                             placeholder="เลือกสินค้า"
                             searchPlaceholder="ค้นหาสินค้า..."
