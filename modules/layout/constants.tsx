@@ -88,18 +88,6 @@ export const navigationItems: SidebarNavItem[] = [
     ],
   },
   {
-    href: "/employee",
-    label: "พนักงาน",
-    permissionKey: "menu.employees",
-    icon: <Users2 className="h-4 w-4" />,
-  },
-  {
-    href: "/companies",
-    label: "บริษัท",
-    permissionKey: "menu.companies",
-    icon: <Building2 className="h-4 w-4" />,
-  },
-  {
     href: "/customers",
     label: "ลูกค้า",
     permissionKey: "menu.customers",
@@ -115,6 +103,18 @@ export const navigationItems: SidebarNavItem[] = [
     label: "บริษัทขนส่ง",
     permissionKey: "menu.shipping-companies",
     icon: <Truck className="h-4 w-4" />,
+  },
+  {
+    href: "/employee",
+    label: "พนักงาน",
+    permissionKey: "menu.employees",
+    icon: <Users2 className="h-4 w-4" />,
+  },
+  {
+    href: "/companies",
+    label: "บริษัท",
+    permissionKey: "menu.companies",
+    icon: <Building2 className="h-4 w-4" />,
   },
   {
     href: "/rbac",
