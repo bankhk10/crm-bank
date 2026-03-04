@@ -24,6 +24,7 @@ export const POSITION_OPTIONS = [
 export const RESPONSIBILITY_AREA_OPTIONS = [
   { value: "ภาคเหนือ", label: "ภาคเหนือ" },
   { value: "ภาคตะวันออกเฉียงเหนือ", label: "ภาคตะวันออกเฉียงเหนือ" },
+  { value: "ภาคตะวันออก", label: "ภาคตะวันออก" },
   { value: "ภาคตะวันตก", label: "ภาคตะวันตก" },
   { value: "ภาคกลาง", label: "ภาคกลาง" },
   { value: "ภาคใต้", label: "ภาคใต้" },
