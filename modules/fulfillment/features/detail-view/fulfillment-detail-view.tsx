@@ -379,19 +379,34 @@ export default function FulfillmentDetailPage({
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                        {/* ยอดรวมสุทธิ */}
-                        <div className="group bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-2xl p-5 border border-purple-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+                        {/* ข้อมูลชื่อลูกค้า */}
+                        <div className="group bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2.5 bg-purple-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
-                                    <CreditCard className="h-5 w-5 text-white" />
+                                <div className="p-2.5 bg-blue-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                                    <User className="h-5 w-5 text-white" />
                                 </div>
-                                <span className="text-sm text-purple-700 font-bold uppercase tracking-wide">
-                                    ยอดรวมสุทธิ
+                                <span className="text-sm text-blue-700 font-bold uppercase tracking-wide">
+                                    ข้อมูลชื่อลูกค้า
                                 </span>
                             </div>
-                            <p className="font-bold text-gray-900 text-base sm:text-lg">
-                                ฿{Number(sale.totalAmount).toLocaleString()}
+                            <p className="font-bold text-gray-900 text-base sm:text-lg truncate" title={sale.customer.name}>
+                                {sale.customer.name}
+                            </p>
+                        </div>
+
+                        {/* ชื่อพนักงานขาย */}
+                        <div className="group bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-2xl p-5 border border-indigo-200 shadow-md hover:shadow-xl hover:scale-105 transition-all duration-300">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2.5 bg-indigo-500 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                                    <User className="h-5 w-5 text-white" />
+                                </div>
+                                <span className="text-sm text-indigo-700 font-bold uppercase tracking-wide">
+                                    ชื่อพนักงานขาย
+                                </span>
+                            </div>
+                            <p className="font-bold text-gray-900 text-base sm:text-lg truncate" title={sale.employee.name}>
+                                {sale.employee.name}
                             </p>
                         </div>
 
