@@ -88,7 +88,7 @@ export function SaleItemRow({
                 <>
                     <div className="grid gap-x-4 gap-y-3 md:grid-cols-5 mt-3">
                         <FormInput
-                            label="จำนวน (ลัง)"
+                            label={`จำนวน (${product?.unit || '-'})`}
                             type="number"
                             value={String(item.quantity)}
                             onChange={(e) => onUpdate(index, "quantity", Number(e.target.value))}
