@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     useState,
-    useEffect,
     useMemo,
     Fragment,
     isValidElement,
@@ -47,11 +46,15 @@ const SidebarMenuItem = ({
     // Local state for toggling children
     // Should default to open if a child is active
     const [isOpen, setIsOpen] = useState(active);
+    const [prevActive, setPrevActive] = useState(active);
 
     // Update isOpen when pathname changes if it becomes active
-    useEffect(() => {
-        if (active) setIsOpen(true);
-    }, [active]);
+    if (active !== prevActive) {
+        setPrevActive(active);
+        if (active) {
+            setIsOpen(true);
+        }
+    }
 
     if (hasChildren) {
         return (
@@ -132,19 +135,20 @@ export default function Sidebar({
         return [mainDashboardItem, ...navs];
     }, [permissionKeys, roles]);
 
-    // Main sidebar 'accordion' logic for top-level items
     const [openKey, setOpenKey] = useState<string | null>(() => {
         const parent = items.find((item) => isChildActive(item, pathname));
         return parent?.href ?? null;
     });
+    const [prevPathname, setPrevPathname] = useState(pathname);
 
     const isActive = (href: string) => isRouteActive(href, pathname);
 
     // Keep openKey in sync
-    useEffect(() => {
+    if (pathname !== prevPathname) {
+        setPrevPathname(pathname);
         const parent = items.find((item) => isChildActive(item, pathname));
         setOpenKey(parent?.href ?? null);
-    }, [pathname, items]);
+    }
 
     return (
         <aside
