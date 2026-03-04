@@ -120,7 +120,13 @@ export function useProductColumns(
                 cell: ({ row }) => {
                     // ทั้งหมด = สต็อกกายภาพที่มีจริง (physicalQuantity)
                     const totalStock = row.original.physicalQuantity ?? 0;
-                    return <div className="text-sm">{totalStock.toLocaleString()}</div>;
+                    const unit = row.original.unit;
+                    return (
+                        <div className="text-sm flex items-center gap-1">
+                            <span>{totalStock.toLocaleString()}</span>
+                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                        </div>
+                    );
                 },
             },
             {
@@ -137,7 +143,13 @@ export function useProductColumns(
                 cell: ({ row }) => {
                     const reserved =
                         row.original.reservedQuantity ?? row.original.reserved ?? 0;
-                    return <div className="text-sm">{reserved.toLocaleString()}</div>;
+                    const unit = row.original.unit;
+                    return (
+                        <div className="text-sm flex items-center gap-1">
+                            <span>{reserved.toLocaleString()}</span>
+                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                        </div>
+                    );
                 },
             },
             {
@@ -156,7 +168,13 @@ export function useProductColumns(
                     const physical = row.original.physicalQuantity ?? 0;
                     const reserved = row.original.reservedQuantity ?? 0;
                     const remaining = physical - reserved;
-                    return <div className="text-sm">{remaining.toLocaleString()}</div>;
+                    const unit = row.original.unit;
+                    return (
+                        <div className="text-sm flex items-center gap-1">
+                            <span>{remaining.toLocaleString()}</span>
+                            {unit && <span className="text-gray-500 text-xs">{unit}</span>}
+                        </div>
+                    );
                 },
             },
             {

@@ -145,20 +145,23 @@ export function ProductsCards({
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
                                         <div className="text-xs text-blue-600">ทั้งหมด</div>
-                                        <div className="font-semibold text-blue-700">
+                                        <div className="font-semibold text-blue-700 leading-tight">
                                             {totalStock.toLocaleString()}
+                                            {product.unit && <span className="block text-[10px] font-normal opacity-80">{product.unit}</span>}
                                         </div>
                                     </div>
                                     <div className="rounded-lg bg-orange-50 px-3 py-2 text-center">
                                         <div className="text-xs text-orange-600">จอง</div>
-                                        <div className="font-semibold text-orange-700">
+                                        <div className="font-semibold text-orange-700 leading-tight">
                                             {reserved.toLocaleString()}
+                                            {product.unit && <span className="block text-[10px] font-normal opacity-80">{product.unit}</span>}
                                         </div>
                                     </div>
                                     <div className="rounded-lg bg-emerald-50 px-3 py-2 text-center">
                                         <div className="text-xs text-emerald-600">คงเหลือ</div>
-                                        <div className="font-semibold text-emerald-700">
+                                        <div className="font-semibold text-emerald-700 leading-tight">
                                             {remaining.toLocaleString()}
+                                            {product.unit && <span className="block text-[10px] font-normal opacity-80">{product.unit}</span>}
                                         </div>
                                     </div>
                                 </div>
