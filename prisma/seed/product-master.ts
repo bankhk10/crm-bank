@@ -5,25 +5,16 @@ export async function seedProductMaster(prisma: PrismaClient) {
     "🧴 Seeding Product Master (Product Groups, Chemical Groups, Brands)...",
   );
 
-  // Create Product Groups A, B, C, D
+  // Create Product Groups (Trade Name Groups)
   await prisma.productGroupMaster.createMany({
     data: [
-      // {
-      //   code: "A",
-      //   description: "กลุ่มสินค้า A - ยาฆ่าแมลง",
-      // },
-      // {
-      //   code: "B",
-      //   description: "กลุ่มสินค้า B - ยาฆ่าเชื้อรา",
-      // },
-      // {
-      //   code: "C",
-      //   description: "กลุ่มสินค้า C - ยาฆ่าวัชพืช",
-      // },
-      // {
-      //   code: "D",
-      //   description: "กลุ่มสินค้า D - ยาบำรุงพืช",
-      // },
+      { code: "คอนซัลท์", description: "คอนซัลท์" },
+      { code: "พาเหรด", description: "พาเหรด" },
+      { code: "สติมเท็กซ์", description: "สติมเท็กซ์" },
+      { code: "อัคคาบัน", description: "อัคคาบัน" },
+      { code: "อัลเทอร่า แมกซิงค์", description: "อัลเทอร่า แมกซิงค์" },
+      { code: "เทคนิค", description: "เทคนิค" },
+      { code: "เทอรา-ซอรบ์", description: "เทอรา-ซอรบ์" },
     ],
     skipDuplicates: true,
   });
@@ -349,6 +340,16 @@ export async function seedProductMaster(prisma: PrismaClient) {
         code: "VAL",
         name: "VALIDAMYCIN : Fungicide",
       },
+    ],
+    skipDuplicates: true,
+  });
+
+  // Create Product Chains (กรุ๊ปสินค้า)
+  await prisma.productChain.createMany({
+    data: [
+      { name: "A", description: "สินค้าขายดี" },
+      { name: "B", description: "สินค้ารอง" },
+      { name: "C", description: "สินค้าตามฤดูกาล" },
     ],
     skipDuplicates: true,
   });
