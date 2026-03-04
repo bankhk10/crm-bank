@@ -1124,63 +1124,11 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
 
-                            {/* 5. Shipping Company */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-cyan-100 text-cyan-600 text-xs font-bold">
-                                        5
-                                    </span>
-                                    <Building2 className="h-4 w-4 text-cyan-600" />
-                                    บริษัทขนส่ง
-                                </label>
-                                <Select value={shippingCompanyId || "__none"} onValueChange={(val) => setShippingCompanyId(val === "__none" ? "" : val)}>
-                                    <SelectTrigger className="w-full h-12 border-slate-200 hover:border-cyan-300 focus:border-cyan-500 transition-colors rounded-xl shadow-sm">
-                                        <SelectValue placeholder="เลือกบริษัทขนส่ง" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        <SelectItem value="__none" className="rounded-lg text-slate-400">
-                                            -- ไม่ระบุ --
-                                        </SelectItem>
-                                        {shippingCompanies.map((sc) => (
-                                            <SelectItem key={sc.id} value={sc.id} className="rounded-lg">
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{sc.name}</span>
-                                                    {sc.phone && (
-                                                        <span className="text-xs text-slate-400">
-                                                            โทร: {sc.phone}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {shippingCompanyId && shippingCompanyId !== "__none" && (() => {
-                                    const selectedSC = shippingCompanies.find(sc => sc.id === shippingCompanyId);
-                                    if (!selectedSC) return null;
-                                    const addressParts = [
-                                        selectedSC.addressLine,
-                                        selectedSC.subdistrict,
-                                        selectedSC.district,
-                                        selectedSC.province,
-                                        selectedSC.postalCode,
-                                    ].filter(Boolean);
-                                    const fullAddress = addressParts.length > 0 ? addressParts.join(" ") : selectedSC.address;
-                                    if (!fullAddress) return null;
-                                    return (
-                                        <p className="text-xs text-cyan-600 font-medium flex items-center gap-1.5 bg-cyan-50 px-3 py-2 rounded-lg">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 inline-block"></span>
-                                            ที่อยู่: {fullAddress}
-                                        </p>
-                                    );
-                                })()}
-                            </div>
-
-                            {/* 6. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
+                            {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
                             <div className="space-y-3 group/field">
                                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-600 text-xs font-bold">
-                                        6
+                                        5
                                     </span>
                                     <FileText className="h-4 w-4 text-teal-600" />
                                     เลขที่คำสั่งขาย
