@@ -160,9 +160,6 @@ export function LotSelector({
           <h3 className="text-lg font-semibold text-slate-800">
             เลือก LOT สินค้า
           </h3>
-          <p className="text-sm text-slate-500">
-            เลือก LOT ที่ต้องการส่งสำหรับแต่ละรายการสินค้า
-          </p>
         </div>
       </div>
 

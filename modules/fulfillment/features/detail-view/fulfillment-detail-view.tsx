@@ -970,15 +970,12 @@ export default function FulfillmentDetailPage({
                     <Card className="relative bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
                         <CardHeader className="border-b border-slate-100 bg-gradient-to-br from-white to-slate-50/50 pt-6 pb-5">
-                            <CardTitle className="flex items-center gap-3 text-xl font-bold text-slate-800">
-                                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                                    <CreditCard className="h-5 w-5 text-white" />
-                                </div>
-                                ข้อมูลสถานะการขาย
-                            </CardTitle>
+                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                                ข้อมูลการขาย
+                            </h3>
                         </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <CardContent className="space-y-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
                                 {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -1045,7 +1042,7 @@ export default function FulfillmentDetailPage({
 
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
 
                                 {/* 2. Delivery Date */}
                                 <div className="space-y-3 group/field">
@@ -1129,7 +1126,11 @@ export default function FulfillmentDetailPage({
                                 )}
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-8">
+                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                                ข้อมูลการชำระเงิน
+                            </h3>
+
+                            <div className="grid md:grid-cols-2 gap-8 mt-6 px-4">
                                 {/* 4. Payment Date */}
                                 <div className="space-y-3 group/field">
                                     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
@@ -1157,15 +1158,12 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
 
+                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                                ข้อมูลสต็อกสินค้า
+                            </h3>
 
                             {/* 8. LOT Selection - Always show for selecting stock lots */}
-                            <div className="space-y-3 group/field pt-4 border-t border-slate-200">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Package className="h-4 w-4 text-indigo-600" />
-                                    <span className="text-sm font-semibold text-slate-700">
-                                        เลือก LOT สินค้า
-                                    </span>
-                                </div>
+                            <div className="space-y-3 group/field pt-4  border-slate-200 px-4">
                                 <LotSelector
                                     saleId={id}
                                     onAllocationsChange={handleLotAllocationsChange}
