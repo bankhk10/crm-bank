@@ -69,7 +69,7 @@ h3 {
 .sale-order-no {
   font-size: 14px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #121212;
 }
 .header-info {
   display: flex;
@@ -80,7 +80,7 @@ h3 {
 .invoice-no {
   font-size: 14px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #121212;
   text-align: right;
 }
 p {
