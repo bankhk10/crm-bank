@@ -2,6 +2,7 @@ import React from "react";
 import { Eye, Copy, Edit, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ActionButton } from "@/components/custom/action-button";
+import { TruncatedCell } from "@/components/custom/truncated-cell";
 import { formatCurrency } from "@/lib/currency-utils";
 import { MONTHS } from "../../constants";
 import { DetailedTarget } from "../../types";
@@ -17,61 +18,33 @@ export function useSalesTargetColumns(
     return React.useMemo<ColumnDef<DetailedTarget>[]>(
         () => [
             {
+                accessorKey: "year",
+                header: "ปี",
+                meta: {
+                    headerAlign: "center",
+                    minWidth: 80,
+                    width: 80,
+                    maxWidth: 80,
+                    align: "center",
+                },
+                cell: ({ row }) => (
+                    <span className="font-medium text-slate-900">{row.original.year + 543}</span>
+                ),
+            },
+            {
                 accessorKey: "month",
                 header: "เดือน",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 120,
-                    width: 130,
-                    maxWidth: 140,
+                    minWidth: 80,
+                    width: 80,
+                    maxWidth: 80,
                     align: "left",
                 },
                 cell: ({ row }) => {
                     const label =
                         MONTHS.find((m) => m.value === row.original.month)?.label ?? "-";
-                    return (
-                        <span className="font-medium text-slate-900">{label}</span>
-                    );
-                },
-            },
-            {
-                accessorKey: "year",
-                header: "ปี",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 70,
-                    width: 80,
-                    maxWidth: 90,
-                    align: "left",
-                },
-                cell: ({ row }) => (
-                    <span className="text-slate-700">{row.original.year + 543}</span>
-                ),
-            },
-            {
-                accessorKey: "employee",
-                header: "พนักงาน",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 160,
-                    width: 200,
-                    maxWidth: 220,
-                    align: "left",
-                },
-                cell: ({ row }) => {
-                    const emp = row.original.employee;
-                    return (
-                        <div className="flex flex-col">
-                            <span className="font-medium text-slate-900">
-                                {emp?.name ?? "-"}
-                            </span>
-                            {emp?.employeeCode && (
-                                <span className="text-xs text-slate-500">
-                                    {emp.employeeCode}
-                                </span>
-                            )}
-                        </div>
-                    );
+                    return <TruncatedCell value={label} className="font-medium text-slate-900" />;
                 },
             },
             {
@@ -79,23 +52,19 @@ export function useSalesTargetColumns(
                 header: "ร้านค้า",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 160,
-                    width: 220,
-                    maxWidth: 240,
+                    minWidth: 200,
+                    width: 250,
+                    maxWidth: 250,
                     align: "left",
                 },
                 cell: ({ row }) => {
                     const cust = row.original.customer;
                     return (
                         <div className="flex flex-col">
-                            <span className="font-medium text-slate-900">
-                                {cust?.name ?? "-"}
-                            </span>
-                            {cust?.customerCode && (
-                                <span className="text-xs text-slate-500">
-                                    {cust.customerCode}
-                                </span>
-                            )}
+                            <TruncatedCell
+                                value={cust?.name ?? "-"}
+                                className="font-medium text-slate-900"
+                            />
                         </div>
                     );
                 },
@@ -104,11 +73,11 @@ export function useSalesTargetColumns(
                 id: "totalQty",
                 header: "จำนวนสินค้า",
                 meta: {
-                    headerAlign: "right",
+                    headerAlign: "left",
                     minWidth: 110,
-                    width: 130,
-                    maxWidth: 140,
-                    align: "right",
+                    width: 110,
+                    maxWidth: 110,
+                    align: "left",
                 },
                 cell: ({ row }) => {
                     const totalQty =
@@ -127,11 +96,11 @@ export function useSalesTargetColumns(
                 id: "totalAmount",
                 header: "ยอดรวม",
                 meta: {
-                    headerAlign: "right",
-                    minWidth: 130,
-                    width: 150,
-                    maxWidth: 170,
-                    align: "right",
+                    headerAlign: "left",
+                    minWidth: 100,
+                    width: 100,
+                    maxWidth: 100,
+                    align: "left",
                 },
                 cell: ({ row }) => {
                     const totalAmount =
@@ -147,13 +116,35 @@ export function useSalesTargetColumns(
                 },
             },
             {
+                accessorKey: "employee",
+                header: "พนักงาน",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 150,
+                    width: 150,
+                    maxWidth: 150,
+                    align: "left",
+                },
+                cell: ({ row }) => {
+                    const emp = row.original.employee;
+                    return (
+                        <div className="flex flex-col">
+                            <TruncatedCell
+                                value={emp?.name ?? "-"}
+                                className="font-medium text-slate-900"
+                            />
+                        </div>
+                    );
+                },
+            },
+            {
                 id: "actions",
                 header: "จัดการ",
                 meta: {
                     headerAlign: "center",
-                    minWidth: 140,
-                    width: 160,
-                    maxWidth: 180,
+                    minWidth: 150,
+                    width: 150,
+                    maxWidth: 150,
                     align: "center",
                 },
                 cell: ({ row }) => {
