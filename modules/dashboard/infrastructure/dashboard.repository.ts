@@ -72,7 +72,7 @@ export async function findProductGroupTargets(year: number, month: number) {
 
 export async function findProductIdsByGroup(groupCode: string) {
   const products = await prisma.product.findMany({
-    where: { productChainId: groupCode, deletedAt: null },
+    where: { productChainId: groupCode },
     select: { id: true },
   });
   return products.map((p) => p.id);

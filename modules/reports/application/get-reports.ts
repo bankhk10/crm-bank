@@ -725,7 +725,7 @@ export async function getProductGroupSalesReport(
 
       // Get products in this group
       const products = await prisma.product.findMany({
-        where: { productGroup: group, deletedAt: null },
+        where: { productGroup: group },
         select: { id: true },
       });
       const productIds = products.map((p) => p.id);
@@ -1827,4 +1827,3 @@ export async function getAllSalespersonsForReport(): Promise<
     };
   });
 }
-
