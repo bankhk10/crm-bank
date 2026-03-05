@@ -82,7 +82,8 @@ export function FormCombobox({
               triggerClassName,
               className,
               !value && "text-gray-500",
-              "font-normal"
+              "font-normal",
+              error && "border-red-500 focus:ring-red-500 bg-red-50/10"
             )}
           >
             <span className="truncate text-left flex-1">

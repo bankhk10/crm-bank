@@ -50,6 +50,17 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const [employeeId, setEmployeeId] = useState("");
     const [customerId, setCustomerId] = useState("");
     const [items, setItems] = useState<ProductItem[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const clearError = (field: string) => {
+        if (errors[field]) {
+            setErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
+        }
+    };
 
     // Selection Data
     const [employees, setEmployees] = useState<any[]>([]);
@@ -140,6 +151,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 amount: price,
             },
         ]);
+        clearError("items");
     };
 
     const handleRemoveItem = (index: number) => {
@@ -166,12 +178,29 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
         newItems[index] = item;
         setItems(newItems);
+
+        if (field === "quantity" && value > 0) clearError(`item-qty-${index}`);
+        if (field === "price" && value > 0) clearError(`item-price-${index}`);
     };
 
     const [duplicateId, setDuplicateId] = useState<string | null>(null);
 
     const handleSave = async () => {
-        if (!employeeId || !customerId || items.length === 0) {
+        const newErrors: Record<string, string> = {};
+        if (!year) newErrors.year = "กรุณาเลือกปี";
+        if (!month) newErrors.month = "กรุณาเลือกเดือน";
+        if (!employeeId) newErrors.employeeId = "กรุณาเลือกพนักงานขาย";
+        if (!customerId) newErrors.customerId = "กรุณาเลือกลูกค้า/ร้านค้า";
+        if (items.length === 0) newErrors.items = "กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ";
+
+        items.forEach((item, idx) => {
+            if (!item.quantity || item.quantity <= 0) newErrors[`item-qty-${idx}`] = "ระบุจำนวน";
+            if (!item.price || item.price <= 0) newErrors[`item-price-${idx}`] = "ระบุราคา";
+        });
+
+        setErrors(newErrors);
+
+        if (Object.keys(newErrors).length > 0) {
             toast.error("กรุณากรอกข้อมูลให้ครบถ้วน");
             return;
         }
@@ -276,7 +305,10 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                             <FormCombobox
                                                 label="ปี"
                                                 value={year.toString()}
-                                                onChange={(v) => setYear(Number(v))}
+                                                onChange={(v) => {
+                                                    setYear(Number(v));
+                                                    clearError("year");
+                                                }}
                                                 options={YEARS.map((y) => ({
                                                     value: y.toString(),
                                                     label: (y + 543).toString(),
@@ -284,6 +316,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                 placeholder="เลือกปี"
                                                 searchPlaceholder="ค้นหาปี..."
                                                 emptyText="ไม่พบปี"
+                                                error={errors.year}
+                                                required
                                             />
                                         </div>
 
@@ -291,7 +325,10 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                             <FormCombobox
                                                 label="เดือน"
                                                 value={month.toString()}
-                                                onChange={(v) => setMonth(Number(v))}
+                                                onChange={(v) => {
+                                                    setMonth(Number(v));
+                                                    clearError("month");
+                                                }}
                                                 options={MONTHS.map((m) => ({
                                                     value: m.value.toString(),
                                                     label: m.label,
@@ -299,6 +336,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                 placeholder="เลือกเดือน"
                                                 searchPlaceholder="ค้นหาเดือน..."
                                                 emptyText="ไม่พบเดือน"
+                                                error={errors.month}
+                                                required
                                             />
                                         </div>
                                     </div>
@@ -307,7 +346,10 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         <FormCombobox
                                             label="พนักงานขาย"
                                             value={employeeId}
-                                            onChange={(val) => setEmployeeId(val)}
+                                            onChange={(val) => {
+                                                setEmployeeId(val);
+                                                clearError("employeeId");
+                                            }}
                                             options={employees.map((emp) => ({
                                                 value: emp.id,
                                                 label: `${emp.name} (${emp.employeeCode || "-"})`,
@@ -315,6 +357,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                             placeholder="เลือกพนักงาน"
                                             searchPlaceholder="ค้นหาพนักงาน..."
                                             emptyText="ไม่พบพนักงาน"
+                                            error={errors.employeeId}
+                                            required
                                         />
                                     </div>
 
@@ -322,7 +366,10 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         <FormCombobox
                                             label="ลูกค้า/ร้านค้า"
                                             value={customerId}
-                                            onChange={(val) => setCustomerId(val)}
+                                            onChange={(val) => {
+                                                setCustomerId(val);
+                                                clearError("customerId");
+                                            }}
                                             options={customers.map((customer) => ({
                                                 value: customer.id,
                                                 label: `${customer.name} (${customer.customerCode || "-"})`,
@@ -330,6 +377,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                             placeholder="เลือกลูกค้า"
                                             searchPlaceholder="ค้นหาลูกค้า..."
                                             emptyText="ไม่พบลูกค้า"
+                                            error={errors.customerId}
+                                            required
                                         />
                                     </div>
                                 </div>
@@ -364,7 +413,13 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3 min-h-[350px] bg-gradient-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed border-slate-200/80">
+                                    <div className={`space-y-3 min-h-[350px] bg-gradient-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed transition-colors ${errors.items ? "border-red-400 bg-red-50/10" : "border-slate-200/80"}`}>
+                                        {errors.items && (
+                                            <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                {errors.items}
+                                            </p>
+                                        )}
                                         {items.length === 0 && (
                                             <div className="flex flex-col items-center justify-center h-full text-center py-16 animate-in fade-in duration-500">
                                                 <div className="relative mb-6">
@@ -416,7 +471,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                             </Label>
                                                             <Input
                                                                 type="number"
-                                                                className="h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all"
+                                                                className={`h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all ${errors[`item-price-${index}`] ? "border-red-500 focus:ring-red-500 bg-red-50/30" : ""}`}
                                                                 value={item.price}
                                                                 onChange={(e) =>
                                                                     handleUpdateItem(
@@ -427,6 +482,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                                 }
                                                                 onWheel={(e) => e.currentTarget.blur()}
                                                             />
+                                                            {errors[`item-price-${index}`] && (
+                                                                <p className="text-[10px] text-red-600 font-medium mt-1">
+                                                                    {errors[`item-price-${index}`]}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
@@ -434,7 +494,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                             </Label>
                                                             <Input
                                                                 type="number"
-                                                                className="h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all"
+                                                                className={`h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all ${errors[`item-qty-${index}`] ? "border-red-500 focus:ring-red-500 bg-red-50/30" : ""}`}
                                                                 value={item.quantity}
                                                                 onChange={(e) =>
                                                                     handleUpdateItem(
@@ -445,6 +505,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                                 }
                                                                 onWheel={(e) => e.currentTarget.blur()}
                                                             />
+                                                            {errors[`item-qty-${index}`] && (
+                                                                <p className="text-[10px] text-red-600 font-medium mt-1">
+                                                                    {errors[`item-qty-${index}`]}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
