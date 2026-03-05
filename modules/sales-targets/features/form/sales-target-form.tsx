@@ -6,9 +6,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import { FormInput } from "@/components/custom/FormInput";
 import {
     AlertTriangle,
     ChevronLeft,
@@ -94,6 +93,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                     return {
                         productId: i.productId,
                         name: i.product?.name || i.name,
+                        productCode: i.product?.productCode || "-",
                         quantity: qty,
                         price: amt / qty,
                         amount: amt,
@@ -251,26 +251,26 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Modern Header with Glassmorphism */}
                 <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
+                    <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
                     <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
                         <div className="flex items-center gap-4">
                             <Link
                                 href="/sales-targets"
-                                className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                                className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
                             >
                                 <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
                             </Link>
 
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
+                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
                                         <Target className="w-5 h-5 text-white" />
                                     </div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                                    <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
                                         {isEdit
                                             ? "แก้ไขเป้าหมายการขาย"
                                             : isCopy
@@ -297,7 +297,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 {/* Left Column: General Info */}
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100">
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-indigo-100">
                                             <ShoppingCart className="w-4 h-4 text-blue-600" />
                                         </div>
                                         <h2 className="text-xl font-bold text-slate-800">
@@ -392,7 +392,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 <div className="space-y-5">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100">
+                                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-100 to-teal-100">
                                                 <Package className="w-4 h-4 text-emerald-600" />
                                             </div>
                                             <h3 className="text-xl font-bold text-slate-800">
@@ -418,7 +418,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         </div>
                                     </div>
 
-                                    <div className={`space-y-3 min-h-[350px] bg-gradient-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed transition-colors ${errors.items ? "border-red-400 bg-red-50/10" : "border-slate-200/80"}`}>
+                                    <div className={`space-y-3 min-h-[350px] bg-linear-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed transition-colors ${errors.items ? "border-red-400 bg-red-50/10" : "border-slate-200/80"}`}>
                                         {errors.items && (
                                             <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
                                                 <AlertTriangle className="w-4 h-4" />
@@ -428,8 +428,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         {items.length === 0 && (
                                             <div className="flex flex-col items-center justify-center h-full text-center py-16 animate-in fade-in duration-500">
                                                 <div className="relative mb-6">
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 blur-2xl rounded-full" />
-                                                    <div className="relative w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
+                                                    <div className="absolute inset-0 bg-linear-to-r from-blue-500/20 to-indigo-500/20 blur-2xl rounded-full" />
+                                                    <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
                                                         <Package className="w-9 h-9 text-slate-400" />
                                                     </div>
                                                 </div>
@@ -447,7 +447,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                 key={item.productId}
                                                 className="group relative bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl transition-all duration-300 hover:border-blue-300/60 hover:-translate-y-1"
                                             >
-                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                                 <div className="relative space-y-4">
                                                     <div className="flex items-start justify-between">
@@ -456,7 +456,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                                 {item.name}
                                                             </div>
                                                             <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-xs text-slate-600 font-medium">
-                                                                {item.productCode.substring(0, 12)}...
+                                                                {item.productCode ? (
+                                                                    item.productCode.length > 12
+                                                                        ? `${item.productCode.substring(0, 12)}...`
+                                                                        : item.productCode
+                                                                ) : "-"}
                                                             </div>
                                                         </div>
                                                         <Button
@@ -470,64 +474,53 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                     </div>
 
                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                                                ราคา/{item.unit || "-"}
-                                                            </Label>
-                                                            <Input
-                                                                type="number"
-                                                                className={`h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all ${errors[`item-price-${index}`] ? "border-red-500 focus:ring-red-500 bg-red-50/30" : ""}`}
-                                                                value={item.price}
-                                                                onChange={(e) =>
-                                                                    handleUpdateItem(
-                                                                        index,
-                                                                        "price",
-                                                                        Number(e.target.value),
-                                                                    )
+                                                        <FormInput
+                                                            label={`ราคา/${item.unit || "-"}`}
+                                                            type="number"
+                                                            value={item.price === 0 ? "" : item.price}
+                                                            onChange={(e) => {
+                                                                let val = e.target.value;
+                                                                // Prevent leading zeros (e.g., "05" -> "5")
+                                                                if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                                                    val = val.replace(/^0+/, "");
                                                                 }
-                                                                onWheel={(e) => e.currentTarget.blur()}
-                                                            />
-                                                            {errors[`item-price-${index}`] && (
-                                                                <p className="text-[10px] text-red-600 font-medium mt-1">
-                                                                    {errors[`item-price-${index}`]}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                                                จำนวน/{item.unit || "-"}
-                                                            </Label>
-                                                            <Input
-                                                                type="number"
-                                                                className={`h-11 bg-slate-50/80 border-slate-200/80 hover:border-blue-300/60 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-right font-semibold text-slate-800 transition-all ${errors[`item-qty-${index}`] ? "border-red-500 focus:ring-red-500 bg-red-50/30" : ""}`}
-                                                                value={item.quantity}
-                                                                onChange={(e) =>
-                                                                    handleUpdateItem(
-                                                                        index,
-                                                                        "quantity",
-                                                                        Number(e.target.value),
-                                                                    )
+                                                                handleUpdateItem(
+                                                                    index,
+                                                                    "price",
+                                                                    Number(val),
+                                                                );
+                                                            }}
+                                                            onWheel={(e) => e.currentTarget.blur()}
+                                                            error={errors[`item-price-${index}`]}
+                                                        />
+
+                                                        <FormInput
+                                                            label={`จำนวน/${item.unit || "-"}`}
+                                                            type="number"
+                                                            value={item.quantity === 0 ? "" : item.quantity}
+                                                            onChange={(e) => {
+                                                                let val = e.target.value;
+                                                                if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                                                    val = val.replace(/^0+/, "");
                                                                 }
-                                                                onWheel={(e) => e.currentTarget.blur()}
-                                                            />
-                                                            {errors[`item-qty-${index}`] && (
-                                                                <p className="text-[10px] text-red-600 font-medium mt-1">
-                                                                    {errors[`item-qty-${index}`]}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                                                เป้าหมาย (บาท)
-                                                            </Label>
-                                                            <Input
-                                                                readOnly
-                                                                type="number"
-                                                                className="h-11 bg-emerald-50/80 border-emerald-200/80 hover:border-emerald-300/60 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-right font-bold text-emerald-700 transition-all cursor-not-allowed opacity-90"
-                                                                value={item.amount}
-                                                                tabIndex={-1}
-                                                            />
-                                                        </div>
+                                                                handleUpdateItem(
+                                                                    index,
+                                                                    "quantity",
+                                                                    Number(val),
+                                                                );
+                                                            }}
+                                                            onWheel={(e) => e.currentTarget.blur()}
+                                                            error={errors[`item-qty-${index}`]}
+                                                        />
+
+                                                        <FormInput
+                                                            label="เป้าหมาย (บาท)"
+                                                            type="number"
+                                                            value={item.amount}
+                                                            onChange={() => { }}
+                                                            readOnly
+                                                            inputClassName="bg-emerald-50/80 border-emerald-200/80 font-bold text-emerald-700 cursor-not-allowed"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
@@ -535,7 +528,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     </div>
 
                                     {items.length > 0 && (
-                                        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50">
+                                        <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50">
                                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
                                             <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
 
@@ -610,7 +603,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 <Button
                                     onClick={handleSave}
                                     disabled={saving}
-                                    className="w-full sm:w-auto h-12 px-10 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white shadow-xl shadow-blue-500/30 font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                    className="w-full sm:w-auto h-12 px-10 rounded-xl bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white shadow-xl shadow-blue-500/30 font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                 >
                                     {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                                     {saving
