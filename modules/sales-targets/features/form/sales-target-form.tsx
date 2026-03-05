@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { FormInput } from "@/components/custom/FormInput";
+import FormActions from "@/components/custom/form-actions";
 import {
     AlertTriangle,
     ChevronLeft,
     Copy,
-    Loader2,
     Package,
     Pencil,
     ShoppingCart,
@@ -190,7 +190,8 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
     const [duplicateId, setDuplicateId] = useState<string | null>(null);
 
-    const handleSave = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         const newErrors: Record<string, string> = {};
         if (!year) newErrors.year = "กรุณาเลือกปี";
         if (!month) newErrors.month = "กรุณาเลือกเดือน";
@@ -251,7 +252,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     };
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8">
+        <form onSubmit={handleSubmit} className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Modern Header with Glassmorphism */}
                 <div className="relative">
@@ -591,32 +592,16 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                             )}
 
                             {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8 border-t border-slate-100">
-                                <Link href="/sales-targets" className="w-full sm:w-auto">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full h-12 px-8 rounded-xl border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
-                                    >
-                                        ยกเลิก
-                                    </Button>
-                                </Link>
-                                <Button
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="w-full sm:w-auto h-12 px-10 rounded-xl bg-linear-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:via-indigo-700 hover:to-violet-700 text-white shadow-xl shadow-blue-500/30 font-bold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                                >
-                                    {saving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                                    {saving
-                                        ? "กำลังบันทึก..."
-                                        : isEdit
-                                            ? "บันทึกการแก้ไข"
-                                            : "บันทึก"}
-                                </Button>
-                            </div>
+                            <FormActions
+                                loading={saving}
+                                onCancel={() => router.push("/sales-targets")}
+                                submitLabel={isEdit ? "บันทึกการแก้ไข" : "บันทึก"}
+                                className="pt-8 border-t border-slate-100"
+                            />
                         </div>
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </form>
     );
 }
