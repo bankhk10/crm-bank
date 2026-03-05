@@ -44,7 +44,7 @@ export function SalesTargetFilters({
                             <Calendar className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg">ตัวกรองเป้าหมายรายเดือน</CardTitle>
+                            <CardTitle className="text-lg">ตัวกรองเป้าหมาย</CardTitle>
                         </div>
                     </div>
                 </div>
