@@ -8,13 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import {
     AlertTriangle,
@@ -280,53 +273,33 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                         <div className="space-y-2.5">
-                                            <Label className="text-sm font-semibold text-slate-700">
-                                                ปี
-                                            </Label>
-                                            <Select
+                                            <FormCombobox
+                                                label="ปี"
                                                 value={year.toString()}
-                                                onValueChange={(v) => setYear(Number(v))}
-                                            >
-                                                <SelectTrigger className="w-full h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl">
-                                                    {YEARS.map((y) => (
-                                                        <SelectItem
-                                                            key={y}
-                                                            value={y.toString()}
-                                                            className="rounded-lg"
-                                                        >
-                                                            {y + 543}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                onChange={(v) => setYear(Number(v))}
+                                                options={YEARS.map((y) => ({
+                                                    value: y.toString(),
+                                                    label: (y + 543).toString(),
+                                                }))}
+                                                placeholder="เลือกปี"
+                                                searchPlaceholder="ค้นหาปี..."
+                                                emptyText="ไม่พบปี"
+                                            />
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <Label className="text-sm font-semibold text-slate-700">
-                                                เดือน
-                                            </Label>
-                                            <Select
+                                            <FormCombobox
+                                                label="เดือน"
                                                 value={month.toString()}
-                                                onValueChange={(v) => setMonth(Number(v))}
-                                            >
-                                                <SelectTrigger className="w-full h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-50/50 border-slate-200/80 hover:border-blue-300/60 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 font-medium">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl">
-                                                    {MONTHS.map((m) => (
-                                                        <SelectItem
-                                                            key={m.value}
-                                                            value={m.value.toString()}
-                                                            className="rounded-lg"
-                                                        >
-                                                            {m.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                onChange={(v) => setMonth(Number(v))}
+                                                options={MONTHS.map((m) => ({
+                                                    value: m.value.toString(),
+                                                    label: m.label,
+                                                }))}
+                                                placeholder="เลือกเดือน"
+                                                searchPlaceholder="ค้นหาเดือน..."
+                                                emptyText="ไม่พบเดือน"
+                                            />
                                         </div>
                                     </div>
 
