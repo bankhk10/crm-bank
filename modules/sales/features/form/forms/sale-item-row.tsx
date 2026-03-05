@@ -45,10 +45,11 @@ export function SaleItemRow({
                     size="sm"
                     onClick={() => onRemove(index)}
                 >
-                    <Trash2 className="h-4 w-4 text-red-600" />
+                    <div className="flex items-center justify-center w-7 h-7 bg-red-100 rounded-lg">
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                    </div>
                 </Button>
             </div>
-
             <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
                 {/* Product Select + Detail Button */}
                 <div className="md:col-span-3 flex items-end gap-2 min-w-0">
