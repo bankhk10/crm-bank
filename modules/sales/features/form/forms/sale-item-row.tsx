@@ -4,8 +4,6 @@
  * Sale Item Row Component
  * Renders a single sale item row with product selection, quantity, and price
  */
-
-import React from "react";
 import { Trash2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,14 +20,7 @@ export function SaleItemRow({
     fieldError,
     onClearError,
 }: SaleItemRowProps & { onClearError?: () => void }) {
-    // onClearError is extra in local definition vs types.ts?
-    // Let's check types.ts in Step 684.
-    // SaleItemRowProps there does NOT have onClearError.
-    // So I need to intersection type it or update types.ts
-    // I'll update types.ts later if needed, but intersection is fine for now.
-
     const product = products.find((p) => p.id === item.productId);
-
     const handleProductChange = (value: string) => {
         onUpdate(index, "productId", value);
         onClearError?.();
@@ -52,8 +43,8 @@ export function SaleItemRow({
             </div>
             <div className="grid gap-x-4 gap-y-3 md:grid-cols-4">
                 {/* Product Select + Detail Button */}
-                <div className="md:col-span-3 flex items-end gap-2 min-w-0">
-                    <div className="flex-1">
+                <div className="md:col-span-3 flex flex-col sm:flex-row sm:items-end gap-2 min-w-0">
+                    <div className="w-full sm:flex-1 min-w-0">
                         <FormCombobox
                             label="สินค้า"
                             value={item.productId}
@@ -71,16 +62,18 @@ export function SaleItemRow({
                     </div>
 
                     {product && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-10 mt-6 flex items-center"
-                            onClick={() => onShowDetails(product)}
-                        >
-                            <Info className="h-4 w-4 mr-2" />
-                            รายละเอียด
-                        </Button>
+                        <div className="flex justify-start sm:mb-[2px]">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center text-blue-600 hover:text-blue-700 hover:bg-blue-50 sm:h-11"
+                                onClick={() => onShowDetails(product)}
+                            >
+                                <Info className="h-4 w-4 mr-2" />
+                                รายละเอียด
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>
