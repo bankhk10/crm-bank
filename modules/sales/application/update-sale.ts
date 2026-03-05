@@ -162,11 +162,20 @@ export async function updateSaleUseCase(
         packageSize: product?.packageSize,
         packageSizePerBox: product?.packageSizePerBox,
         totalPackageSizePerBox: product?.totalPackageSizePerBox,
-        price: product?.price ? Number(product.price) : null,
-        cartonPrice: product?.cartonPrice ? Number(product.cartonPrice) : null,
-        promotionBudget: product?.promotionBudget
-          ? Number(product.promotionBudget)
-          : null,
+        price: product?.price != null ? Number(product.price) : null,
+        cartonPrice: (() => {
+          const packSize = parseFloat(product?.packageSizePerBox || "0");
+          if (!isNaN(packSize) && packSize > 0) {
+            return item.unitPrice * packSize;
+          }
+          return product?.cartonPrice != null
+            ? Number(product.cartonPrice)
+            : null;
+        })(),
+        promotionBudget:
+          product?.promotionBudget != null
+            ? Number(product.promotionBudget)
+            : null,
         pointPerUnit: product?.pointPerUnit,
         productChain: product?.productChain?.name,
 

@@ -353,9 +353,10 @@ export async function createSale(data: {
       creditDays: data.creditDays,
       creditDueDate: data.creditDueDate,
       usePromotionalCredit: data.usePromotionalCredit,
-      promotionalCreditUsed: data.promotionalCreditUsed
-        ? new Prisma.Decimal(data.promotionalCreditUsed)
-        : null,
+      promotionalCreditUsed:
+        data.promotionalCreditUsed != null
+          ? new Prisma.Decimal(data.promotionalCreditUsed)
+          : null,
       saleDate: data.saleDate,
       requestedDeliveryDate: data.requestedDeliveryDate,
       deliveryDate: data.deliveryDate,
@@ -384,13 +385,15 @@ export async function createSale(data: {
           packageSize: item.packageSize,
           packageSizePerBox: item.packageSizePerBox,
           totalPackageSizePerBox: item.totalPackageSizePerBox,
-          price: item.price ? new Prisma.Decimal(item.price) : null,
-          cartonPrice: item.cartonPrice
-            ? new Prisma.Decimal(item.cartonPrice)
-            : null,
-          promotionBudget: item.promotionBudget
-            ? new Prisma.Decimal(item.promotionBudget)
-            : null,
+          price: item.price != null ? new Prisma.Decimal(item.price) : null,
+          cartonPrice:
+            item.cartonPrice != null
+              ? new Prisma.Decimal(item.cartonPrice)
+              : null,
+          promotionBudget:
+            item.promotionBudget != null
+              ? new Prisma.Decimal(item.promotionBudget)
+              : null,
           pointPerUnit: item.pointPerUnit,
           productChain: item.productChain,
 
@@ -607,9 +610,10 @@ export async function updateSale(
         creditDays: data.creditDays,
         creditDueDate: data.creditDueDate,
         usePromotionalCredit: data.usePromotionalCredit,
-        promotionalCreditUsed: data.promotionalCreditUsed
-          ? new Prisma.Decimal(data.promotionalCreditUsed)
-          : null,
+        promotionalCreditUsed:
+          data.promotionalCreditUsed != null
+            ? new Prisma.Decimal(data.promotionalCreditUsed)
+            : null,
         deliveryMethod: data.deliveryMethod,
         pickupCompanyId: data.pickupCompanyId || null,
         shippingCompanyId: data.shippingCompanyId || null,
@@ -641,13 +645,15 @@ export async function updateSale(
             packageSize: item.packageSize,
             packageSizePerBox: item.packageSizePerBox,
             totalPackageSizePerBox: item.totalPackageSizePerBox,
-            price: item.price ? new Prisma.Decimal(item.price) : null,
-            cartonPrice: item.cartonPrice
-              ? new Prisma.Decimal(item.cartonPrice)
-              : null,
-            promotionBudget: item.promotionBudget
-              ? new Prisma.Decimal(item.promotionBudget)
-              : null,
+            price: item.price != null ? new Prisma.Decimal(item.price) : null,
+            cartonPrice:
+              item.cartonPrice != null
+                ? new Prisma.Decimal(item.cartonPrice)
+                : null,
+            promotionBudget:
+              item.promotionBudget != null
+                ? new Prisma.Decimal(item.promotionBudget)
+                : null,
             pointPerUnit: item.pointPerUnit,
             productChain: item.productChain,
 
