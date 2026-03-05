@@ -29,6 +29,7 @@ import {
 interface ProductItem {
     productId: string;
     name: string;
+    productCode: string;
     quantity: number;
     price: number;
     amount: number;
@@ -147,6 +148,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
             ...items,
             {
                 productId: product.id,
+                productCode: product.productCode,
                 name: product.name,
                 quantity: 1,
                 price: price,
@@ -454,7 +456,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                                 {item.name}
                                                             </div>
                                                             <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-xs text-slate-600 font-medium">
-                                                                {item.productId.substring(0, 12)}...
+                                                                {item.productCode.substring(0, 12)}...
                                                             </div>
                                                         </div>
                                                         <Button
