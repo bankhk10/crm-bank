@@ -115,14 +115,17 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     return `<p>${billingPart} ${phonePart}</p>`;
   })();
 
-  // Build shipping method + company name row
-  const deliveryMethodAndCompanyRow = (() => {
+  // Build shipping method + company name + address row
+  const deliveryAndShippingRow = (() => {
     const method = (data.deliveryMethod ?? "").trim();
     const company = (data.shippingCompanyName ?? "").trim();
+    const address = (data.senderAddress ?? "").trim();
+
     const hasMethod = method && method !== "-";
     const hasCompany = company && company !== "-";
+    const hasAddress = address && address !== "-";
 
-    if (!hasMethod && !hasCompany) return "";
+    if (!hasMethod && !hasCompany && !hasAddress) return "";
 
     const methodPart = hasMethod
       ? `<strong>วิธีการจัดส่ง:</strong> ${method}`
@@ -130,15 +133,11 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     const companyPart = hasCompany
       ? `<span class="${hasMethod ? "phone" : ""}"><strong>ชื่อบริษัทขนส่ง:</strong> ${company}</span>`
       : "";
+    const addressPart = hasAddress
+      ? `<span class="${hasMethod || hasCompany ? "phone" : ""}"><strong>ที่อยู่บริษัทขนส่ง:</strong> ${address}</span>`
+      : "";
 
-    return `<p>${methodPart} ${companyPart}</p>`;
-  })();
-
-  // Build shipping company address row
-  const shippingCompanyAddressRow = (() => {
-    const address = (data.senderAddress ?? "").trim();
-    if (!address || address === "-") return "";
-    return `<p><strong>ที่อยู่บริษัทขนส่ง:</strong> ${address}</p>`;
+    return `<p>${methodPart} ${companyPart} ${addressPart}</p>`;
   })();
 
   // Build reference: Date + Order Number + Payment Term row
@@ -260,8 +259,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <div class="customer-info-container">
         <div class="logistics-details">
           <h3>ข้อมูลการจัดส่ง</h3>
-          ${deliveryMethodAndCompanyRow}
-          ${shippingCompanyAddressRow}
+          ${deliveryAndShippingRow}
           ${receivingAndShippingRow}
         </div>
         <div class="invoice-details">
