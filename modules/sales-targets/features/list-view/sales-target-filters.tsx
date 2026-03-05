@@ -62,7 +62,7 @@ export function SalesTargetFilters({
                                         onChange={(val) => onChangeYear(Number(val))}
                                         options={years.map((y) => ({
                                             value: y.toString(),
-                                            label: y.toString(),
+                                            label: (y + 543).toString(),
                                         }))}
                                         placeholder="เลือกปี"
                                         searchPlaceholder="ค้นหาปี..."

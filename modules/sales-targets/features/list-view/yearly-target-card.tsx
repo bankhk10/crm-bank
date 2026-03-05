@@ -28,7 +28,7 @@ export function YearlyTargetCard({ year, totalTarget }: YearlyTargetCardProps) {
                         {/* Title */}
                         <div>
                             <CardTitle className="text-lg font-semibold tracking-tight">
-                                เป้าหมายรวมทั้งปี {year}
+                                เป้าหมายรวมทั้งปี {year + 543}
                             </CardTitle>
                             <p className="text-sm text-slate-400">
                                 กำหนดเป้าหมายยอดขายรวมของปี

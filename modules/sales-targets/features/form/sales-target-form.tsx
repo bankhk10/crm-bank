@@ -297,7 +297,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                             value={y.toString()}
                                                             className="rounded-lg"
                                                         >
-                                                            {y}
+                                                            {y + 543}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>

@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { Eye, Copy, Pencil, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ActionButton } from "@/components/custom/action-button";
@@ -46,7 +45,7 @@ export function useSalesTargetColumns(
                     align: "left",
                 },
                 cell: ({ row }) => (
-                    <span className="text-slate-700">{row.original.year}</span>
+                    <span className="text-slate-700">{row.original.year + 543}</span>
                 ),
             },
             {

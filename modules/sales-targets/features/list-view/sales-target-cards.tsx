@@ -126,7 +126,7 @@ export function SalesTargetCards({
                                         </span>
                                         <div>
                                             <div className="text-base font-semibold text-slate-900 line-clamp-1">
-                                                {monthLabel} {target.year}
+                                                {monthLabel} {target.year + 543}
                                             </div>
                                             <div className="text-xs text-slate-500">
                                                 เป้าหมายรายเดือน

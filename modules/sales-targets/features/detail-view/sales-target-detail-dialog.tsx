@@ -60,7 +60,7 @@ export function SalesTargetDetailDialog({
                         <div className="space-y-1">
                             <div className="font-semibold text-slate-500">ประจำเดือน</div>
                             <div className="text-base font-medium">
-                                {target.month}/{target.year}
+                                {target.month}/{target.year + 543}
                             </div>
                         </div>
                     </div>
