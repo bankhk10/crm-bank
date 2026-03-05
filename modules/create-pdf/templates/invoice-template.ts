@@ -4,6 +4,7 @@ import path from "path";
 export interface InvoiceData {
   invoiceNumber: string;
   saleOrderRef?: string;
+  status?: string;
   date: string; // Sale Date
   customerName: string;
   customerPhone: string;
@@ -147,7 +148,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     const term = (data.paymentTerm ?? "").trim();
 
     const hasDate = date && date !== "-";
-    const hasNo = no && no !== "-";
+    const isCompleted = data.status == "COMPLETED";
+    const hasNo = no && no !== "-" && isCompleted; // Only show Invoice Number here if status is completed
     const hasTerm = term && term !== "-";
 
     if (!hasDate && !hasNo && !hasTerm) return "";
@@ -212,13 +214,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     return `<p>${shippingPart} ${receivingPart}</p>`;
   })();
 
-  // Build sale order ref row for header
-  const saleOrderRefRow = (() => {
-    const v = (data.saleOrderRef ?? "").trim();
-    if (!v || v === "-") return "";
-    return `<div class="label">เลขที่คำสั่งขาย</div><div class="doc-no">${v}</div>`;
-  })();
-
   return `
     <!DOCTYPE html>
     <html lang="th">
@@ -244,16 +239,20 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <p>โทร. 02-271-4343 แฟกซ์: 02-618-4530</p>
     </div>
   </div>
-
-  <div class="doc-meta">
-    ${saleOrderRefRow}
-  </div>
-
 </div>
 
 <div class="doc-title">${data.title}</div>
 <div class="doc-divider"></div>
       <div class="customer-details">
+        <div class="header-info">
+          ${
+            data.status === "COMPLETED"
+              ? data.saleOrderRef && data.saleOrderRef !== "-"
+                ? `<span class="sale-order-no">เลขที่คำสั่งขาย: ${data.saleOrderRef}</span>`
+                : ""
+              : `<span class="invoice-no">เลขที่ออเดอร์: ${data.invoiceNumber}</span>`
+          }
+        </div>
         <h3>ข้อมูลลูกค้า</h3>
         ${customerNameAndAddressRow}
         ${phoneAndBillingRow}

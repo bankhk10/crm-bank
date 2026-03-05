@@ -126,6 +126,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     billDiscount: Number(sale.otherCosts || 0),
     totalAmount: Number(sale.totalAmount || 0),
     title: sale.status === "COMPLETED" ? "ใบบันทึกการขาย" : "ใบเสนอราคา",
+    status: sale.status,
   };
 
   const html = renderInvoiceTemplate(invoiceData);

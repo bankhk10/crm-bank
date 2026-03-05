@@ -42,6 +42,7 @@ body {
 .customer-details {
   width: 100%;
   padding: 5px 15px 5px;
+  margin-top: 10px;
   margin-bottom: 0;
   box-sizing: border-box;
 }
@@ -51,6 +52,36 @@ h3 {
   font-size: 15px;
   border-bottom: 1px solid #dee2e6;
   padding-bottom: 5px;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+.section-header h3 {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.sale-order-no {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+.header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+.invoice-no {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: right;
 }
 p {
   margin: 5px 0;
