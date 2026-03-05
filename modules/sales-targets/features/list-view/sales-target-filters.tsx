@@ -3,14 +3,6 @@
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { MONTHS } from "../../constants";
 
@@ -64,49 +56,39 @@ export function SalesTargetFilters({
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[140px_160px_1.2fr_1.2fr_auto] gap-4 lg:gap-5 items-end">
                                 {/* Year */}
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold tracking-wide text-slate-600">
-                                        ปี
-                                    </Label>
-                                    <Select
+                                    <FormCombobox
+                                        label="ปี"
                                         value={year.toString()}
-                                        onValueChange={(value) => onChangeYear(Number(value))}
-                                    >
-                                        <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white shadow-sm hover:shadow transition-shadow focus:ring-2 focus:ring-slate-200">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl">
-                                            {years.map((y) => (
-                                                <SelectItem key={y} value={y.toString()}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        onChange={(val) => onChangeYear(Number(val))}
+                                        options={years.map((y) => ({
+                                            value: y.toString(),
+                                            label: y.toString(),
+                                        }))}
+                                        placeholder="เลือกปี"
+                                        searchPlaceholder="ค้นหาปี..."
+                                        emptyText="ไม่พบปี"
+                                    />
                                 </div>
 
                                 {/* Month */}
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold tracking-wide text-slate-600">
-                                        เดือน
-                                    </Label>
-                                    <Select
+                                    <FormCombobox
+                                        label="เดือน"
                                         value={month === "all" ? "all" : month.toString()}
-                                        onValueChange={(value) =>
-                                            onChangeMonth(value === "all" ? "all" : Number(value))
+                                        onChange={(val) =>
+                                            onChangeMonth(val === "all" ? "all" : Number(val))
                                         }
-                                    >
-                                        <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white shadow-sm hover:shadow transition-shadow focus:ring-2 focus:ring-slate-200">
-                                            <SelectValue placeholder="ทั้งหมด" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl">
-                                            <SelectItem value="all">ทั้งหมด</SelectItem>
-                                            {MONTHS.map((m) => (
-                                                <SelectItem key={m.value} value={m.value.toString()}>
-                                                    {m.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={[
+                                            { value: "all", label: "ทั้งหมด" },
+                                            ...MONTHS.map((m) => ({
+                                                value: m.value.toString(),
+                                                label: m.label,
+                                            })),
+                                        ]}
+                                        placeholder="เดือนทั้งหมด"
+                                        searchPlaceholder="ค้นหาเดือน..."
+                                        emptyText="ไม่พบเดือน"
+                                    />
                                 </div>
 
                                 {/* Employee */}
