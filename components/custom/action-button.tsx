@@ -13,18 +13,20 @@ export function ActionButton({
     label,
     colorClass,
     onClick,
+    variant,
 }: {
     href?: string;
     icon: React.ElementType;
     label: string;
     colorClass: string;
     onClick?: () => void;
+    variant?: "outline" | "destructive" | "ghost" | "secondary" | "default";
 }) {
     const button = (
         <Button
             asChild={!!href}
             size="icon-sm"
-            variant={onClick ? "destructive" : "outline"}
+            variant={variant || "outline"}
             className={colorClass}
             onClick={onClick}
             aria-label={label}
