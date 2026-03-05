@@ -32,6 +32,7 @@ interface ProductItem {
     quantity: number;
     price: number;
     amount: number;
+    unit: string;
 }
 
 /** mode="copy" = สร้างใหม่โดยคัดลอกข้อมูลจาก initialData (ไม่มี id) */
@@ -95,6 +96,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         quantity: qty,
                         price: amt / qty,
                         amount: amt,
+                        unit: i.product?.unit || "หน่วย",
                     };
                 }) || [],
             );
@@ -140,7 +142,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
             toast.info("สินค้านี้ถูกเพิ่มแล้ว");
             return;
         }
-        const price = Number(product.price || 0);
+        const price = Number(product.cartonPrice || 0);
         setItems([
             ...items,
             {
@@ -149,6 +151,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 quantity: 1,
                 price: price,
                 amount: price,
+                unit: product.unit || "หน่วย",
             },
         ]);
         clearError("items");
@@ -467,7 +470,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                         <div className="space-y-2">
                                                             <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                                                ราคา/หน่วย
+                                                                ราคา/{item.unit || "-"}
                                                             </Label>
                                                             <Input
                                                                 type="number"
@@ -490,7 +493,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                                                                จำนวน
+                                                                จำนวน/{item.unit || "-"}
                                                             </Label>
                                                             <Input
                                                                 type="number"
