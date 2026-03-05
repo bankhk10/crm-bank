@@ -125,7 +125,7 @@ export function useSalesTargetColumns(
             },
             {
                 id: "totalAmount",
-                header: "ยอดรวม (บาท)",
+                header: "ยอดรวม",
                 meta: {
                     headerAlign: "right",
                     minWidth: 130,
