@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, Copy, Pencil, Trash2 } from "lucide-react";
+import { Eye, Copy, Edit, Trash2 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ActionButton } from "@/components/custom/action-button";
 import { formatCurrency } from "@/lib/currency-utils";
@@ -159,12 +159,12 @@ export function useSalesTargetColumns(
                 cell: ({ row }) => {
                     const target = row.original;
                     return (
-                        <div className="flex items-center justify-center gap-1">
+                        <div className="flex items-center justify-center gap-2">
                             {canView && (
                                 <ActionButton
                                     icon={Eye}
                                     label="ดู"
-                                    colorClass="text-slate-600 border-slate-100 hover:bg-slate-50 rounded-md"
+                                    colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                                     onClick={() => onView(target)}
                                 />
                             )}
@@ -177,9 +177,9 @@ export function useSalesTargetColumns(
                             {canEdit && (
                                 <ActionButton
                                     href={`/sales-targets/${target.id}/edit`}
-                                    icon={Pencil}
+                                    icon={Edit}
                                     label="แก้ไข"
-                                    colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
+                                    colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
                                 />
                             )}
                             {canDelete && (
