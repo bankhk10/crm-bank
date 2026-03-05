@@ -130,14 +130,15 @@ export function DeliveryMethodSection({
                                 emptyText="ไม่พบสถานที่"
                                 required
                                 error={fieldErrors.pickupCompanyId}
+                                containerClassName="min-w-0"
                             />
 
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 min-w-0">
                                 <Label className="text-base font-medium mx-2 mb-2 block">
                                     ที่อยู่สถานที่รับสินค้า
                                 </Label>
-                                <div className="p-3 bg-white border rounded-md min-h-[50px] text-gray-700">
-                                    {shippingAddress || "-"}
+                                <div className="p-3 bg-white border rounded-md min-h-[50px] flex items-center text-gray-700">
+                                    <span className="truncate w-full block">{shippingAddress || "-"}</span>
                                 </div>
                             </div>
                         </div>
@@ -196,6 +197,7 @@ export function DeliveryMethodSection({
                                     placeholder="เลือกบริษัทขนส่ง"
                                     searchPlaceholder="ค้นหาบริษัทขนส่ง..."
                                     emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
+                                    containerClassName="min-w-0"
                                 />
                             ) : (
                                 <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
@@ -205,12 +207,12 @@ export function DeliveryMethodSection({
 
                             {/* Show address display only when shipping company is selected */}
                             {shippingCompanyId && (
-                                <div className="space-y-1 md:col-span-2">
+                                <div className="space-y-1 md:col-span-2 min-w-0">
                                     <Label className="text-base font-medium mx-2 mb-2 block">
                                         ที่อยู่สำหรับส่งให้บริษัทขนส่ง
                                     </Label>
-                                    <div className="p-3 bg-white border rounded-md min-h-[50px] text-gray-700">
-                                        {customShippingAddress || "-"}
+                                    <div className="p-3 bg-white border rounded-md min-h-[50px] flex items-center text-gray-700">
+                                        <span className="truncate w-full block">{customShippingAddress || "-"}</span>
                                     </div>
                                     {fieldErrors.customShippingAddress && (
                                         <p className="text-xs text-red-600 mt-1">{fieldErrors.customShippingAddress}</p>
