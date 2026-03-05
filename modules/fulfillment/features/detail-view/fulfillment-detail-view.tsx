@@ -376,6 +376,20 @@ export default function FulfillmentDetailPage({
                                 </div>
                             </div>
                         </div>
+                        {sale.saleOrderRef && (
+                            <div className="flex flex-col sm:items-end gap-1 animate-in fade-in slide-in-from-right-4 duration-500">
+                                <span className="text-[10px] sm:text-sm font-bold text-blue-100/80 uppercase tracking-widest flex items-center gap-1.5">
+                                    <FileText className="h-3 w-3 sm:h-5 sm:w-5" />
+                                    เลขที่คำสั่งขาย
+                                </span>
+                                <Badge
+                                    variant="outline"
+                                    className="text-lg sm:text-xl font-mono font-bold border-2 border-white/20 text-white bg-white/10 px-4 py-1.5 rounded-xl shadow-lg backdrop-blur-md"
+                                >
+                                    {sale.saleOrderRef}
+                                </Badge>
+                            </div>
+                        )}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 sm:p-8">
@@ -390,7 +404,7 @@ export default function FulfillmentDetailPage({
                                     ข้อมูลชื่อลูกค้า
                                 </span>
                             </div>
-                            <p className="font-bold text-gray-900 text-base sm:text-lg truncate" title={sale.customer.name}>
+                            <p className="font-bold text-gray-900 text-base sm:text-lg wrap-break-word" title={sale.customer.name}>
                                 {sale.customer.name}
                             </p>
                         </div>
@@ -405,7 +419,7 @@ export default function FulfillmentDetailPage({
                                     ชื่อพนักงานขาย
                                 </span>
                             </div>
-                            <p className="font-bold text-gray-900 text-base sm:text-lg truncate" title={sale.employee.name}>
+                            <p className="font-bold text-gray-900 text-base sm:text-lg wrap-break-word" title={sale.employee.name}>
                                 {sale.employee.name}
                             </p>
                         </div>
@@ -603,17 +617,17 @@ export default function FulfillmentDetailPage({
                         )}
                     </h3>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-center">
                         <div className="bg-white p-4 rounded-xl border shadow-sm">
                             <span className="text-sm text-gray-600">วงเงิน</span>
-                            <p className="font-bold text-xl text-gray-900 mt-1">
+                            <p className="font-bold text-xl text-gray-900 mt-1 wrap-break-word">
                                 ฿{saleData.creditInfo.creditLimit.toLocaleString()}
                             </p>
                         </div>
                         <div className="bg-white p-4 rounded-xl border shadow-sm">
                             <span className="text-sm text-gray-600">คงเหลือ</span>
                             <p
-                                className={`font-bold text-xl mt-1 ${saleData.creditInfo.willExceedLimit ? "text-red-600" : "text-green-600"
+                                className={`font-bold text-xl mt-1 wrap-break-word ${saleData.creditInfo.willExceedLimit ? "text-red-600" : "text-green-600"
                                     }`}
                             >
                                 ฿{saleData.creditInfo.availableCredit.toLocaleString()}
@@ -621,7 +635,7 @@ export default function FulfillmentDetailPage({
                         </div>
                         <div className="bg-white p-4 rounded-xl border shadow-sm">
                             <span className="text-sm text-gray-600">ยอดขายนี้</span>
-                            <p className="font-bold text-xl text-purple-600 mt-1">
+                            <p className="font-bold text-xl text-purple-600 mt-1 wrap-break-word">
                                 ฿{saleData.creditInfo.currentSaleAmount.toLocaleString()}
                             </p>
                         </div>
@@ -680,20 +694,32 @@ export default function FulfillmentDetailPage({
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3 text-sm">
-                                        {/* Row 1: Package Size & Quantity */}
-                                        <div className="bg-gray-50 rounded-lg p-2">
-                                            <span className="text-gray-500 text-xs block mb-1">
-                                                บรรจุ
-                                            </span>
-                                            <p className="font-bold text-gray-900">
-                                                {item.product.packageSizePerBox || "-"}
-                                            </p>
-                                        </div>
-                                        <div className="bg-gray-50 rounded-lg p-2">
-                                            <span className="text-gray-500 text-xs block mb-1">
-                                                จำนวน
-                                            </span>
-                                            <p className="font-bold text-gray-900">{item.quantity} ลัง</p>
+                                        {/* Row 1: Unit, Package Size & Quantity */}
+                                        <div className="col-span-2 grid grid-cols-3 gap-3">
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <span className="text-gray-500 text-xs block mb-1">
+                                                    จำนวน
+                                                </span>
+                                                <p className="font-bold text-gray-900">
+                                                    {item.quantity}
+                                                </p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <span className="text-gray-500 text-xs block mb-1">
+                                                    หน่วยนับ
+                                                </span>
+                                                <p className="font-bold text-gray-900">
+                                                    {item.product.unit || "-"}
+                                                </p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <span className="text-gray-500 text-xs block mb-1">
+                                                    บรรจุ
+                                                </span>
+                                                <p className="font-bold text-gray-900">
+                                                    {item.product.packageSizePerBox || "-"}
+                                                </p>
+                                            </div>
                                         </div>
 
                                         {/* Row 2: Unit Price & Carton Price */}
@@ -789,16 +815,17 @@ export default function FulfillmentDetailPage({
                     </div>
                 </div>
 
-                {/* 💻 Desktop Table View */}
-                <div className="hidden lg:block">
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
                     <div className="p-6 space-y-3">
-                        <div className="grid grid-cols-12 gap-4 px-5 py-2 text-sm text-gray-500 font-semibold border-b border-gray-100">
+                        <div className="grid grid-cols-12 gap-2 md:gap-4 px-3 md:px-5 py-2 text-xs md:text-sm text-gray-500 font-semibold border-b border-gray-100">
                             <div className="col-span-4">สินค้า</div>
+                            <div className="col-span-1 text-center">จำนวน</div>
+                            <div className="col-span-1 text-center">หน่วย</div>
                             <div className="col-span-1 text-center">บรรจุ</div>
-                            <div className="col-span-1 text-center">จำนวน (ลัง)</div>
-                            <div className="col-span-2 text-right">ราคา (หน่วย)</div>
-                            <div className="col-span-2 text-right">ราคา (ลัง)</div>
-                            <div className="col-span-2 text-right">รวม</div>
+                            <div className="col-span-2 text-center">ราคา/หน่วย</div>
+                            <div className="col-span-1 text-center">ราคา/ลัง</div>
+                            <div className="col-span-2 text-center">รวม</div>
                         </div>
                         {sale.items.map((item, i) => {
                             const originalUnitPrice = Number(
@@ -819,49 +846,52 @@ export default function FulfillmentDetailPage({
                             return (
                                 <div
                                     key={item.id ?? i}
-                                    className={`rounded-2xl border-2 p-4 transition-all shadow-sm hover:shadow-md ${priceChanged
+                                    className={`rounded-2xl border-2 p-3 md:p-4 transition-all shadow-sm hover:shadow-md ${priceChanged
                                         ? "bg-orange-50/70 border-orange-300"
                                         : "bg-white border-gray-100"
                                         }`}
                                 >
-                                    <div className="grid grid-cols-12 gap-4 items-center">
+                                    <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
                                         {/* Product Info */}
                                         <div className="col-span-4">
-                                            <div className="flex items-start gap-3">
-                                                <div>
-                                                    <p className="font-bold text-gray-900 text-base">
-                                                        {item.product.name}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
-                                                        {item.product.productCode}
-                                                    </p>
-                                                    {priceChanged && (
-                                                        <Badge className="mt-2 bg-orange-100 text-orange-700 border-orange-200 text-xs">
-                                                            รายการพิเศษ
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Package Size */}
-                                        <div className="col-span-1 text-center">
-                                            <p className="text-gray-900">
-                                                {item.product.packageSizePerBox || "-"}
+                                            <p className="font-bold text-gray-900 text-sm md:text-base leading-tight">
+                                                {item.product.name}
                                             </p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {item.product.productCode}
+                                            </p>
+                                            {priceChanged && (
+                                                <Badge className="mt-1 bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                                                    รายการพิเศษ
+                                                </Badge>
+                                            )}
                                         </div>
 
                                         {/* Quantity */}
                                         <div className="col-span-1 text-center">
-                                            <p className="font-bold text-gray-900 text-lg">
+                                            <p className="font-bold text-gray-900 text-sm md:text-base">
                                                 {item.quantity}
                                             </p>
                                         </div>
 
+                                        {/* Unit */}
+                                        <div className="col-span-1 text-center">
+                                            <p className="text-gray-900 text-sm md:text-base">
+                                                {item.product.unit || "-"}
+                                            </p>
+                                        </div>
+
+                                        {/* Package Size */}
+                                        <div className="col-span-1 text-center">
+                                            <p className="text-gray-900 text-sm md:text-base">
+                                                {item.product.packageSizePerBox || "-"}
+                                            </p>
+                                        </div>
+
                                         {/* Unit Price */}
-                                        <div className="col-span-2 text-right">
+                                        <div className="col-span-2 text-center">
                                             <p
-                                                className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-gray-900"
+                                                className={`font-bold text-sm md:text-base ${priceChanged ? "text-orange-700" : "text-gray-900"
                                                     }`}
                                             >
                                                 {currentUnitPrice.toLocaleString("th-TH", {
@@ -869,7 +899,7 @@ export default function FulfillmentDetailPage({
                                                 })}
                                             </p>
                                             {priceChanged && (
-                                                <p className="text-xs text-gray-500 line-through mt-1">
+                                                <p className="text-xs text-gray-500 line-through mt-0.5">
                                                     {originalUnitPrice.toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
@@ -878,8 +908,8 @@ export default function FulfillmentDetailPage({
                                         </div>
 
                                         {/* Carton Price */}
-                                        <div className="col-span-2 text-right">
-                                            <p className="font-bold text-gray-900 text-lg">
+                                        <div className="col-span-1 text-right">
+                                            <p className="font-bold text-gray-900 text-sm md:text-base">
                                                 {cartonPrice.toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
                                                 })}
@@ -889,7 +919,7 @@ export default function FulfillmentDetailPage({
                                         {/* Total */}
                                         <div className="col-span-2 text-right">
                                             <p
-                                                className={`font-bold text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"
+                                                className={`font-bold text-sm md:text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
                                                     }`}
                                             >
                                                 {currentTotal.toLocaleString("th-TH", {
@@ -897,7 +927,7 @@ export default function FulfillmentDetailPage({
                                                 })}
                                             </p>
                                             {priceChanged && (
-                                                <p className="text-xs text-gray-500 line-through mt-1">
+                                                <p className="text-xs text-gray-500 line-through mt-0.5">
                                                     {originalTotal.toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
