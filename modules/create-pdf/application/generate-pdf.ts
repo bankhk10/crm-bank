@@ -117,6 +117,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
       ),
       description: item.name || item.product?.name || "-",
       quantity: item.quantity || 0,
+      unit: item.unit || item.product?.unit || "-",
       price: Number(item.unitPrice || 0),
       cartonPrice: Number(item.cartonPrice || 0),
       total: Number(item.totalPrice || 0),

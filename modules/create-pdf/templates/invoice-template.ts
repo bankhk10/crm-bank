@@ -27,6 +27,7 @@ export interface InvoiceData {
     packageSizePerBox: number;
     description: string;
     quantity: number;
+    unit: string;
     price: number;
     cartonPrice: number;
     total: number;
@@ -73,6 +74,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <td class="col-left">${item.code}</td>
       <td class="col-left">${item.description}</td>
       <td class="col-center">${item.quantity}</td>
+      <td class="col-center">${item.unit}</td>
       <td class="col-center">${item.packageSizePerBox}</td>
       <td class="col-center">${item.price.toLocaleString()}</td>
       <td class="col-center">${item.cartonPrice.toLocaleString()}</td>
@@ -273,13 +275,14 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table>
         <thead>
           <tr>
-            <th class="col-left" style="width: 22%;">รหัสสินค้า</th>
-            <th class="col-left" style="width: 31%;">รายละเอียดสินค้า</th>
+            <th class="col-left" style="width: 20%;">รหัสสินค้า</th>
+            <th class="col-left" style="width: 30%;">รายละเอียดสินค้า</th>
             <th class="col-left" style="width: 5%;">จำนวน</th>
+            <th class="col-left" style="width: 5%;">หน่วย</th>
             <th class="col-left" style="width: 5%;">บรรจุ</th>
-            <th class="col-left" style="width: 13%;">ราคา/หน่วย</th>
+            <th class="col-left" style="width: 15%;">ราคา/หน่วย</th>
             <th class="col-left" style="width: 10%;">ราคา/ลัง</th>
-            <th class="col-left" style="width: 20%;">จำนวนเงินรวม</th>
+            <th class="col-left" style="width: 15%;">ราคารวม</th>
           </tr>
         </thead>
         <tbody>
