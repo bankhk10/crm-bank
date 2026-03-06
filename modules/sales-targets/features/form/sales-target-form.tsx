@@ -692,7 +692,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 <FormActions
                     loading={saving}
                     onCancel={() => router.push("/sales-targets")}
-                    submitLabel={isEdit ? "บันทึกการแก้ไข" : "บันทึก"}
+                    submitLabel={isEdit ? "บันทึก" : "บันทึก"}
                     className="pt-8 border-t border-slate-100"
                 />
             </div>
