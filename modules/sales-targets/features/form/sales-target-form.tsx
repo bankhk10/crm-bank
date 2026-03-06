@@ -564,7 +564,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
                 {/* Step 3: Stores Section */}
                 <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-2xl">
-                    ร้านค้า
+                    ข้อมูลตั้งเป้าหมาย
                 </h3>
                 <div className="w-full mt-6">
                     <FormCombobox
