@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Target, ChevronLeft, Loader2 } from "lucide-react";
-import NextLink from "next/link";
+import { Target, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -202,8 +201,17 @@ export default function SalesTargetsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="min -h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
+      <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="flex justify-center mb-6 pt-4">
+          <div className="flex items-center gap-3">
+            <Target className="w-9 h-9 text-blue-600" />
+            <h1 className="text-3xl font-bold tracking-tight">
+              ข้อมูลเป้าหมาย
+            </h1>
+          </div>
+        </div>
+
         {/* Filters */}
         <SalesTargetFilters
           year={year}
