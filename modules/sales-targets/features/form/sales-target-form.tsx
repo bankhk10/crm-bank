@@ -805,6 +805,23 @@ function StoreCard({
                 </div>
             </div>
 
+            {/* Add Product Section (Moved Up) */}
+            <div className="w-full sm:w-[520px] mb-6">
+                <FormCombobox
+                    label="เพิ่มสินค้า"
+                    value=""
+                    onChange={(val) => onAddItem(storeIndex, val)}
+                    options={availableProducts.map((p) => ({
+                        value: p.id,
+                        label: `${p.name} (${p.productCode || "-"})`,
+                    }))}
+                    placeholder="เลือกสินค้า"
+                    searchPlaceholder="ค้นหาสินค้า..."
+                    emptyText="ไม่พบสินค้า"
+                    triggerClassName="h-10 border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50/50"
+                />
+            </div>
+
             {errors[`store-${storeIndex}-items`] && (
                 <p className="text-sm font-medium text-red-500 mb-3 flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" />
@@ -970,32 +987,14 @@ function StoreCard({
                 ))}
             </div>
 
-            {/* Add Product */}
-            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="w-full sm:w-[280px]">
-                    <FormCombobox
-                        label=""
-                        value=""
-                        onChange={(val) => onAddItem(storeIndex, val)}
-                        options={availableProducts.map((p) => ({
-                            value: p.id,
-                            label: `${p.name} (${p.productCode || "-"})`,
-                        }))}
-                        placeholder="+ เพิ่มสินค้า"
-                        searchPlaceholder="ค้นหาสินค้า..."
-                        emptyText="ไม่พบสินค้า"
-                        triggerClassName="h-9 text-sm border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50/50"
-                    />
+            {store.items.length > 0 && (
+                <div className="mt-3 text-right">
+                    <span className="text-xs text-slate-500">รวมร้านนี้: </span>
+                    <span className="text-sm font-bold text-emerald-700">
+                        ฿{storeTotal.toLocaleString()}
+                    </span>
                 </div>
-                {store.items.length > 0 && (
-                    <div className="text-right">
-                        <span className="text-xs text-slate-500">รวมร้านนี้: </span>
-                        <span className="text-sm font-bold text-emerald-700">
-                            ฿{storeTotal.toLocaleString()}
-                        </span>
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     );
 }
