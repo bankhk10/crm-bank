@@ -20,6 +20,8 @@ export interface TableToolbarProps {
 
     /** Action buttons rendered on the right side (e.g. create button) */
     actions?: React.ReactNode;
+    /** Where to position the actions. 'inline' places them in the 3rd column. 'bottom' places them in a new row right-aligned. */
+    actionPosition?: "inline" | "bottom";
     /** Additional filter controls (rendered between search and actions) */
     filters?: React.ReactNode;
 
@@ -35,6 +37,7 @@ export function TableToolbar({
     searchLabel = "ค้นหา",
     showSearch = true,
     actions,
+    actionPosition = "inline",
     filters,
     className,
 }: TableToolbarProps) {
@@ -68,13 +71,17 @@ export function TableToolbar({
 
                 {/* Additional filters */}
                 {filters && (
-                    <div className={!showSearch ? "lg:col-span-2" : "lg:col-span-1"}>
+                    <div className={
+                        !showSearch
+                            ? (actionPosition === "inline" ? "lg:col-span-2" : "lg:col-span-3")
+                            : (actionPosition === "inline" ? "lg:col-span-1" : "lg:col-span-2")
+                    }>
                         {filters}
                     </div>
                 )}
 
-                {/* Action buttons (right-aligned) */}
-                {actions && (
+                {/* Action buttons (inline) */}
+                {actions && actionPosition === "inline" && (
                     <div
                         className={`flex items-end gap-2 lg:justify-end ${!showSearch && !filters
                             ? "lg:col-span-3"
@@ -87,6 +94,13 @@ export function TableToolbar({
                     </div>
                 )}
             </div>
+
+            {/* Action buttons (bottom) */}
+            {actions && actionPosition === "bottom" && (
+                <div className="flex flex-wrap items-center gap-2 justify-end w-full pt-1">
+                    {actions}
+                </div>
+            )}
         </div>
     );
 }

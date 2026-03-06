@@ -68,6 +68,7 @@ export default function CustomersTable({
       searchValue={searchValue}
       onSearchChange={(val) => onSearchChange && onSearchChange(val)}
       onSearchSubmit={onSearchSubmit}
+      actionPosition="bottom"
       filters={
         <div className="grid grid-cols-2 gap-2">
           {/* Customer Type Filter */}
