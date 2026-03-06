@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,8 @@ import {
   listProductsAction,
   deleteProductAction,
 } from "@/modules/products";
-import { Input } from "@/components/ui/input";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import Link from "next/link";
 import { Package } from "lucide-react";
+import { PageHeader } from "@/components/custom/page-header";
 import { PAGINATION } from "@/lib/constants";
 
 export default function ProductsPage() {
@@ -34,13 +31,11 @@ export default function ProductsPage() {
   const [filterDraft, setFilterDraft] = useState<{
     query: string;
     status: string;
-    dateRange?: DateRange;
-  }>({ query: "", status: "", dateRange: undefined });
+  }>({ query: "", status: "" });
   const [appliedFilters, setAppliedFilters] = useState<{
     query: string;
     status: string;
-    dateRange?: DateRange;
-  }>({ query: "", status: "", dateRange: undefined });
+  }>({ query: "", status: "" });
   const [deleteCandidate, setDeleteCandidate] = useState<ProductRecord | null>(
     null
   );
@@ -62,15 +57,11 @@ export default function ProductsPage() {
     const next = {
       query: filterDraft.query,
       status: filterDraft.status,
-      dateRange: filterDraft.dateRange,
     };
 
-    const rangeKey = (r?: DateRange) =>
-      r?.from?.toISOString() + "|" + r?.to?.toISOString();
     if (
       next.query === appliedFilters.query &&
-      next.status === appliedFilters.status &&
-      rangeKey(next.dateRange) === rangeKey(appliedFilters.dateRange)
+      next.status === appliedFilters.status
     ) {
       return;
     }
@@ -83,26 +74,15 @@ export default function ProductsPage() {
   }, [
     filterDraft.query,
     filterDraft.status,
-    filterDraft.dateRange,
     total,
     appliedFilters.query,
     appliedFilters.status,
-    appliedFilters.dateRange,
   ]);
-
-  const mkRangeKey = (r?: DateRange) =>
-    r?.from?.toISOString() + "|" + r?.to?.toISOString();
-
-  const isTyping =
-    filterDraft.query !== appliedFilters.query ||
-    filterDraft.status !== appliedFilters.status ||
-    mkRangeKey(filterDraft.dateRange) !== mkRangeKey(appliedFilters.dateRange);
 
   const handleSearchSubmit = () => {
     setAppliedFilters({
       query: filterDraft.query,
       status: filterDraft.status,
-      dateRange: filterDraft.dateRange,
     });
     setPage(1);
   };
@@ -117,8 +97,6 @@ export default function ProductsPage() {
         perPage,
         q: appliedFilters.query.trim() || undefined,
         status: appliedFilters.status.trim() || undefined,
-        from: appliedFilters.dateRange?.from || undefined,
-        to: appliedFilters.dateRange?.to || undefined,
       });
       setProducts((result.products ?? []) as ProductRecord[]);
       setTotal(typeof result.total === "number" ? result.total : 0);
@@ -200,71 +178,11 @@ export default function ProductsPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <Package className="w-9 h-9 text-blue-600" />
-
-              <h1 className="text-3xl font-bold tracking-tight">
-                ข้อมูลสินค้า
-              </h1>
-            </div>
-          </div>
-
-          {/* Mobile toolbar - hidden since ProductsTable has its own responsive toolbar */}
-          <div className="hidden">
-            <div className="bg-white p-3 rounded-xl shadow-sm space-y-3">
-              <div className="flex items-center gap-2">
-                <Input
-                  value={filterDraft.query}
-                  onChange={(e) =>
-                    setFilterDraft((prev) => ({
-                      ...prev,
-                      query: e.target.value,
-                    }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSearchSubmit();
-                  }}
-                  placeholder="ค้นหาสินค้า"
-                  className="h-10 rounded-xl shadow-sm px-4"
-                />
-              </div>
-
-              <DateRangePicker
-                value={filterDraft.dateRange}
-                onChange={(range) =>
-                  setFilterDraft((prev) => ({
-                    ...prev,
-                    dateRange: range ?? undefined,
-                  }))
-                }
-                placeholder="ช่วงวันที่"
-                className="w-full rounded-lg"
-              />
-
-              {canCreate && (
-                <div className="flex gap-2">
-                  <Link href="/products/new" className="flex-1">
-                    <Button className="w-full">สร้างสินค้า</Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      setFilterDraft({
-                        query: "",
-                        status: "",
-                        dateRange: undefined,
-                      });
-                      handleSearchSubmit();
-                    }}
-                  >
-                    รีเซ็ต
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
+          <PageHeader
+            icon={Package}
+            iconClassName="text-blue-600"
+            title="ข้อมูลสินค้า"
+          />
 
           {/* ProductsTable - responsive for all screen sizes */}
           <div>
