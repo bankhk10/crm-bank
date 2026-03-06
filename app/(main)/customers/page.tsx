@@ -12,6 +12,7 @@ import {
 import { UserCog } from "lucide-react";
 import { getCustomersAction, deleteCustomerAction } from "@/modules/customers/server/actions";
 import { PAGINATION } from "@/lib/constants";
+import { PageHeader } from "@/components/custom/page-header";
 
 export default function CustomersPage() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
@@ -211,15 +212,11 @@ export default function CustomersPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <UserCog className="w-9 h-9 text-blue-600" />
-
-              <h1 className="text-3xl font-bold tracking-tight">
-                ข้อมูลลูกค้า
-              </h1>
-            </div>
-          </div>
+          <PageHeader
+            icon={UserCog}
+            iconClassName="text-blue-600"
+            title="ข้อมูลลูกค้า"
+          />
 
           <CustomersTable
             data={customers}
