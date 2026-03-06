@@ -6,6 +6,7 @@ import { ClipboardCheck } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageHeader } from "@/components/custom/page-header";
 import { getFulfillmentsAction } from "../../server/actions";
 import { FulfillmentTable } from "./fulfillment-table";
 import type { SaleRecord } from "../../types/types";
@@ -140,14 +141,11 @@ export default function FulfillmentPage() {
 
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <ClipboardCheck className="w-9 h-9 text-blue-600" />
-              <h1 className="text-3xl font-bold tracking-tight">
-                จัดการคำสั่งขาย
-              </h1>
-            </div>
-          </div>
+          <PageHeader
+            icon={ClipboardCheck}
+            iconClassName="text-blue-600"
+            title="จัดการคำสั่งขาย"
+          />
 
           <FulfillmentTable
             sales={sales}
