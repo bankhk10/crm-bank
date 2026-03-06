@@ -566,25 +566,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 />
                             </div>
                         </div>
-
-                        {/* Copy from previous month */}
-                        {employeeId && !isEdit && (
-                            <div className="mt-5 pt-5 border-t border-slate-100">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleCopyPrevMonth}
-                                    disabled={copyingPrevMonth}
-                                    className="rounded-xl border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold gap-2"
-                                >
-                                    <Copy className="w-4 h-4" />
-                                    {copyingPrevMonth
-                                        ? "กำลังคัดลอก..."
-                                        : `Copy จาก${prevMonthLabel}`}
-                                </Button>
-                            </div>
-                        )}
                     </CardContent>
                 </Card>
 
