@@ -60,7 +60,7 @@ export function TableToolbar({
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter") onSearchSubmit?.();
                                 }}
-                                className="pl-9 h-10 w-full bg-white"
+                                className="pl-9 h-11 w-full bg-white"
                             />
                         </div>
                     </div>

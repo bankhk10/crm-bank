@@ -72,46 +72,52 @@ export default function CustomersTable({
         <div className="grid grid-cols-2 gap-2">
           {/* Customer Type Filter */}
           <div className="space-y-2">
-            <Select
-              value={customerTypeFilter || ALL_FILTER_VALUE}
-              onValueChange={(v) =>
-                onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)
-              }
-            >
-              <SelectTrigger className="text-base w-full">
-                <SelectValue placeholder="ประเภท" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_FILTER_VALUE}>ทุกประเภท</SelectItem>
-                {customerTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {CUSTOMER_TYPE_STYLE[type].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label className="text-base font-medium leading-none mx-1">ประเภท</label>
+            <div className="mt-1">
+              <Select
+                value={customerTypeFilter || ALL_FILTER_VALUE}
+                onValueChange={(v) =>
+                  onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)
+                }
+              >
+                <SelectTrigger className="text-base w-full bg-white">
+                  <SelectValue placeholder="ประเภท" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_FILTER_VALUE}>ทุกประเภท</SelectItem>
+                  {customerTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {CUSTOMER_TYPE_STYLE[type].label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Status Filter */}
           <div className="space-y-2">
-            <Select
-              value={statusFilter || ALL_STATUS_VALUE}
-              onValueChange={(v) =>
-                onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-              }
-            >
-              <SelectTrigger className="text-base w-full">
-                <SelectValue placeholder="สถานะ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_STATUS_VALUE}>ทุกสถานะ</SelectItem>
-                {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <label className="text-base font-medium leading-none mx-1">สถานะ</label>
+            <div className="mt-1">
+              <Select
+                value={statusFilter || ALL_STATUS_VALUE}
+                onValueChange={(v) =>
+                  onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                }
+              >
+                <SelectTrigger className="text-base w-full bg-white">
+                  <SelectValue placeholder="สถานะ" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_STATUS_VALUE}>ทุกสถานะ</SelectItem>
+                  {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       }
