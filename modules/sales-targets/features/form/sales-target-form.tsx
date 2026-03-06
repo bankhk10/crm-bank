@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { FormInput } from "@/components/custom/FormInput";
 import FormActions from "@/components/custom/form-actions";
@@ -16,14 +16,12 @@ import {
     MapPin,
     Pencil,
     Store,
-    Target,
     Trash2,
 } from "lucide-react";
 import { MONTHS, YEARS } from "../../constants";
 import {
     createSalesTargetAction,
     updateSalesTargetAction,
-    getPreviousMonthTargetAction,
 } from "../../server/actions";
 
 // ─────────────────────────────────────────────
@@ -95,17 +93,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         );
     }, [stores]);
 
-    // Previous month label
-    const prevMonthLabel = useMemo(() => {
-        let prevMonth = month - 1;
-        let prevYear = year;
-        if (prevMonth < 1) {
-            prevMonth = 12;
-            prevYear = year - 1;
-        }
-        const monthName = MONTHS.find((m) => m.value === prevMonth)?.label ?? "";
-        return `${monthName} ${prevYear + 543}`;
-    }, [year, month]);
+
 
     useEffect(() => {
         fetchInitialData();
@@ -324,54 +312,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         [stores],
     );
 
-    // ─────────────────────────────────────────────
-    // Copy from previous month
-    // ─────────────────────────────────────────────
 
-    const [copyingPrevMonth, setCopyingPrevMonth] = useState(false);
-
-    const handleCopyPrevMonth = async () => {
-        if (!employeeId) {
-            toast.error("กรุณาเลือกพนักงานก่อน");
-            return;
-        }
-        setCopyingPrevMonth(true);
-        try {
-            const result = await getPreviousMonthTargetAction({
-                year,
-                month,
-                employeeId,
-            });
-            if (result.success && "salesTarget" in result) {
-                const prev = result.salesTarget as any;
-                setStores(
-                    prev.stores.map((store: any) => ({
-                        customerId: store.customerId,
-                        name: store.customer?.name || "",
-                        customerCode: store.customer?.customerCode || "-",
-                        items: store.items?.map((item: any) => ({
-                            productId: item.productId,
-                            name: item.product?.name || "",
-                            productCode: item.product?.productCode || "-",
-                            unit: item.product?.unit || "ลัง",
-                            pricePerBox: Number(item.pricePerBox || 0),
-                            qtyPerBox: Number(item.qtyPerBox || 0),
-                            targetAmount: Number(item.targetAmount || 0),
-                        })) || [],
-                    })),
-                );
-                toast.success("คัดลอกข้อมูลจากเดือนก่อนสำเร็จ");
-            } else {
-                toast.error(
-                    ("error" in result && result.error) || "ไม่พบเป้าหมายเดือนก่อน",
-                );
-            }
-        } catch {
-            toast.error("เกิดข้อผิดพลาดในการคัดลอก");
-        } finally {
-            setCopyingPrevMonth(false);
-        }
-    };
 
     // ─────────────────────────────────────────────
     // Submit
@@ -457,246 +398,232 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     }, [customers, stores]);
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8"
-        >
-            <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* Header */}
-                <div className="relative">
-                    <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
-                    <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href="/sales-targets"
-                                className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
-                            >
-                                <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
-                            </Link>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-                                        <Target className="w-5 h-5 text-white" />
+        <section className="space-y-6">
+            <Card>
+                <div className="p-6">
+                    <div className="text-center relative">
+                        <Link
+                            href="/sales-targets"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </Link>
+                        <h5 className="font-semibold text-3xl border-b pb-6">
+                            {isEdit
+                                ? "แก้ไขเป้าหมายการขาย"
+                                : isCopy
+                                    ? "คัดลอกเป้าหมายการขาย"
+                                    : "เพิ่มเป้าหมายการขาย"}
+                        </h5>
+                    </div>
+                    {isCopy && (
+                        <p className="text-sm text-amber-600 flex items-center justify-center gap-1.5 mt-4">
+                            <Copy className="w-3.5 h-3.5" />
+                            คัดลอกจากรายการเดิม — กรุณาตรวจสอบข้อมูลก่อนบันทึก
+                        </p>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6 mt-6" noValidate>
+
+
+                        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                            ข้อมูลทั่วไป
+                        </h3>
+                        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2 mt-6">
+                            <FormCombobox
+                                label="ปี"
+                                value={year.toString()}
+                                onChange={(v) => {
+                                    setYear(Number(v));
+                                    clearError("year");
+                                }}
+                                options={YEARS.map((y) => ({
+                                    value: y.toString(),
+                                    label: (y + 543).toString(),
+                                }))}
+                                placeholder="เลือกปี"
+                                searchPlaceholder="ค้นหาปี..."
+                                emptyText="ไม่พบปี"
+                                error={errors.year}
+                                required
+                            />
+
+                            <FormCombobox
+                                label="เดือน"
+                                value={month.toString()}
+                                onChange={(v) => {
+                                    setMonth(Number(v));
+                                    clearError("month");
+                                }}
+                                options={MONTHS.map((m) => ({
+                                    value: m.value.toString(),
+                                    label: m.label,
+                                }))}
+                                placeholder="เลือกเดือน"
+                                searchPlaceholder="ค้นหาเดือน..."
+                                emptyText="ไม่พบเดือน"
+                                error={errors.month}
+                                required
+                            />
+
+                            <div className="md:col-span-2">
+                                <FormCombobox
+                                    label="พนักงานขาย"
+                                    value={employeeId}
+                                    onChange={(val) => {
+                                        setEmployeeId(val);
+                                        clearError("employeeId");
+                                    }}
+                                    options={employees.map((emp) => ({
+                                        value: emp.id,
+                                        label: `${emp.name}`,
+                                    }))}
+                                    placeholder="เลือกพนักงาน"
+                                    searchPlaceholder="ค้นหาพนักงาน..."
+                                    emptyText="ไม่พบพนักงาน"
+                                    error={errors.employeeId}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Step 3: Stores Section */}
+                        <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                            ข้อมูลตั้งเป้าหมาย
+                        </h3>
+                        <div className="w-full mt-6">
+                            <FormCombobox
+                                label="เพิ่มร้านค้า"
+                                value=""
+                                onChange={(val) => handleAddStore(val)}
+                                options={availableCustomers.map((c) => ({
+                                    value: c.id,
+                                    label: `${c.name}`,
+                                }))}
+                                placeholder="เลือกร้านค้า"
+                                searchPlaceholder="ค้นหาร้านค้า..."
+                                emptyText="ไม่พบร้านค้า"
+                                triggerClassName="h-10"
+                            />
+                        </div>
+                        {errors.stores && (
+                            <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
+                                <AlertTriangle className="w-4 h-4" />
+                                {errors.stores}
+                            </p>
+                        )}
+
+                        {stores.length === 0 && (
+                            <div className="flex flex-col items-center justify-center text-center py-16 animate-in fade-in duration-500">
+                                <div className="relative mb-6">
+                                    <div className="absolute inset-0 bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-full" />
+                                    <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
+                                        <Store className="w-9 h-9 text-slate-400" />
                                     </div>
-                                    <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                                        {isEdit
-                                            ? "แก้ไขเป้าหมายการขาย"
-                                            : isCopy
-                                                ? "คัดลอกเป้าหมายการขาย"
-                                                : "เพิ่มเป้าหมายการขาย"}
-                                    </h1>
                                 </div>
-                                {isCopy && (
-                                    <p className="text-sm text-amber-600 flex items-center gap-1.5 mt-1">
-                                        <Copy className="w-3.5 h-3.5" />
-                                        คัดลอกจากรายการเดิม — กรุณาตรวจสอบข้อมูลก่อนบันทึก
-                                    </p>
-                                )}
+                                <p className="font-semibold text-slate-700 text-lg mb-2">
+                                    ยังไม่มีร้านค้า
+                                </p>
+                                <p className="text-sm text-slate-500 max-w-xs">
+                                    กดปุ่ม เลือกร้านค้า
+                                    เพื่อเริ่มเพิ่มร้านค้าและตั้งเป้าหมาย
+                                </p>
                             </div>
+                        )}
+
+                        {/* Store List */}
+                        <div className="space-y-6">
+                            {stores.map((store, storeIndex) => (
+                                <StoreCard
+                                    key={store.customerId}
+                                    store={store}
+                                    storeIndex={storeIndex}
+                                    stores={stores}
+                                    products={products}
+                                    errors={errors}
+                                    onRemoveStore={handleRemoveStore}
+                                    onAddItem={handleAddItem}
+                                    onRemoveItem={handleRemoveItem}
+                                    onUpdateItem={handleUpdateItem}
+                                    onCloneStoreItems={handleCloneStoreItems}
+                                />
+                            ))}
                         </div>
-                    </div>
-                </div>
 
-                {/* Step 1 & 2: Year, Month, Employee */}
+                        {/* Grand Total */}
+                        {stores.length > 0 && (
+                            <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50 mt-6">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+                                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
 
-                <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-2xl">
-                    ข้อมูลทั่วไป
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-                    <FormCombobox
-                        label="ปี"
-                        value={year.toString()}
-                        onChange={(v) => {
-                            setYear(Number(v));
-                            clearError("year");
-                        }}
-                        options={YEARS.map((y) => ({
-                            value: y.toString(),
-                            label: (y + 543).toString(),
-                        }))}
-                        placeholder="เลือกปี"
-                        searchPlaceholder="ค้นหาปี..."
-                        emptyText="ไม่พบปี"
-                        error={errors.year}
-                        required
-                    />
+                                <div className="relative space-y-4">
+                                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                        <span className="text-slate-400 font-medium">
+                                            จำนวนร้านค้า
+                                        </span>
+                                        <span className="text-slate-400 font-medium">
+                                            {stores.length} ร้าน
+                                        </span>
+                                    </div>
 
-                    <FormCombobox
-                        label="เดือน"
-                        value={month.toString()}
-                        onChange={(v) => {
-                            setMonth(Number(v));
-                            clearError("month");
-                        }}
-                        options={MONTHS.map((m) => ({
-                            value: m.value.toString(),
-                            label: m.label,
-                        }))}
-                        placeholder="เลือกเดือน"
-                        searchPlaceholder="ค้นหาเดือน..."
-                        emptyText="ไม่พบเดือน"
-                        error={errors.month}
-                        required
-                    />
-
-                    <div className="sm:col-span-2 lg:col-span-1">
-                        <FormCombobox
-                            label="พนักงานขาย"
-                            value={employeeId}
-                            onChange={(val) => {
-                                setEmployeeId(val);
-                                clearError("employeeId");
-                            }}
-                            options={employees.map((emp) => ({
-                                value: emp.id,
-                                label: `${emp.name}`,
-                            }))}
-                            placeholder="เลือกพนักงาน"
-                            searchPlaceholder="ค้นหาพนักงาน..."
-                            emptyText="ไม่พบพนักงาน"
-                            error={errors.employeeId}
-                            required
-                        />
-                    </div>
-                </div>
-
-
-
-                {/* Step 3: Stores Section */}
-                <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-2xl">
-                    ข้อมูลตั้งเป้าหมาย
-                </h3>
-                <div className="w-full mt-6">
-                    <FormCombobox
-                        label="เพิ่มร้านค้า"
-                        value=""
-                        onChange={(val) => handleAddStore(val)}
-                        options={availableCustomers.map((c) => ({
-                            value: c.id,
-                            label: `${c.name}`,
-                        }))}
-                        placeholder="เลือกร้านค้า"
-                        searchPlaceholder="ค้นหาร้านค้า..."
-                        emptyText="ไม่พบร้านค้า"
-                        triggerClassName="h-10"
-                    />
-                </div>
-                {errors.stores && (
-                    <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
-                        <AlertTriangle className="w-4 h-4" />
-                        {errors.stores}
-                    </p>
-                )}
-
-                {stores.length === 0 && (
-                    <div className="flex flex-col items-center justify-center text-center py-16 animate-in fade-in duration-500">
-                        <div className="relative mb-6">
-                            <div className="absolute inset-0 bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-full" />
-                            <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
-                                <Store className="w-9 h-9 text-slate-400" />
+                                    <div className="flex items-end justify-between pt-2">
+                                        <div>
+                                            <span className="text-slate-400 uppercase tracking-wider block mb-1">
+                                                รวมยอดเงินเป้าหมาย
+                                            </span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-emerald-400 text-sm font-medium">
+                                                    ฿
+                                                </span>
+                                                <span className="text-2xl font-black text-white tracking-tight">
+                                                    {grandTotal.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <p className="font-semibold text-slate-700 text-lg mb-2">
-                            ยังไม่มีร้านค้า
-                        </p>
-                        <p className="text-sm text-slate-500 max-w-xs">
-                            กดปุ่ม เลือกร้านค้า
-                            เพื่อเริ่มเพิ่มร้านค้าและตั้งเป้าหมาย
-                        </p>
-                    </div>
-                )}
+                        )}
 
-                {/* Store List */}
-                <div className="space-y-6">
-                    {stores.map((store, storeIndex) => (
-                        <StoreCard
-                            key={store.customerId}
-                            store={store}
-                            storeIndex={storeIndex}
-                            stores={stores}
-                            products={products}
-                            errors={errors}
-                            onRemoveStore={handleRemoveStore}
-                            onAddItem={handleAddItem}
-                            onRemoveItem={handleRemoveItem}
-                            onUpdateItem={handleUpdateItem}
-                            onCloneStoreItems={handleCloneStoreItems}
-                        />
-                    ))}
-                </div>
-
-                {/* Grand Total */}
-                {stores.length > 0 && (
-                    <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50 mt-6">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-
-                        <div className="relative space-y-4">
-                            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                                <span className="text-slate-400 font-medium">
-                                    จำนวนร้านค้า
-                                </span>
-                                <span className="text-slate-400 font-medium">
-                                    {stores.length} ร้าน
-                                </span>
-                            </div>
-
-                            <div className="flex items-end justify-between pt-2">
-                                <div>
-                                    <span className="text-slate-400 uppercase tracking-wider block mb-1">
-                                        รวมยอดเงินเป้าหมาย
+                        {/* Duplicate warning */}
+                        {duplicateId && (
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
+                                <div className="flex items-center gap-2 flex-1">
+                                    <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
+                                    <span className="text-sm font-medium">
+                                        มีรายการนี้อยู่แล้ว คุณสามารถไปแก้ไขรายการที่มีอยู่ได้
                                     </span>
                                 </div>
-                                <div className="text-right">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-emerald-400 text-sm font-medium">
-                                            ฿
-                                        </span>
-                                        <span className="text-2xl font-black text-white tracking-tight">
-                                            {grandTotal.toLocaleString()}
-                                        </span>
-                                    </div>
-                                </div>
+                                <Link
+                                    href={`/sales-targets/${duplicateId}/edit`}
+                                    className="shrink-0"
+                                >
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-xl border-amber-300 bg-white hover:bg-amber-50 text-amber-700 font-semibold"
+                                    >
+                                        <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                                        ไปแก้ไขรายการ
+                                    </Button>
+                                </Link>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {/* Duplicate warning */}
-                {duplicateId && (
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
-                        <div className="flex items-center gap-2 flex-1">
-                            <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
-                            <span className="text-sm font-medium">
-                                มีรายการนี้อยู่แล้ว คุณสามารถไปแก้ไขรายการที่มีอยู่ได้
-                            </span>
-                        </div>
-                        <Link
-                            href={`/sales-targets/${duplicateId}/edit`}
-                            className="shrink-0"
-                        >
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="rounded-xl border-amber-300 bg-white hover:bg-amber-50 text-amber-700 font-semibold"
-                            >
-                                <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                                ไปแก้ไขรายการ
-                            </Button>
-                        </Link>
-                    </div>
-                )}
-
-                {/* Action Buttons */}
-                <FormActions
-                    loading={saving}
-                    onCancel={() => router.push("/sales-targets")}
-                    submitLabel={isEdit ? "บันทึก" : "บันทึก"}
-                    className="pt-8 border-t border-slate-100"
-                />
-            </div>
-        </form>
+                        {/* Action Buttons */}
+                        <FormActions
+                            loading={saving}
+                            onCancel={() => router.push("/sales-targets")}
+                            submitLabel={isEdit ? "บันทึก" : "บันทึก"}
+                            className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8"
+                        />
+                    </form>
+                </div>
+            </Card>
+        </section>
     );
 }
 
