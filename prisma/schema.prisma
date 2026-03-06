@@ -125,9 +125,8 @@ model Company {
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
 
-  employees   Employee[]
-  salesAsPickup    Sale[] @relation("SalePickupCompany")
-
+  employees     Employee[]
+  salesAsPickup Sale[]     @relation("SalePickupCompany")
 }
 
 model Employee {
@@ -368,7 +367,7 @@ model Customer {
   responsibleEmployee   Employee?                 @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
   sales                 Sale[]                    @relation("SaleCustomer")
   dailySalesSummaries   DailySalesSummary[]
-  salesTargets          SalesTarget[]
+  salesTargets          SalesTargetStore[]
   shippingCompanies     CustomerShippingCompany[]
   addresses             CustomerAddress[]
   contacts              CustomerContact[]
@@ -474,7 +473,6 @@ model ShippingCompany {
 
   customers CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
   sales     Sale[]                    @relation("SaleShippingCompany") // การขายที่ใช้บริษัทขนส่งนี้
-
 }
 
 // Junction table สำหรับความสัมพันธ์ Many-to-Many ระหว่าง Customer และ ShippingCompany
@@ -611,9 +609,9 @@ model Product {
   chemicalGroup        String? // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   pointHistories       EmployeePointHistory[]
 
-  parentId             String?
-  parent               Product?               @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
-  children             Product[]              @relation("ProductChildren")
+  parentId String?
+  parent   Product?  @relation("ProductChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children Product[] @relation("ProductChildren")
 }
 
 // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
@@ -748,9 +746,9 @@ model Sale {
   requestedDeliveryDate DateTime? // วันที่ลูกค้าต้องการให้จัดส่งสินค้า
   deliveryDate          DateTime? // วันที่กำหนดส่งสินค้า
   actualDeliveryDate    DateTime? // วันที่จัดส่งสินค้าสำเร็จจริง
-  deliveryUpdateCount   Int              @default(0) // จำนวนครั้งที่อัปเดตวันส่ง
-  maxDeliveryUpdates    Int              @default(3) // จำนวนครั้งสูงสุดที่อนุญาตให้แก้ไขวันส่ง
-  isDeliveryLocked      Boolean          @default(false) // ล็อคการแก้ไขวันที่จัดส่ง/ใบสั่งซื้อ
+  deliveryUpdateCount   Int       @default(0) // จำนวนครั้งที่อัปเดตวันส่ง
+  maxDeliveryUpdates    Int       @default(3) // จำนวนครั้งสูงสุดที่อนุญาตให้แก้ไขวันส่ง
+  isDeliveryLocked      Boolean   @default(false) // ล็อคการแก้ไขวันที่จัดส่ง/ใบสั่งซื้อ
   orderExpiryDate       DateTime? // วันที่ใบสั่งซื้อหมดอายุ (เช่น อนุมัติ + 3 วัน)
   lastDeliveryUpdate    DateTime? // วันที่อัปเดตวันส่งล่าสุด
   deliveryMethod        String? // วิธีการจัดส่ง (เช่น SALES_DELIVERY พนักงานส่ง, CUSTOMER_PICKUP ลูกค้ารับเอง)
@@ -797,12 +795,12 @@ model Sale {
   deletedAt   DateTime? // วันเวลาที่ลบเอกสาร (Soft Delete)
 
   // Relations
-  customer         Customer          @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
-  employee         Employee          @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
-  createdBy        User              @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
-  approvedBy       User?             @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  pickupCompany    Company?          @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
-  shippingCompany  ShippingCompany?  @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
+  customer        Customer         @relation("SaleCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  employee        Employee         @relation("SaleEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+  createdBy       User             @relation("SaleCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy      User?            @relation("SaleApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  pickupCompany   Company?         @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
+  shippingCompany ShippingCompany? @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
 
   items          SaleItem[]
   statusHistory  SaleStatusHistory[]
@@ -813,9 +811,9 @@ model Sale {
 }
 
 model SaleItem {
-  id            String   @id @default(cuid())
-  saleId        String
-  productId     String
+  id        String @id @default(cuid())
+  saleId    String
+  productId String
 
   // Product Snapshot (ข้อมูลสินค้าย้อนหลัง)
   productCode            String?
@@ -827,9 +825,9 @@ model SaleItem {
   packageSize            String?
   packageSizePerBox      String?
   totalPackageSizePerBox String?
-  price                  Decimal?  @db.Decimal(15, 2)
-  cartonPrice            Decimal?  @db.Decimal(15, 2)
-  promotionBudget        Decimal?  @db.Decimal(15, 2)
+  price                  Decimal? @db.Decimal(15, 2)
+  cartonPrice            Decimal? @db.Decimal(15, 2)
+  promotionBudget        Decimal? @db.Decimal(15, 2)
   pointPerUnit           Int?
   productChain           String?
 
@@ -1290,36 +1288,52 @@ model Notification {
 // NEW SALES TARGETS (DETAILED)
 // ==========================================
 
+// เป้าหมายการขาย: 1 record ต่อ 1 เดือน ต่อ 1 พนักงาน
 model SalesTarget {
   id         String @id @default(cuid())
   year       Int
   month      Int
   employeeId String // พนักงาน
-  customerId String // ร้านค้า
 
-  employee Employee          @relation(fields: [employeeId], references: [id])
-  customer Customer          @relation(fields: [customerId], references: [id])
-  items    SalesTargetItem[]
+  employee Employee           @relation(fields: [employeeId], references: [id])
+  stores   SalesTargetStore[]
 
   createdById String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@unique([year, month, employeeId]) // 1 เป้าต่อ 1 พนักงาน ต่อ 1 เดือน
   @@index([year, month])
   @@index([employeeId])
+}
+
+// ร้านค้าในเป้าหมาย: 1 ร้าน ต่อ 1 เป้าหมาย
+model SalesTargetStore {
+  id            String @id @default(cuid())
+  salesTargetId String
+  customerId    String // ร้านค้า
+
+  salesTarget SalesTarget       @relation(fields: [salesTargetId], references: [id], onDelete: Cascade)
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  items       SalesTargetItem[]
+
+  @@unique([salesTargetId, customerId]) // ไม่ซ้ำร้านค้าในเป้าหมายเดียวกัน
+  @@index([salesTargetId])
   @@index([customerId])
 }
 
+// สินค้าในร้านค้า: หลายสินค้าต่อ 1 ร้าน
 model SalesTargetItem {
-  id            String  @id @default(cuid())
-  salesTargetId String
-  productId     String
-  quantity      Int     @default(0)
-  amount        Decimal @db.Decimal(15, 2)
+  id                 String  @id @default(cuid())
+  salesTargetStoreId String
+  productId          String
+  pricePerBox        Decimal @default(0) @db.Decimal(15, 2)
+  qtyPerBox          Int     @default(0)
+  targetAmount       Decimal @default(0) @db.Decimal(15, 2)
 
-  salesTarget SalesTarget @relation(fields: [salesTargetId], references: [id], onDelete: Cascade)
-  product     Product     @relation(fields: [productId], references: [id])
+  salesTargetStore SalesTargetStore @relation(fields: [salesTargetStoreId], references: [id], onDelete: Cascade)
+  product          Product          @relation(fields: [productId], references: [id])
 
-  @@index([salesTargetId])
+  @@index([salesTargetStoreId])
   @@index([productId])
 }

@@ -115,8 +115,10 @@ export function SalesTargetTable({
             [
                 t.employee?.name,
                 t.employee?.employeeCode,
-                t.customer?.name,
-                t.customer?.customerCode,
+                ...(t.stores?.flatMap((s) => [
+                    s.customer?.name,
+                    s.customer?.customerCode,
+                ]) ?? []),
             ]
                 .filter(Boolean)
                 .join(" ")

@@ -3,13 +3,6 @@
  *
  * This is the main barrel export file for the sales-targets feature.
  * Import everything from this file when working with sales-targets.
- *
- * @example
- * import {
- *   SalesTargetForm,
- *   SalesTargetDetailDialog,
- *   SalesTargetTable,
- * } from "@/modules/sales-targets";
  */
 
 // Types
@@ -25,12 +18,14 @@ export * from "./constants";
 export {
   salesTargetSchema,
   salesTargetItemSchema,
+  salesTargetStoreSchema,
   type SalesTargetFormValues,
+  type SalesTargetStoreValues,
+  type SalesTargetItemValues,
 } from "./application/validations";
 
 // Features - List View
 export { SalesTargetTable } from "./features/list-view/sales-target-table";
-export { YearlyTargetCard } from "./features/list-view/yearly-target-card";
 export { SalesTargetFilters } from "./features/list-view/sales-target-filters";
 
 // Features - Detail View

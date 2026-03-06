@@ -1,7 +1,7 @@
 import { salesTargetSchema, type SalesTargetFormValues } from "./validations";
 import {
   createSalesTarget,
-  findDuplicateSalesTarget,
+  findExistingSalesTarget,
 } from "../infrastructure/sales-target.repository";
 import { MONTHS } from "../constants";
 
@@ -23,22 +23,21 @@ export async function createSalesTargetUseCase(
 
   const data: SalesTargetFormValues = parsed.data;
 
-  // Check for duplicate (same year, month, employee, customer)
-  const duplicate = await findDuplicateSalesTarget({
+  // Check for duplicate (same year, month, employee)
+  const duplicate = await findExistingSalesTarget({
     year: data.year,
     month: data.month,
     employeeId: data.employeeId,
-    customerId: data.customerId,
   });
 
   if (duplicate) {
     const monthLabel =
-      MONTHS.find((m) => m.value === data.month)?.label ?? `เดือน ${data.month}`;
+      MONTHS.find((m) => m.value === data.month)?.label ??
+      `เดือน ${data.month}`;
     const empName = (duplicate as any).employee?.name ?? "พนักงาน";
-    const custName = (duplicate as any).customer?.name ?? "ลูกค้า";
     return {
       success: false as const,
-      error: `มีเป้าหมายการขายของ ${empName} และ ${custName} ใน${monthLabel} ${data.year} อยู่แล้ว กรุณาแก้ไขรายการที่มีอยู่แทนการสร้างใหม่`,
+      error: `มีเป้าหมายการขายของ ${empName} ใน${monthLabel} ${data.year} อยู่แล้ว กรุณาแก้ไขรายการที่มีอยู่แทนการสร้างใหม่`,
       duplicateId: duplicate.id,
     };
   }
@@ -47,9 +46,8 @@ export async function createSalesTargetUseCase(
     year: data.year,
     month: data.month,
     employeeId: data.employeeId,
-    customerId: data.customerId,
     createdById: userId,
-    items: data.items,
+    stores: data.stores,
   });
 
   return { success: true as const, salesTarget: result };

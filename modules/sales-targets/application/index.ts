@@ -2,12 +2,12 @@
  * Application Layer – Public Facade
  *
  * Re-exports use cases and validation schemas for the sales-targets feature.
- * Small use cases are defined inline; larger ones are in separate files.
  */
 
 import {
   findSalesTargetById,
   findSalesTargets,
+  findPreviousMonthTarget,
   type FindSalesTargetsParams,
 } from "../infrastructure/sales-target.repository";
 
@@ -33,14 +33,40 @@ export async function listSalesTargetsUseCase(params: FindSalesTargetsParams) {
   return findSalesTargets(params);
 }
 
+/**
+ * Use case: Get previous month's target for copying.
+ */
+export async function getPreviousMonthTargetUseCase(params: {
+  year: number;
+  month: number;
+  employeeId: string;
+}) {
+  const target = await findPreviousMonthTarget(params);
+  if (!target) {
+    return { success: false as const, error: "ไม่พบเป้าหมายเดือนก่อน" };
+  }
+  return {
+    success: true as const,
+    salesTarget: {
+      ...target,
+      stores: target.stores.map((store) => ({
+        ...store,
+        items: store.items.map((item) => ({
+          ...item,
+          pricePerBox: Number(item.pricePerBox),
+          targetAmount: Number(item.targetAmount),
+        })),
+      })),
+    },
+  };
+}
+
 // ─────────────────────────────────────────────
-// Use Cases (separate files – have meaningful logic)
+// Use Cases (separate files)
 // ─────────────────────────────────────────────
 
 export { createSalesTargetUseCase } from "./create-sales-target";
 export { updateSalesTargetUseCase } from "./update-sales-target";
-export { saveDetailedTargetsUseCase } from "./save-detailed-targets";
-export { saveMonthlyTargetsUseCase } from "./save-monthly-targets";
 
 import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
 
@@ -58,5 +84,8 @@ export async function deleteSalesTargetUseCase(id: string) {
 export {
   salesTargetSchema,
   salesTargetItemSchema,
+  salesTargetStoreSchema,
   type SalesTargetFormValues,
+  type SalesTargetStoreValues,
+  type SalesTargetItemValues,
 } from "./validations";

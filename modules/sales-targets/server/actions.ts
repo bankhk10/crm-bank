@@ -7,6 +7,7 @@ import {
   listSalesTargetsUseCase,
   createSalesTargetUseCase,
   updateSalesTargetUseCase,
+  getPreviousMonthTargetUseCase,
 } from "../application";
 import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
 
@@ -25,7 +26,6 @@ export async function getSalesTargetsAction(params: {
     return {
       success: false,
       error: "Unauthorized",
-      monthlyTargets: [],
       detailedTargets: [],
     };
   }
@@ -37,7 +37,6 @@ export async function getSalesTargetsAction(params: {
     return {
       success: false,
       error: "Failed to fetch",
-      monthlyTargets: [],
       detailedTargets: [],
     };
   }
@@ -53,6 +52,26 @@ export async function getSalesTargetAction(id: string) {
     return await getSalesTargetDetailUseCase(id);
   } catch (_err) {
     return { success: false, error: "Failed to fetch" };
+  }
+}
+
+/**
+ * Get previous month's sales target for a given employee.
+ */
+export async function getPreviousMonthTargetAction(params: {
+  year: number;
+  month: number;
+  employeeId: string;
+}) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    return await getPreviousMonthTargetUseCase(params);
+  } catch (_err) {
+    return { success: false, error: "Failed to fetch previous month target" };
   }
 }
 
@@ -142,4 +161,3 @@ export async function deleteSalesTargetAction(id: string) {
     return { success: false, error: "Failed to delete sales target." };
   }
 }
-

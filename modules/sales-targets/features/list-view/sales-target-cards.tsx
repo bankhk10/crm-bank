@@ -6,7 +6,7 @@ import {
     Pencil,
     Trash2,
     Calendar,
-    Building2,
+    Store,
     UserRound,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -100,14 +100,20 @@ export function SalesTargetCards({
                 {data.map((target) => {
                     const monthLabel =
                         MONTHS.find((m) => m.value === target.month)?.label ?? "-";
-                    const totalQty =
-                        target.items?.reduce(
-                            (s: number, i: any) => s + i.quantity,
-                            0,
-                        ) ?? 0;
+                    const storeCount = target.stores?.length ?? 0;
+                    const storeNames = target.stores
+                        ?.map((s) => s.customer?.name)
+                        .filter(Boolean)
+                        .join(", ") || "-";
                     const totalAmount =
-                        target.items?.reduce(
-                            (s: number, i: any) => s + Number(i.amount),
+                        target.stores?.reduce(
+                            (storeSum, store) =>
+                                storeSum +
+                                (store.items?.reduce(
+                                    (itemSum, item) =>
+                                        itemSum + Number(item.targetAmount),
+                                    0,
+                                ) ?? 0),
                             0,
                         ) ?? 0;
 
@@ -150,11 +156,14 @@ export function SalesTargetCards({
                                             </span>
                                         </div>
                                     )}
-                                    {target.customer && (
+                                    {storeCount > 0 && (
                                         <div className="flex items-center gap-2">
-                                            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                                            <Store className="h-4 w-4 text-slate-400 shrink-0" />
                                             <span className="truncate">
-                                                {target.customer.name}
+                                                {storeNames}
+                                                <span className="ml-1 text-slate-400">
+                                                    ({storeCount} ร้าน)
+                                                </span>
                                             </span>
                                         </div>
                                     )}
@@ -163,11 +172,11 @@ export function SalesTargetCards({
                                 {/* Totals */}
                                 <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/60">
                                     <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <div className="text-slate-500">จำนวนสินค้า</div>
+                                        <div className="text-slate-500">จำนวนร้านค้า</div>
                                         <div className="text-right font-semibold text-slate-900">
-                                            {totalQty}{" "}
+                                            {storeCount}{" "}
                                             <span className="font-normal text-xs text-slate-500">
-                                                รายการ
+                                                ร้าน
                                             </span>
                                         </div>
                                         <div className="text-slate-500">ยอดรวม</div>

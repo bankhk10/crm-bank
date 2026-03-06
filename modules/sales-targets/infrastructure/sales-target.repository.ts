@@ -12,24 +12,38 @@ export interface FindSalesTargetsParams {
 }
 
 // ─────────────────────────────────────────────
-// Repository Functions (Data Access Layer)
+// Include definitions
 // ─────────────────────────────────────────────
 
-const salesTargetInclude = {
+const salesTargetFullInclude = {
   employee: {
     select: { id: true, name: true, employeeCode: true },
   },
-  customer: {
-    select: { id: true, name: true, customerCode: true },
-  },
-  items: {
+  stores: {
     include: {
-      product: {
-        select: { id: true, name: true, productCode: true },
+      customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              productCode: true,
+              unit: true,
+              cartonPrice: true,
+            },
+          },
+        },
       },
     },
   },
 } as const;
+
+// ─────────────────────────────────────────────
+// Repository Functions
+// ─────────────────────────────────────────────
 
 /**
  * Find a single sales target by ID with all relations.
@@ -37,16 +51,20 @@ const salesTargetInclude = {
 export async function findSalesTargetById(id: string) {
   const target = await db.salesTarget.findUnique({
     where: { id },
-    include: salesTargetInclude,
+    include: salesTargetFullInclude,
   });
 
   if (!target) return null;
 
   return {
     ...target,
-    items: target.items.map((i) => ({
-      ...i,
-      amount: Number(i.amount),
+    stores: target.stores.map((store) => ({
+      ...store,
+      items: store.items.map((item) => ({
+        ...item,
+        pricePerBox: Number(item.pricePerBox),
+        targetAmount: Number(item.targetAmount),
+      })),
     })),
   };
 }
@@ -57,106 +75,117 @@ export async function findSalesTargetById(id: string) {
 export async function findSalesTargets(params: FindSalesTargetsParams) {
   const { year, month, employeeId, shopId } = params;
 
-  const [monthlyTargets, detailedTargets] = await Promise.all([
-    // Monthly Targets (Legacy/Aggregated)
-    db.monthlySalesTarget.findMany({
-      where: { year, deletedAt: null },
-      orderBy: { month: "asc" },
-    }),
-    // Detailed Targets
-    db.salesTarget.findMany({
-      where: {
-        year,
-        ...(month ? { month } : {}),
-        ...(employeeId ? { employeeId } : {}),
-        ...(shopId ? { customerId: shopId } : {}),
-      },
-      include: salesTargetInclude,
-      orderBy: [{ month: "asc" }, { createdAt: "desc" }],
-    }),
-  ]);
+  const detailedTargets = await db.salesTarget.findMany({
+    where: {
+      year,
+      ...(month ? { month } : {}),
+      ...(employeeId ? { employeeId } : {}),
+      ...(shopId
+        ? {
+            stores: {
+              some: { customerId: shopId },
+            },
+          }
+        : {}),
+    },
+    include: salesTargetFullInclude,
+    orderBy: [{ month: "asc" }, { createdAt: "desc" }],
+  });
 
   return {
-    monthlyTargets: monthlyTargets.map((t) => ({
-      ...t,
-      targetAmount: Number(t.targetAmount),
-    })),
     detailedTargets: detailedTargets.map((t) => ({
       ...t,
-      items: t.items.map((i) => ({
-        ...i,
-        amount: Number(i.amount),
+      stores: t.stores.map((store) => ({
+        ...store,
+        items: store.items.map((item) => ({
+          ...item,
+          pricePerBox: Number(item.pricePerBox),
+          targetAmount: Number(item.targetAmount),
+        })),
       })),
     })),
   };
 }
 
 /**
- * Check if a sales target with the same year, month, employee, and customer already exists.
- * Pass excludeId to exclude the current record when checking during update.
+ * Find existing sales target for a given year/month/employee.
  */
-export async function findDuplicateSalesTarget(params: {
+export async function findExistingSalesTarget(params: {
   year: number;
   month: number;
   employeeId: string;
-  customerId: string;
   excludeId?: string;
 }) {
-  const { year, month, employeeId, customerId, excludeId } = params;
+  const { year, month, employeeId, excludeId } = params;
 
   return db.salesTarget.findFirst({
     where: {
       year,
       month,
       employeeId,
-      customerId,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
     include: {
       employee: { select: { id: true, name: true, employeeCode: true } },
-      customer: { select: { id: true, name: true, customerCode: true } },
     },
   });
 }
 
 /**
- * Create a new sales target with items.
+ * Create a new sales target with stores and items.
  */
 export async function createSalesTarget(data: {
   year: number;
   month: number;
   employeeId: string;
-  customerId: string;
   createdById: string;
-  items: { productId: string; quantity: number; amount: number }[];
+  stores: {
+    customerId: string;
+    items: {
+      productId: string;
+      pricePerBox: number;
+      qtyPerBox: number;
+      targetAmount: number;
+    }[];
+  }[];
 }) {
-  const { items, ...targetData } = data;
+  const { stores, ...targetData } = data;
 
   const target = await db.salesTarget.create({
     data: {
       ...targetData,
-      items: {
-        create: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          amount: item.amount,
+      stores: {
+        create: stores.map((store) => ({
+          customerId: store.customerId,
+          items: {
+            create: store.items.map((item) => ({
+              productId: item.productId,
+              pricePerBox: item.pricePerBox,
+              qtyPerBox: item.qtyPerBox,
+              targetAmount: item.targetAmount,
+            })),
+          },
         })),
       },
     },
-    include: { items: true },
+    include: salesTargetFullInclude,
   });
 
   return {
     ...target,
-    items: target.items.map((i) => ({
-      ...i,
-      amount: Number(i.amount),
+    stores: target.stores.map((store) => ({
+      ...store,
+      items: store.items.map((item) => ({
+        ...item,
+        pricePerBox: Number(item.pricePerBox),
+        targetAmount: Number(item.targetAmount),
+      })),
     })),
   };
 }
 
 /**
- * Update an existing sales target (replace items).
+ * Update an existing sales target (replace all stores and items).
  */
 export async function updateSalesTarget(
   id: string,
@@ -164,14 +193,21 @@ export async function updateSalesTarget(
     year: number;
     month: number;
     employeeId: string;
-    customerId: string;
-    items: { productId: string; quantity: number; amount: number }[];
+    stores: {
+      customerId: string;
+      items: {
+        productId: string;
+        pricePerBox: number;
+        qtyPerBox: number;
+        targetAmount: number;
+      }[];
+    }[];
   },
 ) {
-  const { items, ...targetData } = data;
+  const { stores, ...targetData } = data;
 
-  // Delete existing items to replace them
-  await db.salesTargetItem.deleteMany({
+  // Delete existing stores (cascade deletes items)
+  await db.salesTargetStore.deleteMany({
     where: { salesTargetId: id },
   });
 
@@ -179,67 +215,34 @@ export async function updateSalesTarget(
     where: { id },
     data: {
       ...targetData,
-      items: {
-        create: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          amount: item.amount,
+      stores: {
+        create: stores.map((store) => ({
+          customerId: store.customerId,
+          items: {
+            create: store.items.map((item) => ({
+              productId: item.productId,
+              pricePerBox: item.pricePerBox,
+              qtyPerBox: item.qtyPerBox,
+              targetAmount: item.targetAmount,
+            })),
+          },
         })),
       },
     },
-    include: { items: true },
+    include: salesTargetFullInclude,
   });
 
   return {
     ...target,
-    items: target.items.map((i) => ({
-      ...i,
-      amount: Number(i.amount),
+    stores: target.stores.map((store) => ({
+      ...store,
+      items: store.items.map((item) => ({
+        ...item,
+        pricePerBox: Number(item.pricePerBox),
+        targetAmount: Number(item.targetAmount),
+      })),
     })),
   };
-}
-
-/**
- * Find a legacy monthly sales target by year and month.
- */
-export async function findMonthlySalesTarget(year: number, month: number) {
-  return db.monthlySalesTarget.findFirst({
-    where: { year, month, deletedAt: null },
-  });
-}
-
-/**
- * Create or update a legacy monthly sales target.
- */
-export async function upsertMonthlySalesTarget(data: {
-  id?: string;
-  year: number;
-  month: number;
-  targetAmount: number;
-  notes?: string;
-  createdById: string;
-}) {
-  const { id, targetAmount, ...rest } = data;
-
-  if (id) {
-    return db.monthlySalesTarget.update({
-      where: { id },
-      data: {
-        targetAmount,
-        notes: rest.notes,
-      },
-    });
-  }
-
-  return db.monthlySalesTarget.create({
-    data: {
-      year: rest.year,
-      month: rest.month,
-      targetAmount,
-      notes: rest.notes,
-      createdById: rest.createdById,
-    },
-  });
 }
 
 /**
@@ -251,4 +254,34 @@ export async function deleteSalesTargetById(id: string) {
 
   await db.salesTarget.delete({ where: { id } });
   return true;
+}
+
+/**
+ * Find sales target from previous month (for "Copy from previous month" feature).
+ */
+export async function findPreviousMonthTarget(params: {
+  year: number;
+  month: number;
+  employeeId: string;
+}) {
+  const { year, month, employeeId } = params;
+
+  // Calculate previous month
+  let prevYear = year;
+  let prevMonth = month - 1;
+  if (prevMonth < 1) {
+    prevMonth = 12;
+    prevYear = year - 1;
+  }
+
+  return db.salesTarget.findUnique({
+    where: {
+      year_month_employeeId: {
+        year: prevYear,
+        month: prevMonth,
+        employeeId,
+      },
+    },
+    include: salesTargetFullInclude,
+  });
 }

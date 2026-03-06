@@ -48,81 +48,13 @@ export function useSalesTargetColumns(
                 },
             },
             {
-                accessorKey: "customer",
-                header: "ร้านค้า",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 200,
-                    width: 250,
-                    maxWidth: 250,
-                    align: "left",
-                },
-                cell: ({ row }) => {
-                    const cust = row.original.customer;
-                    return (
-                        <div className="flex flex-col">
-                            <TruncatedCell
-                                value={cust?.name ?? "-"}
-                                className="font-medium text-slate-900"
-                            />
-                        </div>
-                    );
-                },
-            },
-            {
-                id: "totalQty",
-                header: "จำนวนสินค้า",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 110,
-                    width: 110,
-                    maxWidth: 110,
-                    align: "left",
-                },
-                cell: ({ row }) => {
-                    const totalQty =
-                        row.original.items?.reduce(
-                            (s: number, i: any) => s + i.quantity,
-                            0,
-                        ) ?? 0;
-                    return (
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-800">
-                            {totalQty} รายการ
-                        </span>
-                    );
-                },
-            },
-            {
-                id: "totalAmount",
-                header: "ยอดรวม",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 100,
-                    width: 100,
-                    maxWidth: 100,
-                    align: "left",
-                },
-                cell: ({ row }) => {
-                    const totalAmount =
-                        row.original.items?.reduce(
-                            (s: number, i: any) => s + Number(i.amount),
-                            0,
-                        ) ?? 0;
-                    return (
-                        <span className="font-semibold text-emerald-700">
-                            {formatCurrency(totalAmount)}
-                        </span>
-                    );
-                },
-            },
-            {
                 accessorKey: "employee",
                 header: "พนักงาน",
                 meta: {
                     headerAlign: "left",
                     minWidth: 150,
-                    width: 150,
-                    maxWidth: 150,
+                    width: 180,
+                    maxWidth: 200,
                     align: "left",
                 },
                 cell: ({ row }) => {
@@ -134,6 +66,61 @@ export function useSalesTargetColumns(
                                 className="font-medium text-slate-900"
                             />
                         </div>
+                    );
+                },
+            },
+            {
+                id: "stores",
+                header: "ร้านค้า",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 200,
+                    width: 250,
+                    maxWidth: 300,
+                    align: "left",
+                },
+                cell: ({ row }) => {
+                    const storeNames = row.original.stores
+                        ?.map((s) => s.customer?.name)
+                        .filter(Boolean)
+                        .join(", ");
+                    const count = row.original.stores?.length ?? 0;
+                    return (
+                        <div className="flex flex-col">
+                            <TruncatedCell
+                                value={storeNames || "-"}
+                                className="font-medium text-slate-900"
+                            />
+                            <span className="text-xs text-slate-500">{count} ร้าน</span>
+                        </div>
+                    );
+                },
+            },
+            {
+                id: "totalAmount",
+                header: "ยอดรวม",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 120,
+                    width: 130,
+                    maxWidth: 150,
+                    align: "left",
+                },
+                cell: ({ row }) => {
+                    const totalAmount =
+                        row.original.stores?.reduce(
+                            (storeSum, store) =>
+                                storeSum +
+                                (store.items?.reduce(
+                                    (itemSum, item) => itemSum + Number(item.targetAmount),
+                                    0,
+                                ) ?? 0),
+                            0,
+                        ) ?? 0;
+                    return (
+                        <span className="font-semibold text-emerald-700">
+                            {formatCurrency(totalAmount)}
+                        </span>
                     );
                 },
             },

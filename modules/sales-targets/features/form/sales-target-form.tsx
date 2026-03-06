@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -13,9 +13,9 @@ import {
     AlertTriangle,
     ChevronLeft,
     Copy,
-    Package,
+    MapPin,
     Pencil,
-    ShoppingCart,
+    Store,
     Target,
     Trash2,
 } from "lucide-react";
@@ -23,16 +23,28 @@ import { MONTHS, YEARS } from "../../constants";
 import {
     createSalesTargetAction,
     updateSalesTargetAction,
+    getPreviousMonthTargetAction,
 } from "../../server/actions";
+
+// ─────────────────────────────────────────────
+// Local Types
+// ─────────────────────────────────────────────
 
 interface ProductItem {
     productId: string;
     name: string;
     productCode: string;
-    quantity: number;
-    price: number;
-    amount: number;
     unit: string;
+    pricePerBox: number;
+    qtyPerBox: number;
+    targetAmount: number;
+}
+
+interface StoreEntry {
+    customerId: string;
+    name: string;
+    customerCode: string;
+    items: ProductItem[];
 }
 
 /** mode="copy" = สร้างใหม่โดยคัดลอกข้อมูลจาก initialData (ไม่มี id) */
@@ -40,6 +52,10 @@ interface SalesTargetFormProps {
     mode: "create" | "edit" | "copy";
     initialData?: any | null;
 }
+
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
 
 export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const router = useRouter();
@@ -49,8 +65,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
     const [employeeId, setEmployeeId] = useState("");
-    const [customerId, setCustomerId] = useState("");
-    const [items, setItems] = useState<ProductItem[]>([]);
+    const [stores, setStores] = useState<StoreEntry[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const clearError = (field: string) => {
@@ -71,10 +86,26 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const isEdit = mode === "edit";
     const isCopy = mode === "copy";
 
-    const totalAmount = useMemo(
-        () => items.reduce((s, i) => s + i.amount, 0),
-        [items],
-    );
+    // Total across all stores
+    const grandTotal = useMemo(() => {
+        return stores.reduce(
+            (sum, store) =>
+                sum + store.items.reduce((s, item) => s + item.targetAmount, 0),
+            0,
+        );
+    }, [stores]);
+
+    // Previous month label
+    const prevMonthLabel = useMemo(() => {
+        let prevMonth = month - 1;
+        let prevYear = year;
+        if (prevMonth < 1) {
+            prevMonth = 12;
+            prevYear = year - 1;
+        }
+        const monthName = MONTHS.find((m) => m.value === prevMonth)?.label ?? "";
+        return `${monthName} ${prevYear + 543}`;
+    }, [year, month]);
 
     useEffect(() => {
         fetchInitialData();
@@ -85,28 +116,30 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
             setYear(initialData.year);
             setMonth(initialData.month);
             setEmployeeId(initialData.employeeId);
-            setCustomerId(initialData.customerId);
-            setItems(
-                initialData.items?.map((i: any) => {
-                    const qty = i.quantity || 1;
-                    const amt = Number(i.amount || 0);
-                    return {
-                        productId: i.productId,
-                        name: i.product?.name || i.name,
-                        productCode: i.product?.productCode || "-",
-                        quantity: qty,
-                        price: amt / qty,
-                        amount: amt,
-                        unit: i.product?.unit || "หน่วย",
-                    };
-                }) || [],
-            );
+            // Convert stores from initialData
+            if (initialData.stores) {
+                setStores(
+                    initialData.stores.map((store: any) => ({
+                        customerId: store.customerId,
+                        name: store.customer?.name || "",
+                        customerCode: store.customer?.customerCode || "-",
+                        items: store.items?.map((item: any) => ({
+                            productId: item.productId,
+                            name: item.product?.name || "",
+                            productCode: item.product?.productCode || "-",
+                            unit: item.product?.unit || "ลัง",
+                            pricePerBox: Number(item.pricePerBox || 0),
+                            qtyPerBox: Number(item.qtyPerBox || 0),
+                            targetAmount: Number(item.targetAmount || 0),
+                        })) || [],
+                    })),
+                );
+            }
         } else if (!isEdit) {
             setYear(new Date().getFullYear());
             setMonth(new Date().getMonth() + 1);
             setEmployeeId("");
-            setCustomerId("");
-            setItems([]);
+            setStores([]);
         }
     }, [initialData, isEdit]);
 
@@ -120,15 +153,15 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 }
             });
 
-            // Fetch Customers (Initial list)
-            const custRes = await fetch("/api/customers?perPage=50");
+            // Fetch Customers
+            const custRes = await fetch("/api/customers?perPage=200");
             if (custRes.ok) {
                 const data = await custRes.json();
                 setCustomers(data.customers || data);
             }
 
-            // Fetch Products (Initial list)
-            const prodRes = await fetch("/api/products?perPage=50&status=ACTIVE");
+            // Fetch Products
+            const prodRes = await fetch("/api/products?perPage=200&status=ACTIVE");
             if (prodRes.ok) {
                 const data = await prodRes.json();
                 setProducts(data.products || data);
@@ -138,70 +171,234 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         }
     };
 
-    const handleAddItem = (product: any) => {
-        if (items.some((i) => i.productId === product.id)) {
-            toast.info("สินค้านี้ถูกเพิ่มแล้ว");
+    // ─────────────────────────────────────────────
+    // Store handlers
+    // ─────────────────────────────────────────────
+
+    const handleAddStore = useCallback(
+        (customerId: string) => {
+            if (stores.some((s) => s.customerId === customerId)) {
+                toast.info("ร้านค้านี้ถูกเพิ่มแล้ว");
+                return;
+            }
+            const customer = customers.find((c) => c.id === customerId);
+            if (!customer) return;
+
+            setStores([
+                ...stores,
+                {
+                    customerId: customer.id,
+                    name: customer.name,
+                    customerCode: customer.customerCode || "-",
+                    items: [],
+                },
+            ]);
+            clearError("stores");
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [stores, customers],
+    );
+
+    const handleRemoveStore = useCallback(
+        (storeIndex: number) => {
+            setStores(stores.filter((_, i) => i !== storeIndex));
+        },
+        [stores],
+    );
+
+    // ─────────────────────────────────────────────
+    // Item handlers
+    // ─────────────────────────────────────────────
+
+    const handleAddItem = useCallback(
+        (storeIndex: number, productId: string) => {
+            const store = stores[storeIndex];
+            if (store.items.some((item) => item.productId === productId)) {
+                toast.info("สินค้านี้ถูกเพิ่มแล้วในร้านค้านี้");
+                return;
+            }
+            const product = products.find((p) => p.id === productId);
+            if (!product) return;
+
+            const price = Number(product.cartonPrice || 0);
+
+            const newStores = [...stores];
+            newStores[storeIndex] = {
+                ...store,
+                items: [
+                    ...store.items,
+                    {
+                        productId: product.id,
+                        name: product.name,
+                        productCode: product.productCode || "-",
+                        unit: product.unit || "ลัง",
+                        pricePerBox: price,
+                        qtyPerBox: 1,
+                        targetAmount: price,
+                    },
+                ],
+            };
+            setStores(newStores);
+            clearError(`store-${storeIndex}-items`);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [stores, products],
+    );
+
+    const handleRemoveItem = useCallback(
+        (storeIndex: number, itemIndex: number) => {
+            const newStores = [...stores];
+            newStores[storeIndex] = {
+                ...newStores[storeIndex],
+                items: newStores[storeIndex].items.filter((_, i) => i !== itemIndex),
+            };
+            setStores(newStores);
+        },
+        [stores],
+    );
+
+    const handleUpdateItem = useCallback(
+        (
+            storeIndex: number,
+            itemIndex: number,
+            field: "pricePerBox" | "qtyPerBox" | "targetAmount",
+            value: number,
+        ) => {
+            const newStores = [...stores];
+            const item = { ...newStores[storeIndex].items[itemIndex] };
+
+            if (field === "pricePerBox") {
+                item.pricePerBox = value;
+                item.targetAmount = value * item.qtyPerBox;
+            } else if (field === "qtyPerBox") {
+                item.qtyPerBox = value;
+                item.targetAmount = item.pricePerBox * value;
+            } else if (field === "targetAmount") {
+                item.targetAmount = value;
+            }
+
+            newStores[storeIndex] = {
+                ...newStores[storeIndex],
+                items: newStores[storeIndex].items.map((it, i) =>
+                    i === itemIndex ? item : it,
+                ),
+            };
+            setStores(newStores);
+        },
+        [stores],
+    );
+
+    // ─────────────────────────────────────────────
+    // Clone store items from another store
+    // ─────────────────────────────────────────────
+
+    const handleCloneStoreItems = useCallback(
+        (targetStoreIndex: number, sourceStoreIndex: number) => {
+            const source = stores[sourceStoreIndex];
+            if (!source || source.items.length === 0) {
+                toast.info("ร้านค้าต้นทางไม่มีรายการสินค้า");
+                return;
+            }
+
+            const target = stores[targetStoreIndex];
+            const existingProductIds = new Set(target.items.map((i) => i.productId));
+
+            // Only clone items not already existing
+            const newItems = source.items
+                .filter((i) => !existingProductIds.has(i.productId))
+                .map((i) => ({ ...i }));
+
+            if (newItems.length === 0) {
+                toast.info("ร้านค้านี้มีรายการสินค้าทั้งหมดแล้ว");
+                return;
+            }
+
+            const newStores = [...stores];
+            newStores[targetStoreIndex] = {
+                ...target,
+                items: [...target.items, ...newItems],
+            };
+            setStores(newStores);
+            toast.success(`เพิ่ม ${newItems.length} รายการจาก ${source.name}`);
+        },
+        [stores],
+    );
+
+    // ─────────────────────────────────────────────
+    // Copy from previous month
+    // ─────────────────────────────────────────────
+
+    const [copyingPrevMonth, setCopyingPrevMonth] = useState(false);
+
+    const handleCopyPrevMonth = async () => {
+        if (!employeeId) {
+            toast.error("กรุณาเลือกพนักงานก่อน");
             return;
         }
-        const price = Number(product.cartonPrice || 0);
-        setItems([
-            ...items,
-            {
-                productId: product.id,
-                productCode: product.productCode,
-                name: product.name,
-                quantity: 1,
-                price: price,
-                amount: price,
-                unit: product.unit || "หน่วย",
-            },
-        ]);
-        clearError("items");
-    };
-
-    const handleRemoveItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
-    };
-
-    const handleUpdateItem = (
-        index: number,
-        field: keyof ProductItem,
-        value: number,
-    ) => {
-        const newItems = [...items];
-        const item = { ...newItems[index] };
-
-        if (field === "quantity") {
-            item.quantity = value;
-            item.amount = item.price * value;
-        } else if (field === "price") {
-            item.price = value;
-            item.amount = value * item.quantity;
-        } else if (field === "amount") {
-            item.amount = value;
+        setCopyingPrevMonth(true);
+        try {
+            const result = await getPreviousMonthTargetAction({
+                year,
+                month,
+                employeeId,
+            });
+            if (result.success && "salesTarget" in result) {
+                const prev = result.salesTarget as any;
+                setStores(
+                    prev.stores.map((store: any) => ({
+                        customerId: store.customerId,
+                        name: store.customer?.name || "",
+                        customerCode: store.customer?.customerCode || "-",
+                        items: store.items?.map((item: any) => ({
+                            productId: item.productId,
+                            name: item.product?.name || "",
+                            productCode: item.product?.productCode || "-",
+                            unit: item.product?.unit || "ลัง",
+                            pricePerBox: Number(item.pricePerBox || 0),
+                            qtyPerBox: Number(item.qtyPerBox || 0),
+                            targetAmount: Number(item.targetAmount || 0),
+                        })) || [],
+                    })),
+                );
+                toast.success("คัดลอกข้อมูลจากเดือนก่อนสำเร็จ");
+            } else {
+                toast.error(
+                    ("error" in result && result.error) || "ไม่พบเป้าหมายเดือนก่อน",
+                );
+            }
+        } catch {
+            toast.error("เกิดข้อผิดพลาดในการคัดลอก");
+        } finally {
+            setCopyingPrevMonth(false);
         }
-
-        newItems[index] = item;
-        setItems(newItems);
-
-        if (field === "quantity" && value > 0) clearError(`item-qty-${index}`);
-        if (field === "price" && value > 0) clearError(`item-price-${index}`);
     };
+
+    // ─────────────────────────────────────────────
+    // Submit
+    // ─────────────────────────────────────────────
 
     const [duplicateId, setDuplicateId] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
+
         if (!year) newErrors.year = "กรุณาเลือกปี";
         if (!month) newErrors.month = "กรุณาเลือกเดือน";
         if (!employeeId) newErrors.employeeId = "กรุณาเลือกพนักงานขาย";
-        if (!customerId) newErrors.customerId = "กรุณาเลือกลูกค้า/ร้านค้า";
-        if (items.length === 0) newErrors.items = "กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ";
+        if (stores.length === 0)
+            newErrors.stores = "กรุณาเพิ่มอย่างน้อย 1 ร้านค้า";
 
-        items.forEach((item, idx) => {
-            if (!item.quantity || item.quantity <= 0) newErrors[`item-qty-${idx}`] = "ระบุจำนวน";
-            if (!item.price || item.price <= 0) newErrors[`item-price-${idx}`] = "ระบุราคา";
+        stores.forEach((store, si) => {
+            if (store.items.length === 0)
+                newErrors[`store-${si}-items`] =
+                    "กรุณาเพิ่มอย่างน้อย 1 รายการสินค้า";
+            store.items.forEach((item, ii) => {
+                if (!item.qtyPerBox || item.qtyPerBox <= 0)
+                    newErrors[`store-${si}-item-${ii}-qty`] = "ระบุจำนวน";
+                if (!item.pricePerBox || item.pricePerBox <= 0)
+                    newErrors[`store-${si}-item-${ii}-price`] = "ระบุราคา";
+            });
         });
 
         setErrors(newErrors);
@@ -218,11 +415,14 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 year,
                 month,
                 employeeId,
-                customerId,
-                items: items.map((i) => ({
-                    productId: i.productId,
-                    quantity: i.quantity,
-                    amount: i.amount,
+                stores: stores.map((store) => ({
+                    customerId: store.customerId,
+                    items: store.items.map((item) => ({
+                        productId: item.productId,
+                        pricePerBox: item.pricePerBox,
+                        qtyPerBox: item.qtyPerBox,
+                        targetAmount: item.targetAmount,
+                    })),
                 })),
             };
 
@@ -238,7 +438,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 router.push("/sales-targets");
                 router.refresh();
             } else {
-                // Store duplicateId for redirect button
                 if ("duplicateId" in result && result.duplicateId) {
                     setDuplicateId(result.duplicateId as string);
                 }
@@ -251,10 +450,19 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         }
     };
 
+    // Available customers (exclude already added)
+    const availableCustomers = useMemo(() => {
+        const addedIds = new Set(stores.map((s) => s.customerId));
+        return customers.filter((c) => !addedIds.has(c.id));
+    }, [customers, stores]);
+
     return (
-        <form onSubmit={handleSubmit} className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* Modern Header with Glassmorphism */}
+        <form
+            onSubmit={handleSubmit}
+            className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8"
+        >
+            <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                {/* Header */}
                 <div className="relative">
                     <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
                     <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
@@ -265,7 +473,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                             >
                                 <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
                             </Link>
-
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
@@ -290,318 +497,538 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                     </div>
                 </div>
 
-                {/* Main Content Card */}
+                {/* Step 1 & 2: Year, Month, Employee */}
                 <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-2xl shadow-slate-900/5 rounded-3xl overflow-hidden">
-                    <CardContent className="p-6 sm:p-8 lg:p-10">
-                        <div className="grid gap-10">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                {/* Left Column: General Info */}
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-indigo-100">
-                                            <ShoppingCart className="w-4 h-4 text-blue-600" />
-                                        </div>
-                                        <h2 className="text-xl font-bold text-slate-800">
-                                            ข้อมูลทั่วไป
-                                        </h2>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <div className="space-y-2.5">
-                                            <FormCombobox
-                                                label="ปี"
-                                                value={year.toString()}
-                                                onChange={(v) => {
-                                                    setYear(Number(v));
-                                                    clearError("year");
-                                                }}
-                                                options={YEARS.map((y) => ({
-                                                    value: y.toString(),
-                                                    label: (y + 543).toString(),
-                                                }))}
-                                                placeholder="เลือกปี"
-                                                searchPlaceholder="ค้นหาปี..."
-                                                emptyText="ไม่พบปี"
-                                                error={errors.year}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2.5">
-                                            <FormCombobox
-                                                label="เดือน"
-                                                value={month.toString()}
-                                                onChange={(v) => {
-                                                    setMonth(Number(v));
-                                                    clearError("month");
-                                                }}
-                                                options={MONTHS.map((m) => ({
-                                                    value: m.value.toString(),
-                                                    label: m.label,
-                                                }))}
-                                                placeholder="เลือกเดือน"
-                                                searchPlaceholder="ค้นหาเดือน..."
-                                                emptyText="ไม่พบเดือน"
-                                                error={errors.month}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2.5">
-                                        <FormCombobox
-                                            label="พนักงานขาย"
-                                            value={employeeId}
-                                            onChange={(val) => {
-                                                setEmployeeId(val);
-                                                clearError("employeeId");
-                                            }}
-                                            options={employees.map((emp) => ({
-                                                value: emp.id,
-                                                label: `${emp.name} (${emp.employeeCode || "-"})`,
-                                            }))}
-                                            placeholder="เลือกพนักงาน"
-                                            searchPlaceholder="ค้นหาพนักงาน..."
-                                            emptyText="ไม่พบพนักงาน"
-                                            error={errors.employeeId}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2.5">
-                                        <FormCombobox
-                                            label="ลูกค้า/ร้านค้า"
-                                            value={customerId}
-                                            onChange={(val) => {
-                                                setCustomerId(val);
-                                                clearError("customerId");
-                                            }}
-                                            options={customers.map((customer) => ({
-                                                value: customer.id,
-                                                label: `${customer.name} (${customer.customerCode || "-"})`,
-                                            }))}
-                                            placeholder="เลือกลูกค้า"
-                                            searchPlaceholder="ค้นหาลูกค้า..."
-                                            emptyText="ไม่พบลูกค้า"
-                                            error={errors.customerId}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Right Column: Product Items */}
-                                <div className="space-y-5">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-100 to-teal-100">
-                                                <Package className="w-4 h-4 text-emerald-600" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-800">
-                                                รายการสินค้า
-                                            </h3>
-                                        </div>
-                                        <div className="w-full sm:w-[300px]">
-                                            <FormCombobox
-                                                label=""
-                                                value=""
-                                                onChange={(val) => {
-                                                    const p = products.find((x) => x.id === val);
-                                                    if (p) handleAddItem(p);
-                                                }}
-                                                options={products.map((p) => ({
-                                                    value: p.id,
-                                                    label: `${p.name} (${p.productCode || "-"})`,
-                                                }))}
-                                                placeholder="เพิ่มสินค้า..."
-                                                searchPlaceholder="ค้นหาสินค้า..."
-                                                emptyText="ไม่พบสินค้า"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className={`space-y-3 min-h-[350px] bg-linear-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed transition-colors ${errors.items ? "border-red-400 bg-red-50/10" : "border-slate-200/80"}`}>
-                                        {errors.items && (
-                                            <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
-                                                <AlertTriangle className="w-4 h-4" />
-                                                {errors.items}
-                                            </p>
-                                        )}
-                                        {items.length === 0 && (
-                                            <div className="flex flex-col items-center justify-center h-full text-center py-16 animate-in fade-in duration-500">
-                                                <div className="relative mb-6">
-                                                    <div className="absolute inset-0 bg-linear-to-r from-blue-500/20 to-indigo-500/20 blur-2xl rounded-full" />
-                                                    <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
-                                                        <Package className="w-9 h-9 text-slate-400" />
-                                                    </div>
-                                                </div>
-                                                <p className="font-semibold text-slate-700 text-lg mb-2">
-                                                    ยังไม่มีรายการสินค้า
-                                                </p>
-                                                <p className="text-sm text-slate-500 max-w-xs">
-                                                    กดปุ่ม &quot;เพิ่มสินค้า&quot;
-                                                    เพื่อเริ่มเพิ่มรายการเป้าหมายการขาย
-                                                </p>
-                                            </div>
-                                        )}
-                                        {items.map((item, index) => (
-                                            <div
-                                                key={item.productId}
-                                                className="group relative bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl transition-all duration-300 hover:border-blue-300/60 hover:-translate-y-1"
-                                            >
-                                                <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                                                <div className="relative space-y-4">
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex-1 pr-4">
-                                                            <div className="text-sm font-bold text-slate-800 mb-1">
-                                                                {item.name}
-                                                            </div>
-                                                            <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-100 text-xs text-slate-600 font-medium">
-                                                                {item.productCode ? (
-                                                                    item.productCode.length > 12
-                                                                        ? `${item.productCode.substring(0, 12)}...`
-                                                                        : item.productCode
-                                                                ) : "-"}
-                                                            </div>
-                                                        </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110"
-                                                            onClick={() => handleRemoveItem(index)}
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                        <FormInput
-                                                            label={`ราคา/${item.unit || "-"}`}
-                                                            type="number"
-                                                            value={item.price === 0 ? "" : item.price}
-                                                            onChange={(e) => {
-                                                                let val = e.target.value;
-                                                                // Prevent leading zeros (e.g., "05" -> "5")
-                                                                if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
-                                                                    val = val.replace(/^0+/, "");
-                                                                }
-                                                                handleUpdateItem(
-                                                                    index,
-                                                                    "price",
-                                                                    Number(val),
-                                                                );
-                                                            }}
-                                                            onWheel={(e) => e.currentTarget.blur()}
-                                                            error={errors[`item-price-${index}`]}
-                                                        />
-
-                                                        <FormInput
-                                                            label={`จำนวน/${item.unit || "-"}`}
-                                                            type="number"
-                                                            value={item.quantity === 0 ? "" : item.quantity}
-                                                            onChange={(e) => {
-                                                                let val = e.target.value;
-                                                                if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
-                                                                    val = val.replace(/^0+/, "");
-                                                                }
-                                                                handleUpdateItem(
-                                                                    index,
-                                                                    "quantity",
-                                                                    Number(val),
-                                                                );
-                                                            }}
-                                                            onWheel={(e) => e.currentTarget.blur()}
-                                                            error={errors[`item-qty-${index}`]}
-                                                        />
-
-                                                        <FormInput
-                                                            label="เป้าหมาย (บาท)"
-                                                            type="number"
-                                                            value={item.amount}
-                                                            onChange={() => { }}
-                                                            readOnly
-                                                            inputClassName="bg-emerald-50/80 border-emerald-200/80 font-bold text-emerald-700 cursor-not-allowed"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {items.length > 0 && (
-                                        <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50">
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-                                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-
-                                            <div className="relative space-y-4">
-                                                <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                                                    <span className="text-slate-400 text-sm font-medium">
-                                                        จำนวนรายการ
-                                                    </span>
-                                                    <span className="text-white font-bold text-lg">
-                                                        {items.length} รายการ
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-end justify-between pt-2">
-                                                    <div>
-                                                        <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
-                                                            รวมยอดเงินเป้าหมาย
-                                                        </span>
-                                                        <span className="text-xs text-slate-500">
-                                                            โดยประมาณ
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex items-baseline gap-1">
-                                                            <span className="text-emerald-400 text-sm font-medium">
-                                                                ฿
-                                                            </span>
-                                                            <span className="text-4xl font-black text-white tracking-tight">
-                                                                {totalAmount.toLocaleString()}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                    <CardContent className="p-6 sm:p-8">
+                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100 mb-6">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-indigo-100">
+                                <Target className="w-4 h-4 text-blue-600" />
                             </div>
-
-                            {/* Duplicate warning banner */}
-                            {duplicateId && (
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
-                                    <div className="flex items-center gap-2 flex-1">
-                                        <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
-                                        <span className="text-sm font-medium">
-                                            มีรายการนี้อยู่แล้ว คุณสามารถไปแก้ไขรายการที่มีอยู่ได้
-                                        </span>
-                                    </div>
-                                    <Link href={`/sales-targets/${duplicateId}/edit`} className="shrink-0">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="rounded-xl border-amber-300 bg-white hover:bg-amber-50 text-amber-700 font-semibold"
-                                        >
-                                            <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                                            ไปแก้ไขรายการ
-                                        </Button>
-                                    </Link>
-                                </div>
-                            )}
-
-                            {/* Action Buttons */}
-                            <FormActions
-                                loading={saving}
-                                onCancel={() => router.push("/sales-targets")}
-                                submitLabel={isEdit ? "บันทึกการแก้ไข" : "บันทึก"}
-                                className="pt-8 border-t border-slate-100"
-                            />
+                            <h2 className="text-xl font-bold text-slate-800">
+                                ข้อมูลทั่วไป
+                            </h2>
                         </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <FormCombobox
+                                label="ปี"
+                                value={year.toString()}
+                                onChange={(v) => {
+                                    setYear(Number(v));
+                                    clearError("year");
+                                }}
+                                options={YEARS.map((y) => ({
+                                    value: y.toString(),
+                                    label: (y + 543).toString(),
+                                }))}
+                                placeholder="เลือกปี"
+                                searchPlaceholder="ค้นหาปี..."
+                                emptyText="ไม่พบปี"
+                                error={errors.year}
+                                required
+                            />
+
+                            <FormCombobox
+                                label="เดือน"
+                                value={month.toString()}
+                                onChange={(v) => {
+                                    setMonth(Number(v));
+                                    clearError("month");
+                                }}
+                                options={MONTHS.map((m) => ({
+                                    value: m.value.toString(),
+                                    label: m.label,
+                                }))}
+                                placeholder="เลือกเดือน"
+                                searchPlaceholder="ค้นหาเดือน..."
+                                emptyText="ไม่พบเดือน"
+                                error={errors.month}
+                                required
+                            />
+
+                            <div className="sm:col-span-2 lg:col-span-1">
+                                <FormCombobox
+                                    label="พนักงานขาย"
+                                    value={employeeId}
+                                    onChange={(val) => {
+                                        setEmployeeId(val);
+                                        clearError("employeeId");
+                                    }}
+                                    options={employees.map((emp) => ({
+                                        value: emp.id,
+                                        label: `${emp.name} (${emp.employeeCode || "-"})`,
+                                    }))}
+                                    placeholder="เลือกพนักงาน"
+                                    searchPlaceholder="ค้นหาพนักงาน..."
+                                    emptyText="ไม่พบพนักงาน"
+                                    error={errors.employeeId}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Copy from previous month */}
+                        {employeeId && !isEdit && (
+                            <div className="mt-5 pt-5 border-t border-slate-100">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCopyPrevMonth}
+                                    disabled={copyingPrevMonth}
+                                    className="rounded-xl border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold gap-2"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                    {copyingPrevMonth
+                                        ? "กำลังคัดลอก..."
+                                        : `Copy จาก${prevMonthLabel}`}
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
+
+                {/* Step 3: Stores Section */}
+                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-2xl shadow-slate-900/5 rounded-3xl overflow-hidden">
+                    <CardContent className="p-6 sm:p-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100 mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-100 to-teal-100">
+                                    <Store className="w-4 h-4 text-emerald-600" />
+                                </div>
+                                <h2 className="text-xl font-bold text-slate-800">
+                                    ร้านค้า
+                                </h2>
+                            </div>
+                            <div className="w-full sm:w-[300px]">
+                                <FormCombobox
+                                    label=""
+                                    value=""
+                                    onChange={(val) => handleAddStore(val)}
+                                    options={availableCustomers.map((c) => ({
+                                        value: c.id,
+                                        label: `${c.name} (${c.customerCode || "-"})`,
+                                    }))}
+                                    placeholder="+ เพิ่มร้านค้า"
+                                    searchPlaceholder="ค้นหาร้านค้า..."
+                                    emptyText="ไม่พบร้านค้า"
+                                />
+                            </div>
+                        </div>
+
+                        {errors.stores && (
+                            <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
+                                <AlertTriangle className="w-4 h-4" />
+                                {errors.stores}
+                            </p>
+                        )}
+
+                        {stores.length === 0 && (
+                            <div className="flex flex-col items-center justify-center text-center py-16 animate-in fade-in duration-500">
+                                <div className="relative mb-6">
+                                    <div className="absolute inset-0 bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-full" />
+                                    <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
+                                        <Store className="w-9 h-9 text-slate-400" />
+                                    </div>
+                                </div>
+                                <p className="font-semibold text-slate-700 text-lg mb-2">
+                                    ยังไม่มีร้านค้า
+                                </p>
+                                <p className="text-sm text-slate-500 max-w-xs">
+                                    กดปุ่ม &quot;+ เพิ่มร้านค้า&quot;
+                                    เพื่อเริ่มเพิ่มร้านค้าและตั้งเป้าหมาย
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Store List */}
+                        <div className="space-y-6">
+                            {stores.map((store, storeIndex) => (
+                                <StoreCard
+                                    key={store.customerId}
+                                    store={store}
+                                    storeIndex={storeIndex}
+                                    stores={stores}
+                                    products={products}
+                                    errors={errors}
+                                    onRemoveStore={handleRemoveStore}
+                                    onAddItem={handleAddItem}
+                                    onRemoveItem={handleRemoveItem}
+                                    onUpdateItem={handleUpdateItem}
+                                    onCloneStoreItems={handleCloneStoreItems}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Grand Total */}
+                        {stores.length > 0 && (
+                            <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50 mt-6">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+                                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+
+                                <div className="relative space-y-4">
+                                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                        <span className="text-slate-400 text-sm font-medium">
+                                            จำนวนร้านค้า
+                                        </span>
+                                        <span className="text-white font-bold text-lg">
+                                            {stores.length} ร้าน
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-end justify-between pt-2">
+                                        <div>
+                                            <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
+                                                รวมยอดเงินเป้าหมาย
+                                            </span>
+                                            <span className="text-xs text-slate-500">
+                                                โดยประมาณ
+                                            </span>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-emerald-400 text-sm font-medium">
+                                                    ฿
+                                                </span>
+                                                <span className="text-4xl font-black text-white tracking-tight">
+                                                    {grandTotal.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Duplicate warning */}
+                {duplicateId && (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
+                        <div className="flex items-center gap-2 flex-1">
+                            <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
+                            <span className="text-sm font-medium">
+                                มีรายการนี้อยู่แล้ว คุณสามารถไปแก้ไขรายการที่มีอยู่ได้
+                            </span>
+                        </div>
+                        <Link
+                            href={`/sales-targets/${duplicateId}/edit`}
+                            className="shrink-0"
+                        >
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="rounded-xl border-amber-300 bg-white hover:bg-amber-50 text-amber-700 font-semibold"
+                            >
+                                <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                                ไปแก้ไขรายการ
+                            </Button>
+                        </Link>
+                    </div>
+                )}
+
+                {/* Action Buttons */}
+                <FormActions
+                    loading={saving}
+                    onCancel={() => router.push("/sales-targets")}
+                    submitLabel={isEdit ? "บันทึกการแก้ไข" : "บันทึก"}
+                    className="pt-8 border-t border-slate-100"
+                />
             </div>
         </form>
+    );
+}
+
+// ─────────────────────────────────────────────
+// StoreCard Sub-component
+// ─────────────────────────────────────────────
+
+function StoreCard({
+    store,
+    storeIndex,
+    stores,
+    products,
+    errors,
+    onRemoveStore,
+    onAddItem,
+    onRemoveItem,
+    onUpdateItem,
+    onCloneStoreItems,
+}: {
+    store: StoreEntry;
+    storeIndex: number;
+    stores: StoreEntry[];
+    products: any[];
+    errors: Record<string, string>;
+    onRemoveStore: (i: number) => void;
+    onAddItem: (si: number, productId: string) => void;
+    onRemoveItem: (si: number, ii: number) => void;
+    onUpdateItem: (
+        si: number,
+        ii: number,
+        field: "pricePerBox" | "qtyPerBox" | "targetAmount",
+        value: number,
+    ) => void;
+    onCloneStoreItems: (target: number, source: number) => void;
+}) {
+    const storeTotal = useMemo(
+        () => store.items.reduce((sum, item) => sum + item.targetAmount, 0),
+        [store.items],
+    );
+
+    // Available products not already in this store
+    const availableProducts = useMemo(() => {
+        const addedIds = new Set(store.items.map((i) => i.productId));
+        return products.filter((p) => !addedIds.has(p.id));
+    }, [products, store.items]);
+
+    // Other stores for clone feature
+    const otherStores = useMemo(
+        () =>
+            stores
+                .map((s, i) => ({ ...s, index: i }))
+                .filter((s) => s.index !== storeIndex && s.items.length > 0),
+        [stores, storeIndex],
+    );
+
+    return (
+        <div className="group relative bg-linear-to-br from-slate-50/80 to-blue-50/30 rounded-2xl p-5 border-2 border-dashed border-slate-200/80 transition-all duration-300 hover:border-slate-300/80">
+            {/* Store Header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200/60">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-md">
+                        <MapPin className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-slate-800 text-base">
+                            {store.name}
+                        </h3>
+                        <span className="text-xs text-slate-500">
+                            {store.customerCode}
+                        </span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    {/* Clone from other store */}
+                    {otherStores.length > 0 && (
+                        <div className="hidden sm:block">
+                            <FormCombobox
+                                label=""
+                                value=""
+                                onChange={(val) => {
+                                    onCloneStoreItems(storeIndex, Number(val));
+                                }}
+                                options={otherStores.map((s) => ({
+                                    value: s.index.toString(),
+                                    label: s.name,
+                                }))}
+                                placeholder="Clone จากร้าน..."
+                                searchPlaceholder="ค้นหาร้าน..."
+                                emptyText="ไม่มีร้านอื่น"
+                                triggerClassName="h-9 text-xs w-[180px]"
+                            />
+                        </div>
+                    )}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        onClick={() => onRemoveStore(storeIndex)}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
+                </div>
+            </div>
+
+            {errors[`store-${storeIndex}-items`] && (
+                <p className="text-sm font-medium text-red-500 mb-3 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {errors[`store-${storeIndex}-items`]}
+                </p>
+            )}
+
+            {/* Product Table Header (desktop) */}
+            {store.items.length > 0 && (
+                <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_130px_40px] gap-3 px-2 mb-2">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        สินค้า
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        ราคา/ลัง
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        จำนวน
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        เป้าหมาย
+                    </span>
+                    <span></span>
+                </div>
+            )}
+
+            {/* Items */}
+            <div className="space-y-2">
+                {store.items.map((item, itemIndex) => (
+                    <div
+                        key={item.productId}
+                        className="bg-white rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-3 sm:p-2"
+                    >
+                        {/* Desktop row */}
+                        <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_130px_40px] gap-3 items-center">
+                            <div className="min-w-0">
+                                <span className="text-sm font-semibold text-slate-800 block truncate">
+                                    {item.name}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                    {item.productCode}
+                                </span>
+                            </div>
+                            <FormInput
+                                label=""
+                                type="number"
+                                value={item.pricePerBox === 0 ? "" : item.pricePerBox}
+                                onChange={(e) => {
+                                    let val = e.target.value;
+                                    if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                        val = val.replace(/^0+/, "");
+                                    }
+                                    onUpdateItem(storeIndex, itemIndex, "pricePerBox", Number(val));
+                                }}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                error={errors[`store-${storeIndex}-item-${itemIndex}-price`]}
+                                inputClassName="h-9 text-sm"
+                            />
+                            <FormInput
+                                label=""
+                                type="number"
+                                value={item.qtyPerBox === 0 ? "" : item.qtyPerBox}
+                                onChange={(e) => {
+                                    let val = e.target.value;
+                                    if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                        val = val.replace(/^0+/, "");
+                                    }
+                                    onUpdateItem(storeIndex, itemIndex, "qtyPerBox", Number(val));
+                                }}
+                                onWheel={(e) => e.currentTarget.blur()}
+                                error={errors[`store-${storeIndex}-item-${itemIndex}-qty`]}
+                                inputClassName="h-9 text-sm"
+                            />
+                            <FormInput
+                                label=""
+                                type="number"
+                                value={item.targetAmount}
+                                onChange={() => { }}
+                                readOnly
+                                inputClassName="h-9 text-sm bg-emerald-50/80 border-emerald-200/80 font-bold text-emerald-700 cursor-not-allowed"
+                            />
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
+                                onClick={() => onRemoveItem(storeIndex, itemIndex)}
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+
+                        {/* Mobile layout */}
+                        <div className="sm:hidden space-y-3">
+                            <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex-1 pr-2">
+                                    <span className="text-sm font-semibold text-slate-800 block truncate">
+                                        {item.name}
+                                    </span>
+                                    <span className="text-xs text-slate-500">
+                                        {item.productCode}
+                                    </span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg shrink-0"
+                                    onClick={() => onRemoveItem(storeIndex, itemIndex)}
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                <FormInput
+                                    label="ราคา/ลัง"
+                                    type="number"
+                                    value={item.pricePerBox === 0 ? "" : item.pricePerBox}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                            val = val.replace(/^0+/, "");
+                                        }
+                                        onUpdateItem(storeIndex, itemIndex, "pricePerBox", Number(val));
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
+                                    error={errors[`store-${storeIndex}-item-${itemIndex}-price`]}
+                                    inputClassName="h-9 text-sm"
+                                    labelClassName="text-xs"
+                                />
+                                <FormInput
+                                    label="จำนวน"
+                                    type="number"
+                                    value={item.qtyPerBox === 0 ? "" : item.qtyPerBox}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                                            val = val.replace(/^0+/, "");
+                                        }
+                                        onUpdateItem(storeIndex, itemIndex, "qtyPerBox", Number(val));
+                                    }}
+                                    onWheel={(e) => e.currentTarget.blur()}
+                                    error={errors[`store-${storeIndex}-item-${itemIndex}-qty`]}
+                                    inputClassName="h-9 text-sm"
+                                    labelClassName="text-xs"
+                                />
+                                <FormInput
+                                    label="เป้าหมาย"
+                                    type="number"
+                                    value={item.targetAmount}
+                                    onChange={() => { }}
+                                    readOnly
+                                    inputClassName="h-9 text-sm bg-emerald-50/80 border-emerald-200/80 font-bold text-emerald-700 cursor-not-allowed"
+                                    labelClassName="text-xs"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Add Product */}
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="w-full sm:w-[280px]">
+                    <FormCombobox
+                        label=""
+                        value=""
+                        onChange={(val) => onAddItem(storeIndex, val)}
+                        options={availableProducts.map((p) => ({
+                            value: p.id,
+                            label: `${p.name} (${p.productCode || "-"})`,
+                        }))}
+                        placeholder="+ เพิ่มสินค้า"
+                        searchPlaceholder="ค้นหาสินค้า..."
+                        emptyText="ไม่พบสินค้า"
+                        triggerClassName="h-9 text-sm border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50/50"
+                    />
+                </div>
+                {store.items.length > 0 && (
+                    <div className="text-right">
+                        <span className="text-xs text-slate-500">รวมร้านนี้: </span>
+                        <span className="text-sm font-bold text-emerald-700">
+                            ฿{storeTotal.toLocaleString()}
+                        </span>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

@@ -1,23 +1,41 @@
 /**
  * Sales Targets Feature - Types
+ *
+ * Hierarchical structure: SalesTarget → SalesTargetStore → SalesTargetItem
  */
 
 export interface ProductInfo {
   id: string;
   productCode: string;
   name: string;
-  productGroup: string | null;
+  unit?: string | null;
+  cartonPrice?: number | null;
 }
 
-export interface DetailedTargetItem {
+export interface SalesTargetItemData {
   id?: string;
   productId: string;
-  quantity: number;
-  amount: number;
+  pricePerBox: number;
+  qtyPerBox: number;
+  targetAmount: number;
   product?: {
+    id: string;
     name: string;
     productCode: string;
+    unit?: string | null;
+    cartonPrice?: number | null;
   };
+}
+
+export interface SalesTargetStoreData {
+  id?: string;
+  customerId: string;
+  customer?: {
+    id: string;
+    name: string;
+    customerCode: string;
+  };
+  items: SalesTargetItemData[];
 }
 
 export interface DetailedTarget {
@@ -25,43 +43,33 @@ export interface DetailedTarget {
   year: number;
   month: number;
   employeeId: string;
-  customerId: string;
-  totalAmount: number;
-  status: string;
-  items: DetailedTargetItem[];
   employee?: {
     id: string;
     name: string;
     employeeCode: string;
   };
-  customer?: {
-    id: string;
-    name: string;
-    customerCode: string;
-  };
-}
-
-export interface MonthlyTarget {
-  month: number | null;
-  targetAmount: string; // API returns string, potentially
-  notes?: string;
-  year?: number;
+  stores: SalesTargetStoreData[];
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 }
 
 // Input Types
-export interface CreateDetailedTargetInput {
+export interface CreateSalesTargetInput {
   year: number;
   month: number;
   employeeId: string;
-  customerId: string;
-  items: {
-    productId: string;
-    quantity: number;
-    amount: number;
+  stores: {
+    customerId: string;
+    items: {
+      productId: string;
+      pricePerBox: number;
+      qtyPerBox: number;
+      targetAmount: number;
+    }[];
   }[];
 }
 
-export interface UpdateDetailedTargetInput extends CreateDetailedTargetInput {
+export interface UpdateSalesTargetInput extends CreateSalesTargetInput {
   id: string;
 }
 

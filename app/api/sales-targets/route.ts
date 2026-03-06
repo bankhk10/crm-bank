@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import {
   listSalesTargetsUseCase,
-  saveDetailedTargetsUseCase,
-  saveMonthlyTargetsUseCase,
   deleteSalesTargetUseCase,
   getSalesTargetDetailUseCase,
 } from "@/modules/sales-targets/application";
-import { DetailedTarget } from "@/modules/sales-targets/types";
 
 // GET: Fetch all sales targets for a specific year
 export async function GET(request: NextRequest) {
@@ -56,60 +53,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create or update sales targets
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const isAdmin = session.user.roles?.includes("administrator");
-    const hasCreatePermission = session.user.permissionKeys?.includes(
-      "sales_target.create",
-    );
-    const hasEditPermission =
-      session.user.permissionKeys?.includes("sales_target.edit");
-
-    if (!isAdmin && !hasCreatePermission && !hasEditPermission) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const { type, targets } = body;
-
-    if (!type || !targets || !Array.isArray(targets)) {
-      return NextResponse.json(
-        { error: "Invalid request body" },
-        { status: 400 },
-      );
-    }
-
-    let results;
-
-    if (type === "detailed") {
-      const res = await saveDetailedTargetsUseCase(targets, session.user.id);
-      results = res.results;
-    } else if (type === "monthly") {
-      const res = await saveMonthlyTargetsUseCase(targets, session.user.id);
-      results = res.results;
-    } else {
-      return NextResponse.json(
-        { error: "Invalid target type" },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json({ success: true, data: results });
-  } catch (error) {
-    console.error("Error saving sales targets:", error);
-    return NextResponse.json(
-      { error: "Failed to save sales targets" },
-      { status: 500 },
-    );
-  }
-}
-
 // DELETE: Delete a sales target
 export async function DELETE(request: NextRequest) {
   try {
@@ -145,4 +88,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

@@ -19,7 +19,6 @@ import {
 // Feature Imports
 import {
   SalesTargetDetailDialog,
-  YearlyTargetCard,
   SalesTargetTable,
   SalesTargetFilters,
   CURRENT_YEAR,
@@ -62,14 +61,9 @@ export default function SalesTargetsPage() {
 
   // Data States
   const [loading, setLoading] = useState(true);
-  const [monthlyTargets, setMonthlyTargets] = useState<
-    Record<number | string, number>
-  >({});
   const [detailedTargets, setDetailedTargets] = useState<DetailedTarget[]>([]);
 
   // Local UI State
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [viewingTarget, setViewingTarget] = useState<DetailedTarget | null>(
     null,
   );
@@ -79,8 +73,6 @@ export default function SalesTargetsPage() {
   // Filter Options State
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
-
-
 
   // --- Fetch Data via Server Action ---
   const fetchTargets = async (filters: {
@@ -99,18 +91,6 @@ export default function SalesTargetsPage() {
       });
 
       if (result.success) {
-        // Process monthly targets
-        const monthlyMap: Record<number | string, number> = {};
-        if (result.monthlyTargets) {
-          (result.monthlyTargets as any[]).forEach(
-            (t: { month: number | null; targetAmount: string }) => {
-              if (t.month !== null) {
-                monthlyMap[t.month] = Number(t.targetAmount);
-              }
-            },
-          );
-        }
-        setMonthlyTargets(monthlyMap);
         setDetailedTargets((result.detailedTargets as DetailedTarget[]) || []);
       } else {
         toast.error("ไม่สามารถโหลดข้อมูลเป้าหมายได้");
@@ -185,8 +165,6 @@ export default function SalesTargetsPage() {
     });
   }, [year, monthFilter, employeeFilter, shopFilter]);
 
-
-
   // --- Handlers ---
 
   const handleClearFilters = () => {
@@ -215,24 +193,6 @@ export default function SalesTargetsPage() {
       toast.error(result.error || "ไม่สามารถลบข้อมูลได้");
     }
     setDeletingTargetId(null);
-  };
-
-  const calculateMonthlyTotal = () => {
-    if (detailedTargets.length > 0) {
-      return detailedTargets.reduce((sum, target) => {
-        return (
-          sum +
-          (target.items?.reduce(
-            (s: number, i: any) => s + Number(i.amount),
-            0,
-          ) || 0)
-        );
-      }, 0);
-    }
-    return Object.values(monthlyTargets).reduce(
-      (sum, val) => sum + (val || 0),
-      0,
-    );
   };
 
   if (loading && !detailedTargets.length) {
@@ -288,7 +248,6 @@ export default function SalesTargetsPage() {
 
       {/* Content */}
       <div className="space-y-6">
-        <YearlyTargetCard year={year} totalTarget={calculateMonthlyTotal()} />
         <SalesTargetTable
           targets={detailedTargets}
           onView={(target) => {
@@ -325,32 +284,6 @@ export default function SalesTargetsPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               ลบข้อมูล
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
-        <AlertDialogContent className="max-w-[400px] rounded-2xl">
-          <AlertDialogHeader>
-            <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-green-100 animate-in zoom-in-50 duration-300">
-                <Target className="w-12 h-12 text-green-600" />
-              </div>
-            </div>
-            <AlertDialogTitle className="text-center text-xl font-bold text-slate-800">
-              บันทึกสำเร็จ
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-slate-600">
-              {successMessage}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-center">
-            <AlertDialogAction
-              onClick={() => setSuccessDialogOpen(false)}
-              className="w-full sm:w-auto min-w-[120px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white"
-            >
-              ตกลง
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

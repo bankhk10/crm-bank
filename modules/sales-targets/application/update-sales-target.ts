@@ -28,8 +28,7 @@ export async function updateSalesTargetUseCase(id: string, rawData: unknown) {
     year: data.year,
     month: data.month,
     employeeId: data.employeeId,
-    customerId: data.customerId,
-    items: data.items,
+    stores: data.stores,
   });
 
   return { success: true as const, salesTarget: result };
