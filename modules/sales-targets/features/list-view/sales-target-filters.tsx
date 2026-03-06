@@ -1,9 +1,11 @@
 "use client";
 
-import { Calendar } from "lucide-react";
+import Link from "next/link";
+import { Calendar, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import { usePermission } from "@/hooks/use-permission";
 import { MONTHS } from "../../constants";
 
 interface SalesTargetFiltersProps {
@@ -35,23 +37,13 @@ export function SalesTargetFilters({
     onChangeShop,
     onClear,
 }: SalesTargetFiltersProps) {
+    const { isLoading, hasPermission } = usePermission("menu.sales_targets");
+    const canCreate = !isLoading && (hasPermission("sales_target.manage") || hasPermission("sales_target.create"));
+
     return (
-        <Card className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden border border-white/20">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md">
-                            <Calendar className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">ตัวกรองเป้าหมาย</CardTitle>
-                            <p className="text-xs text-slate-500 font-medium">เลือกเงื่อนไขเพื่อดูข้อมูลที่ต้องการ</p>
-                        </div>
-                    </div>
-                </div>
-            </CardHeader>
+        <Card className="rounded-md border bg-background/60 shadow-none">
             <CardContent className="p-0">
-                <div className="p-5 sm:p-6 lg:p-8">
+                <div className="p-4 sm:p-5 lg:p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 items-end">
                         {/* Year */}
                         <div className="lg:col-span-2">
@@ -123,14 +115,29 @@ export function SalesTargetFilters({
                         </div>
 
                         {/* Clear Button */}
-                        <div className="md:col-span-2 lg:col-span-2 flex items-end">
+                        <div className="md:col-span-2 lg:col-span-3 flex items-end gap-2">
                             <Button
                                 variant="outline"
-                                className="w-25 h-10 rounded-xl border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 transition-all font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                                className="w-full lg:w-auto h-10 rounded-xl border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 transition-all font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                                 onClick={onClear}
                             >
                                 ล้างตัวกรอง
                             </Button>
+                            {canCreate ? (
+                                <Link href="/sales-targets/create" className="w-full lg:w-auto">
+                                    <Button className="w-full lg:w-auto h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                        <PlusCircle className="h-4 w-4" />
+                                        เพิ่มเป้าหมาย
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <div className="w-full lg:w-auto">
+                                    <Button className="w-full lg:w-auto h-10 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-sm" variant="outline" disabled>
+                                        <PlusCircle className="h-4 w-4" />
+                                        เพิ่มเป้าหมาย
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

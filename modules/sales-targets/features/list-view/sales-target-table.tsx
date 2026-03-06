@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Search, PlusCircle, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -24,48 +23,22 @@ import { SalesTargetCards } from "./sales-target-cards";
 // Toolbar
 // ---------------------------------------------------------------------------
 function SalesTargetToolbar({
-    canCreate,
     searchValue,
     onSearchChange,
 }: {
-    canCreate: boolean;
     searchValue: string;
     onSearchChange: (val: string) => void;
 }) {
     return (
-        <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:flex lg:justify-between lg:items-center">
-            <div className="relative w-full max-w-md">
-                <label className="text-base font-medium mx-2">ค้นหา</label>
-                <div className="relative mt-1">
-                    <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="ชื่อพนักงาน, ร้านค้า, รหัส..."
-                        value={searchValue}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        className="pl-10 w-full"
-                    />
-                </div>
-            </div>
-            <div className="flex items-center gap-2 mt-6">
-                {canCreate ? (
-                    <Link href="/sales-targets/create" className="w-full lg:w-auto">
-                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มเป้าหมาย
-                            </span>
-                        </Button>
-                    </Link>
-                ) : (
-                    <div className="w-full lg:w-auto">
-                        <Button className="w-full" variant="outline" disabled>
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มเป้าหมาย
-                            </span>
-                        </Button>
-                    </div>
-                )}
+        <div className="rounded-md border bg-background/60 p-4 flex items-center shadow-none">
+            <div className="relative w-full lg:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                    placeholder="ค้นหาพนักงาน หรือชื่อร้านค้าส่วนตัว..."
+                    value={searchValue}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    className="pl-9 h-10 w-full"
+                />
             </div>
         </div>
     );
@@ -89,9 +62,6 @@ export function SalesTargetTable({
 }: SalesTargetTableProps) {
     const { allowed, isLoading, hasPermission } = usePermission("menu.sales_targets");
 
-    const canCreate =
-        !isLoading &&
-        (hasPermission("sales_target.manage") || hasPermission("sales_target.create"));
     const canEdit =
         hasPermission("sales_target.manage") || hasPermission("sales_target.edit");
     const canDelete =
@@ -183,7 +153,6 @@ export function SalesTargetTable({
             {/* Mobile Layout */}
             <div className="xl:hidden space-y-4">
                 <SalesTargetToolbar
-                    canCreate={canCreate}
                     searchValue={query}
                     onSearchChange={(v) => {
                         setQuery(v);
@@ -212,7 +181,6 @@ export function SalesTargetTable({
                     pagination={paginationInfo}
                     toolbar={
                         <SalesTargetToolbar
-                            canCreate={canCreate}
                             searchValue={query}
                             onSearchChange={(v) => {
                                 setQuery(v);

@@ -204,32 +204,6 @@ export default function SalesTargetsPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8 space-y-6">
       <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {/* Header with Glassmorphism */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
-          <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
-            <div className="flex items-center gap-4">
-              <NextLink
-                href="/dashboard/admin"
-                className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
-              </NextLink>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
-                    <Target className="w-5 h-5 text-white" />
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
-                    ตั้งเป้าหมายยอดขาย
-                  </h1>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Filters */}
         <SalesTargetFilters
           year={year}
