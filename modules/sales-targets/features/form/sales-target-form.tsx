@@ -828,7 +828,7 @@ function StoreCard({
 
             {/* Product Table Header (desktop) */}
             {store.items.length > 0 && (
-                <div className="hidden sm:grid sm:grid-cols-[1fr_130px_110px_130px_40px] gap-3 px-2 mb-2">
+                <div className="hidden sm:grid sm:grid-cols-[1fr_150px_130px_150px_40px] gap-3 px-2 mb-2">
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         สินค้า
                     </span>
@@ -853,7 +853,7 @@ function StoreCard({
                         className="bg-white rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-3 sm:p-2"
                     >
                         {/* Desktop row */}
-                        <div className="hidden sm:grid sm:grid-cols-[1fr_130px_110px_130px_40px] gap-3 items-center">
+                        <div className="hidden sm:grid sm:grid-cols-[1fr_150px_130px_150px_40px] gap-3 items-center">
                             <div className="min-w-0">
                                 <span className="text-sm font-semibold text-slate-800 block truncate">
                                     {item.name}
