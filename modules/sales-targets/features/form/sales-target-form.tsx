@@ -646,9 +646,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
                                         รวมยอดเงินเป้าหมาย
                                     </span>
-                                    <span className="text-xs text-slate-500">
-                                        โดยประมาณ
-                                    </span>
                                 </div>
                                 <div className="text-right">
                                     <div className="flex items-baseline gap-1">
