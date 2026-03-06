@@ -18,7 +18,6 @@ import {
 // Feature Imports
 import {
   SalesTargetTable,
-  SalesTargetFilters,
   CURRENT_YEAR,
   YEARS,
 } from "@/modules/sales-targets";
@@ -210,22 +209,6 @@ export default function SalesTargetsPage() {
           title="ข้อมูลเป้าหมาย"
         />
 
-        {/* Filters */}
-        <SalesTargetFilters
-          year={year}
-          month={monthFilter}
-          employeeId={employeeFilter}
-          shopId={shopFilter}
-          years={YEARS}
-          employees={filterEmployees}
-          customers={filterCustomers}
-          onChangeYear={setYear}
-          onChangeMonth={setMonthFilter}
-          onChangeEmployee={setEmployeeFilter}
-          onChangeShop={setShopFilter}
-          onClear={handleClearFilters}
-        />
-
         {/* Content */}
         <div className="space-y-6">
           <SalesTargetTable
@@ -235,6 +218,18 @@ export default function SalesTargetsPage() {
             }}
             onCopy={handleCopy}
             onDelete={setDeletingTargetId}
+            year={year}
+            month={monthFilter}
+            employeeId={employeeFilter}
+            shopId={shopFilter}
+            years={YEARS}
+            employees={filterEmployees}
+            customers={filterCustomers}
+            onChangeYear={setYear}
+            onChangeMonth={setMonthFilter}
+            onChangeEmployee={setEmployeeFilter}
+            onChangeShop={setShopFilter}
+            onClear={handleClearFilters}
           />
         </div>
 

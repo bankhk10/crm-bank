@@ -26,7 +26,6 @@ export {
 
 // Features - List View
 export { SalesTargetTable } from "./features/list-view/sales-target-table";
-export { SalesTargetFilters } from "./features/list-view/sales-target-filters";
 
 // Features - Detail View
 // sales-target-detail-dialog was replaced with a dedicated page.

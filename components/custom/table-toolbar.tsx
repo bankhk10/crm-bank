@@ -60,17 +60,19 @@ export function TableToolbar({
 
                 {/* Additional filters */}
                 {filters && (
-                    <div className="lg:col-span-1">{filters}</div>
+                    <div className={!showSearch ? "lg:col-span-2" : "lg:col-span-1"}>
+                        {filters}
+                    </div>
                 )}
 
                 {/* Action buttons (right-aligned) */}
                 {actions && (
                     <div
                         className={`flex items-end gap-2 lg:justify-end ${!showSearch && !filters
-                                ? "lg:col-span-3"
-                                : !showSearch || !filters
-                                    ? "lg:col-span-2"
-                                    : "lg:col-span-1"
+                            ? "lg:col-span-3"
+                            : !showSearch || !filters
+                                ? "lg:col-span-2"
+                                : "lg:col-span-1"
                             }`}
                     >
                         {actions}
