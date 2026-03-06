@@ -29,7 +29,7 @@ export { SalesTargetTable } from "./features/list-view/sales-target-table";
 export { SalesTargetFilters } from "./features/list-view/sales-target-filters";
 
 // Features - Detail View
-export { SalesTargetDetailDialog } from "./features/detail-view/sales-target-detail-dialog";
+// sales-target-detail-dialog was replaced with a dedicated page.
 
 // Features - Form
 export { SalesTargetForm } from "./features/form/sales-target-form";

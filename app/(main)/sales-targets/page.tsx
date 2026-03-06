@@ -18,7 +18,6 @@ import {
 
 // Feature Imports
 import {
-  SalesTargetDetailDialog,
   SalesTargetTable,
   SalesTargetFilters,
   CURRENT_YEAR,
@@ -64,10 +63,6 @@ export default function SalesTargetsPage() {
   const [detailedTargets, setDetailedTargets] = useState<DetailedTarget[]>([]);
 
   // Local UI State
-  const [viewingTarget, setViewingTarget] = useState<DetailedTarget | null>(
-    null,
-  );
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [deletingTargetId, setDeletingTargetId] = useState<string | null>(null);
 
   // Filter Options State
@@ -256,8 +251,7 @@ export default function SalesTargetsPage() {
           <SalesTargetTable
             targets={detailedTargets}
             onView={(target) => {
-              setViewingTarget(target);
-              setIsDetailDialogOpen(true);
+              router.push(`/sales-targets/${target.id}`);
             }}
             onCopy={handleCopy}
             onDelete={setDeletingTargetId}
@@ -265,12 +259,6 @@ export default function SalesTargetsPage() {
         </div>
 
         {/* Dialogs */}
-        <SalesTargetDetailDialog
-          open={isDetailDialogOpen}
-          onOpenChange={setIsDetailDialogOpen}
-          target={viewingTarget}
-        />
-
         <AlertDialog
           open={!!deletingTargetId}
           onOpenChange={(open) => !open && setDeletingTargetId(null)}
