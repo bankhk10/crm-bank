@@ -10,13 +10,10 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2,
   AlertTriangle,
   Pencil,
   ArrowLeft,
@@ -37,7 +34,6 @@ import {
   Navigation,
   Sparkles,
   Award,
-  TrendingUp,
   ShoppingBag,
   Target,
   Sprout,
@@ -567,18 +563,6 @@ export default function CustomerDetailPage() {
                   <span className="sm:hidden">แผนที่</span>
                 </Button>
               )}
-              {canEdit && (
-                <Link href={`/customers/${customer.id}/edit`}>
-                  <Button
-                    size="sm"
-                    className="bg-white text-indigo-600 hover:bg-white/90 shadow-xl font-semibold rounded-xl transition-all hover:scale-[1.03] text-xs sm:text-sm px-3 sm:px-5"
-                  >
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">แก้ไขข้อมูล</span>
-                    <span className="sm:hidden">แก้ไข</span>
-                  </Button>
-                </Link>
-              )}
             </div>
           </div>
 
@@ -603,9 +587,9 @@ export default function CustomerDetailPage() {
               )}
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl xl:text-6xl font-black tracking-tight text-white drop-shadow-xl leading-tight">
+            <h3 className="text-3xl sm:text-4xl md:text-5xl xl:text-3xl font-black tracking-tight text-white drop-shadow-xl leading-tight">
               {customer.name}
-            </h1>
+            </h3>
 
             <div className="flex flex-wrap gap-2 sm:gap-3 text-white/90 text-xs sm:text-sm md:text-base">
               <InfoChip icon={<Building className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}>
