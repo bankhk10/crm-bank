@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
 
@@ -32,8 +30,8 @@ export function PageHeader({
     return (
         <div
             className={`mb-6 ${center
-                    ? "flex flex-col items-center gap-4"
-                    : "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                ? "flex flex-col items-center gap-4"
+                : "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
                 } ${className ?? ""}`}
         >
             <div

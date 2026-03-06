@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { findEmployees } from "@/modules/employee/infrastructure/employee.repository";
 import { EmployeeTable } from "@/modules/employee";
 import { Users } from "lucide-react";
+import { PageHeader } from "@/components/custom/page-header";
 
 export default async function EmployeePage() {
   const session = await auth();
@@ -45,14 +46,11 @@ export default async function EmployeePage() {
     <section className="space-y-6">
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <Users className="w-9 h-9 text-blue-600" />
-              <h1 className="text-3xl font-bold tracking-tight">
-                ข้อมูลพนักงาน
-              </h1>
-            </div>
-          </div>
+          <PageHeader
+            icon={Users}
+            iconClassName="text-blue-600"
+            title="ข้อมูลพนักงาน"
+          />
           <EmployeeTable employees={serializedEmployees as any} />
         </div>
       </div>

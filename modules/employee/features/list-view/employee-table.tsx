@@ -3,11 +3,10 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, Search, PlusCircle } from "lucide-react";
+import { Trash2, PlusCircle } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
     Dialog,
@@ -17,6 +16,9 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { usePermission } from "@/hooks/use-permission";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
+import { useClientSearch } from "@/hooks/use-client-search";
 import { Employee } from "../../types";
 import { useEmployeeColumns } from "./use-employee-columns";
 import { EmployeeCards } from "./employee-cards";
@@ -24,54 +26,6 @@ import {
     deleteEmployeeAction,
     getEmployeesAction,
 } from "../../server/actions";
-
-function EmployeeToolbar({
-    canCreate,
-    searchValue,
-    onSearchChange,
-}: {
-    canCreate: boolean;
-    searchValue: string;
-    onSearchChange: (val: string) => void;
-}) {
-    return (
-        <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:flex lg:justify-between lg:items-center">
-            <div className="relative w-full max-w-md">
-                <label className="text-base font-medium mx-2">ค้นหา</label>
-                <div className="relative mt-1">
-                    <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
-                        value={searchValue}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        className="pl-10 w-full"
-                    />
-                </div>
-            </div>
-            <div className="flex items-center gap-2 mt-6">
-                {canCreate ? (
-                    <Link href="/employee/new" className="w-full lg:w-auto">
-                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มพนักงาน
-                            </span>
-                        </Button>
-                    </Link>
-                ) : (
-                    <div className="w-full lg:w-auto">
-                        <Button className="w-full" variant="outline" disabled>
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มพนักงาน
-                            </span>
-                        </Button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
 
 type EmployeesGridProps = {
     employees?: Employee[];
@@ -90,9 +44,6 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
     const canView =
         hasPermission("menu.employees") || hasPermission("employee.view");
 
-    const [query, setQuery] = React.useState("");
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const [perPage, setPerPage] = React.useState(10);
     const [deleteTarget, setDeleteTarget] = React.useState<Employee | null>(null);
 
     const [fetched, setFetched] = React.useState<Employee[] | null>(null);
@@ -108,7 +59,7 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
                 if (res.success) {
                     if (mounted) setFetched((res.employees as any) ?? []);
                 }
-            } catch (err) {
+            } catch {
                 // ignore
             } finally {
                 if (mounted) setFetchLoading(false);
@@ -124,25 +75,22 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         return employees && employees.length > 0 ? employees : (fetched ?? []);
     }, [employees, fetched]);
 
-    // Filter logic
-    const filteredData = React.useMemo(() => {
-        const q = query.trim().toLowerCase();
-        if (!q) return rawData;
-        return rawData.filter((e) =>
+    // useClientSearch handles the filtering and pagination automatically
+    const {
+        query,
+        setQuery,
+        paginatedData,
+        pagination,
+    } = useClientSearch<Employee>(
+        rawData,
+        (e, q) =>
             [e.name, e.email, e.employeeCode, e.phone, e.position?.name]
                 .filter(Boolean)
                 .join(" ")
                 .toLowerCase()
                 .includes(q),
-        );
-    }, [rawData, query]);
-
-    // Pagination logic
-    const totalItems = filteredData.length;
-    const paginatedData = React.useMemo(() => {
-        const start = (currentPage - 1) * perPage;
-        return filteredData.slice(start, start + perPage);
-    }, [filteredData, currentPage, perPage]);
+        { perPageOptions: [5, 10, 20, 50] }
+    );
 
     // Handle Delete
     const handleDelete = async () => {
@@ -167,18 +115,6 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         }
     };
 
-    const paginationInfo = {
-        page: currentPage,
-        perPage: perPage,
-        total: totalItems,
-        onPageChange: setCurrentPage,
-        onPerPageChange: (n: number) => {
-            setPerPage(n);
-            setCurrentPage(1);
-        },
-        perPageOptions: [5, 10, 20, 50],
-    };
-
     const columns = useEmployeeColumns(
         (emp) => setDeleteTarget(emp),
         canDelete,
@@ -201,53 +137,66 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         );
     }
 
+    const toolbar = (
+        <TableToolbar
+            searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
+            searchValue={query}
+            onSearchChange={setQuery}
+            actions={
+                canCreate ? (
+                    <Link href="/employee/new" className="w-full lg:w-auto">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
+                            <span className="inline-flex items-center gap-2">
+                                <PlusCircle className="h-4 w-4" />
+                                เพิ่มพนักงาน
+                            </span>
+                        </Button>
+                    </Link>
+                ) : (
+                    <div className="w-full lg:w-auto">
+                        <Button className="w-full" variant="outline" disabled>
+                            <span className="inline-flex items-center gap-2">
+                                <PlusCircle className="h-4 w-4" />
+                                เพิ่มพนักงาน
+                            </span>
+                        </Button>
+                    </div>
+                )
+            }
+        />
+    );
+
     return (
         <div className="space-y-6">
-            {/* Mobile Layout */}
-            <div className="xl:hidden space-y-4">
-                <EmployeeToolbar
-                    canCreate={canCreate}
-                    searchValue={query}
-                    onSearchChange={(v) => {
-                        setQuery(v);
-                        setCurrentPage(1);
-                    }}
-                />
-                <EmployeeCards
-                    data={paginatedData}
-                    loading={fetchLoading}
-                    canDelete={canDelete}
-                    canEdit={canEdit}
-                    canView={canView}
-                    onDeleteRequest={(emp) => setDeleteTarget(emp)}
-                    pagination={paginationInfo}
-                />
-            </div>
-
-            {/* Desktop Layout */}
-            <div className="hidden xl:block">
-                <CustomTable
-                    columns={columns}
-                    data={paginatedData}
-                    loading={fetchLoading}
-                    pagination={paginationInfo}
-                    toolbar={
-                        <EmployeeToolbar
-                            canCreate={canCreate}
-                            searchValue={query}
-                            onSearchChange={(v) => {
-                                setQuery(v);
-                                setCurrentPage(1);
-                            }}
-                        />
-                    }
-                    emptyState={{
-                        title: "ไม่พบข้อมูลพนักงาน",
-                        description: "ลองปรับคำค้นหา หรือเพิ่มพนักงานใหม่",
-                    }}
-                    className="w-full"
-                />
-            </div>
+            <ResponsiveDataView
+                breakpoint="xl"
+                toolbar={toolbar}
+                cards={
+                    <EmployeeCards
+                        data={paginatedData}
+                        loading={fetchLoading}
+                        canDelete={canDelete}
+                        canEdit={canEdit}
+                        canView={canView}
+                        onDeleteRequest={(emp) => setDeleteTarget(emp)}
+                        pagination={pagination}
+                    />
+                }
+                table={
+                    <CustomTable
+                        columns={columns}
+                        data={paginatedData}
+                        loading={fetchLoading}
+                        pagination={pagination}
+                        toolbar={<></>}
+                        emptyState={{
+                            title: "ไม่พบข้อมูลพนักงาน",
+                            description: "ลองปรับคำค้นหา หรือเพิ่มพนักงานใหม่",
+                        }}
+                        className="w-full"
+                    />
+                }
+            />
 
             {/* Delete Dialog */}
             <Dialog
