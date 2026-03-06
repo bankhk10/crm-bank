@@ -4,10 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { Search, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Popover,
     PopoverContent,
@@ -16,6 +15,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 
 import CustomTable from "@/components/custom/custom-table";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import type { TemporaryCreditLimitTableProps } from "../../types";
 import { useTemporaryCreditLimitColumns } from "./use-temporary-credit-limit-columns";
 import { TemporaryCreditLimitCards } from "./temporary-credit-limit-cards";
@@ -46,33 +47,20 @@ export function TemporaryCreditLimitTable(
         onDelete
     );
 
-    const toolbarNode = (
-        <div className="rounded-md border bg-background/60 p-4 grid gap-4">
-            <div className="grid gap-4 lg:grid-cols-3">
-                {/* Search */}
-                <div className="space-y-2">
-                    <label className="text-base font-medium mx-2">ค้นหา</label>
-                    <div className="relative mt-1">
-                        <Search className="absolute left-2.5 top-3.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            value={searchValue ?? ""}
-                            onChange={(e) => onSearchChange?.(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.()}
-                            placeholder="รหัสลูกค้า, ชื่อลูกค้า"
-                            className="pl-9 w-full bg-white"
-                        />
-                    </div>
-                </div>
-
-                {/* Date Range Picker */}
-                <div className="space-y-2">
-                    <label className="text-base font-medium mx-2">ช่วงวันที่</label>
+    const toolbar = (
+        <TableToolbar
+            searchPlaceholder="รหัสลูกค้า, ชื่อลูกค้า..."
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
+            onSearchSubmit={onSearchSubmit}
+            filters={
+                <div className="w-full">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant={"outline"}
                                 className={cn(
-                                    "w-full justify-start text-left font-normal bg-white mt-1 h-11",
+                                    "w-full justify-start text-left font-normal bg-white h-10",
                                     !dateRange && "text-muted-foreground"
                                 )}
                             >
@@ -103,14 +91,12 @@ export function TemporaryCreditLimitTable(
                         </PopoverContent>
                     </Popover>
                 </div>
-            </div>
-
-            {/* Create Button */}
-            <div className="grid gap-4 lg:items-end mt-4">
-                <div className="flex flex-wrap gap-2 items-center lg:justify-end">
+            }
+            actions={
+                <div className="flex flex-col sm:flex-row gap-2 mt-4 lg:mt-0 items-center justify-end w-full">
                     {canCreate ? (
-                        <Link href="/temporary-credit-limits/new">
-                            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Link href="/temporary-credit-limits/new" className="w-full sm:w-auto">
+                            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10">
                                 <span className="inline-flex items-center gap-2">
                                     <PlusCircle className="h-4 w-4" />
                                     สร้างคำขอใหม่
@@ -118,23 +104,25 @@ export function TemporaryCreditLimitTable(
                             </Button>
                         </Link>
                     ) : (
-                        <Button className="w-full lg:w-auto" variant="outline" disabled>
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                สร้างคำขอใหม่
-                            </span>
-                        </Button>
+                        <div className="w-full sm:w-auto">
+                            <Button className="w-full sm:w-auto h-10" variant="outline" disabled>
+                                <span className="inline-flex items-center gap-2">
+                                    <PlusCircle className="h-4 w-4" />
+                                    สร้างคำขอใหม่
+                                </span>
+                            </Button>
+                        </div>
                     )}
                 </div>
-            </div>
-        </div>
+            }
+        />
     );
 
     return (
-        <div className="space-y-6">
-            {/* Mobile & Tablet: card layout */}
-            <div className="xl:hidden space-y-4">
-                {toolbarNode}
+        <ResponsiveDataView
+            breakpoint="xl"
+            toolbar={toolbar}
+            cards={
                 <TemporaryCreditLimitCards
                     data={data}
                     loading={loading}
@@ -144,23 +132,21 @@ export function TemporaryCreditLimitTable(
                     onDelete={onDelete}
                     pagination={pagination}
                 />
-            </div>
-
-            {/* Desktop & up: table layout */}
-            <div className="hidden xl:block">
+            }
+            table={
                 <CustomTable
                     columns={columns}
                     data={data}
                     loading={loading}
                     pagination={pagination}
-                    toolbar={toolbarNode}
+                    toolbar={<></>}
                     emptyState={{
                         title: "ไม่พบข้อมูลรายการคำขอ",
                         description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างคำขอใหม่",
                     }}
                     className="w-full"
                 />
-            </div>
-        </div>
+            }
+        />
     );
 }

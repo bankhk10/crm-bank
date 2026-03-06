@@ -9,6 +9,7 @@ import {
   type CustomerRecord,
 } from "@/modules/credit-limits";
 import { CreditCard } from "lucide-react";
+import { PageHeader } from "@/components/custom/page-header";
 
 export default function CreditLimitsPage() {
   const { hasPermission, allowed, isLoading } =
@@ -175,14 +176,11 @@ export default function CreditLimitsPage() {
       {/* delete handled on individual credit-limit pages; no inline delete here */}
       <div className="bg-white shadow-sm sm:rounded-lg">
         <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-9 h-9 text-blue-600" />
-              <h1 className="text-3xl font-bold tracking-tight">
-                จัดการวงเงินเครดิต
-              </h1>
-            </div>
-          </div>
+          <PageHeader
+            icon={CreditCard}
+            iconClassName="text-blue-600"
+            title="จัดการวงเงินเครดิต"
+          />
 
           <CreditLimitTable
             data={customers}
