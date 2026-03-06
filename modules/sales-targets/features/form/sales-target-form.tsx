@@ -633,17 +633,17 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
                         <div className="relative space-y-4">
                             <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                                <span className="text-slate-400 text-sm font-medium">
+                                <span className="text-slate-400 font-medium">
                                     จำนวนร้านค้า
                                 </span>
-                                <span className="text-white font-bold text-lg">
+                                <span className="text-slate-400 font-medium">
                                     {stores.length} ร้าน
                                 </span>
                             </div>
 
                             <div className="flex items-end justify-between pt-2">
                                 <div>
-                                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
+                                    <span className="text-slate-400 uppercase tracking-wider block mb-1">
                                         รวมยอดเงินเป้าหมาย
                                     </span>
                                 </div>
@@ -652,7 +652,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         <span className="text-emerald-400 text-sm font-medium">
                                             ฿
                                         </span>
-                                        <span className="text-4xl font-black text-white tracking-tight">
+                                        <span className="text-2xl font-black text-white tracking-tight">
                                             {grandTotal.toLocaleString()}
                                         </span>
                                     </div>
