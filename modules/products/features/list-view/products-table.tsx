@@ -57,24 +57,27 @@ export function ProductsTable(props: ProductsTableProps) {
             onSearchSubmit={onSearchSubmit}
             filters={
                 <div className="space-y-2">
-                    <Select
-                        value={statusFilter || ALL_STATUS_VALUE}
-                        onValueChange={(v) =>
-                            onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-                        }
-                    >
-                        <SelectTrigger className="text-base w-full">
-                            <SelectValue placeholder="ทั้งหมด" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
-                            {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                                <SelectItem key={key} value={key}>
-                                    {label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <label className="text-base font-medium leading-none mx-1">สถานะ</label>
+                    <div className="mt-1">
+                        <Select
+                            value={statusFilter || ALL_STATUS_VALUE}
+                            onValueChange={(v) =>
+                                onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                            }
+                        >
+                            <SelectTrigger className="text-base w-full">
+                                <SelectValue placeholder="ทั้งหมด" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+                                {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                                    <SelectItem key={key} value={key}>
+                                        {label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             }
             actions={
