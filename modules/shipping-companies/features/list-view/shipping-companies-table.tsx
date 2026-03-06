@@ -7,60 +7,19 @@ import type { DateRange } from "react-day-picker";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import CustomTable from "@/components/custom/custom-table";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+import { PageHeader } from "@/components/custom/page-header";
 import { useShippingCompanyColumns } from "./use-shipping-company-columns";
 import { deleteShippingCompanyAction } from "../../server/actions";
-import { Truck, Search, PlusCircle } from "lucide-react";
+import { Truck, PlusCircle } from "lucide-react";
 import type { ShippingCompanyRecord } from "../../types";
 
-// Helper to convert DateRange to string key for comparison
+// ---------------------------------------------------------------------------
+// Helper
+// ---------------------------------------------------------------------------
 const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
-
-// ---------------------------------------------------------------------------
-// Toolbar
-// ---------------------------------------------------------------------------
-function ShippingCompanyToolbar({
-    canCreate,
-    searchValue,
-    onSearchChange,
-    onSearchSubmit,
-}: {
-    canCreate: boolean;
-    searchValue: string;
-    onSearchChange: (val: string) => void;
-    onSearchSubmit: () => void;
-}) {
-    return (
-        <div className="rounded-md border bg-background/60 p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="relative w-full sm:max-w-xl">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                    placeholder="ค้นหาชื่อบริษัทขนส่ง"
-                    value={searchValue}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            onSearchSubmit();
-                        }
-                    }}
-                    className="pl-9 bg-white"
-                />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 ml-auto">
-                {canCreate && (
-                    <Button asChild className="bg-orange-600 hover:bg-orange-700">
-                        <Link href="/shipping-companies/new">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            เพิ่มบริษัทขนส่ง
-                        </Link>
-                    </Button>
-                )}
-            </div>
-        </div>
-    );
-}
 
 // ---------------------------------------------------------------------------
 // Props & Component
@@ -107,7 +66,7 @@ export function ShippingCompaniesTable({
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
-    // Sync props to state if needed
+    // Sync props → state on URL changes (e.g. back button)
     useEffect(() => {
         setFilterDraft({
             query: initialQ,
@@ -119,31 +78,32 @@ export function ShippingCompaniesTable({
         filterDraft.query !== initialQ ||
         mkRangeKey(filterDraft.dateRange) !== mkRangeKey(initialDateRange);
 
-    const handleApplyFilters = React.useCallback((newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
-        const params = new URLSearchParams(searchParams.toString());
+    // ───────── URL-based filter helpers ──────────
+    const handleApplyFilters = React.useCallback(
+        (newParams: { q?: string; page?: number; perPage?: number; from?: string; to?: string }) => {
+            const params = new URLSearchParams(searchParams.toString());
 
-        if (newParams.q !== undefined) {
-            if (newParams.q) params.set("q", newParams.q);
-            else params.delete("q");
-        }
+            if (newParams.q !== undefined) {
+                if (newParams.q) params.set("q", newParams.q);
+                else params.delete("q");
+            }
+            if (newParams.page !== undefined) params.set("page", String(newParams.page));
+            if (newParams.perPage !== undefined) params.set("perPage", String(newParams.perPage));
+            if (newParams.from !== undefined) {
+                if (newParams.from) params.set("from", newParams.from);
+                else params.delete("from");
+            }
+            if (newParams.to !== undefined) {
+                if (newParams.to) params.set("to", newParams.to);
+                else params.delete("to");
+            }
 
-        if (newParams.page !== undefined) params.set("page", String(newParams.page));
-        if (newParams.perPage !== undefined) params.set("perPage", String(newParams.perPage));
-
-        if (newParams.from !== undefined) {
-            if (newParams.from) params.set("from", newParams.from);
-            else params.delete("from");
-        }
-
-        if (newParams.to !== undefined) {
-            if (newParams.to) params.set("to", newParams.to);
-            else params.delete("to");
-        }
-
-        startTransition(() => {
-            router.push(`${pathname}?${params.toString()}`);
-        });
-    }, [pathname, router, searchParams]);
+            startTransition(() => {
+                router.push(`${pathname}?${params.toString()}`);
+            });
+        },
+        [pathname, router, searchParams]
+    );
 
     const handleSearchSubmit = React.useCallback(() => {
         handleApplyFilters({
@@ -154,22 +114,14 @@ export function ShippingCompaniesTable({
         });
     }, [filterDraft.query, filterDraft.dateRange, handleApplyFilters]);
 
-    // auto-apply filters (debounced)
+    // Auto-apply filters (debounced)
     useEffect(() => {
-        const delay = 500;
-
-        // Skip if nothing changed from current URL params
-        if (!isTyping) {
-            return;
-        }
-
-        const id = setTimeout(() => {
-            handleSearchSubmit();
-        }, delay);
-
+        if (!isTyping) return;
+        const id = setTimeout(() => handleSearchSubmit(), 500);
         return () => clearTimeout(id);
     }, [handleSearchSubmit, isTyping]);
 
+    // ───────── Delete handler ──────────
     const handleDelete = async () => {
         if (!deleteCandidate) return;
         setActionLoading(true);
@@ -187,6 +139,7 @@ export function ShippingCompaniesTable({
 
     const columns = useShippingCompanyColumns(setDeleteCandidate, canDelete);
 
+    // ───────── Permission guard ──────────
     if (!canView) {
         return (
             <Alert variant="destructive">
@@ -195,6 +148,7 @@ export function ShippingCompaniesTable({
         );
     }
 
+    // ───────── Render ──────────
     return (
         <section className="space-y-6">
             {error && (
@@ -234,44 +188,52 @@ export function ShippingCompaniesTable({
 
             <div className="bg-white shadow-sm sm:rounded-lg">
                 <div className="p-6">
-                    <div className="flex justify-center mb-6">
-                        <div className="flex items-center gap-3">
-                            <Truck className="w-9 h-9 text-orange-600" />
-                            <h1 className="text-3xl font-bold tracking-tight">
-                                ข้อมูลบริษัทขนส่ง
-                            </h1>
-                        </div>
-                    </div>
+                    {/* ✅ PageHeader */}
+                    <PageHeader
+                        icon={Truck}
+                        iconClassName="text-orange-600"
+                        title="ข้อมูลบริษัทขนส่ง"
+                    />
 
-                    <div className="space-y-4">
-                        <CustomTable
-                            data={initialShippingCompanies}
-                            columns={columns}
-                            loading={isPending}
-                            pagination={{
-                                page: initialPage,
-                                perPage: initialPerPage,
-                                total,
-                                onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
-                                onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
-                                perPageOptions: [6, 12, 24, 48],
-                            }}
-                            toolbar={
-                                <ShippingCompanyToolbar
-                                    canCreate={canCreate}
-                                    searchValue={filterDraft.query}
-                                    onSearchChange={(val) =>
-                                        setFilterDraft((prev) => ({ ...prev, query: val }))
-                                    }
-                                    onSearchSubmit={handleSearchSubmit}
-                                />
-                            }
-                            emptyState={{
-                                title: "ไม่พบข้อมูลบริษัทขนส่ง",
-                                description: "ลองปรับคำค้นหา หรือเพิ่มบริษัทขนส่งใหม่",
-                            }}
-                        />
-                    </div>
+                    {/* ✅ CustomTable + TableToolbar */}
+                    <CustomTable
+                        data={initialShippingCompanies}
+                        columns={columns}
+                        loading={isPending}
+                        pagination={{
+                            page: initialPage,
+                            perPage: initialPerPage,
+                            total,
+                            onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
+                            onPerPageChange: (nextPerPage) =>
+                                handleApplyFilters({ perPage: nextPerPage, page: 1 }),
+                            perPageOptions: [6, 12, 24, 48],
+                        }}
+                        toolbar={
+                            <TableToolbar
+                                searchPlaceholder="ค้นหาชื่อบริษัทขนส่ง"
+                                searchValue={filterDraft.query}
+                                onSearchChange={(val) =>
+                                    setFilterDraft((prev) => ({ ...prev, query: val }))
+                                }
+                                onSearchSubmit={handleSearchSubmit}
+                                actions={
+                                    canCreate ? (
+                                        <Button asChild className="w-full lg:w-auto bg-orange-600 hover:bg-orange-700">
+                                            <Link href="/shipping-companies/new">
+                                                <PlusCircle className="mr-2 h-4 w-4" />
+                                                เพิ่มบริษัทขนส่ง
+                                            </Link>
+                                        </Button>
+                                    ) : undefined
+                                }
+                            />
+                        }
+                        emptyState={{
+                            title: "ไม่พบข้อมูลบริษัทขนส่ง",
+                            description: "ลองปรับคำค้นหา หรือเพิ่มบริษัทขนส่งใหม่",
+                        }}
+                    />
                 </div>
             </div>
         </section>

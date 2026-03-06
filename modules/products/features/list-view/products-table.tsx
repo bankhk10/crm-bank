@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { PlusCircle, Eye, Edit } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -13,87 +12,14 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import CustomTable from "@/components/custom/custom-table";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { ProductsTableProps } from "../../types";
 import { STATUS_STYLE, ALL_STATUS_VALUE } from "../../constants";
 import { useProductColumns } from "./use-product-columns";
 import { ProductsCards } from "./products-cards";
 import { ActionButton } from "@/components/custom/action-button";
 import { ProductStatusBadge } from "../../ui/product-status-badge";
-
-// Inline toolbar (used only by this table)
-function ProductsToolbar({
-    canCreate,
-    searchValue,
-    onSearchChange,
-    onSearchSubmit,
-    statusFilter,
-    onStatusFilterChange,
-}: Pick<
-    ProductsTableProps,
-    | "canCreate"
-    | "searchValue"
-    | "onSearchChange"
-    | "onSearchSubmit"
-    | "statusFilter"
-    | "onStatusFilterChange"
->) {
-    return (
-        <div className="rounded-md border bg-background/60 p-4 grid gap-4">
-            <div className="grid gap-4 lg:grid-cols-3">
-                {/* Search Input */}
-                <div className="space-y-2">
-                    <label className="text-base font-medium mx-2">ค้นหา</label>
-                    <Input
-                        value={searchValue}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.()}
-                        placeholder="รหัสสินค้า, ชื่อสินค้า"
-                        className="mt-2 w-full"
-                    />
-                </div>
-
-                {/* Status Filter */}
-                <div className="space-y-2">
-                    <label className="text-base font-medium mx-2">สถานะ</label>
-                    <Select
-                        value={statusFilter || ALL_STATUS_VALUE}
-                        onValueChange={(v) =>
-                            onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-                        }
-                    >
-                        <SelectTrigger className="mt-2 text-base w-full">
-                            <SelectValue placeholder="ทั้งหมด" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
-                            {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                                <SelectItem key={key} value={key}>
-                                    {label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Create Button */}
-                <div className="grid gap-4 lg:items-end mt-4">
-                    <div className="flex flex-wrap gap-2 items-center lg:justify-end">
-                        {canCreate && (
-                            <Link href="/products/new">
-                                <Button className="bg-blue-600 hover:bg-blue-700">
-                                    <span className="inline-flex items-center gap-2">
-                                        <PlusCircle className="h-4 w-4" />
-                                        สร้างสินค้าใหม่
-                                    </span>
-                                </Button>
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // Main Table Component
 export function ProductsTable(props: ProductsTableProps) {
@@ -122,20 +48,56 @@ export function ProductsTable(props: ProductsTableProps) {
         canManage
     );
 
-    const toolbarProps = {
-        canCreate,
-        searchValue,
-        onSearchChange,
-        onSearchSubmit,
-        statusFilter,
-        onStatusFilterChange,
-    };
+    // ───────── Toolbar (using reusable TableToolbar) ──────────
+    const toolbar = (
+        <TableToolbar
+            searchPlaceholder="รหัสสินค้า, ชื่อสินค้า"
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
+            onSearchSubmit={onSearchSubmit}
+            filters={
+                <div className="space-y-2">
+                    <Select
+                        value={statusFilter || ALL_STATUS_VALUE}
+                        onValueChange={(v) =>
+                            onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                        }
+                    >
+                        <SelectTrigger className="text-base w-full">
+                            <SelectValue placeholder="ทั้งหมด" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+                            {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                                <SelectItem key={key} value={key}>
+                                    {label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            }
+            actions={
+                canCreate ? (
+                    <Link href="/products/new">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
+                            <span className="inline-flex items-center gap-2">
+                                <PlusCircle className="h-4 w-4" />
+                                สร้างสินค้าใหม่
+                            </span>
+                        </Button>
+                    </Link>
+                ) : undefined
+            }
+        />
+    );
 
+    // ───────── Render ──────────
     return (
-        <div className="space-y-6">
-            {/* Mobile & Tablet: card layout */}
-            <div className="xl:hidden space-y-4">
-                <ProductsToolbar {...toolbarProps} />
+        <ResponsiveDataView
+            breakpoint="xl"
+            toolbar={toolbar}
+            cards={
                 <ProductsCards
                     data={data}
                     loading={loading}
@@ -146,16 +108,14 @@ export function ProductsTable(props: ProductsTableProps) {
                     onDeleteRequest={onDeleteRequest}
                     pagination={pagination}
                 />
-            </div>
-
-            {/* Desktop & up: table layout */}
-            <div className="hidden xl:block">
+            }
+            table={
                 <CustomTable
                     columns={columns}
                     data={data}
                     loading={loading}
                     pagination={pagination}
-                    toolbar={<ProductsToolbar {...toolbarProps} />}
+                    toolbar={<></>}
                     renderSubComponent={({ row }) => {
                         const product = row.original;
                         const children = product.children || [];
@@ -248,8 +208,8 @@ export function ProductsTable(props: ProductsTableProps) {
                     }}
                     className="w-full"
                 />
-            </div>
-        </div>
+            }
+        />
     );
 }
 
