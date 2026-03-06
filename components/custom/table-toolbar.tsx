@@ -66,7 +66,11 @@ export function TableToolbar({
                 {/* Action buttons (right-aligned) */}
                 {actions && (
                     <div
-                        className={`flex items-end gap-2 lg:justify-end ${!showSearch && !filters ? "lg:col-span-3" : "lg:col-span-1"
+                        className={`flex items-end gap-2 lg:justify-end ${!showSearch && !filters
+                                ? "lg:col-span-3"
+                                : !showSearch || !filters
+                                    ? "lg:col-span-2"
+                                    : "lg:col-span-1"
                             }`}
                     >
                         {actions}
