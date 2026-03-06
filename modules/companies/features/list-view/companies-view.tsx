@@ -7,6 +7,7 @@ import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CompaniesTable } from "./companies-table";
+import { PageHeader } from "@/components/custom/page-header";
 import { Building2 } from "lucide-react";
 import type { CompanyRecord } from "@/modules/companies/types/types";
 import { deleteCompanyAction } from "@/modules/companies/server/actions";
@@ -182,14 +183,11 @@ export function CompaniesView({
 
             <div className="bg-white shadow-sm sm:rounded-lg">
                 <div className="p-6">
-                    <div className="flex justify-center mb-6">
-                        <div className="flex items-center gap-3">
-                            <Building2 className="w-9 h-9 text-blue-600" />
-                            <h1 className="text-3xl font-bold tracking-tight">
-                                ข้อมูลบริษัท
-                            </h1>
-                        </div>
-                    </div>
+                    <PageHeader
+                        icon={Building2}
+                        iconClassName="text-blue-600"
+                        title="ข้อมูลบริษัท"
+                    />
 
                     <CompaniesTable
                         data={initialCompanies}
