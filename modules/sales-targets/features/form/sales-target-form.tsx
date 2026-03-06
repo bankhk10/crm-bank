@@ -498,190 +498,172 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                 </div>
 
                 {/* Step 1 & 2: Year, Month, Employee */}
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-2xl shadow-slate-900/5 rounded-3xl overflow-hidden">
-                    <CardContent className="p-6 sm:p-8">
-                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100 mb-6">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-indigo-100">
-                                <Target className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-800">
-                                ข้อมูลทั่วไป
-                            </h2>
-                        </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            <FormCombobox
-                                label="ปี"
-                                value={year.toString()}
-                                onChange={(v) => {
-                                    setYear(Number(v));
-                                    clearError("year");
-                                }}
-                                options={YEARS.map((y) => ({
-                                    value: y.toString(),
-                                    label: (y + 543).toString(),
-                                }))}
-                                placeholder="เลือกปี"
-                                searchPlaceholder="ค้นหาปี..."
-                                emptyText="ไม่พบปี"
-                                error={errors.year}
-                                required
-                            />
+                <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-2xl">
+                    ข้อมูลทั่วไป
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+                    <FormCombobox
+                        label="ปี"
+                        value={year.toString()}
+                        onChange={(v) => {
+                            setYear(Number(v));
+                            clearError("year");
+                        }}
+                        options={YEARS.map((y) => ({
+                            value: y.toString(),
+                            label: (y + 543).toString(),
+                        }))}
+                        placeholder="เลือกปี"
+                        searchPlaceholder="ค้นหาปี..."
+                        emptyText="ไม่พบปี"
+                        error={errors.year}
+                        required
+                    />
 
-                            <FormCombobox
-                                label="เดือน"
-                                value={month.toString()}
-                                onChange={(v) => {
-                                    setMonth(Number(v));
-                                    clearError("month");
-                                }}
-                                options={MONTHS.map((m) => ({
-                                    value: m.value.toString(),
-                                    label: m.label,
-                                }))}
-                                placeholder="เลือกเดือน"
-                                searchPlaceholder="ค้นหาเดือน..."
-                                emptyText="ไม่พบเดือน"
-                                error={errors.month}
-                                required
-                            />
+                    <FormCombobox
+                        label="เดือน"
+                        value={month.toString()}
+                        onChange={(v) => {
+                            setMonth(Number(v));
+                            clearError("month");
+                        }}
+                        options={MONTHS.map((m) => ({
+                            value: m.value.toString(),
+                            label: m.label,
+                        }))}
+                        placeholder="เลือกเดือน"
+                        searchPlaceholder="ค้นหาเดือน..."
+                        emptyText="ไม่พบเดือน"
+                        error={errors.month}
+                        required
+                    />
 
-                            <div className="sm:col-span-2 lg:col-span-1">
-                                <FormCombobox
-                                    label="พนักงานขาย"
-                                    value={employeeId}
-                                    onChange={(val) => {
-                                        setEmployeeId(val);
-                                        clearError("employeeId");
-                                    }}
-                                    options={employees.map((emp) => ({
-                                        value: emp.id,
-                                        label: `${emp.name} (${emp.employeeCode || "-"})`,
-                                    }))}
-                                    placeholder="เลือกพนักงาน"
-                                    searchPlaceholder="ค้นหาพนักงาน..."
-                                    emptyText="ไม่พบพนักงาน"
-                                    error={errors.employeeId}
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                    <div className="sm:col-span-2 lg:col-span-1">
+                        <FormCombobox
+                            label="พนักงานขาย"
+                            value={employeeId}
+                            onChange={(val) => {
+                                setEmployeeId(val);
+                                clearError("employeeId");
+                            }}
+                            options={employees.map((emp) => ({
+                                value: emp.id,
+                                label: `${emp.name}`,
+                            }))}
+                            placeholder="เลือกพนักงาน"
+                            searchPlaceholder="ค้นหาพนักงาน..."
+                            emptyText="ไม่พบพนักงาน"
+                            error={errors.employeeId}
+                            required
+                        />
+                    </div>
+                </div>
+
+
 
                 {/* Step 3: Stores Section */}
-                <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-2xl shadow-slate-900/5 rounded-3xl overflow-hidden">
-                    <CardContent className="p-6 sm:p-8">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100 mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-100 to-teal-100">
-                                    <Store className="w-4 h-4 text-emerald-600" />
-                                </div>
-                                <h2 className="text-xl font-bold text-slate-800">
-                                    ร้านค้า
-                                </h2>
-                            </div>
-                            <div className="w-full sm:w-[300px]">
-                                <FormCombobox
-                                    label=""
-                                    value=""
-                                    onChange={(val) => handleAddStore(val)}
-                                    options={availableCustomers.map((c) => ({
-                                        value: c.id,
-                                        label: `${c.name} (${c.customerCode || "-"})`,
-                                    }))}
-                                    placeholder="+ เพิ่มร้านค้า"
-                                    searchPlaceholder="ค้นหาร้านค้า..."
-                                    emptyText="ไม่พบร้านค้า"
-                                />
+                <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-2xl">
+                    ร้านค้า
+                </h3>
+                <div className="w-full mt-6">
+                    <FormCombobox
+                        label="เพิ่มร้านค้า"
+                        value=""
+                        onChange={(val) => handleAddStore(val)}
+                        options={availableCustomers.map((c) => ({
+                            value: c.id,
+                            label: `${c.name}`,
+                        }))}
+                        placeholder="เลือกร้านค้า"
+                        searchPlaceholder="ค้นหาร้านค้า..."
+                        emptyText="ไม่พบร้านค้า"
+                        triggerClassName="h-10"
+                    />
+                </div>
+                {errors.stores && (
+                    <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4" />
+                        {errors.stores}
+                    </p>
+                )}
+
+                {stores.length === 0 && (
+                    <div className="flex flex-col items-center justify-center text-center py-16 animate-in fade-in duration-500">
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-full" />
+                            <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
+                                <Store className="w-9 h-9 text-slate-400" />
                             </div>
                         </div>
+                        <p className="font-semibold text-slate-700 text-lg mb-2">
+                            ยังไม่มีร้านค้า
+                        </p>
+                        <p className="text-sm text-slate-500 max-w-xs">
+                            กดปุ่ม เลือกร้านค้า
+                            เพื่อเริ่มเพิ่มร้านค้าและตั้งเป้าหมาย
+                        </p>
+                    </div>
+                )}
 
-                        {errors.stores && (
-                            <p className="text-sm font-medium text-red-500 text-center mb-4 flex items-center justify-center gap-1.5">
-                                <AlertTriangle className="w-4 h-4" />
-                                {errors.stores}
-                            </p>
-                        )}
+                {/* Store List */}
+                <div className="space-y-6">
+                    {stores.map((store, storeIndex) => (
+                        <StoreCard
+                            key={store.customerId}
+                            store={store}
+                            storeIndex={storeIndex}
+                            stores={stores}
+                            products={products}
+                            errors={errors}
+                            onRemoveStore={handleRemoveStore}
+                            onAddItem={handleAddItem}
+                            onRemoveItem={handleRemoveItem}
+                            onUpdateItem={handleUpdateItem}
+                            onCloneStoreItems={handleCloneStoreItems}
+                        />
+                    ))}
+                </div>
 
-                        {stores.length === 0 && (
-                            <div className="flex flex-col items-center justify-center text-center py-16 animate-in fade-in duration-500">
-                                <div className="relative mb-6">
-                                    <div className="absolute inset-0 bg-linear-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-full" />
-                                    <div className="relative w-20 h-20 bg-linear-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center shadow-lg border border-slate-200/60">
-                                        <Store className="w-9 h-9 text-slate-400" />
+                {/* Grand Total */}
+                {stores.length > 0 && (
+                    <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50 mt-6">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+
+                        <div className="relative space-y-4">
+                            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                <span className="text-slate-400 text-sm font-medium">
+                                    จำนวนร้านค้า
+                                </span>
+                                <span className="text-white font-bold text-lg">
+                                    {stores.length} ร้าน
+                                </span>
+                            </div>
+
+                            <div className="flex items-end justify-between pt-2">
+                                <div>
+                                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
+                                        รวมยอดเงินเป้าหมาย
+                                    </span>
+                                    <span className="text-xs text-slate-500">
+                                        โดยประมาณ
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-emerald-400 text-sm font-medium">
+                                            ฿
+                                        </span>
+                                        <span className="text-4xl font-black text-white tracking-tight">
+                                            {grandTotal.toLocaleString()}
+                                        </span>
                                     </div>
                                 </div>
-                                <p className="font-semibold text-slate-700 text-lg mb-2">
-                                    ยังไม่มีร้านค้า
-                                </p>
-                                <p className="text-sm text-slate-500 max-w-xs">
-                                    กดปุ่ม &quot;+ เพิ่มร้านค้า&quot;
-                                    เพื่อเริ่มเพิ่มร้านค้าและตั้งเป้าหมาย
-                                </p>
                             </div>
-                        )}
-
-                        {/* Store List */}
-                        <div className="space-y-6">
-                            {stores.map((store, storeIndex) => (
-                                <StoreCard
-                                    key={store.customerId}
-                                    store={store}
-                                    storeIndex={storeIndex}
-                                    stores={stores}
-                                    products={products}
-                                    errors={errors}
-                                    onRemoveStore={handleRemoveStore}
-                                    onAddItem={handleAddItem}
-                                    onRemoveItem={handleRemoveItem}
-                                    onUpdateItem={handleUpdateItem}
-                                    onCloneStoreItems={handleCloneStoreItems}
-                                />
-                            ))}
                         </div>
-
-                        {/* Grand Total */}
-                        {stores.length > 0 && (
-                            <div className="relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 shadow-2xl border border-slate-700/50 mt-6">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-                                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-
-                                <div className="relative space-y-4">
-                                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                                        <span className="text-slate-400 text-sm font-medium">
-                                            จำนวนร้านค้า
-                                        </span>
-                                        <span className="text-white font-bold text-lg">
-                                            {stores.length} ร้าน
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-end justify-between pt-2">
-                                        <div>
-                                            <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
-                                                รวมยอดเงินเป้าหมาย
-                                            </span>
-                                            <span className="text-xs text-slate-500">
-                                                โดยประมาณ
-                                            </span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-emerald-400 text-sm font-medium">
-                                                    ฿
-                                                </span>
-                                                <span className="text-4xl font-black text-white tracking-tight">
-                                                    {grandTotal.toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                    </div>
+                )}
 
                 {/* Duplicate warning */}
                 {duplicateId && (
