@@ -851,18 +851,18 @@ function StoreCard({
 
             {/* Product Table Header (desktop) */}
             {store.items.length > 0 && (
-                <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_130px_40px] gap-3 px-2 mb-2">
+                <div className="hidden sm:grid sm:grid-cols-[1fr_130px_110px_130px_40px] gap-3 px-2 mb-2">
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         สินค้า
                     </span>
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        ราคา/ลัง
+                        ราคา
                     </span>
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         จำนวน
                     </span>
                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        เป้าหมาย
+                        เป้าหมาย (บาท)
                     </span>
                     <span></span>
                 </div>
@@ -876,7 +876,7 @@ function StoreCard({
                         className="bg-white rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-3 sm:p-2"
                     >
                         {/* Desktop row */}
-                        <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_130px_40px] gap-3 items-center">
+                        <div className="hidden sm:grid sm:grid-cols-[1fr_130px_110px_130px_40px] gap-3 items-center">
                             <div className="min-w-0">
                                 <span className="text-sm font-semibold text-slate-800 block truncate">
                                     {item.name}
@@ -898,7 +898,8 @@ function StoreCard({
                                 }}
                                 onWheel={(e) => e.currentTarget.blur()}
                                 error={errors[`store-${storeIndex}-item-${itemIndex}-price`]}
-                                inputClassName="h-9 text-sm"
+                                inputClassName="h-9 text-sm pr-12"
+                                rightIcon={<span className="text-[11px] font-medium text-slate-400">/{item.unit || "-"}</span>}
                             />
                             <FormInput
                                 label=""
@@ -913,7 +914,8 @@ function StoreCard({
                                 }}
                                 onWheel={(e) => e.currentTarget.blur()}
                                 error={errors[`store-${storeIndex}-item-${itemIndex}-qty`]}
-                                inputClassName="h-9 text-sm"
+                                inputClassName="h-9 text-sm pr-12"
+                                rightIcon={<span className="text-[11px] font-medium text-slate-400">/{item.unit || "-"}</span>}
                             />
                             <FormInput
                                 label=""
@@ -957,7 +959,7 @@ function StoreCard({
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                                 <FormInput
-                                    label="ราคา/ลัง"
+                                    label="ราคา"
                                     type="number"
                                     value={item.pricePerBox === 0 ? "" : item.pricePerBox}
                                     onChange={(e) => {
@@ -969,8 +971,9 @@ function StoreCard({
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     error={errors[`store-${storeIndex}-item-${itemIndex}-price`]}
-                                    inputClassName="h-9 text-sm"
+                                    inputClassName="h-9 text-sm pr-9"
                                     labelClassName="text-xs"
+                                    rightIcon={<span className="text-[10px] sm:text-xs font-medium text-slate-400">/{item.unit || "-"}</span>}
                                 />
                                 <FormInput
                                     label="จำนวน"
@@ -985,8 +988,9 @@ function StoreCard({
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()}
                                     error={errors[`store-${storeIndex}-item-${itemIndex}-qty`]}
-                                    inputClassName="h-9 text-sm"
+                                    inputClassName="h-9 text-sm pr-9"
                                     labelClassName="text-xs"
+                                    rightIcon={<span className="text-[10px] sm:text-xs font-medium text-slate-400">/{item.unit || "-"}</span>}
                                 />
                                 <FormInput
                                     label="เป้าหมาย"
