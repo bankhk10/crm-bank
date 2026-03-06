@@ -18,6 +18,53 @@ import type { ShippingCompanyRecord } from "../../types";
 const mkRangeKey = (r?: DateRange) =>
     r?.from?.toISOString() + "|" + r?.to?.toISOString();
 
+// ---------------------------------------------------------------------------
+// Toolbar
+// ---------------------------------------------------------------------------
+function ShippingCompanyToolbar({
+    canCreate,
+    searchValue,
+    onSearchChange,
+    onSearchSubmit,
+}: {
+    canCreate: boolean;
+    searchValue: string;
+    onSearchChange: (val: string) => void;
+    onSearchSubmit: () => void;
+}) {
+    return (
+        <div className="rounded-md border bg-background/60 p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="relative w-full sm:max-w-xl">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                    placeholder="ค้นหาชื่อบริษัทขนส่ง"
+                    value={searchValue}
+                    onChange={(e) => onSearchChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            onSearchSubmit();
+                        }
+                    }}
+                    className="pl-9 bg-white"
+                />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 ml-auto">
+                {canCreate && (
+                    <Button asChild className="bg-orange-600 hover:bg-orange-700">
+                        <Link href="/shipping-companies/new">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            เพิ่มบริษัทขนส่ง
+                        </Link>
+                    </Button>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Props & Component
+// ---------------------------------------------------------------------------
 interface ShippingCompaniesTableProps {
     initialShippingCompanies: ShippingCompanyRecord[];
     total: number;
@@ -197,36 +244,6 @@ export function ShippingCompaniesTable({
                     </div>
 
                     <div className="space-y-4">
-                        {/* Toolbar inline */}
-                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                            <div className="relative w-full sm:max-w-xl">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                <Input
-                                    placeholder="ค้นหาชื่อบริษัทขนส่ง"
-                                    value={filterDraft.query}
-                                    onChange={(e) =>
-                                        setFilterDraft((prev) => ({ ...prev, query: e.target.value }))
-                                    }
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            handleSearchSubmit();
-                                        }
-                                    }}
-                                    className="pl-9 bg-white"
-                                />
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-2 ml-auto">
-                                {canCreate && (
-                                    <Button asChild className="bg-orange-600 hover:bg-orange-700">
-                                        <Link href="/shipping-companies/new">
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            เพิ่มบริษัทขนส่ง
-                                        </Link>
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-
                         <CustomTable
                             data={initialShippingCompanies}
                             columns={columns}
@@ -239,7 +256,20 @@ export function ShippingCompaniesTable({
                                 onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
                                 perPageOptions: [6, 12, 24, 48],
                             }}
-                            toolbar={<></>}
+                            toolbar={
+                                <ShippingCompanyToolbar
+                                    canCreate={canCreate}
+                                    searchValue={filterDraft.query}
+                                    onSearchChange={(val) =>
+                                        setFilterDraft((prev) => ({ ...prev, query: val }))
+                                    }
+                                    onSearchSubmit={handleSearchSubmit}
+                                />
+                            }
+                            emptyState={{
+                                title: "ไม่พบข้อมูลบริษัทขนส่ง",
+                                description: "ลองปรับคำค้นหา หรือเพิ่มบริษัทขนส่งใหม่",
+                            }}
                         />
                     </div>
                 </div>

@@ -1,14 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, DataTableEmptyState } from "@/components/ui/data-table";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
@@ -16,7 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type TablePagination = {
   page: number;
@@ -32,17 +28,8 @@ export interface CustomTableProps<TData, TValue = any> {
   data: TData[];
   loading?: boolean;
 
-  // toolbar helpers (optional). If `toolbar` ReactNode is provided it will be used
+  /** Optional toolbar ReactNode rendered above the table */
   toolbar?: React.ReactNode;
-  // quick toolbar props when using built-in toolbar
-  canCreate?: boolean;
-  createHref?: string;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  isTyping?: boolean;
-  onSearchSubmit?: () => void;
-  dateRange?: DateRange;
-  onDateRangeChange?: (range: DateRange | undefined) => void;
 
   pagination?: TablePagination;
   emptyState?: DataTableEmptyState;
@@ -51,71 +38,6 @@ export interface CustomTableProps<TData, TValue = any> {
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactNode;
   /** Optional function to decide whether a row can expand */
   getRowCanExpand?: (row: Row<TData>) => boolean;
-}
-
-function DefaultToolbar(
-  props: Pick<
-    CustomTableProps<any>,
-    | "canCreate"
-    | "searchValue"
-    | "onSearchChange"
-    | "isTyping"
-    | "onSearchSubmit"
-    | "dateRange"
-    | "onDateRangeChange"
-    | "createHref"
-  >
-) {
-  const {
-    canCreate,
-    searchValue,
-    onSearchChange,
-    isTyping,
-    onSearchSubmit,
-    dateRange,
-    onDateRangeChange,
-    createHref,
-  } = props;
-
-  return (
-    <div className="rounded-md border bg-background/60 p-4 grid gap-4 lg:grid-cols-3 lg:items-end">
-      <div className="space-y-2 lg:col-span-1">
-        <label className="text-sm font-medium mx-2">ค้นหา</label>
-        <Input
-          value={searchValue}
-          onChange={(event) => onSearchChange?.(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") onSearchSubmit?.();
-          }}
-          placeholder="ค้นหา"
-          className="h-11 w-full lg:w-[95%]"
-        />
-      </div>
-
-      <div className="space-y-2 lg:col-span-1">
-        <label className="text-sm font-medium mx-2">กรองตามวันที่</label>
-        <DateRangePicker
-          value={dateRange}
-          onChange={onDateRangeChange}
-          placeholder="เลือกช่วงวันที่"
-          className="w-full lg:w-[300px] block"
-        />
-      </div>
-
-      <div className="flex items-end lg:justify-end lg:col-span-1 ">
-        {canCreate && createHref ? (
-          <Link href={createHref}>
-            <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-              <span className="inline-flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                สร้างใหม่
-              </span>
-            </Button>
-          </Link>
-        ) : null}
-      </div>
-    </div>
-  );
 }
 
 function DefaultPagination({
@@ -136,9 +58,9 @@ function DefaultPagination({
       <span>
         {pagination.total > 0
           ? `แสดง ${(pagination.page - 1) * pagination.perPage + 1}-${Math.min(
-              pagination.page * pagination.perPage,
-              pagination.total
-            )} จาก ${pagination.total} รายการ`
+            pagination.page * pagination.perPage,
+            pagination.total
+          )} จาก ${pagination.total} รายการ`
           : "ไม่มีข้อมูลให้แสดง"}
       </span>
 
@@ -201,33 +123,12 @@ export function CustomTable<TData, TValue = any>(
     data,
     loading,
     toolbar,
-    canCreate,
-    createHref,
-    searchValue,
-    onSearchChange,
-    isTyping,
-    onSearchSubmit,
-    dateRange,
-    onDateRangeChange,
     pagination,
     emptyState,
     className,
     renderSubComponent,
     getRowCanExpand,
   } = props;
-
-  const builtToolbar = toolbar ?? (
-    <DefaultToolbar
-      canCreate={!!canCreate}
-      createHref={createHref}
-      searchValue={searchValue}
-      onSearchChange={onSearchChange}
-      isTyping={isTyping}
-      onSearchSubmit={onSearchSubmit}
-      dateRange={dateRange}
-      onDateRangeChange={onDateRangeChange}
-    />
-  );
 
   const builtFooter = pagination ? (
     <DefaultPagination pagination={pagination} loading={loading} />
@@ -238,7 +139,7 @@ export function CustomTable<TData, TValue = any>(
       columns={columns}
       data={data}
       loading={loading}
-      toolbar={builtToolbar}
+      toolbar={toolbar}
       footer={builtFooter}
       renderSubComponent={renderSubComponent as any}
       getRowCanExpand={getRowCanExpand as any}
