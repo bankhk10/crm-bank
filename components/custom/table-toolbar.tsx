@@ -13,6 +13,8 @@ export interface TableToolbarProps {
     onSearchChange?: (value: string) => void;
     /** Called when user presses Enter in search input */
     onSearchSubmit?: () => void;
+    /** Label for the search input */
+    searchLabel?: React.ReactNode;
     /** Whether to show search input (default: true) */
     showSearch?: boolean;
 
@@ -30,6 +32,7 @@ export function TableToolbar({
     searchValue,
     onSearchChange,
     onSearchSubmit,
+    searchLabel = "ค้นหา",
     showSearch = true,
     actions,
     filters,
@@ -43,7 +46,12 @@ export function TableToolbar({
                 {/* Search Input */}
                 {showSearch && (
                     <div className="space-y-2 lg:col-span-1">
-                        <div className="relative">
+                        {searchLabel && (
+                            <label className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mx-1">
+                                {searchLabel}
+                            </label>
+                        )}
+                        <div className="relative mt-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <Input
                                 placeholder={searchPlaceholder}
