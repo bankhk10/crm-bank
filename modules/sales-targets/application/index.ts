@@ -55,6 +55,15 @@ export async function getPreviousMonthTargetUseCase(params: {
           ...item,
           pricePerBox: Number(item.pricePerBox),
           targetAmount: Number(item.targetAmount),
+          product: item.product
+            ? {
+                ...item.product,
+                cartonPrice:
+                  item.product.cartonPrice != null
+                    ? Number(item.product.cartonPrice)
+                    : null,
+              }
+            : null,
         })),
       })),
     },

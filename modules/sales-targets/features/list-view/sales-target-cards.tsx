@@ -122,7 +122,7 @@ export function SalesTargetCards({
                             key={target.id}
                             className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
-                            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500" />
+                            <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-indigo-500 to-emerald-500" />
                             <div className="p-4 space-y-3">
                                 {/* Header row */}
                                 <div className="flex items-start justify-between gap-3">
