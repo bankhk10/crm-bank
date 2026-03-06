@@ -83,7 +83,7 @@ export function SalesTargetFilters({
                         </div>
 
                         {/* Employee */}
-                        <div className="lg:col-span-3">
+                        <div className="lg:col-span-2">
                             <FormCombobox
                                 label="พนักงาน"
                                 value={employeeId}
@@ -114,8 +114,8 @@ export function SalesTargetFilters({
                             />
                         </div>
 
-                        {/* Clear Button */}
-                        <div className="md:col-span-2 lg:col-span-3 flex items-end gap-2">
+                        {/* Action Buttons */}
+                        <div className="md:col-span-2 lg:col-span-3 flex items-end justify-end">
                             <Button
                                 variant="outline"
                                 className="w-full lg:w-auto h-10 rounded-xl border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 transition-all font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
@@ -123,22 +123,26 @@ export function SalesTargetFilters({
                             >
                                 ล้างตัวกรอง
                             </Button>
-                            {canCreate ? (
-                                <Link href="/sales-targets/create" className="w-full lg:w-auto">
-                                    <Button className="w-full lg:w-auto h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                                        <PlusCircle className="h-4 w-4" />
-                                        เพิ่มเป้าหมาย
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <div className="w-full lg:w-auto">
-                                    <Button className="w-full lg:w-auto h-10 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-sm" variant="outline" disabled>
-                                        <PlusCircle className="h-4 w-4" />
-                                        เพิ่มเป้าหมาย
-                                    </Button>
-                                </div>
-                            )}
                         </div>
+                    </div>
+
+                    {/* Add Target Button Container */}
+                    <div className="mt-5 flex justify-end border-t pt-5 border-border/50">
+                        {canCreate ? (
+                            <Link href="/sales-targets/create" className="w-full sm:w-auto">
+                                <Button className="w-full sm:w-auto h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                    <PlusCircle className="h-4 w-4" />
+                                    เพิ่มเป้าหมาย
+                                </Button>
+                            </Link>
+                        ) : (
+                            <div className="w-full sm:w-auto">
+                                <Button className="w-full sm:w-auto h-10 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-sm" variant="outline" disabled>
+                                    <PlusCircle className="h-4 w-4" />
+                                    เพิ่มเป้าหมาย
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </CardContent>
