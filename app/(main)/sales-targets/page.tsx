@@ -197,7 +197,7 @@ export default function SalesTargetsPage() {
 
   if (loading && !detailedTargets.length) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-white to-blue-50/30">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
           <p className="text-slate-600">กำลังโหลดข้อมูล...</p>
@@ -207,87 +207,93 @@ export default function SalesTargetsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <NextLink
-              href="/dashboard/admin"
-              className="p-2 rounded-xl bg-white/80 hover:bg-white shadow-sm border border-slate-200/60 transition-all"
-            >
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
-            </NextLink>
-            <div className="p-2.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
-              <Target className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-                ตั้งเป้าหมายยอดขาย
-              </h1>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Header with Glassmorphism */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
+          <div className="relative bg-white/80 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl shadow-blue-500/10 p-6 sm:p-8">
+            <div className="flex items-center gap-4">
+              <NextLink
+                href="/dashboard/admin"
+                className="group flex items-center justify-center w-12 h-12 rounded-2xl bg-linear-to-br from-slate-100 to-slate-50 border border-slate-200/60 hover:border-blue-300/60 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" />
+              </NextLink>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-slate-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                    ตั้งเป้าหมายยอดขาย
+                  </h1>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <SalesTargetFilters
-        year={year}
-        month={monthFilter}
-        employeeId={employeeFilter}
-        shopId={shopFilter}
-        years={YEARS}
-        employees={filterEmployees}
-        customers={filterCustomers}
-        onChangeYear={setYear}
-        onChangeMonth={setMonthFilter}
-        onChangeEmployee={setEmployeeFilter}
-        onChangeShop={setShopFilter}
-        onClear={handleClearFilters}
-      />
-
-      {/* Content */}
-      <div className="space-y-6">
-        <SalesTargetTable
-          targets={detailedTargets}
-          onView={(target) => {
-            setViewingTarget(target);
-            setIsDetailDialogOpen(true);
-          }}
-          onCopy={handleCopy}
-          onDelete={setDeletingTargetId}
+        {/* Filters */}
+        <SalesTargetFilters
+          year={year}
+          month={monthFilter}
+          employeeId={employeeFilter}
+          shopId={shopFilter}
+          years={YEARS}
+          employees={filterEmployees}
+          customers={filterCustomers}
+          onChangeYear={setYear}
+          onChangeMonth={setMonthFilter}
+          onChangeEmployee={setEmployeeFilter}
+          onChangeShop={setShopFilter}
+          onClear={handleClearFilters}
         />
+
+        {/* Content */}
+        <div className="space-y-6">
+          <SalesTargetTable
+            targets={detailedTargets}
+            onView={(target) => {
+              setViewingTarget(target);
+              setIsDetailDialogOpen(true);
+            }}
+            onCopy={handleCopy}
+            onDelete={setDeletingTargetId}
+          />
+        </div>
+
+        {/* Dialogs */}
+        <SalesTargetDetailDialog
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          target={viewingTarget}
+        />
+
+        <AlertDialog
+          open={!!deletingTargetId}
+          onOpenChange={(open) => !open && setDeletingTargetId(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
+              <AlertDialogDescription>
+                คุณต้องการลบเป้าหมายการขายรายการนี้ใช่หรือไม่?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                ลบข้อมูล
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      {/* Dialogs */}
-      <SalesTargetDetailDialog
-        open={isDetailDialogOpen}
-        onOpenChange={setIsDetailDialogOpen}
-        target={viewingTarget}
-      />
-
-      <AlertDialog
-        open={!!deletingTargetId}
-        onOpenChange={(open) => !open && setDeletingTargetId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
-            <AlertDialogDescription>
-              คุณต้องการลบเป้าหมายการขายรายการนี้ใช่หรือไม่?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              ลบข้อมูล
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
