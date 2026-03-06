@@ -1,11 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Search, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import {
     Dialog,
@@ -15,34 +14,11 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { usePermission } from "@/hooks/use-permission";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { DetailedTarget } from "../../types";
 import { useSalesTargetColumns } from "./use-sales-target-columns";
 import { SalesTargetCards } from "./sales-target-cards";
-
-// ---------------------------------------------------------------------------
-// Toolbar
-// ---------------------------------------------------------------------------
-function SalesTargetToolbar({
-    searchValue,
-    onSearchChange,
-}: {
-    searchValue: string;
-    onSearchChange: (val: string) => void;
-}) {
-    return (
-        <div className="rounded-md border bg-background/60 p-4 flex items-center shadow-none">
-            <div className="relative w-full lg:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                    placeholder="ค้นหาพนักงาน หรือชื่อร้านค้าส่วนตัว..."
-                    value={searchValue}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className="pl-9 h-10 w-full"
-                />
-            </div>
-        </div>
-    );
-}
 
 // ---------------------------------------------------------------------------
 // Props & Component
@@ -148,53 +124,51 @@ export function SalesTargetTable({
         );
     }
 
+    const toolbar = (
+        <TableToolbar
+            searchPlaceholder="ค้นหาพนักงาน หรือชื่อร้านค้าส่วนตัว..."
+            searchValue={query}
+            onSearchChange={(v) => {
+                setQuery(v);
+                setCurrentPage(1);
+            }}
+            actions={null}
+        />
+    );
+
     return (
         <div className="space-y-6">
-            {/* Mobile Layout */}
-            <div className="xl:hidden space-y-4">
-                <SalesTargetToolbar
-                    searchValue={query}
-                    onSearchChange={(v) => {
-                        setQuery(v);
-                        setCurrentPage(1);
-                    }}
-                />
-                <SalesTargetCards
-                    data={paginatedData}
-                    loading={false}
-                    canDelete={canDelete}
-                    canEdit={canEdit}
-                    canView={canView}
-                    onView={onView}
-                    onCopy={onCopy}
-                    onDelete={(id) => setDeleteTargetId(id)}
-                    pagination={paginationInfo}
-                />
-            </div>
-
-            {/* Desktop Layout */}
-            <div className="hidden xl:block">
-                <CustomTable
-                    columns={columns}
-                    data={paginatedData}
-                    loading={false}
-                    pagination={paginationInfo}
-                    toolbar={
-                        <SalesTargetToolbar
-                            searchValue={query}
-                            onSearchChange={(v) => {
-                                setQuery(v);
-                                setCurrentPage(1);
-                            }}
-                        />
-                    }
-                    emptyState={{
-                        title: "ไม่พบข้อมูลเป้าหมาย",
-                        description: "ลองปรับตัวกรอง หรือเพิ่มเป้าหมายใหม่",
-                    }}
-                    className="w-full"
-                />
-            </div>
+            <ResponsiveDataView
+                breakpoint="xl"
+                toolbar={toolbar}
+                cards={
+                    <SalesTargetCards
+                        data={paginatedData}
+                        loading={false}
+                        canDelete={canDelete}
+                        canEdit={canEdit}
+                        canView={canView}
+                        onView={onView}
+                        onCopy={onCopy}
+                        onDelete={(id) => setDeleteTargetId(id)}
+                        pagination={paginationInfo}
+                    />
+                }
+                table={
+                    <CustomTable
+                        columns={columns}
+                        data={paginatedData}
+                        loading={false}
+                        pagination={paginationInfo}
+                        toolbar={<></>}
+                        emptyState={{
+                            title: "ไม่พบข้อมูลเป้าหมาย",
+                            description: "ลองปรับตัวกรอง หรือเพิ่มเป้าหมายใหม่",
+                        }}
+                        className="w-full"
+                    />
+                }
+            />
 
             {/* Delete Confirm Dialog */}
             <Dialog

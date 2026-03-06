@@ -22,6 +22,7 @@ import {
   CURRENT_YEAR,
   YEARS,
 } from "@/modules/sales-targets";
+import { PageHeader } from "@/components/custom/page-header";
 import {
   getSalesTargetsAction,
   deleteSalesTargetAction,
@@ -203,14 +204,11 @@ export default function SalesTargetsPage() {
   return (
     <div className="min -h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
       <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex justify-center mb-6 pt-4">
-          <div className="flex items-center gap-3">
-            <Target className="w-9 h-9 text-blue-600" />
-            <h1 className="text-3xl font-bold tracking-tight">
-              ข้อมูลเป้าหมาย
-            </h1>
-          </div>
-        </div>
+        <PageHeader
+          icon={Target}
+          iconClassName="text-blue-600"
+          title="ข้อมูลเป้าหมาย"
+        />
 
         {/* Filters */}
         <SalesTargetFilters
