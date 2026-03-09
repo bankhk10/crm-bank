@@ -18,6 +18,12 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
       },
       stores: {
         include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           items: {
             include: {
               product: {

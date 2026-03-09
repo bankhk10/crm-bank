@@ -4,6 +4,15 @@ export interface PersonalForecastEntry {
   month: number;
   totalAmount: number;
   totalQuantity: number;
+  details: {
+    productId: string;
+    productName: string;
+    month: number;
+    shopId: string;
+    shopName: string;
+    amount: number;
+    quantity: number;
+  }[];
 }
 
 export interface GroupForecastEntry {

@@ -128,7 +128,6 @@ export default function SalesForecastDashboard() {
             (entry) => entry.month === Number(personalMonth),
           );
 
-    // Use object for faster lookups instead of Map
     const map: Record<
       string,
       {
@@ -136,6 +135,7 @@ export default function SalesForecastDashboard() {
         employeeName: string;
         totalAmount: number;
         totalQuantity: number;
+        details: any[];
       }
     > = {};
 
@@ -147,10 +147,14 @@ export default function SalesForecastDashboard() {
           employeeName: entry.employeeName,
           totalAmount: 0,
           totalQuantity: 0,
+          details: [],
         };
       }
       map[key].totalAmount += entry.totalAmount;
       map[key].totalQuantity += entry.totalQuantity;
+      if (entry.details) {
+        map[key].details.push(...entry.details);
+      }
     });
 
     return Object.values(map).sort((a, b) =>

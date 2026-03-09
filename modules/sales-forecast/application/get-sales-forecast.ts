@@ -66,6 +66,7 @@ export async function getSalesForecastUseCase(
         month: target.month,
         totalAmount: 0,
         totalQuantity: 0,
+        details: [],
       });
     }
 
@@ -78,6 +79,15 @@ export async function getSalesForecastUseCase(
         if (personalEntry) {
           personalEntry.totalAmount += amount;
           personalEntry.totalQuantity += quantity;
+          personalEntry.details.push({
+            productId: item.productId,
+            productName: item.product.name,
+            month: target.month,
+            shopId: store.customer.id,
+            shopName: store.customer.name,
+            amount,
+            quantity,
+          });
         }
 
         const groupKey = `${item.product.productGroup || "unassigned"}-${

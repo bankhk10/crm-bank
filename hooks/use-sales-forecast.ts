@@ -3,38 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSalesForecastAction } from "@/modules/sales-forecast/server/actions";
 
-export interface PersonalForecastEntry {
-  employeeId: string;
-  employeeName: string;
-  month: number;
-  totalAmount: number;
-  totalQuantity: number;
-}
-
-export interface GroupForecastEntry {
-  productGroup: string;
-  month: number;
-  totalAmount: number;
-  totalQuantity: number;
-}
-
-export interface ProductForecastEntry {
-  productId: string;
-  productCode: string;
-  productName: string;
-  productGroup: string | null;
-  month: number;
-  totalAmount: number;
-  totalQuantity: number;
-}
-
-export interface SalesForecastResponse {
-  personal: PersonalForecastEntry[];
-  group: GroupForecastEntry[];
-  product: ProductForecastEntry[];
-  actualSales: Array<{ month: number; totalAmount: number }>;
-  groupLabels: Record<string, string>;
-}
+import { SalesForecastResponse } from "@/modules/sales-forecast/types";
 
 export const useSalesForecast = (year: number) => {
   const [data, setData] = useState<SalesForecastResponse | null>(null);

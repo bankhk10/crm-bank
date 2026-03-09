@@ -7,14 +7,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, UserRound, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, UserRound, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
+import { PersonalForecastDetailsModal } from "./PersonalForecastDetailsModal";
 
 interface PersonalForecastRow {
   employeeId: string;
   employeeName: string;
   totalAmount: number;
   totalQuantity: number;
+  details: any[];
 }
 
 interface MonthOption {
@@ -42,6 +44,7 @@ export const PersonalForecastSection = ({
   error,
 }: PersonalForecastSectionProps) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedEmployee, setSelectedEmployee] = useState<PersonalForecastRow | null>(null);
   const itemsPerPage = 10;
 
   const paginatedData = useMemo(() => {
@@ -117,12 +120,25 @@ export const PersonalForecastSection = ({
                   </div>
                   <div className="flex flex-col items-start gap-1 text-right sm:items-end">
                     <p className="text-sm text-slate-500">ยอดคาดการณ์</p>
-                    <p className="text-lg font-semibold text-blue-700">
-                      {formatCurrency(row.totalAmount)}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      จำนวนสินค้า {row.totalQuantity.toLocaleString()} รายการ
-                    </p>
+                    <div className="flex items-center justify-end gap-3 mt-1 w-full">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => setSelectedEmployee(row)}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium">ดูหน้ารายละเอียด</span>
+                      </Button>
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-blue-700 leading-none">
+                          {formatCurrency(row.totalAmount)}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1.5">
+                          จำนวนสินค้า {row.totalQuantity.toLocaleString()} รายการ
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -160,6 +176,14 @@ export const PersonalForecastSection = ({
           </>
         )}
       </CardContent>
+
+      <PersonalForecastDetailsModal
+        isOpen={!!selectedEmployee}
+        onClose={() => setSelectedEmployee(null)}
+        employeeName={selectedEmployee?.employeeName || ""}
+        details={selectedEmployee?.details || []}
+        formatCurrency={formatCurrency}
+      />
     </Card>
   );
 };
