@@ -100,11 +100,11 @@ export function useSalesTargetColumns(
                 id: "totalAmount",
                 header: "ยอดรวม",
                 meta: {
-                    headerAlign: "left",
-                    minWidth: 120,
-                    width: 130,
-                    maxWidth: 150,
-                    align: "left",
+                    headerAlign: "right",
+                    minWidth: 100,
+                    width: 100,
+                    maxWidth: 100,
+                    align: "right",
                 },
                 cell: ({ row }) => {
                     const totalAmount =
