@@ -58,6 +58,7 @@ import {
   ChevronUp,
   ChevronDown,
   Minus,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
@@ -333,7 +334,7 @@ export function TimeSalesDashboard() {
         <Card className="rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between sm:justify-start gap-2 mb-0">
-              <p className="text-sm font-semibold text-slate-700">ตัวกรองช่วงเวลา</p>
+              <p className="font-medium text-base text-gray-900 mx-1 mb-2">ตัวกรองช่วงเวลา</p>
               <Button
                 type="button"
                 variant="outline"
@@ -349,13 +350,12 @@ export function TimeSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mt-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${
-                filtersOpen ? "block" : "hidden"
-              } sm:flex`}
+              className={`mt-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
+                } sm:flex`}
             >
               {/* Start Date */}
               <div className="space-y-1.5 w-full sm:w-44">
-                <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
                   วันที่เริ่ม
                 </label>
                 <div className="h-10">
@@ -419,7 +419,7 @@ export function TimeSalesDashboard() {
 
               {/* End Date */}
               <div className="space-y-1.5 w-full sm:w-44">
-                <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
                   วันที่สิ้นสุด
                 </label>
                 <div className="h-10">
@@ -484,8 +484,8 @@ export function TimeSalesDashboard() {
 
               {/* Quick ranges */}
               <div className="grid gap-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  ช่วงเวลาด่วน
+                <label className="font-medium text-base text-gray-900 mx-1 mb-2">
+                  ช่วงเวลา
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {quickDateRanges.map((r) => (
@@ -493,7 +493,7 @@ export function TimeSalesDashboard() {
                       key={r.label}
                       variant="outline"
                       size="sm"
-                      className="h-8 text-xs px-3 bg-white hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                      className="h-10 text-xs px-3 bg-white hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
                       onClick={() => {
                         const { from, to } = r.getValue();
                         setDateRange({ from, to });
@@ -510,7 +510,7 @@ export function TimeSalesDashboard() {
                 <Button
                   onClick={handleFetchReport}
                   disabled={isPending}
-                  className="flex-1 sm:w-auto h-10 px-6 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 font-semibold text-sm"
+                  className="flex-1 sm:w-auto h-10 px-6 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-md shadow-green-500/20 font-semibold text-sm"
                 >
                   {isPending ? (
                     <>
@@ -519,8 +519,7 @@ export function TimeSalesDashboard() {
                     </>
                   ) : (
                     <>
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      ดูรายงาน
+                      ตกลง
                     </>
                   )}
                 </Button>
