@@ -700,9 +700,6 @@ function StoreCard({
             {/* Store Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-200/60 relative">
                 <div className="flex items-start sm:items-center gap-3 pr-10 sm:pr-0">
-                    <div className="flex shrink-0 items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-md">
-                        <MapPin className="w-5 h-5 text-white" />
-                    </div>
                     <div className="min-w-0">
                         <h3 className="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate">
                             {store.name}
