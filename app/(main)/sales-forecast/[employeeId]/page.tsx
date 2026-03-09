@@ -38,12 +38,12 @@ export default function EmployeeForecastPage({
     async function fetchForecast() {
       try {
         const result = await getSalesForecastAction(year);
-        // Find the specific employee in the forecast result
-        const employeeData = result.personal.find((e) => e.employeeId === employeeId);
+        const employeeDataList = result.personal.filter((e) => e.employeeId === employeeId);
         
-        if (employeeData) {
-          setEmployeeName(employeeData.employeeName);
-          setDetails((employeeData as any).details || []);
+        if (employeeDataList.length > 0) {
+          setEmployeeName(employeeDataList[0].employeeName);
+          const allDetails = employeeDataList.flatMap((e: any) => e.details || []);
+          setDetails(allDetails);
         } else {
           toast.error("ไม่พบข้อมูลคาดการณ์ของพนักงานนี้");
           router.push("/sales-forecast");
