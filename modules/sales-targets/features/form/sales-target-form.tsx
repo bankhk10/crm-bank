@@ -628,12 +628,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="fixed sm:relative bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t sm:border-0 border-slate-200 z-50 sm:z-auto sm:pt-8 mt-0 sm:mt-10 shadow-[0_-8px_16px_rgba(0,0,0,0.05)] sm:shadow-none">
+                        <div className="pt-8 mt-10">
                             <FormActions
                                 loading={saving}
                                 onCancel={() => router.push("/sales-targets")}
                                 submitLabel={isEdit ? "บันทึก" : "บันทึกข้อมูล"}
-                                className=""
                             />
                         </div>
                     </form>
