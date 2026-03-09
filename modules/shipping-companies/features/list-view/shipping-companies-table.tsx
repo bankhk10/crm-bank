@@ -191,7 +191,7 @@ export function ShippingCompaniesTable({
                     {/* ✅ PageHeader */}
                     <PageHeader
                         icon={Truck}
-                        iconClassName="text-orange-600"
+                        iconClassName="text-blue-600"
                         title="ข้อมูลบริษัทขนส่ง"
                     />
 
@@ -221,7 +221,7 @@ export function ShippingCompaniesTable({
                                 />
                                 {canCreate && (
                                     <div className="flex justify-end">
-                                        <Button asChild className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
+                                        <Button asChild className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
                                             <Link href="/shipping-companies/new">
                                                 <PlusCircle className="h-5 w-5" />
                                                 เพิ่มบริษัทขนส่ง

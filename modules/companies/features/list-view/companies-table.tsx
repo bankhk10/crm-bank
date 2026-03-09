@@ -27,24 +27,24 @@ export function CompaniesTable(props: CompaniesTableProps) {
     const columns = useCompanyColumns(onDeleteRequest, canDelete, !!canEdit);
 
     const toolbar = (
-        <TableToolbar
-            searchPlaceholder="ค้นหาชื่อบริษัท"
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            onSearchSubmit={onSearchSubmit}
-            actions={
-                <div className="flex flex-col sm:flex-row gap-2 mt-4 lg:mt-0 xl:mt-0">
-                    {canCreate && (
-                        <Button asChild className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-                            <Link href="/companies/new">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                เพิ่มบริษัท
-                            </Link>
-                        </Button>
-                    )}
-                </div>
-            }
-        />
+        <div className="space-y-4 mb-6">
+            <TableToolbar
+                searchPlaceholder="ค้นหาชื่อบริษัท"
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
+                onSearchSubmit={onSearchSubmit}
+            />
+            <div className="flex justify-end">
+                {canCreate && (
+                    <Button asChild className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium">
+                        <Link href="/companies/new">
+                            <PlusCircle className="h-5 w-5" />
+                            เพิ่มบริษัท
+                        </Link>
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 
     return (
