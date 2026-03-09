@@ -4,16 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Target, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 // Feature Imports
 import {
@@ -62,7 +52,6 @@ export default function SalesTargetsPage() {
   const [detailedTargets, setDetailedTargets] = useState<DetailedTarget[]>([]);
 
   // Local UI State
-  const [deletingTargetId, setDeletingTargetId] = useState<string | null>(null);
 
   // Filter Options State
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
@@ -172,9 +161,8 @@ export default function SalesTargetsPage() {
     router.push(`/sales-targets/copy?from=${target.id}`);
   };
 
-  const handleDelete = async () => {
-    if (!deletingTargetId) return;
-    const result = await deleteSalesTargetAction(deletingTargetId);
+  const handleDelete = async (id: string) => {
+    const result = await deleteSalesTargetAction(id);
     if (result.success) {
       toast.success("ลบข้อมูลสำเร็จ");
       fetchTargets({
@@ -186,7 +174,6 @@ export default function SalesTargetsPage() {
     } else {
       toast.error(result.error || "ไม่สามารถลบข้อมูลได้");
     }
-    setDeletingTargetId(null);
   };
 
   if (loading && !detailedTargets.length) {
@@ -217,7 +204,7 @@ export default function SalesTargetsPage() {
               router.push(`/sales-targets/${target.id}`);
             }}
             onCopy={handleCopy}
-            onDelete={setDeletingTargetId}
+            onDelete={handleDelete}
             year={year}
             month={monthFilter}
             employeeId={employeeFilter}
@@ -232,30 +219,6 @@ export default function SalesTargetsPage() {
             onClear={handleClearFilters}
           />
         </div>
-
-        {/* Dialogs */}
-        <AlertDialog
-          open={!!deletingTargetId}
-          onOpenChange={(open) => !open && setDeletingTargetId(null)}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>ยืนยันการลบ</AlertDialogTitle>
-              <AlertDialogDescription>
-                คุณต้องการลบเป้าหมายการขายรายการนี้ใช่หรือไม่?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                ลบข้อมูล
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );
