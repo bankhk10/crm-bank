@@ -30,7 +30,13 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import {
   Calendar,
   TrendingUp,
@@ -52,6 +58,7 @@ import {
   Minus,
 } from "lucide-react";
 import Link from "next/link";
+import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
 import {
   BarChart,
   Bar,
@@ -246,6 +253,8 @@ export function TimeSalesDashboard() {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
+  const [isStartOpen, setIsStartOpen] = useState(false);
+  const [isEndOpen, setIsEndOpen] = useState(false);
   const [reportData, setReportData] = useState<TimeSalesReportData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -342,24 +351,136 @@ export function TimeSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4 ${
+              className={`mt-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${
                 filtersOpen ? "block" : "hidden"
-              } sm:block`}
+              } sm:flex`}
             >
-              {/* Date Picker */}
-              <div className="grid gap-1.5">
+              {/* Start Date */}
+              <div className="space-y-1.5 w-full sm:w-44">
                 <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  ช่วงวันที่
+                  วันที่เริ่ม
                 </label>
                 <div className="h-10">
-                  <DateRangePicker
-                    from={dateRange.from}
-                    to={dateRange.to}
-                    onSelect={(range) => {
-                      if (range?.from && range?.to)
-                        setDateRange({ from: range.from, to: range.to });
-                    }}
-                  />
+                  <Popover open={isStartOpen} onOpenChange={setIsStartOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-between text-left font-normal bg-white h-10 px-3 pr-10 relative",
+                          !dateRange?.from && "text-muted-foreground"
+                        )}
+                      >
+                        {dateRange?.from ? (
+                          <span className="text-sm">
+                            {format(dateRange.from, "dd/MM")}/
+                            {dateRange.from.getFullYear() + 543}
+                          </span>
+                        ) : (
+                          <span className="text-sm">วันที่เริ่ม</span>
+                        )}
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI
+                        initialFocus
+                        mode="single"
+                        selected={dateRange?.from}
+                        onSelect={(day) => {
+                          if (day) {
+                            const newRange = { from: day, to: dateRange.to };
+                            if (day > dateRange.to) {
+                              newRange.to = day;
+                            }
+                            setDateRange(newRange);
+                          }
+                        }}
+                        numberOfMonths={1}
+                      />
+                      <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-20"
+                          onClick={() => setIsStartOpen(false)}
+                        >
+                          ยกเลิก
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => setIsStartOpen(false)}
+                        >
+                          ตกลง
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-1.5 w-full sm:w-44">
+                <label className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  วันที่สิ้นสุด
+                </label>
+                <div className="h-10">
+                  <Popover open={isEndOpen} onOpenChange={setIsEndOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-between text-left font-normal bg-white h-10 px-3 pr-10 relative",
+                          !dateRange?.to && "text-muted-foreground"
+                        )}
+                      >
+                        {dateRange?.to ? (
+                          <span className="text-sm">
+                            {format(dateRange.to, "dd/MM")}/
+                            {dateRange.to.getFullYear() + 543}
+                          </span>
+                        ) : (
+                          <span className="text-sm">วันที่สิ้นสุด</span>
+                        )}
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI
+                        initialFocus
+                        mode="single"
+                        selected={dateRange?.to}
+                        defaultMonth={dateRange?.to || dateRange?.from}
+                        onSelect={(day) => {
+                          if (day) {
+                            const newRange = { from: dateRange.from, to: day };
+                            if (day < dateRange.from) {
+                              newRange.from = day;
+                            }
+                            setDateRange(newRange);
+                          }
+                        }}
+                        numberOfMonths={1}
+                      />
+                      <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-20"
+                          onClick={() => setIsEndOpen(false)}
+                        >
+                          ยกเลิก
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                          onClick={() => setIsEndOpen(false)}
+                        >
+                          ตกลง
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
@@ -387,11 +508,11 @@ export function TimeSalesDashboard() {
               </div>
 
               {/* Submit */}
-              <div className="flex items-end">
+              <div className="flex items-end gap-2 w-full sm:w-auto">
                 <Button
                   onClick={handleFetchReport}
                   disabled={isPending}
-                  className="w-full h-10 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 font-semibold text-sm"
+                  className="flex-1 sm:w-auto h-10 px-6 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 font-semibold text-sm"
                 >
                   {isPending ? (
                     <>
@@ -405,6 +526,18 @@ export function TimeSalesDashboard() {
                     </>
                   )}
                 </Button>
+                <ClearSearchButton
+                  label="ล้าง"
+                  onClick={() => {
+                    setDateRange({
+                      from: startOfMonth(new Date()),
+                      to: endOfMonth(new Date()),
+                    });
+                    setReportData(null);
+                  }}
+                  className="h-10 px-4 min-h-[40px] mb-0"
+                  containerClassName="w-auto mt-0"
+                />
               </div>
             </div>
           </CardContent>
