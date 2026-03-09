@@ -2,22 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Trash2, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
+import { DeleteDialog } from "@/components/custom/delete-dialog";
 import { FormCombobox } from "@/components/custom/FormCombobox";
 import { usePermission } from "@/hooks/use-permission";
 import { TableToolbar } from "@/components/custom/table-toolbar";
-import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { DetailedTarget } from "../../types";
 import { useSalesTargetColumns } from "./use-sales-target-columns";
 import { SalesTargetCards } from "./sales-target-cards";
@@ -278,42 +272,20 @@ export function SalesTargetTable({
             />
 
             {/* Delete Confirm Dialog */}
-            <Dialog
+            <DeleteDialog
                 open={Boolean(deleteTargetId)}
                 onOpenChange={(open) => {
                     if (!open) setDeleteTargetId(null);
                 }}
-            >
-                <DialogContent className="sm:max-w-[420px] rounded-lg border-0 shadow-2xl">
-                    <DialogTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
-                        <Trash2 className="h-5 w-5" /> ลบเป้าหมาย
-                    </DialogTitle>
-                    <DialogDescription className="text-base text-slate-600">
-                        คุณต้องการลบเป้าหมายรายการนี้ใช่หรือไม่ ?
-                    </DialogDescription>
-                    <DialogFooter className="mt-6 gap-2 sm:gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteTargetId(null)}
-                            className="rounded-full"
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => {
-                                if (deleteTargetId) {
-                                    onDelete(deleteTargetId);
-                                    setDeleteTargetId(null);
-                                }
-                            }}
-                            className="rounded-full bg-red-600 hover:bg-red-700"
-                        >
-                            ยืนยันการลบ
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onConfirm={() => {
+                    if (deleteTargetId) {
+                        onDelete(deleteTargetId);
+                        setDeleteTargetId(null);
+                    }
+                }}
+                title="ลบเป้าหมาย"
+                description="คุณต้องการลบเป้าหมายรายการนี้ใช่หรือไม่ ?"
+            />
         </div>
     );
 }
