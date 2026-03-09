@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp,
   Calendar,
@@ -298,7 +299,27 @@ export default function SalesForecastDashboard() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {forecastSectionError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600 mb-6">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {forecastSectionError}
+          </div>
+        </div>
+      )}
+
+      <Tabs defaultValue="overview" className="space-y-6 w-full">
+        <div className="flex w-full overflow-x-auto pb-2 scrollbar-hide">
+          <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto">
+            <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">Overview</TabsTrigger>
+            <TabsTrigger value="personal" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">พนักงาน</TabsTrigger>
+            <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มสินค้า</TabsTrigger>
+            <TabsTrigger value="product" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">สินค้า</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="overview" className="space-y-6 focus-visible:outline-none mt-0">
+          {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-xl">
           <CardContent className="p-5">
@@ -455,17 +476,9 @@ export default function SalesForecastDashboard() {
           </CardContent>
         </Card>
       </div>
+      </TabsContent>
 
-      {forecastSectionError && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            {forecastSectionError}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-6">
+      <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
         <PersonalForecastSection
           data={personalForecastRows}
           monthOptions={monthOptions}
@@ -475,19 +488,26 @@ export default function SalesForecastDashboard() {
           loading={forecastLoading}
           error={forecastError}
         />
+      </TabsContent>
+
+      <TabsContent value="group" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
         <GroupForecastSection
           data={groupForecastRows}
           formatCurrency={formatFullCurrency}
           loading={forecastLoading}
           error={forecastError}
         />
+      </TabsContent>
+
+      <TabsContent value="product" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
         <ProductForecastSection
           data={productForecastRows}
           formatCurrency={formatFullCurrency}
           loading={forecastLoading}
           error={forecastError}
         />
-      </div>
+      </TabsContent>
+      </Tabs>
     </div>
   );
 }
