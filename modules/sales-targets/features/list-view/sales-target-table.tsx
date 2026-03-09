@@ -143,7 +143,7 @@ export function SalesTargetTable({
             actions={
                 canCreate ? (
                     <Link href="/sales-targets/create" className="w-full sm:w-auto">
-                        <Button className="w-full sm:w-auto min-h-11 sm:min-h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:translate-y-[-1px] text-base sm:text-sm font-medium">
+                        <Button className="w-full sm:w-auto min-h-10 sm:min-h-8 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:translate-y-[-1px] text-base sm:text-sm font-medium">
                             <span className="inline-flex items-center gap-2">
                                 <PlusCircle className="h-5 w-5 sm:h-4 sm:w-4" />
                                 เพิ่มเป้าหมาย
