@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { th } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CustomTable from "@/components/custom/custom-table";
@@ -21,7 +20,8 @@ import {
 
 export function FulfillmentTable(props: FulfillmentTableProps) {
     const columns = useFulfillmentColumns();
-    const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
+    const [isStartOpen, setIsStartOpen] = React.useState(false);
+    const [isEndOpen, setIsEndOpen] = React.useState(false);
 
     const {
         sales,
@@ -45,65 +45,137 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
             onSearchChange={onSearchChange}
             onSearchSubmit={onSearchSubmit}
             filters={
-                <div className="space-y-2 w-full sm:w-80">
-                    <label className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mx-1">
-                        ช่วงวันที่
-                    </label>
-                    <div className="mt-1">
-                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full justify-start text-left font-normal bg-white h-11",
-                                        !dateRange && "text-muted-foreground",
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange?.from ? (
-                                        dateRange.to ? (
-                                            <>
-                                                {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
-                                                {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
-                                            </>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="space-y-2 w-full sm:w-44">
+                        <label className="mx-1 mb-1 font-medium text-base text-gray-900">
+                            วันที่เริ่ม
+                        </label>
+                        <div className="mt-1">
+                            <Popover open={isStartOpen} onOpenChange={setIsStartOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-between text-left font-normal bg-white h-11 px-3 pr-10 relative",
+                                            !dateRange?.from && "text-muted-foreground",
+                                        )}
+                                    >
+                                        {dateRange?.from ? (
+                                            <span className="text-base">
+                                                {format(dateRange.from, "dd/MM")}/
+                                                {dateRange.from.getFullYear() + 543}
+                                            </span>
                                         ) : (
-                                            format(dateRange.from, "dd/MM/yyyy", { locale: th })
-                                        )
-                                    ) : (
-                                        <span>เลือกช่วงวันที่</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={onDateRangeChange}
-                                    numberOfMonths={2}
-                                />
-                                <div className="p-3 border-t border-border flex items-center justify-center gap-2 bg-slate-50/50">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8"
-                                        onClick={() => {
-                                            onDateRangeChange?.(undefined);
+                                            <span className="text-base">วันที่เริ่ม</span>
+                                        )}
+                                        <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        initialFocus
+                                        mode="single"
+                                        selected={dateRange?.from}
+                                        onSelect={(day) => {
+                                            if (day) {
+                                                const newRange = { from: day, to: dateRange?.to };
+                                                if (dateRange?.to && day > dateRange.to) {
+                                                    newRange.to = day;
+                                                }
+                                                onDateRangeChange?.(newRange);
+                                            } else {
+                                                onDateRangeChange?.({ from: undefined, to: dateRange?.to });
+                                            }
                                         }}
-                                    >
-                                        ล้าง
-                                    </Button>
+                                        numberOfMonths={1}
+                                    />
+                                    <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-20"
+                                            onClick={() => setIsStartOpen(false)}
+                                        >
+                                            ยกเลิก
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                                            onClick={() => setIsStartOpen(false)}
+                                        >
+                                            ตกลง
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+                    <div className="space-y-2 w-full sm:w-44">
+                        <label className="mx-1 mb-1 font-medium text-base text-gray-900">
+                            วันที่สิ้นสุด
+                        </label>
+                        <div className="mt-1">
+                            <Popover open={isEndOpen} onOpenChange={setIsEndOpen}>
+                                <PopoverTrigger asChild>
                                     <Button
-                                        size="sm"
-                                        className="h-8"
-                                        onClick={() => setIsCalendarOpen(false)}
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-between text-left font-normal bg-white h-11 px-3 pr-10 relative",
+                                            !dateRange?.to && "text-muted-foreground",
+                                        )}
                                     >
-                                        ตกลง
+                                        {dateRange?.to ? (
+                                            <span className="text-base">
+                                                {format(dateRange.to, "dd/MM")}/
+                                                {dateRange.to.getFullYear() + 543}
+                                            </span>
+                                        ) : (
+                                            <span className="text-base">วันที่สิ้นสุด</span>
+                                        )}
+                                        <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        initialFocus
+                                        mode="single"
+                                        selected={dateRange?.to}
+                                        defaultMonth={dateRange?.to || dateRange?.from}
+                                        onSelect={(day) => {
+                                            if (day) {
+                                                const newRange = { from: dateRange?.from, to: day };
+                                                if (dateRange?.from && day < dateRange.from) {
+                                                    newRange.from = day;
+                                                } else if (!dateRange?.from) {
+                                                    newRange.from = day;
+                                                }
+                                                onDateRangeChange?.(newRange);
+                                            } else {
+                                                onDateRangeChange?.({ from: dateRange?.from, to: undefined });
+                                            }
+                                        }}
+                                        numberOfMonths={1}
+                                    />
+                                    <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-20"
+                                            onClick={() => setIsEndOpen(false)}
+                                        >
+                                            ยกเลิก
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                                            onClick={() => setIsEndOpen(false)}
+                                        >
+                                            ตกลง
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                     </div>
                 </div>
             }
