@@ -523,18 +523,20 @@ export function TimeSalesDashboard() {
                     </>
                   )}
                 </Button>
-                <ClearSearchButton
-                  label="ล้าง"
-                  onClick={() => {
-                    setDateRange({
-                      from: startOfMonth(new Date()),
-                      to: endOfMonth(new Date()),
-                    });
-                    setReportData(null);
-                  }}
-                  className="h-10 px-4 min-h-[40px] mb-0"
-                  containerClassName="w-auto mt-0"
-                />
+                {reportData && (
+                  <ClearSearchButton
+                    label="ล้าง"
+                    onClick={() => {
+                      setDateRange({
+                        from: startOfMonth(new Date()),
+                        to: endOfMonth(new Date()),
+                      });
+                      setReportData(null);
+                    }}
+                    className="h-10 px-4 min-h-[40px] mb-0"
+                    containerClassName="w-auto mt-0"
+                  />
+                )}
               </div>
             </div>
           </CardContent>
