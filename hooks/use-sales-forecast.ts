@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getSalesForecastAction } from "@/modules/sales-forecast/server/actions";
 
 export interface PersonalForecastEntry {
   employeeId: string;
@@ -45,12 +46,7 @@ export const useSalesForecast = (year: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/sales-forecast?year=${year}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch forecast data");
-      }
-
-      const forecastData: SalesForecastResponse = await response.json();
+      const forecastData = await getSalesForecastAction(year);
       setData(forecastData);
       setGroupLabels(forecastData.groupLabels);
     } catch (err) {
