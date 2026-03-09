@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle, X } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { DeleteDialog } from "@/components/custom/delete-dialog";
 import { FormCombobox } from "@/components/custom/FormCombobox";
+import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
 import { usePermission } from "@/hooks/use-permission";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { DetailedTarget } from "../../types";
@@ -217,16 +218,10 @@ export function SalesTargetTable({
                             emptyText="ไม่พบร้านค้า"
                         />
                     </div>
-                    <div className="w-full sm:col-span-2 lg:w-auto mt-1 sm:mt-0 flex justify-end">
-                        <Button
-                            variant="outline"
-                            className="w-full sm:w-auto lg:w-25 min-h-9 sm:min-h-8 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 px-4 sm:px-2 shadow-sm mb-1"
-                            onClick={onClear}
-                        >
-                            <X className="h-4 w-4" />
-                            ล้างค้นหา
-                        </Button>
-                    </div>
+                    <ClearSearchButton
+                        onClick={onClear}
+                        containerClassName="sm:col-span-2 lg:w-auto"
+                    />
                 </div>
             }
         />
