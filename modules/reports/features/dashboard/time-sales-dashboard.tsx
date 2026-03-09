@@ -3,12 +3,14 @@
 import { useId, useState, useTransition } from "react";
 import {
   format,
-  subMonths,
+  startOfDay,
+  endOfDay,
   startOfMonth,
   endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
   startOfYear,
   endOfYear,
-  subYears,
 } from "date-fns";
 
 import {
@@ -107,8 +109,11 @@ const DAY_ORDER = [
 
 const quickDateRanges = [
   {
-    label: "30 วันล่าสุด",
-    getValue: () => ({ from: subMonths(new Date(), 1), to: new Date() }),
+    label: "วันนี้",
+    getValue: () => ({
+      from: startOfDay(new Date()),
+      to: endOfDay(new Date()),
+    }),
   },
   {
     label: "เดือนนี้",
@@ -118,10 +123,10 @@ const quickDateRanges = [
     }),
   },
   {
-    label: "เดือนก่อน",
+    label: "ไตรมาสนี้",
     getValue: () => ({
-      from: startOfMonth(subMonths(new Date(), 1)),
-      to: endOfMonth(subMonths(new Date(), 1)),
+      from: startOfQuarter(new Date()),
+      to: endOfQuarter(new Date()),
     }),
   },
   {
@@ -129,13 +134,6 @@ const quickDateRanges = [
     getValue: () => ({
       from: startOfYear(new Date()),
       to: endOfYear(new Date()),
-    }),
-  },
-  {
-    label: "ปีก่อน",
-    getValue: () => ({
-      from: startOfYear(subYears(new Date(), 1)),
-      to: endOfYear(subYears(new Date(), 1)),
     }),
   },
 ];
