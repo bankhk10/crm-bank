@@ -10,6 +10,7 @@ import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { FulfillmentCards } from "./fulfillment-cards";
 import { useFulfillmentColumns } from "./use-fulfillment-columns";
 import type { FulfillmentTableProps } from "../../types/types";
+import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -36,6 +37,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
         onSearchSubmit,
         dateRange,
         onDateRangeChange,
+        onClear,
     } = props;
 
     const toolbar = (
@@ -176,6 +178,9 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                                 </PopoverContent>
                             </Popover>
                         </div>
+                    </div>
+                    <div className="flex items-end">
+                        <ClearSearchButton onClick={onClear || (() => { })} />
                     </div>
                 </div>
             }

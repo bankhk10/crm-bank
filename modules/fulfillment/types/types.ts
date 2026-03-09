@@ -22,6 +22,7 @@ export interface FulfillmentTableProps {
   onDateRangeChange?: (range: DateRange | undefined) => void;
   onPageChange?: (page: number) => void;
   onPerPageChange?: (perPage: number) => void;
+  onClear?: () => void;
   currentUserId?: string;
   // Permissions (Added for consistency, check if used)
   canView?: boolean;

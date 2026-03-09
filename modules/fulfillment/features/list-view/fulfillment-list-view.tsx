@@ -69,6 +69,13 @@ export default function FulfillmentPage() {
     setPage(1);
   };
 
+  const handleClear = () => {
+    setFilterDraft({ query: "" });
+    setAppliedFilters({ query: "" });
+    setDateRange(undefined);
+    setPage(1);
+  };
+
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
@@ -161,6 +168,7 @@ export default function FulfillmentPage() {
             onDateRangeChange={setDateRange}
             onPageChange={setPage}
             onPerPageChange={setPerPage}
+            onClear={handleClear}
             currentUserId={user?.id}
           />
         </div>
