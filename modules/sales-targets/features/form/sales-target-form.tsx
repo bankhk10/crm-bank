@@ -432,7 +432,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
                         {/* Step 1: General Info Section */}
                         <div className="space-y-4 md:space-y-6">
-                            <h3 className="text-lg md:text-xl font-bold text-slate-800 bg-slate-100/80 px-4 py-3 md:px-6 md:py-4 rounded-xl flex items-center gap-2">
+                            <h3 className="text-lg md:text-xl font-bold text-slate-800 bg-slate-200 px-4 py-3 md:px-6 md:py-4 rounded-xl flex items-center gap-2">
                                 <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] md:text-sm font-bold text-white">1</span>
                                 ข้อมูลทั่วไป
                             </h3>
@@ -452,7 +452,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     searchPlaceholder="ค้นหาปี..."
                                     emptyText="ไม่พบปี"
                                     error={errors.year}
-                                    triggerClassName="h-12 sm:h-10 text-base sm:text-sm rounded-xl"
+                                    triggerClassName="h-10 sm:h-12 text-base sm:text-base rounded-lg"
                                     required
                                 />
 
@@ -471,7 +471,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     searchPlaceholder="ค้นหาเดือน..."
                                     emptyText="ไม่พบเดือน"
                                     error={errors.month}
-                                    triggerClassName="h-12 sm:h-10 text-base sm:text-sm rounded-xl"
+                                    triggerClassName="h-10 sm:h-12 text-base sm:text-base rounded-lg"
                                     required
                                 />
 
@@ -491,7 +491,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         searchPlaceholder="ค้นหาพนักงาน..."
                                         emptyText="ไม่พบพนักงาน"
                                         error={errors.employeeId}
-                                        triggerClassName="h-12 sm:h-10 text-base sm:text-sm rounded-xl"
+                                        triggerClassName="h-10 sm:h-12 text-base sm:text-base rounded-lg"
                                         required
                                     />
                                 </div>
@@ -500,11 +500,11 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
                         {/* Step 2: Stores Section */}
                         <div className="space-y-4 md:space-y-6">
-                            <h3 className="text-lg md:text-xl font-bold text-slate-800 bg-slate-100/80 px-4 py-3 md:px-6 md:py-4 rounded-xl flex items-center gap-2">
+                            <h3 className="text-lg md:text-xl font-bold text-slate-800 bg-slate-200 px-4 py-3 md:px-6 md:py-4 rounded-xl flex items-center gap-2">
                                 <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[11px] md:text-sm font-bold text-white">2</span>
                                 ข้อมูลตั้งเป้าหมาย
                             </h3>
-                            
+
                             <div className="w-full px-1">
                                 <FormCombobox
                                     label="เพิ่มร้านค้า"
@@ -520,7 +520,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     triggerClassName="h-12 sm:h-11 border-dashed border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50/50 hover:border-emerald-400 transition-colors text-base sm:text-sm rounded-xl font-medium"
                                 />
                             </div>
-                            
+
                             {errors.stores && (
                                 <p className="text-sm font-bold text-red-500 bg-red-50 p-3 rounded-xl flex items-center justify-center gap-2 mx-1">
                                     <AlertTriangle className="w-5 h-5" />
@@ -528,41 +528,41 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 </p>
                             )}
 
-                        {stores.length === 0 && (
-                            <div className="flex flex-col items-center justify-center text-center py-12 md:py-16 px-4 animate-in fade-in duration-500 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl md:mx-1">
-                                <div className="relative mb-4 md:mb-6">
-                                    <div className="absolute inset-0 bg-linear-to-r from-emerald-500/10 to-teal-500/10 blur-2xl rounded-full" />
-                                    <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100">
-                                        <Store className="w-8 h-8 md:w-9 md:h-9 text-slate-400" />
+                            {stores.length === 0 && (
+                                <div className="flex flex-col items-center justify-center text-center py-12 md:py-16 px-4 animate-in fade-in duration-500 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl md:mx-1">
+                                    <div className="relative mb-4 md:mb-6">
+                                        <div className="absolute inset-0 bg-linear-to-r from-emerald-500/10 to-teal-500/10 blur-2xl rounded-full" />
+                                        <div className="relative w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100">
+                                            <Store className="w-8 h-8 md:w-9 md:h-9 text-slate-400" />
+                                        </div>
                                     </div>
+                                    <p className="font-bold text-slate-700 text-base md:text-lg mb-1 md:mb-2">
+                                        ยังไม่มีร้านค้าในเป้าหมาย
+                                    </p>
+                                    <p className="text-sm text-slate-500 max-w-[250px] md:max-w-xs leading-relaxed">
+                                        เลือกร้านค้าจากช่องค้นหาด้านบน เพื่อเริ่มต้นกำหนดเป้าหมาย
+                                    </p>
                                 </div>
-                                <p className="font-bold text-slate-700 text-base md:text-lg mb-1 md:mb-2">
-                                    ยังไม่มีร้านค้าในเป้าหมาย
-                                </p>
-                                <p className="text-sm text-slate-500 max-w-[250px] md:max-w-xs leading-relaxed">
-                                    เลือกร้านค้าจากช่องค้นหาด้านบน เพื่อเริ่มต้นกำหนดเป้าหมาย
-                                </p>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Store List */}
-                        <div className="space-y-4 sm:space-y-6 md:mx-1 pt-2">
-                            {stores.map((store, storeIndex) => (
-                                <StoreCard
-                                    key={store.customerId}
-                                    store={store}
-                                    storeIndex={storeIndex}
-                                    stores={stores}
-                                    products={products}
-                                    errors={errors}
-                                    onRemoveStore={handleRemoveStore}
-                                    onAddItem={handleAddItem}
-                                    onRemoveItem={handleRemoveItem}
-                                    onUpdateItem={handleUpdateItem}
-                                    onCloneStoreItems={handleCloneStoreItems}
-                                />
-                            ))}
-                        </div>
+                            {/* Store List */}
+                            <div className="space-y-4 sm:space-y-6 md:mx-1 pt-2">
+                                {stores.map((store, storeIndex) => (
+                                    <StoreCard
+                                        key={store.customerId}
+                                        store={store}
+                                        storeIndex={storeIndex}
+                                        stores={stores}
+                                        products={products}
+                                        errors={errors}
+                                        onRemoveStore={handleRemoveStore}
+                                        onAddItem={handleAddItem}
+                                        onRemoveItem={handleRemoveItem}
+                                        onUpdateItem={handleUpdateItem}
+                                        onCloneStoreItems={handleCloneStoreItems}
+                                    />
+                                ))}
+                            </div>
                         </div>
 
                         {/* Grand Total */}
@@ -884,7 +884,7 @@ function StoreCard({
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-3 pb-3 border-b border-slate-100">
                                 <FormInput
                                     label="ราคาต่อหน่วย"
@@ -921,7 +921,7 @@ function StoreCard({
                                     rightIcon={<span className="text-[11px] font-bold text-slate-400">/{item.unit || "-"}</span>}
                                 />
                             </div>
-                            
+
                             <div className="flex justify-between items-center bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
                                 <span className="text-sm font-bold text-emerald-800">เป้าหมายรวม</span>
                                 <div className="text-right flex items-baseline gap-1">
