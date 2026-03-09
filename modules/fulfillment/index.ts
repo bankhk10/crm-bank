@@ -1,5 +1,4 @@
 export * from "./features/list-view/fulfillment-table";
-export * from "./features/list-view/fulfillment-toolbar";
 export * from "./features/list-view/fulfillment-cards";
 export * from "./features/list-view/use-fulfillment-columns";
 export * from "./features/form/lot-selector";

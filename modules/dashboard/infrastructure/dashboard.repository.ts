@@ -137,17 +137,19 @@ export async function findMonthlySalesTarget(
 
 export async function sumSalesTargetItems(year: number, month?: number) {
   const whereClause: any = {
-    salesTarget: {
-      year,
+    salesTargetStore: {
+      salesTarget: {
+        year,
+      },
     },
   };
   if (month) {
-    whereClause.salesTarget.month = month;
+    whereClause.salesTargetStore.salesTarget.month = month;
   }
 
   const result = await prisma.salesTargetItem.aggregate({
     where: whereClause,
-    _sum: { amount: true },
+    _sum: { targetAmount: true },
   });
-  return Number(result._sum.amount || 0);
+  return Number(result._sum.targetAmount || 0);
 }

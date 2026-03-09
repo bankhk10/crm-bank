@@ -46,14 +46,18 @@ export async function GET(request: NextRequest) {
             lastName: true,
           },
         },
-        items: {
+        stores: {
           include: {
-            product: {
-              select: {
-                id: true,
-                productCode: true,
-                name: true,
-                productGroup: true,
+            items: {
+              include: {
+                product: {
+                  select: {
+                    id: true,
+                    productCode: true,
+                    name: true,
+                    productGroup: true,
+                  },
+                },
               },
             },
           },
@@ -135,9 +139,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      target.items.forEach((item) => {
-        const amount = Number(item.amount || 0);
-        const quantity = item.quantity || 0;
+      target.stores.forEach((store) => {
+        store.items.forEach((item) => {
+          const amount = Number(item.targetAmount || 0);
+          const quantity = item.qtyPerBox || 0;
 
         const personalEntry = personalMap.get(personalKey);
         if (personalEntry) {
@@ -179,6 +184,7 @@ export async function GET(request: NextRequest) {
           productEntry.totalAmount += amount;
           productEntry.totalQuantity += quantity;
         }
+        });
       });
     });
 
