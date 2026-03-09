@@ -118,8 +118,8 @@ export default function SalesForecastDashboard() {
       personalMonth === "all"
         ? forecastData.personal
         : forecastData.personal.filter(
-            (entry) => entry.month === Number(personalMonth),
-          );
+          (entry) => entry.month === Number(personalMonth),
+        );
 
     const map: Record<
       string,
@@ -308,7 +308,7 @@ export default function SalesForecastDashboard() {
       <Tabs defaultValue="overview" className="space-y-6 w-full">
         <div className="flex w-full overflow-x-auto pb-2 scrollbar-hide">
           <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto">
-            <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">Overview</TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ภาพรวม</TabsTrigger>
             <TabsTrigger value="personal" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">พนักงาน</TabsTrigger>
             <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มสินค้า</TabsTrigger>
             <TabsTrigger value="product" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">สินค้า</TabsTrigger>
@@ -317,194 +317,194 @@ export default function SalesForecastDashboard() {
 
         <TabsContent value="overview" className="space-y-6 focus-visible:outline-none mt-0">
           {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-xl">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">ยอดขายจริง (YTD)</p>
-                <p className="text-2xl font-bold mt-1">
-                  {formatFullCurrency(totalActual)}
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/20">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm">ยอดขายจริง (YTD)</p>
+                    <p className="text-2xl font-bold mt-1">
+                      {formatFullCurrency(totalActual)}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/20">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-purple-500 to-violet-600 text-white shadow-xl">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">เป้าหมายทั้งปี</p>
-                <p className="text-2xl font-bold mt-1">
-                  {formatFullCurrency(totalTarget)}
-                </p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/20">
-                <Calendar className="w-6 h-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-purple-500 to-violet-600 text-white shadow-xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm">เป้าหมายทั้งปี</p>
+                    <p className="text-2xl font-bold mt-1">
+                      {formatFullCurrency(totalTarget)}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/20">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-amber-500 to-orange-600 text-white shadow-xl">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-amber-100 text-sm">ยอดขาย vs เป้าหมาย</p>
-                <p className="text-2xl font-bold mt-1">{actualVsTarget}%</p>
-              </div>
-              <div className="p-3 rounded-xl bg-white/20">
-                {Number(actualVsTarget) >= 100 ? (
-                  <ArrowUp className="w-6 h-6" />
-                ) : (
-                  <ArrowDown className="w-6 h-6" />
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="overflow-hidden rounded-2xl border-0 bg-linear-to-br from-amber-500 to-orange-600 text-white shadow-xl">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-amber-100 text-sm">ยอดขาย vs เป้าหมาย</p>
+                    <p className="text-2xl font-bold mt-1">{actualVsTarget}%</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/20">
+                    {Number(actualVsTarget) >= 100 ? (
+                      <ArrowUp className="w-6 h-6" />
+                    ) : (
+                      <ArrowDown className="w-6 h-6" />
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Overview Charts */}
-      <div className="space-y-6">
-        <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-          <CardHeader className="border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-              </div>
-              <CardTitle>แนวโน้มยอดขายและคาดการณ์</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis
-                    stroke="#64748b"
-                    fontSize={12}
-                    tickFormatter={formatCurrency}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#F5F5F5" }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "none",
-                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                      fontSize: 12,
-                    }}
-                    formatter={(value: number) => [formatFullCurrency(value)]}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="actual"
-                    name="ยอดขายจริง"
-                    stroke="#22c55e"
-                    strokeWidth={3}
-                    dot={{ fill: "#22c55e", strokeWidth: 2 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="target"
-                    name="เป้าหมาย"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Overview Charts */}
+          <div className="space-y-6">
+            <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+              <CardHeader className="border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <CardTitle>แนวโน้มยอดขายและคาดการณ์</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={salesData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                      <YAxis
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickFormatter={formatCurrency}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "#F5F5F5" }}
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "none",
+                          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                          fontSize: 12,
+                        }}
+                        formatter={(value: number) => [formatFullCurrency(value)]}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="actual"
+                        name="ยอดขายจริง"
+                        stroke="#22c55e"
+                        strokeWidth={3}
+                        dot={{ fill: "#22c55e", strokeWidth: 2 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="target"
+                        name="เป้าหมาย"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ fill: "#3b82f6", strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-          <CardHeader className="border-b border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-linear-to-br from-emerald-100 to-teal-100">
-                <Calendar className="w-5 h-5 text-emerald-600" />
-              </div>
-              <CardTitle>เปรียบเทียบรายเดือน</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                  <YAxis
-                    stroke="#64748b"
-                    fontSize={12}
-                    tickFormatter={formatCurrency}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#F5F5F5" }}
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "none",
-                      boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                      fontSize: 12,
-                    }}
-                    formatter={(value: number) => [formatCurrency(value)]}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="actual"
-                    name="ยอดขายจริง"
-                    fill="#22c55e"
-                    radius={[4, 4, 0, 0]}
-                  />
-                  <Bar
-                    dataKey="target"
-                    name="เป้าหมาย"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      </TabsContent>
+            <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+              <CardHeader className="border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-linear-to-br from-emerald-100 to-teal-100">
+                    <Calendar className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <CardTitle>เปรียบเทียบรายเดือน</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={salesData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                      <YAxis
+                        stroke="#64748b"
+                        fontSize={12}
+                        tickFormatter={formatCurrency}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "#F5F5F5" }}
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "none",
+                          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
+                          fontSize: 12,
+                        }}
+                        formatter={(value: number) => [formatCurrency(value)]}
+                      />
+                      <Legend />
+                      <Bar
+                        dataKey="actual"
+                        name="ยอดขายจริง"
+                        fill="#22c55e"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="target"
+                        name="เป้าหมาย"
+                        fill="#3b82f6"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-      <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-        <PersonalForecastSection
-          data={personalForecastRows}
-          year={year}
-          monthOptions={monthOptions}
-          selectedMonth={personalMonth}
-          onMonthChange={setPersonalMonth}
-          formatCurrency={formatFullCurrency}
-          loading={forecastLoading}
-          error={forecastError}
-        />
-      </TabsContent>
+        <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+          <PersonalForecastSection
+            data={personalForecastRows}
+            year={year}
+            monthOptions={monthOptions}
+            selectedMonth={personalMonth}
+            onMonthChange={setPersonalMonth}
+            formatCurrency={formatFullCurrency}
+            loading={forecastLoading}
+            error={forecastError}
+          />
+        </TabsContent>
 
-      <TabsContent value="group" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-        <GroupForecastSection
-          data={groupForecastRows}
-          formatCurrency={formatFullCurrency}
-          loading={forecastLoading}
-          error={forecastError}
-        />
-      </TabsContent>
+        <TabsContent value="group" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+          <GroupForecastSection
+            data={groupForecastRows}
+            formatCurrency={formatFullCurrency}
+            loading={forecastLoading}
+            error={forecastError}
+          />
+        </TabsContent>
 
-      <TabsContent value="product" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-        <ProductForecastSection
-          data={productForecastRows}
-          formatCurrency={formatFullCurrency}
-          loading={forecastLoading}
-          error={forecastError}
-        />
-      </TabsContent>
+        <TabsContent value="product" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
+          <ProductForecastSection
+            data={productForecastRows}
+            formatCurrency={formatFullCurrency}
+            loading={forecastLoading}
+            error={forecastError}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );
