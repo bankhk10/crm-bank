@@ -81,111 +81,109 @@ export function SalesTable(props: SalesTableProps) {
     };
 
     const toolbar = (
-        <TableToolbar
-            searchPlaceholder="เลขที่ใบขาย, ชื่อลูกค้า"
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            onSearchSubmit={onSearchSubmit}
-            filters={
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {/* Date Range Picker */}
-                    <div className="space-y-2">
-                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full justify-start text-left font-normal bg-white h-10",
-                                        !dateRange && "text-muted-foreground",
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange?.from ? (
-                                        dateRange.to ? (
-                                            <>
-                                                {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
-                                                {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
-                                            </>
+        <div className="space-y-4 mb-6">
+            <TableToolbar
+                searchPlaceholder="เลขที่ใบขาย, ชื่อลูกค้า"
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
+                onSearchSubmit={onSearchSubmit}
+                filters={
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {/* Date Range Picker */}
+                        <div className="space-y-2">
+                            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal bg-white h-10",
+                                            !dateRange && "text-muted-foreground",
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>
+                                                    {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
+                                                    {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
+                                                </>
+                                            ) : (
+                                                format(dateRange.from, "dd/MM/yyyy", { locale: th })
+                                            )
                                         ) : (
-                                            format(dateRange.from, "dd/MM/yyyy", { locale: th })
-                                        )
-                                    ) : (
-                                        <span>เลือกช่วงวันที่</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={onDateRangeChange}
-                                    numberOfMonths={2}
-                                />
-                                <div className="p-3 border-t border-border flex items-center justify-center gap-2 bg-slate-50/50">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-8"
-                                        onClick={() => {
-                                            if (onDateRangeChange) onDateRangeChange(undefined);
-                                        }}
-                                    >
-                                        ล้าง
+                                            <span>เลือกช่วงวันที่</span>
+                                        )}
                                     </Button>
-                                    <Button
-                                        size="sm"
-                                        className="h-8"
-                                        onClick={() => setIsCalendarOpen(false)}
-                                    >
-                                        ตกลง
-                                    </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={dateRange?.from}
+                                        selected={dateRange}
+                                        onSelect={onDateRangeChange}
+                                        numberOfMonths={2}
+                                    />
+                                    <div className="p-3 border-t border-border flex items-center justify-center gap-2 bg-slate-50/50">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8"
+                                            onClick={() => {
+                                                if (onDateRangeChange) onDateRangeChange(undefined);
+                                            }}
+                                        >
+                                            ล้าง
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="h-8"
+                                            onClick={() => setIsCalendarOpen(false)}
+                                        >
+                                            ตกลง
+                                        </Button>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
 
-                    {/* Status Filter */}
-                    <div className="space-y-2">
-                        <Select
-                            value={statusFilter || "ALL"}
-                            onValueChange={(value) =>
-                                onStatusFilterChange?.(
-                                    value === "ALL" ? undefined : (value as SaleStatus),
-                                )
-                            }
-                        >
-                            <SelectTrigger className="w-full bg-white h-10">
-                                <SelectValue placeholder="ทุกสถานะ" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ALL">ทุกสถานะ</SelectItem>
-                                {Object.entries(SaleStatusLabels).map(([key, label]) => (
-                                    <SelectItem key={key} value={key}>
-                                        {label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {/* Status Filter */}
+                        <div className="space-y-2">
+                            <Select
+                                value={statusFilter || "ALL"}
+                                onValueChange={(value) =>
+                                    onStatusFilterChange?.(
+                                        value === "ALL" ? undefined : (value as SaleStatus),
+                                    )
+                                }
+                            >
+                                <SelectTrigger className="w-full bg-white h-10">
+                                    <SelectValue placeholder="ทุกสถานะ" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ALL">ทุกสถานะ</SelectItem>
+                                    {Object.entries(SaleStatusLabels).map(([key, label]) => (
+                                        <SelectItem key={key} value={key}>
+                                            {label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                </div>
-            }
-            actions={
-                <div className="flex flex-wrap gap-2 items-center lg:justify-end">
-                    {canCreate && (
-                        <Link href="/sales/new" className="w-full lg:w-auto">
-                            <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white">
-                                <span className="inline-flex items-center gap-2">
-                                    <PlusCircle className="h-4 w-4" />
-                                    สร้างรายการขาย
-                                </span>
-                            </Button>
-                        </Link>
-                    )}
-                </div>
-            }
-        />
+                }
+            />
+            <div className="flex justify-end">
+                {canCreate && (
+                    <Link href="/sales/new" className="w-full sm:w-auto">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium">
+                            <PlusCircle className="h-5 w-5" />
+                            สร้างรายการขาย
+                        </Button>
+                    </Link>
+                )}
+            </div>
+        </div>
     );
 
     return (
