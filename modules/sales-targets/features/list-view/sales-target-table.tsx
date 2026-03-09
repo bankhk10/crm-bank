@@ -142,102 +142,105 @@ export function SalesTargetTable({
     }
 
     const toolbar = (
-        <TableToolbar
-            showSearch={false}
-            filters={
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end w-full">
-                    <div className="w-full">
-                        <FormCombobox
-                            label="ปี"
-                            value={year.toString()}
-                            onChange={(val) => onChangeYear(Number(val))}
-                            options={years.map((y) => ({
-                                value: y.toString(),
-                                label: (y + 543).toString(),
-                            }))}
-                            placeholder="เลือกปี"
-                            searchPlaceholder="ค้นหาปี..."
-                            emptyText="ไม่พบปี"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <FormCombobox
-                            label="เดือน"
-                            value={month === "all" ? "all" : month.toString()}
-                            onChange={(val) =>
-                                onChangeMonth(val === "all" ? "all" : Number(val))
-                            }
-                            options={[
-                                { value: "all", label: "ทั้งหมด" },
-                                ...MONTHS.map((m) => ({
-                                    value: m.value.toString(),
-                                    label: m.label,
-                                })),
-                            ]}
-                            placeholder="เดือนทั้งหมด"
-                            searchPlaceholder="ค้นหาเดือน..."
-                            emptyText="ไม่พบเดือน"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <FormCombobox
-                            label="พนักงาน"
-                            value={employeeId}
-                            onChange={(val) => onChangeEmployee(val)}
-                            options={employees.map((emp) => ({
-                                value: emp.id,
-                                label: `${emp.name}`,
-                            }))}
-                            placeholder="พนักงานทั้งหมด"
-                            searchPlaceholder="ค้นหาพนักงาน..."
-                            emptyText="ไม่พบพนักงาน"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <FormCombobox
-                            label="ร้านค้า"
-                            value={shopId}
-                            onChange={(val) => onChangeShop(val)}
-                            options={customers.map((customer) => ({
-                                value: customer.id,
-                                label: `${customer.name}`,
-                            }))}
-                            placeholder="ร้านค้าทั้งหมด"
-                            searchPlaceholder="ค้นหาร้านค้า..."
-                            emptyText="ไม่พบร้านค้า"
-                        />
-                    </div>
-                </div>
-            }
-            actions={
-                <div className="flex flex-col sm:flex-row gap-2 items-center lg:justify-end w-full whitespace-nowrap pt-5 lg:pt-0 pb-[2px]">
-                    <Button
-                        variant="outline"
-                        className="w-full lg:w-auto h-10 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200"
-                        onClick={onClear}
-                    >
-                        ล้างตัวกรอง
-                    </Button>
-                    {canCreate ? (
-                        <Link href="/sales-targets/create" className="w-full sm:w-auto">
-                            <Button className="w-full sm:w-auto h-10 bg-blue-600 hover:bg-blue-700 text-white">
-                                <span className="inline-flex items-center gap-2">
-                                    <PlusCircle className="h-4 w-4" />
-                                    เพิ่มเป้าหมาย
-                                </span>
-                            </Button>
-                        </Link>
-                    ) : (
-                        <div className="w-full sm:w-auto">
-                            <Button className="w-full sm:w-auto h-10 gap-2" variant="outline" disabled>
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มเป้าหมาย
+        <div className="space-y-4">
+            <TableToolbar
+                showSearch={false}
+                actionPosition="bottom"
+                filters={
+                    <div className="flex flex-col md:grid md:grid-cols-2 lg:flex lg:flex-row gap-4 items-end w-full">
+                        <div className="w-full lg:w-32">
+                            <FormCombobox
+                                label="ปี"
+                                value={year.toString()}
+                                onChange={(val) => onChangeYear(Number(val))}
+                                options={years.map((y) => ({
+                                    value: y.toString(),
+                                    label: (y + 543).toString(),
+                                }))}
+                                placeholder="เลือกปี"
+                                searchPlaceholder="ค้นหาปี..."
+                                emptyText="ไม่พบปี"
+                            />
+                        </div>
+                        <div className="w-full lg:w-40">
+                            <FormCombobox
+                                label="เดือน"
+                                value={month === "all" ? "all" : month.toString()}
+                                onChange={(val) =>
+                                    onChangeMonth(val === "all" ? "all" : Number(val))
+                                }
+                                options={[
+                                    { value: "all", label: "ทั้งหมด" },
+                                    ...MONTHS.map((m) => ({
+                                        value: m.value.toString(),
+                                        label: m.label,
+                                    })),
+                                ]}
+                                placeholder="เดือนทั้งหมด"
+                                searchPlaceholder="ค้นหาเดือน..."
+                                emptyText="ไม่พบเดือน"
+                            />
+                        </div>
+                        <div className="w-full lg:flex-1">
+                            <FormCombobox
+                                label="พนักงาน"
+                                value={employeeId}
+                                onChange={(val) => onChangeEmployee(val)}
+                                options={employees.map((emp) => ({
+                                    value: emp.id,
+                                    label: `${emp.name}`,
+                                }))}
+                                placeholder="พนักงานทั้งหมด"
+                                searchPlaceholder="ค้นหาพนักงาน..."
+                                emptyText="ไม่พบพนักงาน"
+                            />
+                        </div>
+                        <div className="w-full lg:flex-1">
+                            <FormCombobox
+                                label="ร้านค้า"
+                                value={shopId}
+                                onChange={(val) => onChangeShop(val)}
+                                options={customers.map((customer) => ({
+                                    value: customer.id,
+                                    label: `${customer.name}`,
+                                }))}
+                                placeholder="ร้านค้าทั้งหมด"
+                                searchPlaceholder="ค้นหาร้านค้า..."
+                                emptyText="ไม่พบร้านค้า"
+                            />
+                        </div>
+                        <div className="w-full lg:w-auto">
+                            <Button
+                                variant="outline"
+                                className="w-full lg:w-28 h-10 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 px-2"
+                                onClick={onClear}
+                            >
+                                ล้างตัวกรอง
                             </Button>
                         </div>
-                    )}
-                </div>
-            }
-        />
+                    </div>
+                }
+            />
+            <div className="flex justify-end">
+                {canCreate ? (
+                    <Link href="/sales-targets/create" className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:translate-y-[-1px]">
+                            <span className="inline-flex items-center gap-2">
+                                <PlusCircle className="h-4 w-4" />
+                                เพิ่มเป้าหมาย
+                            </span>
+                        </Button>
+                    </Link>
+                ) : (
+                    <div className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto h-10 gap-2" variant="outline" disabled>
+                            <PlusCircle className="h-4 w-4" />
+                            เพิ่มเป้าหมาย
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </div>
     );
 
     return (
