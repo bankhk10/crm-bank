@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, X } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -220,10 +220,11 @@ export function SalesTargetTable({
                     <div className="w-full sm:col-span-2 lg:w-auto mt-1 sm:mt-0 flex justify-end">
                         <Button
                             variant="outline"
-                            className="w-full sm:w-auto lg:w-28 min-h-11 sm:min-h-10 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 px-4 sm:px-2 shadow-sm"
+                            className="w-full sm:w-auto lg:w-25 min-h-9 sm:min-h-8 border-red-100 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 hover:border-red-200 px-4 sm:px-2 shadow-sm mb-1"
                             onClick={onClear}
                         >
-                            ล้างตัวกรอง
+                            <X className="h-4 w-4" />
+                            ล้างค้นหา
                         </Button>
                     </div>
                 </div>
