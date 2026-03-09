@@ -155,7 +155,7 @@ export default function SalesForecastDashboard() {
     return Object.values(map).sort((a, b) =>
       a.employeeName.localeCompare(b.employeeName),
     );
-  }, [forecastData?.personal, personalMonth]);
+  }, [forecastData, personalMonth]);
 
   const groupForecastRows = useMemo(() => {
     if (!forecastData?.group) return [];
@@ -187,7 +187,7 @@ export default function SalesForecastDashboard() {
     });
 
     return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
-  }, [forecastData?.group, groupLabels]);
+  }, [forecastData, groupLabels]);
 
   const productForecastRows = useMemo(() => {
     if (!forecastData?.product) return [];
@@ -223,7 +223,7 @@ export default function SalesForecastDashboard() {
     return Object.values(map).sort((a, b) =>
       a.productName.localeCompare(b.productName),
     );
-  }, [forecastData?.product]);
+  }, [forecastData]);
 
   // Calculate summary stats
   const currentMonth = new Date().getMonth() + 1;
