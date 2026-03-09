@@ -6,8 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, UserRound, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Loader2, UserRound, ChevronLeft, ChevronRight, Eye, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 
@@ -46,21 +47,30 @@ export const PersonalForecastSection = ({
   year,
 }: PersonalForecastSectionProps) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
+
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) return data;
+    return data.filter((row) =>
+      row.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data, searchTerm]);
 
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return data.slice(startIndex, endIndex);
-  }, [data, currentPage]);
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, currentPage]);
 
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   const [prevMonth, setPrevMonth] = useState(selectedMonth);
 
   if (selectedMonth !== prevMonth) {
     setPrevMonth(selectedMonth);
     setCurrentPage(1);
+    setSearchTerm("");
   }
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
@@ -76,6 +86,18 @@ export const PersonalForecastSection = ({
                 สรุปยอดคาดการณ์รายบุคคลจากเป้าหมายที่บันทึกไว้
               </p>
             </div>
+          </div>
+          <div className="w-full sm:w-[260px] relative mt-2 sm:mt-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="ค้นหารายชื่อพนักงาน..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-9 h-10 rounded-xl bg-white border-slate-200"
+            />
           </div>
         </div>
       </CardHeader>
@@ -136,7 +158,7 @@ export const PersonalForecastSection = ({
             {totalPages > 1 && (
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <p className="text-sm text-slate-500">
-                  แสดง {paginatedData.length} จาก {data.length} รายการ
+                  แสดง {paginatedData.length} จาก {filteredData.length} รายการ
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
