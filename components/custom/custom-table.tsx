@@ -74,7 +74,7 @@ function DefaultPagination({
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="start">
-              {(pagination.perPageOptions ?? [6, 12, 24, 48]).map((option) => (
+              {(pagination.perPageOptions ?? [6, 12, 24]).map((option) => (
                 <SelectItem key={option} value={String(option)}>
                   {option}
                 </SelectItem>
