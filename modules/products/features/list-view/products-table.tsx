@@ -50,49 +50,49 @@ export function ProductsTable(props: ProductsTableProps) {
 
     // ───────── Toolbar (using reusable TableToolbar) ──────────
     const toolbar = (
-        <TableToolbar
-            searchPlaceholder="รหัสสินค้า, ชื่อสินค้า"
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            onSearchSubmit={onSearchSubmit}
-            filters={
-                <div className="space-y-2">
-                    <label className="text-base font-medium leading-none mx-1">สถานะ</label>
-                    <div className="mt-1">
-                        <Select
-                            value={statusFilter || ALL_STATUS_VALUE}
-                            onValueChange={(v) =>
-                                onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-                            }
-                        >
-                            <SelectTrigger className="text-base w-full">
-                                <SelectValue placeholder="ทั้งหมด" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
-                                {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                                    <SelectItem key={key} value={key}>
-                                        {label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+        <div className="space-y-4 mb-6">
+            <TableToolbar
+                searchPlaceholder="รหัสสินค้า, ชื่อสินค้า"
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
+                onSearchSubmit={onSearchSubmit}
+                filters={
+                    <div className="space-y-2">
+                        <label className="text-base font-medium leading-none mx-1">สถานะ</label>
+                        <div className="mt-1">
+                            <Select
+                                value={statusFilter || ALL_STATUS_VALUE}
+                                onValueChange={(v) =>
+                                    onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                                }
+                            >
+                                <SelectTrigger className="text-base w-full">
+                                    <SelectValue placeholder="ทั้งหมด" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={ALL_STATUS_VALUE}>ทั้งหมด</SelectItem>
+                                    {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                                        <SelectItem key={key} value={key}>
+                                            {label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                </div>
-            }
-            actions={
-                canCreate ? (
-                    <Link href="/products/new">
-                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                สร้างสินค้าใหม่
-                            </span>
+                }
+            />
+            {canCreate && (
+                <div className="flex justify-end">
+                    <Link href="/products/new" className="w-full sm:w-auto">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white">
+                            <PlusCircle className="h-5 w-5" />
+                            สร้างสินค้าใหม่
                         </Button>
                     </Link>
-                ) : undefined
-            }
-        />
+                </div>
+            )}
+        </div>
     );
 
     // ───────── Render ──────────
