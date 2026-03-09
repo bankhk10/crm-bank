@@ -77,20 +77,6 @@ export const PersonalForecastSection = ({
               </p>
             </div>
           </div>
-          <div className="w-full sm:w-[220px]">
-            <Select value={selectedMonth} onValueChange={onMonthChange}>
-              <SelectTrigger className="h-10 rounded-xl bg-white">
-                <SelectValue placeholder="เลือกเดือน" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </CardHeader>
       <CardContent className="p-6">
@@ -125,9 +111,9 @@ export const PersonalForecastSection = ({
                     <p className="text-sm text-slate-500">ยอดคาดการณ์</p>
                     <div className="flex items-center justify-end gap-3 mt-1 w-full">
                       <Link href={`/sales-forecast/${row.employeeId}?year=${year}`}>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-8 gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
                           <Eye className="w-3.5 h-3.5" />
