@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Target, Loader2 } from "lucide-react";
+import { Target } from "lucide-react";
 import { toast } from "sonner";
 
 // Feature Imports
@@ -193,19 +193,10 @@ export default function SalesTargetsPage() {
     }
   };
 
-  if (loading && !detailedTargets.length) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-white to-blue-50/30">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-slate-600">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
+  // We now handle loading inside the table component to avoid full-page flicker
 
   return (
-    <div className="min -h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
+    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
       <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <PageHeader
           icon={Target}
@@ -222,6 +213,7 @@ export default function SalesTargetsPage() {
             }}
             onCopy={handleCopy}
             onDelete={handleDelete}
+            loading={loading}
             year={year}
             month={monthFilter}
             employeeId={employeeFilter}

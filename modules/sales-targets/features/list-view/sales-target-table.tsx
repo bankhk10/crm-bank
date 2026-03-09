@@ -25,6 +25,7 @@ interface SalesTargetTableProps {
     onView: (target: DetailedTarget) => void;
     onDelete: (id: string) => void;
     onCopy: (target: DetailedTarget) => void;
+    loading?: boolean;
 
     // Filters
     year: number;
@@ -46,6 +47,7 @@ export function SalesTargetTable({
     onView,
     onDelete,
     onCopy,
+    loading = false,
     year,
     month,
     employeeId,
@@ -237,7 +239,7 @@ export function SalesTargetTable({
                 cards={
                     <SalesTargetCards
                         data={paginatedData}
-                        loading={false}
+                        loading={loading}
                         canDelete={canDelete}
                         canEdit={canEdit}
                         canView={canView}
@@ -251,7 +253,7 @@ export function SalesTargetTable({
                     <CustomTable
                         columns={columns}
                         data={paginatedData}
-                        loading={false}
+                        loading={loading}
                         pagination={paginationInfo}
                         toolbar={<></>}
                         emptyState={{
