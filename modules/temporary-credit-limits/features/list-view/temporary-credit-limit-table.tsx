@@ -48,74 +48,68 @@ export function TemporaryCreditLimitTable(
     );
 
     const toolbar = (
-        <TableToolbar
-            searchPlaceholder="รหัสลูกค้า, ชื่อลูกค้า..."
-            searchValue={searchValue}
-            onSearchChange={onSearchChange}
-            onSearchSubmit={onSearchSubmit}
-            filters={
-                <div className="w-full">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full justify-start text-left font-normal bg-white h-10",
-                                    !dateRange && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {dateRange?.from ? (
-                                    dateRange.to ? (
-                                        <>
-                                            {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
-                                            {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
-                                        </>
+        <div className="space-y-4 mb-6">
+            <TableToolbar
+                searchPlaceholder="รหัสลูกค้า, ชื่อลูกค้า..."
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
+                onSearchSubmit={onSearchSubmit}
+                filters={
+                    <div className="w-full">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal bg-white h-10",
+                                        !dateRange && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                                {format(dateRange.from, "dd/MM/yyyy", { locale: th })} -{" "}
+                                                {format(dateRange.to, "dd/MM/yyyy", { locale: th })}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "dd/MM/yyyy", { locale: th })
+                                        )
                                     ) : (
-                                        format(dateRange.from, "dd/MM/yyyy", { locale: th })
-                                    )
-                                ) : (
-                                    <span>เลือกช่วงวันที่</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={dateRange?.from}
-                                selected={dateRange}
-                                onSelect={onDateRangeChange}
-                                numberOfMonths={2}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-            }
-            actions={
-                <div className="flex flex-col sm:flex-row gap-2 mt-4 lg:mt-0 items-center justify-end w-full">
-                    {canCreate ? (
-                        <Link href="/temporary-credit-limits/new" className="w-full sm:w-auto">
-                            <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10">
-                                <span className="inline-flex items-center gap-2">
-                                    <PlusCircle className="h-4 w-4" />
-                                    สร้างคำขอใหม่
-                                </span>
-                            </Button>
-                        </Link>
-                    ) : (
-                        <div className="w-full sm:w-auto">
-                            <Button className="w-full sm:w-auto h-10" variant="outline" disabled>
-                                <span className="inline-flex items-center gap-2">
-                                    <PlusCircle className="h-4 w-4" />
-                                    สร้างคำขอใหม่
-                                </span>
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            }
-        />
+                                        <span>เลือกช่วงวันที่</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={dateRange?.from}
+                                    selected={dateRange}
+                                    onSelect={onDateRangeChange}
+                                    numberOfMonths={2}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                }
+            />
+            <div className="flex justify-end">
+                {canCreate ? (
+                    <Link href="/temporary-credit-limits/new" className="w-full sm:w-auto">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white">
+                            <PlusCircle className="h-5 w-5" />
+                            สร้างคำขอใหม่
+                        </Button>
+                    </Link>
+                ) : (
+                    <Button className="w-full sm:w-auto" variant="outline" disabled>
+                        <PlusCircle className="h-5 w-5" />
+                        สร้างคำขอใหม่
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 
     return (

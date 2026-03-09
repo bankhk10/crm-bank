@@ -210,24 +210,26 @@ export function ShippingCompaniesTable({
                             perPageOptions: [6, 12, 24, 48],
                         }}
                         toolbar={
-                            <TableToolbar
-                                searchPlaceholder="ค้นหาชื่อบริษัทขนส่ง"
-                                searchValue={filterDraft.query}
-                                onSearchChange={(val) =>
-                                    setFilterDraft((prev) => ({ ...prev, query: val }))
-                                }
-                                onSearchSubmit={handleSearchSubmit}
-                                actions={
-                                    canCreate ? (
-                                        <Button asChild className="w-full lg:w-auto bg-orange-600 hover:bg-orange-700">
+                            <div className="space-y-4 mb-6">
+                                <TableToolbar
+                                    searchPlaceholder="ค้นหาชื่อบริษัทขนส่ง"
+                                    searchValue={filterDraft.query}
+                                    onSearchChange={(val) =>
+                                        setFilterDraft((prev) => ({ ...prev, query: val }))
+                                    }
+                                    onSearchSubmit={handleSearchSubmit}
+                                />
+                                {canCreate && (
+                                    <div className="flex justify-end">
+                                        <Button asChild className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white">
                                             <Link href="/shipping-companies/new">
-                                                <PlusCircle className="mr-2 h-4 w-4" />
+                                                <PlusCircle className="h-5 w-5" />
                                                 เพิ่มบริษัทขนส่ง
                                             </Link>
                                         </Button>
-                                    ) : undefined
-                                }
-                            />
+                                    </div>
+                                )}
+                            </div>
                         }
                         emptyState={{
                             title: "ไม่พบข้อมูลบริษัทขนส่ง",
