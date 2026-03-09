@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,13 +31,6 @@ import { useSalesForecast } from "@/hooks/use-sales-forecast";
 import { PersonalForecastSection } from "./components/PersonalForecastSection";
 import { GroupForecastSection } from "./components/GroupForecastSection";
 import { ProductForecastSection } from "./components/ProductForecastSection";
-
-interface SalesData {
-  month: string;
-  monthNumber: number;
-  actual: number;
-  target: number;
-}
 
 const MONTHS = [
   "ม.ค.",
@@ -485,6 +478,7 @@ export default function SalesForecastDashboard() {
       <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
         <PersonalForecastSection
           data={personalForecastRows}
+          year={year}
           monthOptions={monthOptions}
           selectedMonth={personalMonth}
           onMonthChange={setPersonalMonth}

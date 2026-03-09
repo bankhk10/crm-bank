@@ -8,8 +8,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserRound, ChevronLeft, ChevronRight, Eye } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { PersonalForecastDetailsModal } from "./PersonalForecastDetailsModal";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 
 interface PersonalForecastRow {
   employeeId: string;
@@ -32,6 +32,7 @@ interface PersonalForecastSectionProps {
   formatCurrency: (value: number) => string;
   loading: boolean;
   error: string | null;
+  year: number;
 }
 
 export const PersonalForecastSection = ({
@@ -42,9 +43,9 @@ export const PersonalForecastSection = ({
   formatCurrency,
   loading,
   error,
+  year,
 }: PersonalForecastSectionProps) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedEmployee, setSelectedEmployee] = useState<PersonalForecastRow | null>(null);
   const itemsPerPage = 10;
 
   const paginatedData = useMemo(() => {
@@ -55,10 +56,12 @@ export const PersonalForecastSection = ({
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  // Reset to first page when month changes
-  useEffect(() => {
+  const [prevMonth, setPrevMonth] = useState(selectedMonth);
+
+  if (selectedMonth !== prevMonth) {
+    setPrevMonth(selectedMonth);
     setCurrentPage(1);
-  }, [selectedMonth]);
+  }
   return (
     <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
       <CardHeader className="border-b border-slate-100">
@@ -121,15 +124,16 @@ export const PersonalForecastSection = ({
                   <div className="flex flex-col items-start gap-1 text-right sm:items-end">
                     <p className="text-sm text-slate-500">ยอดคาดการณ์</p>
                     <div className="flex items-center justify-end gap-3 mt-1 w-full">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        onClick={() => setSelectedEmployee(row)}
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span className="text-xs font-medium">ดูหน้ารายละเอียด</span>
-                      </Button>
+                      <Link href={`/sales-forecast/${row.employeeId}?year=${year}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span className="text-xs font-medium">ดูหน้ารายละเอียด</span>
+                        </Button>
+                      </Link>
                       <div className="text-right">
                         <p className="text-lg font-semibold text-blue-700 leading-none">
                           {formatCurrency(row.totalAmount)}
@@ -176,14 +180,6 @@ export const PersonalForecastSection = ({
           </>
         )}
       </CardContent>
-
-      <PersonalForecastDetailsModal
-        isOpen={!!selectedEmployee}
-        onClose={() => setSelectedEmployee(null)}
-        employeeName={selectedEmployee?.employeeName || ""}
-        details={selectedEmployee?.details || []}
-        formatCurrency={formatCurrency}
-      />
     </Card>
   );
 };
