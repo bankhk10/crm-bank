@@ -138,32 +138,28 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
     }
 
     const toolbar = (
-        <TableToolbar
-            searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
-            searchValue={query}
-            onSearchChange={setQuery}
-            actions={
-                canCreate ? (
-                    <Link href="/employee/new" className="w-full lg:w-auto">
-                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700">
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มพนักงาน
-                            </span>
+        <div className="space-y-4 mb-6">
+            <TableToolbar
+                searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
+                searchValue={query}
+                onSearchChange={setQuery}
+            />
+            <div className="flex justify-end">
+                {canCreate ? (
+                    <Link href="/employee/new" className="w-full sm:w-auto">
+                        <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium">
+                            <PlusCircle className="h-5 w-5" />
+                            เพิ่มพนักงาน
                         </Button>
                     </Link>
                 ) : (
-                    <div className="w-full lg:w-auto">
-                        <Button className="w-full" variant="outline" disabled>
-                            <span className="inline-flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                เพิ่มพนักงาน
-                            </span>
-                        </Button>
-                    </div>
-                )
-            }
-        />
+                    <Button className="w-full sm:w-auto" variant="outline" disabled>
+                        <PlusCircle className="h-5 w-5" />
+                        เพิ่มพนักงาน
+                    </Button>
+                )}
+            </div>
+        </div>
     );
 
     return (
