@@ -63,91 +63,91 @@ export default function CustomersTable({
   const allowedTypes = customerTypes.filter((type) => typePermissions[type]);
 
   const toolbar = (
-    <TableToolbar
-      searchPlaceholder="รหัสลูกค้า, ชื่อ, อีเมล, โทรศัพท์"
-      searchValue={searchValue}
-      onSearchChange={(val) => onSearchChange && onSearchChange(val)}
-      onSearchSubmit={onSearchSubmit}
-      actionPosition="bottom"
-      filters={
-        <div className="grid grid-cols-2 gap-2">
-          {/* Customer Type Filter */}
-          <div className="space-y-2">
-            <label className="text-base font-medium leading-none mx-1">ประเภท</label>
-            <div className="mt-1">
-              <Select
-                value={customerTypeFilter || ALL_FILTER_VALUE}
-                onValueChange={(v) =>
-                  onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)
-                }
-              >
-                <SelectTrigger className="text-base w-full bg-white">
-                  <SelectValue placeholder="ประเภท" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_FILTER_VALUE}>ทุกประเภท</SelectItem>
-                  {customerTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {CUSTOMER_TYPE_STYLE[type].label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <div className="space-y-4 mb-6">
+      <TableToolbar
+        searchPlaceholder="รหัสลูกค้า, ชื่อ, อีเมล, โทรศัพท์"
+        searchValue={searchValue}
+        onSearchChange={(val) => onSearchChange && onSearchChange(val)}
+        onSearchSubmit={onSearchSubmit}
+        actionPosition="bottom"
+        filters={
+          <div className="grid grid-cols-2 gap-2">
+            {/* Customer Type Filter */}
+            <div className="space-y-2">
+              <label className="text-base font-medium leading-none mx-1">ประเภท</label>
+              <div className="mt-1">
+                <Select
+                  value={customerTypeFilter || ALL_FILTER_VALUE}
+                  onValueChange={(v) =>
+                    onCustomerTypeFilterChange?.(v === ALL_FILTER_VALUE ? "" : v)
+                  }
+                >
+                  <SelectTrigger className="text-base w-full bg-white">
+                    <SelectValue placeholder="ประเภท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_FILTER_VALUE}>ทุกประเภท</SelectItem>
+                    {customerTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {CUSTOMER_TYPE_STYLE[type].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <label className="text-base font-medium leading-none mx-1">สถานะ</label>
-            <div className="mt-1">
-              <Select
-                value={statusFilter || ALL_STATUS_VALUE}
-                onValueChange={(v) =>
-                  onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
-                }
-              >
-                <SelectTrigger className="text-base w-full bg-white">
-                  <SelectValue placeholder="สถานะ" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_STATUS_VALUE}>ทุกสถานะ</SelectItem>
-                  {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <label className="text-base font-medium leading-none mx-1">สถานะ</label>
+              <div className="mt-1">
+                <Select
+                  value={statusFilter || ALL_STATUS_VALUE}
+                  onValueChange={(v) =>
+                    onStatusFilterChange?.(v === ALL_STATUS_VALUE ? "" : v)
+                  }
+                >
+                  <SelectTrigger className="text-base w-full bg-white">
+                    <SelectValue placeholder="สถานะ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_STATUS_VALUE}>ทุกสถานะ</SelectItem>
+                    {Object.entries(STATUS_STYLE).map(([key, { label }]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-        </div>
-      }
-      actions={
-        <div className="flex flex-wrap gap-2 items-center lg:justify-end w-full">
-          {canCreate && allowedTypes.length > 0 ? (
-            <>
-              {allowedTypes.map((type) => (
-                <Link key={type} href={`/customers/new?type=${type}`}>
-                  <Button className={CUSTOMER_TYPE_STYLE[type].buttonColor}>
-                    <span className="inline-flex items-center gap-2">
-                      <PlusCircle className="h-4 w-4" />
-                      {CUSTOMER_TYPE_STYLE[type].label}
-                    </span>
-                  </Button>
-                </Link>
-              ))}
-            </>
-          ) : (
-            <Button className="w-full lg:w-auto" variant="outline" disabled>
-              <span className="inline-flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                สร้างลูกค้า
-              </span>
-            </Button>
-          )}
-        </div>
-      }
-    />
+        }
+      />
+      <div className="flex flex-wrap gap-2 items-center justify-end w-full">
+        {canCreate && allowedTypes.length > 0 ? (
+          <>
+            {allowedTypes.map((type) => (
+              <Link key={type} href={`/customers/new?type=${type}`} className="w-full sm:w-auto">
+                <Button className={`${CUSTOMER_TYPE_STYLE[type].buttonColor} w-full sm:w-auto`}>
+                  <span className="inline-flex items-center gap-2 font-medium">
+                    <PlusCircle className="h-5 w-5" />
+                    เพิ่ม{CUSTOMER_TYPE_STYLE[type].label}
+                  </span>
+                </Button>
+              </Link>
+            ))}
+          </>
+        ) : (
+          <Button className="w-full sm:w-auto" variant="outline" disabled>
+            <span className="inline-flex items-center gap-2 font-medium">
+              <PlusCircle className="h-5 w-5" />
+              สร้างลูกค้า
+            </span>
+          </Button>
+        )}
+      </div>
+    </div>
   );
 
   return (
