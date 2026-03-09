@@ -504,7 +504,6 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                 <span className="flex h-6 w-6 md:h-8 md:w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[11px] md:text-sm font-bold text-white">2</span>
                                 ข้อมูลตั้งเป้าหมาย
                             </h3>
-
                             <div className="w-full px-1">
                                 <FormCombobox
                                     label="เพิ่มร้านค้า"
@@ -517,7 +516,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     placeholder="เลือกร้านค้า"
                                     searchPlaceholder="ค้นหาร้านค้า..."
                                     emptyText="ไม่พบร้านค้า"
-                                    triggerClassName="h-12 sm:h-11 border-dashed border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50/50 hover:border-emerald-400 transition-colors text-base sm:text-sm rounded-xl font-medium"
+                                    triggerClassName="h-10 sm:h-12 text-base sm:text-base rounded-lg"
                                 />
                             </div>
 
