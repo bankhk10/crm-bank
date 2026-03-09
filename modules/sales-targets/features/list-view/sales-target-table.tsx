@@ -216,22 +216,15 @@ export function SalesTargetTable({
                 }
             />
             <div className="flex justify-end">
-                {canCreate ? (
+                {canCreate && (
                     <Link href="/sales-targets/create" className="w-full sm:w-auto">
-                        <Button className="w-full sm:w-auto h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:translate-y-[-1px]">
+                        <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all hover:translate-y-[-1px]">
                             <span className="inline-flex items-center gap-2">
                                 <PlusCircle className="h-4 w-4" />
                                 เพิ่มเป้าหมาย
                             </span>
                         </Button>
                     </Link>
-                ) : (
-                    <div className="w-full sm:w-auto">
-                        <Button className="w-full sm:w-auto h-10 gap-2" variant="outline" disabled>
-                            <PlusCircle className="h-4 w-4" />
-                            เพิ่มเป้าหมาย
-                        </Button>
-                    </div>
                 )}
             </div>
         </div>

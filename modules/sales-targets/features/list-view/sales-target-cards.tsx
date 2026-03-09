@@ -192,7 +192,7 @@ export function SalesTargetCards({
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 border-slate-100 text-slate-700 hover:bg-slate-50"
+                                            className="flex-1 border-green-100 text-green-700 hover:bg-green-50"
                                             onClick={() => onView(target)}
                                         >
                                             <Eye className="mr-1.5 h-4 w-4" /> ดู
@@ -223,6 +223,7 @@ export function SalesTargetCards({
                                             onClick={() => onDelete(target.id)}
                                         >
                                             <Trash2 className="h-4 w-4" />
+                                            ลบ
                                         </Button>
                                     )}
                                 </div>
