@@ -289,10 +289,9 @@ export function SalesTargetTable({
                         <Trash2 className="h-5 w-5" /> ลบเป้าหมาย
                     </DialogTitle>
                     <DialogDescription className="text-base text-slate-600">
-                        คุณต้องการลบเป้าหมายรายการนี้ใช่หรือไม่? <br />
-                        การกระทำนี้ไม่สามารถย้อนกลับได้
+                        คุณต้องการลบเป้าหมายรายการนี้ใช่หรือไม่ ?
                     </DialogDescription>
-                    <DialogFooter className="mt-6 gap-2 sm:gap-0">
+                    <DialogFooter className="mt-6 gap-2 sm:gap-2">
                         <Button
                             variant="outline"
                             onClick={() => setDeleteTargetId(null)}
