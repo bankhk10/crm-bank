@@ -23,4 +23,4 @@ export const REGIONS = [
 ];
 
 export const CURRENT_YEAR = new Date().getFullYear();
-export const YEARS = Array.from({ length: 10 }, (_, i) => CURRENT_YEAR - 2 + i);
+export const YEARS = Array.from({ length: 4 }, (_, i) => CURRENT_YEAR + i);

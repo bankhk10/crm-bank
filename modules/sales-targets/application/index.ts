@@ -8,6 +8,7 @@ import {
   findSalesTargetById,
   findSalesTargets,
   findPreviousMonthTarget,
+  getAvailableYears,
   type FindSalesTargetsParams,
 } from "../infrastructure/sales-target.repository";
 
@@ -26,11 +27,32 @@ export async function getSalesTargetDetailUseCase(id: string) {
   return { success: true as const, salesTarget };
 }
 
-/**
- * Use case: List sales targets with filters.
- */
 export async function listSalesTargetsUseCase(params: FindSalesTargetsParams) {
   return findSalesTargets(params);
+}
+
+/**
+ * Use case: Get list of years available for filtering.
+ * Includes years that have data and future years up to +3 from now.
+ */
+export async function getAvailableYearsUseCase() {
+  const currentYear = new Date().getFullYear();
+  const existingYears = await getAvailableYears();
+
+  // Generate years from current until +3 years
+  const futureYears = [
+    currentYear,
+    currentYear + 1,
+    currentYear + 2,
+    currentYear + 3,
+  ];
+
+  // Merge and sort unique years
+  const allYears = Array.from(new Set([...existingYears, ...futureYears])).sort(
+    (a, b) => a - b,
+  );
+
+  return { success: true as const, years: allYears };
 }
 
 /**

@@ -8,6 +8,7 @@ import {
   createSalesTargetUseCase,
   updateSalesTargetUseCase,
   getPreviousMonthTargetUseCase,
+  getAvailableYearsUseCase,
 } from "../application";
 import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
 
@@ -39,6 +40,19 @@ export async function getSalesTargetsAction(params: {
       error: "Failed to fetch",
       detailedTargets: [],
     };
+  }
+}
+
+export async function getAvailableYearsAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized", years: [] };
+  }
+
+  try {
+    return await getAvailableYearsUseCase();
+  } catch (_err) {
+    return { success: false, error: "Failed to fetch years", years: [] };
   }
 }
 

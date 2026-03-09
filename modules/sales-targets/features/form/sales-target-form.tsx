@@ -22,6 +22,7 @@ import { MONTHS, YEARS } from "../../constants";
 import {
     createSalesTargetAction,
     updateSalesTargetAction,
+    getAvailableYearsAction,
 } from "../../server/actions";
 
 // ─────────────────────────────────────────────
@@ -80,6 +81,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const [employees, setEmployees] = useState<any[]>([]);
     const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
+    const [availableYears, setAvailableYears] = useState<number[]>(YEARS);
 
     const isEdit = mode === "edit";
     const isCopy = mode === "copy";
@@ -153,6 +155,12 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
             if (prodRes.ok) {
                 const data = await prodRes.json();
                 setProducts(data.products || data);
+            }
+
+            // Fetch Years
+            const yearRes = await getAvailableYearsAction();
+            if (yearRes.success && yearRes.years) {
+                setAvailableYears(yearRes.years);
             }
         } catch (error) {
             console.error("Error fetching data", error);
@@ -431,7 +439,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                     setYear(Number(v));
                                     clearError("year");
                                 }}
-                                options={YEARS.map((y) => ({
+                                options={availableYears.map((y) => ({
                                     value: y.toString(),
                                     label: (y + 543).toString(),
                                 }))}

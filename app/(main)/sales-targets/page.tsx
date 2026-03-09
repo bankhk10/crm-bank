@@ -15,6 +15,7 @@ import { PageHeader } from "@/components/custom/page-header";
 import {
   getSalesTargetsAction,
   deleteSalesTargetAction,
+  getAvailableYearsAction,
 } from "@/modules/sales-targets/server/actions";
 import { DetailedTarget } from "@/modules/sales-targets";
 
@@ -56,6 +57,7 @@ export default function SalesTargetsPage() {
   // Filter Options State
   const [filterEmployees, setFilterEmployees] = useState<any[]>([]);
   const [filterCustomers, setFilterCustomers] = useState<any[]>([]);
+  const [availableYears, setAvailableYears] = useState<number[]>(YEARS);
 
   // --- Fetch Data via Server Action ---
   const fetchTargets = async (filters: {
@@ -138,6 +140,21 @@ export default function SalesTargetsPage() {
     fetchOptions();
   }, []);
 
+  // Load Available Years
+  useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        const result = await getAvailableYearsAction();
+        if (result.success && result.years) {
+          setAvailableYears(result.years);
+        }
+      } catch (error) {
+        console.error("Error fetching available years:", error);
+      }
+    };
+    fetchYears();
+  }, []);
+
   // Fetch Data
   useEffect(() => {
     fetchTargets({
@@ -209,7 +226,7 @@ export default function SalesTargetsPage() {
             month={monthFilter}
             employeeId={employeeFilter}
             shopId={shopFilter}
-            years={YEARS}
+            years={availableYears}
             employees={filterEmployees}
             customers={filterCustomers}
             onChangeYear={setYear}

@@ -11,6 +11,18 @@ export interface FindSalesTargetsParams {
   shopId?: string;
 }
 
+/**
+ * Get all available years that have sales targets.
+ */
+export async function getAvailableYears(): Promise<number[]> {
+  const result = await db.salesTarget.findMany({
+    select: { year: true },
+    distinct: ["year"],
+    orderBy: { year: "asc" },
+  });
+  return result.map((r) => r.year);
+}
+
 // ─────────────────────────────────────────────
 // Include definitions
 // ─────────────────────────────────────────────
