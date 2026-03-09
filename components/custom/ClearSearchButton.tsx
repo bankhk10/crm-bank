@@ -32,7 +32,7 @@ export function ClearSearchButton({
                 variant="outline"
                 type="button"
                 className={cn(
-                    "min-h-[44px] sm:min-h-[40px] px-4 sm:px-3 text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 hover:border-red-200 shadow-sm transition-all active:scale-[0.98] inline-flex items-center gap-2",
+                    "min-h-[44px] sm:min-h-[30px] px-4 sm:px-3 text-red-600 border-red-100 bg-red-50 hover:bg-red-100 hover:text-red-700 hover:border-red-200 shadow-sm transition-all active:scale-[0.98] inline-flex items-center gap-2 mb-1",
                     className
                 )}
                 onClick={onClick}
