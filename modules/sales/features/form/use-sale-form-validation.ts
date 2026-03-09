@@ -45,8 +45,8 @@ export function useSaleFormValidation() {
         fieldErrors.items = "กรุณาเพิ่มรายการสินค้าอย่างน้อย 1 รายการ";
       }
       if (!state.saleDate) {
-        errors.push("กรุณาระบุวันที่ขาย");
-        fieldErrors.saleDate = "กรุณาระบุวันที่ขาย";
+        errors.push("กรุณาระบุวันที่ออเดอร์");
+        fieldErrors.saleDate = "กรุณาระบุวันที่ออเดอร์";
       }
 
       // Delivery method specific validation

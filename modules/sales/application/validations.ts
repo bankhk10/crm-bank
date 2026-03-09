@@ -21,7 +21,7 @@ export const saleFormSchema = z.object({
   creditDueDate: z.string().optional(),
   usePromotionalCredit: z.boolean().optional(),
   promotionalCreditUsed: z.number().optional(),
-  saleDate: z.string().min(1, "กรุณาระบุวันที่ขาย"),
+  saleDate: z.string().min(1, "กรุณาระบุวันที่ออเดอร์"),
   requestedDeliveryDate: z.string().optional(),
   deliveryDate: z.string().optional(),
   deliveryMethod: z

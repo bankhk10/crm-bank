@@ -96,7 +96,7 @@ export function useSaleColumns(
             },
             {
                 accessorKey: "saleDate",
-                header: "วันที่ขาย",
+                header: "วันที่ออเดอร์",
                 cell: (info) => {
                     const value = info.getValue() as Date | string;
                     if (!value) return "-";

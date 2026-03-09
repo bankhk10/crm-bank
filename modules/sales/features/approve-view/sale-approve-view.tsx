@@ -258,7 +258,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                     <Calendar className="h-5 w-5 text-white" />
                                 </div>
                                 <span className="text-sm text-orange-700 font-bold uppercase tracking-wide">
-                                    วันที่ขาย
+                                    วันที่ออเดอร์
                                 </span>
                             </div>
                             <p className="font-bold text-gray-900 text-base sm:text-lg truncate">

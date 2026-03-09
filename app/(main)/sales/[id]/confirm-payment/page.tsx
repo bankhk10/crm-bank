@@ -186,7 +186,7 @@ export default function ConfirmPaymentPage({
               <p className="font-medium">{sale.employee.name}</p>
             </div>
             <div>
-              <span className="text-sm text-gray-500">วันที่ขาย:</span>
+              <span className="text-sm text-gray-500">วันที่ออเดอร์:</span>
               <p>
                 {format(new Date(sale.saleDate), "dd MMM yyyy", { locale: th })}
               </p>

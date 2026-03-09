@@ -155,7 +155,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
     if (!hasDate && !hasNo && !hasTerm) return "";
 
-    const datePart = hasDate ? `<strong>วันที่ขาย:</strong> ${date}` : "";
+    const datePart = hasDate ? `<strong>วันที่ออเดอร์:</strong> ${date}` : "";
     const noPart = hasNo
       ? `<span class="${hasDate ? "phone" : ""}"><strong>เลขที่ออเดอร์:</strong> ${no}</span>`
       : "";

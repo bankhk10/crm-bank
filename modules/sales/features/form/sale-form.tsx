@@ -615,7 +615,7 @@ export function SaleForm({
 
                 <div>
                     <DatePicker
-                        label="วันที่ขาย"
+                        label="วันที่ออเดอร์"
                         value={saleDate}
                         onChange={(val) => {
                             setSaleDate(val || "");
