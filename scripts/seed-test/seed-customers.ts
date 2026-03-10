@@ -12,6 +12,86 @@ const prisma = new PrismaClient({ adapter });
 
 const customersToSeed = [
   {
+    id: "cmlg41g2m002601oi2lfujlen",
+    customerCode: "BR0103RY",
+    customerType: CustomerType.DEALER,
+
+    name: "นายวิรุธ รุจิวงศ์",
+    prefix: "นาย",
+    firstName: "กฤษณ์",
+    lastName: "พฤฒิสุขนิรันดร์",
+    birthDate: null,
+
+    email: null,
+    phone: "038886463",
+    taxId: null,
+
+    addressLine: "95/3 หมู่ที่4",
+    province: "ระยอง",
+    region: "ภาคตะวันออก",
+    district: "แกลง",
+    subdistrict: "กระแสบน",
+    postalCode: "21110",
+
+    billingAddressLine: "33/2 หมู่ 2",
+    billingProvince: "ระยอง",
+    billingDistrict: "แกลง",
+    billingSubdistrict: "ทางเกวียน",
+    billingPostalCode: "21110",
+
+    shippingAddressLine: "33/2 หมู่ 2",
+    shippingProvince: "ระยอง",
+    shippingDistrict: "แกลง",
+    shippingSubdistrict: "ทางเกวียน",
+    shippingPostalCode: "21110",
+
+    status: CustomerStatus.ACTIVE,
+
+    contactPerson: "กฤษณ์ พฤฒิสุขนิรันดร์",
+    contactPhone: "0815902595",
+    contactEmail: null,
+
+    notes: null,
+
+    latitude: null,
+    longitude: null,
+
+    relationshipScore: 3,
+    parentDealerId: null,
+    responsibleEmployeeId: null,
+
+    receiveFromDealer: null,
+    mainCompetitor: null,
+    areaCrops: null,
+
+    averageMonthlyPurchase: null,
+    mainProductSold: [],
+    brandsSold: [],
+
+    areaType: null,
+    farmPlots: [],
+    cropTypes: null,
+
+    currentYield: null,
+    farmerCount: null,
+    plotCount: null,
+    totalAreaRai: null,
+
+    harvestPerYear: null,
+    creditDays: null,
+
+    chemicalValuePerCycle: null,
+    chemicalQtyPerCycle: null,
+
+    regularShops: null,
+    serviceTypes: null,
+    usedBrands: null,
+
+    createdAt: new Date("2026-02-10T04:38:03.927Z"),
+    updatedAt: new Date("2026-02-10T04:38:40.333Z"),
+    deletedAt: null,
+  },
+  {
     customerCode: "CUST-D-001",
     customerType: CustomerType.DEALER,
     name: "ร้าน โชคชัยการเกษตร",
