@@ -1,4 +1,5 @@
 import { db as prisma } from "@/lib/db";
+import * as repo from "../infrastructure/reports.repository";
 import {
   startOfDay,
   endOfDay,
@@ -24,7 +25,7 @@ async function getTeamEmployeeIds(session: {
   const employeeId = session.user.employeeId;
   if (!employeeId) return [];
   const managerId = session.user.managerId;
-  const teamMembers = await prisma.employee.findMany({
+  const teamMembers = await repo.findManyEmployeesData({
     where: {
       deletedAt: null,
       OR: [
@@ -249,7 +250,7 @@ export async function getTimeSalesReport(
   }
 
   // Get main sales data
-  const sales = await prisma.sale.findMany({
+  const sales = await repo.findManySalesData({
     where: {
       saleDate: { gte: start, lte: end },
       deletedAt: null,
@@ -267,14 +268,14 @@ export async function getTimeSalesReport(
 
   // Get customer provinces for region calculation
   const customerIds = [...new Set(sales.map((s) => s.customerId))];
-  const customers = await prisma.customer.findMany({
+  const customers = await repo.findManyCustomersData({
     where: { id: { in: customerIds } },
     select: { id: true, province: true },
   });
   const customerProvinceMap = new Map(customers.map((c) => [c.id, c.province]));
 
   // Get previous period sales for growth calculation
-  const previousSales = await prisma.sale.aggregate({
+  const previousSales = await repo.aggregateSalesData({
     where: {
       saleDate: { gte: previousStart, lte: previousEnd },
       deletedAt: null,
@@ -469,7 +470,7 @@ export async function getProductSalesReport(
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Get all products with their sales in the period
-  const productSales = await prisma.saleItem.groupBy({
+  const productSales = await repo.groupSaleItemsData({
     by: ["productId"],
     where: {
       sale: {
@@ -491,7 +492,7 @@ export async function getProductSalesReport(
 
   // Get product details
   const productIds = productSales.map((p) => p.productId);
-  const products = await prisma.product.findMany({
+  const products = await repo.findManyProductsData({
     where: { id: { in: productIds } },
     select: {
       id: true,
@@ -635,7 +636,7 @@ export async function getProductSalesReport(
   });
   const recentSoldIds = new Set(recentSoldProducts.map((p) => p.productId));
 
-  const stagnantProducts = await prisma.product.findMany({
+  const stagnantProducts = await repo.findManyProductsData({
     where: {
       id: { notIn: Array.from(recentSoldIds) },
       deletedAt: null,
@@ -707,7 +708,7 @@ export async function getProductGroupSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
   // Get all product groups from database
-  const productGroups = await prisma.productGroupMaster.findMany({
+  const productGroups = await repo.findManyProductGroupMastersData({
     where: { deletedAt: null },
     select: { code: true, description: true },
     orderBy: { code: "asc" },
@@ -724,7 +725,7 @@ export async function getProductGroupSalesReport(
       const group = groupOption.value;
 
       // Get products in this group
-      const products = await prisma.product.findMany({
+      const products = await repo.findManyProductsData({
         where: { productGroup: group },
         select: { id: true },
       });
@@ -759,7 +760,7 @@ export async function getProductGroupSalesReport(
       });
 
       // Get order count
-      const orderCount = await prisma.saleItem.groupBy({
+      const orderCount = await repo.groupSaleItemsData({
         by: ["saleId"],
         where: {
           productId: { in: productIds },
@@ -847,7 +848,7 @@ export async function getProductGroupSalesReport(
 
       const groupsData = await Promise.all(
         productGroupOptions.map(async (groupOption) => {
-          const products = await prisma.product.findMany({
+          const products = await repo.findManyProductsData({
             where: { productGroup: groupOption.value, deletedAt: null },
             select: { id: true },
           });
@@ -870,7 +871,7 @@ export async function getProductGroupSalesReport(
             _sum: { totalPrice: true },
           });
 
-          const orderCount = await prisma.saleItem.groupBy({
+          const orderCount = await repo.groupSaleItemsData({
             by: ["saleId"],
             where: {
               productId: { in: productIds },
@@ -936,7 +937,7 @@ export async function getCustomerSalesReport(
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Top customers
-  const customerSales = await prisma.sale.groupBy({
+  const customerSales = await repo.groupSalesData({
     by: ["customerId"],
     where: {
       saleDate: { gte: start, lte: end },
@@ -953,7 +954,7 @@ export async function getCustomerSalesReport(
   const customerIds = customerSales.map((c) => c.customerId);
 
   // Get customer details and lifetime value
-  const customers = await prisma.customer.findMany({
+  const customers = await repo.findManyCustomersData({
     where: { id: { in: customerIds } },
     select: {
       id: true,
@@ -986,7 +987,7 @@ export async function getCustomerSalesReport(
   });
 
   // Get lifetime value for each customer
-  const lifetimeValues = await prisma.sale.groupBy({
+  const lifetimeValues = await repo.groupSalesData({
     by: ["customerId"],
     where: {
       customerId: { in: customerIds },
@@ -1025,7 +1026,7 @@ export async function getCustomerSalesReport(
   });
 
   // Customer type breakdown
-  const allCustomerSales = await prisma.sale.groupBy({
+  const allCustomerSales = await repo.groupSalesData({
     by: ["customerId"],
     where: {
       saleDate: { gte: start, lte: end },
@@ -1036,7 +1037,7 @@ export async function getCustomerSalesReport(
     _sum: { totalAmount: true },
   });
 
-  const allCustomers = await prisma.customer.findMany({
+  const allCustomers = await repo.findManyCustomersData({
     where: { id: { in: allCustomerSales.map((c) => c.customerId) } },
     select: { id: true, customerType: true },
   });
@@ -1067,7 +1068,7 @@ export async function getCustomerSalesReport(
   );
 
   // New vs returning customers
-  const customersWithFirstPurchase = await prisma.customer.findMany({
+  const customersWithFirstPurchase = await repo.findManyCustomersData({
     where: {
       sales: {
         some: {
@@ -1115,7 +1116,7 @@ export async function getCustomerSalesReport(
   }
 
   // Customer by region
-  const customersWithProvince = await prisma.customer.findMany({
+  const customersWithProvince = await repo.findManyCustomersData({
     where: { id: { in: allCustomerSales.map((c) => c.customerId) } },
     select: { id: true, province: true },
   });
@@ -1145,7 +1146,7 @@ export async function getCustomerSalesReport(
     .sort((a, b) => b.totalSales - a.totalSales);
 
   // Inactive customers (no purchase in selected period but had previous purchases)
-  const inactiveCustomersData = await prisma.customer.findMany({
+  const inactiveCustomersData = await repo.findManyCustomersData({
     where: {
       sales: {
         some: {
@@ -1182,7 +1183,7 @@ export async function getCustomerSalesReport(
 
   // Get lifetime values for inactive customers
   const inactiveIds = inactiveCustomersData.map((c) => c.id);
-  const inactiveLifetimeValues = await prisma.sale.groupBy({
+  const inactiveLifetimeValues = await repo.groupSalesData({
     by: ["customerId"],
     where: {
       customerId: { in: inactiveIds },
@@ -1249,7 +1250,7 @@ export async function getSalespersonSalesReport(
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
   // Get salesperson performance
-  const employeeSales = await prisma.sale.groupBy({
+  const employeeSales = await repo.groupSalesData({
     by: ["employeeId"],
     where: {
       saleDate: { gte: start, lte: end },
@@ -1265,7 +1266,7 @@ export async function getSalespersonSalesReport(
   const employeeIds = employeeSales.map((e) => e.employeeId);
 
   // Get employee details
-  const employees = await prisma.employee.findMany({
+  const employees = await repo.findManyEmployeesData({
     where: { id: { in: employeeIds } },
     select: {
       id: true,
@@ -1277,7 +1278,7 @@ export async function getSalespersonSalesReport(
   const employeeMap = new Map(employees.map((e) => [e.id, e]));
 
   // Get customer count per employee
-  const customerCounts = await prisma.sale.groupBy({
+  const customerCounts = await repo.groupSalesData({
     by: ["employeeId", "customerId"],
     where: {
       employeeId: { in: employeeIds },
@@ -1325,7 +1326,7 @@ export async function getSalespersonSalesReport(
     employeeIds.slice(0, 10).map(async (employeeId) => {
       const employee = employeeMap.get(employeeId);
 
-      const groupData = await prisma.saleItem.groupBy({
+      const groupData = await repo.groupSaleItemsData({
         by: ["productId"],
         where: {
           sale: {
@@ -1344,7 +1345,7 @@ export async function getSalespersonSalesReport(
       });
 
       const productIds = groupData.map((g) => g.productId);
-      const products = await prisma.product.findMany({
+      const products = await repo.findManyProductsData({
         where: { id: { in: productIds } },
         select: { id: true, productGroup: true },
       });
@@ -1382,7 +1383,7 @@ export async function getSalespersonSalesReport(
     employeeIds.slice(0, 10).map(async (employeeId) => {
       const employee = employeeMap.get(employeeId);
 
-      const productData = await prisma.saleItem.groupBy({
+      const productData = await repo.groupSaleItemsData({
         by: ["productId"],
         where: {
           sale: {
@@ -1402,7 +1403,7 @@ export async function getSalespersonSalesReport(
       });
 
       const productIds = productData.map((p) => p.productId);
-      const products = await prisma.product.findMany({
+      const products = await repo.findManyProductsData({
         where: { id: { in: productIds } },
         select: { id: true, name: true },
       });
@@ -1428,7 +1429,7 @@ export async function getSalespersonSalesReport(
       const monthStart = startOfMonth(monthDate);
       const monthEnd = endOfMonth(monthDate);
 
-      const monthData = await prisma.sale.groupBy({
+      const monthData = await repo.groupSalesData({
         by: ["employeeId"],
         where: {
           saleDate: { gte: monthStart, lte: monthEnd },
@@ -1505,17 +1506,17 @@ export async function getReportFilterOptions() {
   }
 
   const [customers, employees, products, productGroups] = await Promise.all([
-    prisma.customer.findMany({
+    repo.findManyCustomersData({
       where: whereCustomer,
       select: { id: true, name: true, customerCode: true, customerType: true },
       orderBy: { name: "asc" },
     }),
-    prisma.employee.findMany({
+    repo.findManyEmployeesData({
       where: whereEmployee,
       select: { id: true, name: true, employeeCode: true },
       orderBy: { name: "asc" },
     }),
-    prisma.product.findMany({
+    repo.findManyProductsData({
       where: { deletedAt: null },
       select: { id: true, name: true, productCode: true, productGroup: true },
       orderBy: { name: "asc" },
@@ -1532,7 +1533,7 @@ export async function getReportFilterOptions() {
   ]);
 
   // Get available years from sales data
-  const yearData = await prisma.sale.findMany({
+  const yearData = await repo.findManySalesData({
     select: { saleDate: true },
     distinct: ["saleDate"],
     orderBy: { saleDate: "asc" },
@@ -1611,7 +1612,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
   }
 
   // Get all customers with their sales data
-  const customers = await prisma.customer.findMany({
+  const customers = await repo.findManyCustomersData({
     where: whereCustomer,
     select: {
       id: true,
@@ -1640,7 +1641,7 @@ export async function getAllCustomersForReport(): Promise<CustomerListItem[]> {
   const customerIds = customers.map((c) => c.id);
 
   // Get lifetime sales for all customers
-  const lifetimeSales = await prisma.sale.groupBy({
+  const lifetimeSales = await repo.groupSalesData({
     by: ["customerId"],
     where: {
       customerId: { in: customerIds },
@@ -1744,7 +1745,7 @@ export async function getAllSalespersonsForReport(): Promise<
   }
 
   // Get all employees who have made sales
-  const employeeSales = await prisma.sale.groupBy({
+  const employeeSales = await repo.groupSalesData({
     by: ["employeeId"],
     where: whereSales,
     _sum: { totalAmount: true },
@@ -1755,7 +1756,7 @@ export async function getAllSalespersonsForReport(): Promise<
   const employeeIds = employeeSales.map((e) => e.employeeId);
 
   // Get employee details
-  const employees = await prisma.employee.findMany({
+  const employees = await repo.findManyEmployeesData({
     where: {
       id: { in: employeeIds },
       deletedAt: null,
@@ -1787,7 +1788,7 @@ export async function getAllSalespersonsForReport(): Promise<
   const employeeMap = new Map(employees.map((e) => [e.id, e]));
 
   // Get customer count per employee
-  const customerCounts = await prisma.sale.groupBy({
+  const customerCounts = await repo.groupSalesData({
     by: ["employeeId", "customerId"],
     where: {
       employeeId: { in: employeeIds },

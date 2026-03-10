@@ -1,7 +1,8 @@
 import { ReportType } from "../types";
-import { db as prisma, DataAccessLevel } from "@/lib/db";
+import { DataAccessLevel } from "@/lib/db";
 import { startOfYear, endOfYear, format } from "date-fns";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import * as repo from "../infrastructure/reports.repository";
 
 // Helper to get team employee IDs (employees with same manager)
 async function getTeamEmployeeIds(session: {
@@ -10,19 +11,7 @@ async function getTeamEmployeeIds(session: {
   const employeeId = session.user.employeeId;
   if (!employeeId) return [];
   const managerId = session.user.managerId;
-  const teamMembers = await prisma.employee.findMany({
-    where: {
-      deletedAt: null,
-      OR: [
-        ...(managerId ? [{ managerId }] : []),
-        ...(managerId ? [{ id: managerId }] : []),
-        { managerId: employeeId },
-        { id: employeeId },
-      ],
-    },
-    select: { id: true },
-  });
-  return [...new Set(teamMembers.map((m) => m.id))];
+  return repo.findTeamEmployeeIds(employeeId, managerId);
 }
 
 export async function getFilterOptions() {
@@ -56,20 +45,9 @@ export async function getFilterOptions() {
   }
 
   const [customers, employees, yearsResult] = await Promise.all([
-    prisma.customer.findMany({
-      select: { id: true, name: true, customerCode: true },
-      where: whereCustomer,
-      orderBy: { name: "asc" },
-    }),
-    prisma.employee.findMany({
-      select: { id: true, name: true },
-      where: whereEmployee,
-      orderBy: { name: "asc" },
-    }),
-    prisma.dailySalesSummary.groupBy({
-      by: ["year"],
-      orderBy: { year: "desc" },
-    }),
+    repo.findCustomersWithScope(whereCustomer),
+    repo.findEmployeesWithScope(whereEmployee),
+    repo.findDailySalesSummaryYears(),
   ]);
 
   // If no summary data, provide current year
@@ -125,53 +103,31 @@ export async function getReportSummary(
   }
 
   // 1. Get Monthly Trend
-  const monthlyData = await prisma.dailySalesSummary.groupBy({
-    by: ["month"],
-    where: {
-      year,
-      ...(type === "CUSTOMER"
-        ? { customerId: entityId }
-        : { employeeId: entityId }),
-      ...scopeConstraint,
-    },
-    _sum: {
-      totalAmount: true,
-      quantity: true,
-      orderCount: true,
-    },
-    orderBy: { month: "asc" },
+  const monthlyData = await repo.findMonthlyTrendSummary(year, {
+    ...(type === "CUSTOMER"
+      ? { customerId: entityId }
+      : { employeeId: entityId }),
+    ...scopeConstraint,
   });
 
   // 2. Get Product Breakdown (Top 5)
-  const productData = await prisma.dailySalesSummary.groupBy({
-    by: ["productId", "brand"],
-    where: {
-      year,
+  const productData = await repo.findProductBreakdownSummary(
+    year,
+    {
       ...(type === "CUSTOMER"
         ? { customerId: entityId }
         : { employeeId: entityId }),
       ...scopeConstraint,
     },
-    _sum: {
-      totalAmount: true,
-      quantity: true,
-      orderCount: true,
-    },
-    orderBy: {
-      _sum: { totalAmount: "desc" },
-    },
-    take: 5,
-  });
+    5,
+  );
 
   // Note: productData _sum structure in typescript
   // _sum property names come from schema.
 
   // Enrich product names
   const productIds = productData.map((p) => p.productId);
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-    select: { id: true, name: true, productCode: true },
-  });
+  const products = await repo.findProductsByIds(productIds);
 
   const topProducts = productData.map((p) => {
     const product = products.find((prod) => prod.id === p.productId);
@@ -248,37 +204,17 @@ export async function getOrderHistory(
   const startDate = startOfYear(new Date(year, 0, 1));
   const endDate = endOfYear(new Date(year, 0, 1));
 
-  const orders = await prisma.sale.findMany({
-    where: {
-      saleDate: {
-        gte: startDate,
-        lte: endDate,
-      },
-      status: "COMPLETED",
+  const orders = await repo.findSaleOrderHistory(
+    startDate,
+    endDate,
+    {
       ...(type === "CUSTOMER"
         ? { customerId: entityId }
         : { employeeId: entityId }),
       ...scopeConstraint,
     },
-    select: {
-      id: true,
-      saleNumber: true,
-      saleDate: true,
-      totalAmount: true,
-      items: {
-        select: {
-          product: { select: { name: true, productCode: true } },
-          quantity: true,
-          totalPrice: true,
-          unitPrice: true,
-        },
-      },
-    },
-    orderBy: {
-      saleDate: "desc",
-    },
-    take: limit,
-  });
+    limit,
+  );
 
   const mappedOrders = orders.map((order) => ({
     ...order,
@@ -292,4 +228,3 @@ export async function getOrderHistory(
 
   return mappedOrders;
 }
-
