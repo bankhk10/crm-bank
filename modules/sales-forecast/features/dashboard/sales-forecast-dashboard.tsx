@@ -15,18 +15,6 @@ import {
   ChevronRight,
   AlertTriangle,
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-} from "recharts";
 import { useSalesForecast } from "@/hooks/use-sales-forecast";
 import { PersonalForecastSection } from "./components/PersonalForecastSection";
 import { GroupForecastSection } from "./components/GroupForecastSection";
@@ -47,6 +35,33 @@ const MONTHS = [
   "ธ.ค.",
 ];
 
+const MONTHS_FULL = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
+
+type PerformanceEntry = {
+  month: string;
+  monthNumber: number;
+  actual: number;
+  target: number;
+  newForecast: number;
+  totalForecast: number;
+  percentActual: number;
+  percentTotal: number;
+  backlog: number;
+};
+
 export default function SalesForecastDashboard() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [personalMonth, setPersonalMonth] = useState<string>("all");
@@ -58,7 +73,9 @@ export default function SalesForecastDashboard() {
     refresh: refreshForecast,
   } = useSalesForecast(year);
 
-  const salesData = useMemo(() => {
+  const currentMonth = new Date().getMonth() + 1;
+
+  const performanceData = useMemo<PerformanceEntry[]>(() => {
     if (!forecastData?.actualSales) return [];
 
     const targetMap: Record<number, number> = {};
@@ -72,23 +89,29 @@ export default function SalesForecastDashboard() {
       actualMap[item.month] = item.totalAmount || 0;
     });
 
-    return MONTHS.map((monthLabel, index) => {
+    return MONTHS_FULL.map((monthLabel, index) => {
       const monthNumber = index + 1;
       const actual = actualMap[monthNumber] || 0;
       const target = targetMap[monthNumber] || 0;
-      return { month: monthLabel, monthNumber, actual, target };
+      const newForecast = monthNumber > currentMonth ? target : 0;
+      const totalForecast = actual + newForecast;
+      const percentActual = target > 0 ? (actual / target) * 100 : 0;
+      const percentTotal =
+        target > 0 ? (totalForecast / target) * 100 : 0;
+      const backlog = target - totalForecast;
+      return {
+        month: monthLabel,
+        monthNumber,
+        actual,
+        target,
+        newForecast,
+        totalForecast,
+        percentActual,
+        percentTotal,
+        backlog,
+      };
     });
-  }, [forecastData]);
-
-  const formatCurrency = (value: number) => {
-    if (value >= 1000000) {
-      return `฿${(value / 1000000).toFixed(1)}M`;
-    }
-    if (value >= 1000) {
-      return `฿${(value / 1000).toFixed(0)}K`;
-    }
-    return `฿${value.toFixed(0)}`;
-  };
+  }, [forecastData, currentMonth]);
 
   const formatFullCurrency = (value: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -224,13 +247,41 @@ export default function SalesForecastDashboard() {
   }, [forecastData]);
 
   // Calculate summary stats
-  const currentMonth = new Date().getMonth() + 1;
-  const totalActual = salesData
+  const totalActual = performanceData
     .filter((d) => d.monthNumber <= currentMonth)
     .reduce((sum, d) => sum + d.actual, 0);
-  const totalTarget = salesData.reduce((sum, d) => sum + d.target, 0);
+  const totalTarget = performanceData.reduce((sum, d) => sum + d.target, 0);
   const actualVsTarget =
     totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";
+
+  const totals = useMemo(
+    () =>
+      performanceData.reduce(
+        (acc, entry) => ({
+          target: acc.target + entry.target,
+          actual: acc.actual + entry.actual,
+          newForecast: acc.newForecast + entry.newForecast,
+          totalForecast: acc.totalForecast + entry.totalForecast,
+          backlog: acc.backlog + entry.backlog,
+        }),
+        {
+          target: 0,
+          actual: 0,
+          newForecast: 0,
+          totalForecast: 0,
+          backlog: 0,
+        },
+      ),
+    [performanceData],
+  );
+
+  const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+
+  const getPercentClass = (value: number) => {
+    if (value > 100) return "text-emerald-600";
+    if (value >= 80) return "text-amber-600";
+    return "text-orange-600";
+  };
 
   if (loadingState) {
     return (
@@ -369,110 +420,184 @@ export default function SalesForecastDashboard() {
             </Card>
           </div>
 
-          {/* Overview Charts */}
-          <div className="space-y-6">
-            <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-              <CardHeader className="border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <CardTitle>แนวโน้มยอดขายและคาดการณ์</CardTitle>
+          {/* Sales Performance Dashboard Table */}
+          <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+            <CardHeader className="border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                      <YAxis
-                        stroke="#64748b"
-                        fontSize={12}
-                        tickFormatter={formatCurrency}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "#F5F5F5" }}
-                        contentStyle={{
-                          borderRadius: 12,
-                          border: "none",
-                          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                          fontSize: 12,
-                        }}
-                        formatter={(value: number) => [formatFullCurrency(value)]}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="actual"
-                        name="ยอดขายจริง"
-                        stroke="#22c55e"
-                        strokeWidth={3}
-                        dot={{ fill: "#22c55e", strokeWidth: 2 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="target"
-                        name="เป้าหมาย"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        dot={{ fill: "#3b82f6", strokeWidth: 2 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div>
+                  <CardTitle>Sales Performance Dashboard</CardTitle>
+                  <p className="text-sm text-slate-500">
+                    สรุปเป้าหมาย ยอดขายจริง และคาดการณ์รายเดือน
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
-              <CardHeader className="border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-linear-to-br from-emerald-100 to-teal-100">
-                    <Calendar className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <CardTitle>เปรียบเทียบรายเดือน</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                      <YAxis
-                        stroke="#64748b"
-                        fontSize={12}
-                        tickFormatter={formatCurrency}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "#F5F5F5" }}
-                        contentStyle={{
-                          borderRadius: 12,
-                          border: "none",
-                          boxShadow: "0 10px 40px -10px rgba(0,0,0,0.2)",
-                          fontSize: 12,
-                        }}
-                        formatter={(value: number) => [formatCurrency(value)]}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="actual"
-                        name="ยอดขายจริง"
-                        fill="#22c55e"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="target"
-                        name="เป้าหมาย"
-                        fill="#3b82f6"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="min-w-[1100px] w-full border-collapse text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th
+                        rowSpan={2}
+                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700"
+                      >
+                        รายการ
+                      </th>
+                      <th
+                        rowSpan={2}
+                        className="border border-slate-200 px-3 py-3 text-right font-semibold text-slate-700"
+                      >
+                        เป้าหมายทั้งปี
+                      </th>
+                      <th
+                        colSpan={3}
+                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
+                      >
+                        Q1
+                      </th>
+                      <th
+                        colSpan={3}
+                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
+                      >
+                        Q2
+                      </th>
+                      <th
+                        colSpan={3}
+                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
+                      >
+                        Q3
+                      </th>
+                      <th
+                        colSpan={3}
+                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
+                      >
+                        Q4
+                      </th>
+                    </tr>
+                    <tr>
+                      {MONTHS_FULL.map((label, index) => {
+                        const isQuarterStart = index % 3 === 0;
+                        return (
+                          <th
+                            key={label}
+                            className={`border border-slate-200 px-3 py-2 text-center font-medium text-slate-600 ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""}`}
+                          >
+                            {label}
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        id: "target",
+                        label: "เป้าหมาย",
+                        type: "currency",
+                        total: totals.target,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.target,
+                      },
+                      {
+                        id: "actual",
+                        label: "ยอดขายจริง",
+                        type: "currency",
+                        total: totals.actual,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.actual,
+                      },
+                      {
+                        id: "actualPercent",
+                        label: "% เทียบเป้าหมาย",
+                        type: "percent",
+                        total:
+                          totals.target > 0
+                            ? (totals.actual / totals.target) * 100
+                            : 0,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.percentActual,
+                      },
+                      {
+                        id: "newForecast",
+                        label: "คาดการณ์ยอดใหม่",
+                        type: "currency",
+                        total: totals.newForecast,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.newForecast,
+                      },
+                      {
+                        id: "totalForecast",
+                        label: "รวมคาดการณ์",
+                        type: "currency",
+                        total: totals.totalForecast,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.totalForecast,
+                      },
+                      {
+                        id: "totalForecastPercent",
+                        label: "% รวมเทียบเป้าหมาย",
+                        type: "percent",
+                        total:
+                          totals.target > 0
+                            ? (totals.totalForecast / totals.target) * 100
+                            : 0,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.percentTotal,
+                      },
+                      {
+                        id: "backlog",
+                        label: "ยอดค้างจากคาดการณ์",
+                        type: "currency",
+                        total: totals.backlog,
+                        accessor: (entry: PerformanceEntry) =>
+                          entry.backlog,
+                      },
+                    ].map((row, rowIndex) => {
+                      const rowBg =
+                        rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50/50";
+                      return (
+                        <tr
+                          key={row.id}
+                          className="border-b border-slate-200"
+                        >
+                          <td
+                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 ${rowBg}`}
+                          >
+                            {row.label}
+                          </td>
+                          <td
+                            className={`border border-slate-200 px-3 py-2 text-right font-semibold ${row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
+                          >
+                            {row.type === "percent"
+                              ? formatPercent(row.total)
+                              : formatFullCurrency(row.total)}
+                          </td>
+                          {performanceData.map((entry, index) => {
+                            const value = row.accessor(entry);
+                            const isQuarterStart = index % 3 === 0;
+                            const isPercent = row.type === "percent";
+                            return (
+                              <td
+                                key={`${row.id}-${entry.month}`}
+                                className={`border border-slate-200 px-3 py-2 text-right ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${isPercent ? getPercentClass(value) : "text-slate-700"}`}
+                              >
+                                {isPercent
+                                  ? formatPercent(value)
+                                  : formatFullCurrency(value)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="personal" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
