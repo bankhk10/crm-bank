@@ -25,7 +25,7 @@ export async function createCreditLimitAction(payload: unknown) {
     revalidatePath("/credit-limits");
   }
 
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function updateCreditLimitAction(id: string, payload: unknown) {
@@ -49,7 +49,7 @@ export async function updateCreditLimitAction(id: string, payload: unknown) {
     revalidatePath(`/credit-limits/${id}/edit`);
   }
 
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }
 
 export async function deleteCreditLimitAction(id: string) {
@@ -66,4 +66,3 @@ export async function deleteCreditLimitAction(id: string) {
   revalidatePath("/credit-limits");
   return { success: true };
 }
-

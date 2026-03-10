@@ -42,7 +42,7 @@ export async function createTemporaryCreditLimitAction(
     const result = await createTemporaryCreditLimitUseCase(input, user.id!);
 
     revalidatePath("/temporary-credit-limits");
-    return { success: true, data: result };
+    return { success: true, data: JSON.parse(JSON.stringify(result)) };
   } catch (error) {
     return {
       success: false,
@@ -62,7 +62,7 @@ export async function updateTemporaryCreditLimitAction(
 
     revalidatePath("/temporary-credit-limits");
     revalidatePath(`/temporary-credit-limits/${id}`);
-    return { success: true, data: result };
+    return { success: true, data: JSON.parse(JSON.stringify(result)) };
   } catch (error) {
     return {
       success: false,
@@ -102,7 +102,7 @@ export async function approveTemporaryCreditLimitAction(
 
     revalidatePath("/temporary-credit-limits");
     revalidatePath(`/temporary-credit-limits/${id}`);
-    return { success: true, data: result };
+    return { success: true, data: JSON.parse(JSON.stringify(result)) };
   } catch (error) {
     return {
       success: false,
@@ -120,7 +120,7 @@ export async function expireTemporaryCreditLimitAction() {
     // or we can require approve permission as per API
     await verifyAuth("temporary_creditlimit.approve");
     const result = await expireTemporaryCreditLimitsUseCase();
-    return { success: true, data: result };
+    return { success: true, data: JSON.parse(JSON.stringify(result)) };
   } catch (error) {
     return {
       success: false,
@@ -131,4 +131,3 @@ export async function expireTemporaryCreditLimitAction() {
     };
   }
 }
-
