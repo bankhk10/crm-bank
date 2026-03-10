@@ -448,7 +448,7 @@ export default function SalesForecastDashboard() {
                       </th>
                       <th
                         rowSpan={2}
-                        className="border border-slate-200 px-3 py-3 text-right font-semibold text-slate-700"
+                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700"
                       >
                         เป้าหมายทั้งปี
                       </th>
@@ -542,7 +542,7 @@ export default function SalesForecastDashboard() {
                             {row.label}
                           </td>
                           <td
-                            className={`border border-slate-200 px-3 py-2 text-right font-semibold ${row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
+                            className={`border border-slate-200 px-3 py-2 text-left font-semibold ${row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
                           >
                             {row.type === "percent"
                               ? formatPercent(row.total)
