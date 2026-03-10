@@ -594,95 +594,43 @@ export function TimeSalesDashboard() {
                   </CardContent>
                 </Card>
 
-                {/* Bottom row: Pie + Insight cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-
-                  {/* Donut Chart – Quarterly */}
-                  <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm lg:col-span-3">
-                    <CardHeader className="border-b border-slate-100 pb-3">
-                      <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        <Sun className="h-4 w-4 text-amber-500" />
-                        สัดส่วนยอดขายตามไตรมาส
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 sm:p-5">
-                      <div className="h-[280px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={reportData.seasonalityData.filter((d) => d.percentage > 0)}
-                              dataKey="sales"
-                              nameKey="quarter"
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={110}
-                              innerRadius={68}
-                              paddingAngle={3}
-                              labelLine={false}
-                              label={({ quarter, percentage }) =>
-                                `${quarter}: ${percentage.toFixed(1)}%`
-                              }
-                            >
-                              {reportData.seasonalityData
-                                .filter((d) => d.percentage > 0)
-                                .map((_, i) => (
-                                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                              formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
-                              contentStyle={chartTooltipStyle}
+                {/* Seasonality detail list */}
+                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                  <CardHeader className="border-b border-slate-100 pb-3">
+                    <CardTitle className="text-sm font-semibold text-slate-900">
+                      รายละเอียดไตรมาส
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    {reportData.seasonalityData.map((q, i) => (
+                      <div key={q.quarter} className="space-y-1">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-semibold text-slate-700 flex items-center gap-1.5">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
                             />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Right: Seasonality Table + Growth */}
-                  <div className="lg:col-span-2 flex flex-col gap-4">
-
-                    {/* Quarterly breakdown bars */}
-                    <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm flex-1">
-                      <CardHeader className="border-b border-slate-100 pb-3">
-                        <CardTitle className="text-sm font-semibold text-slate-900">
-                          รายละเอียดไตรมาส
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 space-y-3">
-                        {reportData.seasonalityData.map((q, i) => (
-                          <div key={q.quarter} className="space-y-1">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                                <span
-                                  className="w-2.5 h-2.5 rounded-full"
-                                  style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                                />
-                                {q.quarter}
-                              </span>
-                              <div className="text-right">
-                                <span className="font-bold text-slate-900 text-xs">{formatTHB(q.sales)}</span>
-                                <span className="text-slate-400 ml-1">({q.percentage.toFixed(1)}%)</span>
-                              </div>
-                            </div>
-                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                  width: `${q.percentage}%`,
-                                  backgroundColor: COLORS[i % COLORS.length],
-                                }}
-                              />
-                            </div>
-                            <p className="text-[10px] text-slate-400">{q.orders} ออเดอร์</p>
+                            {q.quarter}
+                          </span>
+                          <div className="text-right">
+                            <span className="font-bold text-slate-900 text-xs">{formatTHB(q.sales)}</span>
+                            <span className="text-slate-400 ml-1">({q.percentage.toFixed(1)}%)</span>
                           </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-
-                  </div>
-                </div>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${q.percentage}%`,
+                              backgroundColor: COLORS[i % COLORS.length],
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-slate-400">{q.orders} ออเดอร์</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* ════ TAB: DAILY ════ */}
