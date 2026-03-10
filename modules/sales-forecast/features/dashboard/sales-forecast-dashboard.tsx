@@ -521,33 +521,6 @@ export default function SalesForecastDashboard() {
                           entry.percentActual,
                       },
                       {
-                        id: "newForecast",
-                        label: "คาดการณ์ยอดใหม่",
-                        type: "currency",
-                        total: totals.newForecast,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.newForecast,
-                      },
-                      {
-                        id: "totalForecast",
-                        label: "รวมคาดการณ์",
-                        type: "currency",
-                        total: totals.totalForecast,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.totalForecast,
-                      },
-                      {
-                        id: "totalForecastPercent",
-                        label: "% รวมเทียบเป้าหมาย",
-                        type: "percent",
-                        total:
-                          totals.target > 0
-                            ? (totals.totalForecast / totals.target) * 100
-                            : 0,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.percentTotal,
-                      },
-                      {
                         id: "backlog",
                         label: "ยอดค้างจากคาดการณ์",
                         type: "currency",
