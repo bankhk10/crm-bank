@@ -22,4 +22,12 @@ pnpm tsx scripts/seed-test/seed-products.ts
 pnpm tsx scripts/seed-test/seed-customers.ts
 ```
 
+### 3. ข้อมูลบริษัทขนส่ง (Shipping Companies)
+
+สร้างบริษัทขนส่งจำลองจำนวน 4 รายการ (ใส่ข้อมูลสถานที่ ที่อยู่ โทรศัพท์ และสถานะใช้งานครบถ้วน)
+
+```bash
+pnpm tsx scripts/seed-test/seed-shipping-companies.ts
+```
+
 > **Note:** ตรวจสอบให้แน่ใจว่าไฟล์ `.env` มีการตั้งค่า `DATABASE_URL` อย่างถูกต้องก่อนรันคำสั่ง
