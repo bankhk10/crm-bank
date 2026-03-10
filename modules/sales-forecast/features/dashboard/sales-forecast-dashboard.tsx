@@ -448,7 +448,7 @@ export default function SalesForecastDashboard() {
                       </th>
                       <th
                         rowSpan={2}
-                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700"
+                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
                       >
                         เป้าหมายทั้งปี
                       </th>
@@ -547,7 +547,7 @@ export default function SalesForecastDashboard() {
                             {row.label}
                           </td>
                           <td
-                            className={`border border-slate-200 px-3 py-2 text-left font-semibold ${(row as any).getColor ? (row as any).getColor(row.total) : row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
+                            className={`border border-slate-200 px-3 py-2 text-center font-semibold ${(row as any).getColor ? (row as any).getColor(row.total) : row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
                           >
                             {row.type === "percent"
                               ? formatPercent(row.total)
@@ -561,7 +561,7 @@ export default function SalesForecastDashboard() {
                             return (
                               <td
                                 key={`${row.id}-${entry.month}`}
-                                className={`border border-slate-200 px-3 py-2 text-right ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${colorClass}`}
+                                className={`border border-slate-200 px-3 py-2 text-center ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${colorClass}`}
                               >
                                 {isPercent
                                   ? formatPercent(value)
