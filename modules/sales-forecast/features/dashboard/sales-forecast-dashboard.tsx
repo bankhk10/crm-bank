@@ -442,7 +442,7 @@ export default function SalesForecastDashboard() {
                     <tr>
                       <th
                         rowSpan={2}
-                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700"
+                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 min-w-[100px]"
                       >
                         รายการ
                       </th>
@@ -542,7 +542,7 @@ export default function SalesForecastDashboard() {
                           className="border-b border-slate-200"
                         >
                           <td
-                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 ${rowBg}`}
+                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 min-w-[100px] ${rowBg}`}
                           >
                             {row.label}
                           </td>
