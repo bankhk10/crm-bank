@@ -98,7 +98,7 @@ export default function SalesForecastDashboard() {
       const percentActual = target > 0 ? (actual / target) * 100 : 0;
       const percentTotal =
         target > 0 ? (totalForecast / target) * 100 : 0;
-      const backlog = target - totalForecast;
+      const backlog = target - actual;
       return {
         month: monthLabel,
         monthNumber,
@@ -527,6 +527,11 @@ export default function SalesForecastDashboard() {
                         total: totals.backlog,
                         accessor: (entry: PerformanceEntry) =>
                           entry.backlog,
+                        getColor: (val: number) => {
+                          if (val > 0) return "text-emerald-600";
+                          if (val < 0) return "text-rose-600";
+                          return "text-slate-700";
+                        },
                       },
                     ].map((row, rowIndex) => {
                       const rowBg =
@@ -542,7 +547,7 @@ export default function SalesForecastDashboard() {
                             {row.label}
                           </td>
                           <td
-                            className={`border border-slate-200 px-3 py-2 text-left font-semibold ${row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
+                            className={`border border-slate-200 px-3 py-2 text-left font-semibold ${(row as any).getColor ? (row as any).getColor(row.total) : row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
                           >
                             {row.type === "percent"
                               ? formatPercent(row.total)
@@ -552,10 +557,11 @@ export default function SalesForecastDashboard() {
                             const value = row.accessor(entry);
                             const isQuarterStart = index % 3 === 0;
                             const isPercent = row.type === "percent";
+                            const colorClass = (row as any).getColor ? (row as any).getColor(value) : isPercent ? getPercentClass(value) : "text-slate-700";
                             return (
                               <td
                                 key={`${row.id}-${entry.month}`}
-                                className={`border border-slate-200 px-3 py-2 text-right ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${isPercent ? getPercentClass(value) : "text-slate-700"}`}
+                                className={`border border-slate-200 px-3 py-2 text-right ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${colorClass}`}
                               >
                                 {isPercent
                                   ? formatPercent(value)
