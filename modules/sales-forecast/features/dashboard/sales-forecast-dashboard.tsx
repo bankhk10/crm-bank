@@ -498,7 +498,7 @@ export default function SalesForecastDashboard() {
                             {formatPercent(entry.percentActual)}
                           </td>
                           <td className={`border border-slate-200 px-3 py-2 text-center font-medium ${backlogColor} ${rowBg}`}>
-                            {formatFullCurrency(entry.backlog)}
+                            {entry.backlog > 0 ? `+${formatFullCurrency(entry.backlog)}` : formatFullCurrency(entry.backlog)}
                           </td>
                         </tr>
                       );
@@ -518,7 +518,7 @@ export default function SalesForecastDashboard() {
                         {formatPercent(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}
                       </td>
                       <td className={`border border-slate-200 px-3 py-2.5 text-center ${totals.backlog > 0 ? "text-emerald-600" : totals.backlog < 0 ? "text-rose-600" : "text-slate-800"}`}>
-                        {formatFullCurrency(totals.backlog)}
+                        {totals.backlog > 0 ? `+${formatFullCurrency(totals.backlog)}` : formatFullCurrency(totals.backlog)}
                       </td>
                     </tr>
                   </tbody>
