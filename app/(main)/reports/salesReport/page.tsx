@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getFilterOptionsAction } from "@/modules/reports";
-import { SalesReportClient } from "./client";
+import { SalesReportDashboard } from "@/modules/reports/features/dashboard/sales-report-dashboard";
 import { Loader2 } from "lucide-react";
 
 export default async function SalesReportPage() {
@@ -16,7 +16,7 @@ export default async function SalesReportPage() {
             </div>
           }
         >
-          <SalesReportClient customers={customers} employees={employees} years={years} />
+          <SalesReportDashboard customers={customers} employees={employees} years={years} />
         </Suspense>
       </div>
     </div>

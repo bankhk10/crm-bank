@@ -51,7 +51,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface SalesReportClientProps {
+export interface SalesReportDashboardProps {
   customers: { id: string; name: string; customerCode: string }[];
   employees: { id: string; name: string }[];
   years: number[];
@@ -566,7 +566,7 @@ function PaginationBar({
   );
 }
 
-export function SalesReportClient({ customers, employees, years }: SalesReportClientProps) {
+export function SalesReportDashboard({ customers, employees, years }: SalesReportDashboardProps) {
   const [reportType, setReportType] = useState<ReportType>("CUSTOMER");
   const [selectedYear, setSelectedYear] = useState<number>(years[0]);
   const [selectedEntityId, setSelectedEntityId] = useState<string>("");
