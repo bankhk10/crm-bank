@@ -646,7 +646,7 @@ export function TimeSalesDashboard() {
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">วันขายดีที่สุด</p>
                     <p className="text-base font-bold text-slate-900 truncate">
-                      วัน{reportData.bestSellingDay.dayOfWeek || "–"}
+                      วัน{reportData.bestSellingDay.dayOfWeek || "-"}
                     </p>
                     <p className="text-xs text-slate-500">
                       {formatTHB(reportData.bestSellingDay.sales)} · {reportData.bestSellingDay.orders} ออเดอร์
@@ -920,10 +920,10 @@ export function TimeSalesDashboard() {
                         <TableHeader>
                           <TableRow className="bg-slate-50/80">
                             <TableHead className="text-xs">วันที่</TableHead>
-                            <TableHead className="text-right text-xs">ยอดขาย</TableHead>
-                            <TableHead className="text-right text-xs">ออเดอร์</TableHead>
-                            <TableHead className="text-right text-xs">เฉลี่ย/ออเดอร์</TableHead>
-                            <TableHead className="text-right text-xs w-32">สัดส่วน</TableHead>
+                            <TableHead className="text-left text-xs">ยอดขาย</TableHead>
+                            <TableHead className="text-left text-xs">ออเดอร์</TableHead>
+                            <TableHead className="text-left text-xs">เฉลี่ย/ออเดอร์</TableHead>
+                            <TableHead className="text-left text-xs w-32">สัดส่วน</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -936,16 +936,16 @@ export function TimeSalesDashboard() {
                               return (
                                 <TableRow key={idx} className="hover:bg-slate-50/70">
                                   <TableCell className="font-medium text-sm">{day.date}</TableCell>
-                                  <TableCell className="text-right font-semibold text-sm">
+                                  <TableCell className="text-left font-semibold text-sm">
                                     {formatTHB(day.sales)}
                                   </TableCell>
-                                  <TableCell className="text-right text-sm">
+                                  <TableCell className="text-left text-sm">
                                     {formatNumber(day.orders)}
                                   </TableCell>
-                                  <TableCell className="text-right text-slate-600 text-sm">
+                                  <TableCell className="text-left text-slate-600 text-sm">
                                     {day.orders > 0 ? formatTHB(day.sales / day.orders) : "–"}
                                   </TableCell>
-                                  <TableCell className="text-right">
+                                  <TableCell className="text-left">
                                     <div className="flex items-center justify-end gap-2">
                                       <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                         <div
