@@ -295,7 +295,7 @@ export default function SalesForecastDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -421,14 +421,14 @@ export default function SalesForecastDashboard() {
           </div>
 
           {/* Sales Performance Dashboard Table */}
-          <Card className="overflow-hidden rounded-2xl border-0 bg-white/70 backdrop-blur-sm shadow-lg">
+          <Card className="overflow-hidden rounded-2xl border-2 bg-white/70 backdrop-blur-sm shadow-lg">
             <CardHeader className="border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-linear-to-br from-blue-100 to-indigo-100">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle>Sales Performance Dashboard</CardTitle>
+                  <CardTitle>ภาพรวมยอดขายและเป้าหมาย</CardTitle>
                   <p className="text-sm text-slate-500">
                     สรุปเป้าหมาย ยอดขายจริง และคาดการณ์รายเดือน
                   </p>
