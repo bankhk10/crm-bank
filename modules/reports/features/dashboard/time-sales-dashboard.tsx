@@ -49,7 +49,6 @@ import {
   Activity,
   Target,
   Clock,
-  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
@@ -65,7 +64,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
   Area,
   ComposedChart,
   Line,
@@ -111,23 +109,7 @@ export function TimeSalesDashboard() {
     });
   };
 
-  // Build day-of-week summary from dailyData
-  const dowData = (() => {
-    if (!reportData) return [];
-    const map = new Map<string, { sales: number; orders: number; count: number }>();
-    for (const d of reportData.dailyData) {
-      if (d.orders === 0) continue;
-      // We store aggregated by weekday label from bestSellingDay reference.
-      // Since dailyData uses "dd MMM" format, we approximate via index based distribution.
-      // Instead we'll use seasonalityData which is already aggregated.
-    }
-    return map;
-  })();
-
-  // Derived: top region
-  const topRegion = reportData?.salesByRegion[0];
   const totalRegionSales = reportData?.salesByRegion.reduce((s, r) => s + r.totalSales, 0) ?? 0;
-
   // Derived: best quarter
   const bestQuarter = reportData
     ? [...reportData.seasonalityData].sort((a, b) => b.sales - a.sales)[0]
