@@ -480,7 +480,8 @@ export default function SalesForecastDashboard() {
                           <td
                             className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
                           >
-                            {MONTHS[index]}
+                            <span className="hidden lg:inline">{MONTHS_FULL[index]}</span>
+                            <span className="lg:hidden">{MONTHS[index]}</span>
                             {isCurrentMonth && (
                               <span className="ml-1 text-[10px] font-bold text-blue-500 bg-blue-100 px-1 rounded">
                                 ปัจจุบัน
