@@ -3,6 +3,7 @@
 This module handles the notification system, including creating notifications, reading/marking as read, rendering the bell icon with a dropdown list, and polling for updates.
 
 The module follows the **Enterprise Module Layered Architecture**.
+แจ้งเตือนทุก 1 นาที
 
 ## Directory Structure
 

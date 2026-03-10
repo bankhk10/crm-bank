@@ -19,11 +19,22 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    // Run asynchronously to fix "Calling setState synchronously within an effect" warning
+    let isMounted = true;
+    const initFetch = async () => {
+      if (isMounted) await fetchNotifications();
+    };
+    initFetch();
 
     // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (isMounted) fetchNotifications();
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   const markAsRead = async (id: string) => {
