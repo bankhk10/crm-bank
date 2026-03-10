@@ -440,19 +440,19 @@ export default function SalesForecastDashboard() {
                 <table className="w-full border-collapse text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 min-w-[90px] sticky left-0 z-10 bg-slate-50">
+                      <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 text-base min-w-[90px] sticky left-0 z-10 bg-slate-50">
                         เดือน
                       </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[130px]">
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[130px]">
                         เป้าหมาย
                       </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[130px]">
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[130px]">
                         ยอดขายจริง
                       </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[110px]">
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[110px]">
                         % เทียบเป้า
                       </th>
-                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[150px]">
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[150px]">
                         ยอดรวมจากคาดการณ์
                       </th>
                     </tr>
@@ -478,12 +478,12 @@ export default function SalesForecastDashboard() {
                           className={`border-b border-slate-200 ${isCurrentMonth ? "ring-1 ring-inset ring-blue-300" : ""} ${isQuarterStart ? "border-t-2 border-t-slate-300" : ""}`}
                         >
                           <td
-                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
+                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-medium text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
                           >
                             <span className="hidden lg:inline">{MONTHS_FULL[index]}</span>
                             <span className="lg:hidden">{MONTHS[index]}</span>
                             {isCurrentMonth && (
-                              <span className="ml-1 text-[10px] font-bold text-blue-500 bg-blue-100 px-1 rounded">
+                              <span className="ml-1 text-[12px] text-blue-500 bg-blue-100 px-1 rounded">
                                 ปัจจุบัน
                               </span>
                             )}
@@ -505,7 +505,7 @@ export default function SalesForecastDashboard() {
                     })}
                     {/* Summary row */}
                     <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                      <td className="sticky left-0 z-10 border border-slate-200 px-3 py-2.5 text-left text-slate-800 bg-slate-100">
+                      <td className="sticky left-0 z-10 border border-slate-200 pl-6 pr-3 py-2.5 text-left text-base text-slate-800 bg-slate-100">
                         รวมทั้งปี
                       </td>
                       <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
