@@ -98,7 +98,7 @@ export default function SalesForecastDashboard() {
       const percentActual = target > 0 ? (actual / target) * 100 : 0;
       const percentTotal =
         target > 0 ? (totalForecast / target) * 100 : 0;
-      const backlog = target - actual;
+      const backlog = actual - target;
       return {
         month: monthLabel,
         monthNumber,
