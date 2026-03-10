@@ -30,4 +30,12 @@ pnpm tsx scripts/seed-test/seed-customers.ts
 pnpm tsx scripts/seed-test/seed-shipping-companies.ts
 ```
 
+### 4. ข้อมูลพนักงานขาย (Employees)
+
+สร้างข้อมูลพนักงานจำลองจำนวน 4 รายการ (ประกอบด้วยพนักงานแบบทำงานอยู่ และลาออกแล้ว พร้อมข้อมูลส่วนตัว พื้นที่รับผิดชอบ)
+
+```bash
+pnpm tsx scripts/seed-test/seed-employees.ts
+```
+
 > **Note:** ตรวจสอบให้แน่ใจว่าไฟล์ `.env` มีการตั้งค่า `DATABASE_URL` อย่างถูกต้องก่อนรันคำสั่ง
