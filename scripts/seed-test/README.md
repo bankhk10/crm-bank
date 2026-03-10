@@ -38,4 +38,14 @@ pnpm tsx scripts/seed-test/seed-shipping-companies.ts
 pnpm tsx scripts/seed-test/seed-employees.ts
 ```
 
+### 5. ข้อมูลเป้าหมายการขาย (Sales Targets)
+
+สร้างข้อมูลเป้าหมายประจำเดือนของพนักงานแบบครบถ้วน (ประกอบด้วยตาราง `SalesTarget`, ลิงก์ร้านค้ารายเป้าหมาย `SalesTargetStore` และรายการแยกรายสินค้า `SalesTargetItem`)
+
+> **สำคัญ:** โปรดตรวจสอบว่ามีข้อมูลพนักงาน, ลูกค้า และ สินค้าในระบบแล้วก่อนเรียกใช้งานสคริปต์นี้
+
+```bash
+pnpm tsx scripts/seed-test/seed-sales-targets.ts
+```
+
 > **Note:** ตรวจสอบให้แน่ใจว่าไฟล์ `.env` มีการตั้งค่า `DATABASE_URL` อย่างถูกต้องก่อนรันคำสั่ง
