@@ -1,4 +1,3 @@
-import { db as prisma } from "@/lib/db";
 import * as repo from "../infrastructure/reports.repository";
 import { DataAccessLevel } from "@/lib/db";
 
