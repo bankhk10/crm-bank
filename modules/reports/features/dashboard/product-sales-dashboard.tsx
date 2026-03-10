@@ -106,6 +106,12 @@ export function ProductSalesDashboard() {
     return new Intl.NumberFormat("th-TH").format(num);
   };
 
+  const formatPackSize = (value: number, unit?: string) => {
+    if (!value) return "-";
+    const unitLabel = unit?.trim();
+    return `${formatNumber(value)}${unitLabel ? ` ${unitLabel}` : " หน่วย"}`;
+  };
+
 
 
   return (
@@ -251,6 +257,15 @@ export function ProductSalesDashboard() {
                       <p className="text-xs sm:text-sm text-emerald-600 mt-1">
                         {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
                       </p>
+                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">
+                        บรรจุขายได้ {formatPackSize(
+                          reportData.topProducts[0]?.totalPackageSold || 0,
+                          reportData.topProducts[0]?.packageUnit,
+                        )}
+                        {reportData.topProducts[0]?.childCount
+                          ? " (รวมสินค้าลูก)"
+                          : ""}
+                      </p>
                     </div>
                     <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
                       <Award className="h-6 w-6 text-emerald-600" />
@@ -370,20 +385,23 @@ export function ProductSalesDashboard() {
                     <CardContent>
                       <div className="max-h-[450px] overflow-auto">
                         <div className="overflow-x-auto">
-                          <Table className="min-w-[520px]">
+                          <Table className="min-w-[720px]">
                             <TableHeader>
                               <TableRow>
                                 <TableHead>ลำดับ</TableHead>
                                 <TableHead>สินค้า</TableHead>
-                                <TableHead className="text-right">
-                                  ยอดขาย
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  จำนวน
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
+                              <TableHead className="text-right">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวน
+                              </TableHead>
+                              <TableHead className="text-right">
+                                บรรจุขายได้รวมลูก
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
                               {reportData.topProducts
                                 .slice(0, 20)
                                 .map((product, idx) => (
@@ -416,6 +434,24 @@ export function ProductSalesDashboard() {
                                     <TableCell className="text-right">
                                       {formatNumber(product.totalQuantity)}
                                     </TableCell>
+                                    <TableCell className="text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        {product.childCount > 0 && (
+                                          <Badge
+                                            variant="outline"
+                                            className="text-emerald-700 border-emerald-200 bg-emerald-50"
+                                          >
+                                            รวมลูก {product.childCount}
+                                          </Badge>
+                                        )}
+                                        <span className="font-semibold text-emerald-700">
+                                          {formatPackSize(
+                                            product.totalPackageSold,
+                                            product.packageUnit,
+                                          )}
+                                        </span>
+                                      </div>
+                                    </TableCell>
                                   </TableRow>
                                 ))}
                             </TableBody>
@@ -437,7 +473,7 @@ export function ProductSalesDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
-                      <Table className="min-w-[720px]">
+                      <Table className="min-w-[900px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead>#</TableHead>
@@ -447,6 +483,9 @@ export function ProductSalesDashboard() {
                             <TableHead className="text-right">ยอดขาย</TableHead>
                             <TableHead className="text-right">
                               จำนวนที่ขาย
+                            </TableHead>
+                            <TableHead className="text-right">
+                              บรรจุขายได้รวมลูก
                             </TableHead>
                             <TableHead className="text-right">
                               จำนวนออเดอร์
@@ -473,6 +512,24 @@ export function ProductSalesDashboard() {
                               </TableCell>
                               <TableCell className="text-right">
                                 {formatNumber(product.totalQuantity)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {product.childCount > 0 && (
+                                    <Badge
+                                      variant="outline"
+                                      className="border-amber-200 bg-amber-50 text-amber-700"
+                                    >
+                                      รวมลูก {product.childCount}
+                                    </Badge>
+                                  )}
+                                  <span className="font-medium text-amber-700">
+                                    {formatPackSize(
+                                      product.totalPackageSold,
+                                      product.packageUnit,
+                                    )}
+                                  </span>
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 {product.orderCount}

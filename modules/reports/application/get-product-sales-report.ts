@@ -51,6 +51,59 @@ export async function getProductSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
+  const teamEmployeeIds =
+    viewScope === ("VIEW_TEAM" as DataAccessLevel)
+      ? await getTeamEmployeeIds(session)
+      : null;
+
+  type ProductMeta = {
+    id: string;
+    code: string;
+    name: string;
+    brand: string;
+    productGroup: string;
+    parentId?: string | null;
+    packageSize?: string | null;
+    packageSizePerBox?: string | null;
+    totalPackageSizePerBox?: string | null;
+  };
+
+  const parsePackageSize = (raw?: string | null) => {
+    if (!raw) return { value: null as number | null, unit: "" };
+    const valueMatch = raw.replace(/,/g, "").match(/[\d.]+/);
+    const value = valueMatch ? parseFloat(valueMatch[0]) : null;
+    const unit = raw.replace(/[\d.,\s]/g, "").trim();
+    return { value, unit };
+  };
+
+  const calculatePackageSold = (quantity: number, product: ProductMeta) => {
+    const totalPerBox = parsePackageSize(product.totalPackageSizePerBox);
+    const packageSize = parsePackageSize(product.packageSize);
+    const perBox =
+      totalPerBox.value ??
+      (packageSize.value !== null
+        ? packageSize.value * (parseFloat(product.packageSizePerBox || "1") || 1)
+        : null);
+
+    const totalPackageSold =
+      perBox !== null && !Number.isNaN(perBox) ? perBox * quantity : 0;
+
+    return {
+      totalPackageSold,
+      unit: totalPerBox.unit || packageSize.unit,
+    };
+  };
+
+  const getRootProductId = (productId: string, map: Map<string, ProductMeta>) => {
+    let current = map.get(productId);
+    let safety = 0;
+    while (current?.parentId && map.has(current.parentId) && safety < 10) {
+      current = map.get(current.parentId);
+      safety += 1;
+    }
+    return current?.id || productId;
+  };
+
   // Get all products with their sales in the period
   const productSales = await repo.groupSaleItemsData({
     by: ["productId"],
@@ -72,61 +125,146 @@ export async function getProductSalesReport(
     },
   });
 
-  // Get product details
+  // Get product details including parent chain and pack sizes
   const productIds = productSales.map((p) => p.productId);
-  const products = await repo.findManyProductsData({
-    where: { id: { in: productIds } },
-    select: {
-      id: true,
-      productCode: true,
-      name: true,
-      brand: true,
-      productGroup: true,
-    },
-  });
+  const productMap = new Map<string, ProductMeta>();
 
-  const productMap = new Map(products.map((p) => [p.id, p]));
-
-  // Top products (top 20)
-  const topProducts = productSales.slice(0, 20).map((ps) => {
-    const product = productMap.get(ps.productId);
-    return {
-      id: ps.productId,
-      code: product?.productCode || "",
-      name: product?.name || "Unknown",
-      brand: product?.brand || "-",
-      productGroup: product?.productGroup || "-",
-      totalSales: Number(ps._sum.totalPrice || 0),
-      totalQuantity: Number(ps._sum.quantity || 0),
-      orderCount: ps._count,
-    };
-  });
-
-  // Slow products (bottom 20 with at least 1 sale)
-  const slowProducts = productSales
-    .slice(-20)
-    .reverse()
-    .map((ps) => {
-      const product = productMap.get(ps.productId);
-      return {
-        id: ps.productId,
-        code: product?.productCode || "",
-        name: product?.name || "Unknown",
-        brand: product?.brand || "-",
-        productGroup: product?.productGroup || "-",
-        totalSales: Number(ps._sum.totalPrice || 0),
-        totalQuantity: Number(ps._sum.quantity || 0),
-        orderCount: ps._count,
-      };
+  let pendingIds = Array.from(new Set(productIds));
+  while (pendingIds.length > 0) {
+    const products = await repo.findManyProductsData({
+      where: { id: { in: pendingIds } },
+      select: {
+        id: true,
+        productCode: true,
+        name: true,
+        brand: true,
+        productGroup: true,
+        parentId: true,
+        packageSize: true,
+        packageSizePerBox: true,
+        totalPackageSizePerBox: true,
+      },
     });
+
+    const nextParentIds: string[] = [];
+
+    for (const p of products) {
+      if (!productMap.has(p.id)) {
+        productMap.set(p.id, {
+          id: p.id,
+          code: p.productCode,
+          name: p.name,
+          brand: p.brand || "-",
+          productGroup: p.productGroup || "-",
+          parentId: p.parentId,
+          packageSize: p.packageSize,
+          packageSizePerBox: p.packageSizePerBox,
+          totalPackageSizePerBox: p.totalPackageSizePerBox,
+        });
+      }
+
+      if (p.parentId && !productMap.has(p.parentId)) {
+        nextParentIds.push(p.parentId);
+      }
+    }
+
+    pendingIds = Array.from(new Set(nextParentIds));
+  }
+
+  type AggregatedProduct = {
+    id: string;
+    code: string;
+    name: string;
+    brand: string;
+    productGroup: string;
+    totalSales: number;
+    totalQuantity: number;
+    orderCount: number;
+    totalPackageSold: number;
+    packageUnit: string;
+    childCount: number;
+    relatedProductIds: Set<string>;
+  };
+
+  const aggregatedByRoot = new Map<string, AggregatedProduct>();
+
+  for (const ps of productSales) {
+    const product = productMap.get(ps.productId);
+    if (!product) continue;
+
+    const rootId = getRootProductId(ps.productId, productMap);
+    const rootProduct = productMap.get(rootId) || product;
+
+    const { totalPackageSold, unit } = calculatePackageSold(
+      Number(ps._sum.quantity || 0),
+      product,
+    );
+
+    const aggregate = aggregatedByRoot.get(rootId) || {
+      id: rootProduct.id,
+      code: rootProduct.code,
+      name: rootProduct.name,
+      brand: rootProduct.brand,
+      productGroup: rootProduct.productGroup,
+      totalSales: 0,
+      totalQuantity: 0,
+      orderCount: 0,
+      totalPackageSold: 0,
+      packageUnit: unit || parsePackageSize(rootProduct.packageSize).unit,
+      childCount: 0,
+      relatedProductIds: new Set([rootProduct.id]),
+    };
+
+    aggregate.totalSales += Number(ps._sum.totalPrice || 0);
+    aggregate.totalQuantity += Number(ps._sum.quantity || 0);
+    aggregate.orderCount += ps._count;
+    aggregate.totalPackageSold += totalPackageSold;
+    if (!aggregate.packageUnit && unit) {
+      aggregate.packageUnit = unit;
+    }
+    if (product.id !== rootId) {
+      aggregate.childCount += 1;
+    }
+    aggregate.relatedProductIds.add(product.id);
+
+    aggregatedByRoot.set(rootId, aggregate);
+  }
+
+  const aggregatedProducts = Array.from(aggregatedByRoot.values());
+  const sortedBySales = aggregatedProducts.sort(
+    (a, b) => b.totalSales - a.totalSales,
+  );
+
+  const normalizeProduct = (p: AggregatedProduct) => ({
+    id: p.id,
+    code: p.code,
+    name: p.name,
+    brand: p.brand,
+    productGroup: p.productGroup,
+    totalSales: p.totalSales,
+    totalQuantity: p.totalQuantity,
+    orderCount: p.orderCount,
+    totalPackageSold: p.totalPackageSold,
+    packageUnit: p.packageUnit,
+    childCount: p.childCount,
+  });
+
+  const peakCandidates = sortedBySales.slice(0, 5);
+
+  const topProducts = sortedBySales.slice(0, 20).map(normalizeProduct);
+
+  const slowProducts = [...sortedBySales]
+    .sort((a, b) => a.totalSales - b.totalSales)
+    .slice(0, 20)
+    .map(normalizeProduct);
 
   // Product peak periods (for top 5 products)
   const productPeakPeriods = await Promise.all(
-    topProducts.slice(0, 5).map(async (product) => {
+    peakCandidates.map(async (product) => {
       const monthlyData = await prisma.dailySalesSummary.groupBy({
         by: ["month", "year"],
         where: {
-          productId: product.id,
+          productId: { in: Array.from(product.relatedProductIds) },
           date: { gte: start, lte: end },
           // TODO: DailySalesSummary might need scope filtering too if it has employeeId relation
           // DailySalesSummary has employeeId.
@@ -134,7 +272,7 @@ export async function getProductSalesReport(
             ? { employeeId: session.user.employeeId! }
             : {}),
           ...(viewScope === ("VIEW_TEAM" as DataAccessLevel)
-            ? { employeeId: { in: await getTeamEmployeeIds(session) } }
+            ? { employeeId: { in: teamEmployeeIds || [] } }
             : {}),
           ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
             ? { employee: { departmentId: session.user.departmentId! } }

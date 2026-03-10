@@ -61,6 +61,9 @@ export interface ProductSalesReportData {
     totalSales: number;
     totalQuantity: number;
     orderCount: number;
+    totalPackageSold: number;
+    packageUnit: string;
+    childCount: number;
   }[];
   slowProducts: {
     id: string;
@@ -71,6 +74,9 @@ export interface ProductSalesReportData {
     totalSales: number;
     totalQuantity: number;
     orderCount: number;
+    totalPackageSold: number;
+    packageUnit: string;
+    childCount: number;
     lastSoldDate?: string;
   }[];
   productPeakPeriods: {
