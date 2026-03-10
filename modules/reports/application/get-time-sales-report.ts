@@ -1,13 +1,7 @@
-import { db as prisma } from "@/lib/db";
 import * as repo from "../infrastructure/reports.repository";
 import {
-  startOfDay,
-  endOfDay,
-  startOfMonth,
-  endOfMonth,
   format,
   parseISO,
-  eachMonthOfInterval,
   eachDayOfInterval,
   differenceInDays,
   subMonths,
@@ -15,19 +9,15 @@ import {
   subDays,
 } from "date-fns";
 import { th } from "date-fns/locale";
-import { getDateRange, getDayOfWeekThai, getQuarterLabel, getRegionFromProvince } from "../utils";
-import { auth } from "@/modules/auth/infrastructure/next-auth";
-import { DataAccessLevel } from "@/lib/db";
 import {
-  DateRangeFilter,
-  TimeSalesReportData,
-  ProductSalesReportData,
-  ProductGroupSalesReportData,
-  CustomerSalesReportData,
-  SalespersonReportData,
-} from "../types";
-import { getTeamEmployeeIds, buildScopeFilter } from "./helpers";
-
+  getDateRange,
+  getDayOfWeekThai,
+  getQuarterLabel,
+  getRegionFromProvince,
+} from "../utils";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { DateRangeFilter, TimeSalesReportData } from "../types";
+import { buildScopeFilter } from "./helpers";
 
 // 1. TIME-BASED SALES REPORT
 // ============================================
@@ -264,5 +254,3 @@ export async function getTimeSalesReport(
     salesByRegion,
   };
 }
-
-// ============================================
