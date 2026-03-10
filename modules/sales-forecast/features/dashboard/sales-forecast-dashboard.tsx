@@ -437,141 +437,89 @@ export default function SalesForecastDashboard() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="min-w-[1100px] w-full border-collapse text-sm">
+                <table className="w-full border-collapse text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th
-                        rowSpan={2}
-                        className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 min-w-[100px]"
-                      >
-                        รายการ
+                      <th className="border border-slate-200 px-3 py-3 text-left font-semibold text-slate-700 min-w-[90px] sticky left-0 z-10 bg-slate-50">
+                        เดือน
                       </th>
-                      <th
-                        rowSpan={2}
-                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[120px]"
-                      >
-                        เป้าหมายทั้งปี
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[130px]">
+                        เป้าหมาย
                       </th>
-                      <th
-                        colSpan={3}
-                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
-                      >
-                        Q1
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[130px]">
+                        ยอดขายจริง
                       </th>
-                      <th
-                        colSpan={3}
-                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
-                      >
-                        Q2
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[110px]">
+                        % เทียบเป้า
                       </th>
-                      <th
-                        colSpan={3}
-                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
-                      >
-                        Q3
+                      <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 min-w-[150px]">
+                        ยอดค้างจากคาดการณ์
                       </th>
-                      <th
-                        colSpan={3}
-                        className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700"
-                      >
-                        Q4
-                      </th>
-                    </tr>
-                    <tr>
-                      {MONTHS_FULL.map((label, index) => {
-                        const isQuarterStart = index % 3 === 0;
-                        return (
-                          <th
-                            key={label}
-                            className={`border border-slate-200 px-3 py-2 text-center font-medium text-slate-600 ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""}`}
-                          >
-                            {label}
-                          </th>
-                        );
-                      })}
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      {
-                        id: "target",
-                        label: "เป้าหมาย",
-                        type: "currency",
-                        total: totals.target,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.target,
-                      },
-                      {
-                        id: "actual",
-                        label: "ยอดขายจริง",
-                        type: "currency",
-                        total: totals.actual,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.actual,
-                      },
-                      {
-                        id: "actualPercent",
-                        label: "% เทียบเป้าหมาย",
-                        type: "percent",
-                        total:
-                          totals.target > 0
-                            ? (totals.actual / totals.target) * 100
-                            : 0,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.percentActual,
-                      },
-                      {
-                        id: "backlog",
-                        label: "ยอดค้างจากคาดการณ์",
-                        type: "currency",
-                        total: totals.backlog,
-                        accessor: (entry: PerformanceEntry) =>
-                          entry.backlog,
-                        getColor: (val: number) => {
-                          if (val > 0) return "text-emerald-600";
-                          if (val < 0) return "text-rose-600";
-                          return "text-slate-700";
-                        },
-                      },
-                    ].map((row, rowIndex) => {
-                      const rowBg =
-                        rowIndex % 2 === 0 ? "bg-white" : "bg-slate-50/50";
+                    {performanceData.map((entry, index) => {
+                      const isCurrentMonth = entry.monthNumber === currentMonth;
+                      const isQuarterStart = index % 3 === 0;
+                      const rowBg = isCurrentMonth
+                        ? "bg-blue-50"
+                        : index % 2 === 0
+                          ? "bg-white"
+                          : "bg-slate-50/50";
+                      const backlogColor =
+                        entry.backlog > 0
+                          ? "text-emerald-600"
+                          : entry.backlog < 0
+                            ? "text-rose-600"
+                            : "text-slate-700";
                       return (
                         <tr
-                          key={row.id}
-                          className="border-b border-slate-200"
+                          key={entry.month}
+                          className={`border-b border-slate-200 ${isCurrentMonth ? "ring-1 ring-inset ring-blue-300" : ""} ${isQuarterStart ? "border-t-2 border-t-slate-300" : ""}`}
                         >
                           <td
-                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 min-w-[100px] ${rowBg}`}
+                            className={`sticky left-0 z-10 border border-slate-200 px-3 py-2 text-left font-semibold text-slate-700 ${rowBg} ${isCurrentMonth ? "text-blue-700" : ""}`}
                           >
-                            {row.label}
+                            {MONTHS[index]}
+                            {isCurrentMonth && (
+                              <span className="ml-1 text-[10px] font-bold text-blue-500 bg-blue-100 px-1 rounded">
+                                ปัจจุบัน
+                              </span>
+                            )}
                           </td>
-                          <td
-                            className={`border border-slate-200 px-3 py-2 text-center font-semibold min-w-[120px] ${(row as any).getColor ? (row as any).getColor(row.total) : row.type === "percent" ? getPercentClass(row.total) : "text-slate-700"}`}
-                          >
-                            {row.type === "percent"
-                              ? formatPercent(row.total)
-                              : formatFullCurrency(row.total)}
+                          <td className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}>
+                            {formatFullCurrency(entry.target)}
                           </td>
-                          {performanceData.map((entry, index) => {
-                            const value = row.accessor(entry);
-                            const isQuarterStart = index % 3 === 0;
-                            const isPercent = row.type === "percent";
-                            const colorClass = (row as any).getColor ? (row as any).getColor(value) : isPercent ? getPercentClass(value) : "text-slate-700";
-                            return (
-                              <td
-                                key={`${row.id}-${entry.month}`}
-                                className={`border border-slate-200 px-3 py-2 text-center ${isQuarterStart ? "border-l-2 border-l-slate-300" : ""} ${colorClass}`}
-                              >
-                                {isPercent
-                                  ? formatPercent(value)
-                                  : formatFullCurrency(value)}
-                              </td>
-                            );
-                          })}
+                          <td className={`border border-slate-200 px-3 py-2 text-center text-slate-700 ${rowBg}`}>
+                            {formatFullCurrency(entry.actual)}
+                          </td>
+                          <td className={`border border-slate-200 px-3 py-2 text-center ${getPercentClass(entry.percentActual)} ${rowBg}`}>
+                            {formatPercent(entry.percentActual)}
+                          </td>
+                          <td className={`border border-slate-200 px-3 py-2 text-center font-medium ${backlogColor} ${rowBg}`}>
+                            {formatFullCurrency(entry.backlog)}
+                          </td>
                         </tr>
                       );
                     })}
+                    {/* Summary row */}
+                    <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
+                      <td className="sticky left-0 z-10 border border-slate-200 px-3 py-2.5 text-left text-slate-800 bg-slate-100">
+                        รวมทั้งปี
+                      </td>
+                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
+                        {formatFullCurrency(totals.target)}
+                      </td>
+                      <td className="border border-slate-200 px-3 py-2.5 text-center text-slate-800">
+                        {formatFullCurrency(totals.actual)}
+                      </td>
+                      <td className={`border border-slate-200 px-3 py-2.5 text-center ${getPercentClass(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}`}>
+                        {formatPercent(totals.target > 0 ? (totals.actual / totals.target) * 100 : 0)}
+                      </td>
+                      <td className={`border border-slate-200 px-3 py-2.5 text-center ${totals.backlog > 0 ? "text-emerald-600" : totals.backlog < 0 ? "text-rose-600" : "text-slate-800"}`}>
+                        {formatFullCurrency(totals.backlog)}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
