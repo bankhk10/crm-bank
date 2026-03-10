@@ -14,4 +14,12 @@
 pnpm tsx scripts/seed-test/seed-products.ts
 ```
 
+### 2. ข้อมูลลูกค้า (Customers)
+
+สร้างลูกค้าจำลองครบทุกประเภท (DEALER, SUBDEALER, FARMER, BROKER) พร้อมเปิดฟิลด์เฉพาะตามประเภทลูกค้า จำนวน 4 รายการ
+
+```bash
+pnpm tsx scripts/seed-test/seed-customers.ts
+```
+
 > **Note:** ตรวจสอบให้แน่ใจว่าไฟล์ `.env` มีการตั้งค่า `DATABASE_URL` อย่างถูกต้องก่อนรันคำสั่ง
