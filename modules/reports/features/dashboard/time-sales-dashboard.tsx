@@ -3,14 +3,8 @@
 import { useId, useState, useTransition } from "react";
 import {
   format,
-  startOfDay,
-  endOfDay,
   startOfMonth,
   endOfMonth,
-  startOfQuarter,
-  endOfQuarter,
-  startOfYear,
-  endOfYear,
 } from "date-fns";
 
 import {
@@ -55,9 +49,6 @@ import {
   Activity,
   Target,
   Clock,
-  ChevronUp,
-  ChevronDown,
-  Minus,
   Check,
 } from "lucide-react";
 import Link from "next/link";
@@ -83,165 +74,15 @@ import {
   getTimeSalesReportAction,
   type TimeSalesReportData,
   type DateRangeFilter,
+  quickDateRanges,
+  formatTHB,
+  formatNumber,
+  formatShortTHB,
+  chartTooltipStyle,
+  COLORS,
 } from "@/modules/reports";
-
-// ─────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────
-const COLORS = [
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
-  "#06b6d4",
-];
-
-const DAY_ORDER = [
-  "จันทร์",
-  "อังคาร",
-  "พุธ",
-  "พฤหัสบดี",
-  "ศุกร์",
-  "เสาร์",
-  "อาทิตย์",
-];
-
-const quickDateRanges = [
-  {
-    label: "วันนี้",
-    getValue: () => ({
-      from: startOfDay(new Date()),
-      to: endOfDay(new Date()),
-    }),
-  },
-  {
-    label: "เดือนนี้",
-    getValue: () => ({
-      from: startOfMonth(new Date()),
-      to: endOfMonth(new Date()),
-    }),
-  },
-  {
-    label: "ไตรมาสนี้",
-    getValue: () => ({
-      from: startOfQuarter(new Date()),
-      to: endOfQuarter(new Date()),
-    }),
-  },
-  {
-    label: "ปีนี้",
-    getValue: () => ({
-      from: startOfYear(new Date()),
-      to: endOfYear(new Date()),
-    }),
-  },
-];
-
-// ─────────────────────────────────────────────
-// Formatters
-// ─────────────────────────────────────────────
-const formatTHB = (amount: number) =>
-  new Intl.NumberFormat("th-TH", {
-    style: "currency",
-    currency: "THB",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-
-const formatNumber = (num: number) =>
-  new Intl.NumberFormat("th-TH").format(num);
-
-const formatShortTHB = (v: number) => {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
-  return String(v);
-};
-
-// ─────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────
-
-function GrowthBadge({ pct }: { pct: number }) {
-  if (pct > 0)
-    return (
-      <Badge className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold text-xs">
-        <ChevronUp className="h-3 w-3" />+{pct.toFixed(1)}%
-      </Badge>
-    );
-  if (pct < 0)
-    return (
-      <Badge className="gap-1 bg-red-50 text-red-700 border-red-200 font-semibold text-xs">
-        <ChevronDown className="h-3 w-3" />
-        {pct.toFixed(1)}%
-      </Badge>
-    );
-  return (
-    <Badge className="gap-1 bg-slate-100 text-slate-500 border-slate-200 font-semibold text-xs">
-      <Minus className="h-3 w-3" />
-      0%
-    </Badge>
-  );
-}
-
-function KpiCard({
-  label,
-  sublabel,
-  value,
-  sub,
-  icon: Icon,
-  gradient,
-  ring,
-  barColor,
-  barWidth,
-}: {
-  label: string;
-  sublabel?: string;
-  value: string;
-  sub?: React.ReactNode;
-  icon: React.ElementType;
-  gradient: string;
-  ring: string;
-  barColor: string;
-  barWidth: string;
-}) {
-  return (
-    <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-[0_8px_24px_-12px_rgba(2,6,23,0.25)] hover:shadow-[0_16px_40px_-16px_rgba(2,6,23,0.35)] transition-all duration-300">
-      <CardContent className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">{label}</p>
-            {sublabel && (
-              <p className="text-[10px] text-slate-400 mt-0.5">{sublabel}</p>
-            )}
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">
-              {value}
-            </p>
-            {sub && <div className="mt-1.5">{sub}</div>}
-            <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div
-                className={`h-full rounded-full ${barColor} transition-all duration-700`}
-                style={{ width: barWidth }}
-              />
-            </div>
-          </div>
-          <div className={`shrink-0 grid place-items-center size-11 sm:size-12 rounded-2xl ${gradient} ${ring}`}>
-            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-const chartTooltipStyle = {
-  borderRadius: "14px",
-  border: "1px solid rgba(226,232,240,0.8)",
-  boxShadow: "0 18px 60px rgba(2,6,23,0.18)",
-  padding: "10px 14px",
-  fontSize: "13px",
-};
+import { GrowthBadge } from "@/modules/reports/ui/growth-badge";
+import { KpiCard } from "@/modules/reports/ui/kpi-card";
 
 // ─────────────────────────────────────────────
 // Main Dashboard
