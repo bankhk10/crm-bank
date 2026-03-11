@@ -473,12 +473,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "temporary_creditlimit",
         action: "approve",
       },
-      {
-        key: "temporary_creditlimit.reject",
-        name: "ปฏิเสธวงเงินสินเชื่อชั่วคราว",
-        resource: "temporary_creditlimit",
-        action: "reject",
-      },
     ],
     data: {
       key: "data.temporary_creditlimits",
@@ -1198,7 +1192,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
     { key: "temporary_creditlimit.approve" },
-    { key: "temporary_creditlimit.reject" },
     { key: "employee.manage" },
     { key: "stock.view" },
     { key: "sales_target.view" },
@@ -1299,7 +1292,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "temporary_creditlimit.delete" },
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.approve" },
-    { key: "temporary_creditlimit.reject" },
     // Company permissions
     { key: "company.create" },
     { key: "company.edit" },

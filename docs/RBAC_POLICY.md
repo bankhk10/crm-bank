@@ -141,7 +141,6 @@ enum PermissionType {
 | `temporary_creditlimit.delete`  | ลบวงเงินสินเชื่อชั่วคราว           | delete  |
 | `temporary_creditlimit.view`    | ดูรายละเอียดวงเงินสินเชื่อชั่วคราว | view    |
 | `temporary_creditlimit.approve` | อนุมัติวงเงินสินเชื่อชั่วคราว      | approve |
-| `temporary_creditlimit.reject`  | ปฏิเสธวงเงินสินเชื่อชั่วคราว       | reject  |
 
 ### 4.8 Employee Permissions (พนักงาน)
 
