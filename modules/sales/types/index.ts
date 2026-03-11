@@ -61,6 +61,8 @@ export interface SaleItemWithProduct extends SaleItem {
     productCode: string;
     unit?: string | null;
     price?: number | null;
+    packageSize?: string | null;
+    packageSizeUnit?: string | null;
     packageSizePerBox?: string | null;
   };
 }

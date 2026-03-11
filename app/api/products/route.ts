@@ -17,6 +17,7 @@ const productSchema = z.object({
   brand: z.string().optional(),
   chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: z.string().optional(),
+  packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   totalPackageSizePerBox: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
@@ -289,6 +290,7 @@ export async function POST(request: Request) {
         brand: parsed.data.brand,
         chemicalGroup: parsed.data.chemicalGroup,
         packageSize: parsed.data.packageSize,
+        packageSizeUnit: parsed.data.packageSizeUnit,
         packageSizePerBox: parsed.data.packageSizePerBox,
         totalPackageSizePerBox: parsed.data.totalPackageSizePerBox,
         status: parsed.data.status,

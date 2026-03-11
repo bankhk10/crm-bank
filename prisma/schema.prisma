@@ -577,6 +577,7 @@ model Product {
   productGroup           String? // กลุ่มชื่อการค้า (Trade Name Group)
   brand                  String?
   packageSize            String?
+  packageSizeUnit        String?
   packageSizePerBox      String?
   totalPackageSizePerBox String?
   status                 ProductStatus @default(ACTIVE)
@@ -823,6 +824,7 @@ model SaleItem {
   productGroup           String?
   brand                  String?
   packageSize            String?
+  packageSizeUnit        String?
   packageSizePerBox      String?
   totalPackageSizePerBox String?
   price                  Decimal? @db.Decimal(15, 2)

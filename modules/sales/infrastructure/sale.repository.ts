@@ -281,6 +281,7 @@ export async function createSale(data: {
     productGroup?: string | null;
     brand?: string | null;
     packageSize?: string | null;
+    packageSizeUnit?: string | null;
     packageSizePerBox?: string | null;
     totalPackageSizePerBox?: string | null;
     price?: number | null;
@@ -383,6 +384,7 @@ export async function createSale(data: {
           productGroup: item.productGroup,
           brand: item.brand,
           packageSize: item.packageSize,
+          packageSizeUnit: item.packageSizeUnit,
           packageSizePerBox: item.packageSizePerBox,
           totalPackageSizePerBox: item.totalPackageSizePerBox,
           price: item.price != null ? new Prisma.Decimal(item.price) : null,
@@ -511,6 +513,7 @@ export async function updateSale(
       productGroup?: string | null;
       brand?: string | null;
       packageSize?: string | null;
+      packageSizeUnit?: string | null;
       packageSizePerBox?: string | null;
       totalPackageSizePerBox?: string | null;
       price?: number | null;
@@ -643,6 +646,7 @@ export async function updateSale(
             productGroup: item.productGroup,
             brand: item.brand,
             packageSize: item.packageSize,
+            packageSizeUnit: item.packageSizeUnit,
             packageSizePerBox: item.packageSizePerBox,
             totalPackageSizePerBox: item.totalPackageSizePerBox,
             price: item.price != null ? new Prisma.Decimal(item.price) : null,

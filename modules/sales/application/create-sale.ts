@@ -191,6 +191,7 @@ export async function createSaleUseCase(
         productGroup: product?.productGroup,
         brand: product?.brand,
         packageSize: product?.packageSize,
+        packageSizeUnit: product?.packageSizeUnit,
         packageSizePerBox: product?.packageSizePerBox,
         totalPackageSizePerBox: product?.totalPackageSizePerBox,
         price: product?.price != null ? Number(product.price) : null,

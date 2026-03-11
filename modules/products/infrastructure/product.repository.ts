@@ -220,6 +220,7 @@ export async function createProduct(data: {
   brand?: string;
   chemicalGroup?: string;
   packageSize?: string;
+  packageSizeUnit?: string;
   packageSizePerBox?: string;
   totalPackageSizePerBox?: string;
   status: "ACTIVE" | "INACTIVE";
@@ -241,6 +242,7 @@ export async function createProduct(data: {
       brand: data.brand,
       chemicalGroup: data.chemicalGroup,
       packageSize: data.packageSize,
+      packageSizeUnit: data.packageSizeUnit,
       packageSizePerBox: data.packageSizePerBox,
       totalPackageSizePerBox: data.totalPackageSizePerBox,
       status: data.status,

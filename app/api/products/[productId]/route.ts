@@ -25,6 +25,7 @@ const productSchema = z.object({
   brand: z.string().optional(),
   chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: z.string().optional(),
+  packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.string().optional(),
   totalPackageSizePerBox: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),

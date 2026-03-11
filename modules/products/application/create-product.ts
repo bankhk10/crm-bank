@@ -21,6 +21,7 @@ export async function createProductUseCase(rawData: unknown) {
     const product = await createProduct({
       ...parsed.data,
       status: parsed.data.status as "ACTIVE" | "INACTIVE",
+      packageSizeUnit: parsed.data.packageSizeUnit,
       categoryId: parsed.data.categoryId || null,
       productChainId: parsed.data.productChainId || null,
       parentId: parsed.data.parentId || null,

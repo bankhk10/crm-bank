@@ -95,6 +95,7 @@ export interface Product {
   brand: string | null;
   chemicalGroup: string | null; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize: string | null;
+  packageSizeUnit: string | null;
   packageSizePerBox: string | null;
   totalPackageSizePerBox: string | null;
   status: ProductStatus;
@@ -132,6 +133,7 @@ export interface ProductFormData {
   brand?: string;
   chemicalGroup?: string; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   packageSize?: string;
+  packageSizeUnit?: string;
   packageSizePerBox?: string;
   totalPackageSizePerBox?: string;
   status: ProductStatus;

@@ -65,6 +65,7 @@ export function ProductForm({
     brand: initialData?.brand || "",
     chemicalGroup: initialData?.chemicalGroup || "",
     packageSize: initialData?.packageSize || "",
+    packageSizeUnit: initialData?.packageSizeUnit || "G",
     packageSizePerBox: initialData?.packageSizePerBox || "",
     status: initialData?.status || "ACTIVE",
     usedForPlants: initialData?.usedForPlants || [],
@@ -156,15 +157,11 @@ export function ProductForm({
     fetchOptions();
   }, [productId]);
 
-  // Calculate total package size per box when packageSize or packageSizePerBox changes
+  // Calculate total package size per box when packageSize, packageSizeUnit, or packageSizePerBox changes
   useEffect(() => {
-    const packageSizeMatch = (formData.packageSize || "").match(/^([\d.]+)/);
-    const packageSizeValue = packageSizeMatch
-      ? parseFloat(packageSizeMatch[1])
-      : 0;
+    const packageSizeValue = parseFloat(formData.packageSize || "0");
     const packageSizePerBox = parseFloat(formData.packageSizePerBox || "0");
-    const packageSizeUnit =
-      (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] || "G";
+    const packageSizeUnit = formData.packageSizeUnit || "G";
 
     if (packageSizeValue && packageSizePerBox) {
       const total = packageSizeValue * packageSizePerBox;
@@ -180,7 +177,7 @@ export function ProductForm({
         totalPackageSizePerBox: "",
       }));
     }
-  }, [formData.packageSize, formData.packageSizePerBox]);
+  }, [formData.packageSize, formData.packageSizeUnit, formData.packageSizePerBox]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -229,6 +226,7 @@ export function ProductForm({
         brand: formData.brand || undefined,
         chemicalGroup: formData.chemicalGroup || undefined,
         packageSize: formData.packageSize || undefined,
+        packageSizeUnit: formData.packageSizeUnit || "G",
         packageSizePerBox: formData.packageSizePerBox || undefined,
         totalPackageSizePerBox: formData.totalPackageSizePerBox || undefined,
         status: formData.status,
@@ -438,6 +436,8 @@ export function ProductForm({
           (payload.chemicalGroup as string | undefined) ?? prev.chemicalGroup,
         packageSize:
           (payload.packageSize as string | undefined) ?? prev.packageSize,
+        packageSizeUnit:
+          (payload.packageSizeUnit as string | undefined) ?? prev.packageSizeUnit,
         packageSizePerBox:
           (payload.packageSizePerBox as string | undefined) ??
           prev.packageSizePerBox,
@@ -658,53 +658,16 @@ export function ProductForm({
           <Label className="text-base font-medium mx-2">ขนาดบรรจุ</Label>
           <div className="flex gap-2">
             <Input
-              value={(() => {
-                const match = (formData.packageSize || "").match(/^([\d.]+)/);
-                return match ? match[1] : "";
-              })()}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                const currentUnit =
-                  (formData.packageSize || "").match(/[a-zA-Z]+$/)?.[0] ||
-                  (PACKAGE_UNIT_OPTIONS.find((opt) =>
-                    (formData.packageSize || "").endsWith(opt.value),
-                  )?.value ??
-                    "G");
-                updateField(
-                  "packageSize",
-                  newValue ? `${newValue} ${currentUnit}` : currentUnit,
-                );
-              }}
+              value={formData.packageSize || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, packageSize: e.target.value }))}
               placeholder="ระบุขนาด"
               className="flex-1"
               disabled={loading}
               type="number"
             />
             <Select
-              value={(() => {
-                // Try to find a matching unit from the end of the string
-                const str = formData.packageSize || "";
-                // Sort options by length desc to prioritize longer matches (e.g. kg over g)
-                const sortedOptions = [...PACKAGE_UNIT_OPTIONS].sort(
-                  (a, b) => b.value.length - a.value.length,
-                );
-
-                for (const opt of sortedOptions) {
-                  if (
-                    str.endsWith(opt.value) ||
-                    str.endsWith(" " + opt.value)
-                  ) {
-                    return opt.value;
-                  }
-                }
-                const match = str.match(/[a-zA-Z]+$/);
-                return match ? match[0] : "G";
-              })()}
-              onValueChange={(newUnit) => {
-                const match = (formData.packageSize || "").match(/^([\d.]+)/);
-                const currentValue = match ? match[1] : "";
-                updateField("packageSize", currentValue ? `${currentValue} ${newUnit}` : newUnit);
-              }}
+              value={formData.packageSizeUnit || "G"}
+              onValueChange={(newUnit) => setFormData(prev => ({ ...prev, packageSizeUnit: newUnit }))}
               disabled={loading}
             >
               <SelectTrigger className="w-[140px]">
