@@ -48,7 +48,6 @@ export function ShippingCompaniesTable({
     const { hasPermission, allowed, isLoading } = usePermission("menu.shipping-companies");
     const canCreate =
         hasPermission("shipping-company.create") ||
-        hasPermission("shipping-company.manage") ||
         hasPermission("menu.shipping-companies");
     const canView = !isLoading && allowed;
     const canDelete = hasPermission("shipping-company.delete");

@@ -20,7 +20,6 @@ export default async function EditShippingCompanyPage({ params }: PageProps) {
     const perms = session.user.permissionKeys ?? [];
     const canEdit =
         perms.includes("shipping-company.edit") ||
-        perms.includes("shipping-company.manage") ||
         perms.includes("menu.shipping-companies"); // fallback
 
     if (!canEdit) {

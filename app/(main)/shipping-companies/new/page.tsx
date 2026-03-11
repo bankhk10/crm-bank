@@ -14,7 +14,6 @@ export default async function NewShippingCompanyPage() {
     const perms = session.user.permissionKeys ?? [];
     const canCreate =
         perms.includes("shipping-company.create") ||
-        perms.includes("shipping-company.manage") ||
         perms.includes("menu.shipping-companies");
 
     if (!canCreate) {

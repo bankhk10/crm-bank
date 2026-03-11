@@ -55,9 +55,6 @@ export async function updateShippingCompanyAction(
 
   if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
     if (
-      !(session.user.permissionKeys ?? []).includes(
-        "shipping-company.manage",
-      ) &&
       !(session.user.permissionKeys ?? []).includes("shipping-company.edit")
     ) {
       return { success: false, error: "Forbidden" };

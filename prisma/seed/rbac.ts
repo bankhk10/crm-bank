@@ -699,12 +699,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "shipping-company",
         action: "delete",
       },
-      {
-        key: "shipping-company.manage",
-        name: "จัดการบริษัทขนส่ง",
-        resource: "shipping-company",
-        action: "manage",
-      },
     ],
   },
 
