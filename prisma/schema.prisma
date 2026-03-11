@@ -101,10 +101,11 @@ model User {
   saleStatusChanges              SaleStatusHistory[]      @relation("StatusHistoryUser")
 
   // Logging relations
-  auditLogs            AuditLog[]     @relation("AuditLogUser")
-  securityLogs         SecurityLog[]  @relation("SecurityLogUser")
-  targetedSecurityLogs SecurityLog[]  @relation("SecurityLogTargetUser") // Existing
-  notifications        Notification[] @relation("UserNotifications")
+  auditLogs              AuditLog[]            @relation("AuditLogUser")
+  securityLogs           SecurityLog[]         @relation("SecurityLogUser")
+  targetedSecurityLogs   SecurityLog[]         @relation("SecurityLogTargetUser") // Existing
+  notifications          Notification[]        @relation("UserNotifications")
+  salesTargetHistories   SalesTargetHistory[]  @relation("SalesTargetHistoryUser")
 }
 
 model Company {
@@ -1297,8 +1298,9 @@ model SalesTarget {
   month      Int
   employeeId String // พนักงาน
 
-  employee Employee           @relation(fields: [employeeId], references: [id])
+  employee Employee              @relation(fields: [employeeId], references: [id])
   stores   SalesTargetStore[]
+  history  SalesTargetHistory[] // ประวัติการเปลี่ยนแปลง
 
   createdById String?
   createdAt   DateTime @default(now())
@@ -1338,4 +1340,39 @@ model SalesTargetItem {
 
   @@index([salesTargetStoreId])
   @@index([productId])
+}
+
+// ==========================================
+// SALES TARGET HISTORY (Audit Trail)
+// ==========================================
+
+enum SalesTargetChangeType {
+  CREATED  // สร้างใหม่
+  UPDATED  // แก้ไข
+  DELETED  // ลบ
+}
+
+// ประวัติการเปลี่ยนแปลงเป้าหมายการขาย
+// เก็บ snapshot แบบ JSON ก่อน/หลังการเปลี่ยนแปลง
+model SalesTargetHistory {
+  id            String                @id @default(cuid())
+  salesTargetId String // FK ไปยัง SalesTarget ที่ถูกแก้ไข
+  changeType    SalesTargetChangeType // CREATE / UPDATE / DELETE
+  changedById   String // ใครแก้ไข (FK to User)
+  changedAt     DateTime              @default(now())
+
+  // Snapshot ข้อมูลเต็ม (JSON) เพื่อให้ดูย้อนหลังได้โดยไม่ต้อง JOIN
+  snapshotBefore Json? // ข้อมูลก่อนแก้ไข (null เมื่อ CREATE)
+  snapshotAfter  Json? // ข้อมูลหลังแก้ไข (null เมื่อ DELETE)
+
+  // สรุปการเปลี่ยนแปลงเพื่อแสดงใน UI ได้รวดเร็ว
+  changeSummary String? // เช่น "แก้ไขสินค้า 3 รายการ, เพิ่มร้านค้า 1 แห่ง"
+
+  // Relations
+  salesTarget SalesTarget @relation(fields: [salesTargetId], references: [id], onDelete: Cascade)
+  changedBy   User        @relation("SalesTargetHistoryUser", fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([salesTargetId, changedAt])
+  @@index([changedById, changedAt])
+  @@index([changedAt])
 }

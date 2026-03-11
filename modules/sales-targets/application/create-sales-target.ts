@@ -3,11 +3,16 @@ import {
   createSalesTarget,
   findExistingSalesTarget,
 } from "../infrastructure/sales-target.repository";
+import {
+  recordSalesTargetHistory,
+  buildSnapshot,
+} from "../infrastructure/sales-target-history.repository";
 import { MONTHS } from "../constants";
 
 /**
  * Use case: Create a new sales target.
  * Validates input, checks for duplicates, then persists via repository.
+ * Also records a CREATED history entry.
  */
 export async function createSalesTargetUseCase(
   rawData: unknown,
@@ -48,6 +53,15 @@ export async function createSalesTargetUseCase(
     employeeId: data.employeeId,
     createdById: userId,
     stores: data.stores,
+  });
+
+  // บันทึกประวัติ: CREATED
+  await recordSalesTargetHistory({
+    salesTargetId: result.id,
+    changeType: "CREATED",
+    changedById: userId,
+    snapshotBefore: null,
+    snapshotAfter: buildSnapshot(result),
   });
 
   return { success: true as const, salesTarget: result };

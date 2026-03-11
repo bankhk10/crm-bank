@@ -11,6 +11,7 @@ import {
   getAvailableYearsUseCase,
 } from "../application";
 import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
+import { findSalesTargetHistory } from "../infrastructure/sales-target-history.repository";
 
 // ─────────────────────────────────────────────
 // Query Actions
@@ -138,7 +139,7 @@ export async function updateSalesTargetAction(id: string, rawData: unknown) {
   }
 
   try {
-    const result = await updateSalesTargetUseCase(id, rawData);
+    const result = await updateSalesTargetUseCase(id, rawData, session.user.id);
     if (result.success) {
       revalidatePath("/sales-targets");
       revalidatePath(`/sales-targets/${id}/edit`);
@@ -173,5 +174,40 @@ export async function deleteSalesTargetAction(id: string) {
     return { success: true };
   } catch (_err) {
     return { success: false, error: "Failed to delete sales target." };
+  }
+}
+
+// ─────────────────────────────────────────────
+// History Actions
+// ─────────────────────────────────────────────
+
+/**
+ * Get the change history for a specific sales target.
+ * Only the creator (sales_employee) or admins/managers with permission can view.
+ */
+export async function getSalesTargetHistoryAction(salesTargetId: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false as const, error: "Unauthorized", history: [] };
+  }
+
+  const hasPermission =
+    session.user.roles?.includes("administrator") ||
+    session.user.permissionKeys?.includes("sales_target.view") ||
+    session.user.permissionKeys?.includes("menu.sales_targets");
+
+  if (!hasPermission) {
+    return { success: false as const, error: "Forbidden", history: [] };
+  }
+
+  try {
+    const history = await findSalesTargetHistory(salesTargetId);
+    return { success: true as const, history };
+  } catch (_err) {
+    return {
+      success: false as const,
+      error: "Failed to fetch history",
+      history: [],
+    };
   }
 }

@@ -3,12 +3,21 @@ import {
   findSalesTargetById,
   updateSalesTarget,
 } from "../infrastructure/sales-target.repository";
+import {
+  recordSalesTargetHistory,
+  buildSnapshot,
+} from "../infrastructure/sales-target-history.repository";
 
 /**
  * Use case: Update an existing sales target.
  * Validates input, checks existence, then persists.
+ * Also records an UPDATED history entry with before/after snapshots.
  */
-export async function updateSalesTargetUseCase(id: string, rawData: unknown) {
+export async function updateSalesTargetUseCase(
+  id: string,
+  rawData: unknown,
+  updatedById?: string,
+) {
   const parsed = salesTargetSchema.safeParse(rawData);
   if (!parsed.success) {
     return {
@@ -22,6 +31,9 @@ export async function updateSalesTargetUseCase(id: string, rawData: unknown) {
     return { success: false as const, error: "Sales target not found" };
   }
 
+  // เก็บ snapshot ก่อนแก้ไข
+  const snapshotBefore = buildSnapshot(existing);
+
   const data: SalesTargetFormValues = parsed.data;
 
   const result = await updateSalesTarget(id, {
@@ -31,5 +43,18 @@ export async function updateSalesTargetUseCase(id: string, rawData: unknown) {
     stores: data.stores,
   });
 
+  // เก็บ snapshot หลังแก้ไข แล้วบันทึกประวัติ
+  if (updatedById) {
+    const snapshotAfter = buildSnapshot(result);
+    await recordSalesTargetHistory({
+      salesTargetId: id,
+      changeType: "UPDATED",
+      changedById: updatedById,
+      snapshotBefore,
+      snapshotAfter,
+    });
+  }
+
   return { success: true as const, salesTarget: result };
 }
+
