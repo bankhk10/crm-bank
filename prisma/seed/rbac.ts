@@ -519,12 +519,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "employee",
         action: "view",
       },
-      {
-        key: "employee.manage",
-        name: "จัดการพนักงาน",
-        resource: "employee",
-        action: "manage",
-      },
     ],
     data: {
       key: "data.employees",
@@ -1186,7 +1180,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
     { key: "temporary_creditlimit.approve" },
-    { key: "employee.manage" },
     { key: "stock.view" },
     { key: "sales_target.view" },
     {
@@ -1292,7 +1285,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "company.delete" },
     // Employee permissions
     { key: "employee.view", dataAccess: "VIEW_ALL" },
-    { key: "employee.manage" },
     // Data scope permissions - Admin can view/edit/delete all
 
     {

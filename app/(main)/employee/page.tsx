@@ -15,7 +15,8 @@ export default async function EmployeePage() {
   }
 
   const perms = session.user.permissionKeys ?? [];
-  const canView = perms.includes("menu.employees") || perms.includes("employee.view") || perms.includes("employee.manage");
+  const canView =
+    perms.includes("menu.employees") || perms.includes("employee.view");
   const resourcePath = "/api/employee";
   const authorized = isAuthorized(resourcePath, perms);
 

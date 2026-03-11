@@ -34,13 +34,9 @@ type EmployeesGridProps = {
 export function EmployeeTable({ employees }: EmployeesGridProps) {
     const router = useRouter();
     const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
-    const canCreate =
-        !isLoading &&
-        (hasPermission("employee.manage") || hasPermission("employee.create"));
-    const canEdit =
-        hasPermission("employee.manage") || hasPermission("employee.edit");
-    const canDelete =
-        hasPermission("employee.manage") || hasPermission("employee.delete");
+    const canCreate = !isLoading && hasPermission("employee.create");
+    const canEdit = !isLoading && hasPermission("employee.edit");
+    const canDelete = !isLoading && hasPermission("employee.delete");
     const canView =
         hasPermission("menu.employees") || hasPermission("employee.view");
 

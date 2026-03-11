@@ -144,15 +144,12 @@ enum PermissionType {
 
 ### 4.8 Employee Permissions (พนักงาน)
 
-| Key               | Name (TH)           | Action | หมายเหตุ                            |
-| ----------------- | ------------------- | ------ | ----------------------------------- |
-| `employee.view`   | ดูรายละเอียดพนักงาน | view   |                                     |
-| `employee.create` | สร้างพนักงาน        | create |                                     |
-| `employee.edit`   | แก้ไขพนักงาน        | edit   | สิทธิ์แก้ไขพนักงานเฉพาะ             |
-| `employee.delete` | ลบพนักงาน           | delete |                                     |
-| `employee.manage` | จัดการพนักงาน       | manage | ครอบคลุม create/edit/delete ทั้งหมด |
-
-> **หมายเหตุ**: `employee.manage` เป็น "super permission" ที่ครอบคลุมการจัดการพนักงานทั้งหมด (create, edit, delete) ใช้สำหรับ Admin roles ส่วน `employee.edit` เป็นสิทธิ์เฉพาะการแก้ไขข้อมูลพนักงาน สามารถใช้สำหรับ roles ที่ต้องการให้แก้ไขได้อย่างเดียวโดยไม่ให้สร้างหรือลบ
+| Key               | Name (TH)           | Action | หมายเหตุ                |
+| ----------------- | ------------------- | ------ | ----------------------- |
+| `employee.view`   | ดูรายละเอียดพนักงาน | view   |                         |
+| `employee.create` | สร้างพนักงาน        | create |                         |
+| `employee.edit`   | แก้ไขพนักงาน        | edit   | สิทธิ์แก้ไขพนักงานเฉพาะ |
+| `employee.delete` | ลบพนักงาน           | delete |                         |
 
 ### 4.9 Company Permissions (บริษัท)
 

@@ -20,10 +20,8 @@ export async function createEmployeeAction(rawData: unknown) {
     return { success: false, error: "Unauthorized" };
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
-    if (!(session.user.permissionKeys ?? []).includes("employee.manage")) {
-      return { success: false, error: "Forbidden" };
-    }
+  if (!(session.user.permissionKeys ?? []).includes("employee.create")) {
+    return { success: false, error: "Forbidden" };
   }
 
   try {
@@ -47,13 +45,8 @@ export async function updateEmployeeAction(id: string, rawData: unknown) {
     return { success: false, error: "Unauthorized" };
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
-    if (
-      !(session.user.permissionKeys ?? []).includes("employee.manage") &&
-      !(session.user.permissionKeys ?? []).includes("employee.edit")
-    ) {
-      return { success: false, error: "Forbidden" };
-    }
+  if (!(session.user.permissionKeys ?? []).includes("employee.edit")) {
+    return { success: false, error: "Forbidden" };
   }
 
   try {
@@ -79,10 +72,8 @@ export async function deleteEmployeeAction(id: string) {
     return { success: false, error: "Unauthorized" };
   }
 
-  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
-    if (!(session.user.permissionKeys ?? []).includes("employee.manage")) {
-      return { success: false, error: "Forbidden" };
-    }
+  if (!(session.user.permissionKeys ?? []).includes("employee.delete")) {
+    return { success: false, error: "Forbidden" };
   }
 
   try {

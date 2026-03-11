@@ -95,7 +95,7 @@ export async function getRBACCatalogAction() {
 // ─────────────────────────────────────────────
 
 export async function listRolesAction() {
-  const guard = await requirePermission("employee.manage");
+  const guard = await requirePermission("employee.view");
   if (!guard.success) return guard;
 
   try {
@@ -266,7 +266,7 @@ export async function deletePermissionAction(id: string) {
 // ─────────────────────────────────────────────
 
 export async function listDepartmentsAction() {
-  const guard = await requirePermission("employee.manage");
+  const guard = await requirePermission("employee.view");
   if (!guard.success) return guard;
 
   try {
@@ -345,7 +345,7 @@ export async function deleteDepartmentAction(id: string) {
 // ─────────────────────────────────────────────
 
 export async function listPositionsAction() {
-  const guard = await requirePermission("employee.manage");
+  const guard = await requirePermission("employee.view");
   if (!guard.success) return guard;
 
   try {

@@ -43,10 +43,10 @@ const routeRules: RoutePermissionRule[] = [
   },
   { pattern: /^\/dashboard\/products(\/.*)?$/, required: ["menu.products"] },
   { pattern: /^\/companies(\/.*)?$/, required: ["menu.companies"] },
-  { pattern: /^\/employee\/new$/, required: ["employee.manage"] },
+  { pattern: /^\/employee\/new$/, required: ["employee.create"] },
   { pattern: /^\/employee(\/.*)?$/, required: ["menu.employees"] },
   { pattern: /^\/api\/products(\/.*)?$/, required: ["menu.products"] },
-  { pattern: /^\/api\/employee(\/.*)?$/, required: ["employee.manage"] },
+  { pattern: /^\/api\/employee(\/.*)?$/, required: ["employee.view"] },
   { pattern: /^\/api\/companies(\/.*)?$/, required: ["menu.companies"] },
 ];
 

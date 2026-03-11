@@ -45,10 +45,8 @@ export function EmployeeDetailView({ employeeId }: EmployeeDetailViewProps) {
     const router = useRouter();
     const { hasPermission, allowed, isLoading } = usePermission("menu.employees");
     const canView = !isLoading && allowed;
-    const canEdit =
-        hasPermission("employee.edit") || hasPermission("employee.manage");
-    const canDelete =
-        hasPermission("employee.delete") || hasPermission("employee.manage");
+    const canEdit = hasPermission("employee.edit");
+    const canDelete = hasPermission("employee.delete");
 
     const [employee, setEmployee] = useState<EmployeeDetail | null>(null);
     const [loading, setLoading] = useState(true);

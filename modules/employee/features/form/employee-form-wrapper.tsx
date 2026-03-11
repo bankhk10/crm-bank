@@ -20,9 +20,10 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
     const router = useRouter();
     const isEditMode = !!employeeId;
 
-    const permissionNeeded = isEditMode ? "employee.edit" : "employee.manage";
-    const { hasPermission, isLoading: checkingPermission } = usePermission(permissionNeeded);
-    const canAccess = hasPermission(permissionNeeded) || hasPermission("employee.manage");
+    const { hasPermission, isLoading } = usePermission("menu.employees");
+
+    const permissionNeeded = isEditMode ? "employee.edit" : "employee.create";
+    const canAccess = hasPermission(permissionNeeded);
 
     const [payload, setPayload] = useState<any>({});
     const [loading, setLoading] = useState(isEditMode);
@@ -120,7 +121,7 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
                         </h5>
                     </div>
 
-                    {!checkingPermission && (!canAccess || error) && (
+                    {!isLoading && (!canAccess || error) && (
                         <div>
                             {!canAccess && (
                                 <Alert variant="destructive">

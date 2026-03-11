@@ -8,7 +8,7 @@ import {
 
 export async function GET() {
   // Allow users with employee.manage to read departments for employee form
-  const guardResult = await guardPermission("employee.manage");
+  const guardResult = await guardPermission("employee.view");
   if ("response" in guardResult) {
     return guardResult.response;
   }
