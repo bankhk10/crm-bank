@@ -209,6 +209,7 @@ enum PermissionType {
 ```typescript
 enum DataAccessLevel {
   VIEW_OWN         // ดูได้เฉพาะของตัวเอง
+  VIEW_TEAM        // ดูได้เฉพาะทีมตัวเอง
   VIEW_DEPARTMENT  // ดูได้เฉพาะแผนกตัวเอง
   VIEW_ALL         // ดูได้ทั้งหมด
 }
