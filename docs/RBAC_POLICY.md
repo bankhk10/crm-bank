@@ -173,13 +173,12 @@ enum PermissionType {
 
 ### 4.11 Sales Target Permissions (เป้าหมายยอดขาย)
 
-| Key                   | Name (TH)                                          | Action |
-| --------------------- | -------------------------------------------------- | ------ |
-| `sales_target.view`   | ดูเป้าหมายยอดขาย                                   | view   |
-| `sales_target.create` | สร้างเป้าหมายยอดขาย                                | create |
-| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย                                | edit   |
-| `sales_target.delete` | ลบเป้าหมายยอดขาย                                   | delete |
-| `sales_target.manage` | จัดการเป้าหมายยอดขาย (ครอบคลุม create/edit/delete) | manage |
+| Key                   | Name (TH)           | Action |
+| --------------------- | ------------------- | ------ |
+| `sales_target.view`   | ดูเป้าหมายยอดขาย    | view   |
+| `sales_target.create` | สร้างเป้าหมายยอดขาย | create |
+| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย | edit   |
+| `sales_target.delete` | ลบเป้าหมายยอดขาย    | delete |
 
 ### 4.12 System Permissions (ระบบ)
 
@@ -554,7 +553,6 @@ node scripts/migrate-permissions.js
 
 | Date       | Version | Changes                                                                                               |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| 2026-03-03 | 1.2.3   | Added `sales_target.manage` super permission; fixed permission keys (underscore naming)               |
 | 2026-01-29 | 1.2.2   | Added `CEO` role (read-only executive access) and `ธุรการขาย` (sales_admin) role for fulfillment      |
 | 2026-01-29 | 1.2.1   | Added `employee.edit` permission; clarified `employee.manage` as super permission                     |
 | 2026-01-28 | 1.2.0   | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |
