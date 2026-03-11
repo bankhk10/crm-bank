@@ -148,7 +148,7 @@ export function ProductsTable(props: ProductsTableProps) {
                                             <div className="flex-1 px-2 flex items-center gap-3">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
                                                 <div className="flex flex-col">
-                                                    <div className="text-sm font-semibold text-gray-900 truncate">
+                                                    <div className="text-sm font-medium text-gray-900 truncate">
                                                         {child.name}
                                                     </div>
                                                     <div className="text-[11px] font-medium text-gray-500">
