@@ -107,25 +107,25 @@ enum PermissionType {
 
 ### 4.5 Customer Permissions (ลูกค้า)
 
-| Key                         | Name (TH)                    | Action |
-| --------------------------- | ---------------------------- | ------ |
-| `customer.create.dealer`    | สร้างลูกค้าตัวแทนจำหน่าย     | create |
-| `customer.create.subdealer` | สร้างลูกค้าตัวแทนจำหน่ายย่อย | create |
-| `customer.create.farmer`    | สร้างลูกค้าเกษตรกร           | create |
-| `customer.create.broker`    | สร้างลูกค้านายหน้า           | create |
-| `customer.edit.dealer`      | แก้ไขลูกค้าตัวแทนจำหน่าย     | edit   |
-| `customer.edit.subdealer`   | แก้ไขลูกค้าตัวแทนจำหน่ายย่อย | edit   |
-| `customer.edit.farmer`      | แก้ไขลูกค้าเกษตรกร           | edit   |
-| `customer.edit.broker`      | แก้ไขลูกค้านายหน้า           | edit   |
-| `customer.delete.dealer`    | ลบลูกค้าตัวแทนจำหน่าย        | delete |
-| `customer.delete.subdealer` | ลบลูกค้าตัวแทนจำหน่ายย่อย    | delete |
-| `customer.delete.farmer`    | ลบลูกค้าเกษตรกร              | delete |
-| `customer.delete.broker`    | ลบลูกค้านายหน้า              | delete |
-| `customer.view.dealer`      | ดูรายละเอียดลูกค้าตัวแทนจำหน่าย | view   |
+| Key                         | Name (TH)                           | Action |
+| --------------------------- | ----------------------------------- | ------ |
+| `customer.create.dealer`    | สร้างลูกค้าตัวแทนจำหน่าย            | create |
+| `customer.create.subdealer` | สร้างลูกค้าตัวแทนจำหน่ายย่อย        | create |
+| `customer.create.farmer`    | สร้างลูกค้าเกษตรกร                  | create |
+| `customer.create.broker`    | สร้างลูกค้านายหน้า                  | create |
+| `customer.edit.dealer`      | แก้ไขลูกค้าตัวแทนจำหน่าย            | edit   |
+| `customer.edit.subdealer`   | แก้ไขลูกค้าตัวแทนจำหน่ายย่อย        | edit   |
+| `customer.edit.farmer`      | แก้ไขลูกค้าเกษตรกร                  | edit   |
+| `customer.edit.broker`      | แก้ไขลูกค้านายหน้า                  | edit   |
+| `customer.delete.dealer`    | ลบลูกค้าตัวแทนจำหน่าย               | delete |
+| `customer.delete.subdealer` | ลบลูกค้าตัวแทนจำหน่ายย่อย           | delete |
+| `customer.delete.farmer`    | ลบลูกค้าเกษตรกร                     | delete |
+| `customer.delete.broker`    | ลบลูกค้านายหน้า                     | delete |
+| `customer.view.dealer`      | ดูรายละเอียดลูกค้าตัวแทนจำหน่าย     | view   |
 | `customer.view.subdealer`   | ดูรายละเอียดลูกค้าตัวแทนจำหน่ายย่อย | view   |
-| `customer.view.farmer`      | ดูรายละเอียดลูกค้าเกษตรกร       | view   |
-| `customer.view.broker`      | ดูรายละเอียดลูกค้านายหน้า       | view   |
-| `customer.export`           | ส่งออกข้อมูลลูกค้า           | export |
+| `customer.view.farmer`      | ดูรายละเอียดลูกค้าเกษตรกร           | view   |
+| `customer.view.broker`      | ดูรายละเอียดลูกค้านายหน้า           | view   |
+| `customer.export`           | ส่งออกข้อมูลลูกค้า                  | export |
 
 ### 4.6 Credit Limit Permissions (วงเงินเครดิต)
 
@@ -179,12 +179,12 @@ enum PermissionType {
 
 ### 4.11 Sales Target Permissions (เป้าหมายยอดขาย)
 
-| Key                   | Name (TH)           | Action |
-| --------------------- | ------------------- | ------ |
-| `sales_target.view`   | ดูเป้าหมายยอดขาย              | view   |
-| `sales_target.create` | สร้างเป้าหมายยอดขาย           | create |
-| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย           | edit   |
-| `sales_target.delete` | ลบเป้าหมายยอดขาย              | delete |
+| Key                   | Name (TH)                                          | Action |
+| --------------------- | -------------------------------------------------- | ------ |
+| `sales_target.view`   | ดูเป้าหมายยอดขาย                                   | view   |
+| `sales_target.create` | สร้างเป้าหมายยอดขาย                                | create |
+| `sales_target.edit`   | แก้ไขเป้าหมายยอดขาย                                | edit   |
+| `sales_target.delete` | ลบเป้าหมายยอดขาย                                   | delete |
 | `sales_target.manage` | จัดการเป้าหมายยอดขาย (ครอบคลุม create/edit/delete) | manage |
 
 ### 4.12 Stock/Inventory Permissions (คลังสินค้า)
@@ -568,7 +568,7 @@ node scripts/migrate-permissions.js
 
 | Date       | Version | Changes                                                                                               |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------- |
-| 2026-03-03 | 1.2.3   | Added `sales_target.manage` super permission; fixed permission keys (underscore naming) |
+| 2026-03-03 | 1.2.3   | Added `sales_target.manage` super permission; fixed permission keys (underscore naming)               |
 | 2026-01-29 | 1.2.2   | Added `CEO` role (read-only executive access) and `ธุรการขาย` (sales_admin) role for fulfillment      |
 | 2026-01-29 | 1.2.1   | Added `employee.edit` permission; clarified `employee.manage` as super permission                     |
 | 2026-01-28 | 1.2.0   | **Breaking**: Changed session permissions from object to array (permissionKeys) to fix HTTP 431 error |
