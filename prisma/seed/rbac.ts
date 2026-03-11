@@ -433,50 +433,50 @@ const permissionGroups: Record<string, PermissionGroup> = {
   },
 
   // ─────────────────────────────────────────────
-  // 💳 Temporary Credit Limits (วงเงินสินเชื่อชั่วคราว)
+  // 💳 Temporary Credit Limits (วงเงินเครดิตชั่วคราว)
   // ─────────────────────────────────────────────
   temporaryCreditLimits: {
     menu: {
       key: "menu.temporary_credit_limits",
-      name: "เมนูวงเงินสินเชื่อชั่วคราว",
+      name: "เมนูวงเงินเครดิตชั่วคราว",
       resource: "temporary_creditlimit",
       menuPath: "/temporary-credit-limits",
     },
     actions: [
       {
         key: "temporary_creditlimit.create",
-        name: "สร้างวงเงินสินเชื่อชั่วคราว",
+        name: "สร้างวงเงินเครดิตชั่วคราว",
         resource: "temporary_creditlimit",
         action: "create",
       },
       {
         key: "temporary_creditlimit.edit",
-        name: "แก้ไขวงเงินสินเชื่อชั่วคราว",
+        name: "แก้ไขวงเงินเครดิตชั่วคราว",
         resource: "temporary_creditlimit",
         action: "edit",
       },
       {
         key: "temporary_creditlimit.delete",
-        name: "ลบวงเงินสินเชื่อชั่วคราว",
+        name: "ลบวงเงินเครดิตชั่วคราว",
         resource: "temporary_creditlimit",
         action: "delete",
       },
       {
         key: "temporary_creditlimit.view",
-        name: "ดูรายละเอียดวงเงินสินเชื่อชั่วคราว",
+        name: "ดูรายละเอียดวงเงินเครดิตชั่วคราว",
         resource: "temporary_creditlimit",
         action: "view",
       },
       {
         key: "temporary_creditlimit.approve",
-        name: "อนุมัติวงเงินสินเชื่อชั่วคราว",
+        name: "อนุมัติวงเงินเครดิตชั่วคราว",
         resource: "temporary_creditlimit",
         action: "approve",
       },
     ],
     data: {
       key: "data.temporary_creditlimits",
-      name: "ขอบเขตข้อมูลวงเงินสินเชื่อชั่วคราว",
+      name: "ขอบเขตข้อมูลวงเงินเครดิตชั่วคราว",
       resource: "temporary_creditlimit",
       defaultDataAccess: DataAccessLevel.VIEW_OWN,
       defaultEditAccess: EditAccessLevel.EDIT_OWN,
