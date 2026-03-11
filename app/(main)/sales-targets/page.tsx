@@ -48,6 +48,46 @@ export default function SalesTargetsPage() {
   const [employeeFilter, setEmployeeFilter] = useState(queryFilters.employeeId);
   const [shopFilter, setShopFilter] = useState(queryFilters.shopId);
 
+  // Sync state from queryFilters if they change from navigation
+  useEffect(() => {
+    setYear(queryFilters.year);
+    setMonthFilter(queryFilters.month);
+    setEmployeeFilter(queryFilters.employeeId);
+    setShopFilter(queryFilters.shopId);
+  }, [queryFilters]);
+
+  // Use a helper to update state and URL together
+  const updateFilter = (updates: {
+    year?: number;
+    month?: number | "all";
+    employeeId?: string;
+    shopId?: string;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (updates.year !== undefined) {
+      setYear(updates.year);
+      params.set("year", updates.year.toString());
+    }
+    if (updates.month !== undefined) {
+      setMonthFilter(updates.month);
+      if (updates.month === "all") params.delete("month");
+      else params.set("month", updates.month.toString());
+    }
+    if (updates.employeeId !== undefined) {
+      setEmployeeFilter(updates.employeeId);
+      if (updates.employeeId) params.set("employeeId", updates.employeeId);
+      else params.delete("employeeId");
+    }
+    if (updates.shopId !== undefined) {
+      setShopFilter(updates.shopId);
+      if (updates.shopId) params.set("shopId", updates.shopId);
+      else params.delete("shopId");
+    }
+
+    router.replace(`/sales-targets?${params.toString()}`, { scroll: false });
+  };
+
   // Data States
   const [loading, setLoading] = useState(true);
   const [detailedTargets, setDetailedTargets] = useState<DetailedTarget[]>([]);
@@ -90,33 +130,7 @@ export default function SalesTargetsPage() {
 
   // --- Effects ---
 
-  // Sync Filters from URL
-  useEffect(() => {
-    setYear(queryFilters.year);
-    setMonthFilter(queryFilters.month);
-    setEmployeeFilter(queryFilters.employeeId);
-    setShopFilter(queryFilters.shopId);
-  }, [queryFilters]);
-
-  // Sync URL from Filters
-  useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("year", year.toString());
-    if (monthFilter !== "all") {
-      params.set("month", monthFilter.toString());
-    }
-    if (employeeFilter) {
-      params.set("employeeId", employeeFilter);
-    }
-    if (shopFilter) {
-      params.set("shopId", shopFilter);
-    }
-    const nextQuery = params.toString();
-    const currentQuery = searchParams.toString();
-    if (nextQuery !== currentQuery) {
-      router.replace(`/sales-targets?${nextQuery}`, { scroll: false });
-    }
-  }, [employeeFilter, monthFilter, router, searchParams, shopFilter, year]);
+  // (URL sync effects removed to prevent navigation loop cancelling Server Actions)
 
   // Load Filter Options (Employees, Customers)
   useEffect(() => {
@@ -168,10 +182,12 @@ export default function SalesTargetsPage() {
   // --- Handlers ---
 
   const handleClearFilters = () => {
-    setYear(CURRENT_YEAR);
-    setMonthFilter("all");
-    setEmployeeFilter("");
-    setShopFilter("");
+    updateFilter({
+      year: CURRENT_YEAR,
+      month: "all",
+      employeeId: "",
+      shopId: "",
+    });
   };
 
   const handleCopy = (target: DetailedTarget) => {
@@ -221,10 +237,10 @@ export default function SalesTargetsPage() {
             years={availableYears}
             employees={filterEmployees}
             customers={filterCustomers}
-            onChangeYear={setYear}
-            onChangeMonth={setMonthFilter}
-            onChangeEmployee={setEmployeeFilter}
-            onChangeShop={setShopFilter}
+            onChangeYear={(y) => updateFilter({ year: y })}
+            onChangeMonth={(m) => updateFilter({ month: m })}
+            onChangeEmployee={(e) => updateFilter({ employeeId: e })}
+            onChangeShop={(s) => updateFilter({ shopId: s })}
             onClear={handleClearFilters}
           />
         </div>
