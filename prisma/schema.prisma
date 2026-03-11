@@ -576,10 +576,10 @@ model Product {
   unit                   String?
   productGroup           String? // กลุ่มชื่อการค้า (Trade Name Group)
   brand                  String?
-  packageSize            String?
+  packageSize            Decimal?      @db.Decimal(15, 3)
   packageSizeUnit        String?
-  packageSizePerBox      String?
-  totalPackageSizePerBox String?
+  packageSizePerBox      Decimal?      @db.Decimal(15, 3)
+  totalPackageSizePerBox Decimal?      @db.Decimal(15, 3)
   status                 ProductStatus @default(ACTIVE)
   usedForPlants          String[]
   salesPoint             String?
@@ -823,10 +823,10 @@ model SaleItem {
   unit                   String?
   productGroup           String?
   brand                  String?
-  packageSize            String?
+  packageSize            Decimal? @db.Decimal(15, 3)
   packageSizeUnit        String?
-  packageSizePerBox      String?
-  totalPackageSizePerBox String?
+  packageSizePerBox      Decimal? @db.Decimal(15, 3)
+  totalPackageSizePerBox Decimal? @db.Decimal(15, 3)
   price                  Decimal? @db.Decimal(15, 2)
   cartonPrice            Decimal? @db.Decimal(15, 2)
   promotionBudget        Decimal? @db.Decimal(15, 2)
