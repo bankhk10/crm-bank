@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { CustomersTableProps } from "../../types";
 import { CustomerStatusBadge } from "../../ui/customer-status-badge";
 import { CustomerTypeBadge } from "../../ui/customer-type-badge";
 
@@ -14,12 +13,13 @@ export function CustomersCards({
     data,
     loading,
     canDelete,
-    onDeleteRequest,
-    pagination,
-}: Pick<
-    CustomersTableProps,
-    "data" | "loading" | "canDelete" | "onDeleteRequest" | "pagination"
->) {
+    onDeleteRequest
+}: {
+    data: any[];
+    loading?: boolean;
+    canDelete?: boolean;
+    onDeleteRequest?: (customer: any) => void;
+}) {
     if (loading) {
         return (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -52,26 +52,16 @@ export function CustomersCards({
 
     if (!data || data.length === 0) {
         return (
-            <Card className="border-dashed border-slate-200 bg-slate-50/80 p-6 text-center">
+            <div className="border-dashed border-2 border-slate-200 bg-slate-50/80 p-6 text-center rounded-lg">
                 <div className="mb-2 text-base font-semibold text-slate-900">
                     ยังไม่มีลูกค้าในหน้านี้
                 </div>
                 <p className="text-sm text-slate-600">
                     ลองปรับการค้นหาหรือเพิ่มลูกค้าใหม่
                 </p>
-            </Card>
+            </div>
         );
     }
-
-    const {
-        page,
-        perPage,
-        total,
-        onPageChange,
-        onPerPageChange,
-        perPageOptions,
-    } = pagination;
-    const totalPages = Math.max(1, Math.ceil(total / perPage));
     //   const startDisplay = (page - 1) * perPage + 1;
     //   const endDisplay = (page - 1) * perPage + data.length;
 

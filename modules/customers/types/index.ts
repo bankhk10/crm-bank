@@ -121,23 +121,8 @@ export interface CustomersPagination {
  * Customers table props interface
  */
 export interface CustomersTableProps {
-  data: CustomerRecord[];
-  loading?: boolean;
-  canCreate: boolean;
-  canCreateDealer?: boolean;
-  canCreateSubdealer?: boolean;
-  canCreateFarmer?: boolean;
-  canCreateBroker?: boolean;
-  canDelete: boolean;
-  onDeleteRequest?: (customer: CustomerRecord) => void;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  onSearchSubmit?: () => void;
-  customerTypeFilter?: string;
-  onCustomerTypeFilterChange?: (type: string) => void;
-  statusFilter?: string;
-  onStatusFilterChange?: (status: string) => void;
-  pagination: CustomersPagination;
+  initialData?: CustomerRecord[];
+  initialTotal?: number;
 }
 
 // ============ Customer Style Types ============
