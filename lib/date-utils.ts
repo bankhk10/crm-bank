@@ -113,3 +113,31 @@ export function diffInDays(
   const diffTime = Math.abs(d2.getTime() - d1.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Calculates age from birth date.
+ * Returns empty string if birth date is invalid.
+ */
+export function calculateAge(birthDate: Date | string | number | null | undefined): string {
+  if (!birthDate) return "";
+
+  try {
+    const today = new Date();
+    const birth = new Date(birthDate);
+
+    // ตรวจสอบว่าวันที่ถูกต้องหรือไม่
+    if (isNaN(birth.getTime())) return "";
+
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    // ถ้าเดือนปัจจุบันยังไม่ถึงเดือนเกิด หรือ เดือนเดียวกันแต่วันยังไม่ถึงวันเกิด ให้ลดอายุลง 1
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    return age < 0 ? "0" : String(age);
+  } catch (e) {
+    return "";
+  }
+}

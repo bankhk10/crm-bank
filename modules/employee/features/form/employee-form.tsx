@@ -13,6 +13,8 @@ import { PREFIX_OPTIONS, RESPONSIBILITY_AREA_OPTIONS, STATUS_OPTIONS } from "@/m
 import { getCompaniesAction } from "@/modules/companies/server/actions";
 import { getEmployeesAction } from "@/modules/employee/server/actions";
 
+import { calculateAge } from "@/lib/date-utils";
+
 interface Props {
     employeeId?: string;
     initial?: Partial<EmployeeUpdateFormValues>;
@@ -76,19 +78,7 @@ export default function EmployeeForm({
         name: ["province", "district", "subdistrict", "postalCode", "birthDate"]
     });
 
-    const calculatedAge = useMemo(() => {
-        if (birthDate) {
-            try {
-                return Math.floor(
-                    (Date.now() - new Date(birthDate).getTime()) /
-                    (1000 * 60 * 60 * 24 * 365.25),
-                );
-            } catch (e) {
-                return "";
-            }
-        }
-        return "";
-    }, [birthDate]);
+    const calculatedAge = useMemo(() => calculateAge(birthDate), [birthDate]);
 
     useEffect(() => {
         let mounted = true;
