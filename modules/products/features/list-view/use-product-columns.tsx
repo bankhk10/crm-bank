@@ -50,9 +50,9 @@ export function useProductColumns(
                 },
                 cell: ({ row }) => (
                     <div className="flex flex-col py-0.5">
-                        <TruncatedCell 
-                            value={row.original.name ?? "-"} 
-                            className="font-semibold text-gray-900"
+                        <TruncatedCell
+                            value={row.original.name ?? "-"}
+                            className="text-sm font-medium text-gray-900"
                         />
                         <span className="text-xs font-medium text-gray-500 mt-0.5">
                             {row.original.productCode ?? "-"}
