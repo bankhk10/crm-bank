@@ -5,13 +5,11 @@ import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import { FormInput, FormSelect } from "@/components/custom/form-components";
 import FormActions from "@/components/custom/form-actions";
 import DatePicker from "@/components/custom/DatePicker";
-import RandomFillButton from "@/components/custom/random-fill-button";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { employeeUpdateSchema, type EmployeeUpdateFormValues } from "@/modules/employee/application/validations";
 import { PREFIX_OPTIONS, RESPONSIBILITY_AREA_OPTIONS, STATUS_OPTIONS } from "@/modules/employee/constants";
-import { useRandomFill } from "@/hooks/use-random-fill";
 import { getCompaniesAction } from "@/modules/companies/server/actions";
 import { getEmployeesAction } from "@/modules/employee/server/actions";
 
@@ -125,7 +123,7 @@ export default function EmployeeForm({
                             .map((e: any) => ({ value: e.id, label: e.name }))
                     ]);
                 }
-            } catch (e) {
+            } catch {
                 // ignore
             }
         }
@@ -134,34 +132,6 @@ export default function EmployeeForm({
         return () => { mounted = false; };
     }, [employeeId]);
 
-    const randomFillGenerator = async () => {
-        const { generateRandomEmployee } = await import("@/lib/random-fill/employee");
-        return generateRandomEmployee();
-    };
-
-    const handleRandomFillGenerated = (p: any) => {
-        if (p.prefix) setValue("prefix", p.prefix);
-        if (p.firstName) setValue("firstName", p.firstName, { shouldValidate: true });
-        if (p.lastName) setValue("lastName", p.lastName, { shouldValidate: true });
-        if (p.email) setValue("email", p.email, { shouldValidate: true });
-        if (p.phone) setValue("phone", p.phone, { shouldValidate: true });
-        if (p.birthDate) setValue("birthDate", p.birthDate);
-        if (p.employeeCode) setValue("employeeCode", p.employeeCode);
-        if (p.province) setValue("province", p.province);
-        if (p.district) setValue("district", p.district);
-        if (p.subdistrict) setValue("subdistrict", p.subdistrict);
-        if (p.postalCode) setValue("postalCode", String(p.postalCode));
-        if (p.password) setValue("password", p.password, { shouldValidate: true });
-    };
-
-    const {
-        isEnabled: isRandomFillEnabled,
-        isGenerating: isRandomFillGenerating,
-        triggerRandomFill,
-    } = useRandomFill({
-        generator: randomFillGenerator,
-        onGenerated: handleRandomFillGenerated,
-    });
 
     async function handleFormSubmit(data: EmployeeUpdateFormValues) {
         if (!employeeId && !data.password) {
@@ -518,18 +488,7 @@ export default function EmployeeForm({
 
             <div className="w-full h-12 sm:hidden"></div>
 
-            {isRandomFillEnabled && (
-                <div className="w-full sm:w-auto flex justify-center mt-4">
-                    <RandomFillButton
-                        size="lg"
-                        className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-                        onClick={triggerRandomFill}
-                        disabled={isSubmitting}
-                        isGenerating={isRandomFillGenerating}
-                        variant="secondary"
-                    />
-                </div>
-            )}
+
         </form>
     );
 }

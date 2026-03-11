@@ -187,7 +187,6 @@ enum PermissionType {
 | `system.audit_log`    | ดู Audit Log          | view      |
 | `system.security_log` | ดู Security Log       | view      |
 | `system.settings`     | ตั้งค่าระบบ           | manage    |
-| `randomize`           | สุ่มข้อมูล (Dev only) | randomize |
 
 ### 4.13 DATA Permissions (ขอบเขตข้อมูล)
 

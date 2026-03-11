@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import GalleryUpload from "@/components/custom/gallery-upload";
 
-import RandomFillButton from "@/components/custom/random-fill-button";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ import {
 import FormActions from "@/components/custom/form-actions";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { STATUS_OPTIONS, type ProductFormData } from "@/modules/products/types";
-import { useRandomFill } from "@/hooks/use-random-fill";
+
 import type { FileWithPreview, FileMetadata } from "@/hooks/use-file-upload";
 
 import { ProductFormProps } from "../../types";
@@ -412,55 +412,7 @@ export function ProductForm({
     }
   };
 
-  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
-  const randomFillGenerator = useCallback(async () => {
-    const { generateRandomProduct } = await import("@/lib/random-fill/product");
-    return generateRandomProduct();
-  }, []);
 
-  const handleRandomFillGenerated = useCallback(
-    (payload: Partial<ProductFormData>) => {
-      setFormData((prev) => ({
-        ...prev,
-        productCode:
-          (payload.productCode as string | undefined) ?? prev.productCode,
-        name: (payload.name as string | undefined) ?? prev.name,
-        commonName:
-          (payload.commonName as string | undefined) ?? prev.commonName,
-        unit: (payload.unit as string | undefined) ?? prev.unit,
-        productGroup:
-          (payload.productGroup as string | undefined) ?? prev.productGroup,
-        brand: (payload.brand as string | undefined) ?? prev.brand,
-        chemicalGroup:
-          (payload.chemicalGroup as string | undefined) ?? prev.chemicalGroup,
-        packageSize:
-          (payload.packageSize as string | undefined) ?? prev.packageSize,
-        packageSizeUnit:
-          (payload.packageSizeUnit as string | undefined) ?? prev.packageSizeUnit,
-        packageSizePerBox:
-          (payload.packageSizePerBox as string | undefined) ??
-          prev.packageSizePerBox,
-        status:
-          (payload.status as "ACTIVE" | "INACTIVE" | undefined) ?? prev.status,
-        usedForPlants:
-          (payload.usedForPlants as string[] | undefined) ?? prev.usedForPlants,
-        salesPoint:
-          (payload.salesPoint as string | undefined) ?? prev.salesPoint,
-        properties:
-          (payload.properties as string | undefined) ?? prev.properties,
-      }));
-    },
-    [],
-  );
-
-  const {
-    isEnabled: isRandomFillEnabled,
-    isGenerating: isRandomFillGenerating,
-    triggerRandomFill,
-  } = useRandomFill({
-    generator: randomFillGenerator,
-    onGenerated: handleRandomFillGenerated,
-  });
 
   const updateField = (field: keyof ProductFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -821,19 +773,7 @@ export function ProductForm({
         className="pt-6 sm:pt-8 border-t mt-6 sm:mt-8"
       />
 
-      {/* Random Fill Button - แสดงเฉพาะ development */}
-      {isRandomFillEnabled && (
-        <div className="w-full sm:w-auto flex justify-center mt-4">
-          <RandomFillButton
-            size="lg"
-            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-            onClick={triggerRandomFill}
-            disabled={loading}
-            isGenerating={isRandomFillGenerating}
-            variant="secondary"
-          />
-        </div>
-      )}
+
     </form>
   );
 }

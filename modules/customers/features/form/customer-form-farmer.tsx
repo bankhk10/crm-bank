@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
@@ -10,9 +10,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/custom/form-components";
-import RandomFillButton from "@/components/custom/random-fill-button";
 import { LocateFixed, X, Save } from "lucide-react";
-import { useRandomFill } from "@/hooks/use-random-fill";
 
 // Local feature imports - use types from centralized types.ts
 import type {
@@ -71,40 +69,8 @@ export default function CustomerFormFarmer({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generatingCode, setGeneratingCode] = useState(false);
 
-  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
-  const randomFillGenerator = useCallback(async () => {
-    const { generateRandomFarmer } = await import("@/lib/random-fill/farmer");
-    return generateRandomFarmer();
-  }, []);
 
-  const handleRandomFillGenerated = useCallback((rnd: any) => {
-    setValues((p: any) => ({
-      ...p,
-      prefix: rnd.prefix ?? p.prefix,
-      firstName: rnd.firstName ?? p.firstName,
-      lastName: rnd.lastName ?? p.lastName,
-      birthDate: rnd.birthDate ?? p.birthDate,
-      phone: rnd.phone ?? p.phone,
-      email: rnd.email ?? p.email,
-      addressLine: rnd.addressLine ?? p.addressLine,
-      province: rnd.province ?? p.province,
-      district: rnd.district ?? p.district,
-      subdistrict: rnd.subdistrict ?? p.subdistrict,
-      postalCode: rnd.postalCode ?? p.postalCode,
-      farmPlots: rnd.farmPlots ?? p.farmPlots,
-      notes: rnd.notes ?? p.notes,
-    }));
-    setFieldErrors({});
-  }, []);
 
-  const {
-    isEnabled: isRandomFillEnabled,
-    isGenerating: isRandomFillGenerating,
-    triggerRandomFill,
-  } = useRandomFill({
-    generator: randomFillGenerator,
-    onGenerated: handleRandomFillGenerated,
-  });
 
   // Auto-generate customer code on mount for new customers
   useEffect(() => {
@@ -635,19 +601,7 @@ export default function CustomerFormFarmer({
       </div>
       <div className="w-full h-12 sm:hidden"></div>
 
-      {/* Random Fill Button - แสดงเฉพาะ development */}
-      {isRandomFillEnabled && (
-        <div className="w-full sm:w-auto flex justify-center mt-4">
-          <RandomFillButton
-            size="lg"
-            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-            onClick={triggerRandomFill}
-            disabled={loading}
-            isGenerating={isRandomFillGenerating}
-            variant="secondary"
-          />
-        </div>
-      )}
+
     </form>
   );
 }

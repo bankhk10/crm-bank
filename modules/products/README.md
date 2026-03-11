@@ -81,7 +81,7 @@ Status indicator badge showing ACTIVE/INACTIVE state.
 - `@/components/custom/`: Shared UI components (TruncatedCell, ActionButton, etc.)
 - `@/components/ui/`: UI primitives (Button, Card, Input, Select, etc.)
 - `@/types/product`: Shared product type definitions
-- `@/hooks/`: Shared hooks (useRandomFill, useFileUpload)
+- `@/hooks/`: Shared hooks (useFileUpload)
 - `@/src/infrastructure/database`: Prisma client
 - `@/lib/auth`: NextAuth session
 - `@/src/core/rbac`: Permission checking

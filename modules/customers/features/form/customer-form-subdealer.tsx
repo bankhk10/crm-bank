@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ThaiAddressPicker from "@/components/custom/ThaiAddressPicker";
 import DatePicker from "@/components/custom/DatePicker";
@@ -12,10 +12,8 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/custom/form-components";
-import RandomFillButton from "@/components/custom/random-fill-button";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { LocateFixed, X, Save } from "lucide-react";
-import { useRandomFill } from "@/hooks/use-random-fill";
 
 // Local feature imports - use types from centralized types.ts
 import type {
@@ -83,55 +81,8 @@ export default function CustomerFormSubdealer({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generatingCode, setGeneratingCode] = useState(false);
 
-  // Random fill - ใช้ dynamic import เพื่อ tree-shake ใน production
-  const randomFillGenerator = useCallback(async () => {
-    const { generateRandomSubdealer } =
-      await import("@/lib/random-fill/subdealer");
-    return generateRandomSubdealer();
-  }, []);
 
-  const handleRandomFillGenerated = useCallback((rnd: any) => {
-    setValues((p: any) => ({
-      ...p,
-      companyName: rnd.companyName ?? p.companyName,
-      taxId: rnd.taxId ?? p.taxId,
-      phone: rnd.phone ?? p.phone,
-      email: rnd.email ?? p.email,
-      latitude: rnd.latitude ?? p.latitude,
-      longitude: rnd.longitude ?? p.longitude,
-      addressLine: rnd.addressLine ?? p.addressLine,
-      province: rnd.province ?? p.province,
-      district: rnd.district ?? p.district,
-      subdistrict: rnd.subdistrict ?? p.subdistrict,
-      postalCode: rnd.postalCode ?? p.postalCode,
-      prefix: rnd.prefix ?? p.prefix,
-      firstName: rnd.firstName ?? p.firstName,
-      lastName: rnd.lastName ?? p.lastName,
-      birthDate: rnd.birthDate ?? p.birthDate,
-      contactPhone: rnd.contactPhone ?? p.contactPhone,
-      contactEmail: rnd.contactEmail ?? p.contactEmail,
-      receiveFromDealer: rnd.receiveFromDealer ?? p.receiveFromDealer,
-      mainCompetitor: rnd.mainCompetitor ?? p.mainCompetitor,
-      areaCrops: rnd.areaCrops ?? p.areaCrops,
-      averageMonthlyPurchase:
-        rnd.averageMonthlyPurchase ?? p.averageMonthlyPurchase,
-      mainProductSold: rnd.mainProductSold ?? p.mainProductSold,
-      brandsSold: rnd.brandsSold ?? p.brandsSold,
-      areaType: rnd.areaType ?? p.areaType,
-      relationshipScore: rnd.relationshipScore ?? p.relationshipScore,
-      notes: rnd.notes ?? p.notes,
-    }));
-    setFieldErrors({});
-  }, []);
 
-  const {
-    isEnabled: isRandomFillEnabled,
-    isGenerating: isRandomFillGenerating,
-    triggerRandomFill,
-  } = useRandomFill({
-    generator: randomFillGenerator,
-    onGenerated: handleRandomFillGenerated,
-  });
 
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -914,19 +865,7 @@ export default function CustomerFormSubdealer({
       </div>
       <div className="w-full h-12 sm:hidden"></div>
 
-      {/* Random Fill Button - แสดงเฉพาะ development */}
-      {isRandomFillEnabled && (
-        <div className="w-full sm:w-auto flex justify-center mt-4">
-          <RandomFillButton
-            size="lg"
-            className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-            onClick={triggerRandomFill}
-            disabled={loading}
-            isGenerating={isRandomFillGenerating}
-            variant="secondary"
-          />
-        </div>
-      )}
+
     </form>
   );
 }

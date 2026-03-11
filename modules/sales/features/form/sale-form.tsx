@@ -17,8 +17,7 @@ import {
 } from "@/components/custom/form-components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import RandomFillButton from "@/components/custom/random-fill-button";
-import generateRandomSaleClient from "@/lib/random-fill/sale-client";
+
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 // New modular imports
@@ -463,29 +462,7 @@ export function SaleForm({
         }
     };
 
-    // Handle random fill
-    const handleRandomFill = () => {
-        if (!customers.length || !employees.length || !products.length) return;
-        const randomData = generateRandomSaleClient(customers, employees, products);
 
-        setCustomerId(randomData.customerId);
-        updateCustomerDetails(randomData.customerId);
-        setEmployeeId(randomData.employeeId);
-        setPaymentTerm(randomData.paymentTerm as PaymentTermType);
-        if (randomData.creditDays) setCreditDays(randomData.creditDays);
-        // creditDueDate is derived automatically
-        setUsePromotionalCredit(randomData.usePromotionalCredit || false);
-        setPromotionalCreditUsed(randomData.promotionalCreditUsed || 0);
-        setSaleDate(randomData.saleDate);
-        if (randomData.deliveryDate) setDeliveryDate(randomData.deliveryDate);
-        if (randomData.requestedDeliveryDate)
-            setRequestedDeliveryDate(randomData.requestedDeliveryDate);
-        setItems(randomData.items);
-        setShippingCost(randomData.shippingCost || 0);
-        setOtherCosts(randomData.otherCosts || 0);
-        setOtherCostsDescription(randomData.otherCostsDescription || "");
-        setNotes(randomData.notes || "");
-    };
 
     const handleCancel = onCancel ?? (() => router.back());
 
@@ -754,18 +731,7 @@ export function SaleForm({
             {/* Action Buttons */}
             <FormActionButtons loading={loading} onCancel={handleCancel} />
 
-            <div className="w-full h-12 sm:hidden"></div>
-            <div className="w-full sm:w-auto">
-                <RandomFillButton
-                    size="lg"
-                    className="w-full sm:w-auto bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border-0 transition-colors"
-                    onClick={handleRandomFill}
-                    disabled={loading}
-                    variant="secondary"
-                >
-                    <span className="mr-2">🎲</span> กรอกข้อมูลแบบสุ่ม
-                </RandomFillButton>
-            </div>
+
 
             {/* Product Detail Modal */}
             <ProductDetailModal

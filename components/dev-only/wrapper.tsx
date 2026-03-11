@@ -23,7 +23,7 @@ export interface DevOnlyWrapperProps {
  * Usage:
  * ```tsx
  * <DevOnlyWrapper>
- *   <RandomFillButton onClick={handleRandomFill} />
+ *   <DebugPanel />
  * </DevOnlyWrapper>
  * ```
  */
