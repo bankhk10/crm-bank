@@ -15,8 +15,7 @@ import { getCustomerDetailAction, updateCustomerAction } from "@/modules/custome
 export default function EditCustomerPage() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
-  const { hasPermission, isLoading } = usePermission("customer.edit");
-  const canEdit = !isLoading && hasPermission("customer.edit");
+  const { hasPermission, isLoading } = usePermission();
 
   const [payload, setPayload] = useState<any>({
     customerCode: "",
@@ -76,6 +75,8 @@ export default function EditCustomerPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const canEdit = !isLoading && hasPermission(`customer.edit.${payload.customerType?.toLowerCase() || 'dealer'}`);
 
   useEffect(() => {
     let mounted = true;

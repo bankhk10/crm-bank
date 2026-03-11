@@ -113,12 +113,19 @@ enum PermissionType {
 | `customer.create.subdealer` | สร้างลูกค้าตัวแทนจำหน่ายย่อย | create |
 | `customer.create.farmer`    | สร้างลูกค้าเกษตรกร           | create |
 | `customer.create.broker`    | สร้างลูกค้านายหน้า           | create |
-| `customer.edit`             | แก้ไขลูกค้า                  | edit   |
-| `customer.delete`           | ลบลูกค้า                     | delete |
-| `customer.view`             | ดูรายละเอียดลูกค้า           | view   |
-| `customer.import`           | นำเข้าข้อมูลลูกค้า           | import |
+| `customer.edit.dealer`      | แก้ไขลูกค้าตัวแทนจำหน่าย     | edit   |
+| `customer.edit.subdealer`   | แก้ไขลูกค้าตัวแทนจำหน่ายย่อย | edit   |
+| `customer.edit.farmer`      | แก้ไขลูกค้าเกษตรกร           | edit   |
+| `customer.edit.broker`      | แก้ไขลูกค้านายหน้า           | edit   |
+| `customer.delete.dealer`    | ลบลูกค้าตัวแทนจำหน่าย        | delete |
+| `customer.delete.subdealer` | ลบลูกค้าตัวแทนจำหน่ายย่อย    | delete |
+| `customer.delete.farmer`    | ลบลูกค้าเกษตรกร              | delete |
+| `customer.delete.broker`    | ลบลูกค้านายหน้า              | delete |
+| `customer.view.dealer`      | ดูรายละเอียดลูกค้าตัวแทนจำหน่าย | view   |
+| `customer.view.subdealer`   | ดูรายละเอียดลูกค้าตัวแทนจำหน่ายย่อย | view   |
+| `customer.view.farmer`      | ดูรายละเอียดลูกค้าเกษตรกร       | view   |
+| `customer.view.broker`      | ดูรายละเอียดลูกค้านายหน้า       | view   |
 | `customer.export`           | ส่งออกข้อมูลลูกค้า           | export |
-| `customer.assign`           | กำหนดพนักงานดูแล             | assign |
 
 ### 4.6 Credit Limit Permissions (วงเงินเครดิต)
 

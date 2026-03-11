@@ -145,6 +145,12 @@ export async function GET(request: Request, context: any) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const customerType = customer.customerType || "DEALER";
+  const typePermissionKey = `customer.view.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+    return NextResponse.json({ error: `Forbidden - missing ${typePermissionKey}` }, { status: 403 });
+  }
+
   return NextResponse.json({ customer });
 }
 
@@ -164,12 +170,7 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("customer.edit")) {
-    return NextResponse.json(
-      { error: "Forbidden - missing customer.edit" },
-      { status: 403 },
-    );
-  }
+  // Edit permission is checked later after fetching the existing customer
 
   // Create request context for logging
   const headersObj = Object.fromEntries(request.headers.entries());
@@ -220,6 +221,15 @@ export async function PUT(
 
   if (!existingCustomer) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const customerType = existingCustomer.customerType || "DEALER";
+  const typePermissionKey = `customer.edit.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+    return NextResponse.json(
+      { error: `Forbidden - missing ${typePermissionKey}` },
+      { status: 403 },
+    );
   }
 
   reqLogger.info("Updating customer", {
@@ -366,9 +376,20 @@ export async function DELETE(request: Request, context: any) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("customer.delete")) {
+  const existingCustomer = await db.customer.findUnique({
+    where: { id: params.customerId },
+    select: { customerType: true },
+  });
+
+  if (!existingCustomer) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const customerType = existingCustomer.customerType || "DEALER";
+  const typePermissionKey = `customer.delete.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
     return NextResponse.json(
-      { error: "Forbidden - missing customer.delete" },
+      { error: `Forbidden - missing ${typePermissionKey}` },
       { status: 403 },
     );
   }

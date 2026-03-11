@@ -11,7 +11,7 @@ import {
   updateCustomerUseCase,
   deleteCustomerUseCase,
 } from "../application";
-import { logger, auditLogger, generateRequestId } from "@/lib/logger";
+import { auditLogger, generateRequestId } from "@/lib/logger";
 
 const resourcePath = "/api/customers";
 
@@ -133,13 +133,15 @@ export async function updateCustomerAction(id: string, payload: any) {
     return { success: false, error: "Forbidden" };
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("customer.edit")) {
-    return { success: false, error: "Forbidden - missing customer.edit" };
-  }
-
   const existingCustomer = await getCustomerDetailUseCase(id);
   if (!existingCustomer) {
     return { success: false, error: "Not found" };
+  }
+
+  const customerType = existingCustomer.customerType || payload.customerType || 'DEALER';
+  const typePermissionKey = `customer.edit.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+    return { success: false, error: `Forbidden - missing ${typePermissionKey}` };
   }
 
   try {
@@ -209,11 +211,17 @@ export async function deleteCustomerAction(id: string) {
     return { success: false, error: "Forbidden" };
   }
 
-  if (!(session.user.permissionKeys ?? []).includes("customer.delete")) {
-    return { success: false, error: "Forbidden - missing customer.delete" };
-  }
-
   try {
+    const existingCustomer = await getCustomerDetailUseCase(id);
+    if (!existingCustomer) {
+      return { success: false, error: "Not found" };
+    }
+
+    const customerType = existingCustomer.customerType || 'DEALER';
+    const typePermissionKey = `customer.delete.${customerType.toLowerCase()}`;
+    if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+      return { success: false, error: `Forbidden - missing ${typePermissionKey}` };
+    }
     const updated = await deleteCustomerUseCase(id);
     revalidatePath("/customers");
     return { success: true, customer: updated };

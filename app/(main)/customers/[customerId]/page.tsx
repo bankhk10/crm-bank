@@ -315,11 +315,10 @@ const InfoChip: React.FC<{
 export default function CustomerDetailPage() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
-  const { allowed, isLoading } = usePermission("menu.customers");
-  const { allowed: canEdit } = usePermission("customer.edit");
-  const canView = !isLoading && allowed;
-
+  const { allowed, isLoading, hasPermission } = usePermission("menu.customers");
+  
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const canView = !isLoading && allowed && (!customer || hasPermission(`customer.view.${customer.customerType?.toLowerCase() || 'dealer'}`));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(

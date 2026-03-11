@@ -226,7 +226,7 @@ export default function CustomersPage() {
             canCreateSubdealer={canCreateSubdealer}
             canCreateFarmer={canCreateFarmer}
             canCreateBroker={canCreateBroker}
-            canDelete={hasPermission("customer.delete")}
+            canDelete={hasPermission("customer.delete.dealer") || hasPermission("customer.delete.subdealer") || hasPermission("customer.delete.farmer") || hasPermission("customer.delete.broker")}
             onDeleteRequest={setDeleteCandidate}
             searchValue={filterDraft.query}
             onSearchChange={(value: string) =>
