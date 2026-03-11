@@ -155,3 +155,16 @@ export async function findSalesTargetHistory(salesTargetId: string) {
     orderBy: { changedAt: "desc" },
   });
 }
+
+/**
+ * เปรียบเทียบ snapshot สองอันว่ามีความต่างกันหรือไม่ (ใช้สำหรับข้ามการบันทึกประวัติกรณีไม่มีการแก้ไขจริง)
+ */
+export function isSnapshotDifferent(
+  a: SalesTargetSnapshot,
+  b: SalesTargetSnapshot,
+): boolean {
+  // วิธีที่ง่ายและครอบคลุมที่สุดสำหรับ POJO คือเปรียบเทียบ JSON string
+  // (เรียงลำดับ properties ไม่น่ามีปัญหาเพราะสร้างจาก buildSnapshot แบบเดียวกัน)
+  return JSON.stringify(a) !== JSON.stringify(b);
+}
+

@@ -6,6 +6,7 @@ import {
 import {
   recordSalesTargetHistory,
   buildSnapshot,
+  isSnapshotDifferent,
 } from "../infrastructure/sales-target-history.repository";
 
 /**
@@ -43,16 +44,18 @@ export async function updateSalesTargetUseCase(
     stores: data.stores,
   });
 
-  // เก็บ snapshot หลังแก้ไข แล้วบันทึกประวัติ
+  // เก็บ snapshot หลังแก้ไข แล้วบันทึกประวัติ (เฉพาะกรณีที่มีการเปลี่ยนแปลงจริง)
   if (updatedById) {
     const snapshotAfter = buildSnapshot(result);
-    await recordSalesTargetHistory({
-      salesTargetId: id,
-      changeType: "UPDATED",
-      changedById: updatedById,
-      snapshotBefore,
-      snapshotAfter,
-    });
+    if (isSnapshotDifferent(snapshotBefore, snapshotAfter)) {
+      await recordSalesTargetHistory({
+        salesTargetId: id,
+        changeType: "UPDATED",
+        changedById: updatedById,
+        snapshotBefore,
+        snapshotAfter,
+      });
+    }
   }
 
   return { success: true as const, salesTarget: result };
