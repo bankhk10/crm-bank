@@ -234,12 +234,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         action: "manage",
       },
       {
-        key: "product.import",
-        name: "นำเข้าสินค้า",
-        resource: "product",
-        action: "import",
-      },
-      {
         key: "product.export",
         name: "ส่งออกสินค้า",
         resource: "product",
@@ -1347,7 +1341,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     },
     { key: "menu.notifications" },
     { key: "report.export" },
-    { key: "product.import" },
     { key: "product.export" },
     { key: "customer.export" },
     { key: "employee.create" },

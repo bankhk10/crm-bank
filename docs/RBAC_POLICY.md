@@ -102,7 +102,6 @@ enum PermissionType {
 | `product.delete` | ลบสินค้า                              | delete |
 | `product.view`   | ดูรายละเอียดสินค้า                    | view   |
 | `product.manage` | จัดการสินค้า (ราคา, สต็อก, โปรโมชั่น) | manage |
-| `product.import` | นำเข้าสินค้า                          | import |
 | `product.export` | ส่งออกสินค้า                          | export |
 
 ### 4.5 Customer Permissions (ลูกค้า)
