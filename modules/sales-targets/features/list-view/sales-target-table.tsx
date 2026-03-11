@@ -64,13 +64,10 @@ export function SalesTargetTable({
 }: SalesTargetTableProps) {
     const { allowed, isLoading, hasPermission } = usePermission("menu.sales_targets");
 
-    const canEdit =
-        hasPermission("sales_target.manage") || hasPermission("sales_target.edit");
-    const canDelete =
-        hasPermission("sales_target.manage") || hasPermission("sales_target.delete");
-    const canView =
-        hasPermission("menu.sales_targets") || hasPermission("sales_target.view");
-    const canCreate = !isLoading && (hasPermission("sales_target.manage") || hasPermission("sales_target.create"));
+    const canCreate = !isLoading && hasPermission("sales_target.create");
+    const canEdit = !isLoading && hasPermission("sales_target.edit");
+    const canDelete = !isLoading && hasPermission("sales_target.delete");
+    const canView = hasPermission("menu.sales_targets") || hasPermission("sales_target.view");
 
     // -------------------------------------------------------------------------
     // Local state

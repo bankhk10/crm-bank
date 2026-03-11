@@ -9,7 +9,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   // Find the new permission
   const perm = await prisma.permission.findUnique({
-    where: { key: "sales_target.manage" },
+    where: { key: "sales_target.view" },
   });
 
   if (!perm) {

@@ -181,15 +181,7 @@ enum PermissionType {
 | `sales_target.delete` | ลบเป้าหมายยอดขาย                                   | delete |
 | `sales_target.manage` | จัดการเป้าหมายยอดขาย (ครอบคลุม create/edit/delete) | manage |
 
-### 4.12 Stock/Inventory Permissions (คลังสินค้า)
-
-| Key                | Name (TH)     | Action |
-| ------------------ | ------------- | ------ |
-| `stock.view`       | ดูสต็อกสินค้า | view   |
-| `stock.adjust`     | ปรับปรุงสต็อก | adjust |
-| `stock.lot.manage` | จัดการ LOT    | manage |
-
-### 4.13 System Permissions (ระบบ)
+### 4.12 System Permissions (ระบบ)
 
 | Key                   | Name (TH)             | Action    |
 | --------------------- | --------------------- | --------- |
@@ -198,7 +190,7 @@ enum PermissionType {
 | `system.settings`     | ตั้งค่าระบบ           | manage    |
 | `randomize`           | สุ่มข้อมูล (Dev only) | randomize |
 
-### 4.15 DATA Permissions (ขอบเขตข้อมูล)
+### 4.13 DATA Permissions (ขอบเขตข้อมูล)
 
 | Key                           | Name (TH)                  | Resource              |
 | ----------------------------- | -------------------------- | --------------------- |
