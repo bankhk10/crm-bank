@@ -525,12 +525,6 @@ const permissionGroups: Record<string, PermissionGroup> = {
         resource: "employee",
         action: "manage",
       },
-      {
-        key: "employee.assign_manager",
-        name: "กำหนดหัวหน้าพนักงาน",
-        resource: "employee",
-        action: "assign_manager",
-      },
     ],
     data: {
       key: "data.employees",
@@ -1337,7 +1331,6 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "customer.export" },
     { key: "employee.create" },
     { key: "employee.delete" },
-    { key: "employee.assign_manager" },
     { key: "company.view" },
     { key: "sales_target.view" },
     { key: "sales_target.create" },
