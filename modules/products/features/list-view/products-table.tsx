@@ -132,7 +132,6 @@ export function ProductsTable(props: ProductsTableProps) {
                                 {/* Header */}
                                 <div className="px-8 py-2 bg-gray-100/80 border-b flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                                     <div className="flex-1 px-2">ชื่อสินค้า</div>
-                                    <div className="w-32 px-2 text-center">รหัสสินค้า</div>
                                     <div className="w-32 px-2 text-center">ราคา</div>
                                     <div className="w-32 px-2 text-center">หน่วยนับ</div>
                                     <div className="w-32 px-2 text-center">สถานะ</div>
@@ -148,15 +147,14 @@ export function ProductsTable(props: ProductsTableProps) {
                                         >
                                             <div className="flex-1 px-2 flex items-center gap-3">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
-                                                <div className="text-sm font-semibold text-gray-900 truncate">
-                                                    {child.name}
+                                                <div className="flex flex-col">
+                                                    <div className="text-sm font-semibold text-gray-900 truncate">
+                                                        {child.name}
+                                                    </div>
+                                                    <div className="text-[11px] font-medium text-gray-500">
+                                                        {child.productCode}
+                                                    </div>
                                                 </div>
-                                            </div>
-
-                                            <div className="w-32 px-2 text-center">
-                                                <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 border border-gray-200">
-                                                    {child.productCode}
-                                                </span>
                                             </div>
 
                                             <div className="w-32 px-2 text-center text-sm font-semibold text-blue-600">

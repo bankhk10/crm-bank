@@ -1,6 +1,6 @@
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Settings, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { Eye, Edit, Trash2, Settings, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { ProductRecord } from "../../types";
 import { ActionButton } from "@/components/custom/action-button";
 import { ProductStatusBadge } from "../../ui/product-status-badge";
@@ -39,30 +39,26 @@ export function useProductColumns(
                 },
             },
             {
-                accessorKey: "productCode",
-                header: "รหัสสินค้า",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 130,
-                    width: 130,
-                    maxWidth: 130,
-                    align: "left",
-                },
-                cell: ({ row }) => (
-                    <TruncatedCell value={row.original.productCode ?? "-"} />
-                ),
-            },
-            {
                 accessorKey: "name",
                 header: "ชื่อสินค้า",
                 meta: {
                     headerAlign: "left",
-                    minWidth: 250,
-                    width: 250,
-                    maxWidth: 250,
+                    minWidth: 300,
+                    width: 300,
+                    maxWidth: 300,
                     align: "left",
                 },
-                cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
+                cell: ({ row }) => (
+                    <div className="flex flex-col py-0.5">
+                        <TruncatedCell 
+                            value={row.original.name ?? "-"} 
+                            className="font-semibold text-gray-900"
+                        />
+                        <span className="text-xs font-medium text-gray-500 mt-0.5">
+                            {row.original.productCode ?? "-"}
+                        </span>
+                    </div>
+                ),
             },
             {
                 accessorKey: "unit",
@@ -117,7 +113,6 @@ export function useProductColumns(
                 cell: ({ row }) => {
                     // ทั้งหมด = สต็อกกายภาพที่มีจริง (physicalQuantity)
                     const totalStock = row.original.physicalQuantity ?? 0;
-                    const unit = row.original.unit;
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{totalStock.toLocaleString()}</span>
@@ -140,7 +135,6 @@ export function useProductColumns(
                 cell: ({ row }) => {
                     const reserved =
                         row.original.reservedQuantity ?? row.original.reserved ?? 0;
-                    const unit = row.original.unit;
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{reserved.toLocaleString()}</span>
@@ -165,7 +159,6 @@ export function useProductColumns(
                     const physical = row.original.physicalQuantity ?? 0;
                     const reserved = row.original.reservedQuantity ?? 0;
                     const remaining = physical - reserved;
-                    const unit = row.original.unit;
                     return (
                         <div className="text-sm flex items-center gap-1">
                             <span>{remaining.toLocaleString()}</span>
