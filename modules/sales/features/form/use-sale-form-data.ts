@@ -46,7 +46,7 @@ export function useSaleFormData(): SaleFormData {
           return { employees: res.employees || [] };
         },
       ),
-      fetch("/api/products").then((r) => r.json()),
+      fetch("/api/products?status=ACTIVE&perPage=100").then((r) => r.json()),
       getCompaniesAction().then((res) => {
         return { companies: res.companies || [] };
       }),
