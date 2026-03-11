@@ -697,15 +697,21 @@ export function ProductForm({
           disabled={loading}
         />
 
-        <FormInput
-          label="ขนาดบรรจุรวมต่อลัง"
-          type="text"
-          value={formData.totalPackageSizePerBox || ""}
-          onChange={() => { }}
-          disabled={true}
-          placeholder="คำนวณอัตโนมัติ"
-          className="bg-gray-50"
-        />
+        <div className="space-y-2">
+          <Label className="text-base font-medium mx-2">ขนาดบรรจุรวมต่อลัง</Label>
+          <div className="flex gap-2">
+            <Input
+              value={formData.totalPackageSizePerBox || ""}
+              readOnly
+              disabled
+              placeholder="คำนวณอัตโนมัติ"
+              className="bg-gray-50 flex-1"
+            />
+            <div className="w-[140px] flex items-center justify-center border rounded-md bg-gray-100 text-gray-500 text-sm font-medium">
+              {PACKAGE_UNIT_OPTIONS.find(opt => opt.value === formData.packageSizeUnit)?.label || formData.packageSizeUnit}
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-2">
           <label className="text-base font-medium mx-2">ใช้กับพืช</label>
