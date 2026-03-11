@@ -463,7 +463,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                             );
                             const priceChanged = Boolean(item.priceModified);
                             const packSize = parseFloat(
-                                item.product.packageSizePerBox || "1"
+                                item.product.packageSizePerBox?.toString() || "1"
                             );
                             const multiplier =
                                 isNaN(packSize) || packSize <= 0 ? 1 : packSize;
@@ -639,7 +639,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                             const originalTotal = originalUnitPrice * quantity;
                             const priceChanged = Boolean(item.priceModified);
                             const packSize = parseFloat(
-                                item.product.packageSizePerBox || "1"
+                                item.product.packageSizePerBox?.toString() || "1"
                             );
                             const multiplier =
                                 isNaN(packSize) || packSize <= 0 ? 1 : packSize;

@@ -159,13 +159,12 @@ export function ProductForm({
 
   // Calculate total package size per box when packageSize, packageSizeUnit, or packageSizePerBox changes
   useEffect(() => {
-    const packageSizeValue = parseFloat(formData.packageSize || "0");
-    const packageSizePerBox = parseFloat(formData.packageSizePerBox || "0");
-    const packageSizeUnit = formData.packageSizeUnit || "G";
+    const packageSizeValue = parseFloat(formData.packageSize?.toString() || "0");
+    const packageSizePerBox = parseFloat(formData.packageSizePerBox?.toString() || "0");
 
     if (packageSizeValue && packageSizePerBox) {
       const total = packageSizeValue * packageSizePerBox;
-      const totalValue = `${total} ${packageSizeUnit}`;
+      const totalValue = `${total}`;
 
       setFormData((prev) => ({
         ...prev,

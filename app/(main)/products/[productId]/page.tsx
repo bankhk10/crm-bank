@@ -373,10 +373,17 @@ export default function ProductDetailPage() {
                   }
                 />
                 <AttributeRow icon={<Ruler className="h-4 w-4" />} label="หน่วยนับ" value={product.unit} />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox} />
-                <AttributeRow icon={<Box className="h-4 w-4" />} label="จำนวนรวม/ขนาดบรรจุ" value={product.packageSize} />
-                <AttributeRow icon={<Box className="h-4 w-4" />} label="หน่วยขนาดบรรจุ" value={product.packageSizeUnit} />
-                <AttributeRow icon={<Ruler className="h-4 w-4" />} label="ขนาดบรรจุรวมต่อลัง" value={product.totalPackageSizePerBox} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox?.toString()} />
+                <AttributeRow 
+                  icon={<Box className="h-4 w-4" />} 
+                  label="ขนาดบรรจุ" 
+                  value={product.packageSize ? `${product.packageSize} ${product.packageSizeUnit || ''}` : undefined} 
+                />
+                <AttributeRow 
+                  icon={<Ruler className="h-4 w-4" />} 
+                  label="ขนาดบรรจุรวมต่อลัง" 
+                  value={product.totalPackageSizePerBox ? `${product.totalPackageSizePerBox} ${product.packageSizeUnit || ''}` : undefined} 
+                />
               </div>
 
               {/* Used For Plants */}

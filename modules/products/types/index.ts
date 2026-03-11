@@ -94,10 +94,10 @@ export interface Product {
   productGroup: string | null; // กลุ่มชื่อการค้า (Trade Name Group)
   brand: string | null;
   chemicalGroup: string | null; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
-  packageSize: string | null;
+  packageSize: number | null;
   packageSizeUnit: string | null;
-  packageSizePerBox: string | null;
-  totalPackageSizePerBox: string | null;
+  packageSizePerBox: number | null;
+  totalPackageSizePerBox: number | null;
   status: ProductStatus;
   usedForPlants: string[];
   salesPoint: string | null;
@@ -132,10 +132,10 @@ export interface ProductFormData {
   productGroup?: string; // กลุ่มชื่อการค้า (Trade Name Group)
   brand?: string;
   chemicalGroup?: string; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
-  packageSize?: string;
+  packageSize?: string | number;
   packageSizeUnit?: string;
-  packageSizePerBox?: string;
-  totalPackageSizePerBox?: string;
+  packageSizePerBox?: string | number;
+  totalPackageSizePerBox?: string | number;
   status: ProductStatus;
   usedForPlants: string[];
   salesPoint?: string;

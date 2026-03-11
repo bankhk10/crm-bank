@@ -102,7 +102,7 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
       const product = products.find((p) => p.id === item.productId);
-      const packSize = parseFloat(product?.packageSizePerBox || "1");
+      const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
       const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
       return sum + item.quantity * item.unitPrice * multiplier;
     }, 0);

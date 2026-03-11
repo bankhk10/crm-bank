@@ -280,10 +280,10 @@ export async function createSale(data: {
     unit?: string | null;
     productGroup?: string | null;
     brand?: string | null;
-    packageSize?: string | null;
+    packageSize?: number | string | null;
     packageSizeUnit?: string | null;
-    packageSizePerBox?: string | null;
-    totalPackageSizePerBox?: string | null;
+    packageSizePerBox?: number | string | null;
+    totalPackageSizePerBox?: number | string | null;
     price?: number | null;
     cartonPrice?: number | null;
     promotionBudget?: number | null;

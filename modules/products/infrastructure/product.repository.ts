@@ -219,10 +219,10 @@ export async function createProduct(data: {
   productGroup?: string;
   brand?: string;
   chemicalGroup?: string;
-  packageSize?: string;
-  packageSizeUnit?: string;
-  packageSizePerBox?: string;
-  totalPackageSizePerBox?: string;
+  packageSize?: string | number | null;
+  packageSizeUnit?: string | null;
+  packageSizePerBox?: string | number | null;
+  totalPackageSizePerBox?: string | number | null;
   status: "ACTIVE" | "INACTIVE";
   usedForPlants: string[];
   salesPoint?: string;

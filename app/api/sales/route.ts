@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
     // Calculate totals with package size multiplier (matching frontend logic)
     const subtotal = body.items.reduce((sum, item) => {
       const product = productMap.get(item.productId);
-      const packSize = parseFloat(product?.packageSizePerBox || "1");
+      const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
       const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
 
       return sum + item.quantity * item.unitPrice * multiplier;
@@ -278,7 +278,8 @@ export async function POST(request: NextRequest) {
         );
         // Note: Stock quantity is usually in base units (e.g. bottles)
         // Item quantity is in Cartons.
-        const packSize = parseFloat(product.packageSizePerBox || "1");
+        // Item quantity is in Cartons.
+        const packSize = parseFloat(product.packageSizePerBox?.toString() || "1");
         const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
         const requestedUnits = item.quantity * multiplier;
 
@@ -334,7 +335,7 @@ export async function POST(request: NextRequest) {
         items: {
           create: body.items.map((item) => {
             const product = productMap.get(item.productId);
-            const packSize = parseFloat(product?.packageSizePerBox || "1");
+            const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
             const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
             const totalPrice = item.quantity * item.unitPrice * multiplier;
 

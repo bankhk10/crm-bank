@@ -8,10 +8,10 @@ export const productSchema = z.object({
   productGroup: z.string().optional(),
   brand: z.string().optional(),
   chemicalGroup: z.string().optional(),
-  packageSize: z.string().optional(),
+  packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
-  packageSizePerBox: z.string().optional(),
-  totalPackageSizePerBox: z.string().optional(),
+  packageSizePerBox: z.coerce.number().optional(),
+  totalPackageSizePerBox: z.coerce.number().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
   usedForPlants: z.array(z.string()).default([]),
   salesPoint: z.string().optional(),
@@ -30,7 +30,7 @@ export type ProductUpdateFormValues = z.infer<typeof productUpdateSchema>;
 export const productManagementSchema = z.object({
   price: z.number().optional(),
   cartonPrice: z.number().optional(),
-  packageSizePerBox: z.string().optional(),
+  packageSizePerBox: z.coerce.number().optional(),
   promotionBudget: z.number().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   freeItems: z

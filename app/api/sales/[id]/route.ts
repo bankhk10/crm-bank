@@ -365,7 +365,7 @@ export async function PUT(
       // Calculate totals
       const subtotal = body.items.reduce((sum, item) => {
         const product = productMap.get(item.productId);
-        const packSize = parseFloat(product?.packageSizePerBox || "1");
+        const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
         const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
         return sum + item.quantity * item.unitPrice * multiplier;
       }, 0);
@@ -412,7 +412,7 @@ export async function PUT(
             deleteMany: {},
             create: body.items.map((item) => {
               const product = productMap.get(item.productId);
-              const packSize = parseFloat(product?.packageSizePerBox || "1");
+              const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
               const multiplier =
                 isNaN(packSize) || packSize <= 0 ? 1 : packSize;
               const totalPrice = item.quantity * item.unitPrice * multiplier;

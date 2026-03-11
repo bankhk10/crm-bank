@@ -17,8 +17,8 @@ import { buildExplodedSaleAddresses } from "./address-builder";
 // Helpers
 // ─────────────────────────────────────────────
 
-function getPackMultiplier(packageSizePerBox?: string | null): number {
-  const packSize = parseFloat(packageSizePerBox || "1");
+function getPackMultiplier(packageSizePerBox?: string | number | null): number {
+  const packSize = parseFloat(packageSizePerBox?.toString() || "1");
   return isNaN(packSize) || packSize <= 0 ? 1 : packSize;
 }
 
@@ -89,7 +89,7 @@ export async function updateSaleUseCase(
   // 6. Calculate totals
   const subtotal = body.items.reduce((sum, item) => {
     const product = productMap.get(item.productId);
-    const multiplier = getPackMultiplier(product?.packageSizePerBox);
+    const multiplier = getPackMultiplier(product?.packageSizePerBox as any);
     return sum + item.quantity * item.unitPrice * multiplier;
   }, 0);
   const total = subtotal - body.shippingCost - body.otherCosts;
@@ -149,7 +149,7 @@ export async function updateSaleUseCase(
     needsReapproval,
     items: body.items.map((item) => {
       const product = productMap.get(item.productId);
-      const multiplier = getPackMultiplier(product?.packageSizePerBox);
+      const multiplier = getPackMultiplier(product?.packageSizePerBox as any);
       return {
         productId: item.productId,
         // Product Snapshot
@@ -159,13 +159,13 @@ export async function updateSaleUseCase(
         unit: product?.unit,
         productGroup: product?.productGroup,
         brand: product?.brand,
-        packageSize: product?.packageSize,
+        packageSize: product?.packageSize as any,
         packageSizeUnit: product?.packageSizeUnit,
-        packageSizePerBox: product?.packageSizePerBox,
-        totalPackageSizePerBox: product?.totalPackageSizePerBox,
+        packageSizePerBox: product?.packageSizePerBox as any,
+        totalPackageSizePerBox: product?.totalPackageSizePerBox as any,
         price: product?.price != null ? Number(product.price) : null,
         cartonPrice: (() => {
-          const packSize = parseFloat(product?.packageSizePerBox || "0");
+          const packSize = parseFloat(product?.packageSizePerBox?.toString() || "0");
           if (!isNaN(packSize) && packSize > 0) {
             return item.unitPrice * packSize;
           }

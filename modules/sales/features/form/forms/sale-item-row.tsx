@@ -107,7 +107,7 @@ export function SaleItemRow({
                             label="ราคาต่อลัง"
                             value={(() => {
                                 // Try to parse pack size (e.g. "12", "12x1L")
-                                const packSize = parseFloat(product?.packageSizePerBox || "0");
+                                const packSize = parseFloat(product?.packageSizePerBox?.toString() || "0");
 
                                 // If we have a valid pack size, calculate carton price based on current unit price
                                 if (!isNaN(packSize) && packSize > 0) {
@@ -128,7 +128,7 @@ export function SaleItemRow({
                         <FormInput
                             label="ราคารวม (บาท)"
                             value={(() => {
-                                const packSize = parseFloat(product?.packageSizePerBox || "1");
+                                const packSize = parseFloat(product?.packageSizePerBox?.toString() || "1");
                                 const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
                                 return (item.quantity * item.unitPrice * multiplier).toLocaleString(
                                     undefined,

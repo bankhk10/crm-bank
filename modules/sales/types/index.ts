@@ -61,9 +61,9 @@ export interface SaleItemWithProduct extends SaleItem {
     productCode: string;
     unit?: string | null;
     price?: number | null;
-    packageSize?: string | null;
+    packageSize?: number | string | null;
     packageSizeUnit?: string | null;
-    packageSizePerBox?: string | null;
+    packageSizePerBox?: number | string | null;
   };
 }
 
@@ -436,7 +436,9 @@ export interface SaleFormProduct {
     notes?: string;
   }>;
   cartonPrice?: number;
-  packageSizePerBox?: string;
+  packageSizePerBox?: number | string;
+  packageSize?: number | string;
+  packageSizeUnit?: string;
 }
 
 export interface SaleFormCompany {

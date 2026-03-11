@@ -63,13 +63,14 @@ export async function getProductSalesReport(
     brand: string;
     productGroup: string;
     parentId?: string | null;
-    packageSize?: string | null;
-    packageSizePerBox?: string | null;
-    totalPackageSizePerBox?: string | null;
+    packageSize?: number | string | null;
+    packageSizePerBox?: number | string | null;
+    totalPackageSizePerBox?: number | string | null;
   };
 
-  const parsePackageSize = (raw?: string | null) => {
-    if (!raw) return { value: null as number | null, unit: "" };
+  const parsePackageSize = (raw?: number | string | null) => {
+    if (raw === null || raw === undefined) return { value: null as number | null, unit: "" };
+    if (typeof raw === "number") return { value: raw, unit: "" };
     const valueMatch = raw.replace(/,/g, "").match(/[\d.]+/);
     const value = valueMatch ? parseFloat(valueMatch[0]) : null;
     const unit = raw.replace(/[\d.,\s]/g, "").trim();
@@ -82,7 +83,7 @@ export async function getProductSalesReport(
     const perBox =
       totalPerBox.value ??
       (packageSize.value !== null
-        ? packageSize.value * (parseFloat(product.packageSizePerBox || "1") || 1)
+        ? packageSize.value * (parseFloat(product.packageSizePerBox?.toString() || "1") || 1)
         : null);
 
     const totalPackageSold =
@@ -157,9 +158,9 @@ export async function getProductSalesReport(
           brand: p.brand || "-",
           productGroup: p.productGroup || "-",
           parentId: p.parentId,
-          packageSize: p.packageSize,
-          packageSizePerBox: p.packageSizePerBox,
-          totalPackageSizePerBox: p.totalPackageSizePerBox,
+          packageSize: p.packageSize as any,
+          packageSizePerBox: p.packageSizePerBox as any,
+          totalPackageSizePerBox: p.totalPackageSizePerBox as any,
         });
       }
 

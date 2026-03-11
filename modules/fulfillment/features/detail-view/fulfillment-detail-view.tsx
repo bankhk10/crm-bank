@@ -665,7 +665,7 @@ export default function FulfillmentDetailPage({
                             );
                             const priceChanged = Boolean(item.priceModified);
 
-                            const packSize = parseFloat(item.product.packageSizePerBox || "1");
+                            const packSize = parseFloat(item.product.packageSizePerBox?.toString() || "1");
                             const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
                             const cartonPrice = currentUnitPrice * multiplier;
 
@@ -839,7 +839,7 @@ export default function FulfillmentDetailPage({
                             const originalTotal = originalUnitPrice * quantity;
                             const priceChanged = Boolean(item.priceModified);
 
-                            const packSize = parseFloat(item.product.packageSizePerBox || "1");
+                            const packSize = parseFloat(item.product.packageSizePerBox?.toString() || "1");
                             const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
                             const cartonPrice = currentUnitPrice * multiplier;
 
