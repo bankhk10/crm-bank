@@ -66,6 +66,7 @@ export function SaleForm({
     const isManager = currentUser?.roles?.includes("sales_manager") || false;
     const isSaleAdmin = currentUser?.roles?.includes("sales_admin") || false;
     const canSelectOtherEmployees = isAdmin || isManager || isSaleAdmin;
+    const isSalesEmployee = currentUser?.roles?.includes("sales_employee") || false;
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
     const [warnings, setWarnings] = useState<string[]>([]);
@@ -517,10 +518,20 @@ export function SaleForm({
                         updateCustomerDetails(val);
                         setFieldErrors((prev) => ({ ...prev, customerId: "" }));
                     }}
-                    options={customers.map((customer) => ({
-                        value: customer.id,
-                        label: `${customer.name} (${customer.customerCode})`,
-                    }))}
+                    options={customers
+                        .filter((customer) => {
+                            if (isSalesEmployee && !canSelectOtherEmployees) {
+                                return (
+                                    customer.responsibleEmployeeId === currentUser?.employeeId ||
+                                    (isEdit && customer.id === initialData?.customerId)
+                                );
+                            }
+                            return true;
+                        })
+                        .map((customer) => ({
+                            value: customer.id,
+                            label: `${customer.name} (${customer.customerCode})`,
+                        }))}
                     placeholder="เลือกลูกค้า"
                     searchPlaceholder="ค้นหาลูกค้า..."
                     emptyText="ไม่พบลูกค้า"

@@ -122,16 +122,6 @@ export function AddressSelector({
               <MapPin className="h-4 w-4" />
               <span>ไม่พบที่อยู่จัดส่ง</span>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onUseCustomAddress}
-              disabled={disabled}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              ระบุที่อยู่เอง
-            </Button>
           </div>
         </div>
       </div>

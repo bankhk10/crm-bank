@@ -349,6 +349,7 @@ export interface SaleFormCustomer {
   name: string;
   customerCode: string;
   customerType: string;
+  responsibleEmployeeId?: string | null;
   billingAddress?: string;
   shippingAddress?: string;
   shippingAddressLine?: string;
