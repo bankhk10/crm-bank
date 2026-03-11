@@ -50,12 +50,17 @@ export default function CustomersTable({
   const canCreate = !isLoading && (
     canCreateDealer || canCreateSubdealer || canCreateFarmer || canCreateBroker
   );
-  
-  const canDelete = hasPermission("customer.delete.dealer") || 
-                    hasPermission("customer.delete.subdealer") || 
-                    hasPermission("customer.delete.farmer") || 
-                    hasPermission("customer.delete.broker");
-  
+
+  const canEdit = hasPermission("customer.edit.dealer") ||
+    hasPermission("customer.edit.subdealer") ||
+    hasPermission("customer.edit.farmer") ||
+    hasPermission("customer.edit.broker");
+
+  const canDelete = hasPermission("customer.delete.dealer") ||
+    hasPermission("customer.delete.subdealer") ||
+    hasPermission("customer.delete.farmer") ||
+    hasPermission("customer.delete.broker");
+
   const [data, setData] = React.useState<CustomerRecord[]>(initialData || []);
   const [total, setTotal] = React.useState<number>(initialTotal || 0);
   const [fetchLoading, setFetchLoading] = React.useState(false);
@@ -68,7 +73,7 @@ export default function CustomersTable({
     customerType?: string;
     status?: string;
   }>({ query: "", customerType: "", status: "" });
-  
+
   const [appliedFilters, setAppliedFilters] = React.useState<{
     query: string;
     customerType?: string;
@@ -131,8 +136,8 @@ export default function CustomersTable({
   React.useEffect(() => {
     // skip initial fetch if we already have initialData and it is the first render
     if (initialRender.current) {
-        initialRender.current = false;
-        if (initialData && data.length > 0) return;
+      initialRender.current = false;
+      if (initialData && data.length > 0) return;
     }
 
     let mounted = true;
@@ -181,7 +186,7 @@ export default function CustomersTable({
     try {
       const res = await deleteCustomerAction(deleteTarget.id);
       if (!res.success) throw new Error(res.error || "Delete failed");
-      
+
       setData((prev) => prev.filter((c) => c.id !== deleteTarget.id));
       setTotal(prev => prev > 0 ? prev - 1 : 0);
       setDeleteTarget(null);
@@ -193,7 +198,7 @@ export default function CustomersTable({
     }
   };
 
-  const columns = useCustomerColumns((emp) => setDeleteTarget(emp as CustomerRecord), canDelete, data);
+  const columns = useCustomerColumns((emp) => setDeleteTarget(emp as CustomerRecord), canDelete, canEdit, data);
 
   const customerTypes = Object.keys(CUSTOMER_TYPE_STYLE) as Array<
     keyof typeof CUSTOMER_TYPE_STYLE
@@ -221,17 +226,17 @@ export default function CustomersTable({
   };
 
   if (isLoading) {
-      return <div className="p-8 text-center text-slate-500">กรุณารอสักครู่...</div>;
+    return <div className="p-8 text-center text-slate-500">กรุณารอสักครู่...</div>;
   }
 
   if (!allowed) {
-      return (
-          <div className="p-8 text-center">
-              <div className="text-red-600 font-semibold text-lg">
-                  คุณไม่มีสิทธิ์เข้าถึงหน้านี้
-              </div>
-          </div>
-      );
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-600 font-semibold text-lg">
+          คุณไม่มีสิทธิ์เข้าถึงหน้านี้
+        </div>
+      </div>
+    );
   }
 
   const toolbar = (
@@ -260,7 +265,7 @@ export default function CustomersTable({
                     <SelectItem value={ALL_FILTER_VALUE}>ทุกประเภท</SelectItem>
                     {customerTypes.map((type) => (
                       <SelectItem key={type} value={type}>
-                         {CUSTOMER_TYPE_STYLE[type]?.label || type}
+                        {CUSTOMER_TYPE_STYLE[type]?.label || type}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -337,6 +342,7 @@ export default function CustomersTable({
               data={data}
               loading={fetchLoading}
               canDelete={canDelete}
+              canEdit={canEdit}
               onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
             />
             {!fetchLoading && paginationInfo.total > 0 && (
@@ -442,12 +448,14 @@ export default function CustomersTable({
                               label="ดู"
                               colorClass="text-gray-400 text-blue-600 bg-blue-50 border-transparent shadow-none p-1.5"
                             />
-                            <ActionButton
-                              href={`/customers/${subDealer.id}/edit`}
-                              icon={Edit}
-                              label="แก้ไข"
-                              colorClass="text-gray-400 text-purple-600 bg-purple-50 border-transparent shadow-none p-1.5"
-                            />
+                            {canEdit && (
+                              <ActionButton
+                                href={`/customers/${subDealer.id}/edit`}
+                                icon={Edit}
+                                label="แก้ไข"
+                                colorClass="text-gray-400 text-purple-600 bg-purple-50 border-transparent shadow-none p-1.5"
+                              />
+                            )}
                           </div>
                         </div>
                       ))}

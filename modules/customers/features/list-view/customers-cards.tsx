@@ -13,11 +13,13 @@ export function CustomersCards({
     data,
     loading,
     canDelete,
+    canEdit,
     onDeleteRequest
 }: {
     data: any[];
     loading?: boolean;
     canDelete?: boolean;
+    canEdit?: boolean;
     onDeleteRequest?: (customer: any) => void;
 }) {
     if (loading) {
@@ -127,16 +129,18 @@ export function CustomersCards({
                                         <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
                                     </Link>
                                 </Button>
-                                <Button
-                                    asChild
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
-                                >
-                                    <Link href={`/customers/${customer.id}/edit`}>
-                                        <Edit className="mr-2 h-4 w-4" /> แก้ไข
-                                    </Link>
-                                </Button>
+                                {canEdit && (
+                                    <Button
+                                        asChild
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+                                    >
+                                        <Link href={`/customers/${customer.id}/edit`}>
+                                            <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                                        </Link>
+                                    </Button>
+                                )}
                                 {canDelete && onDeleteRequest && (
                                     <Button
                                         size="sm"
