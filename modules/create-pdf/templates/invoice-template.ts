@@ -84,37 +84,34 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     )
     .join("");
 
-  // Build customer name + address row
-  const customerNameAndAddressRow = (() => {
+  // Build customer name + phone row
+  const customerNameAndPhoneRow = (() => {
     const name = (data.customerName ?? "").trim();
-    const address = (data.customerAddress ?? "").trim();
+    const phone = (data.customerPhone ?? "").trim();
     if (!name || name === "-") return "";
 
-    const addressSpan =
-      address && address !== "-"
-        ? `<span class="phone"><strong>ที่อยู่บริษัท:</strong> ${address}</span>`
+    const phonePart =
+      phone && phone !== "-"
+        ? `<span class="phone"><strong>เบอร์โทรศัพท์:</strong> ${phone}</span>`
         : "";
 
-    return `<p><strong>ชื่อบริษัท:</strong> ${name} ${addressSpan}</p>`;
+    return `<p><strong>ชื่อบริษัท:</strong> ${name} ${phonePart}</p>`;
   })();
 
-  // Build row with Phone and Billing Address on the same line
-  const phoneAndBillingRow = (() => {
-    const phone = (data.customerPhone ?? "").trim();
+  // Build customer address row
+  const customerAddressRow = (() => {
+    const address = (data.customerAddress ?? "").trim();
+    if (!address || address === "-") return "";
+
+    return `<p><strong>ที่อยู่บริษัท:</strong> ${address}</p>`;
+  })();
+
+  // Build row with Billing Address
+  const billingAddressRow = (() => {
     const billing = (data.billingAddress ?? "").trim();
-    const hasPhone = phone && phone !== "-";
-    const hasBilling = billing && billing !== "-";
+    if (!billing || billing === "-") return "";
 
-    if (!hasPhone && !hasBilling) return "";
-
-    const billingPart = hasBilling
-      ? `<strong>ที่อยู่วางบิล:</strong> ${billing}`
-      : "";
-    const phonePart = hasPhone
-      ? `<span class="${hasBilling ? "phone" : ""}"><strong>เบอร์โทรศัพท์:</strong> ${phone}</span>`
-      : "";
-
-    return `<p>${billingPart} ${phonePart}</p>`;
+    return `<p><strong>ที่อยู่วางบิล:</strong> ${billing}</p>`;
   })();
 
   // Build shipping method + company name + address row
@@ -255,8 +252,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           }
         </div>
         <h3>ข้อมูลลูกค้า</h3>
-        ${customerNameAndAddressRow}
-        ${phoneAndBillingRow}
+        ${customerNameAndPhoneRow}
+        ${customerAddressRow}
+        ${billingAddressRow}
       </div>
       <div class="customer-info-container">
         <div class="logistics-details">
