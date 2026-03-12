@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Product } from "@/modules/products/types";
+import { PACKAGE_UNIT_OPTIONS } from "@/modules/products/constants";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -372,17 +373,33 @@ export default function ProductDetailPage() {
                       : undefined
                   }
                 />
-                <AttributeRow icon={<Ruler className="h-4 w-4" />} label="หน่วยนับ" value={product.unit} />
+                <AttributeRow
+                  icon={<Ruler className="h-4 w-4" />}
+                  label="หน่วยนับ"
+                  value={
+                    product.unitObj
+                      ? `${product.unitObj.code} - ${product.unitObj.description}`
+                      : product.unit
+                  }
+                />
                 <AttributeRow
                   icon={<Box className="h-4 w-4" />}
                   label="ขนาดบรรจุ"
-                  value={product.packageSize ? `${product.packageSize} ${product.packageSizeUnit || ''}` : undefined}
+                  value={
+                    product.packageSize
+                      ? `${product.packageSize} ${PACKAGE_UNIT_OPTIONS.find(opt => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ''}`
+                      : undefined
+                  }
                 />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox?.toString()} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="จำนวนบรรจุต่อลัง" value={product.packageSizePerBox ? `${product.packageSizePerBox} ชิ้น` : undefined} />
                 <AttributeRow
                   icon={<Ruler className="h-4 w-4" />}
                   label="ขนาดบรรจุรวมต่อลัง"
-                  value={product.totalPackageSizePerBox ? `${product.totalPackageSizePerBox} ${product.packageSizeUnit || ''}` : undefined}
+                  value={
+                    product.totalPackageSizePerBox
+                      ? `${product.totalPackageSizePerBox} ${PACKAGE_UNIT_OPTIONS.find(opt => opt.value === product.packageSizeUnit)?.label || product.packageSizeUnit || ''}`
+                      : undefined
+                  }
                 />
               </div>
 

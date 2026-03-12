@@ -133,6 +133,7 @@ export interface Product {
   // Extra detailed objects for display
   chemicalGroupObj?: ChemicalGroup | null;
   productGroupObj?: { id: string; code: string; description: string } | null;
+  unitObj?: { id: string; code: string; description: string } | null;
 }
 
 export interface ProductFormData {

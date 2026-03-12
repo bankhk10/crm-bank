@@ -209,8 +209,8 @@ export async function findProductById(id: string) {
 
   if (!product) return null;
 
-  // Manually fetch group details (they aren't linked by relations in Prisma yet)
-  const [chemGroup, tradeGroup] = await Promise.all([
+  // Manually fetch master data (they aren't linked by relations in Prisma yet)
+  const [chemGroup, tradeGroup, unitObj] = await Promise.all([
     product.chemicalGroup
       ? db.chemicalGroup.findUnique({ where: { code: product.chemicalGroup } })
       : null,
@@ -219,12 +219,18 @@ export async function findProductById(id: string) {
           where: { code: product.productGroup },
         })
       : null,
+    product.unit
+      ? db.unit.findFirst({
+          where: { description: product.unit, deletedAt: null },
+        })
+      : null,
   ]);
 
   return {
     ...(product as any),
     chemicalGroupObj: chemGroup,
     productGroupObj: tradeGroup,
+    unitObj: unitObj,
   };
 }
 
