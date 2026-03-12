@@ -172,7 +172,7 @@ td {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
 }
 
 .company {
@@ -216,14 +216,14 @@ td {
   text-align: center;
   font-size: 16px;
   font-weight: 700;
-  margin: 5px 0 5px;
+  margin: 0px 0 2px;
   color: #24364b;
 }
 
 .doc-divider {
   height: 3px;
   background: #24364b;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 .phone {
   margin-left: 25px;
