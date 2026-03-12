@@ -66,7 +66,7 @@ function formatThaiDateTime(date: Date | string) {
 
 function SnapshotStoreList({ snapshot }: { snapshot: any }) {
   if (!snapshot?.stores?.length) {
-    return <p className="text-sm text-slate-400 italic">ไม่มีข้อมูลร้านค้า</p>;
+    return <p className="text-sm text-red-500 italic">ไม่มีข้อมูลร้านค้า</p>;
   }
 
   const totalAmount = snapshot.stores.reduce(
@@ -185,12 +185,12 @@ function HistoryCard({ item }: { item: HistoryItem }) {
       {expanded && (
         <div className="border-t bg-slate-50/50">
           {item.changeType === "UPDATED" &&
-          item.snapshotBefore &&
-          item.snapshotAfter ? (
+            item.snapshotBefore &&
+            item.snapshotAfter ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x">
               {/* Before */}
               <div className="p-4">
-                <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">
+                <p className="text-xs font-semibold text-red-500 mb-3 uppercase tracking-wide">
                   ก่อนแก้ไข
                 </p>
                 <SnapshotStoreList snapshot={item.snapshotBefore} />
