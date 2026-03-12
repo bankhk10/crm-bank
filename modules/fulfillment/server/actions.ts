@@ -82,14 +82,18 @@ export async function getFulfillmentsAction(params: {
         ...item,
         price: item.price ? item.price.toNumber() : null,
         cartonPrice: item.cartonPrice ? item.cartonPrice.toNumber() : null,
-        promotionBudget: item.promotionBudget ? item.promotionBudget.toNumber() : null,
+        promotionBudget: item.promotionBudget
+          ? item.promotionBudget.toNumber()
+          : null,
         unitPrice: item.unitPrice.toNumber(),
         originalPrice: item.originalPrice.toNumber(),
         totalPrice: item.totalPrice.toNumber(),
-        product: item.product ? {
-          ...item.product,
-          price: item.product.price ? item.product.price.toNumber() : null,
-        } : null,
+        product: item.product
+          ? {
+              ...item.product,
+              price: item.product.price ? item.product.price.toNumber() : null,
+            }
+          : null,
       })),
     }));
 
@@ -103,4 +107,3 @@ export async function getFulfillmentsAction(params: {
     throw new Error("Failed to fetch fulfillments");
   }
 }
-
