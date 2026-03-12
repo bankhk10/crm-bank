@@ -18,7 +18,7 @@ export const productSchema = z.object({
   properties: z.string().optional(),
   pointPerUnit: z.number().int().min(0).optional(),
   categoryId: z.string().optional(),
-  productChainId: z.string().optional(),
+  productABCTypeId: z.string().optional(),
   parentId: z.string().nullable().optional(),
 });
 

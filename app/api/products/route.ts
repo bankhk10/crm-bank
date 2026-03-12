@@ -27,7 +27,7 @@ const productSchema = z.object({
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
   categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
-  productChainId: z.string().optional(), // FK to ProductChain (กรุ๊ปสินค้า)
+  productABCTypeId: z.string().optional(), // FK to ProductABCTypes (ประเภทสินค้า ABC)
   parentId: z.string().nullable().optional(),
 });
 
@@ -300,7 +300,7 @@ export async function POST(request: Request) {
         pointPerUnit: parsed.data.pointPerUnit ?? 0,
         // New fields
         categoryId: parsed.data.categoryId || null,
-        productChainId: parsed.data.productChainId || null,
+        productABCTypeId: parsed.data.productABCTypeId || null,
         parentId: parsed.data.parentId || null,
       },
       include: {

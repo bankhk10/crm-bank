@@ -517,11 +517,12 @@ model ProductGroupMaster {
   category ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }
 
-// กรุ๊ปสินค้า (Product Chain)
-model ProductChain {
+// ประเภทสินค้า ABC (Product ABC Types)
+model ProductABCTypes {
   id          String    @id @default(cuid())
-  name        String // ชื่อกรุ๊ปสินค้า
-  description String? // รายละเอียดกรุ๊ปสินค้า
+  code        String   // รหัสประเภทสินค้า
+  name        String // ชื่อประเภทสินค้า
+  description String? // รายละเอียดประเภทสินค้า
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -593,11 +594,11 @@ model Product {
   updatedAt              DateTime      @updatedAt
   deletedAt              DateTime?
 
-  // Category and Chain relations
-  categoryId     String? // FK to ProductCategory (หมวดสินค้า)
-  productChainId String? // FK to ProductChain (กรุ๊ปสินค้า)
-  category       ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  productChain   ProductChain?    @relation(fields: [productChainId], references: [id], onDelete: SetNull)
+  // Category and ABC Type relations
+  categoryId       String? // FK to ProductCategory (หมวดสินค้า)
+  productABCTypeId String? // FK to ProductABCTypes (ประเภทสินค้า ABC)
+  category         ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  productABCType   ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
 
   images               ProductImage[]
   promotionItems       ProductPromotionItem[]

@@ -222,7 +222,7 @@ export async function findProductsByIds(productIds: string[]) {
     where: { id: { in: productIds } },
     include: {
       stockLots: { where: { isUsed: false } },
-      productChain: true,
+      productABCType: true,
     },
   });
 }

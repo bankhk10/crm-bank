@@ -27,15 +27,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Search, Link2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface ProductChain {
+interface ProductABCType {
     id: string;
+    code: string;
     name: string;
     description: string | null;
     createdAt: string;
     updatedAt: string;
 }
 
-export default function ProductChainsPage() {
+export default function ProductABCTypesPage() {
     const {
         hasPermission,
         allowed,
@@ -46,7 +47,7 @@ export default function ProductChainsPage() {
     const canUpdate = hasPermission("product.edit");
     const canDelete = hasPermission("product.delete");
 
-    const [chains, setChains] = useState<ProductChain[]>([]);
+    const [abcTypes, setABCTypes] = useState<ProductABCType[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [total, setTotal] = useState(0);
@@ -56,15 +57,16 @@ export default function ProductChainsPage() {
     // Dialog states
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<ProductChain | null>(null);
-    const [deleteItem, setDeleteItem] = useState<ProductChain | null>(null);
+    const [editingItem, setEditingItem] = useState<ProductABCType | null>(null);
+    const [deleteItem, setDeleteItem] = useState<ProductABCType | null>(null);
     const [formData, setFormData] = useState({
+        code: "",
         name: "",
         description: "",
     });
     const [submitting, setSubmitting] = useState(false);
 
-    const fetchChains = useCallback(async () => {
+    const fetchABCTypes = useCallback(async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
@@ -75,7 +77,7 @@ export default function ProductChainsPage() {
             const res = await fetch(`/api/products/chains?${params}`);
             if (!res.ok) throw new Error("Failed to fetch");
             const data = await res.json();
-            setChains(data.chains || []);
+            setABCTypes(data.abcTypes || []);
             setTotal(data.total || 0);
         } catch {
             toast.error("ไม่สามารถโหลดข้อมูลได้");
@@ -86,34 +88,40 @@ export default function ProductChainsPage() {
 
     useEffect(() => {
         if (canView) {
-            fetchChains();
+            fetchABCTypes();
         }
-    }, [canView, fetchChains]);
+    }, [canView, fetchABCTypes]);
 
     const handleOpenCreate = () => {
         setEditingItem(null);
-        setFormData({ name: "", description: "" });
+        setFormData({ code: "", name: "", description: "" });
         setIsFormOpen(true);
     };
 
-    const handleOpenEdit = (item: ProductChain) => {
+    const handleOpenEdit = (item: ProductABCType) => {
         setEditingItem(item);
         setFormData({
+            code: item.code,
             name: item.name,
             description: item.description || "",
         });
         setIsFormOpen(true);
     };
 
-    const handleOpenDelete = (item: ProductChain) => {
+    const handleOpenDelete = (item: ProductABCType) => {
         setDeleteItem(item);
         setIsDeleteOpen(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!formData.code.trim()) {
+            toast.error("กรุณากรอกรหัสประเภทสินค้า");
+            return;
+        }
+
         if (!formData.name.trim()) {
-            toast.error("กรุณากรอกชื่อกรุ๊ปสินค้า");
+            toast.error("กรุณากรอกชื่อประเภทสินค้า");
             return;
         }
 
@@ -125,6 +133,7 @@ export default function ProductChainsPage() {
             const method = editingItem ? "PUT" : "POST";
 
             const payload = {
+                code: formData.code,
                 name: formData.name,
                 description: formData.description || null,
             };
@@ -140,7 +149,7 @@ export default function ProductChainsPage() {
 
             toast.success(editingItem ? "แก้ไขสำเร็จ" : "สร้างสำเร็จ");
             setIsFormOpen(false);
-            fetchChains();
+            fetchABCTypes();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาด");
         } finally {
@@ -165,7 +174,7 @@ export default function ProductChainsPage() {
             toast.success("ลบสำเร็จ");
             setIsDeleteOpen(false);
             setDeleteItem(null);
-            fetchChains();
+            fetchABCTypes();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาด");
         } finally {
@@ -188,7 +197,7 @@ export default function ProductChainsPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <Link2 className="w-8 h-8" />
-                            <CardTitle className="text-2xl font-bold">กรุ๊ปสินค้า</CardTitle>
+                            <CardTitle className="text-2xl font-bold">ประเภทสินค้า ABC</CardTitle>
                         </div>
                         {canCreate && (
                             <Button
@@ -196,7 +205,7 @@ export default function ProductChainsPage() {
                                 className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-md"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                เพิ่มกรุ๊ปสินค้า
+                                เพิ่มประเภทสินค้า ABC
                             </Button>
                         )}
                     </div>
@@ -223,7 +232,8 @@ export default function ProductChainsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-slate-50">
-                                    <TableHead className="font-semibold">ชื่อกรุ๊ปสินค้า</TableHead>
+                                    <TableHead className="font-semibold">รหัสประเภทสินค้า</TableHead>
+                                    <TableHead className="font-semibold">ชื่อประเภทสินค้า</TableHead>
                                     <TableHead className="font-semibold">รายละเอียด</TableHead>
                                     <TableHead className="font-semibold text-right w-32">
                                         จัดการ
@@ -231,30 +241,31 @@ export default function ProductChainsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="text-center py-8">
+                        {loading ? (
+                            <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-8">
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                                                 กำลังโหลด...
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ) : chains.length === 0 ? (
+                                ) : abcTypes.length === 0 ? (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={3}
+                                            colSpan={4}
                                             className="text-center py-8 text-slate-500"
                                         >
                                             ไม่พบข้อมูล
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    chains.map((chain) => (
-                                        <TableRow key={chain.id} className="hover:bg-slate-50">
-                                            <TableCell className="font-medium">{chain.name}</TableCell>
+                                    abcTypes.map((abcType) => (
+                                        <TableRow key={abcType.id} className="hover:bg-slate-50">
+                                            <TableCell className="font-medium">{abcType.code}</TableCell>
+                                            <TableCell className="font-medium">{abcType.name}</TableCell>
                                             <TableCell>
-                                                {chain.description || (
+                                                {abcType.description || (
                                                     <span className="text-slate-400">-</span>
                                                 )}
                                             </TableCell>
@@ -264,7 +275,7 @@ export default function ProductChainsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleOpenEdit(chain)}
+                                                            onClick={() => handleOpenEdit(abcType)}
                                                             className="hover:bg-blue-50 hover:text-blue-600"
                                                         >
                                                             <Pencil className="w-4 h-4" />
@@ -274,7 +285,7 @@ export default function ProductChainsPage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleOpenDelete(chain)}
+                                                            onClick={() => handleOpenDelete(abcType)}
                                                             className="hover:bg-red-50 hover:text-red-600"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -292,7 +303,7 @@ export default function ProductChainsPage() {
                     {/* Pagination info */}
                     {total > 0 && (
                         <div className="mt-4 text-sm text-slate-500">
-                            แสดง {chains.length} จาก {total} รายการ
+                            แสดง {abcTypes.length} จาก {total} รายการ
                         </div>
                     )}
                 </CardContent>
@@ -303,20 +314,32 @@ export default function ProductChainsPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingItem ? "แก้ไขกรุ๊ปสินค้า" : "เพิ่มกรุ๊ปสินค้าใหม่"}
+                            {editingItem ? "แก้ไขประเภทสินค้า ABC" : "เพิ่มประเภทสินค้า ABC ใหม่"}
                         </DialogTitle>
-                        <DialogDescription>กรอกข้อมูลกรุ๊ปสินค้าด้านล่าง</DialogDescription>
+                        <DialogDescription>กรอกข้อมูลประเภทสินค้า ABC ด้านล่าง</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">ชื่อกรุ๊ปสินค้า *</Label>
+                            <Label htmlFor="code">รหัสประเภทสินค้า *</Label>
+                            <Input
+                                id="code"
+                                value={formData.code}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({ ...prev, code: e.target.value }))
+                                }
+                                placeholder="รหัสประเภทสินค้า"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="name">ชื่อประเภทสินค้า *</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                                 }
-                                placeholder="ชื่อกรุ๊ปสินค้า"
+                                placeholder="ชื่อประเภทสินค้า"
                                 required
                             />
                         </div>
@@ -331,7 +354,7 @@ export default function ProductChainsPage() {
                                         description: e.target.value,
                                     }))
                                 }
-                                placeholder="รายละเอียดกรุ๊ปสินค้า (ไม่บังคับ)"
+                                placeholder="รายละเอียดประเภทสินค้า (ไม่บังคับ)"
                                 rows={3}
                             />
                         </div>
@@ -361,7 +384,7 @@ export default function ProductChainsPage() {
                     <DialogHeader>
                         <DialogTitle>ยืนยันการลบ</DialogTitle>
                         <DialogDescription>
-                            คุณต้องการลบกรุ๊ปสินค้า <strong>{deleteItem?.name}</strong>{" "}
+                            คุณต้องการลบประเภทสินค้า <strong>{deleteItem?.name}</strong>{" "}
                             ใช่หรือไม่?
                         </DialogDescription>
                     </DialogHeader>

@@ -41,10 +41,11 @@ export interface ProductCategory {
   description: string; // หมวดสินค้า
 }
 
-export interface ProductChain {
+export interface ProductABCType {
   id: string;
+  code: string;
   name: string;
-  description?: string | null; // รายละเอียดกรุ๊ปสินค้า
+  description?: string | null; // รายละเอียดประเภทสินค้า
 }
 
 export interface ProductImage {
@@ -119,11 +120,11 @@ export interface Product {
   deletedAt: Date | string | null;
   // New fields
   categoryId: string | null; // FK to ProductCategory (หมวดสินค้า)
-  productChainId: string | null; // FK to ProductChain (กรุ๊ปสินค้า)
+  productABCTypeId: string | null; // FK to ProductABCTypes (ประเภทสินค้า ABC)
   parentId: string | null; // FK to parent Product
   // Relations
   category?: ProductCategory | null;
-  productChain?: ProductChain | null;
+  productABCType?: ProductABCType | null;
   parent?: Pick<Product, "id" | "productCode" | "name"> | null;
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
@@ -165,7 +166,7 @@ export interface ProductFormData {
   coverIndex?: number | null;
   // New fields
   categoryId?: string; // FK to ProductCategory (หมวดสินค้า)
-  productChainId?: string; // FK to ProductChain (กรุ๊ปสินค้า)
+  productABCTypeId?: string; // FK to ProductABCTypes (ประเภทสินค้า ABC)
   parentId?: string; // FK to parent Product
 }
 

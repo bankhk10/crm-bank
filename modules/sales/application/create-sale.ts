@@ -209,7 +209,7 @@ export async function createSaleUseCase(
             ? Number(product.promotionBudget)
             : null,
         pointPerUnit: product?.pointPerUnit,
-        productChain: product?.productChain?.name,
+        productChain: product?.productABCType?.name,
 
         quantity: item.quantity,
         unitPrice: item.unitPrice,

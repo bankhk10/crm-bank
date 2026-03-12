@@ -194,7 +194,7 @@ function ProductGroupChart({
         <div className="flex items-center justify-center h-full text-slate-400">
           <div className="text-center">
             <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">กรุณาเลือกกรุ๊ปสินค้าที่ต้องการแสดง</p>
+            <p className="text-sm">กรุณาเลือกประเภทสินค้า ABC ที่ต้องการแสดง</p>
           </div>
         </div>
       </CardContent>
@@ -675,14 +675,14 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                    ยอดขายตามกรุ๊ปสินค้าเดือนนี้
+                    ยอดขายตามประเภทสินค้า ABC เดือนนี้
                   </CardTitle>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {/* Group Filter Toggle Info */}
                 <div className="text-[10px] sm:text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
-                  {visibleGroups.size}/{productGroupData.length} กรุ๊ป
+                  {visibleGroups.size}/{productGroupData.length} ประเภท
                 </div>
               </div>
             </div>
@@ -691,7 +691,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] sm:text-xs font-medium text-slate-600">
-                  เลือกกรุ๊ปที่ต้องการแสดง:
+                  เลือกประเภทที่ต้องการแสดง:
                 </span>
                 <button
                   onClick={toggleAllGroups}

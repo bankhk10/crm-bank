@@ -73,7 +73,7 @@ export function ProductForm({
     properties: initialData?.properties || "",
     coverIndex: (initialData as any)?.coverIndex ?? null,
     categoryId: (initialData as any)?.categoryId || "",
-    productChainId: (initialData as any)?.productChainId || "",
+    productABCTypeId: (initialData as any)?.productABCTypeId || "",
     parentId: (initialData as any)?.parentId || "",
   });
 
@@ -109,7 +109,9 @@ export function ProductForm({
   >([]);
   const [plantOptions, setPlantOptions] = useState<SelectOption[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([]);
-  const [productChainOptions, setProductChainOptions] = useState<SelectOption[]>([]);
+  const [productABCTypeOptions, setProductABCTypeOptions] = useState<
+    SelectOption[]
+  >([]);
   const [parentOptions, setParentOptions] = useState<SelectOption[]>([]);
 
   // Fetch dynamic options from server action (single call replaces 7 API calls)
@@ -132,7 +134,7 @@ export function ProductForm({
         setChemicalGroupOptions(options.chemicalGroups);
         setPlantOptions(dedup(options.plants));
         setCategoryOptions(options.categories);
-        setProductChainOptions(options.chains);
+        setProductABCTypeOptions(options.abcTypes);
       } catch (err) {
         console.error("Failed to fetch options:", err);
       }
@@ -234,7 +236,7 @@ export function ProductForm({
         properties: formData.properties || undefined,
         coverIndex: formData.coverIndex ?? undefined,
         categoryId: (formData as any).categoryId || undefined,
-        productChainId: (formData as any).productChainId || undefined,
+        productABCTypeId: (formData as any).productABCTypeId || undefined,
         parentId: (formData as any).parentId === "none" ? null : ((formData as any).parentId || undefined),
       };
 
@@ -582,13 +584,15 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="กรุ๊ปสินค้า"
-          value={(formData as any).productChainId || ""}
-          onChange={(v) => updateField("productChainId" as keyof ProductFormData, v)}
-          options={productChainOptions}
-          placeholder="เลือกกรุ๊ปสินค้า"
-          searchPlaceholder="ค้นหากรุ๊ปสินค้า..."
-          emptyText="ไม่พบกรุ๊ปสินค้า"
+          label="ประเภทสินค้า ABC"
+          value={(formData as any).productABCTypeId || ""}
+          onChange={(v) =>
+            updateField("productABCTypeId" as keyof ProductFormData, v)
+          }
+          options={productABCTypeOptions}
+          placeholder="เลือกประเภทสินค้า ABC"
+          searchPlaceholder="ค้นหาประเภทสินค้า ABC..."
+          emptyText="ไม่พบประเภทสินค้า ABC"
           disabled={loading}
         />
 

@@ -196,7 +196,7 @@ export async function findProductById(id: string) {
         orderBy: { createdAt: "desc" },
       },
       category: true,
-      productChain: true,
+      productABCType: true,
       parent: {
         select: {
           id: true,
@@ -255,7 +255,7 @@ export async function createProduct(data: {
   properties?: string;
   pointPerUnit?: number;
   categoryId?: string | null;
-  productChainId?: string | null;
+  productABCTypeId?: string | null;
   parentId?: string | null;
 }) {
   return db.product.create({
@@ -277,7 +277,7 @@ export async function createProduct(data: {
       properties: data.properties,
       pointPerUnit: data.pointPerUnit ?? 0,
       categoryId: data.categoryId || null,
-      productChainId: data.productChainId || null,
+      productABCTypeId: data.productABCTypeId || null,
       parentId: data.parentId || null,
     },
     include: {
@@ -584,8 +584,8 @@ export async function findProductCategories() {
   });
 }
 
-export async function findProductChains() {
-  return db.productChain.findMany({
+export async function findProductABCTypes() {
+  return db.productABCTypes.findMany({
     where: { deletedAt: null },
     orderBy: { name: "asc" },
     take: 100,

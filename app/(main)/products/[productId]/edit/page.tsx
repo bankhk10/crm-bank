@@ -99,7 +99,7 @@ export default function EditProductPage() {
               salesPoint: product.salesPoint || "",
               properties: product.properties || "",
               categoryId: product.categoryId || undefined,
-              productChainId: product.productChainId || undefined,
+              productABCTypeId: product.productABCTypeId || undefined,
               parentId: product.parentId || undefined,
               images:
                 product.images?.map((img: any) => ({

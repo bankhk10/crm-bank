@@ -355,12 +355,12 @@ export default function ProductDetailPage() {
                 />
                 <AttributeRow
                   icon={<Layers className="h-4 w-4" />}
-                  label="กรุ๊ปสินค้า"
+                  label="ประเภทสินค้า ABC"
                   value={
-                    product.productChain
-                      ? product.productChain.description
-                        ? `${product.productChain.name} - ${product.productChain.description}`
-                        : product.productChain.name
+                    product.productABCType
+                      ? product.productABCType.description
+                        ? `${product.productABCType.code} - ${product.productABCType.name} - ${product.productABCType.description}`
+                        : `${product.productABCType.code} - ${product.productABCType.name}`
                       : undefined
                   }
                 />

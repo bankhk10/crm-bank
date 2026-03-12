@@ -14,7 +14,7 @@ import {
   findChemicalGroups,
   findPlants,
   findProductCategories,
-  findProductChains,
+  findProductABCTypes,
   type ListProductsParams,
 } from "../infrastructure/product.repository";
 
@@ -42,10 +42,10 @@ export async function listProductsUseCase(params: ListProductsParams) {
 
 /**
  * Use case: Fetch all form options for product creation/editing.
- * Returns units, groups, brands, chemical groups, plants, categories, chains.
+ * Returns units, groups, brands, chemical groups, plants, categories, abcTypes.
  */
 export async function getProductFormOptionsUseCase() {
-  const [units, groups, brands, chemicalGroups, plants, categories, chains] =
+  const [units, groups, brands, chemicalGroups, plants, categories, abcTypes] =
     await Promise.all([
       findUnits(),
       findProductGroups(),
@@ -53,7 +53,7 @@ export async function getProductFormOptionsUseCase() {
       findChemicalGroups(),
       findPlants(),
       findProductCategories(),
-      findProductChains(),
+      findProductABCTypes(),
     ]);
 
   return {
@@ -75,9 +75,9 @@ export async function getProductFormOptionsUseCase() {
       value: c.id,
       label: c.code + " - " + c.description,
     })),
-    chains: chains.map((c) => ({
+    abcTypes: abcTypes.map((c) => ({
       value: c.id,
-      label: c.description ? `${c.name} - ${c.description}` : c.name,
+      label: c.description ? `${c.code} - ${c.name} - ${c.description}` : `${c.code} - ${c.name}`,
     })),
   };
 }

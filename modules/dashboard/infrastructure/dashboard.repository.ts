@@ -52,12 +52,12 @@ export async function aggregateSaleItemAmount(
 }
 
 export async function findAllProductGroups() {
-  const chains = await prisma.productChain.findMany({
+  const abcTypes = await prisma.productABCTypes.findMany({
     where: { deletedAt: null },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
-  return chains.map((c) => ({ code: c.id, description: c.name }));
+  return abcTypes.map((c) => ({ code: c.id, description: c.name }));
 }
 
 export async function findProductGroupTargets(year: number, month: number) {
@@ -72,7 +72,7 @@ export async function findProductGroupTargets(year: number, month: number) {
 
 export async function findProductIdsByGroup(groupCode: string) {
   const products = await prisma.product.findMany({
-    where: { productChainId: groupCode },
+    where: { productABCTypeId: groupCode },
     select: { id: true },
   });
   return products.map((p) => p.id);

@@ -344,12 +344,12 @@ export async function seedProductMaster(prisma: PrismaClient) {
     skipDuplicates: true,
   });
 
-  // Create Product Chains (กรุ๊ปสินค้า)
-  await prisma.productChain.createMany({
+  // Create Product ABC Types (ประเภทสินค้า ABC)
+  await prisma.productABCTypes.createMany({
     data: [
-      { name: "A", description: "สินค้าขายดี" },
-      { name: "B", description: "สินค้ารอง" },
-      { name: "C", description: "สินค้าตามฤดูกาล" },
+      { code: "A", name: "A", description: "สินค้าขายดี" },
+      { code: "B", name: "B", description: "สินค้ารอง" },
+      { code: "C", name: "C", description: "สินค้าตามฤดูกาล" },
     ],
     skipDuplicates: true,
   });
