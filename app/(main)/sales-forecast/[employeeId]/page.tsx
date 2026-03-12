@@ -232,11 +232,11 @@ export default function EmployeeForecastPage({
                 </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-medium text-slate-600 shrink-0">
-                    <Filter className="w-4 h-4" />
+                  <div className="flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-lg shadow-sm text-sm font-medium text-slate-600 shrink-0 h-11">
+                    <Filter className="w-4 h-4 text-slate-400" />
                     <span className="hidden sm:inline">เดือน:</span>
                     <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                      <SelectTrigger className="border-0 bg-transparent h-auto p-0 focus:ring-0 shadow-none font-bold text-blue-600">
+                      <SelectTrigger className="border-0 bg-transparent h-full p-0 focus:ring-0 shadow-none font-bold text-blue-600">
                         <SelectValue placeholder="เลือกเดือน" />
                       </SelectTrigger>
                       <SelectContent>
