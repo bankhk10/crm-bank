@@ -229,7 +229,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
    <div class="doc-header">
   <div class="company">
     ${base64Logo ? `<img src="${base64Logo}" class="company-logo" />` : ""}
-
     <div class="company-text">
       <h2>บริษัท คร็อพ ซายน์ จำกัด</h2>
       <p>Crop Sciences CO., LTD.</p>
@@ -243,13 +242,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 <div class="doc-divider"></div>
       <div class="customer-details">
         <div class="header-info">
-          ${
-            data.status === "COMPLETED"
-              ? data.saleOrderRef && data.saleOrderRef !== "-"
-                ? `<span class="sale-order-no">เลขที่คำสั่งขาย: ${data.saleOrderRef}</span>`
-                : ""
-              : `<span class="invoice-no">เลขที่ออเดอร์: ${data.invoiceNumber}</span>`
-          }
+          ${data.status === "COMPLETED"
+      ? data.saleOrderRef && data.saleOrderRef !== "-"
+        ? `<span class="sale-order-no">เลขที่คำสั่งขาย: ${data.saleOrderRef}</span>`
+        : ""
+      : `<span class="invoice-no">เลขที่ออเดอร์: ${data.invoiceNumber}</span>`
+    }
         </div>
         <h3>ข้อมูลลูกค้า</h3>
         ${customerNameAndPhoneRow}
@@ -294,24 +292,22 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span>รวมเป็นเงิน:</span>
             <span>${data.subtotalAmount.toLocaleString()} THB</span>
           </div>
-          ${
-            data.shippingDiscount > 0
-              ? `
+          ${data.shippingDiscount > 0
+      ? `
           <div class="total-row">
             <span>ส่วนลดค่าขนส่ง:</span>
             <span>-${data.shippingDiscount.toLocaleString()} THB</span>
           </div>`
-              : ""
-          }
-          ${
-            data.billDiscount > 0
-              ? `
+      : ""
+    }
+          ${data.billDiscount > 0
+      ? `
           <div class="total-row">
             <span>ส่วนลดหน้าบิล:</span>
             <span>-${data.billDiscount.toLocaleString()} THB</span>
           </div>`
-              : ""
-          }
+      : ""
+    }
           <div class="total-row grand-total">
             <span>ยอดรวมทั้งสิ้น:</span>
             <span>${data.totalAmount.toLocaleString()} THB</span>
