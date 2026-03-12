@@ -8,6 +8,14 @@ import { toast } from "sonner";
 import { getSalesForecastAction } from "@/modules/sales-forecast/server/actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface DetailItem {
   productId: string;
@@ -247,58 +255,138 @@ export default function EmployeeForecastPage({
                 </div>
               </TabsContent>
 
-              <TabsContent value="months" className="mt-0 focus-visible:outline-none space-y-6 sm:space-y-8">
+              <TabsContent value="months" className="mt-0 focus-visible:outline-none space-y-12">
                 {months.map(m => {
                   const monthItems = monthMap.get(m)!;
                   const monthTotal = monthItems.reduce((acc, item) => acc + item.amount, 0);
+                  const monthQty = monthItems.reduce((acc, item) => acc + item.quantity, 0);
                   
+                  // Group items by shop for this month
+                  const shopGroups = new Map<string, { 
+                    shopName: string; 
+                    items: DetailItem[]; 
+                    totalAmount: number; 
+                    totalQty: number 
+                  }>();
+
+                  monthItems.forEach(item => {
+                    if (!shopGroups.has(item.shopId)) {
+                      shopGroups.set(item.shopId, { 
+                        shopName: item.shopName, 
+                        items: [], 
+                        totalAmount: 0, 
+                        totalQty: 0 
+                      });
+                    }
+                    const group = shopGroups.get(item.shopId)!;
+                    group.items.push(item);
+                    group.totalAmount += item.amount;
+                    group.totalQty += item.quantity;
+                  });
+
+                  const shopsInMonth = Array.from(shopGroups.values());
+
                   return (
-                    <div key={m} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                      <div className="bg-slate-50/80 px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <h4 className="font-bold text-slate-800 flex items-center gap-2 text-lg">
-                          <CalendarDays className="w-5 h-5 text-blue-600" />
-                          เดือน{getMonthName(m)}
-                        </h4>
-                        <div className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-                          <span className="text-sm text-slate-500 font-medium mr-2">ยอดรวมเดือนนี้:</span>
-                          <span className="font-bold text-blue-600">{formatCurrency(monthTotal)}</span>
+                    <div key={m} className="space-y-6">
+                      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6">
+                        <div>
+                          <h4 className="font-black text-slate-900 flex items-center gap-3 text-2xl">
+                            <CalendarDays className="w-8 h-8 text-blue-600" />
+                            เดือน{getMonthName(m)}
+                          </h4>
+                          <p className="text-slate-500 mt-1">สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน</p>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                          <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100 min-w-[140px]">
+                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-1">ราคารวมทั้งเดือน</p>
+                            <p className="text-lg font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
+                          </div>
+                          <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 min-w-[140px]">
+                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-1">ราคาสินค้ารวม</p>
+                            <p className="text-lg font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
+                          </div>
+                          <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 min-w-[140px]">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-1">จำนวนสินค้าขายรวม</p>
+                            <p className="text-lg font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-xs">ชิ้น</small></p>
+                          </div>
+                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-[140px]">
+                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-1">จำนวนร้านค้า</p>
+                            <p className="text-lg font-black text-slate-700 leading-none">{shopsInMonth.length} <small className="font-medium text-xs">ร้าน</small></p>
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="divide-y divide-slate-100">
-                        {monthItems.map((item, idx) => (
-                          <div key={idx} className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
-                            <div className="flex items-start gap-4 flex-1 min-w-0">
-                              <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                                <Package className="w-5 h-5 text-slate-500" />
-                              </div>
-                              <div className="space-y-1.5 flex-1 min-w-0">
-                                <p className="font-bold text-slate-800 text-sm">{item.productName}</p>
-                                <p className="text-xs font-medium text-indigo-600 flex items-center gap-1.5 bg-indigo-50 w-max px-2 py-0.5 rounded-md border border-indigo-100">
-                                  <Building2 className="w-3.5 h-3.5" />
-                                  <span className="truncate">{item.shopName || 'ไม่ระบุชื่อร้านค้า'}</span>
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right shrink-0 grid grid-cols-2 sm:block gap-4 border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
-                              <div>
-                                <p className="text-[10px] text-slate-500 uppercase font-semibold sm:hidden mb-1 text-left">ยอดคาดการณ์</p>
-                                <p className="font-bold text-blue-700 text-left sm:text-right text-sm sm:text-base">{formatCurrency(item.amount)}</p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] text-slate-500 uppercase font-semibold sm:hidden mb-1 text-right">จำนวน</p>
-                                <p className="text-xs font-medium text-slate-500 text-right">{item.quantity.toLocaleString()} ชิ้น</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+
+                      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50">
+                        <Table>
+                          <TableHeader className="bg-slate-50/80">
+                            <TableRow className="hover:bg-transparent border-slate-200">
+                              <TableHead className="w-[220px] font-bold text-slate-800">ชื่อร้านค้า</TableHead>
+                              <TableHead className="font-bold text-slate-800">รายละเอียดสินค้า</TableHead>
+                              <TableHead className="text-right font-bold text-slate-800">จำนวน</TableHead>
+                              <TableHead className="text-right font-bold text-slate-800">ยอดเป้าหมายสินค้า</TableHead>
+                              <TableHead className="text-right font-black text-blue-700 bg-blue-50/40 border-l border-blue-100">ยอดเป้าหมายร้านค้า</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {shopsInMonth.map((shop, sIdx) => (
+                              shop.items.map((item, iIdx) => (
+                                <TableRow key={`${sIdx}-${iIdx}`} className="group hover:bg-slate-50/30 transition-colors border-slate-100">
+                                  {iIdx === 0 && (
+                                    <TableCell 
+                                      rowSpan={shop.items.length} 
+                                      className="font-bold text-slate-900 align-top border-r border-slate-100 py-6"
+                                    >
+                                      <div className="flex items-start gap-2.5">
+                                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                                          <Building2 className="w-4 h-4" />
+                                        </div>
+                                        <span className="leading-tight pt-1">{shop.shopName || "ไม่ระบุชื่อร้านค้า"}</span>
+                                      </div>
+                                    </TableCell>
+                                  )}
+                                  <TableCell className="py-4">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-2 h-2 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+                                      <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">
+                                        {item.productName}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right font-bold text-slate-600">
+                                    {item.quantity.toLocaleString()} <span className="text-[10px] font-medium text-slate-400 ml-0.5">ชิ้น</span>
+                                  </TableCell>
+                                  <TableCell className="text-right font-black text-slate-800">
+                                    {formatCurrency(item.amount)}
+                                  </TableCell>
+                                  {iIdx === 0 && (
+                                    <TableCell 
+                                      rowSpan={shop.items.length} 
+                                      className="text-right align-middle bg-blue-50/20 border-l border-blue-100"
+                                    >
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Target Sub-total</span>
+                                        <p className="text-lg font-black text-blue-700">
+                                          {formatCurrency(shop.totalAmount)}
+                                        </p>
+                                      </div>
+                                    </TableCell>
+                                  )}
+                                </TableRow>
+                              ))
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
                     </div>
                   );
                 })}
                 {months.length === 0 && (
-                  <div className="py-12 text-center text-slate-500 border rounded-2xl border-dashed">
-                    ไม่มีข้อมูลรายเดือน
+                  <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                    <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform -rotate-6">
+                      <CalendarDays className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <p className="text-2xl font-black text-slate-400">ไม่มีข้อมูลรายเดือน</p>
+                    <p className="text-slate-400 mt-2 max-w-xs mx-auto">ยังไม่มีการตั้งเป้าหมายการขายสำหรับพนักงานรายนี้ในเดือนใดๆ ของปี {year}</p>
                   </div>
                 )}
               </TabsContent>
