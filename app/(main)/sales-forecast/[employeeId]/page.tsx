@@ -55,7 +55,7 @@ export default function EmployeeForecastPage({
   const [loading, setLoading] = useState(true);
   const [employeeName, setEmployeeName] = useState<string>("");
   const [details, setDetails] = useState<DetailItem[]>([]);
-  
+
   // UI Controls
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
@@ -215,14 +215,14 @@ export default function EmployeeForecastPage({
               <div className="px-4 sm:px-6 py-4 bg-slate-50/30 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative flex-1 w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input 
-                    placeholder="ค้นหาชื่อร้านค้า หรือสินค้า..." 
-                    className="pl-9 bg-white border-slate-200 focus:ring-blue-500/20 rounded-xl"
+                  <Input
+                    placeholder="ค้นหาชื่อร้านค้า หรือสินค้า..."
+                    className="pl-9 bg-white border-slate-200 focus:ring-blue-500/20 rounded-lg"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   {searchTerm && (
-                    <button 
+                    <button
                       onClick={() => setSearchTerm("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors"
                     >
@@ -230,7 +230,7 @@ export default function EmployeeForecastPage({
                     </button>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-medium text-slate-600 shrink-0">
                     <Filter className="w-4 h-4" />
@@ -251,237 +251,237 @@ export default function EmployeeForecastPage({
               </div>
 
               <div className="p-4 sm:p-6 lg:p-8">
-              <TabsContent value="products" className="mt-0 focus-visible:outline-none">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {products
-                    .filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((p, i) => (
-                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
-                      <div className="flex items-start gap-3 border-b border-slate-100 pb-3">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                          <Package className="w-4 h-4" />
-                        </div>
-                        <p className="font-bold text-slate-800 line-clamp-2" title={p.name}>{p.name}</p>
-                      </div>
-                      <div className="mt-auto grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-slate-500 font-medium mb-1">ยอดรวม</p>
-                          <p className="text-lg font-bold text-blue-600">{formatCurrency(p.amount)}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500 font-medium mb-1">จำนวน</p>
-                          <p className="text-sm font-semibold text-slate-700">{p.qty.toLocaleString()} ชิ้น</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {(products.length === 0 || products.filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
-                    <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
-                      ไม่มีข้อมูลสินค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="shops" className="mt-0 focus-visible:outline-none">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {shops
-                    .filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((s, i) => (
-                    <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
-                          <Building2 className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-800 line-clamp-2 mb-3" title={s.name}>{s.name || 'ไม่ระบุชื่อร้านค้า'}</p>
-                          <div className="grid grid-cols-2 gap-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
+                <TabsContent value="products" className="mt-0 focus-visible:outline-none">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {products
+                      .filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((p, i) => (
+                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
+                          <div className="flex items-start gap-3 border-b border-slate-100 pb-3">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                              <Package className="w-4 h-4" />
+                            </div>
+                            <p className="font-bold text-slate-800 line-clamp-2" title={p.name}>{p.name}</p>
+                          </div>
+                          <div className="mt-auto grid grid-cols-2 gap-4">
                             <div>
-                              <p className="text-xs text-slate-500 font-medium mb-0.5">ยอดรวมร้านค้า</p>
-                              <p className="text-base font-bold text-indigo-700">{formatCurrency(s.amount)}</p>
+                              <p className="text-xs text-slate-500 font-medium mb-1">ยอดรวม</p>
+                              <p className="text-lg font-bold text-blue-600">{formatCurrency(p.amount)}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-xs text-slate-500 font-medium mb-0.5">รวมสินค้า</p>
-                              <p className="text-sm font-semibold text-slate-700">{s.qty.toLocaleString()} ชิ้น</p>
+                              <p className="text-xs text-slate-500 font-medium mb-1">จำนวน</p>
+                              <p className="text-sm font-semibold text-slate-700">{p.qty.toLocaleString()} ชิ้น</p>
                             </div>
                           </div>
                         </div>
+                      ))}
+                    {(products.length === 0 || products.filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
+                      <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
+                        ไม่มีข้อมูลสินค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
                       </div>
-                    </div>
-                  ))}
-                  {(shops.length === 0 || shops.filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
-                    <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
-                      ไม่มีข้อมูลร้านค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="months" className="mt-0 focus-visible:outline-none">
-                <Accordion type="multiple" defaultValue={months.length > 0 ? [months[0].toString()] : []} className="space-y-6">
-                {months
-                  .filter(m => selectedMonth === "all" || m.toString() === selectedMonth)
-                  .map(m => {
-                  const monthItems = monthMap.get(m)!;
-                  const monthTotal = monthItems.reduce((acc, item) => acc + item.amount, 0);
-                  const monthQty = monthItems.reduce((acc, item) => acc + item.quantity, 0);
-                  
-                  // Group items by shop for this month
-                  const shopGroups = new Map<string, { 
-                    shopName: string; 
-                    items: DetailItem[]; 
-                    totalAmount: number; 
-                    totalQty: number 
-                  }>();
-
-                  monthItems.forEach(item => {
-                    if (!shopGroups.has(item.shopId)) {
-                      shopGroups.set(item.shopId, { 
-                        shopName: item.shopName, 
-                        items: [], 
-                        totalAmount: 0, 
-                        totalQty: 0 
-                      });
-                    }
-                    const group = shopGroups.get(item.shopId)!;
-                    group.items.push(item);
-                    group.totalAmount += item.amount;
-                    group.totalQty += item.quantity;
-                  });
-
-                  // Filter shops based on search term
-                  const filteredShopsInMonth = Array.from(shopGroups.values()).filter(shop => {
-                    if (!searchTerm) return true;
-                    const nameMatch = shop.shopName.toLowerCase().includes(searchTerm.toLowerCase());
-                    const productMatch = shop.items.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()));
-                    return nameMatch || productMatch;
-                  });
-
-                  // If searching and this month has no matches, don't show it
-                  if (searchTerm && filteredShopsInMonth.length === 0) return null;
-
-                  return (
-                    <AccordionItem key={m} value={m.toString()} className="border-0">
-                      <AccordionTrigger className="hover:no-underline p-0 [&>svg]:hidden">
-                        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 text-left group">
-                          <div>
-                            <h4 className="font-black text-slate-900 flex items-center gap-3 text-2xl group-hover:text-blue-600 transition-colors">
-                              <CalendarDays className="w-7 h-7 text-blue-600" />
-                              เดือน{getMonthName(m)}
-                              <ChevronDownIcon className="w-5 h-5 text-slate-300 group-data-[state=open]:rotate-180 transition-transform" />
-                            </h4>
-                            <p className="text-slate-500 mt-1">สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน</p>
-                          </div>
-
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 min-w-[130px]">
-                              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-0.5">ราคารวมทั้งเดือน</p>
-                              <p className="text-base font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
-                            </div>
-                            <div className="bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100 min-w-[130px]">
-                              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">ราคาสินค้ารวม</p>
-                              <p className="text-base font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
-                            </div>
-                            <div className="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100 min-w-[130px]">
-                              <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-0.5">จำนวนรวมสินค้า</p>
-                              <p className="text-base font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-[10px]">ชิ้น</small></p>
-                            </div>
-                            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 min-w-[130px]">
-                              <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-0.5">จำนวนร้านค้า</p>
-                              <p className="text-base font-black text-slate-700 leading-none">{filteredShopsInMonth.length} <small className="font-medium text-[10px]">ร้าน</small></p>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-
-                      <AccordionContent className="pt-6 pb-2">
-                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50">
-                          <Table>
-                            <TableHeader className="bg-slate-50/80">
-                              <TableRow className="hover:bg-transparent border-slate-200">
-                                <TableHead className="w-[220px] font-bold text-slate-800">ชื่อร้านค้า</TableHead>
-                                <TableHead className="font-bold text-slate-800">รายละเอียดสินค้า</TableHead>
-                                <TableHead className="text-right font-bold text-slate-800">จำนวน</TableHead>
-                                <TableHead className="text-right font-bold text-slate-800">ยอดเป้าหมายสินค้า</TableHead>
-                                <TableHead className="text-right font-black text-blue-700 bg-blue-50/40 border-l border-blue-100">ยอดเป้าหมายร้านค้า</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {filteredShopsInMonth.map((shop, sIdx) => (
-                                shop.items.map((item, iIdx) => (
-                                  <TableRow key={`${sIdx}-${iIdx}`} className="group hover:bg-slate-50/30 transition-colors border-slate-100">
-                                    {iIdx === 0 && (
-                                      <TableCell 
-                                        rowSpan={shop.items.length} 
-                                        className="font-bold text-slate-900 align-top border-r border-slate-100 py-6"
-                                      >
-                                        <div className="flex items-start gap-2.5">
-                                          <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                                            <Building2 className="w-4 h-4" />
-                                          </div>
-                                          <span className="leading-tight pt-1">{shop.shopName || "ไม่ระบุชื่อร้านค้า"}</span>
-                                        </div>
-                                      </TableCell>
-                                    )}
-                                    <TableCell className="py-4">
-                                      <div className="flex items-center gap-2.5">
-                                        <div className="w-2 h-2 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
-                                        <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">
-                                          {item.productName}
-                                        </span>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right font-bold text-slate-600">
-                                      {item.quantity.toLocaleString()} <span className="text-[10px] font-medium text-slate-400 ml-0.5">ชิ้น</span>
-                                    </TableCell>
-                                    <TableCell className="text-right font-black text-slate-800">
-                                      {formatCurrency(item.amount)}
-                                    </TableCell>
-                                    {iIdx === 0 && (
-                                      <TableCell 
-                                        rowSpan={shop.items.length} 
-                                        className="text-right align-middle bg-blue-50/20 border-l border-blue-100"
-                                      >
-                                        <div className="flex flex-col items-end">
-                                          <p className="text-lg font-black text-blue-700">
-                                            {formatCurrency(shop.totalAmount)}
-                                          </p>
-                                        </div>
-                                      </TableCell>
-                                    )}
-                                  </TableRow>
-                                ))
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-                </Accordion>
-
-                {((months.filter(m => selectedMonth === "all" || m.toString() === selectedMonth).length === 0) || (searchTerm && months.every(m => {
-                  const items = monthMap.get(m)!;
-                  const filteredItems = items.filter(item => 
-                    item.shopName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    item.productName.toLowerCase().includes(searchTerm.toLowerCase())
-                  );
-                  return filteredItems.length === 0;
-                }))) && (
-                  <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-                    <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform -rotate-6">
-                      <CalendarDays className="w-10 h-10 text-slate-300" />
-                    </div>
-                    <p className="text-2xl font-black text-slate-400">ไม่พบข้อมูล</p>
-                    <p className="text-slate-400 mt-2 max-w-xs mx-auto">
-                      {searchTerm ? `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"` : "ยังไม่มีการกำหนดเป้าหมายการขาย"}
-                    </p>
+                    )}
                   </div>
-                )}
-              </TabsContent>
-            </div>
-          </CardContent>
+                </TabsContent>
+
+                <TabsContent value="shops" className="mt-0 focus-visible:outline-none">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {shops
+                      .filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map((s, i) => (
+                        <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+                              <Building2 className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-slate-800 line-clamp-2 mb-3" title={s.name}>{s.name || 'ไม่ระบุชื่อร้านค้า'}</p>
+                              <div className="grid grid-cols-2 gap-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
+                                <div>
+                                  <p className="text-xs text-slate-500 font-medium mb-0.5">ยอดรวมร้านค้า</p>
+                                  <p className="text-base font-bold text-indigo-700">{formatCurrency(s.amount)}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-slate-500 font-medium mb-0.5">รวมสินค้า</p>
+                                  <p className="text-sm font-semibold text-slate-700">{s.qty.toLocaleString()} ชิ้น</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    {(shops.length === 0 || shops.filter(s => !searchTerm || s.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0) && (
+                      <div className="col-span-full py-12 text-center text-slate-500 border rounded-2xl border-dashed">
+                        ไม่มีข้อมูลร้านค้า{searchTerm ? ` ที่ตรงกับ "${searchTerm}"` : ""}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="months" className="mt-0 focus-visible:outline-none">
+                  <Accordion type="multiple" defaultValue={months.length > 0 ? [months[0].toString()] : []} className="space-y-6">
+                    {months
+                      .filter(m => selectedMonth === "all" || m.toString() === selectedMonth)
+                      .map(m => {
+                        const monthItems = monthMap.get(m)!;
+                        const monthTotal = monthItems.reduce((acc, item) => acc + item.amount, 0);
+                        const monthQty = monthItems.reduce((acc, item) => acc + item.quantity, 0);
+
+                        // Group items by shop for this month
+                        const shopGroups = new Map<string, {
+                          shopName: string;
+                          items: DetailItem[];
+                          totalAmount: number;
+                          totalQty: number
+                        }>();
+
+                        monthItems.forEach(item => {
+                          if (!shopGroups.has(item.shopId)) {
+                            shopGroups.set(item.shopId, {
+                              shopName: item.shopName,
+                              items: [],
+                              totalAmount: 0,
+                              totalQty: 0
+                            });
+                          }
+                          const group = shopGroups.get(item.shopId)!;
+                          group.items.push(item);
+                          group.totalAmount += item.amount;
+                          group.totalQty += item.quantity;
+                        });
+
+                        // Filter shops based on search term
+                        const filteredShopsInMonth = Array.from(shopGroups.values()).filter(shop => {
+                          if (!searchTerm) return true;
+                          const nameMatch = shop.shopName.toLowerCase().includes(searchTerm.toLowerCase());
+                          const productMatch = shop.items.some(item => item.productName.toLowerCase().includes(searchTerm.toLowerCase()));
+                          return nameMatch || productMatch;
+                        });
+
+                        // If searching and this month has no matches, don't show it
+                        if (searchTerm && filteredShopsInMonth.length === 0) return null;
+
+                        return (
+                          <AccordionItem key={m} value={m.toString()} className="border-0">
+                            <AccordionTrigger className="hover:no-underline p-0 [&>svg]:hidden">
+                              <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 text-left group">
+                                <div>
+                                  <h4 className="font-black text-slate-900 flex items-center gap-3 text-2xl group-hover:text-blue-600 transition-colors">
+                                    <CalendarDays className="w-7 h-7 text-blue-600" />
+                                    เดือน{getMonthName(m)}
+                                    <ChevronDownIcon className="w-5 h-5 text-slate-300 group-data-[state=open]:rotate-180 transition-transform" />
+                                  </h4>
+                                  <p className="text-slate-500 mt-1">สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                  <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 min-w-[130px]">
+                                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-0.5">ราคารวมทั้งเดือน</p>
+                                    <p className="text-base font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
+                                  </div>
+                                  <div className="bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100 min-w-[130px]">
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">ราคาสินค้ารวม</p>
+                                    <p className="text-base font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
+                                  </div>
+                                  <div className="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100 min-w-[130px]">
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-0.5">จำนวนรวมสินค้า</p>
+                                    <p className="text-base font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-[10px]">ชิ้น</small></p>
+                                  </div>
+                                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 min-w-[130px]">
+                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-0.5">จำนวนร้านค้า</p>
+                                    <p className="text-base font-black text-slate-700 leading-none">{filteredShopsInMonth.length} <small className="font-medium text-[10px]">ร้าน</small></p>
+                                  </div>
+                                </div>
+                              </div>
+                            </AccordionTrigger>
+
+                            <AccordionContent className="pt-6 pb-2">
+                              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/50">
+                                <Table>
+                                  <TableHeader className="bg-slate-50/80">
+                                    <TableRow className="hover:bg-transparent border-slate-200">
+                                      <TableHead className="w-[220px] font-bold text-slate-800">ชื่อร้านค้า</TableHead>
+                                      <TableHead className="font-bold text-slate-800">รายละเอียดสินค้า</TableHead>
+                                      <TableHead className="text-right font-bold text-slate-800">จำนวน</TableHead>
+                                      <TableHead className="text-right font-bold text-slate-800">ยอดเป้าหมายสินค้า</TableHead>
+                                      <TableHead className="text-right font-black text-blue-700 bg-blue-50/40 border-l border-blue-100">ยอดเป้าหมายร้านค้า</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {filteredShopsInMonth.map((shop, sIdx) => (
+                                      shop.items.map((item, iIdx) => (
+                                        <TableRow key={`${sIdx}-${iIdx}`} className="group hover:bg-slate-50/30 transition-colors border-slate-100">
+                                          {iIdx === 0 && (
+                                            <TableCell
+                                              rowSpan={shop.items.length}
+                                              className="font-bold text-slate-900 align-top border-r border-slate-100 py-6"
+                                            >
+                                              <div className="flex items-start gap-2.5">
+                                                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                                                  <Building2 className="w-4 h-4" />
+                                                </div>
+                                                <span className="leading-tight pt-1">{shop.shopName || "ไม่ระบุชื่อร้านค้า"}</span>
+                                              </div>
+                                            </TableCell>
+                                          )}
+                                          <TableCell className="py-4">
+                                            <div className="flex items-center gap-2.5">
+                                              <div className="w-2 h-2 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+                                              <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700 transition-colors">
+                                                {item.productName}
+                                              </span>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="text-right font-bold text-slate-600">
+                                            {item.quantity.toLocaleString()} <span className="text-[10px] font-medium text-slate-400 ml-0.5">ชิ้น</span>
+                                          </TableCell>
+                                          <TableCell className="text-right font-black text-slate-800">
+                                            {formatCurrency(item.amount)}
+                                          </TableCell>
+                                          {iIdx === 0 && (
+                                            <TableCell
+                                              rowSpan={shop.items.length}
+                                              className="text-right align-middle bg-blue-50/20 border-l border-blue-100"
+                                            >
+                                              <div className="flex flex-col items-end">
+                                                <p className="text-lg font-black text-blue-700">
+                                                  {formatCurrency(shop.totalAmount)}
+                                                </p>
+                                              </div>
+                                            </TableCell>
+                                          )}
+                                        </TableRow>
+                                      ))
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                  </Accordion>
+
+                  {((months.filter(m => selectedMonth === "all" || m.toString() === selectedMonth).length === 0) || (searchTerm && months.every(m => {
+                    const items = monthMap.get(m)!;
+                    const filteredItems = items.filter(item =>
+                      item.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      item.productName.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                    return filteredItems.length === 0;
+                  }))) && (
+                      <div className="py-24 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                        <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform -rotate-6">
+                          <CalendarDays className="w-10 h-10 text-slate-300" />
+                        </div>
+                        <p className="text-2xl font-black text-slate-400">ไม่พบข้อมูล</p>
+                        <p className="text-slate-400 mt-2 max-w-xs mx-auto">
+                          {searchTerm ? `ไม่พบข้อมูลที่ตรงกับ "${searchTerm}"` : "ยังไม่มีการกำหนดเป้าหมายการขาย"}
+                        </p>
+                      </div>
+                    )}
+                </TabsContent>
+              </div>
+            </CardContent>
           </Tabs>
         </Card>
       </div>
