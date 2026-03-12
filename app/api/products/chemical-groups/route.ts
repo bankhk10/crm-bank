@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db, Prisma } from "@/lib/db";
 
-// GET - List all chemical groups
+// GET - List all product groups
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const perPage = Number(searchParams.get("perPage") || "20");
     const q = searchParams.get("q") || "";
 
-    const where: Prisma.ChemicalGroupWhereInput = {
+    const where: Prisma.ProductGroupWhereInput = {
       deletedAt: null,
       ...(q && {
         OR: [
@@ -21,26 +21,26 @@ export async function GET(request: NextRequest) {
     };
 
     const [groups, total] = await Promise.all([
-      db.chemicalGroup.findMany({
+      db.productGroup.findMany({
         where,
         skip: (page - 1) * perPage,
         take: perPage,
         orderBy: { createdAt: "desc" },
       }),
-      db.chemicalGroup.count({ where }),
+      db.productGroup.count({ where }),
     ]);
 
     return NextResponse.json({ groups, total });
   } catch (error) {
-    console.error("Error fetching chemical groups:", error);
+    console.error("Error fetching product groups:", error);
     return NextResponse.json(
-      { error: "Failed to fetch chemical groups" },
+      { error: "Failed to fetch product groups" },
       { status: 500 },
     );
   }
 }
 
-// POST - Create new chemical group
+// POST - Create new product group
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check duplicate code
-    const existing = await db.chemicalGroup.findUnique({
+    const existing = await db.productGroup.findUnique({
       where: { code },
     });
     let group;
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update and restore the soft-deleted record
-      group = await db.chemicalGroup.update({
+      group = await db.productGroup.update({
         where: { id: existing.id },
         data: {
           name,
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      group = await db.chemicalGroup.create({
+      group = await db.productGroup.create({
         data: {
           code,
           name,
@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
-    console.error("Error creating chemical group:", error);
+    console.error("Error creating product group:", error);
     return NextResponse.json(
-      { error: "Failed to create chemical group" },
+      { error: "Failed to create product group" },
       { status: 500 },
     );
   }

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db, Prisma } from "@/lib/db";
 
-// GET - List all product groups
+// GET - List all trade name groups
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const perPage = Number(searchParams.get("perPage") || "20");
     const q = searchParams.get("q") || "";
 
-    const where: Prisma.ProductGroupMasterWhereInput = {
+    const where: Prisma.TradeNameGroupWhereInput = {
       deletedAt: null,
       ...(q && {
         OR: [
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     };
 
     const [groups, total] = await Promise.all([
-      db.productGroupMaster.findMany({
+      db.tradeNameGroup.findMany({
         where,
         skip: (page - 1) * perPage,
         take: perPage,
@@ -31,20 +31,20 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      db.productGroupMaster.count({ where }),
+      db.tradeNameGroup.count({ where }),
     ]);
 
     return NextResponse.json({ groups, total });
   } catch (error) {
-    console.error("Error fetching product groups:", error);
+    console.error("Error fetching trade name groups:", error);
     return NextResponse.json(
-      { error: "Failed to fetch product groups" },
+      { error: "Failed to fetch trade name groups" },
       { status: 500 },
     );
   }
 }
 
-// POST - Create new product group
+// POST - Create new trade name group
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check duplicate code
-    const existing = await db.productGroupMaster.findUnique({
+    const existing = await db.tradeNameGroup.findUnique({
       where: { code },
     });
 
@@ -66,13 +66,13 @@ export async function POST(request: NextRequest) {
     if (existing) {
       if (!existing.deletedAt) {
         return NextResponse.json(
-          { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
+          { error: "รหัสกลุ่มชื่อการค้านี้มีอยู่แล้ว" },
           { status: 400 },
         );
       }
 
       // Update and restore the soft-deleted record
-      group = await db.productGroupMaster.update({
+      group = await db.tradeNameGroup.update({
         where: { id: existing.id },
         data: {
           description,
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      group = await db.productGroupMaster.create({
+      group = await db.tradeNameGroup.create({
         data: { code, description },
         include: {
           category: {
@@ -92,9 +92,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ group }, { status: 201 });
   } catch (error) {
-    console.error("Error creating product group:", error);
+    console.error("Error creating trade name group:", error);
     return NextResponse.json(
-      { error: "Failed to create product group" },
+      { error: "Failed to create trade name group" },
       { status: 500 },
     );
   }

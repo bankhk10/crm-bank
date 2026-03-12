@@ -64,8 +64,8 @@ export async function findCompletedSalesSummary(startDate: Date, endDate: Date) 
   });
 }
 
-export async function findProductGroupMasters() {
-  return prisma.productGroupMaster.findMany({
+export async function findTradeNameGroups() {
+  return prisma.tradeNameGroup.findMany({
     where: { deletedAt: null },
     select: { code: true, description: true },
     orderBy: { code: "asc" },

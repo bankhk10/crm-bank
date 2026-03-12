@@ -39,7 +39,7 @@ interface ProductCategory {
   description: string;
 }
 
-interface ProductGroup {
+interface TradeNameGroup {
   id: string;
   code: string;
   description: string;
@@ -49,7 +49,7 @@ interface ProductGroup {
   updatedAt: string;
 }
 
-export default function ProductGroupsPage() {
+export default function TradeNameGroupsPage() {
   const {
     hasPermission,
     allowed,
@@ -60,7 +60,7 @@ export default function ProductGroupsPage() {
   const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
 
-  const [groups, setGroups] = useState<ProductGroup[]>([]);
+  const [groups, setGroups] = useState<TradeNameGroup[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,8 +71,8 @@ export default function ProductGroupsPage() {
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ProductGroup | null>(null);
-  const [deleteItem, setDeleteItem] = useState<ProductGroup | null>(null);
+  const [editingItem, setEditingItem] = useState<TradeNameGroup | null>(null);
+  const [deleteItem, setDeleteItem] = useState<TradeNameGroup | null>(null);
   const [formData, setFormData] = useState({
     code: "",
     description: "",
@@ -124,7 +124,7 @@ export default function ProductGroupsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenEdit = (item: ProductGroup) => {
+  const handleOpenEdit = (item: TradeNameGroup) => {
     setEditingItem(item);
     setFormData({
       code: item.code,
@@ -134,7 +134,7 @@ export default function ProductGroupsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (item: ProductGroup) => {
+  const handleOpenDelete = (item: TradeNameGroup) => {
     setDeleteItem(item);
     setIsDeleteOpen(true);
   };

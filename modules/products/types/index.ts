@@ -5,7 +5,7 @@
 
 export type ProductStatus = "ACTIVE" | "INACTIVE";
 
-export interface ChemicalGroup {
+export interface ProductGroup {
   id: string;
   code: string;
   name: string;
@@ -132,7 +132,7 @@ export interface Product {
   stockLots?: ProductStockLot[];
   children?: Product[];
   // Extra detailed objects for display
-  chemicalGroupObj?: ChemicalGroup | null;
+  chemicalGroupObj?: ProductGroup | null;
   productGroupObj?: { id: string; code: string; description: string } | null;
   unitObj?: { id: string; code: string; description: string } | null;
 }

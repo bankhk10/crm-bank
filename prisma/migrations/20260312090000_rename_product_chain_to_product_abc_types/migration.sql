@@ -6,6 +6,15 @@ ALTER TABLE "Product" DROP CONSTRAINT IF EXISTS "Product_productChainId_fkey";
 -- Rename table
 ALTER TABLE "ProductChain" RENAME TO "ProductABCTypes";
 
+-- Rename primary key constraint to match new table name
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProductChain_pkey') THEN
+    ALTER TABLE "ProductABCTypes"
+      RENAME CONSTRAINT "ProductChain_pkey" TO "ProductABCTypes_pkey";
+  END IF;
+END$$;
+
 -- Add required code column with safe default
 ALTER TABLE "ProductABCTypes" ADD COLUMN "code" TEXT NOT NULL DEFAULT '';
 

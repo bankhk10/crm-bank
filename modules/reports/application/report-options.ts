@@ -54,7 +54,7 @@ export async function getReportFilterOptions() {
       select: { id: true, name: true, productCode: true, productGroup: true },
       orderBy: { name: "asc" },
     }),
-    prisma.productGroupMaster
+    prisma.tradeNameGroup
       .findMany({
         where: { deletedAt: null },
         select: { code: true, description: true },

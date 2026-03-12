@@ -2,7 +2,7 @@ import { SalesForecastResponse } from "../types";
 import {
   findSalesTargetsWithDetails,
   findCompletedSalesSummary,
-  findProductGroupMasters,
+  findTradeNameGroups,
 } from "../infrastructure/sales-forecast.repository";
 
 const buildEmployeeName = (employee: {
@@ -28,7 +28,7 @@ export async function getSalesForecastUseCase(
   const endDate = new Date(year, 11, 31, 23, 59, 59);
   const salesPromise = findCompletedSalesSummary(startDate, endDate);
 
-  const groupsPromise = findProductGroupMasters();
+  const groupsPromise = findTradeNameGroups();
 
   const [targets, sales, groups] = await Promise.all([
     targetsPromise,

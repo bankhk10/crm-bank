@@ -212,10 +212,10 @@ export async function findProductById(id: string) {
   // Manually fetch master data (they aren't linked by relations in Prisma yet)
   const [chemGroup, tradeGroup, unitObj] = await Promise.all([
     product.chemicalGroup
-      ? db.chemicalGroup.findUnique({ where: { code: product.chemicalGroup } })
+      ? db.productGroup.findUnique({ where: { code: product.chemicalGroup } })
       : null,
     product.productGroup
-      ? db.productGroupMaster.findUnique({
+      ? db.tradeNameGroup.findUnique({
           where: { code: product.productGroup },
         })
       : null,
@@ -539,8 +539,8 @@ export async function findUnits() {
   });
 }
 
-export async function findProductGroups() {
-  return db.productGroupMaster.findMany({
+export async function findTradeNameGroups() {
+  return db.tradeNameGroup.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
     take: 100,
@@ -560,8 +560,8 @@ export async function findBrands() {
   });
 }
 
-export async function findChemicalGroups() {
-  return db.chemicalGroup.findMany({
+export async function findProductGroups() {
+  return db.productGroup.findMany({
     where: { deletedAt: null },
     orderBy: { code: "asc" },
     take: 100,

@@ -5,11 +5,11 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET - Get single product group
+// GET - Get single trade name group
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const group = await db.productGroupMaster.findUnique({
+    const group = await db.tradeNameGroup.findUnique({
       where: { id, deletedAt: null },
       include: {
         category: {
@@ -19,20 +19,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!group) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ไม่พบกลุ่มชื่อการค้า" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({ group });
   } catch (error) {
-    console.error("Error fetching product group:", error);
+    console.error("Error fetching trade name group:", error);
     return NextResponse.json(
-      { error: "Failed to fetch product group" },
+      { error: "Failed to fetch trade name group" },
       { status: 500 },
     );
   }
 }
 
-// PUT - Update product group
+// PUT - Update trade name group
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -47,22 +50,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if group exists
-    const existing = await db.productGroupMaster.findUnique({
+    const existing = await db.tradeNameGroup.findUnique({
       where: { id, deletedAt: null },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ไม่พบกลุ่มชื่อการค้า" },
+        { status: 404 },
+      );
     }
 
     // Check duplicate code (excluding current)
-    const duplicate = await db.productGroupMaster.findFirst({
+    const duplicate = await db.tradeNameGroup.findFirst({
       where: { code, id: { not: id }, deletedAt: null },
     });
 
     if (duplicate) {
       return NextResponse.json(
-        { error: "รหัสกลุ่มสินค้านี้มีอยู่แล้ว" },
+        { error: "รหัสกลุ่มชื่อการค้านี้มีอยู่แล้ว" },
         { status: 400 },
       );
     }
@@ -80,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const group = await db.productGroupMaster.update({
+    const group = await db.tradeNameGroup.update({
       where: { id },
       data: { code, description, categoryId },
       include: {
@@ -92,37 +98,40 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ group });
   } catch (error) {
-    console.error("Error updating product group:", error);
+    console.error("Error updating trade name group:", error);
     return NextResponse.json(
-      { error: "Failed to update product group" },
+      { error: "Failed to update trade name group" },
       { status: 500 },
     );
   }
 }
 
-// DELETE - Soft delete product group
+// DELETE - Soft delete trade name group
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    const existing = await db.productGroupMaster.findUnique({
+    const existing = await db.tradeNameGroup.findUnique({
       where: { id, deletedAt: null },
     });
 
     if (!existing) {
-      return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
+      return NextResponse.json(
+        { error: "ไม่พบกลุ่มชื่อการค้า" },
+        { status: 404 },
+      );
     }
 
-    await db.productGroupMaster.update({
+    await db.tradeNameGroup.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting product group:", error);
+    console.error("Error deleting trade name group:", error);
     return NextResponse.json(
-      { error: "Failed to delete product group" },
+      { error: "Failed to delete trade name group" },
       { status: 500 },
     );
   }

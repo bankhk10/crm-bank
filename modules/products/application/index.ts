@@ -9,9 +9,9 @@ import {
   findProductById,
   findProducts,
   findUnits,
-  findProductGroups,
+  findTradeNameGroups,
   findBrands,
-  findChemicalGroups,
+  findProductGroups,
   findPlants,
   findProductCategories,
   findProductABCTypes,
@@ -42,15 +42,15 @@ export async function listProductsUseCase(params: ListProductsParams) {
 
 /**
  * Use case: Fetch all form options for product creation/editing.
- * Returns units, groups, brands, chemical groups, plants, categories, abcTypes.
+ * Returns units, groups, brands, product groups, plants, categories, abcTypes.
  */
 export async function getProductFormOptionsUseCase() {
   const [units, groups, brands, chemicalGroups, plants, categories, abcTypes] =
     await Promise.all([
       findUnits(),
-      findProductGroups(),
+      findTradeNameGroups(),
       findBrands(),
-      findChemicalGroups(),
+      findProductGroups(),
       findPlants(),
       findProductCategories(),
       findProductABCTypes(),

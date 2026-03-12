@@ -5,11 +5,11 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET - Get single chemical group
+// GET - Get single product group
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const group = await db.chemicalGroup.findUnique({
+    const group = await db.productGroup.findUnique({
       where: { id, deletedAt: null },
     });
 
@@ -19,15 +19,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ group });
   } catch (error) {
-    console.error("Error fetching chemical group:", error);
+    console.error("Error fetching product group:", error);
     return NextResponse.json(
-      { error: "Failed to fetch chemical group" },
+      { error: "Failed to fetch product group" },
       { status: 500 },
     );
   }
 }
 
-// PUT - Update chemical group
+// PUT - Update product group
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if group exists
-    const existing = await db.chemicalGroup.findUnique({
+    const existing = await db.productGroup.findUnique({
       where: { id, deletedAt: null },
     });
 
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check duplicate code (excluding current)
-    const duplicate = await db.chemicalGroup.findFirst({
+    const duplicate = await db.productGroup.findFirst({
       where: { code, id: { not: id }, deletedAt: null },
     });
 
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const group = await db.chemicalGroup.update({
+    const group = await db.productGroup.update({
       where: { id },
       data: {
         code,
@@ -74,20 +74,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ group });
   } catch (error) {
-    console.error("Error updating chemical group:", error);
+    console.error("Error updating product group:", error);
     return NextResponse.json(
-      { error: "Failed to update chemical group" },
+      { error: "Failed to update product group" },
       { status: 500 },
     );
   }
 }
 
-// DELETE - Soft delete chemical group
+// DELETE - Soft delete product group
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    const existing = await db.chemicalGroup.findUnique({
+    const existing = await db.productGroup.findUnique({
       where: { id, deletedAt: null },
     });
 
@@ -95,16 +95,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "ไม่พบกลุ่มสินค้า" }, { status: 404 });
     }
 
-    await db.chemicalGroup.update({
+    await db.productGroup.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting chemical group:", error);
+    console.error("Error deleting product group:", error);
     return NextResponse.json(
-      { error: "Failed to delete chemical group" },
+      { error: "Failed to delete product group" },
       { status: 500 },
     );
   }

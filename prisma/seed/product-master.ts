@@ -6,7 +6,7 @@ export async function seedProductMaster(prisma: PrismaClient) {
   );
 
   // Create Product Groups (Trade Name Groups)
-  await prisma.productGroupMaster.createMany({
+  await prisma.tradeNameGroup.createMany({
     data: [
       { code: "คอนซัลท์", description: "คอนซัลท์" },
       { code: "พาเหรด", description: "พาเหรด" },
@@ -20,7 +20,7 @@ export async function seedProductMaster(prisma: PrismaClient) {
   });
 
   // Create Chemical Groups
-  await prisma.chemicalGroup.createMany({
+  await prisma.productGroup.createMany({
     data: [
       {
         code: "ACE",

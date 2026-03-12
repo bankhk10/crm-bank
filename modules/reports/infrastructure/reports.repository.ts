@@ -327,8 +327,8 @@ export async function findStagnantProducts(
 // GET-REPORTS: PRODUCT GROUP SALES REPORT
 // ==========================================
 
-export async function findProductGroupMasters() {
-  return prisma.productGroupMaster.findMany({
+export async function findTradeNameGroups() {
+  return prisma.tradeNameGroup.findMany({
     where: { deletedAt: null },
     select: { code: true, description: true },
     orderBy: { code: "asc" },
@@ -419,5 +419,5 @@ export const findManyEmployeesData = prisma.employee.findMany.bind(
 export const findManyProductsData = prisma.product.findMany.bind(
   prisma.product,
 );
-export const findManyProductGroupMastersData =
-  prisma.productGroupMaster.findMany.bind(prisma.productGroupMaster);
+export const findManyTradeNameGroupsData =
+  prisma.tradeNameGroup.findMany.bind(prisma.tradeNameGroup);

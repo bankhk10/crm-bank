@@ -51,7 +51,7 @@ export async function getProductGroupSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
   // Get all product groups from database
-  const productGroups = await repo.findManyProductGroupMastersData({
+  const productGroups = await repo.findManyTradeNameGroupsData({
     where: { deletedAt: null },
     select: { code: true, description: true },
     orderBy: { code: "asc" },

@@ -500,12 +500,12 @@ model ProductCategory {
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 
-  productGroups ProductGroupMaster[]
+  productGroups TradeNameGroup[]
   products      Product[] // Products in this category
 }
 
 // กลุ่มชื่อการค้า (Trade Name Group) - เดิมชื่อ "กลุ่มสินค้า"
-model ProductGroupMaster {
+model TradeNameGroup {
   id          String    @id @default(cuid())
   code        String    @unique // รหัสกลุ่มชื่อการค้า
   description String // คำอธิบายกลุ่มชื่อการค้า
@@ -618,7 +618,7 @@ model Product {
 }
 
 // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
-model ChemicalGroup {
+model ProductGroup {
   id           String    @id @default(cuid())
   code         String    @unique // รหัสกลุ่มสินค้า
   name         String    @default("") // ชื่อกลุ่มสินค้า

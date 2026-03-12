@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface ChemicalGroup {
+interface ProductGroup {
   id: string;
   code: string;
   name: string;
@@ -44,7 +44,7 @@ interface ChemicalGroup {
   updatedAt: string;
 }
 
-export default function ChemicalGroupsPage() {
+export default function ProductGroupsPage() {
   const {
     hasPermission,
     allowed,
@@ -55,7 +55,7 @@ export default function ChemicalGroupsPage() {
   const canUpdate = hasPermission("product.edit");
   const canDelete = hasPermission("product.delete");
 
-  const [groups, setGroups] = useState<ChemicalGroup[]>([]);
+  const [groups, setGroups] = useState<ProductGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [total, setTotal] = useState(0);
@@ -65,8 +65,8 @@ export default function ChemicalGroupsPage() {
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<ChemicalGroup | null>(null);
-  const [deleteItem, setDeleteItem] = useState<ChemicalGroup | null>(null);
+  const [editingItem, setEditingItem] = useState<ProductGroup | null>(null);
+  const [deleteItem, setDeleteItem] = useState<ProductGroup | null>(null);
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -107,7 +107,7 @@ export default function ChemicalGroupsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenEdit = (item: ChemicalGroup) => {
+  const handleOpenEdit = (item: ProductGroup) => {
     setEditingItem(item);
     setFormData({
       code: item.code,
@@ -118,7 +118,7 @@ export default function ChemicalGroupsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (item: ChemicalGroup) => {
+  const handleOpenDelete = (item: ProductGroup) => {
     setDeleteItem(item);
     setIsDeleteOpen(true);
   };
