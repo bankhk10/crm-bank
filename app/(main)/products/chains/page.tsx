@@ -197,7 +197,7 @@ export default function ProductABCTypesPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <Link2 className="w-8 h-8" />
-                            <CardTitle className="text-2xl font-bold">ประเภทสินค้า ABC</CardTitle>
+                            <CardTitle className="text-2xl font-bold">ประเภท (ABC Code)</CardTitle>
                         </div>
                         {canCreate && (
                             <Button
@@ -205,7 +205,7 @@ export default function ProductABCTypesPage() {
                                 className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-md"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                เพิ่มประเภทสินค้า ABC
+                                เพิ่มประเภท (ABC Code)
                             </Button>
                         )}
                     </div>
@@ -241,8 +241,8 @@ export default function ProductABCTypesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                        {loading ? (
-                            <TableRow>
+                                {loading ? (
+                                    <TableRow>
                                         <TableCell colSpan={4} className="text-center py-8">
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -314,9 +314,9 @@ export default function ProductABCTypesPage() {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {editingItem ? "แก้ไขประเภทสินค้า ABC" : "เพิ่มประเภทสินค้า ABC ใหม่"}
+                            {editingItem ? "แก้ไขประเภท (ABC Code)" : "เพิ่มประเภท (ABC Code) ใหม่"}
                         </DialogTitle>
-                        <DialogDescription>กรอกข้อมูลประเภทสินค้า ABC ด้านล่าง</DialogDescription>
+                        <DialogDescription>กรอกข้อมูลประเภท (ABC Code) ด้านล่าง</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">

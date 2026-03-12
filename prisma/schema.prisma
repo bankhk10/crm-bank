@@ -517,7 +517,7 @@ model TradeNameGroup {
   category ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }
 
-// ประเภทสินค้า ABC (Product ABC Types)
+// ประเภท (ABC Code) (Product ABC Types)
 model ProductABCTypes {
   id          String    @id @default(cuid())
   code        String   // รหัสประเภทสินค้า
@@ -596,7 +596,7 @@ model Product {
 
   // Category and ABC Type relations
   categoryId       String? // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId String? // FK to ProductABCTypes (ประเภทสินค้า ABC)
+  productABCTypeId String? // FK to ProductABCTypes (ประเภท (ABC Code))
   category         ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   productABCType   ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
 

@@ -37,7 +37,7 @@ const productSchema = z.object({
   pointPerUnit: z.number().int().min(0).optional(),
   // New fields
   categoryId: z.string().optional(), // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId: z.string().optional(), // FK to ProductABCTypes (ประเภทสินค้า ABC)
+  productABCTypeId: z.string().optional(), // FK to ProductABCTypes (ประเภท (ABC Code))
   parentId: z.string().nullable().optional(),
 });
 

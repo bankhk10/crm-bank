@@ -194,7 +194,7 @@ function ProductGroupChart({
         <div className="flex items-center justify-center h-full text-slate-400">
           <div className="text-center">
             <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">กรุณาเลือกประเภทสินค้า ABC ที่ต้องการแสดง</p>
+            <p className="text-sm">กรุณาเลือกประเภท (ABC Code) ที่ต้องการแสดง</p>
           </div>
         </div>
       </CardContent>
@@ -675,7 +675,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
                 <div>
                   <CardTitle className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
-                    ยอดขายตามประเภทสินค้า ABC เดือนนี้
+                    ยอดขายตามประเภท (ABC Code) เดือนนี้
                   </CardTitle>
                 </div>
               </div>

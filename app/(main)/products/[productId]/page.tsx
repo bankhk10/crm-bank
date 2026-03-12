@@ -355,7 +355,7 @@ export default function ProductDetailPage() {
                 />
                 <AttributeRow
                   icon={<Layers className="h-4 w-4" />}
-                  label="ประเภทสินค้า ABC"
+                  label="ประเภท (ABC Code)"
                   value={
                     product.productABCType
                       ? product.productABCType.description

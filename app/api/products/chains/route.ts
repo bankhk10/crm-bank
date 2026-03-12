@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db, Prisma } from "@/lib/db";
 
-// GET - List all product ABC types (ประเภทสินค้า ABC)
+// GET - List all product ABC types (ประเภท (ABC Code))
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

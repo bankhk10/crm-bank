@@ -120,7 +120,7 @@ export interface Product {
   deletedAt: Date | string | null;
   // New fields
   categoryId: string | null; // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId: string | null; // FK to ProductABCTypes (ประเภทสินค้า ABC)
+  productABCTypeId: string | null; // FK to ProductABCTypes (ประเภท (ABC Code))
   parentId: string | null; // FK to parent Product
   // Relations
   category?: ProductCategory | null;
@@ -166,7 +166,7 @@ export interface ProductFormData {
   coverIndex?: number | null;
   // New fields
   categoryId?: string; // FK to ProductCategory (หมวดสินค้า)
-  productABCTypeId?: string; // FK to ProductABCTypes (ประเภทสินค้า ABC)
+  productABCTypeId?: string; // FK to ProductABCTypes (ประเภท (ABC Code))
   parentId?: string; // FK to parent Product
 }
 

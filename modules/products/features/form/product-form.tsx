@@ -584,15 +584,15 @@ export function ProductForm({
         />
 
         <FormCombobox
-          label="ประเภทสินค้า ABC"
+          label="ประเภท (ABC Code)"
           value={(formData as any).productABCTypeId || ""}
           onChange={(v) =>
             updateField("productABCTypeId" as keyof ProductFormData, v)
           }
           options={productABCTypeOptions}
-          placeholder="เลือกประเภทสินค้า ABC"
-          searchPlaceholder="ค้นหาประเภทสินค้า ABC..."
-          emptyText="ไม่พบประเภทสินค้า ABC"
+          placeholder="เลือกประเภท (ABC Code)"
+          searchPlaceholder="ค้นหาประเภท (ABC Code)..."
+          emptyText="ไม่พบประเภท (ABC Code)"
           disabled={loading}
         />
 
