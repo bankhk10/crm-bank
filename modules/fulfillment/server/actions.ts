@@ -5,6 +5,28 @@ import { revalidatePath } from "next/cache";
 import { updateFulfillmentUseCase, getLotOptionsUseCase } from "../application";
 import { findSales } from "@/modules/sales/infrastructure/sale.repository";
 
+// Helper to convert Prisma.Decimal objects to numbers, as they are not supported by Server Actions
+function serializeData(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") return obj;
+  if (obj instanceof Date) return obj;
+  if (
+    typeof obj.toNumber === "function" &&
+    typeof obj.toFixed === "function" &&
+    "d" in obj
+  ) {
+    return obj.toNumber();
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(serializeData);
+  }
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = serializeData(value);
+  }
+  return result;
+}
+
 export async function updateFulfillmentAction(id: string, payload: unknown) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -69,37 +91,9 @@ export async function getFulfillmentsAction(params: {
       dateTo: params.dateTo,
     });
 
-    // Fix warning about passing Decimal object to Client components
-    // Decimal fields need serialization
-    const serializedSales = result.sales.map((sale) => ({
-      ...sale,
-      totalAmount: sale.totalAmount.toNumber(),
-      subtotalAmount: sale.subtotalAmount.toNumber(),
-      shippingCost: sale.shippingCost.toNumber(),
-      otherCosts: sale.otherCosts.toNumber(),
-      promotionalCreditUsed: sale.promotionalCreditUsed?.toNumber() || null,
-      items: sale.items.map((item) => ({
-        ...item,
-        price: item.price ? item.price.toNumber() : null,
-        cartonPrice: item.cartonPrice ? item.cartonPrice.toNumber() : null,
-        promotionBudget: item.promotionBudget
-          ? item.promotionBudget.toNumber()
-          : null,
-        unitPrice: item.unitPrice.toNumber(),
-        originalPrice: item.originalPrice.toNumber(),
-        totalPrice: item.totalPrice.toNumber(),
-        product: item.product
-          ? {
-              ...item.product,
-              price: item.product.price ? item.product.price.toNumber() : null,
-            }
-          : null,
-      })),
-    }));
-
     return {
       success: true,
-      sales: serializedSales,
+      sales: serializeData(result.sales),
       total: result.total,
     };
   } catch (error) {
