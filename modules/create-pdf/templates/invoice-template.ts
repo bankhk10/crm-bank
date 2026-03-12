@@ -268,15 +268,15 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
       </div>
 
-      <table>
+      <table class="table-items">
         <thead>
           <tr>
-            <th class="col-left" style="width: 20%;">รหัสสินค้า</th>
+            <th class="col-left" style="width: 22%;">รหัสสินค้า</th>
             <th class="col-left" style="width: 30%;">รายละเอียดสินค้า</th>
             <th class="col-left" style="width: 5%;">จำนวน</th>
             <th class="col-left" style="width: 5%;">หน่วย</th>
             <th class="col-left" style="width: 5%;">บรรจุ</th>
-            <th class="col-left" style="width: 15%;">ราคา/หน่วย</th>
+            <th class="col-left" style="width: 12%;">ราคา/หน่วย</th>
             <th class="col-left" style="width: 10%;">ราคา/ลัง</th>
             <th class="col-left" style="width: 15%;">ราคารวม</th>
           </tr>
