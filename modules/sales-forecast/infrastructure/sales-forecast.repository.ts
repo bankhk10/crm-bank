@@ -14,6 +14,7 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
           prefix: true,
           firstName: true,
           lastName: true,
+          responsibilityArea: true,
         },
       },
       stores: {

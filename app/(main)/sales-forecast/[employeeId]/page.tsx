@@ -54,6 +54,7 @@ export default function EmployeeForecastPage({
 
   const [loading, setLoading] = useState(true);
   const [employeeName, setEmployeeName] = useState<string>("");
+  const [region, setRegion] = useState<string | null>(null);
   const [details, setDetails] = useState<DetailItem[]>([]);
 
   // UI Controls
@@ -68,6 +69,7 @@ export default function EmployeeForecastPage({
 
         if (employeeDataList.length > 0) {
           setEmployeeName(employeeDataList[0].employeeName);
+          setRegion(employeeDataList[0].region);
           const allDetails = employeeDataList.flatMap((e: any) => e.details || []);
           setDetails(allDetails);
         } else {
@@ -174,6 +176,12 @@ export default function EmployeeForecastPage({
                         <span className="text-sm font-medium text-slate-500">ปี {year}</span>
                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                         <span className="text-blue-600 font-semibold">{employeeName}</span>
+                        {region && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span className="text-slate-500 text-sm font-medium">{region}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 export interface PersonalForecastEntry {
   employeeId: string;
   employeeName: string;
+  region: string | null;
   month: number;
   totalAmount: number;
   totalQuantity: number;

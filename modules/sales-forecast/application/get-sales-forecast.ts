@@ -63,6 +63,7 @@ export async function getSalesForecastUseCase(
       personalMap.set(personalKey, {
         employeeId: target.employeeId,
         employeeName,
+        region: target.employee.responsibilityArea,
         month: target.month,
         totalAmount: 0,
         totalQuantity: 0,
