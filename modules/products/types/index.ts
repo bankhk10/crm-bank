@@ -5,6 +5,14 @@
 
 export type ProductStatus = "ACTIVE" | "INACTIVE";
 
+export interface ChemicalGroup {
+  id: string;
+  code: string;
+  name: string;
+  abbreviation: string | null;
+  description: string | null;
+}
+
 export interface Plant {
   id: string;
   code: string;
@@ -122,6 +130,9 @@ export interface Product {
   freeItems?: ProductFreeItem[];
   stockLots?: ProductStockLot[];
   children?: Product[];
+  // Extra detailed objects for display
+  chemicalGroupObj?: ChemicalGroup | null;
+  productGroupObj?: { id: string; code: string; description: string } | null;
 }
 
 export interface ProductFormData {

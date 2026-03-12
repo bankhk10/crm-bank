@@ -14,6 +14,8 @@ import {
 import type { RequestContext } from "@/lib/logger/types";
 import { deleteFile, deleteFolder } from "@/lib/file-storage";
 
+import { findProductById } from "@/modules/products/infrastructure/product.repository";
+
 const resourcePath = "/api/products";
 
 const productSchema = z.object({
@@ -52,28 +54,7 @@ export async function GET(request: Request, { params }: { params: any }) {
 
   const { productId } = await params;
 
-  const product = await (db as any).product.findFirst({
-    where: { id: productId, deletedAt: null },
-    include: {
-      images: {
-        orderBy: { order: "asc" },
-      },
-      freeItems: {
-        orderBy: { createdAt: "desc" },
-      },
-      promotionItems: {
-        orderBy: { createdAt: "desc" },
-      },
-      stockLots: {
-        orderBy: { createdAt: "desc" },
-      },
-      category: true,
-      productChain: true,
-      parent: {
-        select: { id: true, productCode: true, name: true },
-      },
-    },
-  });
+  const product = await findProductById(productId);
 
   if (!product) {
     return NextResponse.json({ error: "Product not found" }, { status: 404 });

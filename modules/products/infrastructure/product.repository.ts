@@ -180,7 +180,7 @@ export async function findProducts(params: ListProductsParams) {
  * Retrieve a single product by ID with full relation data.
  */
 export async function findProductById(id: string) {
-  return db.product.findFirst({
+  const product = await db.product.findFirst({
     where: { id, deletedAt: null },
     include: {
       images: {
@@ -206,6 +206,26 @@ export async function findProductById(id: string) {
       },
     },
   });
+
+  if (!product) return null;
+
+  // Manually fetch group details (they aren't linked by relations in Prisma yet)
+  const [chemGroup, tradeGroup] = await Promise.all([
+    product.chemicalGroup
+      ? db.chemicalGroup.findUnique({ where: { code: product.chemicalGroup } })
+      : null,
+    product.productGroup
+      ? db.productGroupMaster.findUnique({
+          where: { code: product.productGroup },
+        })
+      : null,
+  ]);
+
+  return {
+    ...(product as any),
+    chemicalGroupObj: chemGroup,
+    productGroupObj: tradeGroup,
+  };
 }
 
 /**
