@@ -47,7 +47,7 @@ export default function EmployeeForecastPage({
       try {
         const result = await getSalesForecastAction(year);
         const employeeDataList = result.personal.filter((e) => e.employeeId === employeeId);
-        
+
         if (employeeDataList.length > 0) {
           setEmployeeName(employeeDataList[0].employeeName);
           const allDetails = employeeDataList.flatMap((e: any) => e.details || []);
@@ -260,22 +260,22 @@ export default function EmployeeForecastPage({
                   const monthItems = monthMap.get(m)!;
                   const monthTotal = monthItems.reduce((acc, item) => acc + item.amount, 0);
                   const monthQty = monthItems.reduce((acc, item) => acc + item.quantity, 0);
-                  
+
                   // Group items by shop for this month
-                  const shopGroups = new Map<string, { 
-                    shopName: string; 
-                    items: DetailItem[]; 
-                    totalAmount: number; 
-                    totalQty: number 
+                  const shopGroups = new Map<string, {
+                    shopName: string;
+                    items: DetailItem[];
+                    totalAmount: number;
+                    totalQty: number
                   }>();
 
                   monthItems.forEach(item => {
                     if (!shopGroups.has(item.shopId)) {
-                      shopGroups.set(item.shopId, { 
-                        shopName: item.shopName, 
-                        items: [], 
-                        totalAmount: 0, 
-                        totalQty: 0 
+                      shopGroups.set(item.shopId, {
+                        shopName: item.shopName,
+                        items: [],
+                        totalAmount: 0,
+                        totalQty: 0
                       });
                     }
                     const group = shopGroups.get(item.shopId)!;
@@ -296,23 +296,24 @@ export default function EmployeeForecastPage({
                           </h4>
                           <p className="text-slate-500 mt-1">สรุปรายละเอียดเป้าหมายการขายและร้านค้าประจำเดือน</p>
                         </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                          <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-1">ราคารวมทั้งเดือน</p>
-                            <p className="text-lg font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
-                          </div>
-                          <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-1">ราคาสินค้ารวม</p>
-                            <p className="text-lg font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
-                          </div>
-                          <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-1">จำนวนสินค้าขายรวม</p>
-                            <p className="text-lg font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-xs">ชิ้น</small></p>
-                          </div>
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-[140px]">
-                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-1">จำนวนร้านค้า</p>
-                            <p className="text-lg font-black text-slate-700 leading-none">{shopsInMonth.length} <small className="font-medium text-xs">ร้าน</small></p>
-                          </div>
+
+                      </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100 min-w-[140px]">
+                          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tight mb-1">ราคารวมทั้งเดือน</p>
+                          <p className="text-lg font-black text-blue-700 leading-none">{formatCurrency(monthTotal)}</p>
+                        </div>
+                        <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 min-w-[140px]">
+                          <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-tight mb-1">ราคาสินค้ารวม</p>
+                          <p className="text-lg font-black text-indigo-700 leading-none">{formatCurrency(monthTotal)}</p>
+                        </div>
+                        <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100 min-w-[140px]">
+                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tight mb-1">จำนวนสินค้าขายรวม</p>
+                          <p className="text-lg font-black text-emerald-700 leading-none">{monthQty.toLocaleString()} <small className="font-medium text-xs">ชิ้น</small></p>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-[140px]">
+                          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-tight mb-1">จำนวนร้านค้า</p>
+                          <p className="text-lg font-black text-slate-700 leading-none">{shopsInMonth.length} <small className="font-medium text-xs">ร้าน</small></p>
                         </div>
                       </div>
 
@@ -332,8 +333,8 @@ export default function EmployeeForecastPage({
                               shop.items.map((item, iIdx) => (
                                 <TableRow key={`${sIdx}-${iIdx}`} className="group hover:bg-slate-50/30 transition-colors border-slate-100">
                                   {iIdx === 0 && (
-                                    <TableCell 
-                                      rowSpan={shop.items.length} 
+                                    <TableCell
+                                      rowSpan={shop.items.length}
                                       className="font-bold text-slate-900 align-top border-r border-slate-100 py-6"
                                     >
                                       <div className="flex items-start gap-2.5">
@@ -359,12 +360,11 @@ export default function EmployeeForecastPage({
                                     {formatCurrency(item.amount)}
                                   </TableCell>
                                   {iIdx === 0 && (
-                                    <TableCell 
-                                      rowSpan={shop.items.length} 
+                                    <TableCell
+                                      rowSpan={shop.items.length}
                                       className="text-right align-middle bg-blue-50/20 border-l border-blue-100"
                                     >
                                       <div className="flex flex-col items-end">
-                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Target Sub-total</span>
                                         <p className="text-lg font-black text-blue-700">
                                           {formatCurrency(shop.totalAmount)}
                                         </p>
