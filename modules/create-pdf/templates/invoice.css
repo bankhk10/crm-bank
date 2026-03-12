@@ -20,10 +20,7 @@ body {
   font-size: 28px;
   text-transform: uppercase;
 }
-.header .company-logo {
-  max-height: 50px; /* ปรับขนาด Logo ตามต้องการ */
-  object-fit: contain;
-}
+
 .customer-info-container {
   display: flex;
   flex-direction: column;
@@ -179,18 +176,19 @@ td {
 }
 
 .company-logo {
-  width: 90px;
+  width: 70px;
+  object-fit: contain;
 }
 
 .company-text h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
 }
 
 .company-text p {
   margin: 2px 0;
-  font-size: 12px;
+  font-size: 10px;
   color: #555;
 }
 
