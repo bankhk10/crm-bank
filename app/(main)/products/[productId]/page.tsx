@@ -359,8 +359,8 @@ export default function ProductDetailPage() {
                   value={
                     product.productABCType
                       ? product.productABCType.description
-                        ? `${product.productABCType.code} - ${product.productABCType.name} - ${product.productABCType.description}`
-                        : `${product.productABCType.code} - ${product.productABCType.name}`
+                        ? `${product.productABCType.name} - ${product.productABCType.description}`
+                        : `${product.productABCType.name}`
                       : undefined
                   }
                 />
