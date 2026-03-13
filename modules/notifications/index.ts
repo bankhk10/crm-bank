@@ -14,10 +14,5 @@ export * from "./types";
 // Constants (client-safe)
 export { NOTIFICATION_CONFIG, getNotificationConfig } from "./constants";
 
-// Features – Bell (client components)
-export { NotificationBell } from "./features/bell/notification-bell";
-export { NotificationList } from "./features/bell/notification-list";
-export { NotificationItem } from "./features/bell/notification-item";
-
-// Features – Hook (client hook)
-export { useNotifications } from "./features/bell/use-notifications";
+// Features
+export * from "./features";
