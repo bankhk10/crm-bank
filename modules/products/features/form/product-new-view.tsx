@@ -40,9 +40,6 @@ export default function ProductNewView() {
           <ProductForm
             onSubmit={async (payload) => {
               const result = await createProductAction(payload);
-              if (result.success) {
-                // Success feedback and redirect handled by ProductForm props
-              }
               return {
                 success: result.success,
                 error: result.error,

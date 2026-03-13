@@ -113,9 +113,6 @@ export default function ProductEditView() {
             redirectPath={`/products/${productId}`}
             onSubmit={async (payload) => {
               const result = await updateProductAction(productId, payload);
-              if (result.success) {
-                // Success feedback and redirect handled by ProductForm props
-              }
               return {
                 success: result.success,
                 error: result.error,
