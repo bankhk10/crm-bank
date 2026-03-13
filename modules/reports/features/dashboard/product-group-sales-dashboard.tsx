@@ -98,6 +98,7 @@ export function ProductGroupSalesDashboard() {
     useState<ProductGroupSalesReportData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [volumeUnit, setVolumeUnit] = useState<"L" | "ML" | "KG" | "G">("L");
   const filtersPanelId = useId();
 
   const handleFetchReport = () => {
@@ -128,7 +129,30 @@ export function ProductGroupSalesDashboard() {
     reportData?.groupPerformance.sort((a, b) => b.totalSales - a.totalSales) ||
     [];
 
+  const volumeUnitOptions = [
+    { value: "L" as const, label: "L (ลิตร)" },
+    { value: "ML" as const, label: "ML" },
+    { value: "KG" as const, label: "KG" },
+    { value: "G" as const, label: "G" },
+  ];
 
+  const convertVolume = (liters: number, targetUnit: string): number => {
+    const u = targetUnit.toUpperCase();
+    if (u === "L") return liters;
+    if (u === "ML") return liters * 1000;
+    if (u === "KG") return liters;
+    if (u === "G") return liters * 1000;
+    return liters;
+  };
+
+  const formatVolume = (liters: number) => {
+    const converted = convertVolume(liters, volumeUnit);
+    if (!converted) return "0";
+    return new Intl.NumberFormat("th-TH", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(converted);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/60">
@@ -353,6 +377,26 @@ export function ProductGroupSalesDashboard() {
                 </TabsTrigger>
               </TabsList>
 
+              {/* Volume Unit Switcher */}
+              <div className="flex items-center gap-2 mt-4">
+                <span className="text-sm text-muted-foreground">หน่วยปริมาณ:</span>
+                <div className="flex rounded-lg border overflow-hidden">
+                  {volumeUnitOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setVolumeUnit(opt.value)}
+                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                        volumeUnit === opt.value
+                          ? "bg-purple-500 text-white"
+                          : "bg-white hover:bg-slate-50 text-slate-600"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <TabsContent value="overview" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Bar Chart */}
@@ -541,6 +585,9 @@ export function ProductGroupSalesDashboard() {
                               จำนวนที่ขาย
                             </TableHead>
                             <TableHead className="text-right">
+                              ปริมาณ ({volumeUnit})
+                            </TableHead>
+                            <TableHead className="text-right">
                               จำนวนออเดอร์
                             </TableHead>
                             <TableHead className="text-right">
@@ -574,6 +621,11 @@ export function ProductGroupSalesDashboard() {
                               </TableCell>
                               <TableCell className="text-right">
                                 {formatNumber(group.totalQuantity)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className="font-medium text-blue-600">
+                                  {formatVolume(group.totalVolumeLiters)} {volumeUnit}
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
                                 {formatNumber(group.orderCount)}

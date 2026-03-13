@@ -95,6 +95,16 @@ export async function getProductSalesReport(
     };
   };
 
+  // Unit conversion to liters
+  const convertToLiters = (value: number, unit: string): number => {
+    const u = unit.toUpperCase().trim();
+    if (u === "L") return value;
+    if (u === "ML" || u === "CC") return value / 1000;
+    if (u === "KG") return value; // KG kept as-is (weight), user converts on UI
+    if (u === "G") return value / 1000; // G→KG equivalent, user converts on UI
+    return 0;
+  };
+
   const getRootProductId = (productId: string, map: Map<string, ProductMeta>) => {
     let current = map.get(productId);
     let safety = 0;
@@ -182,6 +192,7 @@ export async function getProductSalesReport(
     totalQuantity: number;
     orderCount: number;
     totalPackageSold: number;
+    totalVolumeLiters: number;
     packageUnit: string;
     childCount: number;
     relatedProductIds: Set<string>;
@@ -211,6 +222,7 @@ export async function getProductSalesReport(
       totalQuantity: 0,
       orderCount: 0,
       totalPackageSold: 0,
+      totalVolumeLiters: 0,
       packageUnit: unit || parsePackageSize(rootProduct.packageSize).unit,
       childCount: 0,
       relatedProductIds: new Set([rootProduct.id]),
@@ -220,6 +232,7 @@ export async function getProductSalesReport(
     aggregate.totalQuantity += Number(ps._sum.quantity || 0);
     aggregate.orderCount += ps._count;
     aggregate.totalPackageSold += totalPackageSold;
+    aggregate.totalVolumeLiters += convertToLiters(totalPackageSold, unit || aggregate.packageUnit);
     if (!aggregate.packageUnit && unit) {
       aggregate.packageUnit = unit;
     }
@@ -246,6 +259,7 @@ export async function getProductSalesReport(
     totalQuantity: p.totalQuantity,
     orderCount: p.orderCount,
     totalPackageSold: p.totalPackageSold,
+    totalVolumeLiters: p.totalVolumeLiters,
     packageUnit: p.packageUnit,
     childCount: p.childCount,
   });

@@ -63,6 +63,7 @@ export interface ProductSalesReportData {
     orderCount: number;
     totalPackageSold: number;
     packageUnit: string;
+    totalVolumeLiters: number;
     childCount: number;
   }[];
   slowProducts: {
@@ -76,6 +77,7 @@ export interface ProductSalesReportData {
     orderCount: number;
     totalPackageSold: number;
     packageUnit: string;
+    totalVolumeLiters: number;
     childCount: number;
     lastSoldDate?: string;
   }[];
@@ -112,6 +114,7 @@ export interface ProductGroupSalesReportData {
     orderCount: number;
     productCount: number;
     avgSalesPerProduct: number;
+    totalVolumeLiters: number;
   }[];
   topGroup: {
     group: string;

@@ -80,6 +80,7 @@ export function ProductSalesDashboard() {
   );
   const [activeTab, setActiveTab] = useState("top-products");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [volumeUnit, setVolumeUnit] = useState<"L" | "ML" | "KG" | "G">("L");
   const filtersPanelId = useId();
 
   const handleFetchReport = () => {
@@ -112,7 +113,30 @@ export function ProductSalesDashboard() {
     return `${formatNumber(value)}${unitLabel ? ` ${unitLabel}` : " หน่วย"}`;
   };
 
+  const volumeUnitOptions = [
+    { value: "L" as const, label: "L (ลิตร)" },
+    { value: "ML" as const, label: "ML" },
+    { value: "KG" as const, label: "KG" },
+    { value: "G" as const, label: "G" },
+  ];
 
+  const convertVolume = (liters: number, targetUnit: string): number => {
+    const u = targetUnit.toUpperCase();
+    if (u === "L") return liters;
+    if (u === "ML") return liters * 1000;
+    if (u === "KG") return liters; // 1:1 mapping for weight (kept same)
+    if (u === "G") return liters * 1000; // KG→G equivalent
+    return liters;
+  };
+
+  const formatVolume = (liters: number) => {
+    const converted = convertVolume(liters, volumeUnit);
+    if (!converted) return "0";
+    return new Intl.NumberFormat("th-TH", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(converted);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/60">
@@ -373,6 +397,26 @@ export function ProductSalesDashboard() {
                 </TabsTrigger>
               </TabsList>
 
+              {/* Volume Unit Switcher */}
+              <div className="flex items-center gap-2 mt-4">
+                <span className="text-sm text-muted-foreground">หน่วยปริมาณ:</span>
+                <div className="flex rounded-lg border overflow-hidden">
+                  {volumeUnitOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setVolumeUnit(opt.value)}
+                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                        volumeUnit === opt.value
+                          ? "bg-emerald-500 text-white"
+                          : "bg-white hover:bg-slate-50 text-slate-600"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <TabsContent value="top-products" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Table */}
@@ -395,6 +439,9 @@ export function ProductSalesDashboard() {
                               </TableHead>
                               <TableHead className="text-right">
                                 จำนวน
+                              </TableHead>
+                              <TableHead className="text-right">
+                                ปริมาณ ({volumeUnit})
                               </TableHead>
                               <TableHead className="text-right">
                                 บรรจุขายได้รวมลูก
@@ -433,6 +480,11 @@ export function ProductSalesDashboard() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                       {formatNumber(product.totalQuantity)}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <span className="font-semibold text-blue-600">
+                                        {formatVolume(product.totalVolumeLiters)} {volumeUnit}
+                                      </span>
                                     </TableCell>
                                     <TableCell className="text-right">
                                       <div className="flex items-center justify-end gap-2">
@@ -485,6 +537,9 @@ export function ProductSalesDashboard() {
                               จำนวนที่ขาย
                             </TableHead>
                             <TableHead className="text-right">
+                              ปริมาณ ({volumeUnit})
+                            </TableHead>
+                            <TableHead className="text-right">
                               บรรจุขายได้รวมลูก
                             </TableHead>
                             <TableHead className="text-right">
@@ -512,6 +567,11 @@ export function ProductSalesDashboard() {
                               </TableCell>
                               <TableCell className="text-right">
                                 {formatNumber(product.totalQuantity)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <span className="font-medium text-blue-600">
+                                  {formatVolume(product.totalVolumeLiters)} {volumeUnit}
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-2">

@@ -62,15 +62,42 @@ export async function getProductGroupSalesReport(
     label: g.description,
   }));
 
+  // Helper to parse packageSize strings
+  const parsePackageSize = (raw?: number | string | null) => {
+    if (raw === null || raw === undefined) return { value: null as number | null, unit: "" };
+    if (typeof raw === "number") return { value: raw, unit: "" };
+    // Prisma Decimal objects are not plain strings — convert first
+    const str = typeof raw === "string" ? raw : String(raw);
+    const valueMatch = str.replace(/,/g, "").match(/[\d.]+/);
+    const value = valueMatch ? parseFloat(valueMatch[0]) : null;
+    const unit = str.replace(/[\d.,\s]/g, "").trim();
+    return { value, unit };
+  };
+
+  const convertToLiters = (value: number, unit: string): number => {
+    const u = unit.toUpperCase().trim();
+    if (u === "L") return value;
+    if (u === "ML" || u === "CC") return value / 1000;
+    if (u === "KG") return value;
+    if (u === "G") return value / 1000;
+    return 0;
+  };
+
   // Get group performance
   const groupPerformance = await Promise.all(
     productGroupOptions.map(async (groupOption) => {
       const group = groupOption.value;
 
-      // Get products in this group
+      // Get products in this group (with packageSize fields)
       const products = await repo.findManyProductsData({
         where: { productGroup: group },
-        select: { id: true },
+        select: {
+          id: true,
+          packageSize: true,
+          packageSizeUnit: true,
+          packageSizePerBox: true,
+          totalPackageSizePerBox: true,
+        },
       });
       const productIds = products.map((p) => p.id);
 
@@ -82,11 +109,13 @@ export async function getProductGroupSalesReport(
           orderCount: 0,
           productCount: 0,
           avgSalesPerProduct: 0,
+          totalVolumeLiters: 0,
         };
       }
 
-      // Get sales data
-      const salesData = await prisma.saleItem.aggregate({
+      // Get sales data per product (for volume calculation)
+      const salesPerProduct = await repo.groupSaleItemsData({
+        by: ["productId"],
         where: {
           productId: { in: productIds },
           sale: {
@@ -100,7 +129,35 @@ export async function getProductGroupSalesReport(
           totalPrice: true,
           quantity: true,
         },
+        _count: true,
       });
+
+      // Build product lookup
+      const productLookup = new Map(products.map((p) => [p.id, p]));
+
+      let totalSales = 0;
+      let totalQuantity = 0;
+      let totalVolumeLiters = 0;
+
+      for (const sp of salesPerProduct) {
+        const qty = Number(sp._sum.quantity || 0);
+        totalSales += Number(sp._sum.totalPrice || 0);
+        totalQuantity += qty;
+
+        const prod = productLookup.get(sp.productId);
+        if (prod) {
+          const totalPerBox = parsePackageSize(prod.totalPackageSizePerBox as any);
+          const packageSize = parsePackageSize(prod.packageSize as any);
+          const perBox =
+            totalPerBox.value ??
+            (packageSize.value !== null
+              ? packageSize.value * (parseFloat(prod.packageSizePerBox?.toString() || "1") || 1)
+              : null);
+          const packageSold = perBox !== null && !Number.isNaN(perBox) ? perBox * qty : 0;
+          const pUnit = totalPerBox.unit || packageSize.unit || (prod as any).packageSizeUnit || "";
+          totalVolumeLiters += convertToLiters(packageSold, pUnit);
+        }
+      }
 
       // Get order count
       const orderCount = await repo.groupSaleItemsData({
@@ -116,16 +173,15 @@ export async function getProductGroupSalesReport(
         },
       });
 
-      const totalSales = Number(salesData._sum.totalPrice || 0);
-
       return {
         group: groupOption.label,
         totalSales,
-        totalQuantity: Number(salesData._sum.quantity || 0),
+        totalQuantity,
         orderCount: orderCount.length,
         productCount: productIds.length,
         avgSalesPerProduct:
           productIds.length > 0 ? totalSales / productIds.length : 0,
+        totalVolumeLiters,
       };
     }),
   );

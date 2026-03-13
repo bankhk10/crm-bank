@@ -988,9 +988,10 @@ model DailySalesSummary {
   productGroup String? // De-normalized: เก็บกลุ่มสินค้า (ตรงกับ Product.productGroup)
 
   // Metrics (ตัววัดผล)
-  quantity    Int     @default(0)
-  totalAmount Decimal @default(0) @db.Decimal(15, 2)
-  orderCount  Int     @default(0) // จำนวนบิลที่เกิดขึ้นในวันนี้
+  quantity          Int     @default(0)
+  totalAmount       Decimal @default(0) @db.Decimal(15, 2)
+  orderCount        Int     @default(0) // จำนวนบิลที่เกิดขึ้นในวันนี้
+  totalVolumeLiters Decimal @default(0) @db.Decimal(15, 3) // ปริมาณรวมเป็นลิตร (แปลงจาก packageSize × quantity)
 
   // Audit
   updatedAt DateTime @updatedAt
