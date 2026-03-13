@@ -1,8 +1,8 @@
 import { getDashboardDataAction } from "@/modules/dashboard";
-import DashboardClient from "./dashboard-client";
+import { AdminDashboardView } from "@/modules/dashboard";
 
 export default async function DashboardPage() {
   const data = await getDashboardDataAction();
 
-  return <DashboardClient data={data} />;
+  return <AdminDashboardView initialData={data} />;
 }

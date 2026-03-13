@@ -1,14 +1,6 @@
 import { auth } from "@/modules/auth/infrastructure/next-auth";
-import { redirect } from "next/navigation";
 import { getDashboardDataAction } from "@/modules/dashboard";
-import DashboardClient from "./dashboard-client";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Server component usage? No, Alert is client?
-// Alert is "use client" likely if it uses context?
-// Usually UI components are client.
-// I can just return simple HTML if Alert is client-only and I'm in server component.
-// Or make this page client?
-// But getDashboardData is server action.
-// I'll keep it server.
+import { ManagerDashboardView } from "@/modules/dashboard";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -27,6 +19,5 @@ export default async function DashboardPage() {
 
   const data = await getDashboardDataAction();
 
-  return <DashboardClient data={data} />;
+  return <ManagerDashboardView initialData={data} />;
 }
-
