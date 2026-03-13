@@ -48,7 +48,22 @@ export { ProductStatusBadge, statusStyle } from "./ui/product-status-badge";
 export { ProductsTable } from "./features/list-view/products-table";
 export { ProductsCards } from "./features/list-view/products-cards";
 export { useProductColumns } from "./features/list-view/use-product-columns";
+export { default as ProductsListView } from "./features/list-view/products-list-view";
+
+// Features - Detail View
+export { default as ProductDetailView } from "./features/detail-view/product-detail-view";
 
 // Features - Form
 export { ProductForm } from "./features/form/product-form";
 export { ProductManageForm } from "./features/form/product-manage-form";
+export { default as ProductNewView } from "./features/form/product-new-view";
+export { default as ProductEditView } from "./features/form/product-edit-view";
+
+// Features - Settings View
+export { default as BrandSettingsView } from "./features/settings-view/brand-settings-view";
+export { default as CategorySettingsView } from "./features/settings-view/category-settings-view";
+export { default as ChainSettingsView } from "./features/settings-view/chain-settings-view";
+export { default as ChemicalGroupSettingsView } from "./features/settings-view/chemical-group-settings-view";
+export { default as GroupSettingsView } from "./features/settings-view/group-settings-view";
+export { default as PlantSettingsView } from "./features/settings-view/plant-settings-view";
+export { default as UnitSettingsView } from "./features/settings-view/unit-settings-view";
