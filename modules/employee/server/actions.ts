@@ -8,8 +8,9 @@ import {
   updateEmployeeUseCase,
   getEmployeeDetailUseCase,
   listAllEmployeesUseCase,
+  listEmployeesUseCase,
 } from "../application";
-import { softDeleteEmployee } from "../infrastructure/employee.repository";
+import { softDeleteEmployee, type ListEmployeesParams } from "../infrastructure/employee.repository";
 
 const resourcePath = "/api/employee";
 
@@ -85,15 +86,19 @@ export async function deleteEmployeeAction(id: string) {
   }
 }
 
-export async function getEmployeesAction() {
+export async function getEmployeesAction(params: ListEmployeesParams = {}) {
   const session = await auth();
-  if (!session?.user) return { success: false, employees: [] };
+  if (!session?.user) return { success: false, employees: [], total: 0 };
 
   try {
-    const result = await listAllEmployeesUseCase();
-    return { success: true, employees: result.employees };
+    const result = await listEmployeesUseCase(params);
+    return {
+      success: true,
+      employees: JSON.parse(JSON.stringify(result.employees)),
+      total: result.total,
+    };
   } catch (_err) {
-    return { success: false, employees: [] };
+    return { success: false, employees: [], total: 0 };
   }
 }
 

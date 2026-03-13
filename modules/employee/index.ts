@@ -15,13 +15,14 @@ export * from "./application";
 export * from "./ui/employee-status-badge";
 
 // Features - List View
-export * from "./features/list-view/employee-table";
-export * from "./features/list-view/employee-cards";
 export * from "./features/list-view/use-employee-columns";
+export { default as EmployeeListView } from "./features/list-view/employee-list-view";
 
 // Features - Detail View
-export * from "./features/detail-view/employee-detail-view";
+export { default as EmployeeDetailView } from "./features/detail-view/employee-detail-view";
 
 // Features - Form
-export * from "./features/form/employee-form-wrapper";
-export * from "./features/form/employee-form";
+export { default as EmployeeNewView } from "./features/form/employee-new-view";
+export { default as EmployeeEditView } from "./features/form/employee-edit-view";
+export { default as EmployeeForm } from "./features/form/employee-form";
+export { EmployeeFormWrapper } from "./features/form/employee-form-wrapper";

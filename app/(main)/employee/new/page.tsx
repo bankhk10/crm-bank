@@ -1,5 +1,5 @@
-import { EmployeeFormWrapper } from "@/modules/employee/features/form/employee-form-wrapper";
+import { EmployeeNewView } from "@/modules/employee";
 
 export default function NewEmployeePage() {
-  return <EmployeeFormWrapper />;
+  return <EmployeeNewView />;
 }

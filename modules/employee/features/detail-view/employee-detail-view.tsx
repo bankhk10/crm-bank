@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,11 +37,8 @@ import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "../../types";
 import { DetailItem } from "@/components/custom/detail-item";
 
-interface EmployeeDetailViewProps {
-    employeeId: string;
-}
-
-export function EmployeeDetailView({ employeeId }: EmployeeDetailViewProps) {
+export default function EmployeeDetailView() {
+    const { employeeId } = useParams() as { employeeId: string };
     const router = useRouter();
     const { hasPermission, allowed, isLoading } = usePermission("menu.employees");
     const canView = !isLoading && allowed;

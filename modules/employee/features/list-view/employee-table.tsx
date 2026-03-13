@@ -28,10 +28,34 @@ import {
 } from "../../server/actions";
 
 type EmployeesGridProps = {
-    employees?: Employee[];
+    employees: Employee[];
+    loading?: boolean;
+    total?: number;
+    page?: number;
+    perPage?: number;
+    onPageChange?: (page: number) => void;
+    onPerPageChange?: (perPage: number) => void;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    onSearchSubmit?: () => void;
+    dateRange?: { from?: Date; to?: Date };
+    onDateRangeChange?: (range: { from?: Date; to?: Date } | undefined) => void;
 };
 
-export function EmployeeTable({ employees }: EmployeesGridProps) {
+export function EmployeeTable({
+    employees,
+    loading,
+    total = 0,
+    page = 1,
+    perPage = 10,
+    onPageChange,
+    onPerPageChange,
+    searchValue,
+    onSearchChange,
+    onSearchSubmit,
+    dateRange,
+    onDateRangeChange,
+}: EmployeesGridProps) {
     const router = useRouter();
     const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
     const canCreate = !isLoading && hasPermission("employee.create");
@@ -42,52 +66,6 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
 
     const [deleteTarget, setDeleteTarget] = React.useState<Employee | null>(null);
 
-    const [fetched, setFetched] = React.useState<Employee[] | null>(null);
-    const [fetchLoading, setFetchLoading] = React.useState(false);
-
-    React.useEffect(() => {
-        let mounted = true;
-        const load = async () => {
-            if (employees && employees.length > 0) return;
-            setFetchLoading(true);
-            try {
-                const res = await getEmployeesAction();
-                if (res.success) {
-                    if (mounted) setFetched((res.employees as any) ?? []);
-                }
-            } catch {
-                // ignore
-            } finally {
-                if (mounted) setFetchLoading(false);
-            }
-        };
-        load();
-        return () => {
-            mounted = false;
-        };
-    }, [employees]);
-
-    const rawData: Employee[] = React.useMemo(() => {
-        return employees && employees.length > 0 ? employees : (fetched ?? []);
-    }, [employees, fetched]);
-
-    // useClientSearch handles the filtering and pagination automatically
-    const {
-        query,
-        setQuery,
-        paginatedData,
-        pagination,
-    } = useClientSearch<Employee>(
-        rawData,
-        (e, q) =>
-            [e.name, e.email, e.employeeCode, e.phone, e.position?.name]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase()
-                .includes(q),
-        { perPageOptions: [5, 10, 20, 50] }
-    );
-
     // Handle Delete
     const handleDelete = async () => {
         if (!deleteTarget) return;
@@ -96,12 +74,6 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
             if (res.success) {
                 setDeleteTarget(null);
                 router.refresh();
-                if (!employees) {
-                    const reloadRes = await getEmployeesAction();
-                    if (reloadRes.success) {
-                        setFetched((reloadRes.employees as any) ?? []);
-                    }
-                }
             } else {
                 console.error("Failed to delete", res.error);
             }
@@ -137,8 +109,9 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         <div className="space-y-4 mb-6">
             <TableToolbar
                 searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
-                searchValue={query}
-                onSearchChange={setQuery}
+                searchValue={searchValue ?? ""}
+                onSearchChange={onSearchChange ?? (() => {})}
+                onSearchSubmit={onSearchSubmit}
             />
             <div className="flex justify-end">
                 {canCreate ? (
@@ -158,6 +131,15 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
         </div>
     );
 
+    const pagination = {
+        page,
+        perPage,
+        total,
+        onPageChange: onPageChange ?? (() => {}),
+        onPerPageChange: onPerPageChange ?? (() => {}),
+        perPageOptions: [5, 10, 20, 50],
+    };
+
     return (
         <div className="space-y-6">
             <ResponsiveDataView
@@ -165,8 +147,8 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
                 toolbar={toolbar}
                 cards={
                     <EmployeeCards
-                        data={paginatedData}
-                        loading={fetchLoading}
+                        data={employees}
+                        loading={loading ?? false}
                         canDelete={canDelete}
                         canEdit={canEdit}
                         canView={canView}
@@ -177,8 +159,8 @@ export function EmployeeTable({ employees }: EmployeesGridProps) {
                 table={
                     <CustomTable
                         columns={columns}
-                        data={paginatedData}
-                        loading={fetchLoading}
+                        data={employees}
+                        loading={loading ?? false}
                         pagination={pagination}
                         toolbar={<></>}
                         emptyState={{

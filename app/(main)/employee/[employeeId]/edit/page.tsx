@@ -1,9 +1,5 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import { EmployeeFormWrapper } from "@/modules/employee/features/form/employee-form-wrapper";
+import { EmployeeEditView } from "@/modules/employee";
 
 export default function EditEmployeePage() {
-  const { employeeId } = useParams() as { employeeId: string };
-  return <EmployeeFormWrapper employeeId={employeeId} />;
+  return <EmployeeEditView />;
 }
