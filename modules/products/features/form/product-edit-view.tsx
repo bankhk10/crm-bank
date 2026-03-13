@@ -110,7 +110,6 @@ export default function ProductEditView() {
             }}
             productId={productId}
             isEdit
-            redirectPath={`/products/${productId}`}
             onSubmit={async (payload) => {
               const result = await updateProductAction(productId, payload);
               return {
@@ -119,7 +118,7 @@ export default function ProductEditView() {
                 data: result.success ? { product: (result as any).product } : undefined,
               };
             }}
-            onCancel={() => router.push(`/products/${productId}`)}
+            onCancel={() => router.push(`/products`)}
           />
         </div>
       </Card>
