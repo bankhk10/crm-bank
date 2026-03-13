@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { DashboardShellProps } from "../types";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
-import { SessionTimeoutWarning } from "@/modules/auth";
+import { SessionTimeoutWarning } from "../../auth/features/session-timeout-warning/session-timeout-warning";
 
 export default function DashboardShell({
     children,
