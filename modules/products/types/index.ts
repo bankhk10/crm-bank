@@ -227,6 +227,8 @@ export interface ProductFormProps {
   hideBorder?: boolean;
   canEdit?: boolean;
   permissionHint?: string;
+  successMessage?: string;
+  redirectPath?: string;
 }
 
 export interface ProductRecord extends Product {

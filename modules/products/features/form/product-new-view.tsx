@@ -41,8 +41,7 @@ export default function ProductNewView() {
             onSubmit={async (payload) => {
               const result = await createProductAction(payload);
               if (result.success) {
-                toast.success("สร้างสินค้าใหม่เรียบร้อยแล้ว");
-                router.push("/products");
+                // Success feedback and redirect handled by ProductForm props
               }
               return {
                 success: result.success,

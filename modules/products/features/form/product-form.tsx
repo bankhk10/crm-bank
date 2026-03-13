@@ -50,6 +50,8 @@ export function ProductForm({
   onSubmit,
   onCancel,
   canEdit = true,
+  successMessage,
+  redirectPath,
 }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -316,9 +318,10 @@ export function ProductForm({
           }
 
 
-          toast.success("บันทึกข้อมูลสำเร็จ");
+
+          toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
           setTimeout(() => {
-            router.push("/products");
+            router.push(redirectPath || "/products");
             router.refresh();
           }, 1200);
         }
@@ -399,10 +402,11 @@ export function ProductForm({
           }
         }
 
-        toast.success("บันทึกข้อมูลสำเร็จ");
+
+        toast.success(successMessage || (isEdit ? "บันทึกการแก้ไขเรียบร้อยแล้ว" : "สร้างสินค้าใหม่เรียบร้อยแล้ว"));
 
         setTimeout(() => {
-          router.push("/products");
+          router.push(redirectPath || "/products");
           router.refresh();
         }, 1200);
       }

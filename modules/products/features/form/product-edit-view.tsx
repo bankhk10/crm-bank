@@ -110,11 +110,11 @@ export default function ProductEditView() {
             }}
             productId={productId}
             isEdit
+            redirectPath={`/products/${productId}`}
             onSubmit={async (payload) => {
               const result = await updateProductAction(productId, payload);
               if (result.success) {
-                toast.success("บันทึกการแก้ไขเรียบร้อยแล้ว");
-                router.push(`/products/${productId}`);
+                // Success feedback and redirect handled by ProductForm props
               }
               return {
                 success: result.success,
