@@ -38,7 +38,9 @@ import Link from "next/link";
 
 import {
   getProductSalesReportAction,
+  getProductGroupSalesReportAction,
   type ProductSalesReportData,
+  type ProductGroupSalesReportData,
   type DateRangeFilter,
 } from "@/modules/reports";
 
@@ -78,6 +80,9 @@ export function ProductSalesDashboard() {
   const [reportData, setReportData] = useState<ProductSalesReportData | null>(
     null,
   );
+  const [groupReportData, setGroupReportData] = useState<ProductGroupSalesReportData | null>(
+    null,
+  );
   const [activeTab, setActiveTab] = useState("top-products");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [volumeUnit, setVolumeUnit] = useState<"L" | "ML" | "KG" | "G">("L");
@@ -89,8 +94,12 @@ export function ProductSalesDashboard() {
         startDate: format(dateRange.from, "yyyy-MM-dd"),
         endDate: format(dateRange.to, "yyyy-MM-dd"),
       };
-      const data = await getProductSalesReportAction(filter);
-      setReportData(data);
+      const [prodData, groupData] = await Promise.all([
+        getProductSalesReportAction(filter),
+        getProductGroupSalesReportAction(filter)
+      ]);
+      setReportData(prodData);
+      setGroupReportData(groupData);
     });
   };
 
@@ -106,6 +115,10 @@ export function ProductSalesDashboard() {
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat("th-TH").format(num);
   };
+
+  const sortedGroups =
+    groupReportData?.groupPerformance.sort((a, b) => b.totalSales - a.totalSales) ||
+    [];
 
   const formatPackSize = (value: number, unit?: string) => {
     if (!value) return "-";
@@ -394,6 +407,12 @@ export function ProductSalesDashboard() {
                   className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
                   ค้างสต๊อก
+                </TabsTrigger>
+                <TabsTrigger
+                  value="group-performance"
+                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
+                  ผลงานกลุ่มสินค้า
                 </TabsTrigger>
               </TabsList>
 
@@ -792,6 +811,90 @@ export function ProductSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
                                   {product.lastSoldDate || "-"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="group-performance" className="mt-6">
+                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      ผลงานแต่ละกลุ่มสินค้า
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!groupReportData ? (
+                      <div className="py-10 text-center text-muted-foreground">
+                        ไม่พบข้อมูลผลงานแต่ละกลุ่มสินค้า
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table className="min-w-[760px]">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>ลำดับ</TableHead>
+                              <TableHead>กลุ่มสินค้า</TableHead>
+                              <TableHead className="text-right">ยอดขาย</TableHead>
+                              <TableHead className="text-right">
+                                จำนวนที่ขาย
+                              </TableHead>
+                              <TableHead className="text-right">
+                                ปริมาณ ({volumeUnit})
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนออเดอร์
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนสินค้า
+                              </TableHead>
+                              <TableHead className="text-right">
+                                เฉลี่ย/สินค้า
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sortedGroups.map((group, idx) => (
+                              <TableRow key={group.group}>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      idx < 3
+                                        ? "bg-purple-100 text-purple-800 border-purple-300"
+                                        : ""
+                                    }
+                                  >
+                                    {idx + 1}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {group.group}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold text-emerald-600">
+                                  {formatTHB(group.totalSales)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(group.totalQuantity)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <span className="font-medium text-blue-600">
+                                    {formatVolume(group.totalVolumeLiters)} {volumeUnit}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(group.orderCount)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {group.productCount}
+                                </TableCell>
+                                <TableCell className="text-right text-muted-foreground">
+                                  {formatTHB(group.avgSalesPerProduct)}
                                 </TableCell>
                               </TableRow>
                             ))}

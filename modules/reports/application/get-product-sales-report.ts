@@ -71,9 +71,11 @@ export async function getProductSalesReport(
   const parsePackageSize = (raw?: number | string | null) => {
     if (raw === null || raw === undefined) return { value: null as number | null, unit: "" };
     if (typeof raw === "number") return { value: raw, unit: "" };
-    const valueMatch = raw.replace(/,/g, "").match(/[\d.]+/);
+    // Prisma Decimal objects are not plain strings — convert first
+    const str = typeof raw === "string" ? raw : String(raw);
+    const valueMatch = str.replace(/,/g, "").match(/[\d.]+/);
     const value = valueMatch ? parseFloat(valueMatch[0]) : null;
-    const unit = raw.replace(/[\d.,\s]/g, "").trim();
+    const unit = str.replace(/[\d.,\s]/g, "").trim();
     return { value, unit };
   };
 

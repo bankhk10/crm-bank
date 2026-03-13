@@ -29,6 +29,10 @@ export async function getSalespersonSalesReportAction(filter: DateRangeFilter) {
   return app.getSalespersonSalesReport(filter);
 }
 
+export async function getExecutiveDashboardReportAction(filter: DateRangeFilter) {
+  return app.getExecutiveDashboardReport(filter);
+}
+
 // ==========================================
 // Report Filters & Helpers
 // ==========================================

@@ -226,6 +226,39 @@ export interface SalespersonReportData {
   }[];
 }
 
+export interface ExecutiveDashboardData {
+  summary: {
+    totalSales: number;
+    totalOrders: number;
+    avgOrderValue: number;
+    growthPercentage: number;
+  };
+  monthlySales: {
+    month: string;
+    sales: number;
+    orders: number;
+  }[];
+  topProducts: {
+    name: string;
+    sales: number;
+    quantity: number;
+  }[];
+  topCustomers: {
+    name: string;
+    sales: number;
+    orders: number;
+  }[];
+  topSalespersons: {
+    name: string;
+    sales: number;
+    orders: number;
+  }[];
+  salesByRegion: {
+    region: string;
+    sales: number;
+  }[];
+}
+
 export type ReportType = "CUSTOMER" | "EMPLOYEE";
 
 export interface CustomerListItem {
