@@ -1,13 +1,12 @@
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { DEFAULT_AUTH_REDIRECT } from "@/modules/rbac";
-import { RolePermissionEditor } from "@/modules/rbac";
-import { getRoleDetailUseCase, listPermissionsUseCase } from "@/modules/rbac/application";
+import { RBACRoleDetailView } from "@/modules/rbac";
 
 interface RolePermissionsPageProps {
-  params: {
+  params: Promise<{
     roleId: string;
-  };
+  }>;
 }
 
 export default async function RolePermissionsPage({
@@ -21,20 +20,7 @@ export default async function RolePermissionsPage({
     redirect(DEFAULT_AUTH_REDIRECT);
   }
 
-  const { roleId } = await Promise.resolve(params);
+  const { roleId } = await params;
 
-  const result = await getRoleDetailUseCase(roleId);
-
-  if (!result.success || !('role' in result)) {
-    notFound();
-  }
-
-  const permissions = await listPermissionsUseCase();
-
-  return (
-    <div className="container mx-auto py-6">
-      <RolePermissionEditor role={result.role} allPermissions={permissions} />
-    </div>
-  );
+  return <RBACRoleDetailView roleId={roleId} />;
 }
-

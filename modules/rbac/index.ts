@@ -67,4 +67,6 @@ export * from "./application/authorization";
 
 // ─── Features (UI Screens) ───
 export { default as RBACConsole } from "./features/list-view/rbac-console";
+export { default as RBACListView } from "./features/list-view/rbac-list-view";
 export { default as RolePermissionEditor } from "./features/detail-view/role-permission-editor";
+export { default as RBACRoleDetailView } from "./features/detail-view/rbac-role-detail-view";
