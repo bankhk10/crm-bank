@@ -94,12 +94,14 @@ export async function findProducts(params: ListProductsParams) {
             children: true,
           },
         },
+        tradeNameGroup: true,
+        productGroup: true,
       },
-    }),
+    } as any),
   ]);
 
   // Calculate stock quantity from stock lots
-  const products = productsRaw.map((product) => {
+  const products = (productsRaw as any[]).map((product) => {
     // Prefer data from ProductStock table if available
     if (product.stock) {
       return {
@@ -108,7 +110,7 @@ export async function findProducts(params: ListProductsParams) {
         availableQuantity: product.stock.availableQuantity,
         reservedQuantity: product.stock.reservedQuantity,
         physicalQuantity: product.stock.physicalBalance,
-        children: product.children?.map((child) => {
+        children: (product as any).children?.map((child: any) => {
           let childAvail = 0;
           let childRes = 0;
           let childPhys = 0;
@@ -135,8 +137,8 @@ export async function findProducts(params: ListProductsParams) {
     }
 
     // Fallback to calculation if sync hasn't run yet
-    const availableQuantity = product.stockLots.reduce(
-      (sum, lot) => sum + lot.quantity,
+    const availableQuantity = (product as any).stockLots.reduce(
+      (sum: number, lot: any) => sum + lot.quantity,
       0,
     );
     const reservedQuantity = 0;
@@ -147,7 +149,7 @@ export async function findProducts(params: ListProductsParams) {
       availableQuantity,
       reservedQuantity,
       physicalQuantity: availableQuantity + reservedQuantity,
-      children: product.children?.map((child) => {
+      children: (product as any).children?.map((child: any) => {
         let childAvail = 0;
         let childRes = 0;
         let childPhys = 0;
@@ -197,6 +199,8 @@ export async function findProductById(id: string) {
       },
       category: true,
       productABCType: true,
+      tradeNameGroup: true,
+      productGroup: true,
       parent: {
         select: {
           id: true,
@@ -205,31 +209,21 @@ export async function findProductById(id: string) {
         },
       },
     },
-  });
+  } as any);
 
   if (!product) return null;
 
-  // Manually fetch master data (they aren't linked by relations in Prisma yet)
-  const [chemGroup, tradeGroup, unitObj] = await Promise.all([
-    product.chemicalGroup
-      ? db.productGroup.findUnique({ where: { code: product.chemicalGroup } })
-      : null,
-    product.productGroup
-      ? db.tradeNameGroup.findUnique({
-          where: { code: product.productGroup },
-        })
-      : null,
-    product.unit
-      ? db.unit.findFirst({
-          where: { description: product.unit, deletedAt: null },
-        })
-      : null,
-  ]);
+  // Manually fetch unit master data (not linked by relation yet)
+  const unitObj = product.unit
+    ? await db.unit.findFirst({
+        where: { description: product.unit, deletedAt: null },
+      })
+    : null;
 
   return {
     ...(product as any),
-    chemicalGroupObj: chemGroup,
-    productGroupObj: tradeGroup,
+    chemicalGroupObj: (product as any).productGroup, // Mapping for backward compatibility in UI
+    productGroupObj: (product as any).tradeNameGroup, // Mapping for backward compatibility in UI
     unitObj: unitObj,
   };
 }
@@ -242,9 +236,9 @@ export async function createProduct(data: {
   name: string;
   commonName?: string;
   unit?: string;
-  productGroup?: string;
+  tradeNameGroupId?: string | null;
   brand?: string;
-  chemicalGroup?: string;
+  productGroupId?: string | null;
   packageSize?: string | number | null;
   packageSizeUnit?: string | null;
   packageSizePerBox?: string | number | null;
@@ -264,9 +258,9 @@ export async function createProduct(data: {
       name: data.name,
       commonName: data.commonName,
       unit: data.unit,
-      productGroup: data.productGroup,
+      tradeNameGroupId: data.tradeNameGroupId,
       brand: data.brand,
-      chemicalGroup: data.chemicalGroup,
+      productGroupId: data.productGroupId,
       packageSize: data.packageSize,
       packageSizeUnit: data.packageSizeUnit,
       packageSizePerBox: data.packageSizePerBox,
@@ -283,7 +277,7 @@ export async function createProduct(data: {
     include: {
       images: true,
     },
-  });
+  } as any);
 }
 
 /**

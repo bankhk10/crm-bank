@@ -30,11 +30,11 @@ export async function getSalesForecastUseCase(
 
   const groupsPromise = findTradeNameGroups();
 
-  const [targets, sales, groups] = await Promise.all([
+  const [targets, sales, groups] = (await Promise.all([
     targetsPromise,
     salesPromise,
     groupsPromise,
-  ]);
+  ])) as [any[], any[], any[]];
 
   // Process sales summary
   const monthlyData: Record<number, number> = {};
@@ -71,8 +71,8 @@ export async function getSalesForecastUseCase(
       });
     }
 
-    target.stores.forEach((store) => {
-      store.items.forEach((item) => {
+    target.stores.forEach((store: any) => {
+      store.items.forEach((item: any) => {
         const amount = Number(item.targetAmount || 0);
         const quantity = item.qtyPerBox || 0;
 
@@ -91,12 +91,11 @@ export async function getSalesForecastUseCase(
           });
         }
 
-        const groupKey = `${item.product.productGroup || "unassigned"}-${
-          target.month
-        }`;
+        const productGroup = (item.product as any).tradeNameGroup?.code || "unassigned";
+        const groupKey = `${productGroup}-${target.month}`;
         if (!groupMap.has(groupKey)) {
           groupMap.set(groupKey, {
-            productGroup: item.product.productGroup || "unassigned",
+            productGroup: productGroup,
             month: target.month,
             totalAmount: 0,
             totalQuantity: 0,
@@ -115,7 +114,7 @@ export async function getSalesForecastUseCase(
             productId: item.productId,
             productCode: item.product.productCode,
             productName: item.product.name,
-            productGroup: item.product.productGroup,
+            productGroup: (item.product as any).tradeNameGroup?.code || "unassigned",
             month: target.month,
             totalAmount: 0,
             totalQuantity: 0,

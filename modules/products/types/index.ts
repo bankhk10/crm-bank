@@ -13,6 +13,13 @@ export interface ProductGroup {
   description: string | null;
 }
 
+export interface TradeNameGroup {
+  id: string;
+  code: string;
+  description: string;
+  categoryId: string | null;
+}
+
 export interface Plant {
   id: string;
   code: string;
@@ -100,9 +107,9 @@ export interface Product {
   name: string;
   commonName: string | null;
   unit: string | null;
-  productGroup: string | null; // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId: string | null; // FK to TradeNameGroup (กลุ่มชื่อการค้า)
   brand: string | null;
-  chemicalGroup: string | null; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  productGroupId: string | null; // FK to ProductGroup (กลุ่มสินค้า)
   packageSize: number | null;
   packageSizeUnit: string | null;
   packageSizePerBox: number | null;
@@ -125,15 +132,17 @@ export interface Product {
   // Relations
   category?: ProductCategory | null;
   productABCType?: ProductABCType | null;
+  tradeNameGroup?: TradeNameGroup | null;
+  productGroup?: ProductGroup | null;
   parent?: Pick<Product, "id" | "productCode" | "name"> | null;
   images?: ProductImage[];
   promotionItems?: ProductPromotionItem[];
   freeItems?: ProductFreeItem[];
   stockLots?: ProductStockLot[];
   children?: Product[];
-  // Extra detailed objects for display
+  // Extra detailed objects for display (kept for backward compatibility if needed, but preferred to use relations above)
   chemicalGroupObj?: ProductGroup | null;
-  productGroupObj?: { id: string; code: string; description: string } | null;
+  productGroupObj?: TradeNameGroup | null;
   unitObj?: { id: string; code: string; description: string } | null;
 }
 
@@ -142,9 +151,9 @@ export interface ProductFormData {
   name: string;
   commonName?: string;
   unit?: string;
-  productGroup?: string; // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId?: string; // FK to TradeNameGroup (กลุ่มชื่อการค้า)
   brand?: string;
-  chemicalGroup?: string; // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  productGroupId?: string; // FK to ProductGroup (กลุ่มสินค้า)
   packageSize?: string | number;
   packageSizeUnit?: string;
   packageSizePerBox?: string | number;

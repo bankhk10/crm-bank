@@ -358,8 +358,8 @@ export default function ProductDetailView() {
               <div className="space-y-0 divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                 <AttributeRow icon={<Hash className="h-4 w-4" />} label="รหัสสินค้า" value={product.productCode} />
                 <AttributeRow icon={<Tag className="h-4 w-4" />} label="ชื่อสามัญ" value={product.commonName} />
-                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มชื่อการค้า" value={product.productGroupObj ? `${product.productGroupObj.code} - ${product.productGroupObj.description}` : product.productGroup} />
-                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.chemicalGroupObj ? `${product.chemicalGroupObj.code} - ${product.chemicalGroupObj.name}` : product.chemicalGroup} />
+                <AttributeRow icon={<Layers className="h-4 w-4" />} label="กลุ่มชื่อการค้า" value={product.tradeNameGroup ? `${product.tradeNameGroup.code} - ${product.tradeNameGroup.description}` : undefined} />
+                <AttributeRow icon={<Beaker className="h-4 w-4" />} label="กลุ่มสินค้า" value={product.productGroup ? `${product.productGroup.code} - ${product.productGroup.name}` : undefined} />
                 <AttributeRow icon={<Tag className="h-4 w-4" />} label="แบรนด์" value={product.brand} />
                 <AttributeRow
                   icon={<FolderOpen className="h-4 w-4" />}

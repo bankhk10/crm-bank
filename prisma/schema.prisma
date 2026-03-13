@@ -504,7 +504,7 @@ model ProductCategory {
   products      Product[] // Products in this category
 }
 
-// กลุ่มชื่อการค้า (Trade Name Group) - เดิมชื่อ "กลุ่มสินค้า"
+// กลุ่มชื่อการค้า (Trade Name Group)
 model TradeNameGroup {
   id          String    @id @default(cuid())
   code        String    @unique // รหัสกลุ่มชื่อการค้า
@@ -515,6 +515,7 @@ model TradeNameGroup {
   deletedAt   DateTime?
 
   category ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  products Product[]
 }
 
 // ประเภท (ABC Code) (Product ABC Types)
@@ -576,7 +577,7 @@ model Product {
   name                   String
   commonName             String?
   unit                   String?
-  productGroup           String? // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId       String? // FK to TradeNameGroup (กลุ่มชื่อการค้า)
   brand                  String?
   packageSize            Decimal?      @db.Decimal(15, 3)
   packageSizeUnit        String?
@@ -597,8 +598,12 @@ model Product {
   // Category and ABC Type relations
   categoryId       String? // FK to ProductCategory (หมวดสินค้า)
   productABCTypeId String? // FK to ProductABCTypes (ประเภท (ABC Code))
+  productGroupId   String? // FK to ProductGroup (กลุ่มสินค้า)
+  
   category         ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   productABCType   ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
+  tradeNameGroup   TradeNameGroup?  @relation(fields: [tradeNameGroupId], references: [id], onDelete: SetNull)
+  productGroup     ProductGroup?    @relation(fields: [productGroupId], references: [id], onDelete: SetNull)
 
   images               ProductImage[]
   promotionItems       ProductPromotionItem[]
@@ -609,7 +614,6 @@ model Product {
   dailySalesSummaries  DailySalesSummary[]
   salesTargets         ProductSalesTarget[]   @relation("ProductSalesTargets")
   detailedSalesTargets SalesTargetItem[]
-  chemicalGroup        String? // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
   pointHistories       EmployeePointHistory[]
 
   parentId String?
@@ -617,7 +621,7 @@ model Product {
   children Product[] @relation("ProductChildren")
 }
 
-// กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+// กลุ่มสินค้า (Product Group)
 model ProductGroup {
   id           String    @id @default(cuid())
   code         String    @unique // รหัสกลุ่มสินค้า
@@ -627,6 +631,8 @@ model ProductGroup {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
+
+  products Product[]
 }
 
 model ProductStock {
@@ -984,8 +990,9 @@ model DailySalesSummary {
   customerId   String
   employeeId   String
   productId    String
-  brand        String? // De-normalized: เก็บชื่อแบรนด์ไว้เลยเพื่อลดการ Join
-  productGroup String? // De-normalized: เก็บกลุ่มสินค้า (ตรงกับ Product.productGroup)
+  brand              String? // De-normalized: เก็บชื่อแบรนด์ไว้เลยเพื่อลดการ Join
+  tradeNameGroupId   String?
+  productGroupId     String?
 
   // Metrics (ตัววัดผล)
   quantity          Int     @default(0)

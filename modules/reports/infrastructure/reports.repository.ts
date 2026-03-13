@@ -227,9 +227,9 @@ export async function findProductsDetailsByIds(productIds: string[]) {
       productCode: true,
       name: true,
       brand: true,
-      productGroup: true,
+      tradeNameGroup: { select: { description: true } },
     },
-  });
+  } as any);
 }
 
 export async function groupDailySalesSummaryByMonthAndYear(
@@ -335,11 +335,11 @@ export async function findTradeNameGroups() {
   });
 }
 
-export async function findProductIdsByGroup(productGroup: string) {
+export async function findProductIdsByGroup(tradeNameGroupId: string) {
   return prisma.product.findMany({
-    where: { productGroup, deletedAt: null },
+    where: { tradeNameGroupId, deletedAt: null },
     select: { id: true },
-  });
+  } as any);
 }
 
 export async function aggregateSaleItemsByProductIds(
@@ -386,15 +386,15 @@ export async function groupOrderCountByProductIds(
 }
 
 export async function groupDailySalesSummaryByGroupMonthYear(
-  productGroup: string,
+  tradeNameGroupId: string,
   start: Date,
   end: Date,
   options: any,
 ) {
-  return prisma.dailySalesSummary.groupBy({
+  return (prisma.dailySalesSummary as any).groupBy({
     by: ["month", "year"],
     where: {
-      productGroup,
+      tradeNameGroupId,
       date: { gte: start, lte: end },
       ...options,
     },

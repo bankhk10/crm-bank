@@ -32,14 +32,16 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
                   id: true,
                   productCode: true,
                   name: true,
-                  productGroup: true,
+                  tradeNameGroup: {
+                    select: { code: true }
+                  }
                 },
               },
             },
           },
         },
       },
-    },
+    } as any,
     orderBy: [{ month: "asc" }, { createdAt: "desc" }],
   });
 }

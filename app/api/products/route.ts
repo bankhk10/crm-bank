@@ -13,9 +13,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  productGroup: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  productGroupId: z.string().optional(), // กลุ่มสินค้า (Product Group)
   packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
@@ -280,29 +280,29 @@ export async function POST(request: Request) {
   }
 
   try {
-    const product = await db.product.create({
-      data: {
-        productCode: parsed.data.productCode,
-        name: parsed.data.name,
-        commonName: parsed.data.commonName,
-        unit: parsed.data.unit,
-        productGroup: parsed.data.productGroup,
-        brand: parsed.data.brand,
-        chemicalGroup: parsed.data.chemicalGroup,
-        packageSize: parsed.data.packageSize,
-        packageSizeUnit: parsed.data.packageSizeUnit,
-        packageSizePerBox: parsed.data.packageSizePerBox,
-        totalPackageSizePerBox: parsed.data.totalPackageSizePerBox,
-        status: parsed.data.status,
-        usedForPlants: parsed.data.usedForPlants,
-        salesPoint: parsed.data.salesPoint,
-        properties: parsed.data.properties,
-        pointPerUnit: parsed.data.pointPerUnit ?? 0,
-        // New fields
-        categoryId: parsed.data.categoryId || null,
-        productABCTypeId: parsed.data.productABCTypeId || null,
-        parentId: parsed.data.parentId || null,
-      },
+      const product = await db.product.create({
+        data: {
+          productCode: parsed.data.productCode,
+          name: parsed.data.name,
+          commonName: parsed.data.commonName,
+          unit: parsed.data.unit,
+          tradeNameGroupId: parsed.data.tradeNameGroupId,
+          brand: parsed.data.brand,
+          productGroupId: parsed.data.productGroupId,
+          packageSize: parsed.data.packageSize,
+          packageSizeUnit: parsed.data.packageSizeUnit,
+          packageSizePerBox: parsed.data.packageSizePerBox,
+          totalPackageSizePerBox: parsed.data.totalPackageSizePerBox,
+          status: parsed.data.status,
+          usedForPlants: parsed.data.usedForPlants,
+          salesPoint: parsed.data.salesPoint,
+          properties: parsed.data.properties,
+          pointPerUnit: parsed.data.pointPerUnit ?? 0,
+          // New fields
+          categoryId: parsed.data.categoryId || null,
+          productABCTypeId: parsed.data.productABCTypeId || null,
+          parentId: parsed.data.parentId || null,
+        } as any,
       include: {
         images: true,
       },

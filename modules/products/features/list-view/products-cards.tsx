@@ -127,7 +127,7 @@ export function ProductsCards({
                                     <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
                                         <Package className="h-4 w-4 text-slate-400" />
                                         <span className="line-clamp-1">
-                                            {product.productGroup || "-"}
+                                            {product.tradeNameGroup?.description || "-"}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">

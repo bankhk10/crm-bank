@@ -63,9 +63,9 @@ export function ProductForm({
     name: initialData?.name || "",
     commonName: initialData?.commonName || "",
     unit: initialData?.unit || "",
-    productGroup: initialData?.productGroup || "",
+    tradeNameGroupId: initialData?.tradeNameGroupId || "",
     brand: initialData?.brand || "",
-    chemicalGroup: initialData?.chemicalGroup || "",
+    productGroupId: initialData?.productGroupId || "",
     packageSize: initialData?.packageSize || "",
     packageSizeUnit: initialData?.packageSizeUnit || "G",
     packageSizePerBox: initialData?.packageSizePerBox || "",
@@ -201,8 +201,8 @@ export function ProductForm({
       newErrors.unit = "กรุณาเลือกหน่วยนับ";
     }
 
-    if (!formData.productGroup) {
-      newErrors.productGroup = "กรุณาเลือกกลุ่มสินค้า";
+    if (!formData.tradeNameGroupId) {
+      newErrors.tradeNameGroupId = "กรุณาเลือกกลุ่มสินค้า";
     }
 
     setErrors(newErrors);
@@ -225,9 +225,9 @@ export function ProductForm({
         name: formData.name,
         commonName: formData.commonName || undefined,
         unit: formData.unit || undefined,
-        productGroup: formData.productGroup || undefined,
+        tradeNameGroupId: formData.tradeNameGroupId || undefined,
         brand: formData.brand || undefined,
-        chemicalGroup: formData.chemicalGroup || undefined,
+        productGroupId: formData.productGroupId || undefined,
         packageSize: formData.packageSize || undefined,
         packageSizeUnit: formData.packageSizeUnit || "G",
         packageSizePerBox: formData.packageSizePerBox || undefined,
@@ -554,8 +554,8 @@ export function ProductForm({
 
         <FormCombobox
           label="กลุ่มสินค้า"
-          value={formData.chemicalGroup || ""}
-          onChange={(v) => updateField("chemicalGroup", v)}
+          value={formData.productGroupId || ""}
+          onChange={(v) => updateField("productGroupId", v)}
           options={chemicalGroupOptions}
           placeholder="เลือกกลุ่มสินค้า"
           searchPlaceholder="ค้นหากลุ่มสินค้า..."
@@ -565,15 +565,15 @@ export function ProductForm({
 
         <FormCombobox
           label="กลุ่มชื่อการค้า"
-          value={formData.productGroup || ""}
-          onChange={(v) => updateField("productGroup", v)}
+          value={formData.tradeNameGroupId || ""}
+          onChange={(v) => updateField("tradeNameGroupId", v)}
           required
           options={groupOptions}
           placeholder="เลือกกลุ่มชื่อการค้า"
           searchPlaceholder="ค้นหากลุ่มชื่อการค้า..."
           emptyText="ไม่พบกลุ่มชื่อการค้า"
           disabled={loading}
-          error={errors.productGroup}
+          error={errors.tradeNameGroupId}
         />
 
         <FormCombobox

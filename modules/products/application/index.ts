@@ -61,13 +61,13 @@ export async function getProductFormOptionsUseCase() {
       value: u.description,
       label: `${u.code} - ${u.description}`,
     })),
-    groups: groups.map((g) => ({ value: g.code, label: g.description })),
+    groups: groups.map((g) => ({ value: g.id, label: g.description })),
     brands: brands.map((b) => ({
       value: b.description,
       label: b.description,
     })),
     chemicalGroups: chemicalGroups.map((g) => ({
-      value: g.code,
+      value: g.id,
       label: g.code + " - " + g.name,
     })),
     plants: plants.map((p) => ({ value: p.name, label: p.name })),

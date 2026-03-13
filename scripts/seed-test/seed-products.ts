@@ -16,7 +16,7 @@ const productsToSeed = [
     name: "เทคนิค  : 12 x 1 ลิตร",
     commonName: "ABAMECTIN 1.8% EC ) LOT10",
     unit: "กล่อง",
-    productGroup: "เทคนิค",
+    tradeNameGroupCode: "เทคนิค",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -29,7 +29,7 @@ const productsToSeed = [
     cartonPrice: 5388.0,
     promotionBudget: 35.0,
     pointPerUnit: 0,
-    chemicalGroup: "ABA",
+    productGroupCode: "ABA",
     packageSizeUnit: "L",
   },
   {
@@ -37,7 +37,7 @@ const productsToSeed = [
     name: "พาเหรด 84 :12 x 1 ลิตร",
     commonName: "2,4-Ddimethylammonium 84%SL",
     unit: "กล่อง",
-    productGroup: "พาเหรด",
+    tradeNameGroupCode: "พาเหรด",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -50,7 +50,7 @@ const productsToSeed = [
     cartonPrice: 1260.0,
     promotionBudget: null,
     pointPerUnit: 0,
-    chemicalGroup: "24D",
+    productGroupCode: "24D",
     packageSizeUnit: "L",
   },
   {
@@ -58,7 +58,7 @@ const productsToSeed = [
     name: "สติมเท็กซ์ โกลด์: 8x(10x100 กรัม)  ",
     commonName: "Seaweed Powder",
     unit: "กล่อง",
-    productGroup: "สติมเท็กซ์",
+    tradeNameGroupCode: "สติมเท็กซ์",
     brand: "Crop Science",
     packageSize: "100",
     packageSizePerBox: "80",
@@ -71,7 +71,7 @@ const productsToSeed = [
     cartonPrice: 16000.0,
     promotionBudget: 50.0,
     pointPerUnit: 0,
-    chemicalGroup: "SEW",
+    productGroupCode: "SEW",
     packageSizeUnit: "G",
   },
   {
@@ -79,7 +79,7 @@ const productsToSeed = [
     name: " อัคคาบัน 12x1 กิโลกรัม",
     commonName: "(Propamocarb hydrochloride 10%+metalaxyl 15% WP",
     unit: "กล่อง",
-    productGroup: "อัคคาบัน",
+    tradeNameGroupCode: "อัคคาบัน",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -92,7 +92,7 @@ const productsToSeed = [
     cartonPrice: 3660.0,
     promotionBudget: 10.0,
     pointPerUnit: 0,
-    chemicalGroup: "FPRM",
+    productGroupCode: "FPRM",
     packageSizeUnit: "KG",
   },
   {
@@ -100,7 +100,7 @@ const productsToSeed = [
     name: "คอนซัลท์ : 12 x 1 ลิตร",
     commonName: "CARBENDAZIM 50% SC",
     unit: "กล่อง",
-    productGroup: "คอนซัลท์",
+    tradeNameGroupCode: "คอนซัลท์",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -113,7 +113,7 @@ const productsToSeed = [
     cartonPrice: 3468.0,
     promotionBudget: 20.0,
     pointPerUnit: 0,
-    chemicalGroup: "CAR",
+    productGroupCode: "CAR",
     packageSizeUnit: "L",
   },
   {
@@ -121,7 +121,7 @@ const productsToSeed = [
     name: "อัลเทอร่า แมกนีเซียม ซิงค์ : 12x1 ลิตร   ",
     commonName: "Magnesium chloride4%+Zinc chloride4%",
     unit: "ลัง",
-    productGroup: "อัลเทอร่า แมกซิงค์",
+    tradeNameGroupCode: "อัลเทอร่า แมกซิงค์",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -134,7 +134,7 @@ const productsToSeed = [
     cartonPrice: 3840.0,
     promotionBudget: 35.0,
     pointPerUnit: 0,
-    chemicalGroup: "AMN",
+    productGroupCode: "AMN",
     packageSizeUnit: "L",
   },
   {
@@ -142,7 +142,7 @@ const productsToSeed = [
     name: "เทอรา-ซอร์บ 12x1 ลิตร  ",
     commonName: "AMINO",
     unit: "ลัง",
-    productGroup: "เทอรา-ซอรบ์",
+    tradeNameGroupCode: "เทอรา-ซอรบ์",
     brand: "Crop Science",
     packageSize: "1",
     packageSizePerBox: "12",
@@ -155,7 +155,7 @@ const productsToSeed = [
     cartonPrice: 4620.0,
     promotionBudget: 50.0,
     pointPerUnit: 0,
-    chemicalGroup: "AMN",
+    productGroupCode: "AMN",
     packageSizeUnit: "L",
   },
 ];
@@ -163,11 +163,26 @@ const productsToSeed = [
 async function main() {
   console.log("Start seeding products...");
 
+  // Cache groups to avoid multiple lookups
+  const tradeNameGroups = await prisma.tradeNameGroup.findMany();
+  const productGroups = await prisma.productGroup.findMany();
+
   for (const p of productsToSeed) {
+    const tradeNameGroup = tradeNameGroups.find(g => g.code === p.tradeNameGroupCode);
+    const productGroup = productGroups.find(g => g.code === p.productGroupCode);
+
+    const { tradeNameGroupCode, productGroupCode, ...rest } = p;
+
+    const data: any = {
+      ...rest,
+      tradeNameGroupId: tradeNameGroup?.id,
+      productGroupId: productGroup?.id,
+    };
+
     const product = await prisma.product.upsert({
       where: { productCode: p.productCode },
-      update: p,
-      create: p,
+      update: data,
+      create: data,
     });
     console.log(
       `✅ Upserted Product: ${product.name} (Code: ${product.productCode})`,

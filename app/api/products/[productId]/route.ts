@@ -23,9 +23,9 @@ const productSchema = z.object({
   name: z.string().min(1, "ชื่อสินค้าต้องไม่ว่าง"),
   commonName: z.string().optional(),
   unit: z.string().optional(),
-  productGroup: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
+  tradeNameGroupId: z.string().optional(), // กลุ่มชื่อการค้า (Trade Name Group)
   brand: z.string().optional(),
-  chemicalGroup: z.string().optional(), // กลุ่มสินค้า (Product Group) - เดิมชื่อ "กลุ่มสาร"
+  productGroupId: z.string().optional(), // กลุ่มสินค้า (Product Group)
   packageSize: z.coerce.number().optional(),
   packageSizeUnit: z.string().optional(),
   packageSizePerBox: z.coerce.number().optional(),
@@ -147,9 +147,9 @@ export async function PATCH(
         name: existing.name,
         commonName: existing.commonName,
         unit: existing.unit,
-        productGroup: existing.productGroup,
+        tradeNameGroupId: (existing as any).tradeNameGroupId,
         brand: existing.brand,
-        chemicalGroup: existing.chemicalGroup,
+        productGroupId: (existing as any).productGroupId,
         status: existing.status,
         price: existing.price?.toString(),
         pointPerUnit: existing.pointPerUnit,
@@ -159,9 +159,9 @@ export async function PATCH(
         name: product.name,
         commonName: product.commonName,
         unit: product.unit,
-        productGroup: product.productGroup,
+        tradeNameGroupId: (product as any).tradeNameGroupId,
         brand: product.brand,
-        chemicalGroup: product.chemicalGroup,
+        productGroupId: (product as any).productGroupId,
         status: product.status,
         price: product.price?.toString(),
         pointPerUnit: product.pointPerUnit,
