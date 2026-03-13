@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { DashboardShellProps } from "../types";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
+import { SessionTimeoutWarning } from "@/modules/auth";
 
 export default function DashboardShell({
     children,
@@ -15,6 +16,7 @@ export default function DashboardShell({
 
     return (
         <div className="fixed inset-0 flex min-h-screen overflow-hidden bg-[#b92626]">
+            <SessionTimeoutWarning />
             {/* Desktop Sidebar */}
             <Sidebar
                 permissionKeys={permissionKeys}
