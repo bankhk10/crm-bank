@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import GalleryUpload from "@/components/custom/gallery-upload";
 
 
@@ -74,8 +75,8 @@ export function ProductForm({
     salesPoint: initialData?.salesPoint || "",
     properties: initialData?.properties || "",
     coverIndex: (initialData as any)?.coverIndex ?? null,
-    categoryId: (initialData as any)?.categoryId || "",
-    productABCTypeId: (initialData as any)?.productABCTypeId || "",
+    categoryId: initialData?.categoryId || "",
+    productABCTypeId: initialData?.productABCTypeId || "",
     parentId: (initialData as any)?.parentId || "",
   });
 
@@ -202,7 +203,27 @@ export function ProductForm({
     }
 
     if (!formData.tradeNameGroupId) {
-      newErrors.tradeNameGroupId = "กรุณาเลือกกลุ่มสินค้า";
+      newErrors.tradeNameGroupId = "กรุณาเลือกกลุ่มชื่อการค้า";
+    }
+
+    if (!formData.productGroupId) {
+      newErrors.productGroupId = "กรุณาเลือกกลุ่มสินค้า";
+    }
+
+    if (!formData.categoryId) {
+      newErrors.categoryId = "กรุณาเลือกหมวดสินค้า";
+    }
+
+    if (!formData.productABCTypeId) {
+      newErrors.productABCTypeId = "กรุณาเลือกประเภท (ABC Code)";
+    }
+
+    if (!formData.packageSize) {
+      newErrors.packageSize = "กรุณากรอกขนาดบรรจุ";
+    }
+
+    if (!formData.packageSizePerBox) {
+      newErrors.packageSizePerBox = "กรุณากรอกจำนวนบรรจุต่อลัง";
     }
 
     setErrors(newErrors);
@@ -556,11 +577,13 @@ export function ProductForm({
           label="กลุ่มสินค้า"
           value={formData.productGroupId || ""}
           onChange={(v) => updateField("productGroupId", v)}
+          required
           options={chemicalGroupOptions}
           placeholder="เลือกกลุ่มสินค้า"
           searchPlaceholder="ค้นหากลุ่มสินค้า..."
           emptyText="ไม่พบกลุ่มสินค้า"
           disabled={loading}
+          error={errors.productGroupId}
         />
 
         <FormCombobox
@@ -578,26 +601,28 @@ export function ProductForm({
 
         <FormCombobox
           label="หมวดสินค้า"
-          value={(formData as any).categoryId || ""}
-          onChange={(v) => updateField("categoryId" as keyof ProductFormData, v)}
+          value={formData.categoryId || ""}
+          onChange={(v) => updateField("categoryId", v)}
+          required
           options={categoryOptions}
           placeholder="เลือกหมวดสินค้า"
           searchPlaceholder="ค้นหาหมวดสินค้า..."
           emptyText="ไม่พบหมวดสินค้า"
           disabled={loading}
+          error={errors.categoryId}
         />
 
         <FormCombobox
           label="ประเภท (ABC Code)"
-          value={(formData as any).productABCTypeId || ""}
-          onChange={(v) =>
-            updateField("productABCTypeId" as keyof ProductFormData, v)
-          }
+          value={formData.productABCTypeId || ""}
+          onChange={(v) => updateField("productABCTypeId", v)}
+          required
           options={productABCTypeOptions}
           placeholder="เลือกประเภท (ABC Code)"
           searchPlaceholder="ค้นหาประเภท (ABC Code)..."
           emptyText="ไม่พบประเภท (ABC Code)"
           disabled={loading}
+          error={errors.productABCTypeId}
         />
 
         <FormCombobox
@@ -614,13 +639,16 @@ export function ProductForm({
         />
 
         <div className="space-y-2">
-          <Label className="text-base font-medium mx-2">ขนาดบรรจุ</Label>
+          <Label className={cn("text-base font-medium mx-2", errors.packageSize && "text-red-600")}>
+            ขนาดบรรจุ
+            <span className="text-red-500 ml-1">*</span>
+          </Label>
           <div className="flex gap-2">
             <Input
               value={formData.packageSize || ""}
-              onChange={(e) => setFormData(prev => ({ ...prev, packageSize: e.target.value }))}
+              onChange={(e) => updateField("packageSize", e.target.value)}
               placeholder="ระบุขนาด"
-              className="flex-1"
+              className={cn("flex-1", errors.packageSize && "border-red-500")}
               disabled={loading}
               type="number"
             />
@@ -641,20 +669,18 @@ export function ProductForm({
               </SelectContent>
             </Select>
           </div>
+          {errors.packageSize && <p className="text-xs text-red-600 mt-1">{errors.packageSize}</p>}
         </div>
 
         <FormInput
           label="จำนวนบรรจุต่อลัง (ชิ้น)"
           type="number"
           value={formData.packageSizePerBox || ""}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              packageSizePerBox: e.target.value,
-            }))
-          }
+          onChange={(e) => updateField("packageSizePerBox", e.target.value)}
           onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+          required
           disabled={loading}
+          error={errors.packageSizePerBox}
         />
 
         <div className="space-y-2">
