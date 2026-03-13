@@ -92,33 +92,30 @@ export default function ProductsListView() {
     return () => clearTimeout(id);
   }, [filterDraft, query, status, handleSearchSubmit]);
 
+  const fetchProducts = useCallback(async () => {
+    if (!canView) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listProductsAction({
+        page,
+        perPage,
+        q: query.trim() || undefined,
+        status: status.trim() || undefined,
+      });
+      setProducts((result.products ?? []) as ProductRecord[]);
+      setTotal(typeof result.total === "number" ? result.total : 0);
+    } catch (err: any) {
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [page, perPage, query, status, canView]);
+
   // Fetch products
   useEffect(() => {
-    if (!canView) return;
-
-    let mounted = true;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const result = await listProductsAction({
-          page,
-          perPage,
-          q: query.trim() || undefined,
-          status: status.trim() || undefined,
-        });
-        if (mounted) {
-          setProducts((result.products ?? []) as ProductRecord[]);
-          setTotal(typeof result.total === "number" ? result.total : 0);
-        }
-      } catch (err: any) {
-        if (mounted) setError(err.message || String(err));
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [page, perPage, query, status, canView]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleDelete = async () => {
     if (!deleteCandidate) return;
@@ -128,7 +125,9 @@ export default function ProductsListView() {
       if (!result.success) throw new Error(result.error || "Delete failed");
       toast.success("ลบสินค้าเรียบร้อยแล้ว");
       setDeleteCandidate(null);
-      router.refresh(); // To refresh data if on the same page
+      // Wait for the server to update then refetch
+      await fetchProducts();
+      router.refresh(); // Still keep this for any server components listening
     } catch (err: any) {
       setError(err.message || String(err));
       toast.error(err.message || "Failed to delete");
