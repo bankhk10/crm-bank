@@ -26,9 +26,13 @@ export {
 
 // Features - List View
 export { SalesTargetTable } from "./features/list-view/sales-target-table";
+export { default as SalesTargetsListView } from "./features/list-view/sales-targets-list-view";
 
 // Features - Detail View
-// sales-target-detail-dialog was replaced with a dedicated page.
+export { default as SalesTargetDetailView } from "./features/detail-view/sales-target-detail-view";
 
 // Features - Form
 export { SalesTargetForm } from "./features/form/sales-target-form";
+export { default as SalesTargetCreateView } from "./features/form/sales-target-create-view";
+export { default as SalesTargetEditView } from "./features/form/sales-target-edit-view";
+export { default as SalesTargetCopyView } from "./features/form/sales-target-copy-view";
