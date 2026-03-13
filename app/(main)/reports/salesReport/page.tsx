@@ -1,7 +1,11 @@
 import { Suspense } from "react";
 import { getFilterOptionsAction } from "@/modules/reports";
-import { SalesReportDashboard } from "@/modules/reports/features/dashboard/sales-report-dashboard";
+import { SalesReportDashboard } from "@/modules/reports";
 import { Loader2 } from "lucide-react";
+
+export const metadata = {
+  title: "รายงานการขาย | CRM Bank",
+};
 
 export default async function SalesReportPage() {
   const { customers, employees, years } = await getFilterOptionsAction();

@@ -1,4 +1,4 @@
-import { ProductSalesDashboard } from "@/modules/reports/features/dashboard/product-sales-dashboard";
+import { ProductSalesDashboard } from "@/modules/reports";
 
 export default function ProductSalesReportPage() {
   return <ProductSalesDashboard />;

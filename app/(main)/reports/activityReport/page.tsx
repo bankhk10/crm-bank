@@ -1,4 +1,4 @@
-import { ActivityReportDashboard } from "@/modules/reports/features/dashboard/activity-report-dashboard";
+import { ActivityReportDashboard } from "@/modules/reports";
 
 export default function ActivityReportPage() {
   return <ActivityReportDashboard />;

@@ -1,4 +1,4 @@
-import { AggregateReportDashboard } from "@/modules/reports/features/dashboard/aggregate-report-dashboard";
+import { AggregateReportDashboard } from "@/modules/reports";
 
 export default function InProgressPage() {
   return <AggregateReportDashboard />;
