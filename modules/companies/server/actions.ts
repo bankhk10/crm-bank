@@ -8,8 +8,9 @@ import {
   updateCompanyUseCase,
   getCompanyDetailUseCase,
   listAllActiveCompaniesUseCase,
+  listCompaniesUseCase,
 } from "../application";
-import { softDeleteCompany } from "../infrastructure/company.repository";
+import { softDeleteCompany, type GetCompaniesParams } from "../infrastructure/company.repository";
 
 const resourcePath = "/api/companies";
 
@@ -110,6 +111,17 @@ export async function getCompanyAction(id: string) {
 
   try {
     const result = await getCompanyDetailUseCase(id);
+    if (result.success && result.company) {
+      return {
+        ...result,
+        company: {
+          ...result.company,
+          createdAt: (result.company as any).createdAt?.toISOString(),
+          updatedAt: (result.company as any).updatedAt?.toISOString(),
+          deletedAt: (result.company as any).deletedAt?.toISOString(),
+        },
+      };
+    }
     return result;
   } catch (_err) {
     return { success: false, error: "Failed to fetch company." };
@@ -131,3 +143,31 @@ export async function getCompaniesAction() {
   }
 }
 
+export async function findCompaniesAction(params: GetCompaniesParams) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized", companies: [], total: 0 };
+  }
+
+  try {
+    const result = await listCompaniesUseCase(params);
+    return {
+      success: true,
+      ...result,
+      companies: result.companies.map((c: any) => ({
+        ...c,
+        createdAt: c.createdAt?.toISOString(),
+        updatedAt: c.updatedAt?.toISOString(),
+        deletedAt: c.deletedAt?.toISOString(),
+      })),
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message ?? "An unexpected error occurred.",
+      companies: [],
+      total: 0,
+    };
+  }
+}

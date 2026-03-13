@@ -20,11 +20,11 @@ export * from "./ui/company-card";
 export * from "./features/list-view/companies-table";
 export * from "./features/list-view/companies-cards";
 export * from "./features/list-view/use-company-columns";
-export * from "./features/list-view/companies-view";
+export { default as CompaniesListView } from "./features/list-view/companies-list-view";
 export * from "./features/list-view/companies-kanban-board";
 
 // Features - Detail View
-export * from "./features/detail-view/company-detail-view";
+export { default as CompanyDetailView } from "./features/detail-view/company-detail-view";
 
 // Features - Form
 export * from "./features/form/company-form-wrapper";

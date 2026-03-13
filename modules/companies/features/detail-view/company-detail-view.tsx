@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,28 +28,43 @@ import {
     AlertTriangle,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
-import { deleteCompanyAction } from "@/modules/companies/server/actions";
-import type { CompanyRecord } from "@/modules/companies/types/types";
-
-// Type definition (using the one from types if possible, but the original page defined its own loose type)
-// The CompanyRecord type in _types seems compatible.
-
+import { deleteCompanyAction, getCompanyAction } from "@/modules/companies/server/actions";
+import type { CompanyRecord, CompanyDetail } from "@/modules/companies/types/types";
 import { DetailItem } from "@/components/custom/detail-item";
+import { toast } from "sonner";
 
-interface CompanyDetailViewProps {
-    company: CompanyRecord;
-}
-
-export function CompanyDetailView({ company }: CompanyDetailViewProps) {
+export default function CompanyDetailView() {
+    const { companyId } = useParams() as { companyId: string };
     const router = useRouter();
     const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
     const canView = (!isLoading && allowed) && hasPermission("company.view");
     const canEdit = hasPermission("company.edit");
     const canDelete = hasPermission("company.delete");
 
+    const [company, setCompany] = useState<CompanyDetail | null>(null);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            setLoading(true);
+            try {
+                const res = await getCompanyAction(companyId);
+                if (!res.success) throw new Error("error" in res ? res.error : "Failed to load company");
+                if (!("company" in res) || !res.company) throw new Error("Failed to load company");
+                
+                if (mounted) setCompany(res.company as unknown as CompanyDetail);
+            } catch (err: any) {
+                setError(err.message || String(err));
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [companyId]);
 
     const handleDelete = async () => {
         if (!company) return;
@@ -57,6 +72,7 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
         try {
             const res = await deleteCompanyAction(company.id);
             if (!res.success) throw new Error(res.error || "ไม่สามารถลบข้อมูลบริษัทได้");
+            toast.success("ลบข้อมูลบริษัทเรียบร้อยแล้ว");
             router.push("/companies");
             router.refresh();
         } catch (err: any) {
@@ -67,7 +83,7 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
         }
     };
 
-    if (!canView) {
+    if (!canView && !isLoading) {
         return (
             <div className="container max-w-4xl mx-auto p-6">
                 <Alert variant="destructive">
@@ -77,6 +93,37 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
                         คุณไม่มีสิทธิ์เปิดดูข้อมูลบริษัทนี้
                     </AlertDescription>
                 </Alert>
+            </div>
+        );
+    }
+
+    if (isLoading || loading) {
+        return (
+            <div className="container max-w-7xl mx-auto p-8">
+                <div className="animate-pulse space-y-8">
+                    <div className="h-48 bg-gray-200 rounded-3xl" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="h-64 bg-gray-200 rounded-2xl" />
+                        <div className="h-64 bg-gray-200 rounded-2xl" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!company) {
+        return (
+            <div className="container max-w-4xl mx-auto p-6 text-center">
+                 <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>ไม่พบข้อมูล</AlertTitle>
+                    <AlertDescription>
+                        ไม่พบข้อมูลบริษัทที่คุณค้นหา
+                    </AlertDescription>
+                </Alert>
+                <Button variant="outline" className="mt-4" onClick={() => router.back()}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> ย้อนกลับ
+                </Button>
             </div>
         );
     }
@@ -173,7 +220,7 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* General Information Card */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-blue-300">
+                        <div className="p-6 border-b border-gray-100 bg-blue-50/50">
                             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <FileText className="h-6 w-6 text-blue-600" />
                                 ข้อมูลทั่วไป
@@ -205,7 +252,7 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
 
                     {/* Contact Information Card */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-purple-300">
+                        <div className="p-6 border-b border-gray-100 bg-purple-50/50">
                             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <Phone className="h-6 w-6 text-purple-600" />
                                 ข้อมูลการติดต่อ
@@ -227,7 +274,7 @@ export function CompanyDetailView({ company }: CompanyDetailViewProps) {
 
                     {/* Address Information Card */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-                        <div className="p-6 border-b border-gray-100 bg-emerald-300">
+                        <div className="p-6 border-b border-gray-100 bg-emerald-50/50">
                             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <MapPin className="h-6 w-6 text-emerald-600" />
                                 ที่อยู่
