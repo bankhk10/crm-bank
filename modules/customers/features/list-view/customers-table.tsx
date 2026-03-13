@@ -34,20 +34,30 @@ import {
   STATUS_STYLE,
 } from "../../constants";
 import { usePermission } from "@/hooks/use-permission";
-import { getCustomersAction, deleteCustomerAction } from "../../server/actions";
-import { PAGINATION } from "@/lib/constants";
+import { deleteCustomerAction } from "../../server/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function CustomersTable({
-  initialData,
-  initialTotal,
+export function CustomersTable({
+  data,
+  total,
+  loading,
+  page,
+  perPage,
+  onPageChange,
+  onPerPageChange,
+  filterDraft,
+  setFilterDraft,
+  onSearchSubmit,
+  onRefresh,
 }: CustomersTableProps) {
-  const { hasPermission, allowed, isLoading } = usePermission("menu.customers");
+  const { hasPermission } = usePermission("menu.customers");
+  
   const canCreateDealer = hasPermission("customer.create.dealer");
   const canCreateSubdealer = hasPermission("customer.create.subdealer");
   const canCreateFarmer = hasPermission("customer.create.farmer");
   const canCreateBroker = hasPermission("customer.create.broker");
-  const canCreate = !isLoading && (
+  
+  const canCreate = (
     canCreateDealer || canCreateSubdealer || canCreateFarmer || canCreateBroker
   );
 
@@ -61,124 +71,9 @@ export default function CustomersTable({
     hasPermission("customer.delete.farmer") ||
     hasPermission("customer.delete.broker");
 
-  const [data, setData] = React.useState<CustomerRecord[]>(initialData || []);
-  const [total, setTotal] = React.useState<number>(initialTotal || 0);
-  const [fetchLoading, setFetchLoading] = React.useState(false);
-  const [page, setPage] = React.useState<number>(PAGINATION.DEFAULT_PAGE);
-  const [perPage, setPerPage] = React.useState<number>(PAGINATION.DEFAULT_PER_PAGE);
   const [error, setError] = React.useState<string | null>(null);
-
-  const [filterDraft, setFilterDraft] = React.useState<{
-    query: string;
-    customerType?: string;
-    status?: string;
-  }>({ query: "", customerType: "", status: "" });
-
-  const [appliedFilters, setAppliedFilters] = React.useState<{
-    query: string;
-    customerType?: string;
-    status?: string;
-  }>({ query: "", customerType: "", status: "" });
-
   const [deleteTarget, setDeleteTarget] = React.useState<CustomerRecord | null>(null);
   const [actionLoading, setActionLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    const isExtendingEmpty =
-      total === 0 &&
-      appliedFilters.query &&
-      filterDraft.query.startsWith(appliedFilters.query) &&
-      filterDraft.query.length > appliedFilters.query.length;
-
-    if (isExtendingEmpty) return;
-
-    const delay = 400;
-    const next = {
-      query: filterDraft.query,
-      customerType: filterDraft.customerType,
-      status: filterDraft.status,
-    };
-
-    if (
-      next.query === appliedFilters.query &&
-      next.customerType === appliedFilters.customerType &&
-      next.status === appliedFilters.status
-    ) {
-      return;
-    }
-
-    const id = setTimeout(() => {
-      setAppliedFilters(next);
-      setPage(1);
-    }, delay);
-    return () => clearTimeout(id);
-  }, [
-    filterDraft.query,
-    filterDraft.customerType,
-    filterDraft.status,
-    total,
-    appliedFilters.query,
-    appliedFilters.customerType,
-    appliedFilters.status,
-  ]);
-
-  const handleSearchSubmit = () => {
-    setAppliedFilters({
-      query: filterDraft.query,
-      customerType: filterDraft.customerType,
-      status: filterDraft.status,
-    });
-    setPage(1);
-  };
-
-  const initialRender = React.useRef(true);
-
-  React.useEffect(() => {
-    // skip initial fetch if we already have initialData and it is the first render
-    if (initialRender.current) {
-      initialRender.current = false;
-      if (initialData && data.length > 0) return;
-    }
-
-    let mounted = true;
-    const controller = new AbortController();
-    (async () => {
-      setFetchLoading(true);
-      setError(null);
-      try {
-        const params: any = {};
-        params.page = Number(page);
-        params.perPage = Number(perPage);
-        if (appliedFilters.query.trim())
-          params.q = appliedFilters.query.trim();
-        if (appliedFilters.customerType)
-          params.typeFilter = appliedFilters.customerType;
-        if (appliedFilters.status) params.statusFilter = appliedFilters.status;
-
-        const res = await getCustomersAction(params);
-        if (mounted) {
-          const parsedCustomers = (res.customers ?? []).map((c: any) => ({
-            ...c,
-            email: c.email === null ? undefined : c.email,
-            phone: c.phone === null ? undefined : c.phone,
-            status: c.status === null ? undefined : c.status,
-          }));
-          setData(parsedCustomers as any[]);
-          setTotal(typeof res.total === "number" ? res.total : 0);
-        }
-      } catch (error) {
-        const err = error as Error;
-        if (err.name === "AbortError") return;
-        setError(err.message || String(err));
-      } finally {
-        if (mounted) setFetchLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-  }, [page, perPage, appliedFilters, initialData, data.length]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -187,9 +82,8 @@ export default function CustomersTable({
       const res = await deleteCustomerAction(deleteTarget.id);
       if (!res.success) throw new Error(res.error || "Delete failed");
 
-      setData((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-      setTotal(prev => prev > 0 ? prev - 1 : 0);
       setDeleteTarget(null);
+      if (onRefresh) onRefresh();
     } catch (err) {
       const error = err as Error;
       setError(error.message || String(error));
@@ -205,10 +99,10 @@ export default function CustomersTable({
   >;
 
   const typePermissions: Record<string, boolean> = {
-    DEALER: canCreateDealer ?? false,
-    SUBDEALER: canCreateSubdealer ?? false,
-    FARMER: canCreateFarmer ?? false,
-    BROKER: canCreateBroker ?? false,
+    DEALER: !!canCreateDealer,
+    SUBDEALER: !!canCreateSubdealer,
+    FARMER: !!canCreateFarmer,
+    BROKER: !!canCreateBroker,
   };
 
   const allowedTypes = customerTypes.filter((type) => typePermissions[type]);
@@ -217,27 +111,9 @@ export default function CustomersTable({
     page,
     perPage,
     total,
-    onPageChange: (nextPage: number) => setPage(nextPage),
-    onPerPageChange: (nextPerPage: number) => {
-      setPerPage(nextPerPage);
-      setPage(1);
-    },
-    perPageOptions: [...PAGINATION.PER_PAGE_OPTIONS],
+    onPageChange,
+    onPerPageChange,
   };
-
-  if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">กรุณารอสักครู่...</div>;
-  }
-
-  if (!allowed) {
-    return (
-      <div className="p-8 text-center">
-        <div className="text-red-600 font-semibold text-lg">
-          คุณไม่มีสิทธิ์เข้าถึงหน้านี้
-        </div>
-      </div>
-    );
-  }
 
   const toolbar = (
     <div className="space-y-4 mb-6">
@@ -245,7 +121,7 @@ export default function CustomersTable({
         searchPlaceholder="รหัสลูกค้า, ชื่อ, อีเมล, โทรศัพท์"
         searchValue={filterDraft.query}
         onSearchChange={(val) => setFilterDraft(prev => ({ ...prev, query: val }))}
-        onSearchSubmit={handleSearchSubmit}
+        onSearchSubmit={onSearchSubmit}
         actionPosition="bottom"
         filters={
           <div className="grid grid-cols-2 gap-2">
@@ -340,12 +216,12 @@ export default function CustomersTable({
           <div className="space-y-4">
             <CustomersCards
               data={data}
-              loading={fetchLoading}
+              loading={loading}
               canDelete={canDelete}
               canEdit={canEdit}
               onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
             />
-            {!fetchLoading && paginationInfo.total > 0 && (
+            {!loading && paginationInfo.total > 0 && (
               <div className="mt-4 flex justify-center">
                 <div className="flex items-center gap-2">
                   <Button
@@ -381,7 +257,7 @@ export default function CustomersTable({
             <CustomTable
               columns={columns}
               data={data}
-              loading={fetchLoading}
+              loading={loading}
               pagination={paginationInfo}
               toolbar={<></>}
               renderSubComponent={({ row }) => {
@@ -510,5 +386,3 @@ export default function CustomersTable({
     </div>
   );
 }
-
-export { ParentDealerInfo } from "../detail-view/parent-dealer-info";

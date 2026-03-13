@@ -121,8 +121,25 @@ export interface CustomersPagination {
  * Customers table props interface
  */
 export interface CustomersTableProps {
-  initialData?: CustomerRecord[];
-  initialTotal?: number;
+  data: CustomerRecord[];
+  total: number;
+  loading: boolean;
+  page: number;
+  perPage: number;
+  onPageChange: (page: number) => void;
+  onPerPageChange: (perPage: number) => void;
+  filterDraft: {
+    query: string;
+    customerType?: string;
+    status?: string;
+  };
+  setFilterDraft: React.Dispatch<React.SetStateAction<{
+    query: string;
+    customerType?: string;
+    status?: string;
+  }>>;
+  onSearchSubmit: () => void;
+  onRefresh?: () => void;
 }
 
 // ============ Customer Style Types ============
