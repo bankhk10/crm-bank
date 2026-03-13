@@ -77,6 +77,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   session: {
     strategy: "jwt",
+    maxAge: 10 * 60 * 60, // 10 hours (Refresh Token equivalent)
+    updateAge: 1 * 60 * 60, // 1 hour (Access Token equivalent - frequency of token refresh)
   },
   providers: [
     Credentials({
