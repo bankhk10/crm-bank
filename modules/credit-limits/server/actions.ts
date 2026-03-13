@@ -2,10 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
-import { isAuthorized } from "@/lib/rbac";
+import { isAuthorized } from "@/modules/rbac";
 import { createCreditLimitUseCase } from "../application/create-credit-limit";
 import { updateCreditLimitUseCase } from "../application/update-credit-limit";
-import { deleteCreditLimit as deleteRepoCreditLimit } from "../infrastructure/credit-limit.repository";
+import {
+  deleteCreditLimit as deleteRepoCreditLimit,
+  findCreditLimitById,
+} from "../infrastructure/credit-limit.repository";
 
 const resourcePath = "/api/credit-limits"; // using same permission key mechanism
 
@@ -65,4 +68,26 @@ export async function deleteCreditLimitAction(id: string) {
   await deleteRepoCreditLimit(id);
   revalidatePath("/credit-limits");
   return { success: true };
+}
+export async function getCreditLimitAction(id: string) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return { success: false, error: "Forbidden" };
+  }
+
+  try {
+    const cl = await findCreditLimitById(id);
+    if (!cl) return { success: false, error: "Not found" };
+
+    return {
+      success: true,
+      creditLimit: JSON.parse(JSON.stringify(cl)),
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to fetch credit limit" };
+  }
 }
