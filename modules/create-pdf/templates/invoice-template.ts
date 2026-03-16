@@ -277,11 +277,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
+          ${data.status === "COMPLETED" ? `
           <div class="sales-cell">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          <div class="sales-cell">
+          ` : ""}
+          <div class="sales-cell" ${data.status !== "COMPLETED" ? 'style="grid-column: span 2;"' : ""}>
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
           </div>
