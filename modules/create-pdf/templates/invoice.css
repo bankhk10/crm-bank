@@ -1,9 +1,5 @@
 /* Additional styles from template */
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
   font-family: "Sarabun", sans-serif;
@@ -14,7 +10,7 @@ body {
 .page {
   width: 210mm;
   min-height: 297mm;
-  padding: 12mm 10mm 10mm;
+  padding: 12mm 0mm 5mm;
   margin: 0 auto;
   background: #fff;
 }
@@ -130,9 +126,10 @@ body {
   color: #fff;
   font-size: 16px;
   font-weight: 800;
-  padding: 10px 18px;
-  min-width: 180px;
-  margin-bottom: 0;
+  padding: 10px 40px 10px 18px; /* เพิ่ม padding ขวาเพื่อให้มีพื้นที่มุมเฉียง */
+  min-width: 100px;
+  border-top-right-radius: 20px; /* ทำมุมขวาบนให้โค้งมนมากหน่อย */
+  clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%);
 }
 
 .section-box {
