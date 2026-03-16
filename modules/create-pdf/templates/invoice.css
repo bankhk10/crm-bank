@@ -121,7 +121,7 @@ body {
 }
 
 .section {
-  margin-top: 10px; /* Reduced from 16px */
+  margin-top: 6px; /* Reduced from 10px */
   break-inside: avoid;
 }
 
@@ -132,7 +132,7 @@ body {
   font-size: 16px;
   font-weight: 800;
   min-width: 100px;
-  padding: 5px 40px 5px 18px; /* เพิ่ม padding ขวาเพื่อให้มีพื้นที่มุมเฉียง */
+  padding: 3px 40px 3px 18px; /* Reduced vertical padding from 5px to 3px */
   border-top-right-radius: 20px; /* ทำมุมขวาบนให้โค้งมนมากหน่อย */
   clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%);
 }
@@ -154,7 +154,7 @@ body {
 
 .info-col {
   flex: 1;
-  padding: 8px 14px;
+  padding: 4px 14px; /* Reduced from 8px */
   font-size: 14px;
   line-height: 1.5;
   color: #374151;
@@ -189,7 +189,7 @@ body {
   grid-template-columns: 220px 220px 1fr;
   gap: 0;
   border-top: 1px solid #e5e7eb;
-  min-height: 44px;
+  min-height: 32px; /* Reduced from 44px */
 }
 
 .sales-row.row-order-info {
@@ -212,7 +212,7 @@ body {
 
 .sales-cell {
   position: relative;
-  padding: 10px 14px;
+  padding: 6px 14px;
   font-size: 14px;
   color: #374151;
   line-height: 1.5;
