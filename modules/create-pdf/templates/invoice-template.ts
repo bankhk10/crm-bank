@@ -43,6 +43,14 @@ export interface InvoiceData {
   totalAmount: number;
   title: string;
   notes?: string;
+  signatureDate?: string; // Legacy field
+  signatureImage?: string; // Legacy field
+  preparedBySignatureDate?: string;
+  preparedBySignatureImage?: string;
+  checkedBySignatureDate?: string;
+  checkedBySignatureImage?: string;
+  approvedBySignatureDate?: string;
+  approvedBySignatureImage?: string;
 }
 
 function safeValue(value?: string | number | null) {
@@ -372,37 +380,49 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="signature-section">
       <div class="signature-card">
         <div class="signature-title">ผู้จัดทำ</div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${(data.preparedBySignatureImage || data.signatureImage) ? `<img src="${data.preparedBySignatureImage || data.signatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+          </div>
         </div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${(data.preparedBySignatureDate || data.signatureDate) ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate || data.signatureDate}</span>` : ""}
+          </div>
         </div>
       </div>
 
       <div class="signature-card">
         <div class="signature-title">ผู้ตรวจสอบ</div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.checkedBySignatureImage ? `<img src="${data.checkedBySignatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+          </div>
         </div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.checkedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.checkedBySignatureDate}</span>` : ""}
+          </div>
         </div>
       </div>
 
       <div class="signature-card">
         <div class="signature-title">ผู้อนุมัติ</div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.approvedBySignatureImage ? `<img src="${data.approvedBySignatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+          </div>
         </div>
-        <div class="sign-row">
+        <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
-          <div class="dot-line"></div>
+          <div class="dot-line" style="position: relative;">
+            ${data.approvedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
+          </div>
         </div>
       </div>
     </div>

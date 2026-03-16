@@ -133,6 +133,12 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     title: "ใบบันทึกการขาย",
     status: sale.status,
     notes: sale.notes,
+    preparedBySignatureDate: safeFormatDate(sale.preparedBySignatureDate, "d MMMM yyyy"),
+    preparedBySignatureImage: sale.preparedBySignatureImage,
+    checkedBySignatureDate: safeFormatDate(sale.checkedBySignatureDate, "d MMMM yyyy"),
+    checkedBySignatureImage: sale.checkedBySignatureImage,
+    approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
+    approvedBySignatureImage: sale.approvedBySignatureImage,
   };
 
   const html = renderInvoiceTemplate(invoiceData);

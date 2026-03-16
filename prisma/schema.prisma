@@ -798,6 +798,16 @@ model Sale {
   rejectionReason String? // เหตุผลที่ไม่อนุมัติ (ปัดตก)
   rejectedAt      DateTime? // วันและเวลาที่ถูกไม่อนุมัติ
 
+  // Signature (ข้อมูลการเซ็นชื่อ)
+  preparedBySignatureDate DateTime? // วันที่เซ็นชื่อ (ผู้จัดทำ)
+  preparedBySignatureImage String?   // รูปภาพลายเซ็น (ผู้จัดทำ)
+  
+  checkedBySignatureDate DateTime?  // วันที่เซ็นชื่อ (ผู้ตรวจสอบ)
+  checkedBySignatureImage String?    // รูปภาพลายเซ็น (ผู้ตรวจสอบ)
+  
+  approvedBySignatureDate DateTime? // วันที่เซ็นชื่อ (ผู้อนุมัติ)
+  approvedBySignatureImage String?   // รูปภาพลายเซ็น (ผู้อนุมัติ)
+
   // Audit fields (ข้อมูลบันทึกระบบ)
   createdById String // รหัสผู้สร้างบันทึกการขาย
   createdAt   DateTime  @default(now()) // วันและเวลาที่สร้างเอกสาร
