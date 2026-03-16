@@ -12,6 +12,7 @@ import { employeeUpdateSchema, type EmployeeUpdateFormValues } from "@/modules/e
 import { PREFIX_OPTIONS, RESPONSIBILITY_AREA_OPTIONS, STATUS_OPTIONS } from "@/modules/employee/constants";
 import { getCompaniesAction } from "@/modules/companies/server/actions";
 import { getEmployeesAction } from "@/modules/employee/server/actions";
+import SignaturePad from "@/components/custom/SignaturePad";
 
 import { calculateAge } from "@/lib/date-utils";
 
@@ -69,6 +70,7 @@ export default function EmployeeForm({
             postalCode: initial.postalCode ?? "",
             roleDefinitionId: initial.roleDefinitionId ?? "",
             status: initial.status ?? "ACTIVE",
+            signature: initial.signature ?? "",
             password: "",
         },
     });
@@ -465,6 +467,24 @@ export default function EmployeeForm({
                             onChange={field.onChange}
                             options={STATUS_OPTIONS}
                             placeholder="เลือกสถานะ"
+                        />
+                    )}
+                />
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
+                ลายเซ็นพนักงาน
+            </h3>
+
+            <div className="mt-6">
+                <Controller
+                    control={control}
+                    name="signature"
+                    render={({ field }) => (
+                        <SignaturePad
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            error={errors.signature?.message}
                         />
                     )}
                 />

@@ -70,6 +70,7 @@ export async function createEmployeeUseCase(rawData: unknown) {
     postalCode: data.postalCode || undefined,
     responsibilityArea: data.responsibilityArea || undefined,
     status: data.status ?? "ACTIVE",
+    signature: data.signature || undefined,
     roleTitle: roleName || undefined,
     positionId: data.position || undefined,
     departmentId: data.department || undefined,

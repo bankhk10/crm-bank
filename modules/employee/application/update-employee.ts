@@ -54,6 +54,7 @@ export async function updateEmployeeUseCase(id: string, rawData: unknown) {
     postalCode: data.postalCode ?? undefined,
     responsibilityArea: data.responsibilityArea ?? undefined,
     status: data.status ?? undefined,
+    signature: data.signature ?? undefined,
   };
 
   if (roleName) employeeData.roleTitle = roleName;

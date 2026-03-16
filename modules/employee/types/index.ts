@@ -49,6 +49,7 @@ export type EmployeeDetail = {
   departmentName?: string | null;
   department?: { id: string; name?: string | null } | null;
   roleTitle?: string | null;
+  signature?: string | null;
   createdAt?: string | null;
   responsibleCustomers?: {
     id: string;

@@ -245,6 +245,27 @@ export default function EmployeeDetailView() {
                         </div>
                     </div>
 
+                    {/* Signature Card */}
+                    {employee.signature && (
+                        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                            <div className="p-6 border-b border-gray-100 bg-amber-50">
+                                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                    <FileText className="h-6 w-6 text-amber-600" />
+                                    ลายเซ็น
+                                </h2>
+                            </div>
+                            <div className="p-6 flex justify-center bg-white/50 backdrop-blur-sm">
+                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 bg-white shadow-sm">
+                                    <img 
+                                        src={employee.signature} 
+                                        alt="Employee Signature" 
+                                        className="max-h-32 w-auto object-contain"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Work / Organization Information Card */}
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
                         <div className="p-6 border-b border-gray-100 bg-purple-300">

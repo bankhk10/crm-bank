@@ -31,6 +31,7 @@ export const employeeSchema = z.object({
   subdistrict: z.string().nullable().optional(),
   postalCode: z.string().nullable().optional(),
   status: z.string().nullable().optional(),
+  signature: z.string().nullable().optional(),
   roleDefinitionId: z.string().min(1, "กรุณาเลือกสิทธิ์การใช้งาน"),
   password: z.string().optional(),
 });

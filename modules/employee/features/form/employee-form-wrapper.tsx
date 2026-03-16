@@ -60,6 +60,7 @@ export function EmployeeFormWrapper({ employeeId }: EmployeeFormWrapperProps) {
                         subdistrict: src.subdistrict ?? "",
                         postalCode: src.postalCode ?? src.zipCode ?? "",
                         status: src.status ?? "ACTIVE",
+                        signature: src.signature ?? "",
                         roleDefinitionId:
                             src.roleDefinitionId ??
                             src.roleId ??

@@ -151,6 +151,7 @@ model Employee {
   departmentName     String?
   roleTitle          String?
   phone              String?
+  signature          String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
