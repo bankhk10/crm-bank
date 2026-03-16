@@ -179,11 +179,11 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
           </div>
@@ -194,11 +194,11 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่จัดส่ง:</span>
             <span>${safeValue(data.deliveryDate)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">ครบกำหนดชำระ:</span>
             <span>${safeValue(data.creditDueDate)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">ผู้ขาย:</span>
             <span>${safeValue(data.contactName)}</span>
           </div>
@@ -212,7 +212,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่ชำระเงิน:</span>
             <span>${safeValue(data.paymentDate)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">วิธีจัดส่ง:</span>
             <span>${safeValue(data.deliveryMethod)}</span>
           </div>
@@ -228,11 +228,11 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วิธีจัดส่ง:</span>
             <span>${safeValue(data.deliveryMethod)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">บริษัทขนส่ง:</span>
             <span>${safeValue(data.shippingCompanyName)}</span>
           </div>
-          <div class="sales-cell">
+          <div class="sales-cell no-border">
             <span class="info-label">ที่อยู่รับสินค้า:</span>
             <span>${safeValue(data.receivingAddress)}</span>
           </div>
