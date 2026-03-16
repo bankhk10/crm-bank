@@ -93,24 +93,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     )
     .join("");
 
-  const emptyRowsCount = Math.max(0, 5 - data.items.length);
-  const emptyRowsHtml = Array.from({ length: emptyRowsCount })
-    .map(
-      () => `
-        <tr class="empty-row">
-          <td>&nbsp;</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      `,
-    )
-    .join("");
-
   return `
 <!DOCTYPE html>
 <html lang="th">
@@ -277,7 +259,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </thead>
         <tbody>
           ${itemsHtml}
-          ${emptyRowsHtml}
         </tbody>
       </table>
     </div>
