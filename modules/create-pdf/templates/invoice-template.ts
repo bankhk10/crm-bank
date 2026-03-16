@@ -177,6 +177,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       ? safeValue(data.saleOrderRef || data.invoiceNumber)
       : safeValue(data.invoiceNumber);
 
+  const title =
+    data.status === "COMPLETED"
+      ? "เลขที่คำสั่งขาย"
+      : "เลขที่ออเดอร์";
   const itemsHtml = data.items
     .map(
       (item) => `
@@ -225,7 +229,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <p class="doc-title-th">${safeValue(data.title)}</p>
         <p class="doc-title-en">SALES NOTE</p>
         <div class="doc-no-box">
-          <span class="label">เลขที่คำสั่งขาย</span>
+          <span class="label">${title}</span>
           <span class="value">${documentNumber ?? "-"}</span>
         </div>
       </div>
