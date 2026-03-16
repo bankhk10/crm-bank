@@ -163,6 +163,10 @@ body {
   border-left: 1px solid #e5e7eb;
 }
 
+.info-col.no-border {
+  border-left: none;
+}
+
 .info-col.full {
   flex: 1 1 100%;
   border-left: none !important;
