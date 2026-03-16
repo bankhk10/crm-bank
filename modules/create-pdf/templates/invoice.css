@@ -185,12 +185,14 @@ body {
 
 .sales-row {
   display: grid;
-  grid-template-columns:
-    var(--sales-date-width, 220px) var(--sales-order-width, 220px)
-    minmax(200px, 1fr);
+  grid-template-columns: 220px 220px 1fr;
   gap: 0;
   border-top: 1px solid #e5e7eb;
   min-height: 44px;
+}
+
+.sales-row.two-cols {
+  grid-template-columns: 230px 1fr;
 }
 
 /*

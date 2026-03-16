@@ -12,6 +12,7 @@ export interface InvoiceData {
   billingAddress: string;
 
   deliveryMethod: string;
+  deliveryMethodRaw?: string;
   shippingAddress: string;
   receivingAddress: string;
   shippingCompanyName: string;
@@ -160,13 +161,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span>${safeValue(data.billingAddress)}</span>
           </div>
         </div>
-
-        <div class="info-row">
-          <div class="info-col full">
-            <span class="info-label">ที่อยู่จัดส่ง</span>
-            <span>${safeValue(data.shippingAddress)}</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -183,7 +177,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
           </div>
@@ -198,46 +192,46 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">ครบกำหนดชำระ:</span>
             <span>${safeValue(data.creditDueDate)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">ผู้ขาย:</span>
             <span>${safeValue(data.contactName)}</span>
           </div>
         </div>
 
-        ${data.paymentDate && data.paymentDate !== "-"
-      ? `
-        <div class="sales-row">
-          <div class="sales-cell">
-            <span class="info-label">วันที่ชำระเงิน:</span>
-            <span>${safeValue(data.paymentDate)}</span>
-          </div>
+        <div class="sales-row two-cols">
           <div class="sales-cell">
             <span class="info-label">วิธีจัดส่ง:</span>
             <span>${safeValue(data.deliveryMethod)}</span>
           </div>
           <div class="sales-cell">
-            <span class="info-label">บริษัทขนส่ง:</span>
-            <span>${safeValue(data.shippingCompanyName)}</span>
+            <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+            <span>${safeValue(data.shippingAddress)}</span>
           </div>
         </div>
-        `
-      : `
+
+        ${(data.paymentDate && data.paymentDate !== "-") ||
+      (data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP') ? `
         <div class="sales-row">
           <div class="sales-cell">
-            <span class="info-label">วิธีจัดส่ง:</span>
-            <span>${safeValue(data.deliveryMethod)}</span>
+            ${data.paymentDate && data.paymentDate !== "-" ? `
+              <span class="info-label">วันที่ชำระเงิน:</span>
+              <span>${safeValue(data.paymentDate)}</span>
+            ` : "-"}
           </div>
           <div class="sales-cell">
-            <span class="info-label">บริษัทขนส่ง:</span>
-            <span>${safeValue(data.shippingCompanyName)}</span>
+            ${data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? `
+              <span class="info-label">${data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? 'สถานที่รับสินค้า:' : 'บริษัทขนส่ง:'}</span>
+              <span>${safeValue(data.shippingCompanyName)}</span>
+            ` : "-"}
           </div>
-          <div class="sales-cell no-border">
-            <span class="info-label">ที่อยู่รับสินค้า:</span>
-            <span>${safeValue(data.receivingAddress)}</span>
+          <div class="sales-cell">
+            ${data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? `
+              <span class="info-label">ที่อยู่รับสินค้า:</span>
+              <span>${safeValue(data.receivingAddress)}</span>
+            ` : "-"}
           </div>
         </div>
-        `
-    }
+        ` : ""}
       </div>
     </div>
 

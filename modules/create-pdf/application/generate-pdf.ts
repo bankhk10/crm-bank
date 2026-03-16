@@ -96,6 +96,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
 
     deliveryMethod:
       DELIVERY_METHOD_MAP[sale.deliveryMethod] || sale.deliveryMethod || "-",
+    deliveryMethodRaw: sale.deliveryMethod || "-",
     shippingAddress: shippingAddress || "-",
     receivingAddress: receivingAddress || "-",
     shippingCompanyName: sa.sender_name || sale.shippingCompany?.name || "-",
