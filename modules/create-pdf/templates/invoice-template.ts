@@ -20,6 +20,7 @@ export interface InvoiceData {
 
   paymentTerm: string;
   deliveryDate: string;
+  requestedDeliveryDate?: string;
   creditDueDate: string;
   paymentDate: string;
 
@@ -49,6 +50,59 @@ function safeValue(value?: string | number | null) {
 
 function formatNumber(value?: number | null) {
   return Number(value || 0).toLocaleString("th-TH");
+}
+
+function renderDeliveryRows(data: InvoiceData): string {
+  const hasPaymentDate = data.paymentDate && data.paymentDate !== "-";
+
+  let html = ``;
+
+  if (data.deliveryMethodRaw === "FACTORY_DELIVERY" || data.deliveryMethodRaw === "SALES_DELIVERY") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+          <span>${safeValue(data.shippingAddress)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (data.deliveryMethodRaw === "CUSTOMER_PICKUP") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">วันที่มารับสินค้า:</span>
+          <span>${safeValue(data.requestedDeliveryDate)}</span>
+        </div>
+      </div>
+      <div class="sales-cell">
+        <span class="info-label">สถานที่รับสินค้า:</span>
+        <span>${safeValue(data.receivingAddress)}</span>
+      </div>
+    `;
+  }
+
+  if (hasPaymentDate) {
+    html += `
+      <div class="sales-row">
+        <div class="sales-cell">
+          <span class="info-label">วันที่ชำระเงิน:</span>
+          <span>${safeValue(data.paymentDate)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
 }
 
 export function renderInvoiceTemplate(data: InvoiceData): string {
@@ -198,40 +252,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           </div>
         </div>
 
-        <div class="sales-row two-cols">
-          <div class="sales-cell">
-            <span class="info-label">วิธีจัดส่ง:</span>
-            <span>${safeValue(data.deliveryMethod)}</span>
-          </div>
-          <div class="sales-cell">
-            <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
-            <span>${safeValue(data.shippingAddress)}</span>
-          </div>
-        </div>
-
-        ${(data.paymentDate && data.paymentDate !== "-") ||
-      (data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP') ? `
-        <div class="sales-row">
-          <div class="sales-cell">
-            ${data.paymentDate && data.paymentDate !== "-" ? `
-              <span class="info-label">วันที่ชำระเงิน:</span>
-              <span>${safeValue(data.paymentDate)}</span>
-            ` : "-"}
-          </div>
-          <div class="sales-cell">
-            ${data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? `
-              <span class="info-label">${data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? 'สถานที่รับสินค้า:' : 'บริษัทขนส่ง:'}</span>
-              <span>${safeValue(data.shippingCompanyName)}</span>
-            ` : "-"}
-          </div>
-          <div class="sales-cell">
-            ${data.deliveryMethodRaw === 'COURIER' || data.deliveryMethodRaw === 'CUSTOMER_PICKUP' ? `
-              <span class="info-label">ที่อยู่รับสินค้า:</span>
-              <span>${safeValue(data.receivingAddress)}</span>
-            ` : "-"}
-          </div>
-        </div>
-        ` : ""}
+        ${renderDeliveryRows(data)}
       </div>
     </div>
 

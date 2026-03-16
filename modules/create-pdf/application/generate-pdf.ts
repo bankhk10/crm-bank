@@ -37,28 +37,28 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
 
   const customerAddress = sa.address_line
     ? formatAddress({
-        addressLine: sa.address_line,
-        subdistrict: sa.address_subdistrict,
-        district: sa.address_district,
-        province: sa.address_province,
-        postalCode: sa.address_code,
-      })
+      addressLine: sa.address_line,
+      subdistrict: sa.address_subdistrict,
+      district: sa.address_district,
+      province: sa.address_province,
+      postalCode: sa.address_code,
+    })
     : formatAddress({
-        addressLine: sale.customer?.addressLine,
-        subdistrict: sale.customer?.subdistrict,
-        district: sale.customer?.district,
-        province: sale.customer?.province,
-        postalCode: sale.customer?.postalCode,
-      });
+      addressLine: sale.customer?.addressLine,
+      subdistrict: sale.customer?.subdistrict,
+      district: sale.customer?.district,
+      province: sale.customer?.province,
+      postalCode: sale.customer?.postalCode,
+    });
 
   const billingAddress = sa.billing_address_line
     ? formatAddress({
-        addressLine: sa.billing_address_line,
-        subdistrict: sa.billing_subdistrict,
-        district: sa.billing_district,
-        province: sa.billing_province,
-        postalCode: sa.billing_postal_code,
-      })
+      addressLine: sa.billing_address_line,
+      subdistrict: sa.billing_subdistrict,
+      district: sa.billing_district,
+      province: sa.billing_province,
+      postalCode: sa.billing_postal_code,
+    })
     : customerAddress;
 
   const shippingAddress = formatAddress({
@@ -101,6 +101,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     receivingAddress: receivingAddress || "-",
     shippingCompanyName: sa.sender_name || sale.shippingCompany?.name || "-",
     senderAddress: senderAddress || "-",
+    requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
 
     paymentTerm:
       PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
