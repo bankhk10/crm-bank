@@ -130,15 +130,13 @@ body {
   color: #fff;
   font-size: 16px;
   font-weight: 800;
-  padding: 10px 26px 10px 18px;
+  padding: 10px 18px;
   min-width: 180px;
-  clip-path: polygon(0 0, 88% 0, 100% 100%, 0% 100%);
   margin-bottom: 0;
 }
 
 .section-box {
-  border: 1px solid #e5e7eb;
-  border-top: none;
+  border-bottom: 1px solid #e5e7eb;
   padding: 0;
 }
 
@@ -177,8 +175,7 @@ body {
 }
 
 .sales-grid {
-  border: 1px solid #e5e7eb;
-  border-top: none;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .sales-row {
