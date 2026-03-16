@@ -318,7 +318,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       ? `
           <div class="summary-row">
             <span>ส่วนลดค่าขนส่ง</span>
-            <span>-${formatNumber(data.shippingDiscount)} THB</span>
+            <span style="color: red;">-${formatNumber(data.shippingDiscount)} THB</span>
           </div>
         `
       : ""
@@ -328,7 +328,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       ? `
           <div class="summary-row">
             <span>ส่วนลดหน้าบิล</span>
-            <span>-${formatNumber(data.billDiscount)} THB</span>
+            <span style="color: red;">-${formatNumber(data.billDiscount)} THB</span>
           </div>
         `
       : ""
