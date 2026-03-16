@@ -39,7 +39,7 @@ body {
 
 .company-text h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   color: #0f2e5f;
   line-height: 1.2;
@@ -47,7 +47,7 @@ body {
 
 .company-text h2 {
   margin: 6px 0 10px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: #1f3558;
   letter-spacing: 0.2px;
