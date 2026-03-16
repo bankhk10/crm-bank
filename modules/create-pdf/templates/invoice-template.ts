@@ -184,9 +184,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
           <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
-          <td class="text-right">${formatNumber(item.price)}</td>
-          <td class="text-right">${formatNumber(item.cartonPrice)}</td>
-          <td class="text-right total-cell">${formatNumber(item.total)}</td>
+          <td class="text-center">${formatNumber(item.price)}</td>
+          <td class="text-center">${formatNumber(item.cartonPrice)}</td>
+          <td class="text-center total-cell">${formatNumber(item.total)}</td>
         </tr>
       `,
     )
@@ -289,12 +289,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table class="product-table">
         <thead>
           <tr>
-            <th style="width: 14%;">รหัสสินค้า</th>
+            <th style="width: 25%;">รหัสสินค้า</th>
             <th style="width: 28%;">รายละเอียดสินค้า</th>
             <th style="width: 8%;">จำนวน</th>
             <th style="width: 8%;">หน่วย</th>
-            <th style="width: 8%;">บรรจุ</th>
-            <th style="width: 12%;">ราคา/หน่วย</th>
+            <th style="width: 5%;">บรรจุ</th>
+            <th style="width: 13%;">ราคา/หน่วย</th>
             <th style="width: 10%;">ราคา/ลัง</th>
             <th style="width: 12%;">ราคารวม</th>
           </tr>
