@@ -70,6 +70,20 @@ function renderDeliveryRows(data: InvoiceData): string {
           <span>${safeValue(data.shippingAddress)}</span>
         </div>
       </div>
+      <div class="sales-row">
+          <div class="sales-cell">
+            <span class="info-label">วันที่จัดส่ง:</span>
+            <span>${safeValue(data.deliveryDate)}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">ครบกำหนดชำระ:</span>
+            <span>${safeValue(data.creditDueDate)}</span>
+          </div>
+          <div class="sales-cell">
+            <span class="info-label">ผู้ขาย:</span>
+            <span>${safeValue(data.contactName)}</span>
+          </div>
+       </div>
     `;
   }
 
@@ -260,22 +274,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span>${safeValue(data.paymentTerm)}</span>
           </div>
         </div>
-
-        <div class="sales-row">
-          <div class="sales-cell">
-            <span class="info-label">วันที่จัดส่ง:</span>
-            <span>${safeValue(data.deliveryDate)}</span>
-          </div>
-          <div class="sales-cell">
-            <span class="info-label">ครบกำหนดชำระ:</span>
-            <span>${safeValue(data.creditDueDate)}</span>
-          </div>
-          <div class="sales-cell">
-            <span class="info-label">ผู้ขาย:</span>
-            <span>${safeValue(data.contactName)}</span>
-          </div>
-        </div>
-
         ${renderDeliveryRows(data)}
       </div>
     </div>

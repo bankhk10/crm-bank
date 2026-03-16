@@ -110,7 +110,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
       "-",
     deliveryDate: safeFormatDate(sale.deliveryDate, "d MMMM yyyy"),
     creditDueDate: safeFormatDate(sale.creditDueDate, "d MMMM yyyy"),
-    paymentDate: "-", // Not natively mapped yet in Sale
+    paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
 
     contactName: sale.employee?.name || "-",
     items: (sale.items || []).map((item: any) => ({
