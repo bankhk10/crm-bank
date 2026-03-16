@@ -99,9 +99,11 @@ function renderDeliveryRows(data: InvoiceData): string {
           <span>${safeValue(data.requestedDeliveryDate)}</span>
         </div>
       </div>
-      <div class="sales-cell">
-        <span class="info-label">สถานที่รับสินค้า:</span>
-        <span>${safeValue(data.receivingAddress)}</span>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">สถานที่รับสินค้า:</span>
+          <span>${safeValue(data.receivingAddress)}</span>
+        </div>
       </div>
     `;
   }
@@ -118,13 +120,17 @@ function renderDeliveryRows(data: InvoiceData): string {
           <span>${safeValue(data.shippingCustomerAddressId)}</span>
         </div>
       </div>
-      <div class="sales-cell">
-        <span class="info-label">ที่อยู่บริษัทขนส่ง:</span>
-        <span>${safeValue(data.shippingCompanyName)}</span>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่บริษัทขนส่ง:</span>
+          <span>${safeValue(data.shippingCompanyName)}</span>
+        </div>
       </div>
-      <div class="sales-cell">
-        <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
-        <span>${safeValue(data.shippingAddress)}</span>
+      <div class="sales-row" style="grid-template-columns: 1fr;">
+        <div class="sales-cell">
+          <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+          <span>${safeValue(data.shippingAddress)}</span>
+        </div>
       </div>
     `;
   }
