@@ -233,6 +233,8 @@ body {
 
 .product-table-wrap {
   margin-top: 22px;
+  margin-left: 10px;
+  margin-right: 10px;
   border: 1px solid #dbe2ea;
   border-radius: 14px;
   overflow: hidden;
@@ -286,6 +288,7 @@ table.product-table {
 
 .summary-wrap {
   margin-top: 18px;
+  margin-right: 20px;
   display: flex;
   justify-content: flex-end;
 }
@@ -321,6 +324,8 @@ table.product-table {
 
 .signature-section {
   margin-top: 46px;
+  margin-left: 20px;
+  margin-right: 20px;
   border-top: 1px solid #e5e7eb;
   padding-top: 24px;
   display: grid;
