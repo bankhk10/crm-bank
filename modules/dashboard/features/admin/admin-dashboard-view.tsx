@@ -696,7 +696,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                   const isVisible = visibleGroups.has(group.group);
                   return (
                     <button
-                      key={group.group}
+                      key={group.code}
                       onClick={() => toggleGroup(group.group)}
                       className={`
                         inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-medium
