@@ -9,7 +9,7 @@ body {
 
 .page {
   width: 210mm;
-  min-height: 297mm;
+  /* Remove min-height to allow content to fit or grow naturally */
   padding: 4mm 0mm 5mm;
   margin: 0 auto;
   background: #fff;
@@ -121,7 +121,8 @@ body {
 }
 
 .section {
-  margin-top: 16px;
+  margin-top: 10px; /* Reduced from 16px */
+  break-inside: avoid;
 }
 
 .section-title {
@@ -232,7 +233,7 @@ body {
 }
 
 .product-table-wrap {
-  margin-top: 22px;
+  margin-top: 12px; /* Reduced from 22px */
   margin-left: 10px;
   margin-right: 10px;
   border: 1px solid #dbe2ea;
@@ -268,7 +269,7 @@ table.product-table {
 }
 
 .product-table tbody td {
-  padding: 12px 10px;
+  padding: 8px 10px; /* Reduced from 12px */
   font-size: 14px;
   border-bottom: 1px solid #e5e7eb;
   color: #374151;
@@ -299,10 +300,11 @@ table.product-table {
 }
 
 .summary-wrap {
-  margin-top: 18px;
+  margin-top: 12px; /* Reduced from 18px */
   margin-right: 20px;
   display: flex;
   justify-content: flex-end;
+  break-inside: avoid;
 }
 
 .summary-box {
@@ -335,13 +337,14 @@ table.product-table {
 }
 
 .signature-section {
-  margin-top: 46px;
+  margin-top: 24px; /* Reduced from 46px */
   margin-left: 20px;
   margin-right: 20px;
   border-top: 1px solid #e5e7eb;
   padding-top: 24px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  break-inside: avoid;
 }
 
 .signature-card {
@@ -358,7 +361,7 @@ table.product-table {
   font-size: 16px;
   font-weight: 800;
   color: #1f3558;
-  margin-bottom: 22px;
+  margin-bottom: 12px; /* Reduced from 22px */
 }
 
 .sign-row {
