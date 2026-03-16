@@ -69,11 +69,12 @@ body {
   width: 255px;
   text-align: right;
   flex-shrink: 0;
+  margin-right: 20px;
 }
 
 .doc-meta .doc-title-th {
   margin: 0;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: #12386b;
   line-height: 1.1;
@@ -106,7 +107,7 @@ body {
 }
 
 .doc-no-box .value {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 800;
   color: #12386b;
 }

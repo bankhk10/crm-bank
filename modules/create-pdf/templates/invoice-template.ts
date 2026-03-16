@@ -122,10 +122,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
       <div class="doc-meta">
         <p class="doc-title-th">${safeValue(data.title)}</p>
-        <p class="doc-title-en">SALES ORDER</p>
+        <p class="doc-title-en">SALES NOTE</p>
         <div class="doc-no-box">
           <span class="label">เลขที่คำสั่งขาย</span>
-          <span class="value">${documentNumber}</span>
+          <span class="value">${documentNumber ?? "-"}</span>
         </div>
       </div>
     </div>
