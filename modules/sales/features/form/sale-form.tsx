@@ -158,9 +158,6 @@ export function SaleForm({
     const [selectedProductDetail, setSelectedProductDetail] =
         useState<SaleFormProduct | null>(null);
 
-    // User permissions
-    // User permissions (moved to top)
-
     // Auto-fill employeeId for current user (if they have an employeeId)
     useEffect(() => {
         if (!isEdit && !employeeId && currentUser?.employeeId) {
