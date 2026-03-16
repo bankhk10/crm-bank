@@ -99,7 +99,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     deliveryMethodRaw: sale.deliveryMethod || "-",
     shippingAddress: shippingAddress || "-",
     receivingAddress: receivingAddress || "-",
-    shippingCompanyName: senderAddress || "-",
+    shippingCompanyName: sa.sender_name || "-",
     senderAddress: senderAddress || "-",
     requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
     shippingCustomerAddressId: sa.shippingCustomerAddressId || "-",

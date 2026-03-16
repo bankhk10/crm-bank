@@ -117,13 +117,13 @@ function renderDeliveryRows(data: InvoiceData): string {
         </div>
         <div class="sales-cell">
           <span class="info-label">ชื่อบริษัทขนส่ง:</span>
-          <span>${safeValue(data.shippingCustomerAddressId)}</span>
+          <span>${safeValue(data.shippingCompanyName)}</span>
         </div>
       </div>
       <div class="sales-row" style="grid-template-columns: 1fr;">
         <div class="sales-cell">
           <span class="info-label">ที่อยู่บริษัทขนส่ง:</span>
-          <span>${safeValue(data.shippingCompanyName)}</span>
+          <span>${safeValue(data.senderAddress)}</span>
         </div>
       </div>
       <div class="sales-row" style="grid-template-columns: 1fr;">
