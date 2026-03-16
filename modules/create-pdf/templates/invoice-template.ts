@@ -179,7 +179,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
@@ -194,7 +194,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่จัดส่ง:</span>
             <span>${safeValue(data.deliveryDate)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">ครบกำหนดชำระ:</span>
             <span>${safeValue(data.creditDueDate)}</span>
           </div>
@@ -204,15 +204,14 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           </div>
         </div>
 
-        ${
-          data.paymentDate && data.paymentDate !== "-"
-            ? `
+        ${data.paymentDate && data.paymentDate !== "-"
+      ? `
         <div class="sales-row">
           <div class="sales-cell">
             <span class="info-label">วันที่ชำระเงิน:</span>
             <span>${safeValue(data.paymentDate)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">วิธีจัดส่ง:</span>
             <span>${safeValue(data.deliveryMethod)}</span>
           </div>
@@ -222,13 +221,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           </div>
         </div>
         `
-            : `
+      : `
         <div class="sales-row">
           <div class="sales-cell">
             <span class="info-label">วิธีจัดส่ง:</span>
             <span>${safeValue(data.deliveryMethod)}</span>
           </div>
-          <div class="sales-cell no-border">
+          <div class="sales-cell">
             <span class="info-label">บริษัทขนส่ง:</span>
             <span>${safeValue(data.shippingCompanyName)}</span>
           </div>
@@ -238,7 +237,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           </div>
         </div>
         `
-        }
+    }
       </div>
     </div>
 
@@ -271,27 +270,25 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <span>${formatNumber(data.subtotalAmount)} THB</span>
         </div>
 
-        ${
-          data.shippingDiscount > 0
-            ? `
+        ${data.shippingDiscount > 0
+      ? `
           <div class="summary-row">
             <span>ส่วนลดค่าขนส่ง</span>
             <span>-${formatNumber(data.shippingDiscount)} THB</span>
           </div>
         `
-            : ""
-        }
+      : ""
+    }
 
-        ${
-          data.billDiscount > 0
-            ? `
+        ${data.billDiscount > 0
+      ? `
           <div class="summary-row">
             <span>ส่วนลดหน้าบิล</span>
             <span>-${formatNumber(data.billDiscount)} THB</span>
           </div>
         `
-            : ""
-        }
+      : ""
+    }
 
         <div class="summary-row grand-total">
           <span>ยอดรวมทั้งสิ้น</span>
