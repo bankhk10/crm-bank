@@ -27,6 +27,7 @@ body {
   gap: 16px;
   align-items: flex-start;
   flex: 1;
+  margin-left: 20px;
 }
 
 .company-logo {
