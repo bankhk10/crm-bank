@@ -416,6 +416,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
     },
     actions: [
       {
+        key: "creditlimit.create",
+        name: "สร้างวงเงินเครดิต",
+        resource: "creditlimit",
+        action: "create",
+      },
+      {
         key: "creditlimit.edit",
         name: "แก้ไขวงเงินเครดิต",
         resource: "creditlimit",
