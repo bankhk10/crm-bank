@@ -189,7 +189,7 @@ body {
   grid-template-columns: 220px 220px 1fr;
   gap: 0;
   border-top: 1px solid #e5e7eb;
-  min-height: 32px; /* Reduced from 44px */
+  min-height: 24px; /* Further reduced from 32px */
 }
 
 .sales-row.row-order-info {
@@ -212,7 +212,7 @@ body {
 
 .sales-cell {
   position: relative;
-  padding: 6px 14px;
+  padding: 3px 14px; /* Further reduced from 6px */
   font-size: 14px;
   color: #374151;
   line-height: 1.5;
