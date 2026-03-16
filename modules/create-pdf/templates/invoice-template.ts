@@ -378,8 +378,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
       </div>
     </div>
-
-    <div class="bottom-bar"></div>
   </div>
 </body>
 </html>
