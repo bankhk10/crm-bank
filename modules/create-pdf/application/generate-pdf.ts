@@ -128,6 +128,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     subtotalAmount: Number(sale.subtotalAmount || 0),
     shippingDiscount: Number(sale.shippingCost || 0),
     billDiscount: Number(sale.otherCosts || 0),
+    otherCostsDescription: sale.otherCostsDescription,
     totalAmount: Number(sale.totalAmount || 0),
     title: "ใบบันทึกการขาย",
     status: sale.status,

@@ -11,6 +11,7 @@ export interface InvoiceData {
   customerAddress: string;
   billingAddress: string;
 
+  otherCostsDescription?: string;
   deliveryMethod: string;
   deliveryMethodRaw?: string;
   shippingAddress: string;
@@ -346,6 +347,16 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="notes-section">
       <span class="notes-label">หมายเหตุ:</span>
       <span>${data.notes}</span>
+    </div>
+    `
+      : ""
+    }
+    
+    ${data.otherCostsDescription
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">รายละเอียดส่วนลดหน้าบิล:</span>
+      <span>${data.otherCostsDescription}</span>
     </div>
     `
       : ""
