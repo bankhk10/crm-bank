@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Sale Form V2
- * Refactored version of sale-form using modular components and hooks
- */
-
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
