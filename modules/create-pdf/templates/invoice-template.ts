@@ -21,6 +21,7 @@ export interface InvoiceData {
   paymentTerm: string;
   deliveryDate: string;
   requestedDeliveryDate?: string;
+  shippingCustomerAddressId?: string;
   creditDueDate: string;
   paymentDate: string;
 
@@ -87,6 +88,29 @@ function renderDeliveryRows(data: InvoiceData): string {
       <div class="sales-cell">
         <span class="info-label">สถานที่รับสินค้า:</span>
         <span>${safeValue(data.receivingAddress)}</span>
+      </div>
+    `;
+  }
+
+  if (data.deliveryMethodRaw === "COURIER") {
+    html += `
+      <div class="sales-row two-cols">
+        <div class="sales-cell">
+          <span class="info-label">วิธีจัดส่ง:</span>
+          <span>${safeValue(data.deliveryMethod)}</span>
+        </div>
+        <div class="sales-cell">
+          <span class="info-label">ชื่อบริษัทขนส่ง:</span>
+          <span>${safeValue(data.shippingCustomerAddressId)}</span>
+        </div>
+      </div>
+      <div class="sales-cell">
+        <span class="info-label">ที่อยู่บริษัทขนส่ง:</span>
+        <span>${safeValue(data.shippingCompanyName)}</span>
+      </div>
+      <div class="sales-cell">
+        <span class="info-label">ที่อยู่จัดส่งสินค้า:</span>
+        <span>${safeValue(data.shippingAddress)}</span>
       </div>
     `;
   }

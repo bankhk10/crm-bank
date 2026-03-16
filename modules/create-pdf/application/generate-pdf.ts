@@ -99,9 +99,10 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     deliveryMethodRaw: sale.deliveryMethod || "-",
     shippingAddress: shippingAddress || "-",
     receivingAddress: receivingAddress || "-",
-    shippingCompanyName: sa.sender_name || sale.shippingCompany?.name || "-",
+    shippingCompanyName: senderAddress || "-",
     senderAddress: senderAddress || "-",
     requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
+    shippingCustomerAddressId: sa.shippingCustomerAddressId || "-",
 
     paymentTerm:
       PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
