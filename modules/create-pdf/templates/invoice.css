@@ -191,18 +191,25 @@ body {
 }
 
 .sales-cell {
+  position: relative;
   padding: 10px 14px;
   font-size: 14px;
   color: #374151;
   line-height: 1.5;
 }
 
-.sales-cell + .sales-cell {
-  border-left: 1px solid #e5e7eb;
+.sales-cell:not(.no-border):not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: #e5e7eb;
 }
 
-.sales-cell.no-border {
-  border-left: none;
+.sales-cell.no-border::after {
+  content: none;
 }
 
 .product-table-wrap {
