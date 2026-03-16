@@ -41,6 +41,7 @@ export interface InvoiceData {
   billDiscount: number;
   totalAmount: number;
   title: string;
+  notes?: string;
 }
 
 function safeValue(value?: string | number | null) {
@@ -339,6 +340,16 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
       </div>
     </div>
+
+    ${data.notes
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">หมายเหตุ:</span>
+      <span>${data.notes}</span>
+    </div>
+    `
+      : ""
+    }
 
     <!-- ลายเซ็น -->
     <div class="signature-section">

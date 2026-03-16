@@ -370,6 +370,25 @@ table.product-table {
   color: #374151;
 }
 
+.notes-section {
+  margin-top: 20px;
+  margin-left: 10px;
+  margin-right: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #374151;
+  min-height: 40px;
+}
+
+.notes-label {
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 4px;
+  display: block;
+}
+
 .dot-line {
   flex: 1;
   border-bottom: 1px dotted #6b7280;

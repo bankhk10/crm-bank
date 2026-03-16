@@ -131,6 +131,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     totalAmount: Number(sale.totalAmount || 0),
     title: "ใบบันทึกการขาย",
     status: sale.status,
+    notes: sale.notes,
   };
 
   const html = renderInvoiceTemplate(invoiceData);
