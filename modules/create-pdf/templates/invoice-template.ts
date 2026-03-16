@@ -70,7 +70,7 @@ function renderDeliveryRows(data: InvoiceData): string {
           <span>${safeValue(data.shippingAddress)}</span>
         </div>
       </div>
-      <div class="sales-row">
+      <div class="sales-row row-delivery-info">
           <div class="sales-cell">
             <span class="info-label">วันที่จัดส่ง:</span>
             <span>${safeValue(data.deliveryDate)}</span>
@@ -260,7 +260,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="section">
       <div class="section-title">ข้อมูลการขาย</div>
       <div class="sales-grid">
-        <div class="sales-row">
+        <div class="sales-row row-order-info">
           <div class="sales-cell">
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
