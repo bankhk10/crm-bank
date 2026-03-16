@@ -95,6 +95,44 @@ export default function SignaturePad({
         saveSignature();
     };
 
+    const getTrimmedBounds = (canvas: HTMLCanvasElement) => {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+
+        const { width, height } = canvas;
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        let minX = width, minY = height, maxX = 0, maxY = 0;
+        let found = false;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const alpha = data[(y * width + x) * 4 + 3];
+                if (alpha > 0) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                    found = true;
+                }
+            }
+        }
+
+        if (!found) return null;
+
+        // Add some padding (e.g., 10px in original coordinates)
+        const ratio = window.devicePixelRatio || 1;
+        const padding = 10 * ratio;
+
+        return {
+            x: Math.max(0, minX - padding),
+            y: Math.max(0, minY - padding),
+            w: Math.min(width, (maxX - minX + 1) + padding * 2),
+            h: Math.min(height, (maxY - minY + 1) + padding * 2)
+        };
+    };
+
     const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current;
         if (!canvas) return { offsetX: 0, offsetY: 0 };
@@ -130,10 +168,16 @@ export default function SignaturePad({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Create high quality resize
+        // Calculate trimmed bounds to remove empty space
+        const bounds = getTrimmedBounds(canvas);
+        if (!bounds) {
+            onChange("");
+            return;
+        }
+
         const targetWidth = 450;
-        const scaleFactor = targetWidth / (canvas.width / (window.devicePixelRatio || 1));
-        const targetHeight = (canvas.height / (window.devicePixelRatio || 1)) * scaleFactor;
+        const scaleFactor = targetWidth / (bounds.w / (window.devicePixelRatio || 1));
+        const targetHeight = (bounds.h / (window.devicePixelRatio || 1)) * scaleFactor;
 
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = targetWidth;
@@ -141,10 +185,15 @@ export default function SignaturePad({
         const tempCtx = tempCanvas.getContext("2d");
         if (!tempCtx) return;
 
-        // Transparent background is default for new canvas
         tempCtx.imageSmoothingEnabled = true;
         tempCtx.imageSmoothingQuality = "high";
-        tempCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
+        
+        // Draw only the trimmed area
+        tempCtx.drawImage(
+            canvas, 
+            bounds.x, bounds.y, bounds.w, bounds.h, 
+            0, 0, targetWidth, targetHeight
+        );
 
         const dataUrl = tempCanvas.toDataURL("image/png");
         

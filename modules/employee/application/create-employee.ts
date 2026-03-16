@@ -6,6 +6,7 @@ import {
   findRoleById,
   createEmployee,
 } from "../infrastructure/employee.repository";
+import { handleSignatureUpload } from "./signature-utils";
 
 /**
  * Use case: Create a new employee (and optionally a linked User account).
@@ -77,6 +78,11 @@ export async function createEmployeeUseCase(rawData: unknown) {
     companyId: data.company || undefined,
     managerId: data.managerId || undefined,
   };
+
+  // 4.1 Process signature if exists
+  if (data.signature) {
+    employeeData.signature = await handleSignatureUpload(data.signature);
+  }
 
   // 5. Optionally build user data
   let userData:

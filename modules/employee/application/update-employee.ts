@@ -5,6 +5,8 @@ import {
   findRoleById,
   updateEmployee,
 } from "../infrastructure/employee.repository";
+import { handleSignatureUpload } from "./signature-utils";
+import { deleteFile } from "@/lib/file-storage";
 
 /**
  * Use case: Update an existing employee (and optionally sync linked User account).
@@ -54,8 +56,20 @@ export async function updateEmployeeUseCase(id: string, rawData: unknown) {
     postalCode: data.postalCode ?? undefined,
     responsibilityArea: data.responsibilityArea ?? undefined,
     status: data.status ?? undefined,
-    signature: data.signature ?? undefined,
   };
+
+  if (data.signature !== undefined) {
+    employeeData.signature = await handleSignatureUpload(data.signature);
+    
+    // If we have a new signature file and there was an old one, delete the old one
+    const oldSignature = (existingEmployee as any).signature;
+    if (employeeData.signature && 
+        oldSignature && 
+        oldSignature !== employeeData.signature &&
+        oldSignature.startsWith("/uploads/")) {
+      await deleteFile(oldSignature);
+    }
+  }
 
   if (roleName) employeeData.roleTitle = roleName;
 

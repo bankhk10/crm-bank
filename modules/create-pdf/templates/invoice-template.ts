@@ -59,6 +59,24 @@ function safeValue(value?: string | number | null) {
   return text ? text : "-";
 }
 
+function getImageBase64(url?: string | null): string {
+  if (!url) return "";
+  if (url.startsWith("data:image/")) return url;
+
+  try {
+    const relativePath = url.replace(/^\//, "");
+    const fullPath = path.join(process.cwd(), "public", relativePath);
+    if (fs.existsSync(fullPath)) {
+      const bitmap = fs.readFileSync(fullPath);
+      const ext = path.extname(fullPath).replace(".", "") || "png";
+      return `data:image/${ext};base64,${bitmap.toString("base64")}`;
+    }
+  } catch (err) {
+    console.error("Error reading image for PDF:", url, err);
+  }
+  return "";
+}
+
 function formatNumber(value?: number | null) {
   return Number(value || 0).toLocaleString("th-TH");
 }
@@ -205,6 +223,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       `,
     )
     .join("");
+
+  const preparedSign = getImageBase64(data.preparedBySignatureImage || data.signatureImage);
+  const checkedSign = getImageBase64(data.checkedBySignatureImage);
+  const approvedSign = getImageBase64(data.approvedBySignatureImage);
 
   return `
 <!DOCTYPE html>
@@ -383,7 +405,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
-            ${(data.preparedBySignatureImage || data.signatureImage) ? `<img src="${data.preparedBySignatureImage || data.signatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+            ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
         </div>
         <div class="sign-row" style="position: relative;">
@@ -399,7 +421,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
-            ${data.checkedBySignatureImage ? `<img src="${data.checkedBySignatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+            ${checkedSign ? `<img src="${checkedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
         </div>
         <div class="sign-row" style="position: relative;">
@@ -415,7 +437,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
-            ${data.approvedBySignatureImage ? `<img src="${data.approvedBySignatureImage}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+            ${approvedSign ? `<img src="${approvedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
         </div>
         <div class="sign-row" style="position: relative;">
