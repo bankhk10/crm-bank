@@ -255,6 +255,18 @@ table.product-table {
   text-align: center;
 }
 
+.product-table thead th.text-left {
+  text-align: left;
+}
+
+.product-table thead th.text-center {
+  text-align: center;
+}
+
+.product-table thead th.text-right {
+  text-align: right;
+}
+
 .product-table tbody td {
   padding: 12px 10px;
   font-size: 14px;

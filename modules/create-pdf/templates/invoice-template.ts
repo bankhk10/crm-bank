@@ -289,8 +289,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table class="product-table">
         <thead>
           <tr>
-            <th style="width: 25%;">รหัสสินค้า</th>
-            <th style="width: 28%;">รายละเอียดสินค้า</th>
+            <th class="text-left" style="width: 25%;">รหัสสินค้า</th>
+            <th class="text-left" style="width: 28%;">รายละเอียดสินค้า</th>
             <th style="width: 8%;">จำนวน</th>
             <th style="width: 8%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
