@@ -185,10 +185,19 @@ body {
 
 .sales-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns:
+    var(--sales-date-width, 220px) var(--sales-order-width, 220px)
+    minmax(200px, 1fr);
+  gap: 0;
   border-top: 1px solid #e5e7eb;
   min-height: 44px;
 }
+
+/*
+  สามารถปรับความกว้างช่องได้โดย override ตัวแปร CSS ด้านล่าง
+  ตัวอย่าง:
+    .sales-row { --sales-date-width: 120px; --sales-order-width: 180px; }
+*/
 
 .sales-cell {
   position: relative;
