@@ -91,23 +91,22 @@ body {
 .doc-no-box {
   margin-top: 18px;
   display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: end;
+  gap: 8px;
   padding: 10px 14px;
-  min-width: 220px;
+  min-width: 150px;
   background: #f3f4f6;
   border-radius: 14px;
 }
 
 .doc-no-box .label {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: #374151;
 }
 
 .doc-no-box .value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   color: #12386b;
 }

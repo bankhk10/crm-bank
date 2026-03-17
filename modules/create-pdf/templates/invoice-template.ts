@@ -258,7 +258,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <p class="doc-title-th">${safeValue(data.title)}</p>
         <p class="doc-title-en">SALES NOTE</p>
         <div class="doc-no-box">
-          <span class="label">${title}</span>
+          <span class="label">${title}:</span>
           <span class="value">${documentNumber ?? "-"}</span>
         </div>
       </div>
