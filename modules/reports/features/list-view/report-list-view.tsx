@@ -43,7 +43,7 @@ const reportCategories = [
   },
   {
     id: "product",
-    title: "รายงานสินค้าและกลุ่มสินค้า",
+    title: "รายงานสินค้าและกลุ่มชื่อการค้า",
     description: "สินค้า/กลุ่มสินค้าขายดี, ยอดขายรายสินค้า, สต๊อกค้าง",
     icon: Package,
     href: "/reports/product-sales",

@@ -128,9 +128,9 @@ export function ProductSalesDashboard() {
 
   const volumeUnitOptions = [
     { value: "L" as const, label: "L (ลิตร)" },
-    { value: "ML" as const, label: "ML" },
-    { value: "KG" as const, label: "KG" },
-    { value: "G" as const, label: "G" },
+    { value: "ML" as const, label: "ML (มิลลิลิตร)" },
+    { value: "KG" as const, label: "KG (กิโลกรัม)" },
+    { value: "G" as const, label: "G (กรัม)" },
   ];
 
   const convertVolume = (liters: number, targetUnit: string): number => {
@@ -172,7 +172,7 @@ export function ProductSalesDashboard() {
           </div>
           <div className="text-center sm:text-left">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100">
-              รายงานตามสินค้า
+              รายงานสินค้าและกลุ่มชื่อการค้า
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base">
               สินค้าขายดี / ขายช้า, ยอดขายต่อสินค้า, สินค้าใกล้หมดและค้างสต๊อก
@@ -412,7 +412,7 @@ export function ProductSalesDashboard() {
                   value="group-performance"
                   className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
                 >
-                  ผลงานกลุ่มสินค้า
+                  ผลงานกลุ่มชื่อการค้า
                 </TabsTrigger>
               </TabsList>
 
@@ -424,11 +424,10 @@ export function ProductSalesDashboard() {
                     <button
                       key={opt.value}
                       onClick={() => setVolumeUnit(opt.value)}
-                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                        volumeUnit === opt.value
-                          ? "bg-emerald-500 text-white"
-                          : "bg-white hover:bg-slate-50 text-slate-600"
-                      }`}
+                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${volumeUnit === opt.value
+                        ? "bg-emerald-500 text-white"
+                        : "bg-white hover:bg-slate-50 text-slate-600"
+                        }`}
                     >
                       {opt.label}
                     </button>
@@ -453,21 +452,21 @@ export function ProductSalesDashboard() {
                               <TableRow>
                                 <TableHead>ลำดับ</TableHead>
                                 <TableHead>สินค้า</TableHead>
-                              <TableHead className="text-right">
-                                ยอดขาย
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวน
-                              </TableHead>
-                              <TableHead className="text-right">
-                                ปริมาณ ({volumeUnit})
-                              </TableHead>
-                              <TableHead className="text-right">
-                                บรรจุขายได้รวมลูก
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
+                                <TableHead className="text-right">
+                                  ยอดขาย
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  จำนวน
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  ปริมาณ ({volumeUnit})
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  บรรจุขายได้รวมลูก
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {reportData.topProducts
                                 .slice(0, 20)
                                 .map((product, idx) => (
