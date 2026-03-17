@@ -51,17 +51,29 @@ export async function getReportFilterOptions() {
     }),
     repo.findManyProductsData({
       where: { deletedAt: null },
-      select: { id: true, name: true, productCode: true, productGroup: true },
+      select: {
+        id: true,
+        name: true,
+        productCode: true,
+        tradeNameGroup: { select: { description: true } },
+      },
       orderBy: { name: "asc" },
-    }),
+    }).then((prods) =>
+      prods.map((p) => ({
+        id: p.id,
+        name: p.name,
+        productCode: p.productCode,
+        productGroup: (p as any).tradeNameGroup?.description || "-",
+      })),
+    ),
     prisma.tradeNameGroup
       .findMany({
         where: { deletedAt: null },
-        select: { code: true, description: true },
+        select: { id: true, code: true, description: true },
         orderBy: { code: "asc" },
       })
       .then((groups) =>
-        groups.map((g) => ({ value: g.code, label: g.description })),
+        groups.map((g) => ({ value: g.id, label: g.description })),
       ),
   ]);
 

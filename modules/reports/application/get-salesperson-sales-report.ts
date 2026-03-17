@@ -149,10 +149,10 @@ export async function getSalespersonSalesReport(
       const productIds = groupData.map((g) => g.productId);
       const products = await repo.findManyProductsData({
         where: { id: { in: productIds } },
-        select: { id: true, productGroup: true },
+        select: { id: true, tradeNameGroup: { select: { description: true } } },
       });
       const productGroupMap = new Map(
-        products.map((p) => [p.id, p.productGroup]),
+        products.map((p) => [p.id, (p as any).tradeNameGroup?.description]),
       );
 
       const groupAgg = new Map<string, { sales: number; quantity: number }>();

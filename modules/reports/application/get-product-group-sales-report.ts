@@ -53,12 +53,12 @@ export async function getProductGroupSalesReport(
   // Get all product groups from database
   const productGroups = await repo.findManyTradeNameGroupsData({
     where: { deletedAt: null },
-    select: { code: true, description: true },
+    select: { id: true, code: true, description: true },
     orderBy: { code: "asc" },
   });
 
   const productGroupOptions = productGroups.map((g) => ({
-    value: g.code,
+    value: g.id,
     label: g.description,
   }));
 
@@ -90,7 +90,7 @@ export async function getProductGroupSalesReport(
 
       // Get products in this group (with packageSize fields)
       const products = await repo.findManyProductsData({
-        where: { productGroup: group },
+        where: { tradeNameGroupId: group },
         select: {
           id: true,
           packageSize: true,
@@ -202,7 +202,7 @@ export async function getProductGroupSalesReport(
       const monthlyData = await prisma.dailySalesSummary.groupBy({
         by: ["month", "year"],
         where: {
-          productGroup: groupOption.value,
+          tradeNameGroupId: groupOption.value,
           date: { gte: start, lte: end },
           ...(viewScope === DataAccessLevel.VIEW_OWN
             ? { employeeId: session.user.employeeId! }
@@ -248,7 +248,7 @@ export async function getProductGroupSalesReport(
       const groupsData = await Promise.all(
         productGroupOptions.map(async (groupOption) => {
           const products = await repo.findManyProductsData({
-            where: { productGroup: groupOption.value, deletedAt: null },
+            where: { tradeNameGroupId: groupOption.value, deletedAt: null },
             select: { id: true },
           });
           const productIds = products.map((p) => p.id);

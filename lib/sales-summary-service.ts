@@ -18,7 +18,8 @@ export async function syncSalesSummary(targetDate?: Date) {
       s."employeeId",
       si."productId",
       p."brand",
-      p."productGroup",
+      p."productGroupId",
+      p."tradeNameGroupId",
       SUM(si."quantity") as quantity,
       SUM(si."totalPrice") as "totalAmount",
       COUNT(DISTINCT s."id") as "orderCount"
@@ -42,7 +43,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         s."employeeId",
         si."productId",
         p."brand",
-        p."productGroup",
+        p."productGroupId",
+        p."tradeNameGroupId",
         SUM(si."quantity") as quantity,
         SUM(si."totalPrice") as "totalAmount",
         COUNT(DISTINCT s."id") as "orderCount"
@@ -60,7 +62,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         s."employeeId",
         si."productId",
         p."brand",
-        p."productGroup"
+        p."productGroupId",
+        p."tradeNameGroupId"
     `;
   } else {
     query = Prisma.sql`
@@ -72,7 +75,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         s."employeeId",
         si."productId",
         p."brand",
-        p."productGroup",
+        p."productGroupId",
+        p."tradeNameGroupId",
         SUM(si."quantity") as quantity,
         SUM(si."totalPrice") as "totalAmount",
         COUNT(DISTINCT s."id") as "orderCount"
@@ -89,7 +93,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         s."employeeId",
         si."productId",
         p."brand",
-        p."productGroup"
+        p."productGroupId",
+        p."tradeNameGroupId"
     `;
   }
 
@@ -113,7 +118,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         totalAmount: Number(summary.totalAmount),
         orderCount: Number(summary.orderCount),
         brand: summary.brand,
-        productGroup: summary.productGroup,
+        productGroupId: summary.productGroupId,
+        tradeNameGroupId: summary.tradeNameGroupId,
         updatedAt: new Date(),
       },
       create: {
@@ -127,7 +133,8 @@ export async function syncSalesSummary(targetDate?: Date) {
         totalAmount: Number(summary.totalAmount),
         orderCount: Number(summary.orderCount),
         brand: summary.brand,
-        productGroup: summary.productGroup,
+        productGroupId: summary.productGroupId,
+        tradeNameGroupId: summary.tradeNameGroupId,
       },
     });
 
