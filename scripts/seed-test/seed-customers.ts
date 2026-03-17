@@ -21,26 +21,34 @@ const customersToSeed = [
     taxId: "0105560001234",
     phone: "0214569853",
     email: "sp.agri@example.com",
+
+    // ที่อยู่หลัก
     addressLine: "100/1 ถนนมิตรภาพ",
     province: "นครราชสีมา",
     district: "เมืองนครราชสีมา",
     subdistrict: "ในเมือง",
     postalCode: "30000",
     region: "ภาคตะวันออกเฉียงเหนือ",
+
     status: CustomerStatus.ACTIVE,
     contactPerson: "คุณสมพงษ์",
     contactPhone: "0812365845",
     contactEmail: "sompong.sp@example.com",
-    billingAddressLine: "100/1 ถนนมิตรภาพ",
-    billingProvince: "นครราชสีมา",
-    billingDistrict: "เมืองนครราชสีมา",
-    billingSubdistrict: "ในเมือง",
-    billingPostalCode: "30000",
-    shippingAddressLine: "100/1 ถนนมิตรภาพ",
-    shippingProvince: "นครราชสีมา",
-    shippingDistrict: "เมืองนครราชสีมา",
-    shippingSubdistrict: "ในเมือง",
-    shippingPostalCode: "30000",
+
+    // วางบิล (คนละจังหวัด)
+    billingAddressLine: "88/9 หมู่ 5 ถนนพหลโยธิน",
+    billingProvince: "สระบุรี",
+    billingDistrict: "เมืองสระบุรี",
+    billingSubdistrict: "ปากเพรียว",
+    billingPostalCode: "18000",
+
+    // จัดส่ง (คนละจังหวัดอีก)
+    shippingAddressLine: "299 หมู่ 12 ถนนเลี่ยงเมือง",
+    shippingProvince: "บุรีรัมย์",
+    shippingDistrict: "เมืองบุรีรัมย์",
+    shippingSubdistrict: "อิสาณ",
+    shippingPostalCode: "31000",
+
     relationshipScore: 85,
   },
   {
@@ -53,26 +61,34 @@ const customersToSeed = [
     taxId: "0203340005678",
     phone: "0214569745",
     email: "ruamchai@example.com",
+
+    // ที่อยู่หลัก
     addressLine: "45/2 หมู่ 3",
     province: "สุพรรณบุรี",
     district: "ศรีประจันต์",
     subdistrict: "ศรีประจันต์",
     postalCode: "72140",
     region: "ภาคกลาง",
+
     status: CustomerStatus.ACTIVE,
     contactPerson: "เจ๊ไหม",
     contactPhone: "0956549876",
     contactEmail: "mai.ruamchai@example.com",
-    billingAddressLine: "45/2 หมู่ 3",
-    billingProvince: "สุพรรณบุรี",
-    billingDistrict: "ศรีประจันต์",
-    billingSubdistrict: "ศรีประจันต์",
-    billingPostalCode: "72140",
-    shippingAddressLine: "45/2 หมู่ 3",
-    shippingProvince: "สุพรรณบุรี",
-    shippingDistrict: "ศรีประจันต์",
-    shippingSubdistrict: "ศรีประจันต์",
-    shippingPostalCode: "72140",
+
+    // วางบิล
+    billingAddressLine: "99/7 หมู่ 8 ถนนชัยพฤกษ์",
+    billingProvince: "นนทบุรี",
+    billingDistrict: "บางบัวทอง",
+    billingSubdistrict: "บางรักพัฒนา",
+    billingPostalCode: "11110",
+
+    // จัดส่ง
+    shippingAddressLine: "120/4 หมู่ 6",
+    shippingProvince: "กาญจนบุรี",
+    shippingDistrict: "ท่ามะกา",
+    shippingSubdistrict: "ท่ามะกา",
+    shippingPostalCode: "71120",
+
     relationshipScore: 90,
   }
 ];
