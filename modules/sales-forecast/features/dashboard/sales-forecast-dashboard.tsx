@@ -453,7 +453,7 @@ export default function SalesForecastDashboard() {
                         % เทียบเป้า
                       </th>
                       <th className="border border-slate-200 px-3 py-3 text-center font-semibold text-slate-700 text-base min-w-[150px]">
-                        ยอดรวมจากคาดการณ์
+                        ส่วนต่างจากเป้าหมาย
                       </th>
                     </tr>
                   </thead>
