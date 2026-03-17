@@ -400,9 +400,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <!-- ลายเซ็น -->
     <div class="signature-section">
       <div class="signature-card">
-        <div class="signature-title">ผู้จัดทำ</div>
+        <div class="signature-title">พนักงานขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
             ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
@@ -416,9 +415,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       </div>
 
       <div class="signature-card">
-        <div class="signature-title">ผู้ตรวจสอบ</div>
+        <div class="signature-title">ผู้จัดการภาค</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
             ${checkedSign ? `<img src="${checkedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
@@ -432,9 +430,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       </div>
 
       <div class="signature-card">
-        <div class="signature-title">ผู้อนุมัติ</div>
+        <div class="signature-title">ผู้จัดการฝ่ายขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <span>ลงรับ</span>
           <div class="dot-line" style="position: relative;">
             ${approvedSign ? `<img src="${approvedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
