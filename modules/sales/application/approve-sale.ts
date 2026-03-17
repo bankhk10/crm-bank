@@ -188,12 +188,20 @@ export async function approveSaleUseCase(
       }
     }
 
+    // Fetch approver's employee signature
+    const approverEmployee = await tx.employee.findUnique({
+      where: { userId },
+      select: { signature: true },
+    });
+
     // Update sale status
     const updated = await tx.sale.update({
       where: { id },
       data: {
         status: "APPROVED",
         approvedById: userId,
+        approvedBySignatureDate: new Date(),
+        approvedBySignatureImage: approverEmployee?.signature || null,
         statusHistory: {
           create: {
             status: "APPROVED",

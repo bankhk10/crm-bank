@@ -15,6 +15,7 @@ import {
   createSale,
 } from "../infrastructure/sale.repository";
 import { buildExplodedSaleAddresses } from "./address-builder";
+import { db } from "@/lib/db";
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -137,7 +138,13 @@ export async function createSaleUseCase(
   // 8. Build exploded addresses
   const explodedAddresses = await buildExplodedSaleAddresses(body, customer);
 
-  // 8. Create sale
+  // 9. Fetch employee signature for preparedBy
+  const employeeForSig = await db.employee.findUnique({
+    where: { id: body.employeeId },
+    select: { signature: true },
+  });
+
+  // 10. Create sale
   const sale = await createSale({
     saleNumber,
     customerId: body.customerId,
@@ -178,6 +185,8 @@ export async function createSaleUseCase(
     totalAmount: total,
     notes: body.notes,
     createdById,
+    preparedBySignatureDate: new Date(),
+    preparedBySignatureImage: employeeForSig?.signature || null,
     items: body.items.map((item) => {
       const product = productMap.get(item.productId);
       const multiplier = getPackMultiplier(product?.packageSizePerBox as any);
@@ -220,7 +229,7 @@ export async function createSaleUseCase(
     }),
   });
 
-  // 9. Send notification to manager (non-blocking)
+  // 11. Send notification to manager (non-blocking)
   try {
     const employee = await findEmployeeWithManager(body.employeeId);
     if (employee?.manager?.userId) {

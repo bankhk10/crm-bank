@@ -272,6 +272,9 @@ export async function createSale(data: {
   totalAmount: number;
   notes?: string;
   createdById: string;
+  // Signature fields
+  preparedBySignatureDate?: Date | null;
+  preparedBySignatureImage?: string | null;
   items: Array<{
     productId: string;
     productCode?: string | null;
@@ -374,6 +377,8 @@ export async function createSale(data: {
       totalAmount: new Prisma.Decimal(data.totalAmount),
       notes: data.notes,
       createdById: data.createdById,
+      preparedBySignatureDate: data.preparedBySignatureDate,
+      preparedBySignatureImage: data.preparedBySignatureImage,
       items: {
         create: data.items.map((item) => ({
           productId: item.productId,
