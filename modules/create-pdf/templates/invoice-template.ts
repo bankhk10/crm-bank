@@ -209,9 +209,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       : "เลขที่ออเดอร์";
   const itemsHtml = data.items
     .map(
-      (item) => `
+      (item, index) => `
         <tr>
-          <td class="text-left">${safeValue(item.code)}</td>
+          <td class="text-center">${index + 1}</td>
           <td class="text-left">${safeValue(item.description)}</td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-center">${safeValue(item.unit)}</td>
@@ -326,10 +326,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table class="product-table">
         <thead>
           <tr>
-            <th class="text-left" style="width: 25%;">รหัสสินค้า</th>
-            <th class="text-left" style="width: 28%;">รายละเอียดสินค้า</th>
+            <th style="width: 5%;">ลำดับ</th>
+            <th class="text-left" style="width: 48%;">รายละเอียดสินค้า</th>
             <th style="width: 8%;">จำนวน</th>
-            <th style="width: 8%;">หน่วย</th>
+            <th style="width: 10%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
             <th style="width: 13%;">ราคา/หน่วย</th>
             <th style="width: 10%;">ราคา/ลัง</th>
