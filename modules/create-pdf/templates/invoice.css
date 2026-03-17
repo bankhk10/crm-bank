@@ -55,18 +55,19 @@ body {
 
 .company-text p {
   margin: 2px 0;
-  font-size: 13px;
+  font-size: 11.5px;
   color: #4b5563;
   line-height: 1.4;
+  white-space: nowrap;
 }
 
 .company-contact {
-  font-size: 13px;
+  font-size: 11.5px;
   color: #374151;
 }
 
 .doc-meta {
-  width: 255px;
+  width: 200px;
   text-align: right;
   flex-shrink: 0;
   margin-right: 20px;
