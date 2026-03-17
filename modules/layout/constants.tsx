@@ -82,7 +82,7 @@ export const navigationItems: SidebarNavItem[] = [
           { href: "/products/categories", label: "หมวดสินค้า" },
           { href: "/products/units", label: "หน่วยนับ" },
           { href: "/products/brands", label: "แบรนด์" },
-          { href: "/products/chains", label: "ประเภท (ABC Code)" },
+          { href: "/products/abc-types", label: "ประเภท (ABC Code)" },
         ],
       },
     ],

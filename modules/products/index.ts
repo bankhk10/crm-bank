@@ -62,7 +62,7 @@ export { default as ProductEditView } from "./features/form/product-edit-view";
 // Features - Settings View
 export { default as BrandSettingsView } from "./features/settings-view/brand-settings-view";
 export { default as CategorySettingsView } from "./features/settings-view/category-settings-view";
-export { default as ChainSettingsView } from "./features/settings-view/chain-settings-view";
+export { default as ABCTypeSettingsView } from "./features/settings-view/abc-type-settings-view";
 export { default as ProductGroupSettingsView } from "./features/settings-view/product-group-settings-view";
 export { default as TradeNameGroupSettingsView } from "./features/settings-view/trade-name-group-settings-view";
 export { default as PlantSettingsView } from "./features/settings-view/plant-settings-view";
