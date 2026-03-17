@@ -314,7 +314,7 @@ table.product-table {
 .summary-box {
   width: 340px;
   border: 1px solid #d1d5db;
-  border-radius: 16px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -323,7 +323,7 @@ table.product-table {
   justify-content: space-between;
   gap: 16px;
   padding: 6px 18px; /* Reduced from 12px */
-  font-size: 15px;
+  font-size: 14px;
   color: #1f2937;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
@@ -337,7 +337,7 @@ table.product-table {
   background: #12386b;
   color: #fff;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .signature-section {

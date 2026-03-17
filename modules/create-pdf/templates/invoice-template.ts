@@ -214,7 +214,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <td class="text-center">${index + 1}</td>
           <td class="text-left">${safeValue(item.description)}</td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
-          <td class="text-center">${safeValue(item.unit)}</td>
+          <td class="text-left">${safeValue(item.unit)}</td>
           <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
           <td class="text-center">${formatNumber(item.price)}</td>
           <td class="text-center">${formatNumber(item.cartonPrice)}</td>
@@ -327,13 +327,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <thead>
           <tr>
             <th style="width: 5%;">ลำดับ</th>
-            <th class="text-left" style="width: 48%;">รายละเอียดสินค้า</th>
-            <th style="width: 8%;">จำนวน</th>
-            <th style="width: 10%;">หน่วย</th>
+            <th class="text-left" style="width: 45%;">รายละเอียดสินค้า</th>
+            <th style="width: 5%;">จำนวน</th>
+            <th style="width: 9%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
             <th style="width: 13%;">ราคา/หน่วย</th>
-            <th style="width: 10%;">ราคา/ลัง</th>
-            <th style="width: 12%;">ราคารวม</th>
+            <th style="width: 12%;">ราคา/ลัง</th>
+            <th style="width: 15%;">ราคารวม</th>
           </tr>
         </thead>
         <tbody>
