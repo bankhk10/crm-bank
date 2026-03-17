@@ -28,8 +28,8 @@ const employeesToSeed = [
     postalCode: "10260",
     responsibilityArea: "กรุงเทพและปริมณฑล",
     status: "ACTIVE",
-    departmentName: "ฝ่ายขาย",
-    roleTitle: "Sales Manager",
+    departmentCode: "SA",
+    positionName: "ผู้จัดการฝ่ายขาย",
     password: "password123",
   },
   {
@@ -48,8 +48,8 @@ const employeesToSeed = [
     postalCode: "12120",
     responsibilityArea: "ภาคกลาง",
     status: "ACTIVE",
-    departmentName: "ฝ่ายขาย",
-    roleTitle: "Sales Representative",
+    departmentCode: "SA",
+    positionName: "พนักงานฝ่ายขาย",
     password: "password123",
   },
   {
@@ -68,17 +68,33 @@ const employeesToSeed = [
     postalCode: "60000",
     responsibilityArea: "ภาคเหนือตอนล่าง",
     status: "ACTIVE",
-    departmentName: "ฝ่ายขาย",
-    roleTitle: "Sales Support",
+    departmentCode: "SS",
+    positionName: "ธุรการขาย",
     password: "password123",
   },
 ];
 
 async function main() {
-  console.log("Start seeding employees...");
+  console.log("🚀 Start seeding employees from database metadata...");
 
+  // 1. Fetch real data maps
+  const departments = await prisma.department.findMany();
+  const departmentMap = new Map(departments.map((d) => [d.code, d.id]));
+
+  const positions = await prisma.position.findMany();
+  const positionMap = new Map(positions.map((p) => [p.name, p.id]));
+
+  // 2. Loop through employees to seed
   for (const e of employeesToSeed) {
-    const { password, ...employeeData } = e;
+    const { password, departmentCode, positionName, ...employeeData } = e;
+
+    const departmentId = departmentMap.get(departmentCode) || null;
+    const positionId = positionMap.get(positionName) || null;
+
+    if (!departmentId)
+      console.warn(`⚠️ Warning: Department code "${departmentCode}" not found.`);
+    if (!positionId)
+      console.warn(`⚠️ Warning: Position name "${positionName}" not found.`);
 
     // 1. Create/Update User
     const hashedPassword = await hash(password, 12);
@@ -87,11 +103,15 @@ async function main() {
       update: {
         name: e.name,
         password: hashedPassword,
+        departmentId,
+        positionId,
       },
       create: {
         name: e.name,
         email: e.email,
         password: hashedPassword,
+        departmentId,
+        positionId,
       },
     });
 
@@ -103,10 +123,14 @@ async function main() {
       update: {
         ...employeeData,
         userId: user.id,
+        departmentId,
+        positionId,
       },
       create: {
         ...employeeData,
         userId: user.id,
+        departmentId,
+        positionId,
       },
     });
 
