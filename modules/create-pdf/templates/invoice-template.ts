@@ -249,8 +249,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="company-text">
           <h1>บริษัท คร็อพ ซายน์ จำกัด</h1>
           <h2>CROP SCIENCES CO., LTD.</h2>
-          <p>เลขที่ 22 อาคารไอซี ถนนพระรามที่ 6 แขวงพญาไท</p>
-          <p>เขตพญาไท กรุงเทพฯ 10400</p>
+          <p>เลขที่ 22 อาคารไอซี ถนนพระรามที่ 6 แขวงพญาไท เขตพญาไท กรุงเทพฯ 10400</p>
           <div class="company-contact">โทร. 02-271-4343 &nbsp;&nbsp; แฟกซ์ 02-618-4530</div>
         </div>
       </div>
