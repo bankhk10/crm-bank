@@ -28,8 +28,7 @@ async function getCurrentSessionVersion(): Promise<string> {
       currentSessionVersion = systemConfig.updatedAt.getTime().toString();
     } else {
       // สร้าง system config record ถ้ายังไม่มี
-      const now = new Date();
-      await db.user.create({
+      const systemConfig = await db.user.create({
         data: {
           email: "system@session.version",
           name: "System Session Version",
@@ -37,12 +36,12 @@ async function getCurrentSessionVersion(): Promise<string> {
           isActive: false,
         },
       });
-      currentSessionVersion = now.getTime().toString();
+      currentSessionVersion = systemConfig.updatedAt.getTime().toString();
     }
   } catch (error) {
     console.error("Error getting session version:", error);
-    // Fallback: ใช้ timestamp ปัจจุบัน
-    currentSessionVersion = Date.now().toString();
+    // Fallback: ใช้ timestamp ปัจจุบัน (พยายามหลีกเลี่ยง loop โดยใช้ค่าที่คงที่ในช่วงสั้นๆ)
+    currentSessionVersion = (Math.floor(Date.now() / 1000) * 1000).toString();
   }
 
   return currentSessionVersion!;

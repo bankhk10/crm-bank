@@ -277,9 +277,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             token.managerId = fresh.employeeProfile?.managerId ?? null;
             // Update session version on refresh
             token.sessionVersion = await getSessionVersion();
+          } else {
+            // User no longer exists in DB - invalidate token
+            token.sub = undefined;
           }
-        } catch {
+        } catch (error) {
           // Silent fail: keep old token data
+          console.error("JWT Fresh check failed:", error);
         }
       }
       return token;
@@ -287,12 +291,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (!token.sub) {
         // Token was invalidated (force logout) – treat as unauthenticated
-        session.user = undefined as any;
-        return session;
+        // Return null or session with no user to signal unauthenticated state
+        return {
+          ...session,
+          user: undefined,
+        } as any;
       }
 
       if (session.user) {
-        session.user.id = token.sub ?? "";
+        session.user.id = token.sub;
         session.user.roles = (token.roles as string[]) ?? [];
         session.user.permissionKeys = (token.permissionKeys as string[]) ?? [];
         session.user.departmentId =
