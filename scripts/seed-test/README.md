@@ -14,7 +14,15 @@
 pnpm tsx scripts/seed-test/seed-products.ts
 ```
 
-### 2. ข้อมูลลูกค้า (Customers)
+### 2. ข้อมูลพนักงานขาย (Employees)
+
+สร้างข้อมูลพนักงานจำลองจำนวน 4 รายการ (ประกอบด้วยพนักงานแบบทำงานอยู่ และลาออกแล้ว พร้อมข้อมูลส่วนตัว พื้นที่รับผิดชอบ)
+
+```bash
+pnpm tsx scripts/seed-test/seed-employees.ts
+```
+
+### 3. ข้อมูลลูกค้า (Customers)
 
 สร้างลูกค้าจำลองครบทุกประเภท (DEALER, SUBDEALER, FARMER, BROKER) พร้อมเปิดฟิลด์เฉพาะตามประเภทลูกค้า จำนวน 4 รายการ
 
@@ -22,20 +30,12 @@ pnpm tsx scripts/seed-test/seed-products.ts
 pnpm tsx scripts/seed-test/seed-customers.ts
 ```
 
-### 3. ข้อมูลบริษัทขนส่ง (Shipping Companies)
+### 4. ข้อมูลบริษัทขนส่ง (Shipping Companies)
 
 สร้างบริษัทขนส่งจำลองจำนวน 4 รายการ (ใส่ข้อมูลสถานที่ ที่อยู่ โทรศัพท์ และสถานะใช้งานครบถ้วน)
 
 ```bash
 pnpm tsx scripts/seed-test/seed-shipping-companies.ts
-```
-
-### 4. ข้อมูลพนักงานขาย (Employees)
-
-สร้างข้อมูลพนักงานจำลองจำนวน 4 รายการ (ประกอบด้วยพนักงานแบบทำงานอยู่ และลาออกแล้ว พร้อมข้อมูลส่วนตัว พื้นที่รับผิดชอบ)
-
-```bash
-pnpm tsx scripts/seed-test/seed-employees.ts
 ```
 
 ### 5. ข้อมูลเป้าหมายการขาย (Sales Targets)
