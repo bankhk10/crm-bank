@@ -2,10 +2,10 @@ import { PrismaClient } from "@prisma/client";
 
 export async function seedProductMaster(prisma: PrismaClient) {
   console.log(
-    "🧴 Seeding Product Master (Product Groups, Chemical Groups, Brands)...",
+    "🧴 Seeding Product Master (tradeNameGroup, productGroup, brand, productABCType)...",
   );
 
-  // Create Product Groups (Trade Name Groups)
+  // Create tradeNameGroup
   await prisma.tradeNameGroup.createMany({
     data: [
       { code: "คอนซัลท์", description: "คอนซัลท์" },
@@ -19,7 +19,7 @@ export async function seedProductMaster(prisma: PrismaClient) {
     skipDuplicates: true,
   });
 
-  // Create Chemical Groups
+  // Create productGroup
   await prisma.productGroup.createMany({
     data: [
       {
