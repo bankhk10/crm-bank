@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Search, type LucideIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -208,8 +208,8 @@ export default function ProductManagementSettingsView({
 
   return (
     <section className="space-y-6">
-      <Card className="shadow-lg border-0 overflow-hidden !py-0 !gap-0">
-        <CardHeader className={cn("text-white !px-6 !py-4", gradientFrom, gradientTo)}>
+      <Card className="overflow-hidden border-0 shadow-xl bg-white/70 backdrop-blur-sm !py-0 !gap-0">
+        <CardHeader className={cn("bg-gradient-to-r !px-6 !py-4 text-white shadow-lg", gradientFrom, gradientTo)}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
               <Icon className="w-8 h-8" />
@@ -218,7 +218,7 @@ export default function ProductManagementSettingsView({
             {canCreate && (
               <Button
                 onClick={handleOpenCreate}
-                className="bg-white hover:bg-slate-50 shadow-md"
+                className="bg-white hover:bg-slate-50 shadow-md border-0"
                 style={{ color: accentColor }}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -313,10 +313,39 @@ export default function ProductManagementSettingsView({
             </Table>
           </div>
 
-          {/* Pagination info */}
+          {/* Pagination info & controls */}
           {total > 0 && (
-            <div className="mt-4 text-sm text-slate-500">
-              แสดง {items.length} จาก {total} รายการ
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-slate-500 order-2 sm:order-1">
+                แสดง {items.length} จาก {total} รายการ
+              </div>
+              
+              <div className="flex items-center gap-2 order-1 sm:order-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                  disabled={page === 1 || loading}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  ย้อนกลับ
+                </Button>
+                
+                <div className="flex items-center gap-1 mx-2">
+                  <span className="text-sm font-medium">หน้า {page}</span>
+                  <span className="text-sm text-slate-400">จาก {Math.ceil(total / perPage)}</span>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(prev => prev + 1)}
+                  disabled={page >= Math.ceil(total / perPage) || loading}
+                >
+                  ถัดไป
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
