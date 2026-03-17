@@ -4,12 +4,12 @@ import React from "react";
 import ProductManagementSettingsView from "./settings-view";
 import { FolderTree } from "lucide-react";
 
-export default function GroupSettingsView() {
+export default function TradeNameGroupSettingsView() {
   return (
     <ProductManagementSettingsView
       title="กลุ่มชื่อการค้า"
       icon={FolderTree}
-      apiPath="/api/products/groups"
+      apiPath="/api/products/trade-name-groups"
       entityKey="groups"
       entityLabel="กลุ่มชื่อการค้า"
       gradientFrom="from-emerald-600"

@@ -1,5 +1,5 @@
-import { GroupSettingsView } from "@/modules/products";
+import { ProductGroupSettingsView } from "@/modules/products";
 
-export default function GroupsPage() {
-  return <GroupSettingsView />;
+export default function ProductGroupsPage() {
+  return <ProductGroupSettingsView />;
 }

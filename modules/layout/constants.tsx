@@ -77,8 +77,8 @@ export const navigationItems: SidebarNavItem[] = [
         label: "หมวดหมู่และคุณลักษณะ",
         children: [
           { href: "/products/plants", label: "พืช" },
-          { href: "/products/groups", label: "กลุ่มชื่อการค้า" },
-          { href: "/products/chemical-groups", label: "กลุ่มสินค้า" },
+          { href: "/products/groups", label: "กลุ่มสินค้า" },
+          { href: "/products/trade-name-groups", label: "กลุ่มชื่อการค้า" },
           { href: "/products/categories", label: "หมวดสินค้า" },
           { href: "/products/units", label: "หน่วยนับ" },
           { href: "/products/brands", label: "แบรนด์" },
