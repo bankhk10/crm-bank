@@ -322,8 +322,8 @@ table.product-table {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 6px 18px; /* Reduced from 12px */
-  font-size: 14px;
+  padding: 8px 18px; /* Reduced from 12px */
+  font-size: 15px;
   color: #1f2937;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
@@ -337,7 +337,7 @@ table.product-table {
   background: #12386b;
   color: #fff;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .signature-section {
