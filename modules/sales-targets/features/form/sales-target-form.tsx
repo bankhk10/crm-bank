@@ -703,9 +703,6 @@ function StoreCard({
                         <h3 className="font-extrabold text-slate-800 text-base sm:text-lg leading-tight truncate">
                             {store.name}
                         </h3>
-                        <span className="text-xs sm:text-sm font-medium text-slate-500 inline-block mt-0.5 bg-slate-100 px-2 py-0.5 rounded-full">
-                            รหัส: {store.customerCode}
-                        </span>
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full sm:w-auto">
@@ -755,7 +752,7 @@ function StoreCard({
                     placeholder="+ ค้นหาและเลือกสินค้า..."
                     searchPlaceholder="ค้นหาสินค้า..."
                     emptyText="ไม่พบสินค้า"
-                    triggerClassName="h-12 sm:h-11 border-dashed border-2 border-emerald-300 text-emerald-700 bg-emerald-50/30 hover:bg-emerald-50/80 hover:border-emerald-400 transition-colors text-base sm:text-sm font-medium rounded-xl"
+                    triggerClassName="h-12 sm:h-11 text-emerald-700 bg-emerald-50/30 hover:bg-emerald-50/80 hover:border-emerald-400 transition-colors text-base sm:text-sm font-medium rounded-xl"
                 />
             </div>
 
@@ -797,9 +794,6 @@ function StoreCard({
                             <div className="min-w-0 pl-2">
                                 <span className="text-sm font-bold text-slate-800 block truncate">
                                     {item.name}
-                                </span>
-                                <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-full inline-block mt-1">
-                                    {item.productCode}
                                 </span>
                             </div>
                             <FormInput
