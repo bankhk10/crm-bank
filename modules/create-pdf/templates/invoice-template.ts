@@ -401,15 +401,18 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="signature-section">
       <div class="signature-card">
         <div class="signature-title">พนักงานขาย</div>
-        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 35px;">
           <div class="dot-line" style="position: relative;">
-            ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
+            <img src="http://localhost:3000/uploads/employees/signatures/test.png" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />
           </div>
         </div>
-        <div class="sign-row" style="position: relative;">
+        <div class="signature-name-block">
+          <p>( นายอรรถพล มงคล )</p>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: 10px;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
-            ${(data.preparedBySignatureDate || data.signatureDate) ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate || data.signatureDate}</span>` : ""}
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18 มีนาคม 2569
           </div>
         </div>
       </div>
