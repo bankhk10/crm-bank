@@ -35,7 +35,7 @@ body {
   height: 120px;
   object-fit: contain;
   flex-shrink: 0;
-  margin-top: -17px;ฟกก
+  margin-top: -17px;
 }
 
 .company-text h1 {
@@ -91,7 +91,7 @@ body {
 }
 
 .doc-no-box {
-  margin-top: 18px;
+  margin-top: 10px;
   display: inline-flex;
   justify-content: end;
   gap: 8px;
