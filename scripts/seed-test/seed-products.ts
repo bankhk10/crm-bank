@@ -29,7 +29,7 @@ const productsToSeed = [
     // We will use codes to find these IDs in main()
     categoryCode: "ACA",
     abcTypeCode: "A",
-    productGroupCode: "ACE2",
+    productGroupCode: "ACE",
     tradeNameGroupCode: "คอนซัลท์",
     packageSizeUnit: "L",
     packageSize: 1,
