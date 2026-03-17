@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hash } from "bcryptjs";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -29,6 +30,7 @@ const employeesToSeed = [
     status: "ACTIVE",
     departmentName: "ฝ่ายขาย",
     roleTitle: "Sales Manager",
+    password: "password123",
   },
   {
     employeeCode: "EMP-002",
@@ -48,6 +50,7 @@ const employeesToSeed = [
     status: "ACTIVE",
     departmentName: "ฝ่ายขาย",
     roleTitle: "Sales Representative",
+    password: "password123",
   },
   {
     employeeCode: "EMP-003",
@@ -67,6 +70,7 @@ const employeesToSeed = [
     status: "ACTIVE",
     departmentName: "ฝ่ายขาย",
     roleTitle: "Sales Support",
+    password: "password123",
   },
 ];
 
@@ -74,13 +78,40 @@ async function main() {
   console.log("Start seeding employees...");
 
   for (const e of employeesToSeed) {
+    const { password, ...employeeData } = e;
+
+    // 1. Create/Update User
+    const hashedPassword = await hash(password, 12);
+    const user = await prisma.user.upsert({
+      where: { email: e.email },
+      update: {
+        name: e.name,
+        password: hashedPassword,
+      },
+      create: {
+        name: e.name,
+        email: e.email,
+        password: hashedPassword,
+      },
+    });
+
+    console.log(`👤 Upserted User: ${user.email}`);
+
+    // 2. Create/Update Employee linked to User
     const employee = await prisma.employee.upsert({
       where: { email: e.email },
-      update: e,
-      create: e,
+      update: {
+        ...employeeData,
+        userId: user.id,
+      },
+      create: {
+        ...employeeData,
+        userId: user.id,
+      },
     });
+
     console.log(
-      `✅ Upserted Employee: ${employee.name} (Code: ${employee.employeeCode})`,
+      `✅ Upserted Employee: ${employee.name} (Code: ${employee.employeeCode}) linked to User ID: ${user.id}`,
     );
   }
 
