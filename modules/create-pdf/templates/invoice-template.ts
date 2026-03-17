@@ -225,7 +225,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     .join("");
 
   const preparedSign = getImageBase64(data.preparedBySignatureImage || data.signatureImage);
-  const checkedSign = getImageBase64(data.checkedBySignatureImage);
   const approvedSign = getImageBase64(data.approvedBySignatureImage);
 
   return `
@@ -410,21 +409,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
             ${data.preparedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate}</span>` : ""}
-          </div>
-        </div>
-      </div>
-
-      <div class="signature-card">
-        <div class="signature-title">ผู้จัดการภาค</div>
-        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
-          <div class="dot-line" style="position: relative;">
-            ${checkedSign ? `<img src="${checkedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
-          </div>
-        </div>
-        <div class="sign-row" style="position: relative;">
-          <span>วันที่</span>
-          <div class="dot-line" style="position: relative;">
-            ${data.checkedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.checkedBySignatureDate}</span>` : ""}
           </div>
         </div>
       </div>

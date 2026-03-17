@@ -347,13 +347,14 @@ table.product-table {
   border-top: 1px solid #e5e7eb;
   padding-top: 24px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
   break-inside: avoid;
 }
 
 .signature-card {
   padding: 0 16px;
-  min-height: 120px;
+  min-height: 140px;
 }
 
 .signature-card + .signature-card {
