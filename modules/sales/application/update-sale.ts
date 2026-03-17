@@ -157,7 +157,7 @@ export async function updateSaleUseCase(
         name: product?.name,
         commonName: product?.commonName,
         unit: product?.unit,
-        productGroup: product?.productGroup,
+        productGroup: product?.productGroup?.name,
         brand: product?.brand,
         packageSize: product?.packageSize as any,
         packageSizeUnit: product?.packageSizeUnit,

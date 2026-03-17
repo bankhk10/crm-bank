@@ -25,7 +25,7 @@ function generateSaleNumber(lastNumber?: string | null): string {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, "0");
-  const prefix = `SO${year}${month}`;
+  const prefix = `${year}${month}`;
 
   if (!lastNumber || !lastNumber.startsWith(prefix)) {
     return `${prefix}0001`;
@@ -86,7 +86,7 @@ export async function createSaleUseCase(
     const availableCredit = Number(creditLimit.availableAmount);
     const promotionalCredit = body.usePromotionalCredit
       ? Number(creditLimit.promoAmount || 0) -
-        Number(body.promotionalCreditUsed || 0)
+      Number(body.promotionalCreditUsed || 0)
       : 0;
 
     if (total > availableCredit + promotionalCredit) {
@@ -197,7 +197,7 @@ export async function createSaleUseCase(
         name: product?.name,
         commonName: product?.commonName,
         unit: product?.unit,
-        productGroup: product?.productGroup,
+        productGroup: product?.productGroup?.name,
         brand: product?.brand,
         packageSize: product?.packageSize as any,
         packageSizeUnit: product?.packageSizeUnit,
