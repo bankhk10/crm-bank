@@ -93,10 +93,10 @@ body {
 .doc-no-box {
   margin-top: 10px;
   display: inline-flex;
-  justify-content: end;
+  justify-content: center;
   gap: 8px;
   padding: 10px 14px;
-  min-width: 150px;
+  min-width: 190px;
   background: #f3f4f6;
   border-radius: 14px;
 }
