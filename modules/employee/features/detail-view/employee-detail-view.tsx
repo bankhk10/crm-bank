@@ -192,13 +192,13 @@ export default function EmployeeDetailView() {
         <div className="min-h-screen bg-gray-50 pb-16">
 
             {/* ── Hero Header ──────────────────────────────────────────────── */}
-            <div className="bg-[#111111] rounded-4xl max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] max-w-7xl mx-auto overflow-hidden shadow-2xl shadow-black/20">
+                <div className="px-4 sm:px-10 lg:px-12">
                     {/* Breadcrumb row */}
-                    <div className="pt-5 pb-1 border-b border-white/5">
+                    <div className="pt-6 pb-2 border-b border-white/5">
                         <Link
                             href="/employee"
-                            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors group"
+                            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors group"
                         >
                             <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
                             รายการพนักงาน
@@ -206,37 +206,37 @@ export default function EmployeeDetailView() {
                     </div>
 
                     {/* Identity row */}
-                    <div className="py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                        <div className="flex items-center gap-5">
+                    <div className="py-8 sm:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                        <div className="flex items-center gap-6">
                             {/* Avatar */}
-                            <div className="w-16 h-16 rounded-2xl bg-[#B91C1C] flex items-center justify-center shrink-0">
-                                <User className="h-8 w-8 text-white" />
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#B91C1C] to-[#991B1B] flex items-center justify-center shrink-0 shadow-lg shadow-red-900/20">
+                                <User className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
                             </div>
 
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                                <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
                                     {employee.name}
                                 </h1>
-                                <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                                <div className="flex flex-wrap items-center gap-2 mt-3">
                                     {employee.employeeCode && (
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 bg-white/8 border border-white/10 px-2.5 py-1 rounded-lg">
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
                                             <BadgeCheck className="h-3.5 w-3.5 text-[#F87171]" />
                                             {employee.employeeCode}
                                         </span>
                                     )}
                                     {employee.positionTitle && (
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 bg-white/8 border border-white/10 px-2.5 py-1 rounded-lg">
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
                                             <Briefcase className="h-3.5 w-3.5 text-gray-500" />
                                             {employee.positionTitle}
                                         </span>
                                     )}
                                     {employee.status === "ACTIVE" || !employee.status ? (
-                                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-lg">
+                                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
                                             <CheckCircle2 className="h-3.5 w-3.5" />
                                             ใช้งาน
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                                             <XCircle className="h-3.5 w-3.5" />
                                             {employee.status}
                                         </span>
@@ -247,22 +247,22 @@ export default function EmployeeDetailView() {
 
                         {/* Action Buttons */}
                         {(canEdit || canDelete) && (
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-3 shrink-0">
                                 {canEdit && (
                                     <Button
                                         size="sm"
-                                        className="h-9 px-4 text-xs font-semibold bg-[#B91C1C] hover:bg-[#991B1B] text-white border-0 rounded-lg shadow-none"
+                                        className="h-10 px-6 text-xs font-bold bg-[#B91C1C] hover:bg-[#D41E1E] text-white border-0 rounded-xl shadow-lg shadow-red-900/20 transition-all active:scale-[0.98]"
                                         onClick={() => router.push(`/employee/${employeeId}/edit`)}
                                     >
-                                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                                        แก้ไข
+                                        <Pencil className="h-3.5 w-3.5 mr-2" />
+                                        แก้ไขข้อมูล
                                     </Button>
                                 )}
                                 {canDelete && (
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="h-9 px-4 text-xs font-semibold border-white/15 text-gray-400 hover:border-red-500/40 hover:text-red-400 hover:bg-transparent rounded-lg"
+                                        className="h-10 px-4 text-xs font-semibold border-white/10 text-gray-500 hover:border-red-500/40 hover:text-red-400 hover:bg-white/5 rounded-xl transition-all"
                                         onClick={() => setDeleteDialogOpen(true)}
                                     >
                                         <Trash2 className="h-3.5 w-3.5 mr-1.5" />
@@ -273,6 +273,8 @@ export default function EmployeeDetailView() {
                         )}
                     </div>
                 </div>
+                {/* Red bottom accent bar */}
+                <div className="h-1.5 bg-[#B91C1C] w-full" />
             </div>
 
             {/* ── Main Content ─────────────────────────────────────────────── */}
