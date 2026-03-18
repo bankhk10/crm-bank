@@ -189,7 +189,7 @@ export default function EmployeeDetailView() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-16">
+        <div className="min-h-screen">
 
             {/* ── Hero Header ──────────────────────────────────────────────── */}
             <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] max-w-7xl mx-auto overflow-hidden shadow-2xl shadow-black/20">
@@ -543,43 +543,28 @@ export default function EmployeeDetailView() {
 
             {/* ── Delete Confirmation Dialog ────────────────────────────────── */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent className="border border-gray-200 shadow-2xl rounded-2xl overflow-hidden p-0">
-                    {/* Red top bar */}
-                    <div className="h-1 bg-[#B91C1C]" />
-                    <div className="p-6">
-                        <DialogTitle className="text-base font-bold text-gray-900">
-                            ยืนยันการลบข้อมูล
-                        </DialogTitle>
-                        <DialogDescription className="mt-2 text-sm text-gray-500 leading-relaxed">
-                            คุณต้องการลบพนักงาน{" "}
-                            <span className="font-semibold text-gray-800">{employee.name}</span>{" "}
-                            ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
-                        </DialogDescription>
-                        <DialogFooter className="mt-5 gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50"
-                                onClick={() => setDeleteDialogOpen(false)}
-                                disabled={deleting}
-                            >
-                                ยกเลิก
-                            </Button>
-                            <Button
-                                size="sm"
-                                className="rounded-lg bg-[#B91C1C] hover:bg-[#991B1B] text-white shadow-none border-0"
-                                onClick={handleDelete}
-                                disabled={deleting}
-                            >
-                                {deleting ? (
-                                    <span className="flex items-center gap-2">
-                                        <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                                        กำลังลบ...
-                                    </span>
-                                ) : "ลบข้อมูล"}
-                            </Button>
-                        </DialogFooter>
-                    </div>
+                <DialogContent>
+                    <DialogTitle>ยืนยันการลบพนักงาน</DialogTitle>
+                    <DialogDescription>
+                        คุณต้องการลบพนักงาน <strong>{employee?.name}</strong> ใช่หรือไม่?
+                        การกระทำนี้ไม่สามารถย้อนกลับได้
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteDialogOpen(false)}
+                            disabled={deleting}
+                        >
+                            ยกเลิก
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={deleting}
+                        >
+                            {deleting ? "กำลังลบ..." : "ลบพนักงาน"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
