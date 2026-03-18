@@ -170,7 +170,7 @@ export default function EmployeeDetailView() {
             <DetailHero
                 backUrl="/employee"
                 backLabel="หน้ารายการพนักงาน"
-                title={employee.name}
+                title={employee.name || ""}
                 icon={<User className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
                 accentColor="#B91C1C"
                 badges={
