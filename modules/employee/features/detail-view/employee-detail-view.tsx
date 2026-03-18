@@ -39,6 +39,36 @@ import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "../../types";
 import { DetailItem } from "@/components/custom/detail-item";
 
+// ─── Reusable Section Header ─────────────────────────────────────────────
+const SectionHeader = ({
+    icon,
+    title,
+    dark = false,
+    children,
+}: {
+    icon: React.ReactNode;
+    title: string;
+    dark?: boolean;
+    children?: React.ReactNode;
+}) => (
+    <div
+        className={cn(
+            "px-6 py-4 flex items-center justify-between gap-4 border-b",
+            dark
+                ? "bg-[#111111] border-black"
+                : "bg-[#B91C1C] border-[#991B1B]",
+        )}
+    >
+        <div className="flex items-center gap-2.5">
+            <span className="text-white/70">{icon}</span>
+            <h2 className="text-base font-extrabold text-white uppercase tracking-wider">
+                {title}
+            </h2>
+        </div>
+        {children}
+    </div>
+);
+
 export default function EmployeeDetailView() {
     const { employeeId } = useParams() as { employeeId: string };
     const router = useRouter();
@@ -157,36 +187,6 @@ export default function EmployeeDetailView() {
             </div>
         );
     }
-
-    // ─── Reusable Section Header ─────────────────────────────────────────────
-    const SectionHeader = ({
-        icon,
-        title,
-        dark = false,
-        children,
-    }: {
-        icon: React.ReactNode;
-        title: string;
-        dark?: boolean;
-        children?: React.ReactNode;
-    }) => (
-        <div
-            className={cn(
-                "px-6 py-4 flex items-center justify-between gap-4 border-b",
-                dark
-                    ? "bg-[#111111] border-black"
-                    : "bg-[#B91C1C] border-[#991B1B]",
-            )}
-        >
-            <div className="flex items-center gap-2.5">
-                <span className="text-white/70">{icon}</span>
-                <h2 className="text-base font-extrabold text-white uppercase tracking-wider">
-                    {title}
-                </h2>
-            </div>
-            {children}
-        </div>
-    );
 
     return (
         <div className="min-h-screen">
