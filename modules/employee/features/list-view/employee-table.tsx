@@ -1,30 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Trash2, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { usePermission } from "@/hooks/use-permission";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
 import { Employee } from "../../types";
 import { useEmployeeColumns } from "./use-employee-columns";
 import { EmployeeCards } from "./employee-cards";
-import {
-    deleteEmployeeAction,
-} from "../../server/actions";
 
-type EmployeesGridProps = {
+type EmployeeTableProps = {
     employees: Employee[];
     loading?: boolean;
     total?: number;
@@ -37,6 +24,11 @@ type EmployeesGridProps = {
     onSearchSubmit?: () => void;
     dateRange?: { from?: Date; to?: Date };
     onDateRangeChange?: (range: { from?: Date; to?: Date } | undefined) => void;
+    canCreate?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+    canView?: boolean;
+    onDelete?: (employee: Employee) => void;
 };
 
 export function EmployeeTable({
@@ -50,57 +42,18 @@ export function EmployeeTable({
     searchValue,
     onSearchChange,
     onSearchSubmit,
-    dateRange,
-    onDateRangeChange,
-}: EmployeesGridProps) {
-    const router = useRouter();
-    const { allowed, isLoading, hasPermission } = usePermission("menu.employees");
-    const canCreate = !isLoading && hasPermission("employee.create");
-    const canEdit = !isLoading && hasPermission("employee.edit");
-    const canDelete = !isLoading && hasPermission("employee.delete");
-    const canView =
-        hasPermission("menu.employees") || hasPermission("employee.view");
-
-    const [deleteTarget, setDeleteTarget] = React.useState<Employee | null>(null);
-
-    // Handle Delete
-    const handleDelete = async () => {
-        if (!deleteTarget) return;
-        try {
-            const res = await deleteEmployeeAction(deleteTarget.id);
-            if (res.success) {
-                setDeleteTarget(null);
-                router.refresh();
-            } else {
-                console.error("Failed to delete", res.error);
-            }
-        } catch (err) {
-            console.error(err);
-            setDeleteTarget(null);
-        }
-    };
-
+    canCreate = false,
+    canEdit = false,
+    canDelete = false,
+    canView = false,
+    onDelete,
+}: EmployeeTableProps) {
     const columns = useEmployeeColumns(
-        (emp) => setDeleteTarget(emp),
+        (emp) => onDelete?.(emp),
         canDelete,
         canEdit,
         canView,
     );
-
-    if (isLoading)
-        return (
-            <div className="p-8 text-center text-slate-500">กรุณารอสักครู่...</div>
-        );
-
-    if (!allowed) {
-        return (
-            <Card className="p-8 text-center">
-                <div className="text-red-600 font-semibold text-lg">
-                    คุณไม่มีสิทธิ์เข้าถึงหน้านี้
-                </div>
-            </Card>
-        );
-    }
 
     const toolbar = (
         <div className="space-y-4 mb-6">
@@ -134,7 +87,7 @@ export function EmployeeTable({
         total,
         onPageChange: onPageChange ?? (() => { }),
         onPerPageChange: onPerPageChange ?? (() => { }),
-        perPageOptions: [5, 10, 20, 50],
+        perPageOptions: [10, 20, 30, 50],
     };
 
     return (
@@ -149,7 +102,7 @@ export function EmployeeTable({
                         canDelete={canDelete}
                         canEdit={canEdit}
                         canView={canView}
-                        onDeleteRequest={(emp) => setDeleteTarget(emp)}
+                        onDeleteRequest={(emp) => onDelete?.(emp)}
                         pagination={pagination}
                     />
                 }
@@ -168,40 +121,6 @@ export function EmployeeTable({
                     />
                 }
             />
-
-            {/* Delete Dialog */}
-            <Dialog
-                open={Boolean(deleteTarget)}
-                onOpenChange={(open) => {
-                    if (!open) setDeleteTarget(null);
-                }}
-            >
-                <DialogContent className="sm:max-w-[420px] rounded-lg border-0 shadow-2xl">
-                    <DialogTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
-                        <Trash2 className="h-5 w-5" /> ลบพนักงาน
-                    </DialogTitle>
-                    <DialogDescription className="text-base text-slate-600">
-                        คุณต้องการลบพนักงาน <b>{deleteTarget?.name}</b> ใช่หรือไม่? <br />
-                        การกระทำนี้ไม่สามารถย้อนกลับได้
-                    </DialogDescription>
-                    <DialogFooter className="mt-6 gap-2 sm:gap-0">
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteTarget(null)}
-                            className="rounded-full"
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            className="rounded-full bg-red-600 hover:bg-red-700"
-                        >
-                            ยืนยันการลบ
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

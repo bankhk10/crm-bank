@@ -8,7 +8,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { EmployeeTable } from "./employee-table";
 import { PageHeader } from "@/components/custom/page-header";
-import { Users } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Users, Trash2 } from "lucide-react";
 import { getEmployeesAction, deleteEmployeeAction } from "@/modules/employee/server/actions";
 import { toast } from "sonner";
 import { PAGINATION } from "@/lib/constants";
@@ -20,6 +27,8 @@ export default function EmployeeListView() {
 
     const { hasPermission, allowed, isLoading: checkingPermission } = usePermission("menu.employees");
     const canCreate = hasPermission("employee.create");
+    const canEdit = hasPermission("employee.edit");
+    const canDelete = hasPermission("employee.delete");
     const canView = (!checkingPermission && allowed) || hasPermission("employee.view");
 
     const [data, setData] = useState<any[]>([]);
@@ -229,9 +238,50 @@ export default function EmployeeListView() {
                         onSearchSubmit={handleSearchSubmit}
                         dateRange={filterDraft.dateRange}
                         onDateRangeChange={(range: any) => setFilterDraft(prev => ({ ...prev, dateRange: range }))}
+                        canCreate={canCreate}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        canView={canView}
+                        onDelete={(emp) => setDeleteCandidate(emp)}
                     />
                 </div>
             </div>
+
+            {/* Delete Dialog */}
+            <Dialog 
+                open={Boolean(deleteCandidate)} 
+                onOpenChange={(open) => {
+                    if (!open) setDeleteCandidate(null);
+                }}
+            >
+                <DialogContent className="sm:max-w-[420px] rounded-lg border-0 shadow-2xl">
+                    <DialogTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
+                        <Trash2 className="h-5 w-5" /> ลบพนักงาน
+                    </DialogTitle>
+                    <DialogDescription className="text-base text-slate-600">
+                        คุณต้องการลบพนักงาน <b>{deleteCandidate?.name}</b> ใช่หรือไม่? <br />
+                        การกระทำนี้ไม่สามารถย้อนกลับได้
+                    </DialogDescription>
+                    <DialogFooter className="mt-6 gap-2 sm:gap-0">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteCandidate(null)}
+                            disabled={actionLoading}
+                            className="rounded-full"
+                        >
+                            ยกเลิก
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={actionLoading}
+                            className="rounded-full bg-red-600 hover:bg-red-700"
+                        >
+                            {actionLoading ? "กำลังลบ..." : "ยืนยันการลบ"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </section>
     );
 }
