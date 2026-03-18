@@ -222,15 +222,8 @@ export default function ProductDetailView() {
         badges={
           <>
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
-              <Hash className="h-3.5 w-3.5 text-gray-200" />
-              {product.productCode}
+              รหัสสินค้า : {product.productCode}
             </span>
-            {product.productGroup && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
-                <Layers className="h-3.5 w-3.5 text-gray-200" />
-                {product.productGroup.name}
-              </span>
-            )}
             {product.status === "ACTIVE" ? (
               <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/50 px-3 py-1 rounded-full uppercase tracking-wider">
                 <CheckCircle2 className="h-3.5 w-3.5" />
@@ -272,7 +265,7 @@ export default function ProductDetailView() {
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main product layout */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -332,10 +325,10 @@ export default function ProductDetailView() {
 
             {/* ─── RIGHT: Product Info ─── */}
             <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-5">
-              {product.commonName && (
+              {product.name && (
                 <div className="mb-2">
                   <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    {product.commonName}
+                    {product.name}
                   </h2>
                 </div>
               )}
