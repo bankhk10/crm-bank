@@ -133,7 +133,7 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
                             >
                                 <Link href={`/shipping-companies/${shippingCompany.id}/edit`}>
                                     <Edit className="h-3.5 w-3.5 mr-2" />
-                                    แก้ไขสินค้า
+                                    แก้ไข
                                 </Link>
                             </Button>
                         )}
@@ -144,7 +144,7 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
                                 onClick={() => setDeleteDialogOpen(true)}
                             >
                                 <Trash2 className="h-3.5 w-3.5 mr-2 text-red-400" />
-                                ลบสินค้า
+                                ลบ
                             </Button>
                         )}
                     </div>

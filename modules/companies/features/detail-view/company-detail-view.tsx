@@ -26,6 +26,7 @@ import {
     Pencil,
     Trash2,
     AlertTriangle,
+    Edit,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { deleteCompanyAction, getCompanyAction } from "@/modules/companies/server/actions";
@@ -170,19 +171,15 @@ export default function CompanyDetailView() {
                     </>
                 }
                 actions={
-                    <>
+                    <div className="flex items-center gap-2">
                         {canEdit && (
                             <Button
-                                asChild
                                 size="sm"
-                                className="h-10 px-6 text-xs font-semibold 
-                                bg-white/10 hover:bg-white/20 
-                                text-white border border-white/10 
-                                rounded-xl backdrop-blur-md
-                                transition-all active:scale-[0.98]"
+                                className="h-10 px-4 sm:px-6 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl backdrop-blur-md transition-all active:scale-[0.98]"
+                                asChild
                             >
                                 <Link href={`/companies/${company.id}/edit`}>
-                                    <Pencil className="h-4 w-4 mr-2" />
+                                    <Edit className="h-3.5 w-3.5 mr-2" />
                                     แก้ไข
                                 </Link>
                             </Button>
@@ -190,18 +187,14 @@ export default function CompanyDetailView() {
                         {canDelete && (
                             <Button
                                 size="sm"
-                                className="h-10 px-6 text-xs font-semibold 
-                                bg-red-600 hover:bg-red-700 
-                                text-white border-0 
-                                rounded-xl shadow-lg shadow-red-900/30
-                                transition-all active:scale-[0.98]"
+                                className="h-10 px-4 sm:px-6 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl backdrop-blur-md transition-all active:scale-[0.98]"
                                 onClick={() => setDeleteDialogOpen(true)}
                             >
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="h-3.5 w-3.5 mr-2 text-red-400" />
                                 ลบ
                             </Button>
                         )}
-                    </>
+                    </div>
                 }
             />
 
