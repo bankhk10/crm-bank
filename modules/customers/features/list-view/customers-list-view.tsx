@@ -13,15 +13,15 @@ import type { CustomerRecord } from "../../types";
 export default function CustomersListView() {
   const { hasPermission, isLoading } = usePermission();
   const allowed = !isLoading && (hasPermission("menu.customers") || hasPermission("customer.view"));
-  
+
   const [data, setData] = useState<CustomerRecord[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [page, setPage] = useState<number>(PAGINATION.DEFAULT_PAGE);
   const [perPage, setPerPage] = useState<number>(PAGINATION.DEFAULT_PER_PAGE);
-  
+
   const [filterDraft, setFilterDraft] = useState<{
     query: string;
     customerType?: string;
@@ -86,7 +86,7 @@ export default function CustomersListView() {
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
-    
+
     (async () => {
       setLoading(true);
       setError(null);
@@ -95,16 +95,16 @@ export default function CustomersListView() {
           page: Number(page),
           perPage: Number(perPage),
         };
-        
+
         if (appliedFilters.query.trim())
           params.q = appliedFilters.query.trim();
         if (appliedFilters.customerType)
           params.typeFilter = appliedFilters.customerType;
-        if (appliedFilters.status) 
+        if (appliedFilters.status)
           params.statusFilter = appliedFilters.status;
 
         const res = await getCustomersAction(params);
-        
+
         if (mounted) {
           const parsedCustomers = (res.customers ?? []).map((c: any) => ({
             ...c,
@@ -122,7 +122,7 @@ export default function CustomersListView() {
         if (mounted) setLoading(false);
       }
     })();
-    
+
     return () => {
       mounted = false;
       controller.abort();
@@ -133,8 +133,8 @@ export default function CustomersListView() {
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-slate-500">กำลังโหลด...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-slate-500">กำลังโหลด...</p>
         </div>
       </div>
     );
@@ -178,10 +178,7 @@ export default function CustomersListView() {
             setFilterDraft={setFilterDraft}
             onSearchSubmit={handleSearchSubmit}
             onRefresh={() => {
-              // Trigger a re-fetch by bumping a hidden counter if needed, 
-              // or just re-run the effect if we can. 
-              // For now, re-applying filters works.
-              setAppliedFilters({...appliedFilters});
+              setAppliedFilters({ ...appliedFilters });
             }}
           />
         </div>
