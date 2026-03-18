@@ -4,7 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Trash2, PlusCircle } from "lucide-react";
-
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
