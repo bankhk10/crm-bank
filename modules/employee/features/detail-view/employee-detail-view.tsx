@@ -195,7 +195,7 @@ export default function EmployeeDetailView() {
             <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] max-w-7xl mx-auto overflow-hidden shadow-2xl shadow-black/20">
                 <div className="px-4 sm:px-10 lg:px-12">
                     {/* Breadcrumb row */}
-                    <div className="pt-6 pb-4">
+                    <div className="pt-6">
                         <Link
                             href="/employee"
                             className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium 
@@ -212,7 +212,7 @@ export default function EmployeeDetailView() {
                     </div>
 
                     {/* Identity row */}
-                    <div className="py-8 sm:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                    <div className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                         <div className="flex items-center gap-6">
                             {/* Avatar */}
                             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#B91C1C] to-[#991B1B] flex items-center justify-center shrink-0 shadow-lg shadow-red-900/20">
