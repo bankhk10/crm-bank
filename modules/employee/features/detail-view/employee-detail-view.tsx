@@ -329,6 +329,7 @@ export default function EmployeeDetailView() {
                         <SectionHeader
                             icon={<Building2 className="h-6 w-6" />}
                             title="ข้อมูลการทำงาน"
+                            dark
                         />
                         <div className="p-6 space-y-1 divide-y divide-gray-50">
                             <DetailItem
@@ -368,7 +369,6 @@ export default function EmployeeDetailView() {
                         <SectionHeader
                             icon={<FileText className="h-6 w-6" />}
                             title="ลายเซ็น"
-                            dark
                         />
                         <div className="p-6 flex items-center justify-center min-h-[140px] bg-gray-50/60">
                             {employee.signature ? (
