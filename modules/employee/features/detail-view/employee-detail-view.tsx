@@ -38,36 +38,12 @@ import { usePermission } from "@/hooks/use-permission";
 import { cn } from "@/lib/utils";
 import type { EmployeeDetail } from "../../types";
 import { DetailItem } from "@/components/custom/detail-item";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailHero } from "@/components/custom/detail-hero";
+
 
 // ─── Reusable Section Header ─────────────────────────────────────────────
-const SectionHeader = ({
-    icon,
-    title,
-    dark = false,
-    children,
-}: {
-    icon: React.ReactNode;
-    title: string;
-    dark?: boolean;
-    children?: React.ReactNode;
-}) => (
-    <div
-        className={cn(
-            "px-6 py-4 flex items-center justify-between gap-4 border-b",
-            dark
-                ? "bg-[#111111] border-black"
-                : "bg-[#B91C1C] border-[#991B1B]",
-        )}
-    >
-        <div className="flex items-center gap-2.5">
-            <span className="text-white/70">{icon}</span>
-            <h2 className="text-base font-extrabold text-white uppercase tracking-wider">
-                {title}
-            </h2>
-        </div>
-        {children}
-    </div>
-);
+
 
 export default function EmployeeDetailView() {
     const { employeeId } = useParams() as { employeeId: string };
@@ -191,104 +167,74 @@ export default function EmployeeDetailView() {
     return (
         <div className="min-h-screen">
             {/* ── Hero Header ──────────────────────────────────────────────── */}
-            <div className="bg-[#111111] rounded-[1rem] sm:rounded-[2rem] mx-auto overflow-hidden shadow-2xl shadow-black/20">
-                <div className="px-4 sm:px-10 lg:px-12">
-                    {/* Breadcrumb row */}
-                    <div className="pt-6">
-                        <Link
-                            href="/employee"
-                            className="inline-flex items-center gap-2.5 h-10 px-6 text-xs font-semibold 
-                                            bg-white/10 hover:bg-white/20 
-                                            text-white border border-white/10 
-                                            rounded-xl backdrop-blur-md
-                                            transition-all active:scale-[0.98] group"
-                        >
-                            <div className="bg-white/10 group-hover:bg-[#B91C1C] rounded-full p-1 transition-colors">
-                                <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-                            </div>
-                            <span>กลับไปหน้ารายการพนักงาน</span>
-                        </Link>
-                    </div>
-
-                    {/* Identity row */}
-                    <div className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                        <div className="flex items-center gap-6">
-                            {/* Avatar */}
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#B91C1C] to-[#991B1B] flex items-center justify-center shrink-0 shadow-lg shadow-red-900/20">
-                                <User className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
-                            </div>
-
-                            <div>
-                                <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
-                                    {employee.name}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-2 mt-3">
-                                    {employee.employeeCode && (
-                                        <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                                            <BadgeCheck className="h-3.5 w-3.5 text-[#F87171]" />
-                                            {employee.employeeCode}
-                                        </span>
-                                    )}
-                                    {employee.positionTitle && (
-                                        <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
-                                            <Briefcase className="h-3.5 w-3.5 text-gray-500" />
-                                            {employee.positionTitle}
-                                        </span>
-                                    )}
-                                    {employee.status === "ACTIVE" || !employee.status ? (
-                                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
-                                            <CheckCircle2 className="h-3.5 w-3.5" />
-                                            ใช้งาน
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
-                                            <XCircle className="h-3.5 w-3.5" />
-                                            {employee.status}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        {(canEdit || canDelete) && (
-                            <div className="flex items-center gap-3 shrink-0">
-                                {canEdit && (
-                                    <Button
-                                        size="sm"
-                                        className="h-10 px-6 text-xs font-semibold 
-                                            bg-white/10 hover:bg-white/20 
-                                            text-white border border-white/10 
-                                            rounded-xl backdrop-blur-md
-                                            transition-all active:scale-[0.98]"
-                                        onClick={() => router.push(`/employee/${employeeId}/edit`)}
-                                    >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                        แก้ไขข้อมูล
-                                    </Button>
-                                )}
-
-                                {canDelete && (
-                                    <Button
-                                        size="sm"
-                                        className="h-10 px-6 text-xs font-semibold 
-                                            bg-red-600 hover:bg-red-700 
-                                            text-white border-0 
-                                            rounded-xl shadow-lg shadow-red-900/30
-                                            transition-all active:scale-[0.98]"
-                                        onClick={() => setDeleteDialogOpen(true)}
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                        ลบ
-                                    </Button>
-                                )}
-                            </div>
+            <DetailHero
+                backUrl="/employee"
+                backLabel="หน้ารายการพนักงาน"
+                title={employee.name}
+                icon={<User className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
+                accentColor="#B91C1C"
+                badges={
+                    <>
+                        {employee.employeeCode && (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <BadgeCheck className="h-3.5 w-3.5 text-[#F87171]" />
+                                {employee.employeeCode}
+                            </span>
                         )}
-                    </div>
-                </div>
-                {/* Red bottom accent bar */}
-                <div className="h-1.5 bg-[#B91C1C] w-full" />
-            </div>
+                        {employee.positionTitle && (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
+                                <Briefcase className="h-3.5 w-3.5 text-gray-500" />
+                                {employee.positionTitle}
+                            </span>
+                        )}
+                        {employee.status === "ACTIVE" || !employee.status ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                ใช้งาน
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                                <XCircle className="h-3.5 w-3.5" />
+                                {employee.status}
+                            </span>
+                        )}
+                    </>
+                }
+                actions={
+                    <>
+                        {canEdit && (
+                            <Button
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-white/10 hover:bg-white/20 
+                                text-white border border-white/10 
+                                rounded-xl backdrop-blur-md
+                                transition-all active:scale-[0.98]"
+                                onClick={() => router.push(`/employee/${employeeId}/edit`)}
+                            >
+                                <Pencil className="h-3.5 w-3.5" />
+                                แก้ไขข้อมูล
+                            </Button>
+                        )}
+
+                        {canDelete && (
+                            <Button
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-red-600 hover:bg-red-700 
+                                text-white border-0 
+                                rounded-xl shadow-lg shadow-red-900/30
+                                transition-all active:scale-[0.98]"
+                                onClick={() => setDeleteDialogOpen(true)}
+                            >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                ลบ
+                            </Button>
+                        )}
+                    </>
+                }
+            />
+
 
             {/* ── Main Content ─────────────────────────────────────────────── */}
             <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -328,7 +274,7 @@ export default function EmployeeDetailView() {
                         <SectionHeader
                             icon={<Building2 className="h-6 w-6" />}
                             title="ข้อมูลการทำงาน"
-                            dark
+                            variant="dark"
                         />
                         <div className="p-6 space-y-1 divide-y divide-gray-50">
                             <DetailItem
@@ -389,7 +335,7 @@ export default function EmployeeDetailView() {
                         <SectionHeader
                             icon={<MapPin className="h-6 w-6" />}
                             title="ที่อยู่ติดต่อ"
-                            dark
+                            variant="dark"
                         />
                         <div className="p-6">
                             <DetailItem
