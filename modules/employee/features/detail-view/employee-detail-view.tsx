@@ -31,6 +31,8 @@ import {
     ExternalLink,
     Search,
     FileText,
+    Pencil,
+    Trash2,
 } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
 import { cn } from "@/lib/utils";
@@ -78,9 +80,7 @@ export default function EmployeeDetailView() {
                 if (mounted) setLoading(false);
             }
         })();
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, [employeeId]);
 
     const handleDelete = async () => {
@@ -100,12 +100,16 @@ export default function EmployeeDetailView() {
         }
     };
 
+    // ─── Loading State ───────────────────────────────────────────────────────
     if (isLoading || loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+            <div className="flex items-center justify-center min-h-screen bg-white">
+                <div className="text-center space-y-4">
+                    <div className="relative mx-auto w-12 h-12">
+                        <div className="absolute inset-0 rounded-full border-2 border-gray-100" />
+                        <div className="absolute inset-0 rounded-full border-2 border-t-[#B91C1C] animate-spin" />
+                    </div>
+                    <p className="text-sm text-gray-400 tracking-wide">กำลังโหลดข้อมูล...</p>
                 </div>
             </div>
         );
@@ -117,9 +121,7 @@ export default function EmployeeDetailView() {
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>การเข้าถึงถูกปฏิเสธ</AlertTitle>
-                    <AlertDescription>
-                        คุณไม่มีสิทธิ์เปิดดูข้อมูลพนักงานนี้
-                    </AlertDescription>
+                    <AlertDescription>คุณไม่มีสิทธิ์เปิดดูข้อมูลพนักงานนี้</AlertDescription>
                 </Alert>
             </div>
         );
@@ -147,7 +149,7 @@ export default function EmployeeDetailView() {
                 </Alert>
                 <Button
                     variant="outline"
-                    className="mt-4"
+                    className="mt-4 border-[#B91C1C] text-[#B91C1C] hover:bg-[#B91C1C] hover:text-white transition-colors"
                     onClick={() => router.push("/employee")}
                 >
                     กลับหน้ารายการ
@@ -156,85 +158,146 @@ export default function EmployeeDetailView() {
         );
     }
 
+    // ─── Reusable Section Header ─────────────────────────────────────────────
+    const SectionHeader = ({
+        icon,
+        title,
+        dark = false,
+        children,
+    }: {
+        icon: React.ReactNode;
+        title: string;
+        dark?: boolean;
+        children?: React.ReactNode;
+    }) => (
+        <div
+            className={cn(
+                "px-6 py-4 flex items-center justify-between gap-4 border-b",
+                dark
+                    ? "bg-[#111111] border-black"
+                    : "bg-[#B91C1C] border-[#991B1B]",
+            )}
+        >
+            <div className="flex items-center gap-2.5">
+                <span className="text-white/70">{icon}</span>
+                <h2 className="text-xs font-bold text-white tracking-widest uppercase">
+                    {title}
+                </h2>
+            </div>
+            {children}
+        </div>
+    );
+
     return (
-        <div className="min-h-screen from-slate-50 to-blue-50 bg-slate-50/50 pb-12">
-            {/* Hero Header Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
-                    <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
+        <div className="min-h-screen bg-gray-50 pb-16">
+
+            {/* ── Hero Header ──────────────────────────────────────────────── */}
+            <div className="bg-[#111111] rounded-4xl max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Breadcrumb row */}
+                    <div className="pt-5 pb-1 border-b border-white/5">
                         <Link
                             href="/employee"
-                            className="inline-flex items-center text-blue-100 hover:text-white mb-2 transition-colors group"
+                            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors group"
                         >
-                            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            กลับไปหน้ารายการพนักงาน
+                            <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                            รายการพนักงาน
                         </Link>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 bg-white/10 rounded-full backdrop-blur-sm">
-                                    <User className="h-8 w-8 text-white" />
-                                </div>
-                                <h1 className="text-3xl lg:text-4xl font-bold">
+                    {/* Identity row */}
+                    <div className="py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                        <div className="flex items-center gap-5">
+                            {/* Avatar */}
+                            <div className="w-16 h-16 rounded-2xl bg-[#B91C1C] flex items-center justify-center shrink-0">
+                                <User className="h-8 w-8 text-white" />
+                            </div>
+
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
                                     {employee.name}
                                 </h1>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 text-blue-100">
-                                {employee.employeeCode && (
-                                    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                                        <BadgeCheck className="h-4 w-4" />
-                                        <span>{employee.employeeCode}</span>
-                                    </div>
-                                )}
-                                {employee.positionTitle && (
-                                    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                                        <Briefcase className="h-4 w-4" />
-                                        <span>{employee.positionTitle}</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-2 opacity-90">
+                                <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                                    {employee.employeeCode && (
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 bg-white/8 border border-white/10 px-2.5 py-1 rounded-lg">
+                                            <BadgeCheck className="h-3.5 w-3.5 text-[#F87171]" />
+                                            {employee.employeeCode}
+                                        </span>
+                                    )}
+                                    {employee.positionTitle && (
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 bg-white/8 border border-white/10 px-2.5 py-1 rounded-lg">
+                                            <Briefcase className="h-3.5 w-3.5 text-gray-500" />
+                                            {employee.positionTitle}
+                                        </span>
+                                    )}
                                     {employee.status === "ACTIVE" || !employee.status ? (
-                                        <span className="flex items-center gap-1 text-green-300">
-                                            <CheckCircle2 className="h-4 w-4" /> ใช้งาน
+                                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-lg">
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                            ใช้งาน
                                         </span>
                                     ) : (
-                                        <span className="flex items-center gap-1 text-gray-400">
-                                            <XCircle className="h-4 w-4" /> {employee.status}
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                            <XCircle className="h-3.5 w-3.5" />
+                                            {employee.status}
                                         </span>
                                     )}
                                 </div>
                             </div>
                         </div>
+
+                        {/* Action Buttons */}
+                        {(canEdit || canDelete) && (
+                            <div className="flex items-center gap-2 shrink-0">
+                                {canEdit && (
+                                    <Button
+                                        size="sm"
+                                        className="h-9 px-4 text-xs font-semibold bg-[#B91C1C] hover:bg-[#991B1B] text-white border-0 rounded-lg shadow-none"
+                                        onClick={() => router.push(`/employee/${employeeId}/edit`)}
+                                    >
+                                        <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                                        แก้ไข
+                                    </Button>
+                                )}
+                                {canDelete && (
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-9 px-4 text-xs font-semibold border-white/15 text-gray-400 hover:border-red-500/40 hover:text-red-400 hover:bg-transparent rounded-lg"
+                                        onClick={() => setDeleteDialogOpen(true)}
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                        ลบ
+                                    </Button>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Main Content */}
+            {/* ── Main Content ─────────────────────────────────────────────── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Personal Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-blue-300">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <FileText className="h-6 w-6 text-blue-600" />
-                                ข้อมูลส่วนตัว
-                            </h2>
-                        </div>
-                        <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+                    {/* ── Personal Info ──────────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-4 w-4" />}
+                            title="ข้อมูลส่วนตัว"
+                        />
+                        <div className="p-6 space-y-1 divide-y divide-gray-50">
                             <DetailItem
-                                icon={<Mail className="h-5 w-5" />}
+                                icon={<Mail className="h-4 w-4 text-gray-400" />}
                                 label="อีเมล"
                                 value={employee.email}
                             />
                             <DetailItem
-                                icon={<Phone className="h-5 w-5" />}
+                                icon={<Phone className="h-4 w-4 text-gray-400" />}
                                 label="เบอร์โทรศัพท์"
                                 value={employee.phone}
                             />
                             <DetailItem
-                                icon={<Cake className="h-5 w-5" />}
+                                icon={<Cake className="h-4 w-4 text-gray-400" />}
                                 label="วันเกิด"
                                 value={
                                     employee.birthDate
@@ -245,81 +308,77 @@ export default function EmployeeDetailView() {
                         </div>
                     </div>
 
-                    {/* Signature Card */}
-                    {employee.signature && (
-                        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                            <div className="p-6 border-b border-gray-100 bg-amber-50">
-                                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                    <FileText className="h-6 w-6 text-amber-600" />
-                                    ลายเซ็น
-                                </h2>
-                            </div>
-                            <div className="p-6 flex justify-center bg-white/50 backdrop-blur-sm">
-                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 bg-white shadow-sm">
-                                    <img 
-                                        src={employee.signature} 
-                                        alt="Employee Signature" 
-                                        className="max-h-32 w-auto object-contain"
+                    {/* ── Signature ─────────────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-4 w-4" />}
+                            title="ลายเซ็น"
+                            dark
+                        />
+                        <div className="p-6 flex items-center justify-center min-h-[140px] bg-gray-50/60">
+                            {employee.signature ? (
+                                <div className="border border-dashed border-gray-200 rounded-xl p-5 bg-white">
+                                    <img
+                                        src={employee.signature}
+                                        alt="ลายเซ็นพนักงาน"
+                                        className="max-h-28 w-auto object-contain"
                                     />
                                 </div>
-                            </div>
+                            ) : (
+                                <p className="text-sm text-gray-400">ยังไม่มีลายเซ็น</p>
+                            )}
                         </div>
-                    )}
+                    </div>
 
-                    {/* Work / Organization Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-purple-300">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Building2 className="h-6 w-6 text-purple-600" />
-                                ข้อมูลการทำงาน
-                            </h2>
-                        </div>
-                        <div className="p-6">
+                    {/* ── Work Info ─────────────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<Building2 className="h-4 w-4" />}
+                            title="ข้อมูลการทำงาน"
+                        />
+                        <div className="p-6 space-y-1 divide-y divide-gray-50">
                             <DetailItem
-                                icon={<Building2 className="h-5 w-5" />}
+                                icon={<Building2 className="h-4 w-4 text-gray-400" />}
                                 label="สังกัดบริษัท"
                                 value={
                                     employee.company ? (
                                         <Link
                                             href={`/companies/${employee.company.id}`}
-                                            className="text-blue-600 hover:underline flex items-center gap-1"
+                                            className="text-[#B91C1C] hover:text-[#991B1B] font-medium underline-offset-2 hover:underline transition-colors"
                                         >
                                             {employee.company.name}
                                         </Link>
-                                    ) : (
-                                        "-"
-                                    )
+                                    ) : "-"
                                 }
                             />
                             <DetailItem
-                                icon={<Layers className="h-5 w-5" />}
+                                icon={<Layers className="h-4 w-4 text-gray-400" />}
                                 label="แผนก"
                                 value={employee.department?.name || "-"}
                             />
                             <DetailItem
-                                icon={<Briefcase className="h-5 w-5" />}
+                                icon={<Briefcase className="h-4 w-4 text-gray-400" />}
                                 label="ตำแหน่ง"
-                                value={` ${employee.roleTitle || employee.role || "-"}`}
+                                value={employee.roleTitle || employee.role || "-"}
                             />
                             <DetailItem
-                                icon={<Map className="h-5 w-5" />}
+                                icon={<Map className="h-4 w-4 text-gray-400" />}
                                 label="เขตความรับผิดชอบ"
                                 value={employee.responsibilityArea}
                             />
                         </div>
                     </div>
 
-                    {/* Address Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-                        <div className="p-6 border-b border-gray-100 bg-emerald-200">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <MapPin className="h-6 w-6 text-emerald-600" />
-                                ที่อยู่ติดต่อ
-                            </h2>
-                        </div>
+                    {/* ── Address — full width ──────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+                        <SectionHeader
+                            icon={<MapPin className="h-4 w-4" />}
+                            title="ที่อยู่ติดต่อ"
+                            dark
+                        />
                         <div className="p-6">
                             <DetailItem
-                                icon={<MapPin className="h-5 w-5 mt-1" />}
+                                icon={<MapPin className="h-4 w-4 text-gray-400 mt-0.5" />}
                                 label=""
                                 fullWidth
                                 value={
@@ -328,126 +387,137 @@ export default function EmployeeDetailView() {
                                         employee.district ||
                                         employee.province ||
                                         employee.postalCode ? (
-                                        <span className="leading-relaxed">
+                                        <span className="leading-relaxed text-gray-700">
                                             {employee.addressLine && `${employee.addressLine} `}
                                             {[
                                                 employee.subdistrict && `ต.${employee.subdistrict}`,
                                                 employee.district && `อ.${employee.district}`,
                                                 employee.province && `จ.${employee.province}`,
-                                                employee.postalCode && `${employee.postalCode}`,
-                                            ]
-                                                .filter(Boolean)
-                                                .join(" ")}
+                                                employee.postalCode,
+                                            ].filter(Boolean).join("  ")}
                                         </span>
-                                    ) : (
-                                        "-"
-                                    )
+                                    ) : "-"
                                 }
                             />
                         </div>
                     </div>
 
-                    {/* Responsible Stores Section */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-                        <div className="p-6 border-b border-gray-100 bg-linear-to-r from-orange-200 to-amber-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Store className="h-6 w-6 text-orange-600" />
-                                ร้านค้าที่รับผิดชอบ
-                                <span className="ml-2 px-2.5 py-0.5 rounded-full bg-orange-300 text-orange-700 text-sm font-semibold">
+                    {/* ── Responsible Stores — full width ──────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+                        <SectionHeader
+                            icon={<Store className="h-4 w-4" />}
+                            title="ร้านค้าที่รับผิดชอบ"
+                        >
+                            <div className="flex items-center gap-3 ml-auto">
+                                {/* Count badge */}
+                                <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-md bg-white/20 text-xs font-bold text-white">
                                     {employee.responsibleCustomers?.length || 0}
                                 </span>
-                            </h2>
+                                {/* Search — desktop */}
+                                <div className="relative hidden sm:block">
+                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40" />
+                                    <input
+                                        type="text"
+                                        placeholder="ค้นหาร้าน, รหัส, จังหวัด..."
+                                        className="w-52 pl-8 pr-3 py-1.5 text-xs bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/35 focus:outline-none focus:bg-white/15 focus:border-white/35 transition-all"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </SectionHeader>
 
-                            <div className="relative flex-1 max-w-sm">
+                        {/* Mobile search */}
+                        <div className="sm:hidden px-5 pt-4">
+                            <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="ค้นหาชื่อร้าน, รหัส หรือจังหวัด..."
-                                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                                    placeholder="ค้นหาร้าน, รหัส, จังหวัด..."
+                                    className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#B91C1C] focus:border-[#B91C1C] transition-all"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div className="p-6">
-                            {!employee.responsibleCustomers ||
-                                employee.responsibleCustomers.length === 0 ? (
-                                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                    <Store className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500 font-medium">
-                                        ไม่มีร้านค้าในความดูแล
-                                    </p>
+                        <div className="p-5">
+                            {!employee.responsibleCustomers || employee.responsibleCustomers.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-14 text-center">
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                                        <Store className="h-7 w-7 text-gray-300" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-400">ไม่มีร้านค้าในความดูแล</p>
                                 </div>
                             ) : filteredCustomers && filteredCustomers.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     {filteredCustomers.map((customer) => (
                                         <Link
                                             key={customer.id}
                                             href={`/customers/${customer.id}`}
-                                            className="group p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-orange-200 transition-all duration-200"
+                                            className={cn(
+                                                "group relative p-4 rounded-xl border border-gray-150 bg-gray-50/60",
+                                                "hover:bg-white hover:border-[#B91C1C]/20 hover:shadow-md",
+                                                "transition-all duration-150"
+                                            )}
                                         >
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-orange-100 transition-colors text-orange-600 shadow-sm">
-                                                    <Store className="h-5 w-5" />
+                                            {/* Left red accent bar */}
+                                            <div className="absolute left-0 top-4 bottom-4 w-0.5 bg-transparent group-hover:bg-[#B91C1C] rounded-full transition-colors" />
+
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200 group-hover:bg-[#B91C1C] group-hover:border-[#B91C1C] transition-all">
+                                                    <Store className="h-4 w-4 text-gray-400 group-hover:text-white transition-colors" />
                                                 </div>
-                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <span className="text-[10px] font-medium text-gray-400">
-                                                        ดูรายละเอียด
-                                                    </span>
-                                                    <ExternalLink className="h-4 w-4 text-gray-400" />
-                                                </div>
+                                                <ExternalLink className="h-3.5 w-3.5 text-gray-200 group-hover:text-[#B91C1C] transition-colors mt-0.5" />
                                             </div>
-                                            <div className="space-y-1">
-                                                <div className="text-xs font-bold text-orange-600 uppercase tracking-widest flex items-center gap-1.5">
-                                                    <div className="w-1 h-1 bg-orange-600 rounded-full" />
-                                                    {customer.customerCode}
-                                                </div>
-                                                <h3 className="font-bold text-gray-900 group-hover:text-orange-700 transition-colors line-clamp-1 text-lg">
-                                                    {customer.name}
-                                                </h3>
-                                                <div className="flex flex-wrap gap-2 mt-3">
-                                                    {customer.province && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                                                            <MapPin className="h-3 w-3 mr-1" />
-                                                            {customer.province}
-                                                        </span>
-                                                    )}
-                                                    {customer.region && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
-                                                            {customer.region}
-                                                        </span>
-                                                    )}
-                                                    <span
-                                                        className={cn(
-                                                            "inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border",
-                                                            customer.status === "ACTIVE"
-                                                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                                                : "bg-slate-50 text-slate-700 border-slate-100",
-                                                        )}
-                                                    >
-                                                        {customer.status === "ACTIVE"
-                                                            ? "ปกติ"
-                                                            : customer.status}
+
+                                            <p className="text-[10px] font-bold text-[#B91C1C] tracking-widest uppercase mb-0.5">
+                                                {customer.customerCode}
+                                            </p>
+                                            <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#B91C1C] line-clamp-1 transition-colors mb-3">
+                                                {customer.name}
+                                            </h3>
+
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {customer.province && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white text-gray-600 border border-gray-200">
+                                                        <MapPin className="h-2.5 w-2.5" />
+                                                        {customer.province}
                                                     </span>
-                                                </div>
+                                                )}
+                                                {customer.region && (
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white text-gray-600 border border-gray-200 uppercase">
+                                                        {customer.region}
+                                                    </span>
+                                                )}
+                                                <span
+                                                    className={cn(
+                                                        "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border",
+                                                        customer.status === "ACTIVE"
+                                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                                            : "bg-gray-100 text-gray-500 border-gray-200",
+                                                    )}
+                                                >
+                                                    {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
+                                                </span>
                                             </div>
                                         </Link>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                    <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500 font-medium">
-                                        ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;
+                                <div className="flex flex-col items-center justify-center py-14 text-center">
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-3">
+                                        <Search className="h-7 w-7 text-gray-300" />
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-500 mb-1">
+                                        ไม่พบผลลัพธ์สำหรับ &quot;{searchTerm}&quot;
                                     </p>
-                                    <Button
-                                        variant="link"
-                                        className="mt-2 text-orange-600"
+                                    <button
                                         onClick={() => setSearchTerm("")}
+                                        className="text-xs text-[#B91C1C] hover:text-[#991B1B] font-medium underline-offset-2 hover:underline transition-colors"
                                     >
                                         ล้างการค้นหา
-                                    </Button>
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -455,30 +525,45 @@ export default function EmployeeDetailView() {
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
+            {/* ── Delete Confirmation Dialog ────────────────────────────────── */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent>
-                    <DialogTitle>ยืนยันการลบข้อมูล</DialogTitle>
-                    <DialogDescription>
-                        คุณต้องการลบพนักงาน <strong>{employee.name}</strong> ใช่หรือไม่?
-                        การกระทำนี้ไม่สามารถย้อนกลับได้
-                    </DialogDescription>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteDialogOpen(false)}
-                            disabled={deleting}
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                        >
-                            {deleting ? "กำลังลบ..." : "ลบข้อมูล"}
-                        </Button>
-                    </DialogFooter>
+                <DialogContent className="border border-gray-200 shadow-2xl rounded-2xl overflow-hidden p-0">
+                    {/* Red top bar */}
+                    <div className="h-1 bg-[#B91C1C]" />
+                    <div className="p-6">
+                        <DialogTitle className="text-base font-bold text-gray-900">
+                            ยืนยันการลบข้อมูล
+                        </DialogTitle>
+                        <DialogDescription className="mt-2 text-sm text-gray-500 leading-relaxed">
+                            คุณต้องการลบพนักงาน{" "}
+                            <span className="font-semibold text-gray-800">{employee.name}</span>{" "}
+                            ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
+                        </DialogDescription>
+                        <DialogFooter className="mt-5 gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50"
+                                onClick={() => setDeleteDialogOpen(false)}
+                                disabled={deleting}
+                            >
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                size="sm"
+                                className="rounded-lg bg-[#B91C1C] hover:bg-[#991B1B] text-white shadow-none border-0"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? (
+                                    <span className="flex items-center gap-2">
+                                        <span className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                                        กำลังลบ...
+                                    </span>
+                                ) : "ลบข้อมูล"}
+                            </Button>
+                        </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
