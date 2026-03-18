@@ -431,35 +431,37 @@ export default function CustomerDetailView() {
         accentColor="#B91C1C"
         badges={
           <>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
-              <BadgeCheck className="h-3.5 w-3.5 text-[#F87171]" />
-              {customer.customerCode}
-            </span>
             {customerTypeInfo && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
-                <Briefcase className="h-3.5 w-3.5 text-gray-500" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <Briefcase className="h-3.5 w-3.5 text-gray-200" />
                 {customerTypeInfo.label}
               </span>
             )}
-            {customer.responsibleEmployee && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
-                <UserCheck className="h-3.5 w-3.5 text-gray-500" />
-                ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}
-              </span>
-            )}
             {customer.province && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
-                <MapPin className="h-3.5 w-3.5 text-gray-500" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <MapPin className="h-3.5 w-3.5 text-gray-200" />
                 {customer.province}
               </span>
             )}
+            {customer.region && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <MapPin className="h-3.5 w-3.5 text-gray-200" />
+                {customer.region}
+              </span>
+            )}
+            {customer.responsibleEmployee && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <UserCheck className="h-3.5 w-3.5 text-gray-200" />
+                ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName} {customer.responsibleEmployee.lastName}
+              </span>
+            )}
             {customer.status === "ACTIVE" || !customer.status ? (
-              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/50 px-3 py-1 rounded-full uppercase tracking-wider">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 ใช้งาน
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
                 <XCircle className="h-3.5 w-3.5" />
                 {customer.status}
               </span>
@@ -507,6 +509,11 @@ export default function CustomerDetailView() {
               title="ข้อมูลบริษัท"
             />
             <div className="p-6 space-y-1 divide-y divide-gray-50">
+              <DetailItem
+                icon={<Building className="h-4 w-4 text-gray-400" />}
+                label="รหัสลูกค้า"
+                value={customer.customerCode}
+              />
               <DetailItem
                 icon={<Building className="h-4 w-4 text-gray-400" />}
                 label="ชื่อบริษัท / ร้านค้า"
