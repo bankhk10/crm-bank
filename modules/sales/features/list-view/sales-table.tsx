@@ -294,47 +294,39 @@ export function SalesTable(props: SalesTableProps) {
     );
 
     return (
-        <div className="bg-white shadow-sm sm:rounded-lg rounded-lg">
-            <div className="p-6">
-                <PageHeader
-                    icon={BadgeDollarSign}
-                    iconClassName="text-blue-600"
-                    title="ข้อมูลการขาย"
-                />
-
-                <ResponsiveDataView
-                    breakpoint="xl"
-                    toolbar={toolbar}
-                    cards={
-                        <SalesCards
-                            data={sales}
-                            loading={loading}
-                            canApprove={canApprove}
-                            canEdit={canEdit}
-                            canDelete={canDelete}
-                            currentUserId={currentUserId}
-                            onDelete={onDelete}
-                            pagination={pagination}
-                            canEditItem={canEditItem}
-                            canDeleteItem={canDeleteItem}
-                        />
-                    }
-                    table={
-                        <CustomTable
-                            columns={columns}
-                            data={sales}
-                            loading={loading}
-                            pagination={pagination}
-                            toolbar={<></>}
-                            emptyState={{
-                                title: "ยังไม่มีรายการขาย",
-                                description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
-                            }}
-                            className="w-full"
-                        />
-                    }
-                />
-            </div>
+        <div className="space-y-6">
+            <ResponsiveDataView
+                breakpoint="xl"
+                toolbar={toolbar}
+                cards={
+                    <SalesCards
+                        data={sales}
+                        loading={loading}
+                        canApprove={canApprove}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        currentUserId={currentUserId}
+                        onDelete={onDelete}
+                        pagination={pagination}
+                        canEditItem={canEditItem}
+                        canDeleteItem={canDeleteItem}
+                    />
+                }
+                table={
+                    <CustomTable
+                        columns={columns}
+                        data={sales}
+                        loading={loading}
+                        pagination={pagination}
+                        toolbar={<></>}
+                        emptyState={{
+                            title: "ยังไม่มีรายการขาย",
+                            description: "ลองปรับเงื่อนไขการค้นหา หรือสร้างรายการขายใหม่",
+                        }}
+                        className="w-full"
+                    />
+                }
+            />
         </div>
     );
 }

@@ -14,7 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { BadgeDollarSign } from "lucide-react";
 import { SalesTable } from "@/modules/sales/features/list-view/sales-table";
+import { PageHeader } from "@/components/custom/page-header";
 import type { SaleRecord } from "@/modules/sales/types";
 import { listSalesAction, deleteSaleAction } from "@/modules/sales/server/actions";
 import type { SaleStatus } from "@/modules/sales/types";
@@ -184,7 +186,7 @@ export default function SalesListView() {
 
   if (!canView) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="p-6">
         <Alert variant="destructive">
           <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้านี้</AlertDescription>
         </Alert>
@@ -193,39 +195,49 @@ export default function SalesListView() {
   }
 
   return (
-    <div className="container mx-auto space-y-6">
+    <section className="space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      <SalesTable
-        sales={sales}
-        total={total}
-        page={page}
-        perPage={perPage}
-        loading={loading}
-        searchValue={filterDraft.query}
-        onSearchChange={(value) => setFilterDraft({ query: value })}
-        isTyping={isTyping}
-        onSearchSubmit={handleSearchSubmit}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        statusFilter={status}
-        onStatusFilterChange={setStatus}
-        onPageChange={setPage}
-        onPerPageChange={setPerPage}
-        onDelete={setDeleteCandidate}
-        canCreate={canCreate}
-        canEdit={canEditBase}
-        canDelete={canDeleteBase}
-        canApprove={canApprove}
-        currentUserId={user?.id}
-        userDepartmentId={user?.departmentId}
-        canEditItem={canEditItem}
-        canDeleteItem={canDeleteItem}
-      />
+      <div className="bg-white shadow-sm sm:rounded-lg">
+        <div className="p-6">
+          <PageHeader
+            icon={BadgeDollarSign}
+            iconClassName="text-blue-600"
+            title="ข้อมูลการขาย"
+          />
+
+          <SalesTable
+            sales={sales}
+            total={total}
+            page={page}
+            perPage={perPage}
+            loading={loading}
+            searchValue={filterDraft.query}
+            onSearchChange={(value) => setFilterDraft({ query: value })}
+            isTyping={isTyping}
+            onSearchSubmit={handleSearchSubmit}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            statusFilter={status}
+            onStatusFilterChange={setStatus}
+            onPageChange={setPage}
+            onPerPageChange={setPerPage}
+            onDelete={setDeleteCandidate}
+            canCreate={canCreate}
+            canEdit={canEditBase}
+            canDelete={canDeleteBase}
+            canApprove={canApprove}
+            currentUserId={user?.id}
+            userDepartmentId={user?.departmentId}
+            canEditItem={canEditItem}
+            canDeleteItem={canDeleteItem}
+          />
+        </div>
+      </div>
 
       <Dialog
         open={!!deleteCandidate}
@@ -257,6 +269,6 @@ export default function SalesListView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </section>
   );
 }
