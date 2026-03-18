@@ -208,7 +208,7 @@ export default function CustomerDetailView() {
   const { customerId } = useParams() as { customerId: string };
   const router = useRouter();
   const { allowed, isLoading, hasPermission } = usePermission("menu.customers");
-  
+
   const [customer, setCustomer] = useState<Customer | null>(null);
   const canView = !isLoading && allowed && (!customer || hasPermission(`customer.view.${customer.customerType?.toLowerCase() || 'dealer'}`));
   const canEdit = customer ? hasPermission(`customer.edit.${customer.customerType?.toLowerCase() || 'dealer'}`) : false;
@@ -441,17 +441,6 @@ export default function CustomerDetailView() {
                 {customerTypeInfo.label}
               </span>
             )}
-            {customer.status === "ACTIVE" || !customer.status ? (
-              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                ใช้งาน
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
-                <XCircle className="h-3.5 w-3.5" />
-                {customer.status}
-              </span>
-            )}
             {customer.responsibleEmployee && (
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
                 <UserCheck className="h-3.5 w-3.5 text-gray-500" />
@@ -462,6 +451,17 @@ export default function CustomerDetailView() {
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
                 <MapPin className="h-3.5 w-3.5 text-gray-500" />
                 {customer.province}
+              </span>
+            )}
+            {customer.status === "ACTIVE" || !customer.status ? (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                ใช้งาน
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                <XCircle className="h-3.5 w-3.5" />
+                {customer.status}
               </span>
             )}
           </>
@@ -539,12 +539,11 @@ export default function CustomerDetailView() {
                       {[1, 2, 3].map((star) => (
                         <Star
                           key={star}
-                          className={`h-4 w-4 ${
-                            customer.relationshipScore &&
+                          className={`h-4 w-4 ${customer.relationshipScore &&
                             customer.relationshipScore >= star
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-200"
-                          }`}
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-200"
+                            }`}
                         />
                       ))}
                     </div>
@@ -575,7 +574,7 @@ export default function CustomerDetailView() {
                   label="รับของจาก Dealer"
                   value={
                     customer.parentDealer &&
-                    customer.parentDealer.id === customer.receiveFromDealer
+                      customer.parentDealer.id === customer.receiveFromDealer
                       ? customer.parentDealer.name
                       : customer.name
                   }
@@ -596,8 +595,8 @@ export default function CustomerDetailView() {
                   value={
                     customer.averageMonthlyPurchase
                       ? `${Number(
-                          customer.averageMonthlyPurchase
-                        ).toLocaleString()} บาท`
+                        customer.averageMonthlyPurchase
+                      ).toLocaleString()} บาท`
                       : null
                   }
                 />
@@ -636,8 +635,8 @@ export default function CustomerDetailView() {
                 value={
                   customer.birthDate
                     ? `${new Date(customer.birthDate).toLocaleDateString(
-                        "th-TH"
-                      )} ${age !== null ? `(${age} ปี)` : ""}`
+                      "th-TH"
+                    )} ${age !== null ? `(${age} ปี)` : ""}`
                     : null
                 }
               />
@@ -687,25 +686,43 @@ export default function CustomerDetailView() {
                 variant="dark"
               />
               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-                 <div className="space-y-1">
-                    <div className="text-xs font-medium text-gray-500">จำนวนเกษตรกร</div>
-                    <div className="text-sm font-bold">{customer.farmerCount || "-"} ราย</div>
-                 </div>
-                 <div className="space-y-1">
-                    <div className="text-xs font-medium text-gray-500">จำนวนแปลง</div>
-                    <div className="text-sm font-bold">{customer.plotCount || "-"} แปลง</div>
-                 </div>
-                 <div className="space-y-1">
-                    <div className="text-xs font-medium text-gray-500">พื้นที่รวม</div>
-                    <div className="text-sm font-bold">{customer.totalAreaRai || "-"} ไร่</div>
-                 </div>
-                 <div className="space-y-1">
-                    <div className="text-xs font-medium text-gray-500">พืชหลัก</div>
-                    <div className="text-sm font-bold">{customer.cropTypes || "-"}</div>
-                 </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-gray-500">จำนวนเกษตรกร</div>
+                  <div className="text-sm font-bold">{customer.farmerCount || "-"} ราย</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-gray-500">จำนวนแปลง</div>
+                  <div className="text-sm font-bold">{customer.plotCount || "-"} แปลง</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-gray-500">พื้นที่รวม</div>
+                  <div className="text-sm font-bold">{customer.totalAreaRai || "-"} ไร่</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-gray-500">พืชหลัก</div>
+                  <div className="text-sm font-bold">{customer.cropTypes || "-"}</div>
+                </div>
               </div>
             </div>
           )}
+
+
+          {/* ── Notes ─────────────────────────────────────── */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <SectionHeader
+              icon={<FileText className="h-6 w-6" />}
+              title="หมายเหตุ"
+            />
+            <div className="p-6">
+              {customer.notes ? (
+                <div className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+                  {customer.notes}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 italic text-center">ไม่มีบันทึกข้อมูล</p>
+              )}
+            </div>
+          </div>
 
           {/* ── Addresses — full width ──────────────────────────── */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
@@ -754,7 +771,7 @@ export default function CustomerDetailView() {
           </div>
 
           {/* ── Images ─────────────────────────────────────── */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
             <SectionHeader
               icon={<ImageIcon className="h-6 w-6" />}
               title="รูปภาพร้านค้า"
@@ -775,7 +792,7 @@ export default function CustomerDetailView() {
                         className="w-full h-full object-cover transition-transform group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                         <Search className="text-white h-6 w-6" />
+                        <Search className="text-white h-6 w-6" />
                       </div>
                     </div>
                   ))}
@@ -785,23 +802,6 @@ export default function CustomerDetailView() {
                   <ImageIcon className="h-10 w-10 mb-2 opacity-20" />
                   <p className="text-sm">ไม่มีรูปภาพ</p>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* ── Notes ─────────────────────────────────────── */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <SectionHeader
-              icon={<FileText className="h-6 w-6" />}
-              title="หมายเหตุ"
-            />
-            <div className="p-6">
-              {customer.notes ? (
-                <div className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
-                  {customer.notes}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic text-center">ไม่มีบันทึกข้อมูล</p>
               )}
             </div>
           </div>
