@@ -180,7 +180,7 @@ export default function EmployeeDetailView() {
         >
             <div className="flex items-center gap-2.5">
                 <span className="text-white/70">{icon}</span>
-                <h2 className="text-xs font-bold text-white tracking-widest uppercase">
+                <h2 className="text-base font-extrabold text-white uppercase tracking-wider">
                     {title}
                 </h2>
             </div>
@@ -192,7 +192,7 @@ export default function EmployeeDetailView() {
         <div className="min-h-screen">
 
             {/* ── Hero Header ──────────────────────────────────────────────── */}
-            <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] max-w-7xl mx-auto overflow-hidden shadow-2xl shadow-black/20">
+            <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] mx-auto overflow-hidden shadow-2xl shadow-black/20">
                 <div className="px-4 sm:px-10 lg:px-12">
                     {/* Breadcrumb row */}
                     <div className="pt-6">
@@ -292,13 +292,13 @@ export default function EmployeeDetailView() {
             </div>
 
             {/* ── Main Content ─────────────────────────────────────────────── */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
                     {/* ── Personal Info ──────────────────────────────────── */}
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader
-                            icon={<FileText className="h-4 w-4" />}
+                            icon={<FileText className="h-6 w-6" />}
                             title="ข้อมูลส่วนตัว"
                         />
                         <div className="p-6 space-y-1 divide-y divide-gray-50">
@@ -324,32 +324,10 @@ export default function EmployeeDetailView() {
                         </div>
                     </div>
 
-                    {/* ── Signature ─────────────────────────────────────── */}
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <SectionHeader
-                            icon={<FileText className="h-4 w-4" />}
-                            title="ลายเซ็น"
-                            dark
-                        />
-                        <div className="p-6 flex items-center justify-center min-h-[140px] bg-gray-50/60">
-                            {employee.signature ? (
-                                <div className="border border-dashed border-gray-200 rounded-xl p-5 bg-white">
-                                    <img
-                                        src={employee.signature}
-                                        alt="ลายเซ็นพนักงาน"
-                                        className="max-h-28 w-auto object-contain"
-                                    />
-                                </div>
-                            ) : (
-                                <p className="text-sm text-gray-400">ยังไม่มีลายเซ็น</p>
-                            )}
-                        </div>
-                    </div>
-
                     {/* ── Work Info ─────────────────────────────────────── */}
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader
-                            icon={<Building2 className="h-4 w-4" />}
+                            icon={<Building2 className="h-6 w-6" />}
                             title="ข้อมูลการทำงาน"
                         />
                         <div className="p-6 space-y-1 divide-y divide-gray-50">
@@ -385,10 +363,32 @@ export default function EmployeeDetailView() {
                         </div>
                     </div>
 
-                    {/* ── Address — full width ──────────────────────────── */}
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+                    {/* ── Signature ─────────────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader
-                            icon={<MapPin className="h-4 w-4" />}
+                            icon={<FileText className="h-6 w-6" />}
+                            title="ลายเซ็น"
+                            dark
+                        />
+                        <div className="p-6 flex items-center justify-center min-h-[140px] bg-gray-50/60">
+                            {employee.signature ? (
+                                <div className="border border-dashed border-gray-200 rounded-xl p-5 bg-white">
+                                    <img
+                                        src={employee.signature}
+                                        alt="ลายเซ็นพนักงาน"
+                                        className="max-h-28 w-auto object-contain"
+                                    />
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400">ยังไม่มีลายเซ็น</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── Address — full width ──────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
+                        <SectionHeader
+                            icon={<MapPin className="h-6 w-6" />}
                             title="ที่อยู่ติดต่อ"
                             dark
                         />
@@ -419,9 +419,9 @@ export default function EmployeeDetailView() {
                     </div>
 
                     {/* ── Responsible Stores — full width ──────────────── */}
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
                         <SectionHeader
-                            icon={<Store className="h-4 w-4" />}
+                            icon={<Store className="h-6 w-6" />}
                             title="ร้านค้าที่รับผิดชอบ"
                         >
                             <div className="flex items-center gap-3 ml-auto">
