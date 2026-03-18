@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { guardPermission } from "@/lib/api-guard";
+import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { isAuthorized } from "@/modules/rbac";
 import { db } from "@/lib/db";
 import { uploadFile, deleteFile } from "@/lib/file-storage";
 
@@ -16,12 +17,41 @@ export async function POST(request: Request, { params }: { params: any }) {
   }
 
   // Now check permissions
-  const guard = await guardPermission("customer.edit");
-  if ("response" in guard) {
-    return guard.response;
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const resourcePath = "/api/customers";
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { customerId } = await params;
+
+  // Get customer to check granular permission
+  const customer = await db.customer.findUnique({
+    where: { id: customerId },
+    select: { customerType: true },
+  });
+
+  if (!customer) {
+    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+  }
+
+  const customerType = customer.customerType || "DEALER";
+  const typePermissionKey = `customer.edit.${customerType.toLowerCase()}`;
+  const createPermissionKey = `customer.create.${customerType.toLowerCase()}`;
+  
+  const hasEditPermission = (session.user.permissionKeys ?? []).includes(typePermissionKey);
+  const hasCreatePermission = (session.user.permissionKeys ?? []).includes(createPermissionKey);
+
+  if (!hasEditPermission && !hasCreatePermission) {
+    return NextResponse.json(
+      { error: `Forbidden - missing ${typePermissionKey}` },
+      { status: 403 },
+    );
+  }
 
   try {
     const files = formData.getAll("images") as File[];
@@ -87,13 +117,38 @@ export async function DELETE(request: Request, { params }: { params: any }) {
   }
 
   // Now check permissions
-  const guard = await guardPermission("customer.edit");
-  if ("response" in guard) {
-    return guard.response;
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const resourcePath = "/api/customers";
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { customerId } = await params;
+
+  // Get customer to check granular permission
+  const customer = await db.customer.findUnique({
+    where: { id: customerId },
+    select: { customerType: true },
+  });
+
+  if (!customer) {
+    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+  }
+
+  const customerType = customer.customerType || "DEALER";
+  const typePermissionKey = `customer.edit.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+    return NextResponse.json(
+      { error: `Forbidden - missing ${typePermissionKey}` },
+      { status: 403 },
+    );
   }
 
   try {
-    const { customerId } = await params;
     const imageIds: string[] = Array.isArray(body.imageIds)
       ? body.imageIds
       : [];
@@ -149,13 +204,38 @@ export async function PUT(request: Request, { params }: { params: any }) {
   }
 
   // Now check permissions
-  const guard = await guardPermission("customer.edit");
-  if ("response" in guard) {
-    return guard.response;
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const resourcePath = "/api/customers";
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { customerId } = await params;
+
+  // Get customer to check granular permission
+  const customer = await db.customer.findUnique({
+    where: { id: customerId },
+    select: { customerType: true },
+  });
+
+  if (!customer) {
+    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+  }
+
+  const customerType = customer.customerType || "DEALER";
+  const typePermissionKey = `customer.edit.${customerType.toLowerCase()}`;
+  if (!(session.user.permissionKeys ?? []).includes(typePermissionKey)) {
+    return NextResponse.json(
+      { error: `Forbidden - missing ${typePermissionKey}` },
+      { status: 403 },
+    );
   }
 
   try {
-    const { customerId } = await params;
     const imageIds: string[] = Array.isArray(body.imageIds)
       ? body.imageIds
       : [];
