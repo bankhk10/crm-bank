@@ -18,13 +18,11 @@ import {
 import { usePermission } from "@/hooks/use-permission";
 import { TableToolbar } from "@/components/custom/table-toolbar";
 import { ResponsiveDataView } from "@/components/custom/responsive-data-view";
-import { useClientSearch } from "@/hooks/use-client-search";
 import { Employee } from "../../types";
 import { useEmployeeColumns } from "./use-employee-columns";
 import { EmployeeCards } from "./employee-cards";
 import {
     deleteEmployeeAction,
-    getEmployeesAction,
 } from "../../server/actions";
 
 type EmployeesGridProps = {
@@ -110,7 +108,7 @@ export function EmployeeTable({
             <TableToolbar
                 searchPlaceholder="รหัสพนักงาน, ชื่อ-นามสกุล, อีเมล, เบอร์โทรศัพท์"
                 searchValue={searchValue ?? ""}
-                onSearchChange={onSearchChange ?? (() => {})}
+                onSearchChange={onSearchChange ?? (() => { })}
                 onSearchSubmit={onSearchSubmit}
             />
             <div className="flex justify-end">
@@ -135,8 +133,8 @@ export function EmployeeTable({
         page,
         perPage,
         total,
-        onPageChange: onPageChange ?? (() => {}),
-        onPerPageChange: onPerPageChange ?? (() => {}),
+        onPageChange: onPageChange ?? (() => { }),
+        onPerPageChange: onPerPageChange ?? (() => { }),
         perPageOptions: [5, 10, 20, 50],
     };
 
