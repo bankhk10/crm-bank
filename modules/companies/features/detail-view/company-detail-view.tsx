@@ -31,7 +31,10 @@ import { usePermission } from "@/hooks/use-permission";
 import { deleteCompanyAction, getCompanyAction } from "@/modules/companies/server/actions";
 import type { CompanyRecord, CompanyDetail } from "@/modules/companies/types/types";
 import { DetailItem } from "@/components/custom/detail-item";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailHero } from "@/components/custom/detail-hero";
 import { toast } from "sonner";
+
 
 export default function CompanyDetailView() {
     const { companyId } = useParams() as { companyId: string };
@@ -55,7 +58,7 @@ export default function CompanyDetailView() {
                 const res = await getCompanyAction(companyId);
                 if (!res.success) throw new Error("error" in res ? res.error : "Failed to load company");
                 if (!("company" in res) || !res.company) throw new Error("Failed to load company");
-                
+
                 if (mounted) setCompany(res.company as unknown as CompanyDetail);
             } catch (err: any) {
                 setError(err.message || String(err));
@@ -114,7 +117,7 @@ export default function CompanyDetailView() {
     if (!company) {
         return (
             <div className="container max-w-4xl mx-auto p-6 text-center">
-                 <Alert variant="destructive">
+                <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>ไม่พบข้อมูล</AlertTitle>
                     <AlertDescription>
@@ -141,91 +144,84 @@ export default function CompanyDetailView() {
             )}
 
             {/* Hero Header Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8">
-                    <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-                        <Link
-                            href="/companies"
-                            className="inline-flex items-center text-blue-100 hover:text-white mb-2 transition-colors group"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            กลับไปหน้ารายการบริษัท
-                        </Link>
+            <DetailHero
+                backUrl="/companies"
+                backLabel="หน้ารายการบริษัท"
+                title={company.name}
+                icon={<Building2 className="h-8 w-8 text-white" />}
+                badges={
+                    <>
+                        {(company as any).companyCode && (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <Hash className="h-3.5 w-3.5 text-blue-300" />
+                                {(company as any).companyCode}
+                            </span>
+                        )}
+                        {company.shortName && (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-blue-100 bg-white/5 border border-white/5 px-3 py-1 rounded-full">
+                                <FileText className="h-3.5 w-3.5 text-blue-300" />
+                                {company.shortName}
+                            </span>
+                        )}
+                        {company.status === "ACTIVE" ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                ใช้งาน
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                                <XCircle className="h-3.5 w-3.5" />
+                                ไม่ใช้งาน
+                            </span>
+                        )}
+                    </>
+                }
+                actions={
+                    <>
+                        {canEdit && (
+                            <Button
+                                asChild
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-white/10 hover:bg-white/20 
+                                text-white border border-white/10 
+                                rounded-xl backdrop-blur-md
+                                transition-all active:scale-[0.98]"
+                            >
+                                <Link href={`/companies/${company.id}/edit`}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    แก้ไข
+                                </Link>
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-red-600 hover:bg-red-700 
+                                text-white border-0 
+                                rounded-xl shadow-lg shadow-red-900/30
+                                transition-all active:scale-[0.98]"
+                                onClick={() => setDeleteDialogOpen(true)}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                ลบ
+                            </Button>
+                        )}
+                    </>
+                }
+            />
 
-                        <div className="flex gap-2">
-                            {canEdit && (
-                                <Button
-                                    asChild
-                                    variant="secondary"
-                                    className="bg-white/20 hover:bg-white/30 text-white border-none"
-                                >
-                                    <Link href={`/companies/${company.id}/edit`}>
-                                        <Pencil className="h-4 w-4 mr-2" />
-                                        แก้ไข
-                                    </Link>
-                                </Button>
-                            )}
-                            {canDelete && (
-                                <Button
-                                    variant="destructive"
-                                    className="bg-red-500/80 hover:bg-red-600 text-white border-none"
-                                    onClick={() => setDeleteDialogOpen(true)}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    ลบ
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mt-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                                <Building2 className="h-8 w-8" />
-                                <h1 className="text-3xl lg:text-4xl font-bold">
-                                    {company.name}
-                                </h1>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 text-blue-100">
-                                {(company as any).companyCode && (
-                                    <div className="flex items-center gap-2">
-                                        <span>รหัสบริษัท: {(company as any).companyCode}</span>
-                                    </div>
-                                )}
-                                {company.shortName && (
-                                    <div className="flex items-center gap-2">
-                                        <FileText className="h-4 w-4" />
-                                        <span>ชื่อย่อ: {company.shortName}</span>
-                                    </div>
-                                )}
-                                {company.status === "ACTIVE" ? (
-                                    <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
-                                        <CheckCircle2 className="h-4 w-4 text-green-300" />
-                                        <span className="text-green-100">ใช้งาน</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 bg-gray-500/20 px-3 py-1 rounded-full">
-                                        <XCircle className="h-4 w-4 text-gray-300" />
-                                        <span className="text-gray-100">ไม่ใช้งาน</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* General Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-blue-50/50">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <FileText className="h-6 w-6 text-blue-600" />
-                                ข้อมูลทั่วไป
-                            </h2>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <SectionHeader
+                            title="ข้อมูลทั่วไป"
+                            icon={<FileText className="h-6 w-6" />}
+                        />
                         <div className="p-6">
                             <DetailItem
                                 icon={<Hash className="h-5 w-5" />}
@@ -251,13 +247,12 @@ export default function CompanyDetailView() {
                     </div>
 
                     {/* Contact Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div className="p-6 border-b border-gray-100 bg-purple-50/50">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Phone className="h-6 w-6 text-purple-600" />
-                                ข้อมูลการติดต่อ
-                            </h2>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <SectionHeader
+                            title="ข้อมูลการติดต่อ"
+                            icon={<Phone className="h-6 w-6" />}
+                            variant="dark"
+                        />
                         <div className="p-6">
                             <DetailItem
                                 icon={<Mail className="h-5 w-5" />}
@@ -273,13 +268,11 @@ export default function CompanyDetailView() {
                     </div>
 
                     {/* Address Information Card */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 lg:col-span-2">
-                        <div className="p-6 border-b border-gray-100 bg-emerald-50/50">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <MapPin className="h-6 w-6 text-emerald-600" />
-                                ที่อยู่
-                            </h2>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 lg:col-span-2">
+                        <SectionHeader
+                            title="ที่อยู่"
+                            icon={<MapPin className="h-6 w-6" />}
+                        />
                         <div className="p-6">
                             <DetailItem
                                 icon={<MapPin className="h-5 w-5 mt-1" />}
