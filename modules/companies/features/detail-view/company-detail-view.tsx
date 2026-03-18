@@ -152,17 +152,17 @@ export default function CompanyDetailView() {
                 badges={
                     <>
                         {company.shortName && (
-                            <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold text-slate-900 bg-white border-2 border-gray-600 px-3 py-1.5 rounded-full shadow-sm">
+                            <span className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-medium text-slate-900 bg-red-50 border-1  border-red-500 px-3 py-1.5 rounded-full shadow-sm">
                                 ชื่อย่อบริษัท : {company.shortName}
                             </span>
                         )}
                         {company.status === "ACTIVE" ? (
-                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
                                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                                 ใช้งาน
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-rose-700 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-full shadow-sm">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 px-3 py-1.5 rounded-full shadow-sm">
                                 <XCircle className="h-4 w-4 text-rose-600" />
                                 ไม่ใช้งาน
                             </span>
