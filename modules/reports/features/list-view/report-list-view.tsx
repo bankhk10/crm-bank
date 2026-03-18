@@ -129,7 +129,7 @@ export default function ReportListView() {
       </div>
 
       {/* Report Cards Grid */}
-      <div className="px-6 pb-12 max-w-7xl mx-auto">
+      <div className="px-6 pb-12 mx-auto">
         {filteredCategories.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
