@@ -216,7 +216,7 @@ export function CompaniesView({
                             total,
                             onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
                             onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
-                            perPageOptions: [6, 12, 24, 48],
+                            perPageOptions: [10, 20, 30],
                         }}
                     />
                 </div>
