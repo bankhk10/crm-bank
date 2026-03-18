@@ -29,32 +29,16 @@ import { usePermission } from "@/hooks/use-permission";
 import { Badge } from "@/components/ui/badge";
 import { deleteShippingCompanyAction } from "../../server/actions";
 import type { ShippingCompanyRecord } from "../../types";
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailItem } from "@/components/custom/detail-item";
+
 
 interface ShippingCompanyDetailViewProps {
     shippingCompany: ShippingCompanyRecord;
 }
 
-function DetailItem({
-    icon,
-    label,
-    value,
-}: {
-    icon?: React.ReactNode;
-    label: string;
-    value: React.ReactNode;
-}) {
-    return (
-        <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-            {icon && <div className="text-gray-400 mt-0.5 shrink-0">{icon}</div>}
-            <div className="flex-1 min-w-0">
-                <dt className="text-sm font-medium text-gray-500 mb-1">{label}</dt>
-                <dd className="text-base text-gray-900 font-medium break-words">
-                    {value || "-"}
-                </dd>
-            </div>
-        </div>
-    );
-}
+
 
 export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDetailViewProps) {
     const router = useRouter();
@@ -112,94 +96,80 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
     return (
         <div className="min-h-screen pb-12 rounded-3xl">
             {/* Hero Header */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-                <div className="bg-white border-t-4 border-red-600 rounded-3xl shadow-xl p-4 sm:p-6 lg:p-8">
-
-                    {/* Top bar: back link + action buttons */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <Link
-                            href="/shipping-companies"
-                            className="inline-flex items-center text-gray-500 hover:text-red-600 transition-colors group text-sm"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                            กลับไปหน้ารายการบริษัทขนส่ง
-                        </Link>
-
-                        {/* Action buttons — full-width on mobile, auto on sm+ */}
-                        {(canEdit || canDelete) && (
-                            <div className="flex gap-2 w-full sm:w-auto">
-                                {canEdit && (
-                                    <Button asChild size="sm" className="flex-1 sm:flex-none">
-                                        <Link href={`/shipping-companies/${shippingCompany.id}/edit`}>
-                                            <Pencil className="h-4 w-4 mr-2" />
-                                            แก้ไข
-                                        </Link>
-                                    </Button>
-                                )}
-                                {canDelete && (
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        className="flex-1 sm:flex-none"
-                                        onClick={() => setDeleteDialogOpen(true)}
-                                    >
-                                        <Trash2 className="h-4 w-4 mr-2" />
-                                        ลบ
-                                    </Button>
-                                )}
-                            </div>
+            <DetailHero
+                backUrl="/shipping-companies"
+                backLabel="หน้ารายการบริษัทขนส่ง"
+                title={shippingCompany.name}
+                icon={<Truck className="h-8 w-8 text-white" />}
+                badges={
+                    <>
+                        {shippingCompany.phone && (
+                            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <Phone className="h-3.5 w-3.5 text-[#F87171]" />
+                                {shippingCompany.phone}
+                            </span>
                         )}
-                    </div>
+                        {shippingCompany.status === "ACTIVE" ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1 rounded-full uppercase tracking-wider">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                ใช้งาน
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                                <XCircle className="h-3.5 w-3.5" />
+                                ไม่ใช้งาน
+                            </span>
+                        )}
+                    </>
+                }
+                actions={
+                    <>
+                        {canEdit && (
+                            <Button
+                                asChild
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-white/10 hover:bg-white/20 
+                                text-white border border-white/10 
+                                rounded-xl backdrop-blur-md
+                                transition-all active:scale-[0.98]"
+                            >
+                                <Link href={`/shipping-companies/${shippingCompany.id}/edit`}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    แก้ไข
+                                </Link>
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button
+                                size="sm"
+                                className="h-10 px-6 text-xs font-semibold 
+                                bg-red-600 hover:bg-red-700 
+                                text-white border-0 
+                                rounded-xl shadow-lg shadow-red-900/30
+                                transition-all active:scale-[0.98]"
+                                onClick={() => setDeleteDialogOpen(true)}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                ลบ
+                            </Button>
+                        )}
+                    </>
+                }
+            />
 
-                    {/* Company identity */}
-                    <div className="mt-5 flex flex-col sm:flex-row sm:items-start gap-4">
-                        <div className="flex items-center justify-center w-14 h-14 bg-orange-100 rounded-xl shrink-0">
-                            <Truck className="h-7 w-7 text-orange-600" />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 break-words">
-                                {shippingCompany.name}
-                            </h1>
-
-                            <div className="flex flex-wrap items-center gap-3 mt-2 text-gray-600">
-                                {shippingCompany.phone && (
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Phone className="h-4 w-4 shrink-0" />
-                                        <span>{shippingCompany.phone}</span>
-                                    </div>
-                                )}
-
-                                {shippingCompany.status === "ACTIVE" ? (
-                                    <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                                        <CheckCircle2 className="h-4 w-4" />
-                                        ใช้งาน
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
-                                        <XCircle className="h-4 w-4" />
-                                        ไม่ใช้งาน
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 sm:pb-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Single column on mobile/tablet, 2 columns on lg+ */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
                     {/* General Info */}
-                    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
-                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-600">
-                            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                                ข้อมูลทั่วไป
-                            </h2>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <SectionHeader
+                            title="ข้อมูลทั่วไป"
+                            icon={<FileText className="h-6 w-6" />}
+                        />
                         <div className="p-4 sm:p-6">
                             <DetailItem
                                 icon={<MapPin className="h-5 w-5" />}
@@ -223,13 +193,12 @@ export function ShippingCompanyDetailView({ shippingCompany }: ShippingCompanyDe
                     </div>
 
                     {/* Customers */}
-                    <div className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
-                        <div className="p-4 sm:p-6 border-b border-gray-100 bg-gray-600">
-                            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                                ลูกค้าที่ใช้บริการ ({shippingCompany.customerList?.length || 0} ราย)
-                            </h2>
-                        </div>
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <SectionHeader
+                            title={`ลูกค้าที่ใช้บริการ (${shippingCompany.customerList?.length || 0} ราย)`}
+                            icon={<Users className="h-6 w-6" />}
+                            variant="dark"
+                        />
 
                         <div className="p-4 sm:p-6">
                             {shippingCompany.customerList?.length ? (
