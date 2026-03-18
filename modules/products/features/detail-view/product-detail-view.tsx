@@ -39,6 +39,7 @@ import {
 import Link from "next/link";
 import { getProductAction, deleteProductAction, type Product } from "@/modules/products";
 import { PACKAGE_UNIT_OPTIONS } from "@/modules/products/constants";
+import { DetailHero } from "@/components/custom/detail-hero";
 import { toast } from "sonner";
 
 export default function ProductDetailView() {
@@ -212,7 +213,66 @@ export default function ProductDetailView() {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <DetailHero
+        backUrl="/products"
+        backLabel="หน้ารายการสินค้า"
+        title={product.name}
+        icon={<Package className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
+        accentColor="#B91C1C"
+        badges={
+          <>
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+              <Hash className="h-3.5 w-3.5 text-gray-200" />
+              {product.productCode}
+            </span>
+            {product.productGroup && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <Layers className="h-3.5 w-3.5 text-gray-200" />
+                {product.productGroup.name}
+              </span>
+            )}
+            {product.status === "ACTIVE" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/50 px-3 py-1 rounded-full uppercase tracking-wider">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                ใช้งาน
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full uppercase tracking-wider">
+                <XCircle className="h-3.5 w-3.5" />
+                {product.status || "ไม่ระบุ"}
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            {canEdit && (
+              <Button
+                size="sm"
+                className="h-10 px-4 sm:px-6 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl backdrop-blur-md transition-all active:scale-[0.98]"
+                asChild
+              >
+                <Link href={`/products/${productId}/edit`}>
+                  <Edit className="h-3.5 w-3.5 mr-2" />
+                  แก้ไขสินค้า
+                </Link>
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                size="sm"
+                className="h-10 px-4 sm:px-6 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-xl backdrop-blur-md transition-all active:scale-[0.98]"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-2 text-red-400" />
+                ลบสินค้า
+              </Button>
+            )}
+          </div>
+        }
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main product layout */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -272,50 +332,13 @@ export default function ProductDetailView() {
 
             {/* ─── RIGHT: Product Info ─── */}
             <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-5">
-              {/* Header */}
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  {/* Status badge */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${product.status === "ACTIVE"
-                        ? "bg-green-100 text-green-700 border border-green-200"
-                        : "bg-gray-100 text-gray-500 border border-gray-200"
-                        }`}
-                    >
-                      {product.status === "ACTIVE" ? (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      ) : (
-                        <XCircle className="h-3.5 w-3.5" />
-                      )}
-                      {product.status === "ACTIVE" ? "ใช้งาน" : "ไม่ใช้งาน"}
-                    </span>
-                  </div>
-                  {/* ชื่อสินค้า */}
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight break-words">
-                    {product.name}
-                  </h1>
-                  {product.commonName && (
-                    <p className="text-gray-500 text-sm mt-1 break-words">{product.commonName}</p>
-                  )}
+              {product.commonName && (
+                <div className="mb-2">
+                  <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                    {product.commonName}
+                  </h2>
                 </div>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  {canEdit && (
-                    <Button variant="outline" size="icon" asChild>
-                      <Link href={`/products/${productId}/edit`}>
-                        <Edit className="h-4 w-4 text-purple-600" />
-                      </Link>
-                    </Button>
-                  )}
-                  {canDelete && (
-                    <Button variant="outline" size="icon" onClick={() => setDeleteDialogOpen(true)}>
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  )}
-                </div>
-              </div>
+              )}
 
               {/* Price */}
               {(Number(product.price) > 0 || Number(product.cartonPrice) > 0) && (
@@ -586,28 +609,6 @@ export default function ProductDetailView() {
         </Dialog>
       )}
 
-      {/* Back Navigation */}
-      <div className="flex justify-center pt-6">
-        <Link
-          href="/products"
-          className="group flex items-center gap-2
-               px-4 py-2
-               text-sm
-               rounded-2xl
-               bg-white
-               text-gray-700
-               border-2 border-gray-200
-               hover:border-indigo-300
-               hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50
-               transition-all duration-300
-               hover:scale-105
-               shadow-lg hover:shadow-xl
-               font-semibold"
-        >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          ย้อนกลับไปหน้ารายการสินค้า
-        </Link>
-      </div>
 
     </div>
   );
