@@ -198,16 +198,16 @@ export default function EmployeeDetailView() {
                     <div className="pt-6">
                         <Link
                             href="/employee"
-                            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium 
-                                            text-gray-400 hover:text-white 
-                                            bg-transparent hover:bg-white/5 
-                                            border border-transparent hover:border-white/10 
-                                            rounded-full transition-all duration-200 group"
+                            className="inline-flex items-center gap-2.5 h-10 px-6 text-xs font-semibold 
+                                            bg-white/10 hover:bg-white/20 
+                                            text-white border border-white/10 
+                                            rounded-xl backdrop-blur-md
+                                            transition-all active:scale-[0.98] group"
                         >
                             <div className="bg-white/10 group-hover:bg-[#B91C1C] rounded-full p-1 transition-colors">
-                                <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                                <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
                             </div>
-                            <span>ย้อนกลับ</span>
+                            <span>กลับไปหน้ารายการพนักงาน</span>
                         </Link>
                     </div>
 
