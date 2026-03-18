@@ -707,68 +707,68 @@ export default function CustomerDetailView() {
           )}
 
 
-          {/* ── Notes ─────────────────────────────────────── */}
+          {/* ── Addresses ─────────────────────────────────────── */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <SectionHeader
-              icon={<FileText className="h-6 w-6" />}
-              title="หมายเหตุ"
-            />
-            <div className="p-6">
-              {customer.notes ? (
-                <div className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
-                  {customer.notes}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic text-center">ไม่มีบันทึกข้อมูล</p>
-              )}
-            </div>
-          </div>
-
-          {/* ── Addresses — full width ──────────────────────────── */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
             <SectionHeader
               icon={<MapPin className="h-6 w-6" />}
               title="ที่อยู่และการจัดส่ง"
             />
-            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-3">
-                <h4 className="text-gray-500 font-medium" >ที่อยู่บริษัท</h4>
-                <div className="text-gray-600 leading-relaxed">
-                  {formatAddress({
-                    addressLine: customer.addressLine,
-                    subdistrict: customer.subdistrict,
-                    district: customer.district,
-                    province: customer.province,
-                    postalCode: customer.postalCode,
-                  })}
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h4 className="text-gray-500 font-medium" >ที่อยู่วางบิล</h4>
-                <div className="text-gray-600 leading-relaxed">
-                  {formatAddress({
-                    addressLine: customer.billingAddressLine,
-                    subdistrict: customer.billingSubdistrict,
-                    district: customer.billingDistrict,
-                    province: customer.billingProvince,
-                    postalCode: customer.billingPostalCode,
-                  }) || "ไม่มีข้อมูล"}
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h4 className="text-gray-500 font-medium" >ที่อยู่จัดส่ง</h4>
-                <div className="text-gray-600 leading-relaxed">
-                  {formatAddress({
-                    addressLine: customer.shippingAddressLine,
-                    subdistrict: customer.shippingSubdistrict,
-                    district: customer.shippingDistrict,
-                    province: customer.shippingProvince,
-                    postalCode: customer.shippingPostalCode,
-                  }) || "ไม่มีข้อมูล"}
-                </div>
-              </div>
+            <div className="p-6 space-y-1 divide-y divide-gray-50">
+              <DetailItem
+                icon={<Building className="h-4 w-4 text-gray-400" />}
+                label="ที่อยู่บริษัท"
+                value={formatAddress({
+                  addressLine: customer.addressLine,
+                  subdistrict: customer.subdistrict,
+                  district: customer.district,
+                  province: customer.province,
+                  postalCode: customer.postalCode,
+                })}
+              />
+              <DetailItem
+                icon={<FileText className="h-4 w-4 text-gray-400" />}
+                label="ที่อยู่วางบิล"
+                value={formatAddress({
+                  addressLine: customer.billingAddressLine,
+                  subdistrict: customer.billingSubdistrict,
+                  district: customer.billingDistrict,
+                  province: customer.billingProvince,
+                  postalCode: customer.billingPostalCode,
+                }) || "ไม่มีข้อมูล"}
+              />
+              <DetailItem
+                icon={<Truck className="h-4 w-4 text-gray-400" />}
+                label="ที่อยู่จัดส่ง"
+                value={formatAddress({
+                  addressLine: customer.shippingAddressLine,
+                  subdistrict: customer.shippingSubdistrict,
+                  district: customer.shippingDistrict,
+                  province: customer.shippingProvince,
+                  postalCode: customer.shippingPostalCode,
+                }) || "ไม่มีข้อมูล"}
+              />
             </div>
           </div>
+
+          {/* ── Notes ─────────────────────────────────────── */}
+          {customer.notes && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <SectionHeader
+                icon={<FileText className="h-6 w-6" />}
+                title="หมายเหตุ"
+              />
+              <div className="p-6">
+                {customer.notes ? (
+                  <div className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+                    {customer.notes}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 italic text-center">ไม่มีบันทึกข้อมูล</p>
+                )}
+              </div>
+            </div>
+          )}
+
 
           {/* ── Images ─────────────────────────────────────── */}
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
