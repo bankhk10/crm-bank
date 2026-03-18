@@ -190,9 +190,8 @@ export default function EmployeeDetailView() {
 
     return (
         <div className="min-h-screen">
-
             {/* ── Hero Header ──────────────────────────────────────────────── */}
-            <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] mx-auto overflow-hidden shadow-2xl shadow-black/20">
+            <div className="bg-[#111111] rounded-[1rem] sm:rounded-[2rem] mx-auto overflow-hidden shadow-2xl shadow-black/20">
                 <div className="px-4 sm:px-10 lg:px-12">
                     {/* Breadcrumb row */}
                     <div className="pt-6">
