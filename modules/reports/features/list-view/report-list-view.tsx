@@ -2,7 +2,6 @@
 
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Calendar,
   Package,
@@ -14,6 +13,15 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+
+const categoryToHex: Record<string, string> = {
+  executive: "#6366f1",
+  time: "#3b82f6",
+  product: "#10b981",
+  "customer-salesperson": "#f59e0b",
+};
 
 const reportCategories = [
   {
@@ -99,37 +107,27 @@ export default function ReportListView() {
   }
 
   return (
-    <div className="min-h-screen ">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200/50 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl mb-8">
-        {/* Background effects */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-blue-500/10" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
-
-        {/* Content */}
-        <div className="relative px-8 py-14 max-w-7xl mx-auto">
-          <div className="flex items-center gap-5">
-            {/* Icon */}
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/30">
-              <TrendingUp className="h-7 w-7 text-white" />
+    <div className="min-h-screen from-slate-50 to-blue-50 bg-slate-50/50 pb-12">
+      {/* Hero Header Section */}
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <DetailHero
+          backUrl="/"
+          backLabel="หน้าแรก"
+          title="หมวดรายงาน"
+          icon={<TrendingUp className="h-8 w-8 text-white" />}
+          backgroundColor="#1e293b" // Slate 800
+          accentColor="#3b82f6"     // Blue 500
+          badges={
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-blue-100 bg-blue-500/20 border border-blue-400/30 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-md">
+              <TrendingUp className="h-4 w-4 text-blue-300" />
+              วิเคราะห์ข้อมูลการขาย
             </div>
-
-            {/* Title */}
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
-                หมวดรายงาน
-              </h1>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                วิเคราะห์ข้อมูลการขาย
-              </p>
-            </div>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       {/* Report Cards Grid */}
-      <div className="px-6 pb-12 mx-auto">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {filteredCategories.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
@@ -137,61 +135,42 @@ export default function ReportListView() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {filteredCategories.map((category) => {
               const Icon = category.icon;
               return (
                 <Link key={category.id} href={category.href} className="group">
-                  <Card
-                    className={`relative h-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-500 ${category.bgColor} group-hover:scale-[1.02] cursor-pointer`}
-                  >
-                    {/* Gradient overlay */}
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 h-full group-hover:scale-[1.01]">
+                    <SectionHeader
+                      title={category.title}
+                      icon={<Icon className="h-6 w-6" />}
+                      accentColor={categoryToHex[category.id] || "#3b82f6"}
+                      variant={category.id === "executive" ? "dark" : "primary"}
                     />
-
-                    {/* Animated border */}
-                    <div
-                      className={`absolute inset-0 rounded-lg bg-gradient-to-r ${category.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[2px]`}
-                    >
-                      <div
-                        className={`h-full w-full ${category.bgColor} rounded-lg`}
-                      />
-                    </div>
-
-                    <CardHeader className="relative pb-2">
-                      <div className="flex items-start justify-between">
-                        <div
-                          className={`p-3 rounded-xl bg-gradient-to-br ${category.color} shadow-lg transform group-hover:scale-110 transition-transform duration-300`}
-                        >
-                          <Icon className="h-6 w-6 text-white" />
-                        </div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
-                      </div>
-                      <CardTitle className="mt-4 text-xl font-semibold text-slate-800 dark:text-slate-100">
-                        {category.title}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
+                    <div className="p-8">
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
+                        <ArrowRight className="h-4 w-4 text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                         {category.description}
                       </p>
-                    </CardHeader>
-
-                    <CardContent className="relative pt-0">
-                      <ul className="space-y-2">
+                      
+                      <div className="grid grid-cols-1 gap-4">
                         {category.features.map((feature, idx) => (
-                          <li
+                          <div
                             key={idx}
-                            className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400"
+                            className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 border border-slate-100/50 hover:bg-white hover:border-slate-200 transition-all duration-200"
                           >
                             <div
-                              className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.color}`}
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: categoryToHex[category.id] || "#3b82f6" }}
                             />
-                            {feature}
-                          </li>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                              {feature}
+                            </span>
+                          </div>
                         ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               );
             })}
