@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Target } from "lucide-react";
 import { toast } from "sonner";
+import { usePermission } from "@/hooks/use-permission";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Feature Imports
 import {
@@ -22,6 +25,47 @@ import { DetailedTarget } from "@/modules/sales-targets";
 export default function SalesTargetsListView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const {
+    hasPermission,
+    allowed,
+    isLoading: isPermissionLoading,
+    canEdit: canEditScope,
+    canDelete: canDeleteScope,
+  } = usePermission("menu.sales_targets");
+
+  const canCreate = hasPermission("sales_target.create");
+  const canEditBase = hasPermission("sales_target.edit");
+  const canDeleteBase = hasPermission("sales_target.delete");
+  const canView = !isPermissionLoading && allowed;
+  const user = useCurrentUser();
+
+  // Create callbacks for checking edit/delete permissions per item based on access scope
+  const canEditItem = useCallback(
+    (item: DetailedTarget): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canEditBase) return false;
+
+      // Check scope-based permission using the access level
+      // Note: We use employeeId as the resourceOwnerId for sales targets
+      return canEditScope("sales_target", {
+        resourceOwnerId: item.employeeId,
+      });
+    },
+    [canEditScope, canEditBase]
+  );
+
+  const canDeleteItem = useCallback(
+    (item: DetailedTarget): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canDeleteBase) return false;
+
+      // Check scope-based permission using the access level
+      return canDeleteScope("sales_target", {
+        resourceOwnerId: item.employeeId,
+      });
+    },
+    [canDeleteScope, canDeleteBase]
+  );
 
   // URL State & Filters
   const queryFilters = useMemo(() => {
@@ -55,6 +99,7 @@ export default function SalesTargetsListView() {
     setEmployeeFilter(queryFilters.employeeId);
     setShopFilter(queryFilters.shopId);
   }, [queryFilters]);
+
 
   // Use a helper to update state and URL together
   const updateFilter = (updates: {
@@ -203,6 +248,27 @@ export default function SalesTargetsListView() {
     }
   };
 
+  if (isPermissionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
+          <p className="mt-4 text-slate-600">กำลังโหลด...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canView) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertDescription>คุณไม่มีสิทธิ์เข้าถึงหน้านี้</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
       <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -211,6 +277,7 @@ export default function SalesTargetsListView() {
           iconClassName="text-blue-600"
           title="ข้อมูลเป้าหมาย"
         />
+
 
         {/* Content */}
         <div className="space-y-6">
@@ -234,6 +301,12 @@ export default function SalesTargetsListView() {
             onChangeEmployee={(e) => updateFilter({ employeeId: e })}
             onChangeShop={(s) => updateFilter({ shopId: s })}
             onClear={handleClearFilters}
+            canCreate={canCreate}
+            canView={canView}
+            canEdit={canEditBase}
+            canDelete={canDeleteBase}
+            canEditItem={canEditItem}
+            canDeleteItem={canDeleteItem}
           />
         </div>
       </div>

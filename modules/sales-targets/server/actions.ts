@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/modules/auth/infrastructure/next-auth";
+import { applyDataScope, canAccessRecord } from "@/lib/data-scope";
 import {
   getSalesTargetDetailUseCase,
   listSalesTargetsUseCase,
@@ -10,7 +11,7 @@ import {
   getPreviousMonthTargetUseCase,
   getAvailableYearsUseCase,
 } from "../application";
-import { deleteSalesTargetById } from "../infrastructure/sales-target.repository";
+import { deleteSalesTargetById, findSalesTargetById } from "../infrastructure/sales-target.repository";
 import { findSalesTargetHistory } from "../infrastructure/sales-target-history.repository";
 
 // ─────────────────────────────────────────────
@@ -33,7 +34,10 @@ export async function getSalesTargetsAction(params: {
   }
 
   try {
-    const data = await listSalesTargetsUseCase(params);
+    const extraWhere: Record<string, unknown> = {};
+    await applyDataScope(extraWhere, session, "sales_target");
+
+    const data = await listSalesTargetsUseCase({ ...params, extraWhere });
     return { success: true, ...data };
   } catch (_err) {
     return {
@@ -64,7 +68,28 @@ export async function getSalesTargetAction(id: string) {
   }
 
   try {
-    return await getSalesTargetDetailUseCase(id);
+    const isAdmin = session.user.roles?.includes("administrator");
+    const hasBasePermission = session.user.permissionKeys?.includes("sales_target.view") || 
+                             session.user.permissionKeys?.includes("menu.sales_targets");
+
+    if (!isAdmin && !hasBasePermission) {
+      return { success: false, error: "Forbidden" };
+    }
+
+    const result = await getSalesTargetDetailUseCase(id);
+    if (!result.success || !result.salesTarget) return result;
+
+    if (!isAdmin) {
+      const canView = await canAccessRecord(session, "sales_target", {
+        resourceOwnerId: result.salesTarget.employeeId,
+        resourceEmployeeId: result.salesTarget.employeeId,
+        resourceDepartmentId: (result.salesTarget.employee as any)?.departmentId,
+      });
+
+      if (!canView) return { success: false, error: "Access denied" };
+    }
+
+    return result;
   } catch (_err) {
     return { success: false, error: "Failed to fetch" };
   }
@@ -81,6 +106,17 @@ export async function getPreviousMonthTargetAction(params: {
   const session = await auth();
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
+  }
+
+  // Check if user is allowed to view/access targets for this employeeId
+  const isAdmin = session.user.roles?.includes("administrator");
+  if (!isAdmin) {
+    const canAccess = await canAccessRecord(session, "sales_target", {
+      resourceOwnerId: params.employeeId,
+      resourceEmployeeId: params.employeeId,
+      // We don't have department here easily, but canAccessRecord will check employeeId/ownerId first
+    });
+    if (!canAccess) return { success: false, error: "Access denied" };
   }
 
   try {
@@ -130,15 +166,28 @@ export async function updateSalesTargetAction(id: string, rawData: unknown) {
   }
 
   const isAdmin = session.user.roles?.includes("administrator");
-  const hasPermission =
+  const hasBasePermission =
     session.user.permissionKeys?.includes("sales_target.edit") ||
     session.user.permissionKeys?.includes("sales_target.create");
 
-  if (!isAdmin && !hasPermission) {
+  if (!isAdmin && !hasBasePermission) {
     return { success: false, error: "Forbidden" };
   }
 
   try {
+    const existing = await findSalesTargetById(id);
+    if (!existing) return { success: false, error: "Not found" };
+
+    if (!isAdmin) {
+      const canEdit = await canAccessRecord(session, "sales_target", {
+        resourceOwnerId: existing.employeeId,
+        resourceEmployeeId: existing.employeeId,
+        resourceDepartmentId: (existing.employee as any)?.departmentId,
+      });
+
+      if (!canEdit) return { success: false, error: "Access denied" };
+    }
+
     const result = await updateSalesTargetUseCase(id, rawData, session.user.id);
     if (result.success) {
       revalidatePath("/sales-targets");
@@ -160,15 +209,28 @@ export async function deleteSalesTargetAction(id: string) {
   }
 
   const isAdmin = session.user.roles?.includes("administrator");
-  const hasPermission = session.user.permissionKeys?.includes(
+  const hasBasePermission = session.user.permissionKeys?.includes(
     "sales_target.delete",
   );
 
-  if (!isAdmin && !hasPermission) {
+  if (!isAdmin && !hasBasePermission) {
     return { success: false, error: "Forbidden" };
   }
 
   try {
+    const existing = await findSalesTargetById(id);
+    if (!existing) return { success: false, error: "Not found" };
+
+    if (!isAdmin) {
+      const canDelete = await canAccessRecord(session, "sales_target", {
+        resourceOwnerId: existing.employeeId,
+        resourceEmployeeId: existing.employeeId,
+        resourceDepartmentId: (existing.employee as any)?.departmentId,
+      });
+
+      if (!canDelete) return { success: false, error: "Access denied" };
+    }
+
     await deleteSalesTargetById(id);
     revalidatePath("/sales-targets");
     return { success: true };

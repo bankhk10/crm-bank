@@ -9,6 +9,7 @@ export interface FindSalesTargetsParams {
   month?: number;
   employeeId?: string;
   shopId?: string;
+  extraWhere?: any;
 }
 
 /**
@@ -29,7 +30,7 @@ export async function getAvailableYears(): Promise<number[]> {
 
 const salesTargetFullInclude = {
   employee: {
-    select: { id: true, name: true, employeeCode: true },
+    select: { id: true, name: true, employeeCode: true, departmentId: true },
   },
   stores: {
     include: {
@@ -94,7 +95,7 @@ export async function findSalesTargetById(id: string) {
  * Find sales targets with filters (year, month, employee, shop).
  */
 export async function findSalesTargets(params: FindSalesTargetsParams) {
-  const { year, month, employeeId, shopId } = params;
+  const { year, month, employeeId, shopId, extraWhere } = params;
 
   const detailedTargets = await db.salesTarget.findMany({
     where: {
@@ -108,6 +109,7 @@ export async function findSalesTargets(params: FindSalesTargetsParams) {
             },
           }
         : {}),
+      ...(extraWhere || {}),
     },
     include: salesTargetFullInclude,
     orderBy: [{ month: "asc" }, { createdAt: "desc" }],

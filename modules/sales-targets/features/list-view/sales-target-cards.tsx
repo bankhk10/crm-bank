@@ -33,6 +33,8 @@ interface SalesTargetCardsProps {
     onCopy: (target: DetailedTarget) => void;
     onDelete: (id: string) => void;
     pagination: any;
+    canEditItem?: (item: DetailedTarget) => boolean;
+    canDeleteItem?: (item: DetailedTarget) => boolean;
 }
 
 export function SalesTargetCards({
@@ -45,6 +47,8 @@ export function SalesTargetCards({
     onCopy,
     onDelete,
     pagination,
+    canEditItem,
+    canDeleteItem,
 }: SalesTargetCardsProps) {
     if (loading) {
         return (
@@ -116,6 +120,14 @@ export function SalesTargetCards({
                                 ) ?? 0),
                             0,
                         ) ?? 0;
+
+                    const canEditThis = canEditItem
+                        ? canEditItem(target)
+                        : canEdit;
+
+                    const canDeleteThis = canDeleteItem
+                        ? canDeleteItem(target)
+                        : canDelete;
 
                     return (
                         <Card
@@ -206,7 +218,7 @@ export function SalesTargetCards({
                                     >
                                         <Copy className="mr-1.5 h-4 w-4" /> คัดลอก
                                     </Button>
-                                    {canEdit && (
+                                    {canEditThis && (
                                         <Button asChild size="sm" variant="outline"
                                             className="flex-1 border-blue-100 text-blue-700 hover:bg-blue-50"
                                         >
@@ -215,7 +227,7 @@ export function SalesTargetCards({
                                             </Link>
                                         </Button>
                                     )}
-                                    {canDelete && (
+                                    {canDeleteThis && (
                                         <Button
                                             size="sm"
                                             variant="destructive"

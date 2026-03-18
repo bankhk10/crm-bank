@@ -14,6 +14,9 @@ export function useSalesTargetColumns(
     canDelete: boolean,
     canEdit: boolean,
     canView: boolean,
+    currentUserId?: string,
+    canEditItem?: (item: DetailedTarget) => boolean,
+    canDeleteItem?: (item: DetailedTarget) => boolean,
 ) {
     return React.useMemo<ColumnDef<DetailedTarget>[]>(
         () => [
@@ -136,6 +139,14 @@ export function useSalesTargetColumns(
                 },
                 cell: ({ row }) => {
                     const target = row.original;
+                    const canEditThis = canEditItem
+                        ? canEditItem(target)
+                        : canEdit;
+
+                    const canDeleteThis = canDeleteItem
+                        ? canDeleteItem(target)
+                        : canDelete;
+
                     return (
                         <div className="flex items-center justify-center gap-2">
                             {canView && (
@@ -152,7 +163,7 @@ export function useSalesTargetColumns(
                                 colorClass="text-amber-600 border-amber-100 hover:bg-amber-50 rounded-md"
                                 onClick={() => onCopy(target)}
                             />
-                            {canEdit && (
+                            {canEditThis && (
                                 <ActionButton
                                     href={`/sales-targets/${target.id}/edit`}
                                     icon={Edit}
@@ -160,7 +171,7 @@ export function useSalesTargetColumns(
                                     colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
                                 />
                             )}
-                            {canDelete && (
+                            {canDeleteThis && (
                                 <ActionButton
                                     icon={Trash2}
                                     label="ลบ"
@@ -173,6 +184,6 @@ export function useSalesTargetColumns(
                 },
             },
         ],
-        [canDelete, canEdit, canView, onView, onCopy, onDelete],
+        [canDelete, canEdit, canView, onView, onCopy, onDelete, canEditItem, canDeleteItem],
     );
 }

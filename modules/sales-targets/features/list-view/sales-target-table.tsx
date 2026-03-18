@@ -41,6 +41,14 @@ interface SalesTargetTableProps {
     onChangeEmployee: (id: string) => void;
     onChangeShop: (id: string) => void;
     onClear: () => void;
+
+    // Permissions
+    canCreate?: boolean;
+    canView?: boolean;
+    canEdit?: boolean;
+    canDelete?: boolean;
+    canEditItem?: (item: DetailedTarget) => boolean;
+    canDeleteItem?: (item: DetailedTarget) => boolean;
 }
 
 export function SalesTargetTable({
@@ -61,13 +69,13 @@ export function SalesTargetTable({
     onChangeEmployee,
     onChangeShop,
     onClear,
+    canCreate = false,
+    canView = false,
+    canEdit = false,
+    canDelete = false,
+    canEditItem,
+    canDeleteItem,
 }: SalesTargetTableProps) {
-    const { allowed, isLoading, hasPermission } = usePermission("menu.sales_targets");
-
-    const canCreate = !isLoading && hasPermission("sales_target.create");
-    const canEdit = !isLoading && hasPermission("sales_target.edit");
-    const canDelete = !isLoading && hasPermission("sales_target.delete");
-    const canView = hasPermission("menu.sales_targets") || hasPermission("sales_target.view");
 
     // -------------------------------------------------------------------------
     // Local state
@@ -115,25 +123,11 @@ export function SalesTargetTable({
         canDelete,
         canEdit,
         canView,
+        undefined, // currentUserId not used in columns yet, but can be added if needed
+        canEditItem,
+        canDeleteItem
     );
 
-    // -------------------------------------------------------------------------
-    // Guard: loading / no permission
-    // -------------------------------------------------------------------------
-    if (isLoading)
-        return (
-            <div className="p-8 text-center text-slate-500">กรุณารอสักครู่...</div>
-        );
-
-    if (!allowed) {
-        return (
-            <Card className="p-8 text-center">
-                <div className="text-red-600 font-semibold text-lg">
-                    คุณไม่มีสิทธิ์เข้าถึงหน้านี้
-                </div>
-            </Card>
-        );
-    }
 
     const toolbar = (
         <div className="space-y-4 mb-6">
@@ -236,6 +230,8 @@ export function SalesTargetTable({
                         canDelete={canDelete}
                         canEdit={canEdit}
                         canView={canView}
+                        canEditItem={canEditItem}
+                        canDeleteItem={canDeleteItem}
                         onView={onView}
                         onCopy={onCopy}
                         onDelete={(id) => setDeleteTargetId(id)}
