@@ -109,7 +109,7 @@ export default function SalesTargetsListView() {
     shopId?: string;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     if (updates.year !== undefined) {
       setYear(updates.year);
       params.set("year", updates.year.toString());
@@ -270,8 +270,8 @@ export default function SalesTargetsListView() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8 space-y-6 rounded-xl border border-gray-200">
-      <div className="w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="bg-white shadow-sm sm:rounded-lg">
+      <div className="p-6">
         <PageHeader
           icon={Target}
           iconClassName="text-blue-600"

@@ -34,7 +34,7 @@ export default function CompaniesListView() {
         const p = searchParams.get("page");
         return p ? Math.max(1, parseInt(p)) : PAGINATION.DEFAULT_PAGE;
     });
-    
+
     const [perPage, setPerPage] = useState<number>(() => {
         const pp = searchParams.get("perPage");
         return pp ? Math.max(1, parseInt(pp)) : 12; // Companies often use 12 for grid
@@ -48,9 +48,9 @@ export default function CompaniesListView() {
         const to = searchParams.get("to");
         return {
             query: searchParams.get("q") || "",
-            dateRange: from || to ? { 
-                from: from ? new Date(from) : undefined, 
-                to: to ? new Date(to) : undefined 
+            dateRange: from || to ? {
+                from: from ? new Date(from) : undefined,
+                to: to ? new Date(to) : undefined
             } : undefined,
         };
     });
@@ -69,16 +69,16 @@ export default function CompaniesListView() {
 
         setFilterDraft({
             query: q,
-            dateRange: from || to ? { 
-                from: from ? new Date(from) : undefined, 
-                to: to ? new Date(to) : undefined 
+            dateRange: from || to ? {
+                from: from ? new Date(from) : undefined,
+                to: to ? new Date(to) : undefined
             } : undefined,
         });
         setAppliedFilters({
             query: q,
-            dateRange: from || to ? { 
-                from: from ? new Date(from) : undefined, 
-                to: to ? new Date(to) : undefined 
+            dateRange: from || to ? {
+                from: from ? new Date(from) : undefined,
+                to: to ? new Date(to) : undefined
             } : undefined,
         });
         if (p) setPage(Math.max(1, parseInt(p)));
@@ -122,10 +122,10 @@ export default function CompaniesListView() {
 
     // Debounce search
     useEffect(() => {
-        const isTyping = filterDraft.query !== appliedFilters.query || 
-                         filterDraft.dateRange?.from?.toISOString() !== appliedFilters.dateRange?.from?.toISOString() ||
-                         filterDraft.dateRange?.to?.toISOString() !== appliedFilters.dateRange?.to?.toISOString();
-        
+        const isTyping = filterDraft.query !== appliedFilters.query ||
+            filterDraft.dateRange?.from?.toISOString() !== appliedFilters.dateRange?.from?.toISOString() ||
+            filterDraft.dateRange?.to?.toISOString() !== appliedFilters.dateRange?.to?.toISOString();
+
         if (!isTyping) return;
 
         const delay = 500;
@@ -245,36 +245,37 @@ export default function CompaniesListView() {
                         iconClassName="text-blue-600"
                         title="ข้อมูลบริษัท"
                     />
-
-                    <CompaniesTable
-                        data={data}
-                        loading={loading || isPending}
-                        canCreate={canCreate}
-                        canEdit={canEdit}
-                        canDelete={hasPermission("company.delete")}
-                        onDeleteRequest={setDeleteCandidate}
-                        searchValue={filterDraft.query}
-                        onSearchChange={(value) =>
-                            setFilterDraft((prev) => ({ ...prev, query: value }))
-                        }
-                        isTyping={filterDraft.query !== appliedFilters.query}
-                        onSearchSubmit={handleSearchSubmit}
-                        dateRange={filterDraft.dateRange}
-                        onDateRangeChange={(range) =>
-                            setFilterDraft((prev) => ({
-                                ...prev,
-                                dateRange: range ?? undefined,
-                            }))
-                        }
-                        pagination={{
-                            page,
-                            perPage,
-                            total,
-                            onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
-                            onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
-                            perPageOptions: [6, 12, 24, 48],
-                        }}
-                    />
+                    <div className="space-y-6">
+                        <CompaniesTable
+                            data={data}
+                            loading={loading || isPending}
+                            canCreate={canCreate}
+                            canEdit={canEdit}
+                            canDelete={hasPermission("company.delete")}
+                            onDeleteRequest={setDeleteCandidate}
+                            searchValue={filterDraft.query}
+                            onSearchChange={(value) =>
+                                setFilterDraft((prev) => ({ ...prev, query: value }))
+                            }
+                            isTyping={filterDraft.query !== appliedFilters.query}
+                            onSearchSubmit={handleSearchSubmit}
+                            dateRange={filterDraft.dateRange}
+                            onDateRangeChange={(range) =>
+                                setFilterDraft((prev) => ({
+                                    ...prev,
+                                    dateRange: range ?? undefined,
+                                }))
+                            }
+                            pagination={{
+                                page,
+                                perPage,
+                                total,
+                                onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
+                                onPerPageChange: (nextPerPage) => handleApplyFilters({ perPage: nextPerPage, page: 1 }),
+                                perPageOptions: [6, 12, 24, 48],
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </section>
