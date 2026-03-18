@@ -264,7 +264,7 @@ export default function EmployeeDetailView() {
                                             transition-all active:scale-[0.98]"
                                         onClick={() => router.push(`/employee/${employeeId}/edit`)}
                                     >
-                                        <Pencil className="h-3.5 w-3.5 mr-2" />
+                                        <Pencil className="h-3.5 w-3.5" />
                                         แก้ไขข้อมูล
                                     </Button>
                                 )}
@@ -279,7 +279,7 @@ export default function EmployeeDetailView() {
                                             transition-all active:scale-[0.98]"
                                         onClick={() => setDeleteDialogOpen(true)}
                                     >
-                                        <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                        <Trash2 className="h-3.5 w-3.5" />
                                         ลบ
                                     </Button>
                                 )}
