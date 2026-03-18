@@ -7,8 +7,8 @@
  */
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
-  DEFAULT_PER_PAGE: 5,
-  PER_PAGE_OPTIONS: [5, 10, 20],
+  DEFAULT_PER_PAGE: 10,
+  PER_PAGE_OPTIONS: [10, 20, 30],
 } as const;
 
 /**

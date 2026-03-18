@@ -131,7 +131,7 @@ type SaleStatus = "PENDING" | "APPROVED";
 
 // SCREAMING_SNAKE_CASE for constants
 const MAX_DELIVERY_UPDATES = 3;
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 10;
 ```
 
 ### Database Fields
