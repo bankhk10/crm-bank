@@ -732,8 +732,8 @@ export default function CustomerDetailView() {
             />
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-[#B91C1C] uppercase tracking-wider">ที่อยู่บริษัท</h4>
-                <div className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="text-gray-500 font-medium" >ที่อยู่บริษัท</h4>
+                <div className="text-gray-600 leading-relaxed">
                   {formatAddress({
                     addressLine: customer.addressLine,
                     subdistrict: customer.subdistrict,
@@ -744,8 +744,8 @@ export default function CustomerDetailView() {
                 </div>
               </div>
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-[#B91C1C] uppercase tracking-wider">ที่อยู่วางบิล</h4>
-                <div className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="text-gray-500 font-medium" >ที่อยู่วางบิล</h4>
+                <div className="text-gray-600 leading-relaxed">
                   {formatAddress({
                     addressLine: customer.billingAddressLine,
                     subdistrict: customer.billingSubdistrict,
@@ -756,8 +756,8 @@ export default function CustomerDetailView() {
                 </div>
               </div>
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-[#B91C1C] uppercase tracking-wider">ที่อยู่จัดส่ง</h4>
-                <div className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="text-gray-500 font-medium" >ที่อยู่จัดส่ง</h4>
+                <div className="text-gray-600 leading-relaxed">
                   {formatAddress({
                     addressLine: customer.shippingAddressLine,
                     subdistrict: customer.shippingSubdistrict,
