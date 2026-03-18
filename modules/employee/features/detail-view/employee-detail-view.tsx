@@ -195,13 +195,20 @@ export default function EmployeeDetailView() {
             <div className="bg-[#111111] rounded-[2rem] sm:rounded-[3rem] max-w-7xl mx-auto overflow-hidden shadow-2xl shadow-black/20">
                 <div className="px-4 sm:px-10 lg:px-12">
                     {/* Breadcrumb row */}
-                    <div className="pt-6 pb-2 border-b border-white/5">
+                    <div className="pt-6 pb-4">
                         <Link
                             href="/employee"
-                            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors group"
+                            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium 
+text-gray-400 hover:text-white 
+bg-transparent hover:bg-white/5 
+border border-transparent hover:border-white/10 
+rounded-full transition-all duration-200 group"
+                        // className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all duration-200 group backdrop-blur-sm shadow-sm"
                         >
-                            <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                            รายการพนักงาน
+                            <div className="bg-white/10 group-hover:bg-[#B91C1C] rounded-full p-1 transition-colors">
+                                <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" />
+                            </div>
+                            <span>ย้อนกลับ</span>
                         </Link>
                     </div>
 
@@ -251,18 +258,26 @@ export default function EmployeeDetailView() {
                                 {canEdit && (
                                     <Button
                                         size="sm"
-                                        className="h-10 px-6 text-xs font-bold bg-[#B91C1C] hover:bg-[#D41E1E] text-white border-0 rounded-xl shadow-lg shadow-red-900/20 transition-all active:scale-[0.98]"
+                                        className="h-10 px-6 text-xs font-semibold 
+      bg-white/10 hover:bg-white/20 
+      text-white border border-white/10 
+      rounded-xl backdrop-blur-md
+      transition-all active:scale-[0.98]"
                                         onClick={() => router.push(`/employee/${employeeId}/edit`)}
                                     >
                                         <Pencil className="h-3.5 w-3.5 mr-2" />
                                         แก้ไขข้อมูล
                                     </Button>
                                 )}
+
                                 {canDelete && (
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="h-10 px-4 text-xs font-semibold border-white/10 text-gray-500 hover:border-red-500/40 hover:text-red-400 hover:bg-white/5 rounded-xl transition-all"
+                                        className="h-10 px-6 text-xs font-semibold 
+      bg-red-600 hover:bg-red-700 
+      text-white border-0 
+      rounded-xl shadow-lg shadow-red-900/30
+      transition-all active:scale-[0.98]"
                                         onClick={() => setDeleteDialogOpen(true)}
                                     >
                                         <Trash2 className="h-3.5 w-3.5 mr-1.5" />
