@@ -40,6 +40,7 @@ export function CompaniesView({
     const { hasPermission, allowed, isLoading } = usePermission("menu.companies");
     const canCreate = hasPermission("company.create");
     const canEdit = hasPermission("company.edit");
+    const canDelete = hasPermission("company.delete");
     const canView = (!isLoading && allowed) && hasPermission("company.view");
 
     // Local state for UI responsiveness (optimistic updates/debounced inputs)
@@ -194,7 +195,7 @@ export function CompaniesView({
                         loading={isPending} // Show loading state during transition
                         canCreate={canCreate}
                         canEdit={canEdit}
-                        canDelete={hasPermission("company.delete")}
+                        canDelete={canDelete}
                         onDeleteRequest={setDeleteCandidate}
                         searchValue={filterDraft.query}
                         onSearchChange={(value) =>
