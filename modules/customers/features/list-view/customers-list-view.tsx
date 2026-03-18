@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { UserCog } from "lucide-react";
 import { usePermission } from "@/hooks/use-permission";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { PageHeader } from "@/components/custom/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CustomersTable } from "./customers-table";
@@ -11,8 +12,61 @@ import { PAGINATION } from "@/lib/constants";
 import type { CustomerRecord } from "../../types";
 
 export default function CustomersListView() {
-  const { hasPermission, isLoading } = usePermission();
-  const allowed = !isLoading && (hasPermission("menu.customers") || hasPermission("customer.view"));
+  const {
+    hasPermission,
+    allowed,
+    isLoading,
+    canEdit: canEditScope,
+    canDelete: canDeleteScope,
+  } = usePermission("menu.customers");
+
+  const canCreate = hasPermission("customer.create.dealer") ||
+    hasPermission("customer.create.subdealer") ||
+    hasPermission("customer.create.farmer") ||
+    hasPermission("customer.create.broker");
+  const canEditBase = hasPermission("customer.edit.dealer") ||
+    hasPermission("customer.edit.subdealer") ||
+    hasPermission("customer.edit.farmer") ||
+    hasPermission("customer.edit.broker");
+  const canDeleteBase = hasPermission("customer.delete.dealer") ||
+    hasPermission("customer.delete.subdealer") ||
+    hasPermission("customer.delete.farmer") ||
+    hasPermission("customer.delete.broker");
+  const canView = !isLoading && allowed;
+  const user = useCurrentUser();
+
+  // Create callbacks for checking edit/delete permissions per item based on access scope
+  const canEditItem = React.useCallback(
+    (item: CustomerRecord): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canEditBase) return false;
+
+      // Check scope-based permission using the access level
+      const scopeAllowed = canEditScope("customer", {
+        resourceOwnerId: (item as any).createdById,
+        resourceDepartmentId: (item as any).departmentId,
+      });
+
+      return scopeAllowed;
+    },
+    [canEditScope, canEditBase]
+  );
+
+  const canDeleteItem = React.useCallback(
+    (item: CustomerRecord): boolean => {
+      // First check: if user doesn't have the base permission at all, deny
+      if (!canDeleteBase) return false;
+
+      // Check scope-based permission using the access level
+      const scopeAllowed = canDeleteScope("customer", {
+        resourceOwnerId: (item as any).createdById,
+        resourceDepartmentId: (item as any).departmentId,
+      });
+
+      return scopeAllowed;
+    },
+    [canDeleteScope, canDeleteBase]
+  );
 
   const [data, setData] = useState<CustomerRecord[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -140,7 +194,7 @@ export default function CustomersListView() {
     );
   }
 
-  if (!allowed) {
+  if (!canView) {
     return (
       <div className="p-6">
         <Alert variant="destructive">
@@ -180,6 +234,12 @@ export default function CustomersListView() {
             onRefresh={() => {
               setAppliedFilters({ ...appliedFilters });
             }}
+            canCreate={canCreate}
+            canEdit={canEditBase}
+            canDelete={canDeleteBase}
+            canEditItem={canEditItem}
+            canDeleteItem={canDeleteItem}
+            currentUserId={user?.id}
           />
         </div>
       </div>

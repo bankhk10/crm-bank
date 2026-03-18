@@ -18,7 +18,9 @@ export function useCustomerColumns(
     onDeleteRequest: ((customer: CustomerRecord) => void) | undefined,
     canDelete: boolean,
     canEdit: boolean,
-    data: CustomerRecord[] | undefined
+    data: CustomerRecord[] | undefined,
+    canEditItem?: (item: CustomerRecord) => boolean,
+    canDeleteItem?: (item: CustomerRecord) => boolean
 ) {
     return React.useMemo<ColumnDef<CustomerRecord>[]>(
         () => [
@@ -153,6 +155,9 @@ export function useCustomerColumns(
                 },
                 cell: ({ row }) => {
                     const customer = row.original;
+                    const canEditThisItem = canEdit && (canEditItem ? canEditItem(customer) : true);
+                    const canDeleteThisItem = canDelete && (canDeleteItem ? canDeleteItem(customer) : true);
+
                     return (
                         <div className="flex items-center justify-center gap-2">
                             <ActionButton
@@ -161,7 +166,7 @@ export function useCustomerColumns(
                                 label="ดู"
                                 colorClass="text-blue-600 border-blue-100 hover:bg-blue-50 rounded-md"
                             />
-                            {canEdit && (
+                            {canEditThisItem && (
                                 <ActionButton
                                     href={`/customers/${customer.id}/edit`}
                                     icon={Edit}
@@ -169,7 +174,7 @@ export function useCustomerColumns(
                                     colorClass="text-purple-600 border-purple-100 hover:bg-purple-50 rounded-md"
                                 />
                             )}
-                            {canDelete && (
+                            {canDeleteThisItem && (
                                 <ActionButton
                                     icon={Trash2}
                                     label="ลบ"
@@ -182,7 +187,7 @@ export function useCustomerColumns(
                 },
             },
         ],
-        [canDelete, canEdit, onDeleteRequest, data]
+        [canDelete, canEdit, onDeleteRequest, data, canEditItem, canDeleteItem]
     );
 }
 

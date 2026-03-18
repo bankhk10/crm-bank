@@ -49,6 +49,12 @@ export function CustomersTable({
   setFilterDraft,
   onSearchSubmit,
   onRefresh,
+  canCreate = false,
+  canEdit = false,
+  canDelete = false,
+  canEditItem,
+  canDeleteItem,
+  currentUserId,
 }: CustomersTableProps) {
   const { hasPermission } = usePermission("menu.customers");
   
@@ -57,19 +63,7 @@ export function CustomersTable({
   const canCreateFarmer = hasPermission("customer.create.farmer");
   const canCreateBroker = hasPermission("customer.create.broker");
   
-  const canCreate = (
-    canCreateDealer || canCreateSubdealer || canCreateFarmer || canCreateBroker
-  );
-
-  const canEdit = hasPermission("customer.edit.dealer") ||
-    hasPermission("customer.edit.subdealer") ||
-    hasPermission("customer.edit.farmer") ||
-    hasPermission("customer.edit.broker");
-
-  const canDelete = hasPermission("customer.delete.dealer") ||
-    hasPermission("customer.delete.subdealer") ||
-    hasPermission("customer.delete.farmer") ||
-    hasPermission("customer.delete.broker");
+  // Base permissions from props override internal ones if provided
 
   const [error, setError] = React.useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<CustomerRecord | null>(null);
@@ -92,7 +86,14 @@ export function CustomersTable({
     }
   };
 
-  const columns = useCustomerColumns((emp) => setDeleteTarget(emp as CustomerRecord), canDelete, canEdit, data);
+  const columns = useCustomerColumns(
+    (emp) => setDeleteTarget(emp as CustomerRecord),
+    canDelete,
+    canEdit,
+    data,
+    canEditItem,
+    canDeleteItem
+  );
 
   const customerTypes = Object.keys(CUSTOMER_TYPE_STYLE) as Array<
     keyof typeof CUSTOMER_TYPE_STYLE
@@ -220,6 +221,8 @@ export function CustomersTable({
               canDelete={canDelete}
               canEdit={canEdit}
               onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
+              canEditItem={canEditItem}
+              canDeleteItem={canDeleteItem}
             />
             {!loading && paginationInfo.total > 0 && (
               <div className="mt-4 flex justify-center">

@@ -14,13 +14,17 @@ export function CustomersCards({
     loading,
     canDelete,
     canEdit,
-    onDeleteRequest
+    onDeleteRequest,
+    canEditItem,
+    canDeleteItem
 }: {
     data: any[];
     loading?: boolean;
     canDelete?: boolean;
     canEdit?: boolean;
     onDeleteRequest?: (customer: any) => void;
+    canEditItem?: (item: any) => boolean;
+    canDeleteItem?: (item: any) => boolean;
 }) {
     if (loading) {
         return (
@@ -118,7 +122,7 @@ export function CustomersCards({
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 pt-1">
+                            <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100 mt-4 pt-4">
                                 <Button
                                     asChild
                                     size="sm"
@@ -126,10 +130,10 @@ export function CustomersCards({
                                     className="border-blue-100 text-blue-700 hover:bg-blue-50"
                                 >
                                     <Link href={`/customers/${customer.id}`}>
-                                        <Eye className="mr-2 h-4 w-4" /> ดูรายละเอียด
+                                        <Eye className="mr-1 h-3.5 w-3.5" /> ดู
                                     </Link>
                                 </Button>
-                                {canEdit && (
+                                {canEdit && (!canEditItem || canEditItem(customer)) && (
                                     <Button
                                         asChild
                                         size="sm"
@@ -137,18 +141,18 @@ export function CustomersCards({
                                         className="border-indigo-100 text-indigo-700 hover:bg-indigo-50"
                                     >
                                         <Link href={`/customers/${customer.id}/edit`}>
-                                            <Edit className="mr-2 h-4 w-4" /> แก้ไข
+                                            <Edit className="mr-1 h-3.5 w-3.5" /> แก้ไข
                                         </Link>
                                     </Button>
                                 )}
-                                {canDelete && onDeleteRequest && (
+                                {canDelete && onDeleteRequest && (!canDeleteItem || canDeleteItem(customer)) && (
                                     <Button
                                         size="sm"
-                                        variant="destructive"
-                                        className="bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 hover:text-red-700"
+                                        variant="ghost"
+                                        className="text-red-500 hover:bg-red-50 hover:text-red-600"
                                         onClick={() => onDeleteRequest(customer)}
                                     >
-                                        <Trash2 className="mr-2 h-4 w-4" /> ลบ
+                                        <Trash2 className="mr-1 h-3.5 w-3.5" /> ลบ
                                     </Button>
                                 )}
                             </div>

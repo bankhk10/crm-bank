@@ -28,6 +28,8 @@ export interface CustomerRecord {
   status?: string;
   createdAt?: string;
   parentDealerId?: string | null;
+  createdById?: string;
+  departmentId?: string;
 }
 
 // ============ Customer Form Types ============
@@ -140,6 +142,13 @@ export interface CustomersTableProps {
   }>>;
   onSearchSubmit: () => void;
   onRefresh?: () => void;
+  // Permissions
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canEditItem?: (item: CustomerRecord) => boolean;
+  canDeleteItem?: (item: CustomerRecord) => boolean;
+  currentUserId?: string;
 }
 
 // ============ Customer Style Types ============
