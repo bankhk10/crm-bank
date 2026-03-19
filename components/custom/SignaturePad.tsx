@@ -274,7 +274,7 @@ export default function SignaturePad({
     };
 
     return (
-        <div className={cn("space-y-2", containerClassName)}>
+        <div className={cn("space-y-2 flex flex-col items-start", containerClassName)}>
             {label && (
                 <label className="text-sm font-medium text-gray-700 block">
                     {label}
