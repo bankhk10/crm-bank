@@ -183,31 +183,28 @@ export function StockWarningAlert({
     stockWarnings: StockWarning[];
 }) {
     return (
-        <Alert className="border border-amber-200 bg-amber-50 text-amber-900 text-sm p-4 leading-relaxed shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-                <Package className="h-5 w-5 text-amber-600 flex-shrink-0" />
-                <span className="font-semibold text-amber-800 text-base">
-                    สต็อกสินค้าไม่เพียงพอ - ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งได้
-                </span>
-            </div>
-            <div className="space-y-1 ml-7">
+        <div className="bg-red-50 rounded-xl border border-red-200 overflow-hidden shadow-sm">
+            <SectionHeader
+                icon={<Package className="h-6 w-6" />}
+                title="สินค้าบางรายการสต็อกไม่พอ"
+            />
+            <div className="p-6 space-y-3">
                 {stockWarnings.map((w, i) => (
-                    <div
-                        key={i}
-                        className="flex flex-wrap items-center gap-x-1 text-amber-700"
-                    >
-                        <span>•</span>
-                        <span className="font-medium">
-                            {w.productName} - {w.productCode}
+                    <div key={i} className="flex flex-wrap items-center gap-x-2 text-sm">
+                        <span className="text-gray-400">•</span>
+                        <span className="font-bold text-gray-900">{w.productName}</span>
+                        <span className="text-gray-500">เหลือ</span>
+                        <span className="font-bold text-red-600">
+                            {w.available}
                         </span>
-                        <span>- ต้องการ:</span>
-                        <span className="font-semibold text-rose-600">{w.requested}</span>
-                        <span>| คงเหลือ:</span>
-                        <span className="font-semibold text-rose-600">{w.available}</span>
+                        <span className="text-gray-500">ต้องใช้</span>
+                        <span className="font-bold text-green-600">
+                            {w.requested}
+                        </span>
                     </div>
                 ))}
             </div>
-        </Alert>
+        </div>
     );
 }
 
@@ -217,45 +214,42 @@ export function CreditInfoCard({
     creditInfo: NonNullable<SaleDetailResponse["creditInfo"]>;
 }) {
     return (
-        <div
-            className={cn(
-                "rounded-xl border overflow-hidden shadow-sm",
-                creditInfo.willExceedLimit
-                    ? "border-rose-200 bg-rose-50/60"
-                    : "border-emerald-200 bg-emerald-50/60",
-            )}
-        >
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <SectionHeader
                 icon={<CreditCardIcon className="h-6 w-6" />}
                 title="ข้อมูลวงเงินเครดิต"
-            />
-            <div className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-center">
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <span className="text-sm text-gray-600">วงเงิน</span>
-                        <p className="font-bold text-xl text-gray-900 mt-1 wrap-break-word">
-                            ฿{creditInfo.creditLimit.toLocaleString()}
-                        </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <span className="text-sm text-gray-600">คงเหลือ</span>
-                        <p
-                            className={cn(
-                                "font-bold text-xl mt-1 wrap-break-word",
-                                creditInfo.willExceedLimit
-                                    ? "text-rose-600"
-                                    : "text-emerald-600",
-                            )}
-                        >
-                            ฿{creditInfo.availableCredit.toLocaleString()}
-                        </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                        <span className="text-sm text-gray-600">ยอดขายนี้</span>
-                        <p className="font-bold text-xl text-gray-900 mt-1 wrap-break-word">
-                            ฿{creditInfo.currentSaleAmount.toLocaleString()}
-                        </p>
-                    </div>
+                variant="dark"
+            >
+                {creditInfo.willExceedLimit && (
+                    <Badge variant="destructive" className="ml-2 text-xs px-3 py-1 bg-white/20 border-white/20 text-white">
+                        เกินวงเงิน
+                    </Badge>
+                )}
+            </SectionHeader>
+
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                    <span className="text-sm text-gray-500 uppercase tracking-wider font-semibold">ทั้งหมด</span>
+                    <p className="font-bold text-xl text-gray-900 mt-1">
+                        ฿{creditInfo.creditLimit.toLocaleString()}
+                    </p>
+                </div>
+                <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                    <span className="text-sm text-gray-500 uppercase tracking-wider font-semibold">คงเหลือ</span>
+                    <p
+                        className={`font-bold text-xl mt-1 ${creditInfo.willExceedLimit
+                            ? "text-red-600"
+                            : "text-emerald-600"
+                            }`}
+                    >
+                        ฿{creditInfo.availableCredit.toLocaleString()}
+                    </p>
+                </div>
+                <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-sm text-center">
+                    <span className="text-sm text-gray-500 uppercase tracking-wider font-semibold">ยอดขายนี้</span>
+                    <p className="font-bold text-xl text-[#1c6bb9] mt-1">
+                        ฿{creditInfo.currentSaleAmount.toLocaleString()}
+                    </p>
                 </div>
             </div>
         </div>
@@ -274,29 +268,26 @@ export function ItemsCard({ sale }: { sale: Sale }) {
             <div className="block lg:hidden">
                 <div className="p-4 space-y-3">
                     {sale.items.map((item, i) => {
-                        const originalUnitPrice = Number(
-                            item.originalPrice ?? item.unitPrice ?? 0,
-                        );
                         const currentUnitPrice = Number(item.unitPrice ?? 0);
                         const quantity = Number(item.quantity ?? 0);
                         const currentTotal = Number(
                             item.totalPrice ?? currentUnitPrice * quantity,
                         );
                         const priceChanged = Boolean(item.priceModified);
-                        const cartonPrice = getCartonPrice(
-                            currentUnitPrice,
-                            item.product.packageSizePerBox,
+                        const packSize = parseFloat(
+                            item.product.packageSizePerBox?.toString() || "1"
                         );
+                        const multiplier =
+                            isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                        const cartonPrice = currentUnitPrice * multiplier;
 
                         return (
                             <div
                                 key={item.id ?? i}
-                                className={cn(
-                                    "rounded-xl border p-4 transition-all",
-                                    priceChanged
-                                        ? "bg-rose-50/70 border-rose-200"
-                                        : "bg-white border-gray-200",
-                                )}
+                                className={`rounded-2xl border-2 p-4 transition-all shadow-sm ${priceChanged
+                                    ? "bg-orange-50/70 border-orange-300"
+                                    : "bg-white border-gray-100"
+                                    }`}
                             >
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex-1">
@@ -307,7 +298,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                             {item.product.productCode}
                                         </p>
                                         {priceChanged && (
-                                            <Badge className="mt-2 bg-rose-100 text-rose-700 border-rose-200 text-xs">
+                                            <Badge className="mt-2 bg-orange-100 text-orange-700 border-orange-200 text-xs">
                                                 รายการพิเศษ
                                             </Badge>
                                         )}
@@ -349,14 +340,12 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                             ราคา/หน่วย
                                         </span>
                                         <p
-                                            className={cn(
-                                                "font-bold",
-                                                priceChanged
-                                                    ? "text-rose-700"
-                                                    : "text-gray-900",
-                                            )}
+                                            className={`font-bold ${priceChanged ? "text-orange-700" : "text-gray-900"
+                                                }`}
                                         >
-                                            {formatBaht(currentUnitPrice)}
+                                            {currentUnitPrice.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
                                     </div>
                                     <div className="bg-gray-50 rounded-lg p-2">
@@ -364,24 +353,24 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                             ราคา/ลัง
                                         </span>
                                         <p className="font-bold text-gray-900">
-                                            {formatBaht(cartonPrice)}
+                                            {cartonPrice.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
                                     </div>
 
                                     {/* Row 3: Total */}
-                                    <div className="col-span-2 bg-gray-50 rounded-lg p-3 text-right">
+                                    <div className="col-span-2 bg-blue-50/50 rounded-lg p-3 text-right">
                                         <span className="text-gray-500 text-xs block mb-1">
                                             ราคารวม
                                         </span>
                                         <p
-                                            className={cn(
-                                                "font-bold text-lg",
-                                                priceChanged
-                                                    ? "text-rose-700"
-                                                    : "text-gray-900",
-                                            )}
+                                            className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
+                                                }`}
                                         >
-                                            {formatBaht(currentTotal)}
+                                            {currentTotal.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
                                     </div>
                                 </div>
@@ -391,21 +380,26 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                 </div>
 
                 {/* Mobile Summary */}
-                <div className="bg-gray-50 border-t border-gray-200 p-5 space-y-3">
+                <div className="bg-gray-50 border-t-2 border-gray-100 p-5 space-y-3">
                     <div className="flex justify-between items-center py-2">
                         <span className="text-sm font-medium text-gray-700">
                             รวมเป็นเงิน
                         </span>
                         <span className="text-base font-bold text-gray-900">
-                            {formatBaht(Number(sale.subtotalAmount))}
+                            {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                            })}
                         </span>
                     </div>
 
                     {Number(sale.shippingCost) > 0 && (
                         <div className="flex justify-between items-center py-2">
                             <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
-                            <span className="text-base font-semibold text-rose-600">
-                                -{formatBaht(Number(sale.shippingCost))}
+                            <span className="text-base font-semibold text-red-600">
+                                -
+                                {Number(sale.shippingCost).toLocaleString("th-TH", {
+                                    minimumFractionDigits: 2,
+                                })}
                             </span>
                         </div>
                     )}
@@ -413,16 +407,21 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                     {Number(sale.otherCosts) > 0 && (
                         <div className="flex justify-between items-center py-2">
                             <span className="text-sm text-gray-600">ส่วนลดหน้าบิล</span>
-                            <span className="text-base font-semibold text-rose-600">
-                                -{formatBaht(Number(sale.otherCosts))}
+                            <span className="text-base font-semibold text-red-600">
+                                -
+                                {Number(sale.otherCosts).toLocaleString("th-TH", {
+                                    minimumFractionDigits: 2,
+                                })}
                             </span>
                         </div>
                     )}
 
-                    <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                    <div className="flex justify-between items-center pt-3 border-t-2 border-gray-100">
                         <span className="text-lg font-bold text-gray-900">ยอดสุทธิ</span>
-                        <span className="text-2xl font-bold text-gray-900">
-                            {formatBaht(Number(sale.totalAmount))}
+                        <span className="text-2xl font-bold text-[#B91C1C]">
+                            {Number(sale.totalAmount).toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                            })}
                         </span>
                     </div>
                 </div>
@@ -441,30 +440,26 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                         <div className="col-span-2 text-center">รวม</div>
                     </div>
                     {sale.items.map((item, i) => {
-                        const originalUnitPrice = Number(
-                            item.originalPrice ?? item.unitPrice ?? 0,
-                        );
                         const currentUnitPrice = Number(item.unitPrice ?? 0);
                         const quantity = Number(item.quantity ?? 0);
                         const currentTotal = Number(
-                            item.totalPrice ?? currentUnitPrice * quantity,
+                            item.totalPrice ?? currentUnitPrice * quantity
                         );
-                        const originalTotal = originalUnitPrice * quantity;
                         const priceChanged = Boolean(item.priceModified);
-                        const cartonPrice = getCartonPrice(
-                            currentUnitPrice,
-                            item.product.packageSizePerBox,
+                        const packSize = parseFloat(
+                            item.product.packageSizePerBox?.toString() || "1"
                         );
+                        const multiplier =
+                            isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                        const cartonPrice = currentUnitPrice * multiplier;
 
                         return (
                             <div
                                 key={item.id ?? i}
-                                className={cn(
-                                    "rounded-xl border p-3 md:p-4 transition-all",
-                                    priceChanged
-                                        ? "bg-rose-50/70 border-rose-200"
-                                        : "bg-white border-gray-200",
-                                )}
+                                className={`rounded-2xl border-2 p-3 md:p-4 transition-all shadow-sm ${priceChanged
+                                    ? "bg-orange-50/70 border-orange-300"
+                                    : "bg-white border-gray-100"
+                                    }`}
                             >
                                 <div className="grid grid-cols-12 gap-2 md:gap-4 items-center">
                                     {/* Product Info */}
@@ -476,7 +471,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                             {item.product.productCode}
                                         </p>
                                         {priceChanged && (
-                                            <Badge className="mt-1 bg-rose-100 text-rose-700 border-rose-200 text-xs">
+                                            <Badge className="mt-1 bg-orange-100 text-orange-700 border-orange-200 text-xs">
                                                 รายการพิเศษ
                                             </Badge>
                                         )}
@@ -506,46 +501,34 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                     {/* Unit Price */}
                                     <div className="col-span-2 text-center">
                                         <p
-                                            className={cn(
-                                                "font-bold text-sm md:text-base",
-                                                priceChanged
-                                                    ? "text-rose-700"
-                                                    : "text-gray-900",
-                                            )}
+                                            className={`font-bold text-sm md:text-base ${priceChanged ? "text-orange-700" : "text-gray-900"
+                                                }`}
                                         >
-                                            {formatBaht(currentUnitPrice)}
+                                            {currentUnitPrice.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
-                                        {priceChanged && (
-                                            <p className="text-xs text-gray-500 line-through mt-0.5">
-                                                {formatBaht(originalUnitPrice)}
-                                            </p>
-                                        )}
                                     </div>
 
                                     {/* Carton Price */}
                                     <div className="col-span-1 text-right">
                                         <p className="font-bold text-gray-900 text-sm md:text-base">
-                                            {formatBaht(cartonPrice)}
+                                            {cartonPrice.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
                                     </div>
 
                                     {/* Total */}
                                     <div className="col-span-2 text-right">
                                         <p
-                                            className={cn(
-                                                "font-bold text-sm md:text-lg",
-                                                priceChanged
-                                                    ? "text-rose-700"
-                                                    : "text-gray-900",
-                                            )}
+                                            className={`font-bold text-sm md:text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
+                                                }`}
                                         >
-                                            {formatBaht(currentTotal)}
+                                            {currentTotal.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
                                         </p>
-                                        {priceChanged && (
-                                            <p className="text-xs text-gray-500 line-through mt-0.5">
-                                                {formatBaht(originalTotal)}
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -554,22 +537,27 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                 </div>
 
                 {/* Desktop Summary */}
-                <div className="bg-gray-50 border-t border-gray-200 p-6">
+                <div className="bg-gray-50 border-t-2 border-gray-100 p-6">
                     <div className="max-w-md ml-auto">
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700">
                                 รวมเป็นเงิน
                             </span>
                             <span className="text-lg font-bold text-gray-900">
-                                {formatBaht(Number(sale.subtotalAmount))}
+                                {Number(sale.subtotalAmount).toLocaleString("th-TH", {
+                                    minimumFractionDigits: 2,
+                                })}
                             </span>
                         </div>
 
                         {Number(sale.shippingCost) > 0 && (
                             <div className="flex justify-between items-center py-1">
                                 <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
-                                <span className="text-lg font-semibold text-rose-600">
-                                    -{formatBaht(Number(sale.shippingCost))}
+                                <span className="text-lg font-semibold text-red-600">
+                                    -
+                                    {Number(sale.shippingCost).toLocaleString("th-TH", {
+                                        minimumFractionDigits: 2,
+                                    })}
                                 </span>
                             </div>
                         )}
@@ -577,18 +565,23 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                         {Number(sale.otherCosts) > 0 && (
                             <div className="flex justify-between items-center py-1">
                                 <span className="text-sm text-gray-600">ส่วนลดหน้าบิล</span>
-                                <span className="text-lg font-semibold text-rose-600">
-                                    -{formatBaht(Number(sale.otherCosts))}
+                                <span className="text-lg font-semibold text-red-600">
+                                    -
+                                    {Number(sale.otherCosts).toLocaleString("th-TH", {
+                                        minimumFractionDigits: 2,
+                                    })}
                                 </span>
                             </div>
                         )}
 
-                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center pt-4 border-t-2 border-gray-100">
                             <span className="text-xl font-bold text-gray-900">
                                 ยอดสุทธิ
                             </span>
-                            <span className="text-3xl font-bold text-gray-900">
-                                {formatBaht(Number(sale.totalAmount))}
+                            <span className="text-3xl font-bold text-[#B91C1C]">
+                                {Number(sale.totalAmount).toLocaleString("th-TH", {
+                                    minimumFractionDigits: 2,
+                                })}
                             </span>
                         </div>
                     </div>
