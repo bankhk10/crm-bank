@@ -400,7 +400,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="signature-section">
       <div class="signature-card">
         <div class="signature-title">พนักงานขาย</div>
-        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 20px;">
           <div class="dot-line" style="position: relative;">
             ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
