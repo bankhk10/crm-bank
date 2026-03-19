@@ -4,20 +4,20 @@ import React, { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { addDays } from "date-fns";
 import {
-    AlertCircle,
+    AlertTriangle,
     Calendar,
     ClipboardCheck,
     CreditCard,
     FileText,
     Loader2,
+    Package,
     Save,
     Truck,
     X,
 } from "lucide-react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
     Select,
     SelectContent,
@@ -26,6 +26,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import DatePicker from "@/components/custom/DatePicker";
+import { SectionHeader } from "@/components/custom/section-header";
 import { usePermission } from "@/hooks/use-permission";
 import { SaleStatusLabels } from "@/modules/sales/types";
 import type { SaleDetailResponse, StockWarning } from "@/modules/sales/types";
@@ -349,20 +350,16 @@ export default function FulfillmentDetailPage({
     const { sale } = saleData;
 
     return (
-        <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             {error && (
-                <Alert
-                    variant="destructive"
-                    className="border-red-200 bg-red-50 shadow-md animate-in slide-in-from-top-2"
-                >
-                    <AlertCircle className="h-5 w-5" />
-                    <AlertDescription className="ml-2 text-red-800 font-medium">
-                        {error}
-                    </AlertDescription>
+                <Alert variant="destructive" className="shadow-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>ข้อผิดพลาด</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
 
-            <SaleSummaryCard sale={sale} onBack={() => router.back()} />
+            <SaleSummaryCard sale={sale} backUrl="/fulfillment" />
 
             {saleData.priceWarnings && saleData.priceWarnings.length > 0 && (
                 <PriceWarningsCard priceWarnings={saleData.priceWarnings} />
@@ -379,241 +376,238 @@ export default function FulfillmentDetailPage({
             <ItemsCard sale={sale} />
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Input Card with Modern Design */}
-                <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl opacity-20 group-hover:opacity-30 transition-opacity blur"></div>
-                    <Card className="relative bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-2xl overflow-hidden">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-                        <CardHeader className="border-b border-slate-100 bg-gradient-to-br from-white to-slate-50/50 pt-6 pb-5">
-                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-                                ข้อมูลการขาย
-                            </h3>
-                        </CardHeader>
-                        <CardContent className="space-y-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
-                                {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
-                                <div className="space-y-3 group/field">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <FileText className="h-4 w-4 text-teal-600" />
-                                        เลขที่คำสั่งขาย
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-teal-300 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                        placeholder="กรอกเลขที่คำสั่งขาย"
-                                        value={saleOrderRef}
-                                        onChange={(e) => setSaleOrderRef(e.target.value)}
-                                    />
-                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                                        <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
-                                        เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
-                                    </p>
-                                </div>
-                                {/* 1. Payment Status */}
-                                <div className="space-y-3 group/field">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <ClipboardCheck className="h-4 w-4 text-blue-600" />
-                                        สถานะ
-                                    </label>
-                                    <Select value={status} onValueChange={setStatus}>
-                                        <SelectTrigger className="w-full h-12 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors rounded-xl shadow-sm">
-                                            <SelectValue placeholder="เลือกสถานะ" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl">
-                                            {FULFILLMENT_STATUSES.map((st) => {
-                                                const isDeliveryStatus =
-                                                    DELIVERY_STATUSES.includes(st);
-                                                const isDisabled =
-                                                    isDeliveryStatus &&
-                                                    stockWarnings.length > 0;
-
-                                                return (
-                                                    <SelectItem
-                                                        key={st}
-                                                        value={st}
-                                                        className={`rounded-lg ${isDisabled ? "opacity-50" : ""}`}
-                                                        disabled={isDisabled}
-                                                    >
-                                                        {SaleStatusLabels[
-                                                            st as keyof typeof SaleStatusLabels
-                                                        ] || st}
-                                                        {isDisabled && " (สต็อกไม่พอ)"}
-                                                    </SelectItem>
-                                                );
-                                            })}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                                        <span className="h-1 w-1 rounded-full bg-slate-400 inline-block"></span>
-                                        เลือกสถานะปัจจุบันของรายการขาย
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4">
-                                {/* 2. Delivery Date */}
-                                <div className="space-y-3 group/field">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <Truck className="h-4 w-4 text-emerald-600" />
-                                        วันที่จัดส่งของ
-                                        {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) && (
-                                            <span className="text-red-500 ml-1">*</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <DatePicker
-                                            value={deliveryDate}
-                                            onChange={(val) => setDeliveryDate(val || "")}
-                                            label=""
-                                            placeholder="เลือกวันที่จัดส่ง"
-                                            disabled={status === "WAITING_FOR_CORRECTION"}
-                                        />
-                                    </div>
-                                    {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
-                                        !deliveryDate && (
-                                            <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                                ระบุวันที่จัดส่งเมื่อสถานะเป็น &ldquo;
-                                                {getDeliveryStatusLabel(status)}&rdquo;
-                                            </p>
-                                        )}
-                                </div>
-
-                                {/* 3. Due Date */}
-                                <div className="space-y-3 group/field">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-amber-600" />
-                                        วันครบกำหนดชำระ
-                                    </label>
-                                    <div className="relative">
-                                        <DatePicker
-                                            value={dueDate}
-                                            onChange={(val) => setDueDate(val || "")}
-                                            label=""
-                                            placeholder="เลือกวันครบกำหนด"
-                                            disabled={status === "WAITING_FOR_CORRECTION"}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-blue-600 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-2 rounded-lg">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block"></span>
-                                        คำนวณจาก วันส่ง + {sale.creditDays || 0} วัน
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* 6. Notes */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <SectionHeader icon={<FileText className="h-6 w-6" />} title="ข้อมูลการขาย" />
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
                             <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2 px-2">
-                                    หมายเหตุ
-                                    {status === "CANCELLED" && (
-                                        <span className="text-red-500 ml-1">*</span>
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-[#B91C1C]" />
+                                    เลขที่คำสั่งขาย
+                                </label>
+                                <input
+                                    type="text"
+                                    className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="กรอกเลขที่คำสั่งขาย"
+                                    value={saleOrderRef}
+                                    onChange={(e) => setSaleOrderRef(e.target.value)}
+                                />
+                                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                    <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
+                                    เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
+                                </p>
+                            </div>
+                            {/* 1. Payment Status */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <ClipboardCheck className="h-4 w-4 text-[#B91C1C]" />
+                                    สถานะ
+                                </label>
+                                <Select value={status} onValueChange={setStatus}>
+                                    <SelectTrigger className="w-full h-12 border border-gray-200 hover:border-[#B91C1C]/40 focus:border-[#B91C1C] transition-colors rounded-xl shadow-sm">
+                                        <SelectValue placeholder="เลือกสถานะ" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl">
+                                        {FULFILLMENT_STATUSES.map((st) => {
+                                            const isDeliveryStatus =
+                                                DELIVERY_STATUSES.includes(st);
+                                            const isDisabled =
+                                                isDeliveryStatus &&
+                                                stockWarnings.length > 0;
+
+                                            return (
+                                                <SelectItem
+                                                    key={st}
+                                                    value={st}
+                                                    className={`rounded-lg ${isDisabled ? "opacity-50" : ""}`}
+                                                    disabled={isDisabled}
+                                                >
+                                                    {SaleStatusLabels[
+                                                        st as keyof typeof SaleStatusLabels
+                                                    ] || st}
+                                                    {isDisabled && " (สต็อกไม่พอ)"}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                    <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
+                                    เลือกสถานะปัจจุบันของรายการขาย
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* 2. Delivery Date */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <Truck className="h-4 w-4 text-[#B91C1C]" />
+                                    วันที่จัดส่งของ
+                                    {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) && (
+                                        <span className="text-rose-600 ml-1">*</span>
                                     )}
                                 </label>
-                                <textarea
-                                    className="flex min-h-[100px] w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm transition-all hover:border-blue-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                />
-                                {status === "CANCELLED" && !notes.trim() && (
-                                    <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg mt-2">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                        จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
-                                    </p>
-                                )}
-                            </div>
-
-                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-                                ข้อมูลการชำระเงิน
-                            </h3>
-
-                            <div className="grid md:grid-cols-2 gap-8 mt-6 px-4">
-                                {/* 4. Payment Date */}
-                                <div className="space-y-3 group/field">
-                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                                        <CreditCard className="h-4 w-4 text-purple-600" />
-                                        วันที่ชำระเงิน
-                                        {status === "COMPLETED" && (
-                                            <span className="text-red-500 ml-1">*</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <DatePicker
-                                            value={paymentDate}
-                                            onChange={(val) => setPaymentDate(val || "")}
-                                            label=""
-                                            placeholder="เลือกวันที่ชำระเงิน"
-                                            disabled={status === "WAITING_FOR_CORRECTION"}
-                                        />
-                                    </div>
-                                    {status === "COMPLETED" && !paymentDate && (
-                                        <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 bg-red-50 px-3 py-2 rounded-lg">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-red-500 inline-block"></span>
-                                            จำเป็นต้องระบุเมื่อสถานะเป็น &ldquo;เสร็จสิ้น&rdquo;
+                                <div className="relative">
+                                    <DatePicker
+                                        value={deliveryDate}
+                                        onChange={(val) => setDeliveryDate(val || "")}
+                                        label=""
+                                        placeholder="เลือกวันที่จัดส่ง"
+                                        disabled={status === "WAITING_FOR_CORRECTION"}
+                                    />
+                                </div>
+                                {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
+                                    !deliveryDate && (
+                                        <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                            ระบุวันที่จัดส่งเมื่อสถานะเป็น &ldquo;
+                                            {getDeliveryStatusLabel(status)}&rdquo;
                                         </p>
                                     )}
-                                </div>
                             </div>
 
-                            <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-                                ข้อมูลสต็อกสินค้า
-                            </h3>
+                            {/* 3. Due Date */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <Calendar className="h-4 w-4 text-[#B91C1C]" />
+                                    วันครบกำหนดชำระ
+                                </label>
+                                <div className="relative">
+                                    <DatePicker
+                                        value={dueDate}
+                                        onChange={(val) => setDueDate(val || "")}
+                                        label=""
+                                        placeholder="เลือกวันครบกำหนด"
+                                        disabled={status === "WAITING_FOR_CORRECTION"}
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-lg">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-gray-400 inline-block"></span>
+                                    คำนวณจาก วันส่ง + {sale.creditDays || 0} วัน
+                                </p>
+                            </div>
+                        </div>
 
-                            {/* 8. LOT Selection - Always show for selecting stock lots */}
-                            <div className="space-y-3 group/field pt-4  border-slate-200 px-4">
-                                <LotSelector
-                                    saleId={id}
-                                    onAllocationsChange={handleLotAllocationsChange}
-                                    disabled={
-                                        submitting ||
-                                        status === "WAITING_FOR_CORRECTION" ||
-                                        (saleData &&
-                                            LOT_LOCKED_STATUSES.includes(
-                                                saleData.sale.status,
-                                            ))
-                                    }
-                                />
-                                {lotAllocations.length > 0 && !lotAllocationsValid && (
-                                    <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
-                                        กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
+                        {/* 6. Notes */}
+                        <div className="space-y-3 group/field">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 px-2">
+                                หมายเหตุ
+                                {status === "CANCELLED" && (
+                                    <span className="text-rose-600 ml-1">*</span>
+                                )}
+                            </label>
+                            <textarea
+                                className="flex min-h-[100px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                            />
+                            {status === "CANCELLED" && !notes.trim() && (
+                                <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg mt-2">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                    จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <SectionHeader
+                        icon={<CreditCard className="h-6 w-6" />}
+                        title="ข้อมูลการชำระเงิน"
+                        variant="dark"
+                    />
+                    <div className="p-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* 4. Payment Date */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <CreditCard className="h-4 w-4 text-[#B91C1C]" />
+                                    วันที่ชำระเงิน
+                                    {status === "COMPLETED" && (
+                                        <span className="text-rose-600 ml-1">*</span>
+                                    )}
+                                </label>
+                                <div className="relative">
+                                    <DatePicker
+                                        value={paymentDate}
+                                        onChange={(val) => setPaymentDate(val || "")}
+                                        label=""
+                                        placeholder="เลือกวันที่ชำระเงิน"
+                                        disabled={status === "WAITING_FOR_CORRECTION"}
+                                    />
+                                </div>
+                                {status === "COMPLETED" && !paymentDate && (
+                                    <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                        จำเป็นต้องระบุเมื่อสถานะเป็น &ldquo;เสร็จสิ้น&rdquo;
                                     </p>
                                 )}
                             </div>
-                        </CardContent>
-                        {/* Action Buttons */}
-                        <div className="sm:pt-2 mt-6 sm:mt-8 space-y-6">
-                            <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
-                                <Button
-                                    type="button"
-                                    onClick={() => router.back()}
-                                    className="w-32 sm:w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-md hover:shadow-lg transition-all"
-                                    disabled={submitting}
-                                >
-                                    <X className=" h-4 w-4" />
-                                    ยกเลิก
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="w-32 sm:w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all"
-                                >
-                                    {submitting ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            กำลังบันทึก...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            บันทึก
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                            <div className="w-full h-12 sm:hidden"></div>
                         </div>
-                    </Card>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <SectionHeader icon={<Package className="h-6 w-6" />} title="ข้อมูลสต็อกสินค้า" />
+                    <div className="p-6 space-y-3">
+                        {/* 8. LOT Selection - Always show for selecting stock lots */}
+                        <div className="space-y-3 group/field">
+                            <LotSelector
+                                saleId={id}
+                                onAllocationsChange={handleLotAllocationsChange}
+                                disabled={
+                                    submitting ||
+                                    status === "WAITING_FOR_CORRECTION" ||
+                                    (saleData &&
+                                        LOT_LOCKED_STATUSES.includes(
+                                            saleData.sale.status,
+                                        ))
+                                }
+                            />
+                            {lotAllocations.length > 0 && !lotAllocationsValid && (
+                                <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
+                                    กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pt-2 space-y-4">
+                    <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+                        <Button
+                            type="button"
+                            onClick={() => router.back()}
+                            className="w-32 sm:w-32 h-10 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold shadow-sm transition-all"
+                            disabled={submitting}
+                        >
+                            <X className="h-4 w-4" />
+                            ยกเลิก
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-32 sm:w-32 h-10 rounded-xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-semibold shadow-sm transition-all"
+                        >
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    กำลังบันทึก...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-4 w-4" />
+                                    บันทึก
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                    <div className="w-full h-12 sm:hidden"></div>
                 </div>
             </form>
         </div>
