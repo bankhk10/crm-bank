@@ -320,28 +320,33 @@ export default function SignaturePad({
                         className="hidden"
                         onChange={handleFileUpload}
                     />
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={triggerUpload}
-                        className="bg-white/80 backdrop-blur hover:bg-white text-primary border-primary/20 hover:border-primary"
-                    >
-                        <Upload className="w-3.5 h-3.5 mr-1.5" />
-                        อัพโหลดรูป
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={clear}
-                        className="bg-white/80 backdrop-blur hover:bg-white text-destructive border-destructive/20 hover:border-destructive"
-                    >
-                        <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                        ล้างข้อมูล
-                    </Button>
+
                 </div>
             </div>
+            <div className="flex gap-2 justify-center">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={triggerUpload}
+                    className="bg-white/80 backdrop-blur hover:bg-white text-primary border-primary/20 hover:border-primary"
+                >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                    อัพโหลดรูป
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clear}
+                    className="bg-white/80 backdrop-blur hover:bg-white text-destructive border-destructive/20 hover:border-destructive"
+                >
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                    ล้างข้อมูล
+                </Button>
+
+            </div>
+
 
             {error && (
                 <p className="text-xs font-medium text-destructive">{error}</p>
