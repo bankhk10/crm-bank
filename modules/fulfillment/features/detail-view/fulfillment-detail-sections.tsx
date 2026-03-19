@@ -430,7 +430,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
             {/* Desktop Table View */}
             <div className="hidden md:block">
                 <div className="p-6 space-y-3">
-                    <div className="grid grid-cols-12 gap-2 md:gap-4 px-3 md:px-5 py-2 text-xs md:text-sm text-gray-500 font-semibold border-b border-gray-100">
+                    <div className="grid grid-cols-12 gap-2 md:gap-4 px-3 md:px-5 py-2 text-base md:text-base text-gray-800 font-semibold border-b border-gray-100">
                         <div className="col-span-4">สินค้า</div>
                         <div className="col-span-1 text-center">จำนวน</div>
                         <div className="col-span-1 text-center">หน่วย</div>
@@ -478,30 +478,22 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                     </div>
 
                                     {/* Quantity */}
-                                    <div className="col-span-1 text-center">
-                                        <p className="font-bold text-gray-900 text-sm md:text-base">
-                                            {item.quantity}
-                                        </p>
-                                    </div>
+                                    <div className="col-span-1 text-center">{item.quantity}</div>
 
                                     {/* Unit */}
                                     <div className="col-span-1 text-center">
-                                        <p className="text-gray-900 text-sm md:text-base">
-                                            {item.product.unit || "-"}
-                                        </p>
+                                        {item.product.unit || "-"}
                                     </div>
 
                                     {/* Package Size */}
                                     <div className="col-span-1 text-center">
-                                        <p className="text-gray-900 text-sm md:text-base">
-                                            {item.product.packageSizePerBox || "-"}
-                                        </p>
+                                        {item.product.packageSizePerBox || "-"}
                                     </div>
 
                                     {/* Unit Price */}
                                     <div className="col-span-2 text-center">
                                         <p
-                                            className={`font-bold text-sm md:text-base ${priceChanged ? "text-orange-700" : "text-gray-900"
+                                            className={`${priceChanged ? "text-orange-700" : "text-gray-900"
                                                 }`}
                                         >
                                             {currentUnitPrice.toLocaleString("th-TH", {
@@ -511,18 +503,16 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                     </div>
 
                                     {/* Carton Price */}
-                                    <div className="col-span-1 text-right">
-                                        <p className="font-bold text-gray-900 text-sm md:text-base">
-                                            {cartonPrice.toLocaleString("th-TH", {
-                                                minimumFractionDigits: 2,
-                                            })}
-                                        </p>
+                                    <div className="col-span-1 text-center">
+                                        {cartonPrice.toLocaleString("th-TH", {
+                                            minimumFractionDigits: 2,
+                                        })}
                                     </div>
 
                                     {/* Total */}
-                                    <div className="col-span-2 text-right">
+                                    <div className="col-span-2 text-center">
                                         <p
-                                            className={`font-bold text-sm md:text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
+                                            className={`font-bold text-sm md:text-lg ${priceChanged ? "text-orange-700" : "text-green-700"
                                                 }`}
                                         >
                                             {currentTotal.toLocaleString("th-TH", {
@@ -540,7 +530,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                 <div className="bg-gray-50 border-t-2 border-gray-100 p-6">
                     <div className="max-w-md ml-auto">
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium">
                                 รวมเป็นเงิน
                             </span>
                             <span className="text-lg font-bold text-gray-900">
@@ -552,7 +542,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
 
                         {Number(sale.shippingCost) > 0 && (
                             <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-gray-600">ส่วนค่าขนส่ง</span>
+                                <span className="text-sm font-medium">ส่วนค่าขนส่ง</span>
                                 <span className="text-lg font-semibold text-red-600">
                                     -
                                     {Number(sale.shippingCost).toLocaleString("th-TH", {
@@ -564,7 +554,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
 
                         {Number(sale.otherCosts) > 0 && (
                             <div className="flex justify-between items-center py-1">
-                                <span className="text-sm text-gray-600">ส่วนลดหน้าบิล</span>
+                                <span className="text-sm font-medium">ส่วนลดหน้าบิล</span>
                                 <span className="text-lg font-semibold text-red-600">
                                     -
                                     {Number(sale.otherCosts).toLocaleString("th-TH", {
@@ -578,7 +568,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                             <span className="text-xl font-bold text-gray-900">
                                 ยอดสุทธิ
                             </span>
-                            <span className="text-3xl font-bold text-[#B91C1C]">
+                            <span className="text-2xl font-bold text-green-700">
                                 {Number(sale.totalAmount).toLocaleString("th-TH", {
                                     minimumFractionDigits: 2,
                                 })}

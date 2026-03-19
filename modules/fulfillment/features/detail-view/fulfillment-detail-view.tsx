@@ -360,12 +360,12 @@ export default function FulfillmentDetailPage({
 
             <SaleSummaryCard sale={sale} backUrl="/fulfillment" />
 
-            {stockWarnings.length > 0 && (
-                <StockWarningAlert stockWarnings={stockWarnings} />
-            )}
-
             {sale.paymentTerm !== "PREPAID" && saleData.creditInfo && (
                 <CreditInfoCard creditInfo={saleData.creditInfo} />
+            )}
+
+            {stockWarnings.length > 0 && (
+                <StockWarningAlert stockWarnings={stockWarnings} />
             )}
 
             <ItemsCard sale={sale} />
