@@ -9,7 +9,6 @@ import {
     CheckCircle2,
     FileText,
     Package,
-    TrendingDown,
     Truck,
     User,
     CreditCard as CreditCardIcon,
@@ -177,74 +176,6 @@ export function SaleSummaryCard({
     );
 }
 
-export function PriceWarningsCard({
-    priceWarnings,
-}: {
-    priceWarnings: NonNullable<SaleDetailResponse["priceWarnings"]>;
-}) {
-    return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <SectionHeader
-                icon={<TrendingDown className="h-6 w-6" />}
-                title="พบการเปลี่ยนแปลงราคา"
-                variant="dark"
-            />
-            <div className="px-6 pt-4 text-sm text-gray-500">
-                กรุณาตรวจสอบรายการด้านล่าง ระบบตรวจพบการแก้ไขราคาจากค่ามาตรฐาน
-            </div>
-            <div className="p-6 space-y-4">
-                {priceWarnings.map((w, i) => {
-                    const original = Number(w.originalPrice ?? 0);
-                    const modified = Number(w.modifiedPrice ?? 0);
-                    const diff = modified - original;
-                    const diffPercent = original ? (diff / original) * 100 : 0;
-                    const diffPositive = diff >= 0;
-                    return (
-                        <div
-                            key={i}
-                            className="rounded-xl border border-gray-200 bg-white p-4"
-                        >
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <p className="font-semibold text-gray-900 text-base">
-                                    {w.productName}
-                                </p>
-                                <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-xs w-fit">
-                                    ปรับราคา
-                                </Badge>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 text-sm">
-                                <div className="rounded-lg bg-gray-50 p-3 border border-gray-100">
-                                    <span className="text-gray-500 text-xs">ราคาเดิม</span>
-                                    <p className="text-gray-700 font-semibold line-through">
-                                        ฿{formatBaht(original)}
-                                    </p>
-                                </div>
-                                <div className="rounded-lg bg-gray-50 p-3 border border-gray-100">
-                                    <span className="text-gray-500 text-xs">ราคาปัจจุบัน</span>
-                                    <p className="text-gray-900 font-bold">
-                                        ฿{formatBaht(modified)}
-                                    </p>
-                                </div>
-                                <div className="rounded-lg bg-white p-3 border border-gray-100">
-                                    <span className="text-gray-500 text-xs">ส่วนต่าง</span>
-                                    <p
-                                        className={`font-bold ${diffPositive ? "text-emerald-600" : "text-rose-600"}`}
-                                    >
-                                        {diffPositive ? "+" : ""}
-                                        {formatBaht(diff)} บาท
-                                        <span className="text-xs block text-gray-500">
-                                            ({diffPercent.toFixed(2)}%)
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
 
 export function StockWarningAlert({
     stockWarnings,

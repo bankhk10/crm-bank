@@ -38,7 +38,6 @@ import {
     ItemsCard,
     LoadingScreen,
     PermissionDenied,
-    PriceWarningsCard,
     SaleSummaryCard,
     StockWarningAlert,
 } from "./fulfillment-detail-sections";
@@ -360,10 +359,6 @@ export default function FulfillmentDetailPage({
             )}
 
             <SaleSummaryCard sale={sale} backUrl="/fulfillment" />
-
-            {saleData.priceWarnings && saleData.priceWarnings.length > 0 && (
-                <PriceWarningsCard priceWarnings={saleData.priceWarnings} />
-            )}
 
             {stockWarnings.length > 0 && (
                 <StockWarningAlert stockWarnings={stockWarnings} />
