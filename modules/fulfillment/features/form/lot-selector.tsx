@@ -152,7 +152,7 @@ export function LotSelector({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-4">
+      {/* <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
           <Package className="h-5 w-5 text-white" />
         </div>
@@ -161,7 +161,7 @@ export function LotSelector({
             เลือก LOT สินค้า
           </h3>
         </div>
-      </div>
+      </div> */}
 
       {hasExistingAllocations && (
         <Alert className="border-blue-200 bg-blue-50">
