@@ -113,8 +113,8 @@ export function SaleSummaryCard({
                 badges={heroBadges}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-1">
                     <SectionHeader
                         icon={<FileText className="h-6 w-6" />}
                         title="ข้อมูลการขาย"
