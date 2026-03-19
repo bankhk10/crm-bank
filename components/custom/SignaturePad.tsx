@@ -41,9 +41,8 @@ export default function SignaturePad({
 
         // Set high resolution for retina displays
         const ratio = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * ratio;
-        canvas.height = rect.height * ratio;
+        canvas.width = maxWidth * ratio;
+        canvas.height = maxHeight * ratio;
         ctx.scale(ratio, ratio);
 
         ctx.lineJoin = "round";
@@ -55,11 +54,11 @@ export default function SignaturePad({
         if (value) {
             const img = new Image();
             img.onload = () => {
-                ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
             };
             img.src = value;
         }
-    }, []);
+    }, [maxWidth, maxHeight, value]);
 
     const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
         const canvas = canvasRef.current;
@@ -282,11 +281,14 @@ export default function SignaturePad({
                 </label>
             )}
 
-            <div className={cn(
-                "relative bg-white border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200",
-                isDrawing ? "border-primary shadow-lg scale-[1.01]" : "border-gray-300",
-                error ? "border-destructive" : "hover:border-gray-400"
-            )}>
+            <div
+                className={cn(
+                    "relative bg-white border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200",
+                    isDrawing ? "border-primary shadow-lg scale-[1.01]" : "border-gray-300",
+                    error ? "border-destructive" : "hover:border-gray-400"
+                )}
+                style={{ width: `${maxWidth}px` }}
+            >
                 <canvas
                     ref={canvasRef}
                     onMouseDown={startDrawing}
