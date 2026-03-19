@@ -92,7 +92,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
         setActionLoading(true);
         const res = await rejectSaleAction(id, rejectReason);
         if (res.success) {
-            router.push(`/sales/${id}`);
+            router.push(`/sales`);
         } else {
             setError(res.error ?? "Failed to reject");
             setActionLoading(false);
