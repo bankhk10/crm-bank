@@ -405,6 +405,9 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             ${preparedSign ? `<img src="${preparedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
         </div>
+        <div class="sign-row" style="text-align: center;">
+          ( ${safeValue(data.contactName)} ) 
+        </div>
         <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
