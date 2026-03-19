@@ -187,19 +187,19 @@ export default function SignaturePad({
 
         tempCtx.imageSmoothingEnabled = true;
         tempCtx.imageSmoothingQuality = "high";
-        
+
         // Draw only the trimmed area
         tempCtx.drawImage(
-            canvas, 
-            bounds.x, bounds.y, bounds.w, bounds.h, 
+            canvas,
+            bounds.x, bounds.y, bounds.w, bounds.h,
             0, 0, targetWidth, targetHeight
         );
 
         const dataUrl = tempCanvas.toDataURL("image/png");
-        
+
         // Approximate size in KB (Base64 is ~1.33x larger than binary)
         const sizeInKB = (dataUrl.length * 0.75) / 1024;
-        
+
         if (sizeInKB > 200) {
             setLocalError("ขนาดไฟล์เกิน 200KB กรุณาลายเส้นให้เรียบง่ายขึ้น");
             return;
@@ -243,14 +243,14 @@ export default function SignaturePad({
 
                 const rect = canvas.getBoundingClientRect();
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
+
                 // Draw at center or fit? Let's fit it within the canvas bounds
                 const canvasAspect = rect.width / rect.height;
                 const imgAspect = img.width / img.height;
-                
+
                 let drawW = rect.width;
                 let drawH = rect.height;
-                
+
                 if (imgAspect > canvasAspect) {
                     drawH = rect.width / imgAspect;
                 } else {
@@ -281,7 +281,7 @@ export default function SignaturePad({
                     {label}
                 </label>
             )}
-            
+
             <div className={cn(
                 "relative bg-white border-2 border-dashed rounded-xl overflow-hidden transition-all duration-200",
                 isDrawing ? "border-primary shadow-lg scale-[1.01]" : "border-gray-300",
@@ -296,11 +296,11 @@ export default function SignaturePad({
                     onTouchStart={startDrawing}
                     onTouchMove={draw}
                     onTouchEnd={stopDrawing}
-                    className="w-full h-40 cursor-crosshair touch-none"
-                    style={{ maxHeight: `${maxHeight}px` }}
+                    className="w-full cursor-crosshair touch-none"
+                    style={{ height: `${maxHeight}px` }}
                     title="วาดลายเซ็นที่นี่"
                 />
-                
+
                 {isEmpty && !isDrawing && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400 select-none">
                         <div className="text-center">
@@ -344,7 +344,7 @@ export default function SignaturePad({
             {error && (
                 <p className="text-xs font-medium text-destructive">{error}</p>
             )}
-            
+
             {!isEmpty && !isDrawing && (
                 <div className="flex items-center gap-2 text-[10px] text-green-600 font-medium animate-in fade-in slide-in-from-left-1">
                     <CheckCircle2 className="w-3 h-3" />

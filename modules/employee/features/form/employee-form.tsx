@@ -485,6 +485,8 @@ export default function EmployeeForm({
                             value={field.value ?? ""}
                             onChange={field.onChange}
                             error={errors.signature?.message}
+                            maxWidth={400}
+                            maxHeight={150}
                         />
                     )}
                 />
