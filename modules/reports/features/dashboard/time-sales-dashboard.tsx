@@ -690,8 +690,8 @@ export function TimeSalesDashboard() {
                       ตารางข้อมูลรายวัน
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                  <CardContent className="p-0 px-4">
+                    <div className="rounded-md border shadow-sm bg-white overflow-hidden">
                       <div className="max-h-96 overflow-auto relative">
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
@@ -748,7 +748,7 @@ export function TimeSalesDashboard() {
                       </div>
 
                       {/* Pagination Control */}
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                      <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50/50 text-slate-500">
                         <div className="flex items-center gap-4">
                           <span className="text-xs">แสดง</span>
                           <Select
@@ -762,7 +762,7 @@ export function TimeSalesDashboard() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[10, 20, 30, 50].map((size) => (
+                              {[10, 20, 30].map((size) => (
                                 <SelectItem key={size} value={String(size)} className="text-xs">
                                   {size}
                                 </SelectItem>
