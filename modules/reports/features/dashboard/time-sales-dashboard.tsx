@@ -699,15 +699,15 @@ export function TimeSalesDashboard() {
                                   <TableCell className="font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
                                     {formatTHB(day.sales)}
                                   </TableCell>
-                                  <TableCell className="text-center py-3.5">
+                                  <TableCell className="py-3.5">
                                     <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold min-w-8">
                                       {formatNumber(day.orders)}
                                     </span>
                                   </TableCell>
-                                  <TableCell className="text-right text-slate-500 text-xs py-3.5 tabular-nums">
-                                    {day.orders > 0 ? formatTHB(day.sales / day.orders) : "–"}
+                                  <TableCell className="font-semibold text-slate-700 text-xs py-3.5">
+                                    {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
                                   </TableCell>
-                                  <TableCell className="text-right py-3.5">
+                                  <TableCell className="py-3.5">
                                     <div className="flex items-center justify-end gap-3 px-1">
                                       <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
                                         <div
