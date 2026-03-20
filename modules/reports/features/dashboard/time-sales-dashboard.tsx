@@ -639,50 +639,6 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: DAILY ════ */}
               <TabsContent value="daily" className="mt-5 space-y-5">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-red-600" />
-                      ยอดขายรายวัน
-                    </CardTitle>
-                    <CardDescription>แท่งยอดขายแต่ละวันในช่วงเวลาที่เลือก</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="h-[360px] sm:h-[440px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.dailyData} barCategoryGap="30%">
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                          <YAxis
-                            tickFormatter={formatShortTHB}
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <Tooltip
-                            contentStyle={chartTooltipStyle}
-                            cursor={{ fill: "#f1f5f9", radius: 4 }}
-                            formatter={(value: number, _n: string, p: any) => {
-                              const k = p?.dataKey;
-                              return [
-                                k === "sales" ? formatTHB(value) : formatNumber(value),
-                                k === "sales" ? "ยอดขาย" : "ออเดอร์",
-                              ];
-                            }}
-                          />
-                          <Legend />
-                          <Bar
-                            dataKey="sales"
-                            name="ยอดขาย"
-                            fill="#24c143ff"
-                            radius={[6, 6, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Daily Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
@@ -803,73 +759,6 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: MONTHLY ════ */}
               <TabsContent value="monthly" className="mt-5 space-y-5">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-emerald-500" />
-                      ยอดขายรายเดือน
-                    </CardTitle>
-                    <CardDescription>เปรียบเทียบยอดขายและออเดอร์แต่ละเดือน</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="h-[380px] sm:h-[460px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={reportData.monthlyData}>
-                          <defs>
-                            <linearGradient id="monthlyGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#24c143ff" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#24c143ff" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                          <YAxis
-                            yAxisId="sales"
-                            tickFormatter={formatShortTHB}
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <YAxis
-                            yAxisId="orders"
-                            orientation="right"
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <Tooltip
-                            contentStyle={chartTooltipStyle}
-                            cursor={{ fill: "#f1f5f9", radius: 4 }}
-                            labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName || ""}
-                            formatter={(v: number, name: string) =>
-                              name === "ยอดขาย" ? [formatTHB(v), name] : [formatNumber(v), name]
-                            }
-                          />
-                          <Legend />
-                          <Bar
-                            yAxisId="sales"
-                            dataKey="sales"
-                            name="ยอดขาย"
-                            fill="#24c143ff"
-                            radius={[6, 6, 0, 0]}
-                            opacity={0.85}
-                            activeBar={{ fill: "#94a3b8", opacity: 0.8 }}
-                          />
-                          <Line
-                            yAxisId="orders"
-                            type="monotone"
-                            dataKey="orders"
-                            name="ออเดอร์"
-                            stroke="#18181b"
-                            strokeWidth={2.5}
-                            dot={{ r: 4, fill: "#18181b" }}
-                          />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Monthly Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
@@ -1098,54 +987,6 @@ export function TimeSalesDashboard() {
                     </Card>
                   ))}
                 </div>
-
-                {/* Region Bar Chart */}
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-red-600" />
-                      ยอดขายตามภูมิภาค
-                    </CardTitle>
-                    <CardDescription>เรียงตามยอดขายสูงสุด</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="h-[320px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={reportData.salesByRegion}
-                          layout="vertical"
-                          margin={{ left: 100 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                          <XAxis
-                            type="number"
-                            tickFormatter={formatShortTHB}
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="region"
-                            tick={{ fontSize: 11 }}
-                            tickLine={false}
-                            axisLine={false}
-                            width={95}
-                          />
-                          <Tooltip
-                            contentStyle={chartTooltipStyle}
-                            formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
-                          />
-                          <Bar dataKey="totalSales" name="ยอดขาย" radius={[0, 6, 6, 0]}>
-                            {reportData.salesByRegion.map((_, i) => (
-                              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* Region Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
