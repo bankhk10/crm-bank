@@ -4,6 +4,7 @@ export * from "./get-product-sales-report";
 export * from "./get-product-group-sales-report";
 export * from "./get-customer-sales-report";
 export * from "./get-salesperson-sales-report";
+export * from "./get-salesperson-detail-report";
 export * from "./report-options";
 export * from "./get-sales-report";
 export * from "./get-executive-dashboard-report";

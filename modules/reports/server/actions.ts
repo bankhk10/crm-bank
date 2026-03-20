@@ -73,3 +73,7 @@ export async function getOrderHistoryAction(
 ) {
   return app.getOrderHistory(year, type, entityId, limit);
 }
+
+export async function getSalespersonDetailReportAction(employeeId: string) {
+  return app.getSalespersonDetailReport(employeeId);
+}

@@ -289,3 +289,113 @@ export interface SalespersonListItem {
   totalPoints: number;
   lastSaleDate?: string;
 }
+
+// ==========================================
+// SALESPERSON DETAIL REPORT
+// ==========================================
+
+export interface SalespersonDetailReportData {
+  employee: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    employeeCode: string | null;
+    status: string | null;
+    positionTitle: string | null;
+    roleTitle: string | null;
+    responsibilityArea: string | null;
+    company: { name: string } | null;
+    department: { name: string } | null;
+    manager: { name: string } | null;
+    province: string | null;
+    district: string | null;
+    subdistrict: string | null;
+    addressLine: string | null;
+    postalCode: string | null;
+  };
+  kpi: {
+    yearTotalSales: number;
+    yearOrderCount: number;
+    yearCustomerCount: number;
+    yearAvgOrderValue: number;
+    monthTotalSales: number;
+    monthOrderCount: number;
+    monthCustomerCount: number;
+    currentMonthTarget: number;
+    achievementPercent: number;
+    totalPoints: number;
+    lastSaleDate: string | null;
+  };
+  monthlyPerformance: {
+    month: string;
+    monthShort: string;
+    monthIndex: number;
+    target: number;
+    actual: number;
+    achievementPercent: number;
+    orders: number;
+    customers: number;
+  }[];
+  productBreakdown: {
+    productId: string;
+    productCode: string;
+    productName: string;
+    brand: string;
+    productGroup: string;
+    quantity: number;
+    revenue: number;
+    contribution: number;
+    orderCount: number;
+  }[];
+  customerBreakdown: {
+    customerId: string;
+    customerCode: string;
+    customerName: string;
+    customerType: string;
+    province: string;
+    isResponsible: boolean;
+    orders: number;
+    revenue: number;
+    lastOrderDate: string;
+  }[];
+  salesStatusData: {
+    status: string;
+    statusLabel: string;
+    count: number;
+    amount: number;
+  }[];
+  pointHistory: {
+    id: string;
+    productName: string;
+    productCode: string;
+    saleNumber: string;
+    saleDate: string;
+    quantity: number;
+    pointPerUnit: number;
+    totalPoints: number;
+    createdAt: string;
+  }[];
+  recentSales: {
+    id: string;
+    saleNumber: string;
+    saleDate: string;
+    saleDateRaw: string;
+    status: string;
+    statusLabel: string;
+    totalAmount: number;
+    customerName: string;
+    customerCode: string;
+    customerId: string;
+  }[];
+  responsibleCustomers: {
+    id: string;
+    customerCode: string;
+    name: string;
+    customerType: string;
+    province: string;
+    region: string;
+    status: string;
+  }[];
+  currentYear: number;
+}

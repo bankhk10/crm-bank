@@ -403,6 +403,235 @@ export async function groupDailySalesSummaryByGroupMonthYear(
 }
 
 // ==========================================
+// GET-REPORTS: SALESPERSON DETAIL
+// ==========================================
+
+export async function findEmployeeDetailById(employeeId: string) {
+  return prisma.employee.findUnique({
+    where: { id: employeeId, deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      employeeCode: true,
+      birthDate: true,
+      addressLine: true,
+      province: true,
+      district: true,
+      subdistrict: true,
+      postalCode: true,
+      responsibilityArea: true,
+      status: true,
+      positionTitle: true,
+      roleTitle: true,
+      company: { select: { id: true, name: true } },
+      department: { select: { id: true, name: true } },
+      manager: { select: { id: true, name: true } },
+      pointSummary: { select: { totalPoints: true } },
+      responsibleCustomers: {
+        where: { deletedAt: null },
+        select: {
+          id: true,
+          customerCode: true,
+          name: true,
+          customerType: true,
+          province: true,
+          region: true,
+          status: true,
+        },
+        orderBy: { name: "asc" },
+      },
+    },
+  });
+}
+
+export async function aggregateSalesKpiByEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+) {
+  return prisma.sale.aggregate({
+    where: {
+      employeeId,
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    _sum: { totalAmount: true },
+    _count: true,
+  });
+}
+
+export async function countUniqueCustomersByEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+) {
+  const result = await prisma.sale.groupBy({
+    by: ["customerId"],
+    where: {
+      employeeId,
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+  });
+  return result.length;
+}
+
+export async function getLastSaleDateByEmployee(employeeId: string) {
+  return prisma.sale.findFirst({
+    where: {
+      employeeId,
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    orderBy: { saleDate: "desc" },
+    select: { saleDate: true },
+  });
+}
+
+export async function groupMonthlySalesByEmployee(
+  employeeId: string,
+  year: number,
+) {
+  return prisma.sale.groupBy({
+    by: ["saleDate"],
+    where: {
+      employeeId,
+      saleDate: {
+        gte: new Date(year, 0, 1),
+        lte: new Date(year, 11, 31, 23, 59, 59),
+      },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    _sum: { totalAmount: true },
+    _count: true,
+  });
+}
+
+export async function groupProductSalesByEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+) {
+  return prisma.saleItem.groupBy({
+    by: ["productId"],
+    where: {
+      sale: {
+        employeeId,
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      },
+    },
+    _sum: { totalPrice: true, quantity: true },
+    _count: true,
+    orderBy: { _sum: { totalPrice: "desc" } },
+    take: 20,
+  });
+}
+
+export async function groupCustomerSalesByEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+) {
+  return prisma.sale.groupBy({
+    by: ["customerId"],
+    where: {
+      employeeId,
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+    },
+    _sum: { totalAmount: true },
+    _count: true,
+    orderBy: { _sum: { totalAmount: "desc" } },
+  });
+}
+
+export async function findSalesTargetsForEmployee(
+  employeeId: string,
+  year: number,
+) {
+  return prisma.salesTarget.findMany({
+    where: { employeeId, year },
+    include: {
+      stores: {
+        include: {
+          customer: { select: { name: true, customerCode: true } },
+          items: {
+            include: {
+              product: { select: { name: true, productCode: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { month: "asc" },
+  });
+}
+
+export async function findPointHistoryByEmployee(
+  employeeId: string,
+  limit = 50,
+) {
+  return prisma.employeePointHistory.findMany({
+    where: { employeeId },
+    include: {
+      product: { select: { name: true, productCode: true } },
+      sale: { select: { saleNumber: true, saleDate: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+export async function findRecentSalesByEmployee(
+  employeeId: string,
+  limit = 20,
+) {
+  return prisma.sale.findMany({
+    where: {
+      employeeId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      saleNumber: true,
+      saleDate: true,
+      status: true,
+      totalAmount: true,
+      customer: {
+        select: { id: true, name: true, customerCode: true },
+      },
+    },
+    orderBy: { saleDate: "desc" },
+    take: limit,
+  });
+}
+
+export async function countSalesByStatusForEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+) {
+  return prisma.sale.groupBy({
+    by: ["status"],
+    where: {
+      employeeId,
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+    },
+    _count: true,
+    _sum: { totalAmount: true },
+  });
+}
+
+// ==========================================
 // GET-REPORTS: GENERIC FINDERS AND GROUPERS
 // ==========================================
 
