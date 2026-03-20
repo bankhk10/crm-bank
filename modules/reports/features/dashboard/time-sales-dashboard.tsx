@@ -144,7 +144,7 @@ export function TimeSalesDashboard() {
             icon={<Calendar className="h-6 w-6" />}
           />
           <CardContent>
-            <div className="flex items-center justify-between sm:justify-start gap-2 mb-0">
+            <div className="flex items-center justify-between sm:justify-start gap-2 mb-2">
               <Button
                 type="button"
                 variant="outline"
