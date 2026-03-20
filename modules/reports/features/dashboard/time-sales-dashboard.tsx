@@ -773,7 +773,6 @@ export function TimeSalesDashboard() {
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-12">#</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เดือน</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
@@ -792,7 +791,6 @@ export function TimeSalesDashboard() {
                                 const avg = m.orders > 0 ? m.sales / m.orders : 0;
                                 return (
                                   <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                    <TableCell className="text-slate-400 text-xs font-medium py-4 px-4 italic">{idx + 1}</TableCell>
                                     <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.month}</TableCell>
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(m.sales)}
@@ -931,8 +929,8 @@ export function TimeSalesDashboard() {
                   <CardContent className="p-4 sm:p-6">
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart 
-                          data={reportData.seasonalityData} 
+                        <BarChart
+                          data={reportData.seasonalityData}
                           barCategoryGap="40%"
                           onMouseLeave={() => setHoveredQuarter(null)}
                         >
@@ -951,8 +949,8 @@ export function TimeSalesDashboard() {
                           />
                           <Bar dataKey="sales" name="ยอดขาย" radius={[8, 8, 0, 0]}>
                             {reportData.seasonalityData.map((_, i) => (
-                              <Cell 
-                                key={`cell-${i}`} 
+                              <Cell
+                                key={`cell-${i}`}
                                 fill="#24c143ff"
                                 onMouseEnter={() => setHoveredQuarter(i)}
                                 style={{
