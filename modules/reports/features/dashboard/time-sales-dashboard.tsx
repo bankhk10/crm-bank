@@ -120,7 +120,7 @@ export function TimeSalesDashboard() {
   const [dailyPage, setDailyPage] = useState(1);
   const [dailyPerPage, setDailyPerPage] = useState(10);
   const [monthlyPage, setMonthlyPage] = useState(1);
-  const [monthlyPerPage, setMonthlyPerPage] = useState(10);
+  const [monthlyPerPage, setMonthlyPerPage] = useState(20);
   const [regionPage, setRegionPage] = useState(1);
   const [regionPerPage, setRegionPerPage] = useState(10);
 
@@ -840,6 +840,7 @@ export function TimeSalesDashboard() {
                           <Tooltip
                             contentStyle={chartTooltipStyle}
                             cursor={{ fill: "#f1f5f9", radius: 4 }}
+                            labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName || ""}
                             formatter={(v: number, name: string) =>
                               name === "ยอดขาย" ? [formatTHB(v), name] : [formatNumber(v), name]
                             }

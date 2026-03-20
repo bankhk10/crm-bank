@@ -7,6 +7,9 @@ import {
   subMonths,
   subYears,
   subDays,
+  startOfYear,
+  endOfYear,
+  eachMonthOfInterval,
 } from "date-fns";
 import { th } from "date-fns/locale";
 import {
@@ -58,10 +61,14 @@ export async function getTimeSalesReport(
     previousEnd = subDays(end, durationInDays);
   }
 
-  // Get main sales data
-  const sales = await repo.findManySalesData({
+  // We fetch data for the entire year of the 'start' date (and up to the 'end' date) to provide annual context
+  const fetchStart = startOfYear(start);
+  const fetchEnd = end > endOfYear(start) ? end : endOfYear(start);
+
+  // Get ALL sales for this trend range (for monthly charts)
+  const allTrendSales = await repo.findManySalesData({
     where: {
-      saleDate: { gte: start, lte: end },
+      saleDate: { gte: fetchStart, lte: fetchEnd },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
       ...scopeFilter,
@@ -73,6 +80,12 @@ export async function getTimeSalesReport(
       createdAt: true,
       customerId: true,
     },
+  });
+
+  // Filter for the SPECIFIC range selected (for KPIs and Daily/Other tables)
+  const sales = allTrendSales.filter(s => {
+    const d = s.saleDate;
+    return d >= start && d <= end;
   });
 
   // Get customer provinces for region calculation
@@ -136,9 +149,9 @@ export async function getTimeSalesReport(
     };
   });
 
-  // Monthly data
+  // Monthly data (Always at least 12 months of the year)
   const monthlyMap = new Map<string, { sales: number; orders: number }>();
-  for (const sale of sales) {
+  for (const sale of allTrendSales) {
     const monthKey = format(sale.saleDate, "yyyy-MM");
     if (!monthlyMap.has(monthKey)) {
       monthlyMap.set(monthKey, { sales: 0, orders: 0 });
@@ -148,16 +161,16 @@ export async function getTimeSalesReport(
     monthly.orders += 1;
   }
 
-  const monthlyData = Array.from(monthlyMap.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([month, data]) => {
-      const date = parseISO(month + "-01");
-      return {
-        month: `${format(date, "MMM", { locale: th })} ${date.getFullYear() + 543}`,
-        sales: data.sales,
-        orders: data.orders,
-      };
-    });
+  const monthlyData = eachMonthOfInterval({ start: fetchStart, end: fetchEnd }).map((date) => {
+    const monthKey = format(date, "yyyy-MM");
+    const data = monthlyMap.get(monthKey) || { sales: 0, orders: 0 };
+    return {
+      month: format(date, "MMM", { locale: th }), // Simpler month name for better chart fit
+      fullName: `${format(date, "MMMM", { locale: th })} ${date.getFullYear() + 543}`,
+      sales: data.sales,
+      orders: data.orders,
+    };
+  });
 
   // Yearly data
   const yearlyMap = new Map<number, { sales: number; orders: number }>();
