@@ -527,8 +527,8 @@ export function TimeSalesDashboard() {
                         <ComposedChart data={reportData.dailyData}>
                           <defs>
                             <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#12ae2cff" stopOpacity={0.25} />
-                              <stop offset="95%" stopColor="#33a31aff" stopOpacity={0.01} />
+                              <stop offset="5%" stopColor="#24c143ff" stopOpacity={0.25} />
+                              <stop offset="95%" stopColor="#24c143ff" stopOpacity={0.01} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -561,7 +561,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="sales"
                             name="ยอดขาย"
-                            stroke="#3eaa36ff"
+                            stroke="#24c143ff"
                             strokeWidth={2.5}
                             fill="url(#salesGrad)"
                           />
@@ -655,7 +655,7 @@ export function TimeSalesDashboard() {
                           <Bar
                             dataKey="sales"
                             name="ยอดขาย"
-                            fill="#dc2626"
+                            fill="#24c143ff"
                             radius={[6, 6, 0, 0]}
                           />
                         </BarChart>
@@ -667,7 +667,7 @@ export function TimeSalesDashboard() {
                 {/* Daily Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-sm font-semibold text-slate-900">
+                    <CardTitle className="text-base font-semibold text-slate-900">
                       ตารางข้อมูลรายวัน
                     </CardTitle>
                   </CardHeader>
