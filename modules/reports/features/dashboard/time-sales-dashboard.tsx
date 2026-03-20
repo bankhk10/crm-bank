@@ -697,10 +697,10 @@ export function TimeSalesDashboard() {
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">วันที่</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-36">สัดส่วน</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-36">สัดส่วน</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -716,7 +716,7 @@ export function TimeSalesDashboard() {
                                     <TableCell className="font-medium text-slate-600 text-sm py-4 px-4">
                                       {day.date} {day.isoDate ? parseInt(day.isoDate.split("-")[0]) + 543 : ""}
                                     </TableCell>
-                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                    <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(day.sales)}
                                     </TableCell>
                                     <TableCell className="text-center py-4 px-4">
@@ -724,10 +724,10 @@ export function TimeSalesDashboard() {
                                         {formatNumber(day.orders)}
                                       </span>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                    <TableCell className="font-medium text-slate-600 text-sm py-4 px-8 tabular-nums">
                                       {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
                                     </TableCell>
-                                    <TableCell className="text-right py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <div className="flex items-center justify-end gap-3">
                                         <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
                                           <div
