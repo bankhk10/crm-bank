@@ -51,6 +51,7 @@ export interface InvoiceData {
   checkedBySignatureImage?: string;
   approvedBySignatureDate?: string;
   approvedBySignatureImage?: string;
+  approvedByName?: string;
 }
 
 function safeValue(value?: string | number | null) {
@@ -419,10 +420,15 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       </div>
       <div class="signature-card">
         <div class="signature-title">ผู้อนุมัติ</div>
-        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 20px;">
           <div class="dot-line" style="position: relative;">
             ${approvedSign ? `<img src="${approvedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
           </div>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: 30px;">
+          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
+            ( ${safeValue(data.approvedByName)} )
+          </span>
         </div>
         <div class="sign-row" style="position: relative;">
           <span>วันที่</span>

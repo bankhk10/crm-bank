@@ -139,6 +139,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     checkedBySignatureImage: sale.checkedBySignatureImage,
     approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
     approvedBySignatureImage: sale.approvedBySignatureImage,
+    approvedByName: sale.approvedBy?.name || "-",
   };
 
   const html = renderInvoiceTemplate(invoiceData);
