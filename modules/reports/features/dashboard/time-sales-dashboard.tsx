@@ -643,6 +643,7 @@ export function TimeSalesDashboard() {
                           />
                           <Tooltip
                             contentStyle={chartTooltipStyle}
+                            cursor={{ fill: "#f1f5f9", radius: 4 }}
                             formatter={(value: number, _n: string, p: any) => {
                               const k = p?.dataKey;
                               return [
@@ -767,6 +768,7 @@ export function TimeSalesDashboard() {
                           />
                           <Tooltip
                             contentStyle={chartTooltipStyle}
+                            cursor={{ fill: "#f1f5f9", radius: 4 }}
                             formatter={(v: number, name: string) =>
                               name === "ยอดขาย" ? [formatTHB(v), name] : [formatNumber(v), name]
                             }
@@ -779,6 +781,7 @@ export function TimeSalesDashboard() {
                             fill="#24c143ff"
                             radius={[6, 6, 0, 0]}
                             opacity={0.85}
+                            activeBar={{ fill: "#94a3b8", opacity: 0.8 }}
                           />
                           <Line
                             yAxisId="orders"
