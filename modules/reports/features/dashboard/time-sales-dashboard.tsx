@@ -36,6 +36,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
@@ -109,6 +117,13 @@ export function TimeSalesDashboard() {
   const [isStartOpen, setIsStartOpen] = useState(false);
   const [isEndOpen, setIsEndOpen] = useState(false);
   const [reportData, setReportData] = useState<TimeSalesReportData | null>(null);
+  const [dailyPage, setDailyPage] = useState(1);
+  const [dailyPerPage, setDailyPerPage] = useState(10);
+  const [monthlyPage, setMonthlyPage] = useState(1);
+  const [monthlyPerPage, setMonthlyPerPage] = useState(10);
+  const [regionPage, setRegionPage] = useState(1);
+  const [regionPerPage, setRegionPerPage] = useState(10);
+
   const [activeTab, setActiveTab] = useState("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersPanelId = useId();
@@ -121,6 +136,9 @@ export function TimeSalesDashboard() {
       };
       const data = await getTimeSalesReportAction(filter);
       setReportData(data);
+      setDailyPage(1);
+      setMonthlyPage(1);
+      setRegionPage(1);
     });
   };
 
@@ -673,58 +691,111 @@ export function TimeSalesDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="max-h-96 overflow-auto relative">
-                      <Table>
-                        <TableHeader className="sticky top-0 z-10 bg-gray-300 backdrop-blur-sm shadow-sm">
-                          <TableRow className="hover:bg-transparent border-b border-slate-200">
-                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">วันที่</TableHead>
-                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">ยอดขาย</TableHead>
-                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">ออเดอร์</TableHead>
-                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">เฉลี่ย/ออเดอร์</TableHead>
-                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3 w-36">สัดส่วน</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.dailyData
-                            .filter((d) => d.sales > 0)
-                            .map((day, idx) => {
-                              const pct = reportData.totalSales > 0
-                                ? (day.sales / reportData.totalSales) * 100
-                                : 0;
-                              return (
-                                <TableRow key={idx} className="group hover:bg-slate-50/50 transition-all duration-200">
-                                  <TableCell className="font-semibold text-slate-700 text-xs py-3.5">
-                                    {day.date} {day.isoDate ? parseInt(day.isoDate.split("-")[0]) + 543 : ""}
-                                  </TableCell>
-                                  <TableCell className="font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
-                                    {formatTHB(day.sales)}
-                                  </TableCell>
-                                  <TableCell className="py-3.5">
-                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold min-w-8">
-                                      {formatNumber(day.orders)}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell className="font-semibold text-slate-700 text-xs py-3.5">
-                                    {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
-                                  </TableCell>
-                                  <TableCell className="py-3.5">
-                                    <div className="flex items-center justify-end gap-3 px-1">
-                                      <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
-                                        <div
-                                          className="h-full bg-[#24c143ff] rounded-full transition-all duration-700 group-hover:saturate-150"
-                                          style={{ width: `${pct}%` }}
-                                        />
-                                      </div>
-                                      <span className="text-[10px] font-bold text-slate-400 w-10 text-right tabular-nums">
-                                        {pct.toFixed(1)}%
+                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                      <div className="max-h-96 overflow-auto relative">
+                        <Table>
+                          <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
+                            <TableRow className="hover:bg-transparent border-b border-slate-200">
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">วันที่</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-36">สัดส่วน</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {reportData.dailyData
+                              .filter((d) => d.sales > 0)
+                              .slice((dailyPage - 1) * dailyPerPage, dailyPage * dailyPerPage)
+                              .map((day, idx) => {
+                                const pct = reportData.totalSales > 0
+                                  ? (day.sales / reportData.totalSales) * 100
+                                  : 0;
+                                return (
+                                  <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                                    <TableCell className="font-medium text-slate-600 text-sm py-4 px-4">
+                                      {day.date} {day.isoDate ? parseInt(day.isoDate.split("-")[0]) + 543 : ""}
+                                    </TableCell>
+                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                      {formatTHB(day.sales)}
+                                    </TableCell>
+                                    <TableCell className="text-center py-4 px-4">
+                                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
+                                        {formatNumber(day.orders)}
                                       </span>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                        </TableBody>
-                      </Table>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                      {day.orders > 0 ? formatTHB(day.sales / day.orders) : "-"}
+                                    </TableCell>
+                                    <TableCell className="text-right py-4 px-4">
+                                      <div className="flex items-center justify-end gap-3">
+                                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                                          <div
+                                            className="h-full bg-[#24c143ff] rounded-full transition-all duration-700 group-hover:saturate-150"
+                                            style={{ width: `${pct}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-400 w-10 text-right tabular-nums">
+                                          {pct.toFixed(1)}%
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Pagination Control */}
+                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs">แสดง</span>
+                          <Select
+                            value={String(dailyPerPage)}
+                            onValueChange={(v) => {
+                              setDailyPerPage(Number(v));
+                              setDailyPage(1);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-20 text-xs bg-white border-slate-200">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[10, 20, 30, 50].map((size) => (
+                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-xs">แถว</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setDailyPage((p) => Math.max(1, p - 1))}
+                            disabled={dailyPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="text-xs font-medium px-2">
+                            หน้า {dailyPage} / {Math.max(1, Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage))}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setDailyPage((p) => Math.min(Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage), p + 1))}
+                            disabled={dailyPage >= Math.ceil(reportData.dailyData.filter(d => d.sales > 0).length / dailyPerPage)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -806,52 +877,107 @@ export function TimeSalesDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="max-h-96 overflow-auto relative">
-                      <Table>
-                        <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm">
-                          <TableRow className="hover:bg-transparent border-b border-slate-200">
-                            <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3 w-12 text-center">#</TableHead>
-                            <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">เดือน</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ยอดขาย</TableHead>
-                            <TableHead className="text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">เฉลี่ย/ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3 w-32">% ของรวม</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.monthlyData.map((m, i) => {
-                            const pct = reportData.totalSales > 0
-                              ? (m.sales / reportData.totalSales) * 100
-                              : 0;
-                            const avg = m.orders > 0 ? m.sales / m.orders : 0;
-                            return (
-                              <TableRow key={i} className="group hover:bg-slate-50/50 transition-all duration-200">
-                                <TableCell className="text-slate-400 text-[10px] font-medium text-center py-3.5 italic">{i + 1}</TableCell>
-                                <TableCell className="font-semibold text-sm text-slate-700 py-3.5">{m.month}</TableCell>
-                                <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
-                                  {formatTHB(m.sales)}
-                                </TableCell>
-                                <TableCell className="text-center py-3.5">
-                                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold min-w-8">
-                                    {formatNumber(m.orders)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-right text-slate-500 text-xs py-3.5 tabular-nums">
-                                  {formatTHB(avg)}
-                                </TableCell>
-                                <TableCell className="text-right py-3.5">
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[10px] font-bold bg-slate-50 border-slate-200 text-slate-500 px-2 py-0"
-                                  >
-                                    {pct.toFixed(1)}%
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
+                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                      <div className="max-h-96 overflow-auto relative">
+                        <Table>
+                          <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
+                            <TableRow className="hover:bg-transparent border-b border-slate-200">
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-12 text-center">#</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เดือน</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">% ของรวม</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {reportData.monthlyData
+                              .slice((monthlyPage - 1) * monthlyPerPage, monthlyPage * monthlyPerPage)
+                              .map((m, i) => {
+                                const idx = (monthlyPage - 1) * monthlyPerPage + i;
+                                const pct = reportData.totalSales > 0
+                                  ? (m.sales / reportData.totalSales) * 100
+                                  : 0;
+                                const avg = m.orders > 0 ? m.sales / m.orders : 0;
+                                return (
+                                  <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                                    <TableCell className="text-slate-400 text-xs font-medium text-center py-4 px-4 italic">{idx + 1}</TableCell>
+                                    <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.month}</TableCell>
+                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                      {formatTHB(m.sales)}
+                                    </TableCell>
+                                    <TableCell className="text-center py-4 px-4">
+                                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
+                                        {formatNumber(m.orders)}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                      {formatTHB(avg)}
+                                    </TableCell>
+                                    <TableCell className="text-right py-4 px-4">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] font-bold bg-slate-50 border-slate-200 text-slate-500 px-2 py-0"
+                                      >
+                                        {pct.toFixed(1)}%
+                                      </Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Pagination Control */}
+                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs">แสดง</span>
+                          <Select
+                            value={String(monthlyPerPage)}
+                            onValueChange={(v) => {
+                              setMonthlyPerPage(Number(v));
+                              setMonthlyPage(1);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-20 text-xs bg-white border-slate-200">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[10, 20, 30, 50].map((size) => (
+                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-xs">แถว</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setMonthlyPage((p) => Math.max(1, p - 1))}
+                            disabled={monthlyPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="text-xs font-medium px-2">
+                            หน้า {monthlyPage} / {Math.max(1, Math.ceil(reportData.monthlyData.length / monthlyPerPage))}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setMonthlyPage((p) => Math.min(Math.ceil(reportData.monthlyData.length / monthlyPerPage), p + 1))}
+                            disabled={monthlyPage >= Math.ceil(reportData.monthlyData.length / monthlyPerPage)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1028,72 +1154,127 @@ export function TimeSalesDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="max-h-96 overflow-auto relative">
-                      <Table>
-                        <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm">
-                          <TableRow className="hover:bg-transparent border-b border-slate-200">
-                            <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3 w-16 text-center">อันดับ</TableHead>
-                            <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ภูมิภาค</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ยอดขาย</TableHead>
-                            <TableHead className="text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">เฉลี่ย/ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3 w-40">% ของรวม</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {reportData.salesByRegion.map((r, i) => {
-                            const pct = totalRegionSales > 0
-                              ? (r.totalSales / totalRegionSales) * 100
-                              : 0;
-                            const avg = r.orderCount > 0 ? r.totalSales / r.orderCount : 0;
-                            return (
-                              <TableRow key={r.region} className="group hover:bg-slate-50/50 transition-all duration-200">
-                                <TableCell className="text-center py-3.5">
-                                  <span
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-110"
-                                    style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                                  >
-                                    {i + 1}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="py-3.5">
-                                  <div className="flex items-center gap-2">
-                                    <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                                    <span className="font-semibold text-slate-700 text-sm">{r.region}</span>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
-                                  {formatTHB(r.totalSales)}
-                                </TableCell>
-                                <TableCell className="text-center py-3.5">
-                                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold min-w-8">
-                                    {formatNumber(r.orderCount)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-right text-slate-500 text-xs py-3.5 tabular-nums">
-                                  {formatTHB(avg)}
-                                </TableCell>
-                                <TableCell className="text-right py-3.5">
-                                  <div className="flex items-center justify-end gap-3 px-1">
-                                    <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
-                                      <div
-                                        className="h-full rounded-full transition-all duration-700 group-hover:saturate-150"
-                                        style={{
-                                          width: `${pct}%`,
-                                          backgroundColor: COLORS[i % COLORS.length],
-                                        }}
-                                      />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-400 w-10 text-right tabular-nums">
-                                      {pct.toFixed(1)}%
-                                    </span>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
+                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                      <div className="max-h-96 overflow-auto relative">
+                        <Table>
+                          <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
+                            <TableRow className="hover:bg-transparent border-b border-slate-200">
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-16 text-center">อันดับ</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ภูมิภาค</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">% ของรวม</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {reportData.salesByRegion
+                              .slice((regionPage - 1) * regionPerPage, regionPage * regionPerPage)
+                              .map((r, i) => {
+                                const idx = (regionPage - 1) * regionPerPage + i;
+                                const pct = totalRegionSales > 0
+                                  ? (r.totalSales / totalRegionSales) * 100
+                                  : 0;
+                                const avg = r.orderCount > 0 ? r.totalSales / r.orderCount : 0;
+                                return (
+                                  <TableRow key={r.region} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
+                                    <TableCell className="text-center py-4 px-4">
+                                      <span
+                                        className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-110"
+                                        style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                                      >
+                                        {idx + 1}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="py-4 px-4">
+                                      <div className="flex items-center gap-2">
+                                        <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                                        <span className="font-semibold text-slate-700 text-sm">{r.region}</span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                      {formatTHB(r.totalSales)}
+                                    </TableCell>
+                                    <TableCell className="text-center py-4 px-4">
+                                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
+                                        {formatNumber(r.orderCount)}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                      {formatTHB(avg)}
+                                    </TableCell>
+                                    <TableCell className="text-right py-4 px-4">
+                                      <div className="flex items-center justify-end gap-3 px-1">
+                                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                                          <div
+                                            className="h-full rounded-full transition-all duration-700 group-hover:saturate-150"
+                                            style={{
+                                              width: `${pct}%`,
+                                              backgroundColor: COLORS[idx % COLORS.length],
+                                            }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-400 w-10 text-right tabular-nums">
+                                          {pct.toFixed(1)}%
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Pagination Control */}
+                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs">แสดง</span>
+                          <Select
+                            value={String(regionPerPage)}
+                            onValueChange={(v) => {
+                              setRegionPerPage(Number(v));
+                              setRegionPage(1);
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-20 text-xs bg-white border-slate-200">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[10, 20, 30, 50].map((size) => (
+                                <SelectItem key={size} value={String(size)} className="text-xs">
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-xs">แถว</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setRegionPage((p) => Math.max(1, p - 1))}
+                            disabled={regionPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <div className="text-xs font-medium px-2">
+                            หน้า {regionPage} / {Math.max(1, Math.ceil(reportData.salesByRegion.length / regionPerPage))}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full hover:bg-white hover:shadow-sm"
+                            onClick={() => setRegionPage((p) => Math.min(Math.ceil(reportData.salesByRegion.length / regionPerPage), p + 1))}
+                            disabled={regionPage >= Math.ceil(reportData.salesByRegion.length / regionPerPage)}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
