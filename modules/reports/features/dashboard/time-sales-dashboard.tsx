@@ -331,7 +331,7 @@ export function TimeSalesDashboard() {
                 <Button
                   onClick={handleFetchReport}
                   disabled={isPending}
-                  className="flex-1 sm:w-auto h-10 px-6 bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20 font-semibold text-sm"
+                  className="flex-1 sm:w-auto h-10 px-6 bg-black hover:bg-gray-800 text-white shadow-md shadow-red-600/20 font-semibold text-sm"
                 >
                   {isPending ? (
                     <>
