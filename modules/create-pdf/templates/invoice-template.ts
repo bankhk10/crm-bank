@@ -413,7 +413,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
-            ${data.preparedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate}</span>` : ""}
+            ${data.preparedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 45%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate}</span>` : ""}
           </div>
         </div>
       </div>
