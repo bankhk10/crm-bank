@@ -1,4 +1,8 @@
 "use client";
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailItem } from "@/components/custom/detail-item";
+
 
 import { useId, useState, useTransition } from "react";
 import {
@@ -116,48 +120,31 @@ export function TimeSalesDashboard() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-5 sm:space-y-7">
+    <div className="min-h-screen pb-12 rounded-3xl">
+      <DetailHero
+        backUrl="/reports"
+        backLabel="หน้ารายงาน"
+        title="รายงานยอดขายตามช่วงเวลา"
+        icon={<Calendar className="h-8 w-8 text-white" />}
+        badges={
+          reportData && (
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
+              <Activity className="h-3.5 w-3.5 text-[#60A5FA]" />
+              {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
+            </span>
+          )
+        }
+      />
 
-        {/* ── Header ── */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/reports">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-xl hover:bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 shadow-lg shadow-blue-500/30">
-              <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-800 leading-tight">
-                รายงานยอดขายตามช่วงเวลา
-              </h1>
-              <p className="text-muted-foreground text-xs sm:text-sm">
-                วิเคราะห์ยอดขาย · ออเดอร์ · แนวโน้ม · ภูมิภาค
-              </p>
-            </div>
-          </div>
-          {reportData && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-xs gap-1 text-slate-600 bg-white">
-                <Activity className="h-3 w-3" />
-                {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
-              </Badge>
-            </div>
-          )}
-        </div>
-
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
         {/* ── Filter Card ── */}
-        <Card className="rounded-2xl border bg-white/80 backdrop-blur-sm shadow-sm">
-          <CardContent className="p-3 sm:p-4">
+        <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden -py-6">
+          <SectionHeader
+            title="ตัวกรองช่วงเวลา"
+            icon={<Calendar className="h-6 w-6" />}
+          />
+          <CardContent>
             <div className="flex items-center justify-between sm:justify-start gap-2 mb-0">
-              <p className="font-medium text-base text-gray-900 mx-1 mb-2">ตัวกรองช่วงเวลา</p>
               <Button
                 type="button"
                 variant="outline"
@@ -173,7 +160,7 @@ export function TimeSalesDashboard() {
 
             <div
               id={filtersPanelId}
-              className={`mt-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
+              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
                 } sm:flex`}
             >
               {/* Start Date */}
@@ -307,7 +294,7 @@ export function TimeSalesDashboard() {
 
               {/* Quick ranges */}
               <div className="grid gap-1.5">
-                <label className="font-medium text-base text-gray-900 mx-1 mb-2">
+                <label className="font-medium text-base text-gray-900 mx-1">
                   ช่วงเวลา
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -370,11 +357,11 @@ export function TimeSalesDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-28 rounded-2xl" />
+                <Skeleton key={i} className="h-28 rounded-xl" />
               ))}
             </div>
-            <Skeleton className="h-16 rounded-2xl" />
-            <Skeleton className="h-96 rounded-2xl" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-96 rounded-xl" />
           </div>
         )}
 
@@ -443,7 +430,7 @@ export function TimeSalesDashboard() {
             {/* ── Insights Bar ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Best Month */}
-              <Card className="rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/60 shadow-sm">
+              <Card className="rounded-xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/20">
                     <Star className="h-5 w-5 text-emerald-600" />
@@ -461,7 +448,7 @@ export function TimeSalesDashboard() {
               </Card>
 
               {/* Best Day of Week */}
-              <Card className="rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-cyan-50/60 shadow-sm">
+              <Card className="rounded-xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-cyan-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-blue-500/15 ring-1 ring-blue-500/20">
                     <Clock className="h-5 w-5 text-blue-600" />
@@ -479,7 +466,7 @@ export function TimeSalesDashboard() {
               </Card>
 
               {/* Best Quarter */}
-              <Card className="rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/60 shadow-sm">
+              <Card className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-amber-500/15 ring-1 ring-amber-500/20">
                     <Award className="h-5 w-5 text-amber-600" />
@@ -499,7 +486,7 @@ export function TimeSalesDashboard() {
 
             {/* ── Tabs ── */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="h-auto p-1.5 rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
+              <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
                 {[
                   { value: "overview", label: "ภาพรวม", icon: BarChart3 },
                   { value: "daily", label: "รายวัน", icon: Calendar },
@@ -527,7 +514,7 @@ export function TimeSalesDashboard() {
               <TabsContent value="overview" className="mt-5 space-y-5">
 
                 {/* Area Chart – Daily Trend */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Activity className="h-4 w-4 text-blue-500" />
@@ -595,7 +582,7 @@ export function TimeSalesDashboard() {
                 </Card>
 
                 {/* Seasonality detail list */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">
                       รายละเอียดไตรมาส
@@ -635,7 +622,7 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: DAILY ════ */}
               <TabsContent value="daily" className="mt-5 space-y-5">
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-blue-500" />
@@ -679,7 +666,7 @@ export function TimeSalesDashboard() {
                 </Card>
 
                 {/* Daily Table */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">
                       ตารางข้อมูลรายวัน
@@ -741,7 +728,7 @@ export function TimeSalesDashboard() {
 
               {/* ════ TAB: MONTHLY ════ */}
               <TabsContent value="monthly" className="mt-5 space-y-5">
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Activity className="h-4 w-4 text-emerald-500" />
@@ -806,7 +793,7 @@ export function TimeSalesDashboard() {
                 </Card>
 
                 {/* Monthly Table */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">
                       ตารางข้อมูลรายเดือน
@@ -864,7 +851,7 @@ export function TimeSalesDashboard() {
                   {reportData.seasonalityData.map((q, i) => (
                     <Card
                       key={q.quarter}
-                      className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm"
+                      className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
                     >
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-3">
@@ -905,7 +892,7 @@ export function TimeSalesDashboard() {
                 </div>
 
                 {/* Quarterly Bar Chart */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Sun className="h-4 w-4 text-amber-500" />
@@ -946,7 +933,7 @@ export function TimeSalesDashboard() {
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {reportData.salesByRegion.slice(0, 4).map((r, i) => (
-                    <Card key={r.region} className="rounded-2xl border border-slate-200/70 bg-white/80 shadow-sm">
+                    <Card key={r.region} className="rounded-xl border border-slate-200/70 bg-white/80 shadow-sm">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-1.5 mb-2">
                           <span
@@ -974,7 +961,7 @@ export function TimeSalesDashboard() {
                 </div>
 
                 {/* Region Bar Chart */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-blue-500" />
@@ -1022,7 +1009,7 @@ export function TimeSalesDashboard() {
                 </Card>
 
                 {/* Region Table */}
-                <Card className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-sm font-semibold text-slate-900">
                       รายละเอียดตามภูมิภาค
@@ -1102,7 +1089,7 @@ export function TimeSalesDashboard() {
 
         {/* ── Empty State ── */}
         {!isPending && !reportData && (
-          <Card className="rounded-2xl border bg-white/80 shadow-sm">
+          <Card className="rounded-xl border bg-white/80 shadow-sm">
             <CardContent className="flex flex-col items-center justify-center py-24 text-center">
               <div className="p-5 rounded-3xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 mb-5">
                 <BarChart3 className="h-14 w-14 text-blue-400" />
