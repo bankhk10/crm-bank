@@ -527,8 +527,8 @@ export function TimeSalesDashboard() {
                         <ComposedChart data={reportData.dailyData}>
                           <defs>
                             <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#dc2626" stopOpacity={0.25} />
-                              <stop offset="95%" stopColor="#dc2626" stopOpacity={0.01} />
+                              <stop offset="5%" stopColor="#12ae2cff" stopOpacity={0.25} />
+                              <stop offset="95%" stopColor="#33a31aff" stopOpacity={0.01} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -561,7 +561,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="sales"
                             name="ยอดขาย"
-                            stroke="#dc2626"
+                            stroke="#3eaa36ff"
                             strokeWidth={2.5}
                             fill="url(#salesGrad)"
                           />
@@ -570,7 +570,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="orders"
                             name="ออเดอร์"
-                            stroke="#18181b"
+                            stroke="#4f4fd0ff"
                             strokeWidth={2}
                             dot={false}
                           />
