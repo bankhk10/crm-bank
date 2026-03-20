@@ -123,6 +123,7 @@ export function TimeSalesDashboard() {
   const [monthlyPerPage, setMonthlyPerPage] = useState(20);
   const [regionPage, setRegionPage] = useState(1);
   const [regionPerPage, setRegionPerPage] = useState(10);
+  const [hoveredQuarter, setHoveredQuarter] = useState<number | null>(null);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -930,7 +931,11 @@ export function TimeSalesDashboard() {
                   <CardContent className="p-4 sm:p-6">
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reportData.seasonalityData} barCategoryGap="40%">
+                        <BarChart 
+                          data={reportData.seasonalityData} 
+                          barCategoryGap="40%"
+                          onMouseLeave={() => setHoveredQuarter(null)}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                           <XAxis dataKey="quarter" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
                           <YAxis
@@ -941,11 +946,21 @@ export function TimeSalesDashboard() {
                           />
                           <Tooltip
                             contentStyle={chartTooltipStyle}
+                            cursor={{ fill: "#f1f5f9", radius: 4 }}
                             formatter={(v: number) => [formatTHB(v), "ยอดขาย"]}
                           />
                           <Bar dataKey="sales" name="ยอดขาย" radius={[8, 8, 0, 0]}>
                             {reportData.seasonalityData.map((_, i) => (
-                              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                              <Cell 
+                                key={`cell-${i}`} 
+                                fill="#24c143ff"
+                                onMouseEnter={() => setHoveredQuarter(i)}
+                                style={{
+                                  opacity: hoveredQuarter === null || hoveredQuarter === i ? 1 : 0.3,
+                                  transition: "opacity 0.3s ease",
+                                  cursor: "pointer"
+                                }}
+                              />
                             ))}
                           </Bar>
                         </BarChart>
