@@ -116,10 +116,10 @@ export default function ReportListView() {
           title="หมวดรายงาน"
           icon={<TrendingUp className="h-8 w-8 text-white" />}
           backgroundColor="#1e293b" // Slate 800
-          accentColor="#3b82f6"     // Blue 500
+          accentColor="#B91C1C"     // Blue 500
           badges={
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-blue-100 bg-blue-500/20 border border-blue-400/30 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-md">
-              <TrendingUp className="h-4 w-4 text-blue-300" />
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-red-100 bg-red-500/20 border border-red-400/30 px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-md">
+              <TrendingUp className="h-4 w-4 text-red-300" />
               วิเคราะห์ข้อมูลการขาย
             </div>
           }
@@ -135,7 +135,7 @@ export default function ReportListView() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCategories.map((category) => {
               const Icon = category.icon;
               return (
@@ -152,7 +152,7 @@ export default function ReportListView() {
                         <ArrowRight className="h-4 w-4 text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                         {category.description}
                       </p>
-                      
+
                       <div className="grid grid-cols-1 gap-4">
                         {category.features.map((feature, idx) => (
                           <div
