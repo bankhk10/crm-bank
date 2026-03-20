@@ -719,7 +719,7 @@ export function TimeSalesDashboard() {
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(day.sales)}
                                     </TableCell>
-                                    <TableCell className="text-center py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
                                         {formatNumber(day.orders)}
                                       </span>
