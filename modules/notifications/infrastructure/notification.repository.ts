@@ -55,3 +55,9 @@ export async function getUnreadCount(userId: string) {
     where: { userId, isRead: false },
   });
 }
+
+export async function deleteNotification(id: string) {
+  return db.notification.delete({
+    where: { id },
+  });
+}

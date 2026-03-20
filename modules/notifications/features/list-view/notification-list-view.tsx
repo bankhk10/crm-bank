@@ -11,6 +11,7 @@ import {
   CheckCheck,
   ChevronRight,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { th } from "date-fns/locale";
@@ -22,7 +23,8 @@ import { usePermission } from "@/hooks/use-permission";
 import { 
   getNotificationsAction, 
   markAsReadAction, 
-  markAllAsReadAction 
+  markAllAsReadAction,
+  deleteNotificationAction,
 } from "../../server/actions";
 
 interface Notification {
@@ -117,19 +119,29 @@ export default function NotificationListView() {
   // Check if user can approve sales (manager permission)
   const canApproveSale = hasPermission("sale.approve");
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await getNotificationsAction();
-        setNotifications(data || []);
-      } catch (error) {
-        console.error("Failed to fetch notifications", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotificationsAction();
+      setNotifications(data || []);
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchNotifications();
+
+    // Listen for changes from other components (like Bell dropdown)
+    const handleSync = () => {
+      fetchNotifications();
+    };
+    window.addEventListener("notifications-changed", handleSync);
+
+    return () => {
+      window.removeEventListener("notifications-changed", handleSync);
+    };
   }, []);
 
   const handleMarkAsRead = async (id: string) => {
@@ -153,6 +165,22 @@ export default function NotificationListView() {
       }
     } catch (error) {
       console.error("Failed to mark all as read", error);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้?")) return;
+
+    try {
+      const result = await deleteNotificationAction(id);
+      if (result.success) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        // Dispatch event to sync with bell dropdown
+        window.dispatchEvent(new CustomEvent("notifications-changed"));
+      }
+    } catch (error) {
+      console.error("Failed to delete notification", error);
     }
   };
 
@@ -306,7 +334,7 @@ export default function NotificationListView() {
                     notification.link !== targetLink;
 
                   return (
-                    <button
+                    <div
                       key={notification.id}
                       className={`
                         relative w-full text-left rounded-2xl p-6 
@@ -314,13 +342,12 @@ export default function NotificationListView() {
                         border-l-8 ${config.borderColor}
                         bg-gradient-to-r ${config.gradient} ${config.bgHover}
                         hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1
-                        active:scale-[0.98]
                         ${
                           !notification.isRead
                             ? "ring-2 ring-indigo-200 ring-offset-2 shadow-xl bg-white"
                             : "opacity-80 hover:opacity-100 shadow-lg"
                         }
-                        group overflow-hidden
+                        group overflow-hidden cursor-pointer
                       `}
                       onClick={() => handleNotificationClick(notification)}
                     >
@@ -351,12 +378,22 @@ export default function NotificationListView() {
                             >
                               {notification.title}
                             </span>
-                            {!notification.isRead && (
-                              <span className="relative flex h-3 w-3 mt-1.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
-                              </span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {!notification.isRead && (
+                                <span className="relative flex h-3 w-3">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                                </span>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                onClick={(e) => handleDelete(e, notification.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
 
                           <p className="text-[15px] text-gray-600 mt-2 leading-relaxed font-medium">
@@ -373,7 +410,8 @@ export default function NotificationListView() {
                                     addSuffix: true,
                                     locale: th,
                                   }
-                                )}
+                                )
+                                }
                               </span>
                             </div>
 
@@ -400,7 +438,7 @@ export default function NotificationListView() {
                           </div>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>

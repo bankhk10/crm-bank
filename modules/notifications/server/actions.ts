@@ -6,6 +6,7 @@ import {
   markAsReadUseCase,
   markAllAsReadUseCase,
   getUnreadCountUseCase,
+  deleteNotificationUseCase,
 } from "../application";
 
 /**
@@ -68,5 +69,22 @@ export async function getUnreadCountAction() {
   }
 
   return getUnreadCountUseCase(session.user.id);
+}
+
+/**
+ * Delete a single notification.
+ */
+export async function deleteNotificationAction(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  try {
+    await deleteNotificationUseCase(id);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to delete notification" };
+  }
 }
 

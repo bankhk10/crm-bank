@@ -15,7 +15,7 @@ import { NotificationList } from "./notification-list";
 export function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
-    const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } =
         useNotifications();
 
     return (
@@ -79,6 +79,7 @@ export function NotificationBell() {
                 <NotificationList
                     notifications={notifications}
                     onRead={markAsRead}
+                    onDelete={deleteNotification}
                     onAction={() => setIsOpen(false)}
                 />
 

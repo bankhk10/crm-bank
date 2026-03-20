@@ -26,13 +26,20 @@ export function useNotifications() {
     };
     initFetch();
 
+    // Listen for changes from other components (like NotificationListView)
+    const handleSync = () => {
+      if (isMounted) fetchNotifications();
+    };
+    window.addEventListener("notifications-changed", handleSync);
+
     // Poll every 30 seconds
     const interval = setInterval(() => {
       if (isMounted) fetchNotifications();
-    }, 60000);
+    }, 30000);
 
     return () => {
       isMounted = false;
+      window.removeEventListener("notifications-changed", handleSync);
       clearInterval(interval);
     };
   }, [fetchNotifications]);
@@ -43,6 +50,8 @@ export function useNotifications() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
+      // Dispatch event to sync with other views
+      window.dispatchEvent(new CustomEvent("notifications-changed"));
     } catch (error) {
       console.error("Failed to mark as read", error);
     }
@@ -52,8 +61,25 @@ export function useNotifications() {
     try {
       await fetch("/api/notifications/read-all", { method: "POST" });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      // Dispatch event to sync with other views
+      window.dispatchEvent(new CustomEvent("notifications-changed"));
     } catch (error) {
       console.error("Failed to mark all as read", error);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      // We can use the server action directly here
+      const { deleteNotificationAction } = await import("../../server/actions");
+      const result = await deleteNotificationAction(id);
+      if (result.success) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        // Dispatch event to sync with other views
+        window.dispatchEvent(new CustomEvent("notifications-changed"));
+      }
+    } catch (error) {
+      console.error("Failed to delete notification", error);
     }
   };
 
@@ -64,6 +90,7 @@ export function useNotifications() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     refreshFn: fetchNotifications,
   };
 }

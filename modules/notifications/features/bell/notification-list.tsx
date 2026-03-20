@@ -8,10 +8,11 @@ import { NotificationItem } from "./notification-item";
 interface Props {
     notifications: Notification[];
     onRead: (id: string) => Promise<void> | void;
+    onDelete: (id: string) => Promise<void> | void;
     onAction?: () => void;
 }
 
-export function NotificationList({ notifications, onRead, onAction }: Props) {
+export function NotificationList({ notifications, onRead, onDelete, onAction }: Props) {
     return (
         <ScrollArea className="h-[360px]">
             {notifications.length === 0 ? (
@@ -31,6 +32,7 @@ export function NotificationList({ notifications, onRead, onAction }: Props) {
                             key={notification.id}
                             notification={notification}
                             onRead={onRead}
+                            onDelete={onDelete}
                             onAction={onAction}
                         />
                     ))}

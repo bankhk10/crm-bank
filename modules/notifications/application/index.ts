@@ -11,6 +11,7 @@ import {
   markAsRead as repoMarkAsRead,
   markAllAsRead as repoMarkAllAsRead,
   getUnreadCount as repoGetUnreadCount,
+  deleteNotification as repoDeleteNotification,
   type CreateNotificationData,
 } from "../infrastructure/notification.repository";
 
@@ -52,6 +53,13 @@ export async function markAsReadUseCase(id: string) {
  */
 export async function markAllAsReadUseCase(userId: string) {
   return repoMarkAllAsRead(userId);
+}
+
+/**
+ * Use case: Delete a notification.
+ */
+export async function deleteNotificationUseCase(id: string) {
+  return repoDeleteNotification(id);
 }
 
 // ─────────────────────────────────────────────
