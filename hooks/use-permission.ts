@@ -12,6 +12,7 @@ interface AccessScopeCheck {
   userId: string;
   userDepartmentId?: string | null;
   resourceOwnerId?: string | null;
+  resourceEmployeeId?: string | null;
   resourceDepartmentId?: string | null;
 }
 
@@ -91,10 +92,10 @@ export function usePermission(
           return true;
         case "VIEW_DEPARTMENT":
         case "VIEW_TEAM":
-          // VIEW_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
-            currentUser.id === options.resourceOwnerId
+            currentUser.id === options.resourceOwnerId ||
+            currentUser.employeeId === options.resourceEmployeeId
           );
         case "VIEW_OWN":
           return currentUser.id === options.resourceOwnerId;
@@ -116,10 +117,10 @@ export function usePermission(
           return true;
         case "EDIT_DEPARTMENT":
         case "EDIT_TEAM":
-          // EDIT_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
-            currentUser.id === options.resourceOwnerId
+            currentUser.id === options.resourceOwnerId ||
+            currentUser.employeeId === options.resourceEmployeeId
           );
         case "EDIT_OWN":
           return currentUser.id === options.resourceOwnerId;
@@ -143,10 +144,10 @@ export function usePermission(
           return true;
         case "DELETE_DEPARTMENT":
         case "DELETE_TEAM":
-          // DELETE_TEAM is enforced on server-side; client-side approximates like department
           return (
             currentUser.departmentId === options.resourceDepartmentId ||
-            currentUser.id === options.resourceOwnerId
+            currentUser.id === options.resourceOwnerId ||
+            currentUser.employeeId === options.resourceEmployeeId
           );
         case "DELETE_OWN":
           return currentUser.id === options.resourceOwnerId;

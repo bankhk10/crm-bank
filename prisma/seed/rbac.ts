@@ -1118,7 +1118,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     // DATA permission - can view department but only edit/delete own
     {
       key: "data.sales",
-      dataAccess: "VIEW_DEPARTMENT",
+      dataAccess: "VIEW_TEAM",
       editAccess: "EDIT_OWN",
       deleteAccess: "DELETE_OWN",
     },

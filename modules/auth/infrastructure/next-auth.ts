@@ -150,7 +150,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           roles,
           permissionKeys: compact.keys, // Only store keys, not full objects
-          departmentId: user.departmentId,
+          departmentId: user.departmentId ?? user.employeeProfile?.departmentId ?? null,
           positionId: user.positionId,
           dataAccessByResource: compact.data,
           editAccessByResource: compact.edit,
@@ -268,7 +268,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             token.roles = fresh.userRoles.map((ur) => ur.role.slug);
             token.permissionKeys = compact.keys;
-            token.departmentId = fresh.departmentId ?? null;
+            token.departmentId = fresh.departmentId ?? fresh.employeeProfile?.departmentId ?? null;
             token.positionId = fresh.positionId ?? null;
             token.dataAccessByResource = compact.data;
             token.editAccessByResource = compact.edit;

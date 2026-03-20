@@ -70,6 +70,7 @@ export interface AccessScopeCheckOptions {
   userId: string;
   userDepartmentId?: string | null;
   resourceOwnerId?: string | null;
+  resourceEmployeeId?: string | null;
   resourceDepartmentId?: string | null;
 }
 

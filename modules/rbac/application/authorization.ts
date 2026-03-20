@@ -318,6 +318,7 @@ export function canViewResource(
   switch (dataAccess) {
     case "VIEW_ALL":
       return true;
+    case "VIEW_TEAM":
     case "VIEW_DEPARTMENT":
       return (
         options.userDepartmentId === options.resourceDepartmentId ||
@@ -342,6 +343,7 @@ export function canEditResource(
   switch (editAccess) {
     case "EDIT_ALL":
       return true;
+    case "EDIT_TEAM":
     case "EDIT_DEPARTMENT":
       return (
         options.userDepartmentId === options.resourceDepartmentId ||
@@ -368,6 +370,7 @@ export function canDeleteResource(
   switch (deleteAccess) {
     case "DELETE_ALL":
       return true;
+    case "DELETE_TEAM":
     case "DELETE_DEPARTMENT":
       return (
         options.userDepartmentId === options.resourceDepartmentId ||

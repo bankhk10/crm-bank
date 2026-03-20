@@ -46,6 +46,8 @@ export default function SalesListView() {
       // Check scope-based permission using the access level
       const scopeAllowed = canEditScope("sale", {
         resourceOwnerId: item.createdById,
+        resourceEmployeeId: item.employeeId,
+        resourceDepartmentId: (item.employee as any)?.departmentId,
       });
 
       return scopeAllowed;
@@ -61,6 +63,8 @@ export default function SalesListView() {
       // Check scope-based permission using the access level
       const scopeAllowed = canDeleteScope("sale", {
         resourceOwnerId: item.createdById,
+        resourceEmployeeId: item.employeeId,
+        resourceDepartmentId: (item.employee as any)?.departmentId,
       });
 
       return scopeAllowed;

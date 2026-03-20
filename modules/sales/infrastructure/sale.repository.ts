@@ -39,6 +39,7 @@ const listIncludes = {
       id: true,
       name: true,
       employeeCode: true,
+      departmentId: true,
     },
   },
   createdBy: {

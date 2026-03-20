@@ -40,6 +40,7 @@ export function applyDataAccessFilters(
       }
       break;
 
+    case "VIEW_TEAM":
     case "VIEW_DEPARTMENT":
       if (options.departmentId) {
         result.departmentId = options.departmentId;
