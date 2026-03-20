@@ -81,10 +81,21 @@ import {
   formatNumber,
   formatShortTHB,
   chartTooltipStyle,
-  COLORS,
+  COLORS as GLOBAL_COLORS,
 } from "@/modules/reports";
 import { GrowthBadge } from "@/modules/reports/ui/growth-badge";
 import { KpiCard } from "@/modules/reports/ui/kpi-card";
+
+// Override colors for this dashboard to match Black-Red-White theme
+const COLORS = [
+  "#ef4444", // Red-500
+  "#18181b", // Zinc-950
+  "#b91c1c", // Red-700
+  "#3f3f46", // Zinc-700
+  "#dc2626", // Red-600
+  "#27272a", // Zinc-800
+  "#f87171", // Red-400
+];
 
 // ─────────────────────────────────────────────
 // Main Dashboard
@@ -216,7 +227,7 @@ export function TimeSalesDashboard() {
                         </Button>
                         <Button
                           size="sm"
-                          className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                          className="h-8 w-20 bg-red-600 hover:bg-red-700 text-white"
                           onClick={() => setIsStartOpen(false)}
                         >
                           ตกลง
@@ -281,7 +292,7 @@ export function TimeSalesDashboard() {
                         </Button>
                         <Button
                           size="sm"
-                          className="h-8 w-20 bg-blue-600 hover:bg-blue-700 text-white"
+                          className="h-8 w-20 bg-red-600 hover:bg-red-700 text-white"
                           onClick={() => setIsEndOpen(false)}
                         >
                           ตกลง
@@ -303,7 +314,7 @@ export function TimeSalesDashboard() {
                       key={r.label}
                       variant="outline"
                       size="sm"
-                      className="h-10 text-xs px-3 bg-white hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
+                      className="h-10 text-xs px-3 bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-colors"
                       onClick={() => {
                         const { from, to } = r.getValue();
                         setDateRange({ from, to });
@@ -320,7 +331,7 @@ export function TimeSalesDashboard() {
                 <Button
                   onClick={handleFetchReport}
                   disabled={isPending}
-                  className="flex-1 sm:w-auto h-10 px-6 bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 font-semibold text-sm"
+                  className="flex-1 sm:w-auto h-10 px-6 bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20 font-semibold text-sm"
                 >
                   {isPending ? (
                     <>
@@ -376,9 +387,9 @@ export function TimeSalesDashboard() {
                 sublabel="รวมทุกออเดอร์"
                 value={formatTHB(reportData.totalSales)}
                 icon={DollarSign}
-                gradient="bg-gradient-to-br from-blue-600 to-cyan-500"
-                ring="shadow-lg shadow-blue-500/20"
-                barColor="bg-gradient-to-r from-blue-500 to-cyan-400"
+                gradient="bg-zinc-950"
+                ring="shadow-lg shadow-zinc-950/20"
+                barColor="bg-zinc-950"
                 barWidth="70%"
               />
               <KpiCard
@@ -387,9 +398,9 @@ export function TimeSalesDashboard() {
                 value={formatNumber(reportData.totalOrders)}
                 sub={<span className="text-xs text-slate-500">รายการ</span>}
                 icon={ShoppingCart}
-                gradient="bg-gradient-to-br from-emerald-500 to-teal-500"
-                ring="shadow-lg shadow-emerald-500/20"
-                barColor="bg-gradient-to-r from-emerald-500 to-teal-400"
+                gradient="bg-red-600"
+                ring="shadow-lg shadow-red-600/20"
+                barColor="bg-red-600"
                 barWidth="55%"
               />
               <KpiCard
@@ -397,9 +408,9 @@ export function TimeSalesDashboard() {
                 sublabel="มูลค่าเฉลี่ย"
                 value={formatTHB(reportData.avgOrderValue)}
                 icon={Target}
-                gradient="bg-gradient-to-br from-amber-500 to-orange-500"
-                ring="shadow-lg shadow-amber-500/20"
-                barColor="bg-gradient-to-r from-amber-500 to-orange-400"
+                gradient="bg-zinc-800"
+                ring="shadow-lg shadow-zinc-800/20"
+                barColor="bg-zinc-800"
                 barWidth="60%"
               />
               <KpiCard
@@ -408,21 +419,9 @@ export function TimeSalesDashboard() {
                 value={`${reportData.growthPercentage >= 0 ? "+" : ""}${reportData.growthPercentage.toFixed(1)}%`}
                 sub={<GrowthBadge pct={reportData.growthPercentage} />}
                 icon={reportData.growthPercentage >= 0 ? TrendingUp : TrendingDown}
-                gradient={
-                  reportData.growthPercentage >= 0
-                    ? "bg-gradient-to-br from-purple-600 to-fuchsia-500"
-                    : "bg-gradient-to-br from-red-500 to-rose-500"
-                }
-                ring={
-                  reportData.growthPercentage >= 0
-                    ? "shadow-lg shadow-purple-500/20"
-                    : "shadow-lg shadow-red-500/20"
-                }
-                barColor={
-                  reportData.growthPercentage >= 0
-                    ? "bg-gradient-to-r from-purple-500 to-fuchsia-400"
-                    : "bg-gradient-to-r from-red-500 to-rose-400"
-                }
+                gradient="bg-gradient-to-br from-red-600 to-zinc-950"
+                ring="shadow-lg shadow-red-600/20"
+                barColor="bg-red-600"
                 barWidth={`${Math.min(Math.abs(reportData.growthPercentage), 100)}%`}
               />
             </div>
@@ -430,13 +429,13 @@ export function TimeSalesDashboard() {
             {/* ── Insights Bar ── */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Best Month */}
-              <Card className="rounded-xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50 to-teal-50/60 shadow-sm">
+              <Card className="rounded-xl border border-red-200/60 bg-gradient-to-br from-red-50 to-rose-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/20">
-                    <Star className="h-5 w-5 text-emerald-600" />
+                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-red-500/15 ring-1 ring-red-500/20">
+                    <Star className="h-5 w-5 text-red-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">เดือนขายดีที่สุด</p>
+                    <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">เดือนขายดีที่สุด</p>
                     <p className="text-base font-bold text-slate-900 truncate">
                       {reportData.bestSellingMonth.month || "–"}
                     </p>
@@ -448,13 +447,13 @@ export function TimeSalesDashboard() {
               </Card>
 
               {/* Best Day of Week */}
-              <Card className="rounded-xl border border-blue-200/60 bg-gradient-to-br from-blue-50 to-cyan-50/60 shadow-sm">
+              <Card className="rounded-xl border border-zinc-200/60 bg-gradient-to-br from-zinc-50 to-slate-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-blue-500/15 ring-1 ring-blue-500/20">
-                    <Clock className="h-5 w-5 text-blue-600" />
+                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-zinc-500/15 ring-1 ring-zinc-500/20">
+                    <Clock className="h-5 w-5 text-zinc-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">วันขายดีที่สุด</p>
+                    <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">วันขายดีที่สุด</p>
                     <p className="text-base font-bold text-slate-900 truncate">
                       วัน{reportData.bestSellingDay.dayOfWeek || "-"}
                     </p>
@@ -466,13 +465,13 @@ export function TimeSalesDashboard() {
               </Card>
 
               {/* Best Quarter */}
-              <Card className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-orange-50/60 shadow-sm">
+              <Card className="rounded-xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-red-50/60 shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-amber-500/15 ring-1 ring-amber-500/20">
-                    <Award className="h-5 w-5 text-amber-600" />
+                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-rose-500/15 ring-1 ring-rose-500/20">
+                    <Award className="h-5 w-5 text-rose-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">ไตรมาสขายดีที่สุด</p>
+                    <p className="text-xs font-semibold text-rose-700 uppercase tracking-wide">ไตรมาสขายดีที่สุด</p>
                     <p className="text-base font-bold text-slate-900 truncate">
                       {bestQuarter?.quarter || "–"}
                     </p>
@@ -500,8 +499,8 @@ export function TimeSalesDashboard() {
                     className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600
                       hover:bg-slate-50
                       data-[state=active]:text-white
-                      data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500
-                      data-[state=active]:shadow-md data-[state=active]:shadow-blue-500/30
+                      data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900
+                      data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30
                       transition-all gap-1.5 flex items-center"
                   >
                     <t.icon className="h-3.5 w-3.5" />
@@ -517,7 +516,7 @@ export function TimeSalesDashboard() {
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-blue-500" />
+                      <Activity className="h-4 w-4 text-red-600" />
                       แนวโน้มยอดขายรายวัน
                     </CardTitle>
                     <CardDescription>ยอดขาย (THB) และจำนวนออเดอร์ตามวัน</CardDescription>
@@ -528,8 +527,8 @@ export function TimeSalesDashboard() {
                         <ComposedChart data={reportData.dailyData}>
                           <defs>
                             <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
-                              <stop offset="95%" stopColor="#2563eb" stopOpacity={0.01} />
+                              <stop offset="5%" stopColor="#dc2626" stopOpacity={0.25} />
+                              <stop offset="95%" stopColor="#dc2626" stopOpacity={0.01} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -562,7 +561,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="sales"
                             name="ยอดขาย"
-                            stroke="#2563eb"
+                            stroke="#dc2626"
                             strokeWidth={2.5}
                             fill="url(#salesGrad)"
                           />
@@ -571,7 +570,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="orders"
                             name="ออเดอร์"
-                            stroke="#10b981"
+                            stroke="#18181b"
                             strokeWidth={2}
                             dot={false}
                           />
@@ -625,7 +624,7 @@ export function TimeSalesDashboard() {
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <Calendar className="h-4 w-4 text-red-600" />
                       ยอดขายรายวัน
                     </CardTitle>
                     <CardDescription>แท่งยอดขายแต่ละวันในช่วงเวลาที่เลือก</CardDescription>
@@ -656,7 +655,7 @@ export function TimeSalesDashboard() {
                           <Bar
                             dataKey="sales"
                             name="ยอดขาย"
-                            fill="#2563eb"
+                            fill="#dc2626"
                             radius={[6, 6, 0, 0]}
                           />
                         </BarChart>
@@ -707,7 +706,7 @@ export function TimeSalesDashboard() {
                                     <div className="flex items-center justify-end gap-2">
                                       <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                         <div
-                                          className="h-full bg-blue-500 rounded-full"
+                                          className="h-full bg-red-600 rounded-full"
                                           style={{ width: `${pct}%` }}
                                         />
                                       </div>
@@ -742,8 +741,8 @@ export function TimeSalesDashboard() {
                         <ComposedChart data={reportData.monthlyData}>
                           <defs>
                             <linearGradient id="monthlyGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                              <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -773,7 +772,7 @@ export function TimeSalesDashboard() {
                             yAxisId="sales"
                             dataKey="sales"
                             name="ยอดขาย"
-                            fill="#10b981"
+                            fill="#dc2626"
                             radius={[6, 6, 0, 0]}
                             opacity={0.85}
                           />
@@ -782,9 +781,9 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="orders"
                             name="ออเดอร์"
-                            stroke="#8b5cf6"
+                            stroke="#18181b"
                             strokeWidth={2.5}
-                            dot={{ r: 4, fill: "#8b5cf6" }}
+                            dot={{ r: 4, fill: "#18181b" }}
                           />
                         </ComposedChart>
                       </ResponsiveContainer>
@@ -821,7 +820,7 @@ export function TimeSalesDashboard() {
                             <TableRow key={i} className="hover:bg-slate-50/70">
                               <TableCell className="text-slate-400 text-xs w-8">{i + 1}</TableCell>
                               <TableCell className="font-semibold text-sm">{m.month}</TableCell>
-                              <TableCell className="text-right font-bold text-sm text-blue-700">
+                              <TableCell className="text-right font-bold text-sm text-red-700">
                                 {formatTHB(m.sales)}
                               </TableCell>
                               <TableCell className="text-right text-sm">{formatNumber(m.orders)}</TableCell>
@@ -964,7 +963,7 @@ export function TimeSalesDashboard() {
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-blue-500" />
+                      <MapPin className="h-4 w-4 text-red-600" />
                       ยอดขายตามภูมิภาค
                     </CardTitle>
                     <CardDescription>เรียงตามยอดขายสูงสุด</CardDescription>
@@ -1049,7 +1048,7 @@ export function TimeSalesDashboard() {
                                   <span className="font-medium text-slate-800 text-sm">{r.region}</span>
                                 </div>
                               </TableCell>
-                              <TableCell className="text-right font-bold text-sm text-blue-700">
+                              <TableCell className="text-right font-bold text-sm text-red-700">
                                 {formatTHB(r.totalSales)}
                               </TableCell>
                               <TableCell className="text-right text-sm">
@@ -1091,8 +1090,8 @@ export function TimeSalesDashboard() {
         {!isPending && !reportData && (
           <Card className="rounded-xl border bg-white/80 shadow-sm">
             <CardContent className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="p-5 rounded-3xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 mb-5">
-                <BarChart3 className="h-14 w-14 text-blue-400" />
+              <div className="p-5 rounded-3xl bg-gradient-to-br from-red-500/10 to-zinc-500/10 mb-5">
+                <BarChart3 className="h-14 w-14 text-red-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-700">เลือกช่วงเวลาและกดดูรายงาน</h3>
               <p className="text-muted-foreground text-sm mt-2 max-w-sm">
@@ -1101,7 +1100,7 @@ export function TimeSalesDashboard() {
               <Button
                 onClick={handleFetchReport}
                 disabled={isPending}
-                className="mt-6 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-md shadow-blue-500/20 px-8"
+                className="mt-6 bg-gradient-to-r from-red-600 to-zinc-900 hover:from-red-700 hover:to-black shadow-md shadow-red-500/20 px-8"
               >
                 <BarChart3 className="mr-2 h-4 w-4" />
                 ดูรายงานทันที
