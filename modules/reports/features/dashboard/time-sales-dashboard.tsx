@@ -86,15 +86,15 @@ import {
 import { GrowthBadge } from "@/modules/reports/ui/growth-badge";
 import { KpiCard } from "@/modules/reports/ui/kpi-card";
 
-// Override colors for this dashboard to match Black-Red-White theme
+// Vibrant color palette for charts
 const COLORS = [
-  "#ef4444", // Red-500
-  "#18181b", // Zinc-950
-  "#b91c1c", // Red-700
-  "#3f3f46", // Zinc-700
-  "#dc2626", // Red-600
-  "#27272a", // Zinc-800
-  "#f87171", // Red-400
+  "#dc2626", // Red-600 (Primary)
+  "#18181b", // Zinc-950 (Secondary)
+  "#3b82f6", // Blue-500
+  "#10b981", // Emerald-500
+  "#f59e0b", // Amber-500
+  "#8b5cf6", // Indigo-500
+  "#06b6d4", // Cyan-500
 ];
 
 // ─────────────────────────────────────────────
