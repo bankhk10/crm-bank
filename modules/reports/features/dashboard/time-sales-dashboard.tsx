@@ -876,18 +876,18 @@ export function TimeSalesDashboard() {
                       ตารางข้อมูลรายเดือน
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                  <CardContent className="p-0 px-4">
+                    <div className="rounded-md border shadow-sm bg-white overflow-hidden">
                       <div className="max-h-96 overflow-auto relative">
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-12 text-center">#</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-12">#</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เดือน</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">% ของรวม</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">% ของรวม</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -901,20 +901,20 @@ export function TimeSalesDashboard() {
                                 const avg = m.orders > 0 ? m.sales / m.orders : 0;
                                 return (
                                   <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                    <TableCell className="text-slate-400 text-xs font-medium text-center py-4 px-4 italic">{idx + 1}</TableCell>
+                                    <TableCell className="text-slate-400 text-xs font-medium py-4 px-4 italic">{idx + 1}</TableCell>
                                     <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.month}</TableCell>
-                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                    <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(m.sales)}
                                     </TableCell>
-                                    <TableCell className="text-center py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
                                         {formatNumber(m.orders)}
                                       </span>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                    <TableCell className="font-medium text-slate-600 text-sm py-4 px-8 tabular-nums">
                                       {formatTHB(avg)}
                                     </TableCell>
-                                    <TableCell className="text-right py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <Badge
                                         variant="outline"
                                         className="text-[10px] font-bold bg-slate-50 border-slate-200 text-slate-500 px-2 py-0"
@@ -930,7 +930,7 @@ export function TimeSalesDashboard() {
                       </div>
 
                       {/* Pagination Control */}
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                      <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50/50 text-slate-500">
                         <div className="flex items-center gap-4">
                           <span className="text-xs">แสดง</span>
                           <Select
@@ -944,7 +944,7 @@ export function TimeSalesDashboard() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[10, 20, 30, 50].map((size) => (
+                              {[10, 20, 30].map((size) => (
                                 <SelectItem key={size} value={String(size)} className="text-xs">
                                   {size}
                                 </SelectItem>
@@ -1153,18 +1153,18 @@ export function TimeSalesDashboard() {
                       รายละเอียดตามภูมิภาค
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden">
+                  <CardContent className="p-0 px-4">
+                    <div className="rounded-md border shadow-sm bg-white overflow-hidden">
                       <div className="max-h-96 overflow-auto relative">
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-16 text-center">อันดับ</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-16">อันดับ</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ภูมิภาค</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
-                              <TableHead className="text-center font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="text-right font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">% ของรวม</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">% ของรวม</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1178,7 +1178,7 @@ export function TimeSalesDashboard() {
                                 const avg = r.orderCount > 0 ? r.totalSales / r.orderCount : 0;
                                 return (
                                   <TableRow key={r.region} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                    <TableCell className="text-center py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <span
                                         className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-110"
                                         style={{ backgroundColor: COLORS[idx % COLORS.length] }}
@@ -1192,18 +1192,18 @@ export function TimeSalesDashboard() {
                                         <span className="font-semibold text-slate-700 text-sm">{r.region}</span>
                                       </div>
                                     </TableCell>
-                                    <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
+                                    <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(r.totalSales)}
                                     </TableCell>
-                                    <TableCell className="text-center py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-bold min-w-10">
                                         {formatNumber(r.orderCount)}
                                       </span>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium text-slate-500 text-sm py-4 px-4 tabular-nums">
+                                    <TableCell className="font-medium text-slate-600 text-sm py-4 px-8 tabular-nums">
                                       {formatTHB(avg)}
                                     </TableCell>
-                                    <TableCell className="text-right py-4 px-4">
+                                    <TableCell className="py-4 px-4">
                                       <div className="flex items-center justify-end gap-3 px-1">
                                         <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden shrink-0">
                                           <div
@@ -1227,7 +1227,7 @@ export function TimeSalesDashboard() {
                       </div>
 
                       {/* Pagination Control */}
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-slate-500">
+                      <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50/50 text-slate-500">
                         <div className="flex items-center gap-4">
                           <span className="text-xs">แสดง</span>
                           <Select
@@ -1241,7 +1241,7 @@ export function TimeSalesDashboard() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {[10, 20, 30, 50].map((size) => (
+                              {[10, 20, 30].map((size) => (
                                 <SelectItem key={size} value={String(size)} className="text-xs">
                                   {size}
                                 </SelectItem>
