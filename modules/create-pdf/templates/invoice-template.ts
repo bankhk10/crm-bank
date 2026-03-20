@@ -417,7 +417,6 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           </div>
         </div>
       </div>
-
       <div class="signature-card">
         <div class="signature-title">ผู้อนุมัติ</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
