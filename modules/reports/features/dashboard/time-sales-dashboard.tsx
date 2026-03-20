@@ -769,7 +769,7 @@ export function TimeSalesDashboard() {
                   </CardHeader>
                   <CardContent className="p-0 px-4">
                     <div className="rounded-md border shadow-sm bg-white overflow-hidden">
-                      <div className="max-h-96 overflow-auto relative">
+                      <div className="overflow-auto relative">
                         <Table>
                           <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm transition-all duration-200">
                             <TableRow className="hover:bg-transparent border-b border-slate-200">
@@ -777,7 +777,7 @@ export function TimeSalesDashboard() {
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">% ของรวม</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-32">สัดส่วน</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
