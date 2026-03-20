@@ -16,6 +16,7 @@ export interface TimeSalesReportData {
   }[];
   monthlyData: {
     month: string;
+    fullName: string;
     sales: number;
     orders: number;
   }[];

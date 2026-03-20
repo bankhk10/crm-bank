@@ -763,7 +763,7 @@ export function TimeSalesDashboard() {
                 {/* Monthly Table */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-sm font-semibold text-slate-900">
+                    <CardTitle className="font-semibold text-slate-900">
                       ตารางข้อมูลรายเดือน
                     </CardTitle>
                   </CardHeader>
@@ -791,7 +791,7 @@ export function TimeSalesDashboard() {
                                 const avg = m.orders > 0 ? m.sales / m.orders : 0;
                                 return (
                                   <TableRow key={idx} className="group hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0">
-                                    <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.month}</TableCell>
+                                    <TableCell className="font-semibold text-slate-700 text-sm py-4 px-4">{m.fullName}</TableCell>
                                     <TableCell className="font-bold text-sm text-[#24c143ff] py-4 px-4 tabular-nums">
                                       {formatTHB(m.sales)}
                                     </TableCell>
