@@ -675,13 +675,13 @@ export function TimeSalesDashboard() {
                   <CardContent className="p-0">
                     <div className="max-h-96 overflow-auto relative">
                       <Table>
-                        <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-sm">
+                        <TableHeader className="sticky top-0 z-10 bg-gray-300 backdrop-blur-sm shadow-sm">
                           <TableRow className="hover:bg-transparent border-b border-slate-200">
-                            <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">วันที่</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ยอดขาย</TableHead>
-                            <TableHead className="text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3">เฉลี่ย/ออเดอร์</TableHead>
-                            <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 py-3 w-36">สัดส่วน</TableHead>
+                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">วันที่</TableHead>
+                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">ยอดขาย</TableHead>
+                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">ออเดอร์</TableHead>
+                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3">เฉลี่ย/ออเดอร์</TableHead>
+                            <TableHead className="font-bold uppercase tracking-wider text-slate-900 py-3 w-36">สัดส่วน</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -696,7 +696,7 @@ export function TimeSalesDashboard() {
                                   <TableCell className="font-semibold text-slate-700 text-xs py-3.5 italic">
                                     {day.date}
                                   </TableCell>
-                                  <TableCell className="text-right font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
+                                  <TableCell className="font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
                                     {formatTHB(day.sales)}
                                   </TableCell>
                                   <TableCell className="text-center py-3.5">
