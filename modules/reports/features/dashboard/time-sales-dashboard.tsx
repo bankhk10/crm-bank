@@ -589,7 +589,7 @@ export function TimeSalesDashboard() {
                             type="monotone"
                             dataKey="orders"
                             name="ออเดอร์"
-                            stroke="#4f4fd0ff"
+                            stroke="#0f8dbbff"
                             strokeWidth={2}
                             dot={false}
                           />
