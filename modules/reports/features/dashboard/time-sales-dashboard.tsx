@@ -694,7 +694,7 @@ export function TimeSalesDashboard() {
                               return (
                                 <TableRow key={idx} className="group hover:bg-slate-50/50 transition-all duration-200">
                                   <TableCell className="font-semibold text-slate-700 text-xs py-3.5 italic">
-                                    {day.date}
+                                    {day.date} {day.isoDate ? parseInt(day.isoDate.split("-")[0]) + 543 : ""}
                                   </TableCell>
                                   <TableCell className="font-bold text-sm text-[#24c143ff] py-3.5 tabular-nums">
                                     {formatTHB(day.sales)}

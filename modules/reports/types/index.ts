@@ -10,6 +10,7 @@ export interface TimeSalesReportData {
   growthPercentage: number;
   dailyData: {
     date: string;
+    isoDate: string;
     sales: number;
     orders: number;
   }[];

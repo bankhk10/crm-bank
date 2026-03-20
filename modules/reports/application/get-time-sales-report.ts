@@ -130,6 +130,7 @@ export async function getTimeSalesReport(
     const data = dailyMap.get(key) || { sales: 0, orders: 0 };
     return {
       date: format(date, "dd MMM", { locale: th }),
+      isoDate: key,
       sales: data.sales,
       orders: data.orders,
     };
@@ -149,11 +150,14 @@ export async function getTimeSalesReport(
 
   const monthlyData = Array.from(monthlyMap.entries())
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([month, data]) => ({
-      month: format(parseISO(month + "-01"), "MMM yyyy", { locale: th }),
-      sales: data.sales,
-      orders: data.orders,
-    }));
+    .map(([month, data]) => {
+      const date = parseISO(month + "-01");
+      return {
+        month: `${format(date, "MMM", { locale: th })} ${date.getFullYear() + 543}`,
+        sales: data.sales,
+        orders: data.orders,
+      };
+    });
 
   // Yearly data
   const yearlyMap = new Map<number, { sales: number; orders: number }>();
@@ -170,7 +174,7 @@ export async function getTimeSalesReport(
   const yearlyData = Array.from(yearlyMap.entries())
     .sort((a, b) => a[0] - b[0])
     .map(([year, data]) => ({
-      year,
+      year: year + 543,
       sales: data.sales,
       orders: data.orders,
     }));
