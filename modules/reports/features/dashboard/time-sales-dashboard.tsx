@@ -583,7 +583,7 @@ export function TimeSalesDashboard() {
                 {/* Seasonality detail list */}
                 <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader className="border-b border-slate-100 pb-3">
-                    <CardTitle className="text-sm font-semibold text-slate-900">
+                    <CardTitle className="text-base font-semibold text-slate-900">
                       รายละเอียดไตรมาส
                     </CardTitle>
                   </CardHeader>
