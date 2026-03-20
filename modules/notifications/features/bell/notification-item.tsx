@@ -63,17 +63,6 @@ export function NotificationItem({ notification, onRead, onDelete, onAction }: P
             onClick={handleClick}
         >
             <div className="flex gap-3">
-                {/* Icon */}
-                <div
-                    className={`
-          shrink-0 p-2 rounded-xl ${config.iconBg}
-          shadow-lg shadow-black/10
-          group-hover:scale-110 transition-transform duration-300
-        `}
-                >
-                    <Icon className={`h-4 w-4 mt-6 ${config.iconColor}`} />
-                </div>
-
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
