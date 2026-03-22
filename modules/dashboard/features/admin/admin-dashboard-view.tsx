@@ -101,9 +101,8 @@ function PeriodSwitcher({ value, onChange, options, variant = "light" }: PeriodS
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${
-            value === opt.value ? activeClass : inactiveClass
-          }`}
+          className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 ${value === opt.value ? activeClass : inactiveClass
+            }`}
         >
           {opt.label}
         </button>
@@ -426,11 +425,10 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                 </CardTitle>
               </div>
               <div
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
-                  monthlySales.growthPercent >= 0
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${monthlySales.growthPercent >= 0
                     ? "text-emerald-700 bg-emerald-50 border border-emerald-100"
                     : "text-rose-700 bg-rose-50 border border-rose-100"
-                }`}
+                  }`}
               >
                 {monthlySales.growthPercent >= 0 ? (
                   <ArrowUpRight className="w-3 h-3" />
@@ -500,11 +498,10 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               </div>
               <div className="w-full h-2 rounded-full bg-slate-700 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    remaining <= 0
+                  className={`h-full rounded-full transition-all duration-700 ${remaining <= 0
                       ? "bg-gradient-to-r from-emerald-400 to-green-500"
                       : "bg-gradient-to-r from-blue-400 to-indigo-500"
-                  }`}
+                    }`}
                   style={{ width: `${Math.min(percent, 100)}%` }}
                 />
               </div>
@@ -514,11 +511,10 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-center">
                 <p className="text-[10px] sm:text-xs text-slate-400 mb-1">ส่วนต่าง</p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
-                    remaining <= 0
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
-                  }`}
+                    }`}
                 >
                   {remaining <= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                   {remaining <= 0 ? "+" : "-"}{formatTHBWithCompact(Math.abs(remaining))}
@@ -527,11 +523,10 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
               <div className="p-2.5 sm:p-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-center">
                 <p className="text-[10px] sm:text-xs text-slate-400 mb-1">เปอร์เซ็นต์</p>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${
-                    remaining <= 0
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${remaining <= 0
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                       : "bg-red-500/20 text-red-400 border border-red-500/30"
-                  }`}
+                    }`}
                 >
                   {remaining <= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                   {remaining <= 0 ? "+" : "-"}{Math.abs(percent - 100)}%
@@ -584,11 +579,10 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
 
             <div className="mt-4 flex items-center justify-between">
               <div
-                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${
-                  ytd.growthPercent >= 0
+                className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2.5 py-1.5 rounded-full border ${ytd.growthPercent >= 0
                     ? "text-emerald-700 bg-emerald-50 border-emerald-100"
                     : "text-rose-700 bg-rose-50 border-rose-100"
-                }`}
+                  }`}
               >
                 {ytd.growthPercent >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                 {ytd.growthPercent >= 0 ? "+" : ""}{ytd.growthPercent}%
@@ -620,9 +614,6 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                   <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-slate-800">
                     ยอดขายรายภาค
                   </CardTitle>
-                  <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 font-medium">
-                    เปรียบเทียบ 4 ประเภทยอดขาย
-                  </p>
                 </div>
               </div>
               <PeriodSwitcher
@@ -691,9 +682,8 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                       `}
                     >
                       <span
-                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${
-                          isVisible ? "bg-white border-white" : "border-slate-300"
-                        }`}
+                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${isVisible ? "bg-white border-white" : "border-slate-300"
+                          }`}
                       >
                         {isVisible && <CheckCircle2 className="w-2.5 h-2.5 text-purple-600" />}
                       </span>
