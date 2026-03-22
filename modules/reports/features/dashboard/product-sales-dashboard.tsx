@@ -1,5 +1,9 @@
 "use client";
 
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
+
 import { useId, useState, useTransition } from "react";
 import {
   format,
@@ -22,7 +26,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import {
   Package,
   TrendingDown,
@@ -33,6 +43,7 @@ import {
   Clock,
   Loader2,
   Award,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,8 +54,6 @@ import {
   type ProductGroupSalesReportData,
   type DateRangeFilter,
 } from "@/modules/reports";
-
-
 
 const quickDateRanges = [
   {
@@ -77,6 +86,8 @@ export function ProductSalesDashboard() {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
+  const [isStartOpen, setIsStartOpen] = useState(false);
+  const [isEndOpen, setIsEndOpen] = useState(false);
   const [reportData, setReportData] = useState<ProductSalesReportData | null>(
     null,
   );
@@ -152,103 +163,207 @@ export function ProductSalesDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Header: mobile stack, sm row */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex items-center gap-3">
-            <Link href="/reports">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-xl focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/25">
-              <Package className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-            </div>
-          </div>
-          <div className="text-center sm:text-left">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100">
-              รายงานสินค้าและกลุ่มชื่อการค้า
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              สินค้าขายดี / ขายช้า, ยอดขายต่อสินค้า, สินค้าใกล้หมดและค้างสต๊อก
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen pb-12 rounded-3xl">
+      <DetailHero
+        backUrl="/reports"
+        backLabel="หน้ารายงาน"
+        title="รายงานสินค้าและกลุ่มชื่อการค้า"
+        icon={<Package className="h-8 w-8 text-white" />}
+        badges={
+          reportData && (
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-white/90 bg-white/10 border border-white/10 px-3 py-1 rounded-full uppercase tracking-wider">
+              <Package className="h-3.5 w-3.5 text-[#60A5FA]" />
+              {format(dateRange.from, "dd/MM/yyyy")} – {format(dateRange.to, "dd/MM/yyyy")}
+            </span>
+          )
+        }
+      />
 
-        {/* Filters: mobile collapsible, sm=2 cols, lg=3 cols */}
-        <Card className="rounded-2xl border bg-white/80 dark:bg-slate-800/80 shadow-sm backdrop-blur-sm">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center justify-between sm:justify-start gap-2">
-              <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                ตัวกรองช่วงเวลา
-              </div>
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
+        {/* ── Filter Card ── */}
+        <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden -py-6">
+          <SectionHeader
+            title="ตัวกรองช่วงเวลา"
+            icon={<Calendar className="h-6 w-6" />}
+          />
+          <CardContent>
+            <div className="flex items-center justify-between sm:justify-start gap-2 mb-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="sm:hidden h-9 px-3 text-xs focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                className="sm:hidden h-8 px-3 text-xs"
                 aria-expanded={filtersOpen}
                 aria-controls={filtersPanelId}
-                onClick={() => setFiltersOpen((prev) => !prev)}
+                onClick={() => setFiltersOpen((p) => !p)}
               >
-                {filtersOpen ? "ซ่อนตัวกรอง" : "แสดงตัวกรอง"}
+                {filtersOpen ? "ซ่อน" : "แสดง"}
               </Button>
             </div>
 
             <div
               id={filtersPanelId}
-              className={`mt-3 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
-                } sm:block`}
+              className={`mb-4 space-y-4 sm:space-y-0 sm:flex sm:flex-wrap lg:flex-nowrap sm:items-end gap-3 sm:gap-4 ${filtersOpen ? "block" : "hidden"
+                } sm:flex`}
             >
-              <div className="grid gap-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  เลือกช่วงเวลา
+              {/* Start Date */}
+              <div className="space-y-1.5 w-full sm:w-44">
+                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
+                  วันที่เริ่ม
                 </label>
-                <div className="h-11">
-                  <DateRangePicker
-                    from={dateRange.from}
-                    to={dateRange.to}
-                    onSelect={(range) => {
-                      if (range?.from && range?.to) {
-                        setDateRange({ from: range.from, to: range.to });
-                      }
-                    }}
-                  />
+                <div className="h-10">
+                  <Popover open={isStartOpen} onOpenChange={setIsStartOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-between text-left font-normal bg-white h-10 px-3 pr-10 relative",
+                          !dateRange?.from && "text-muted-foreground"
+                        )}
+                      >
+                        {dateRange?.from ? (
+                          <span className="text-sm">
+                            {format(dateRange.from, "dd/MM")}/
+                            {dateRange.from.getFullYear() + 543}
+                          </span>
+                        ) : (
+                          <span className="text-sm">วันที่เริ่ม</span>
+                        )}
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI
+                        initialFocus
+                        mode="single"
+                        selected={dateRange?.from}
+                        onSelect={(day) => {
+                          if (day) {
+                            const newRange = { from: day, to: dateRange.to };
+                            if (day > dateRange.to) {
+                              newRange.to = day;
+                            }
+                            setDateRange(newRange);
+                          }
+                        }}
+                        numberOfMonths={1}
+                      />
+                      <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-20"
+                          onClick={() => setIsStartOpen(false)}
+                        >
+                          ยกเลิก
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="h-8 w-20 bg-red-600 hover:bg-red-700 text-white"
+                          onClick={() => setIsStartOpen(false)}
+                        >
+                          ตกลง
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
-              <div className="grid gap-1.5">
-                <label className="text-xs font-semibold uppercase text-muted-foreground">
-                  ช่วงเวลาแนะนำ
+              {/* End Date */}
+              <div className="space-y-1.5 w-full sm:w-44">
+                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
+                  วันที่สิ้นสุด
                 </label>
-                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                  {quickDateRanges.map((range) => (
+                <div className="h-10">
+                  <Popover open={isEndOpen} onOpenChange={setIsEndOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-between text-left font-normal bg-white h-10 px-3 pr-10 relative",
+                          !dateRange?.to && "text-muted-foreground"
+                        )}
+                      >
+                        {dateRange?.to ? (
+                          <span className="text-sm">
+                            {format(dateRange.to, "dd/MM")}/
+                            {dateRange.to.getFullYear() + 543}
+                          </span>
+                        ) : (
+                          <span className="text-sm">วันที่สิ้นสุด</span>
+                        )}
+                        <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarUI
+                        initialFocus
+                        mode="single"
+                        selected={dateRange?.to}
+                        defaultMonth={dateRange?.to || dateRange?.from}
+                        onSelect={(day) => {
+                          if (day) {
+                            const newRange = { from: dateRange.from, to: day };
+                            if (day < dateRange.from) {
+                              newRange.from = day;
+                            }
+                            setDateRange(newRange);
+                          }
+                        }}
+                        numberOfMonths={1}
+                      />
+                      <div className="p-3 border-t flex items-center justify-center gap-2 bg-slate-50/50">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-20"
+                          onClick={() => setIsEndOpen(false)}
+                        >
+                          ยกเลิก
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="h-8 w-20 bg-red-600 hover:bg-red-700 text-white"
+                          onClick={() => setIsEndOpen(false)}
+                        >
+                          ตกลง
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* Quick ranges */}
+              <div className="grid gap-1.5">
+                <label className="font-medium text-base text-gray-900 mx-1">
+                  ช่วงเวลา
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {quickDateRanges.map((r) => (
                     <Button
-                      key={range.label}
+                      key={r.label}
                       variant="outline"
                       size="sm"
-                      className="h-9 text-xs w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                      className="h-10 text-xs px-3 bg-white hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-colors"
                       onClick={() => {
-                        const { from, to } = range.getValue();
+                        const { from, to } = r.getValue();
                         setDateRange({ from, to });
                       }}
                     >
-                      {range.label}
+                      {r.label}
                     </Button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-end">
+              {/* Submit */}
+              <div className="flex items-end gap-2 w-full sm:w-auto">
                 <Button
                   onClick={handleFetchReport}
                   disabled={isPending}
-                  className="w-full h-11 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 shadow-lg shadow-emerald-500/25 text-sm sm:text-base focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                  className="flex-1 sm:w-auto h-10 px-6 bg-black hover:bg-gray-800 text-white shadow-md shadow-red-600/20 font-semibold text-sm"
                 >
                   {isPending ? (
                     <>
@@ -257,31 +372,45 @@ export function ProductSalesDashboard() {
                     </>
                   ) : (
                     <>
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      ดูรายงาน
+                      ตกลง
                     </>
                   )}
                 </Button>
+                {reportData && (
+                  <ClearSearchButton
+                    label="ล้าง"
+                    onClick={() => {
+                      setDateRange({
+                        from: startOfMonth(new Date()),
+                        to: endOfMonth(new Date()),
+                      });
+                      setReportData(null);
+                      setGroupReportData(null);
+                    }}
+                    className="h-10 px-4 min-h-[40px] mb-0"
+                    containerClassName="w-auto mt-0"
+                  />
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Report Content */}
+        {/* ── Report Content ── */}
         {isPending ? (
           <div className="space-y-4 sm:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-28 sm:h-32 rounded-2xl" />
+                <Skeleton key={i} className="h-28 sm:h-32 rounded-xl" />
               ))}
             </div>
-            <Skeleton className="h-80 sm:h-96 rounded-2xl" />
+            <Skeleton className="h-80 sm:h-96 rounded-xl" />
           </div>
         ) : reportData ? (
           <div className="space-y-4 sm:space-y-6">
             {/* Summary Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
@@ -291,7 +420,7 @@ export function ProductSalesDashboard() {
                       <p className="text-sm sm:text-base font-bold mt-1 truncate max-w-[180px]">
                         {reportData.topProducts[0]?.name || "-"}
                       </p>
-                      <p className="text-xs sm:text-sm text-emerald-600 mt-1">
+                      <p className="text-xs sm:text-sm text-red-600 mt-1">
                         {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
                       </p>
                       <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">
@@ -304,14 +433,14 @@ export function ProductSalesDashboard() {
                           : ""}
                       </p>
                     </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-emerald-50">
-                      <Award className="h-6 w-6 text-emerald-600" />
+                    <div className="p-2 sm:p-3 rounded-xl bg-red-50">
+                      <Award className="h-6 w-6 text-red-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
@@ -332,7 +461,7 @@ export function ProductSalesDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -353,7 +482,7 @@ export function ProductSalesDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-2xl border bg-white/70 shadow-sm">
+              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                 <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -377,40 +506,40 @@ export function ProductSalesDashboard() {
 
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl h-auto grid grid-cols-2 sm:flex gap-2 sm:gap-0">
+              <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
                 <TabsTrigger
                   value="top-products"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   สินค้าขายดี
                 </TabsTrigger>
                 <TabsTrigger
                   value="slow-products"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   สินค้าขายช้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="peak-periods"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   ช่วงเวลาขายดี
                 </TabsTrigger>
                 <TabsTrigger
                   value="low-stock"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   สินค้าใกล้หมด
                 </TabsTrigger>
                 <TabsTrigger
                   value="stagnant"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   ค้างสต๊อก
                 </TabsTrigger>
                 <TabsTrigger
                   value="group-performance"
-                  className="rounded-lg py-2 sm:py-3 px-3 sm:px-6 text-sm sm:text-base font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   ผลงานกลุ่มชื่อการค้า
                 </TabsTrigger>
@@ -425,7 +554,7 @@ export function ProductSalesDashboard() {
                       key={opt.value}
                       onClick={() => setVolumeUnit(opt.value)}
                       className={`px-3 py-1.5 text-xs font-medium transition-colors ${volumeUnit === opt.value
-                        ? "bg-emerald-500 text-white"
+                        ? "bg-red-600 text-white"
                         : "bg-white hover:bg-slate-50 text-slate-600"
                         }`}
                     >
@@ -438,7 +567,7 @@ export function ProductSalesDashboard() {
               <TabsContent value="top-products" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Table */}
-                  <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                  <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                     <CardHeader>
                       <CardTitle className="text-lg">
                         รายละเอียดสินค้าขายดี
@@ -509,12 +638,12 @@ export function ProductSalesDashboard() {
                                         {product.childCount > 0 && (
                                           <Badge
                                             variant="outline"
-                                            className="text-emerald-700 border-emerald-200 bg-emerald-50"
+                                            className="text-red-700 border-red-200 bg-red-50"
                                           >
                                             รวมลูก {product.childCount}
                                           </Badge>
                                         )}
-                                        <span className="font-semibold text-emerald-700">
+                                        <span className="font-semibold text-red-700">
                                           {formatPackSize(
                                             product.totalPackageSold,
                                             product.packageUnit,
@@ -534,7 +663,7 @@ export function ProductSalesDashboard() {
               </TabsContent>
 
               <TabsContent value="slow-products" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <TrendingDown className="h-5 w-5 text-amber-500" />
@@ -622,7 +751,7 @@ export function ProductSalesDashboard() {
               </TabsContent>
 
               <TabsContent value="peak-periods" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Clock className="h-5 w-5 text-blue-500" />
@@ -634,7 +763,7 @@ export function ProductSalesDashboard() {
                       {reportData.productPeakPeriods.map((item, idx) => (
                         <Card
                           key={item.productId}
-                          className="rounded-2xl border bg-white/70 shadow-sm"
+                          className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
                         >
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
@@ -661,7 +790,7 @@ export function ProductSalesDashboard() {
                                   >
                                     {item.peakMonth}
                                   </Badge>
-                                  <span className="text-sm font-semibold text-emerald-600">
+                                  <span className="text-sm font-semibold text-red-600">
                                     {formatTHB(item.peakSales)}
                                   </span>
                                 </div>
@@ -676,7 +805,7 @@ export function ProductSalesDashboard() {
               </TabsContent>
 
               <TabsContent value="low-stock" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -755,7 +884,7 @@ export function ProductSalesDashboard() {
               </TabsContent>
 
               <TabsContent value="stagnant" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Archive className="h-5 w-5 text-purple-500" />
@@ -821,7 +950,7 @@ export function ProductSalesDashboard() {
                 </Card>
               </TabsContent>
               <TabsContent value="group-performance" className="mt-6">
-                <Card className="rounded-2xl border bg-white/70 shadow-sm">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                   <CardHeader>
                     <CardTitle className="text-lg">
                       ผลงานแต่ละกลุ่มสินค้า
@@ -875,7 +1004,7 @@ export function ProductSalesDashboard() {
                                 <TableCell className="font-medium">
                                   {group.group}
                                 </TableCell>
-                                <TableCell className="text-right font-semibold text-emerald-600">
+                                <TableCell className="text-right font-semibold text-red-600">
                                   {formatTHB(group.totalSales)}
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -907,7 +1036,7 @@ export function ProductSalesDashboard() {
             </Tabs>
           </div>
         ) : (
-          <Card className="rounded-2xl border bg-white/70 shadow-sm">
+          <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <CardContent className="flex flex-col items-center justify-center py-20">
               <Package className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
