@@ -25,7 +25,7 @@ import type { SidebarNavItem } from "./types";
 export const navigationItems: SidebarNavItem[] = [
   {
     href: "/dashboard/manager",
-    label: "แดชบอร์ดผู้จัดการ",
+    label: "แดชบอร์ด",
     permissionKey: "menu.dashboard.manager",
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
