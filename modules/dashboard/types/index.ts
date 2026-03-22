@@ -20,6 +20,15 @@ export interface PeriodData {
     lastYearSalesNote: number;
     lastYearInvoice: number;
   }[];
+  tradeNameGroupData: {
+    group: string;
+    code: string;
+    target: number;
+    salesNote: number;
+    invoice: number;
+    lastYearSalesNote: number;
+    lastYearInvoice: number;
+  }[];
   regionData: {
     region: string;
     target: number;

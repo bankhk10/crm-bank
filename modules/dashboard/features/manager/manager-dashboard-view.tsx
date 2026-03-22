@@ -27,6 +27,7 @@ import {
   BarChart3,
   Activity,
   CalendarDays,
+  Tags,
 } from "lucide-react";
 import type { DashboardData, DashboardPeriod } from "../../types";
 
@@ -243,6 +244,63 @@ function ProductGroupChart({ filteredProductGroupData }: { filteredProductGroupD
   );
 }
 
+function TradeNameGroupChart({ filteredTradeNameGroupData }: { filteredTradeNameGroupData: { group: string; lastYearInvoice: number; target: number; salesNote: number; invoice: number }[] }) {
+  const isMobile = useIsMobile();
+
+  if (filteredTradeNameGroupData.length === 0) {
+    return (
+      <CardContent className="h-[240px] sm:h-[280px] md:h-[320px] lg:h-[350px] pt-2 sm:pt-4 px-1 sm:px-4">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center">
+              <Tags className="w-8 h-8 text-indigo-400" />
+            </div>
+            <p className="text-sm text-slate-400 font-medium">กรุณาเลือกกลุ่มชื่อการค้า ที่ต้องการแสดง</p>
+          </div>
+        </div>
+      </CardContent>
+    );
+  }
+
+  const chartHeight = isMobile ? Math.max(280, filteredTradeNameGroupData.length * 80) : 320;
+
+  if (isMobile) {
+    return (
+      <CardContent className="pt-2 px-1" style={{ height: chartHeight }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={filteredTradeNameGroupData} layout="vertical" margin={{ left: 4, right: 16, top: 5, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+            <XAxis type="number" tickFormatter={(v) => formatCompact(v)} fontSize={10} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="group" fontSize={10} tickLine={false} axisLine={false} width={80} />
+            <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 10 }} iconSize={8} />
+            {CHART_BARS.map((b) => (
+              <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[0, 4, 4, 0]} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    );
+  }
+
+  return (
+    <CardContent className="h-[280px] md:h-[320px] lg:h-[350px] pt-4 px-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={filteredTradeNameGroupData} margin={{ left: 0, right: 5, top: 5, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis dataKey="group" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: "#94a3b8" }} />
+          <YAxis tickFormatter={(v) => `${v / 1000}k`} fontSize={10} tickLine={false} axisLine={false} width={50} tick={{ fill: "#94a3b8" }} />
+          <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} contentStyle={tooltipStyle} formatter={(value: number) => formatNumber(value)} />
+          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} iconSize={10} />
+          {CHART_BARS.map((b) => (
+            <Bar key={b.dataKey} dataKey={b.dataKey} name={b.name} fill={b.fill} radius={[4, 4, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </CardContent>
+  );
+}
+
 /* ================= Props ================= */
 interface AdminDashboardViewProps {
   initialData: DashboardData;
@@ -256,6 +314,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
   const [overviewPeriod, setOverviewPeriod] = useState<DashboardPeriod>("month");
   const [regionPeriod, setRegionPeriod] = useState<DashboardPeriod>("month");
   const [productGroupPeriod, setProductGroupPeriod] = useState<DashboardPeriod>("month");
+  const [tradeNameGroupPeriod, setTradeNameGroupPeriod] = useState<DashboardPeriod>("month");
 
   const periodOptions: { value: DashboardPeriod; label: string }[] = [
     { value: "day", label: "วัน" },
@@ -272,7 +331,8 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
   const monthlySales = periodData[overviewPeriod].monthlySales;
   const target = periodData[overviewPeriod].target;
   const regionData = periodData[regionPeriod].regionData;
-  const productGroupData = periodData[productGroupPeriod].productGroupData;
+  const productGroupData = periodData[productGroupPeriod].productGroupData || [];
+  const tradeNameGroupData = periodData[tradeNameGroupPeriod].tradeNameGroupData || [];
 
   const [visibleGroups, setVisibleGroups] = useState<Set<string>>(
     () => new Set(productGroupData.map((p) => p.group)),
@@ -305,6 +365,39 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
   const filteredProductGroupData = useMemo(
     () => productGroupData.filter((p) => visibleGroups.has(p.group)),
     [productGroupData, visibleGroups],
+  );
+
+  const [visibleTradeNameGroups, setVisibleTradeNameGroups] = useState<Set<string>>(
+    () => new Set(tradeNameGroupData.map((p) => p.group)),
+  );
+
+  useEffect(() => {
+    setVisibleTradeNameGroups(new Set(tradeNameGroupData.map((p) => p.group)));
+  }, [tradeNameGroupData]);
+
+  const toggleTradeNameGroup = (group: string) => {
+    setVisibleTradeNameGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(group)) {
+        newSet.delete(group);
+      } else {
+        newSet.add(group);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllTradeNameGroups = () => {
+    if (visibleTradeNameGroups.size === tradeNameGroupData.length) {
+      setVisibleTradeNameGroups(new Set());
+    } else {
+      setVisibleTradeNameGroups(new Set(tradeNameGroupData.map((p) => p.group)));
+    }
+  };
+
+  const filteredTradeNameGroupData = useMemo(
+    () => tradeNameGroupData.filter((p) => visibleTradeNameGroups.has(p.group)),
+    [tradeNameGroupData, visibleTradeNameGroups],
   );
 
   const percent = target.target > 0 ? Math.round((target.current / target.target) * 100) : 0;
@@ -674,6 +767,76 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
             </div>
           </CardHeader>
           <ProductGroupChart filteredProductGroupData={filteredProductGroupData} />
+        </Card>
+
+        {/* Trade Name Group Chart */}
+        <Card className="rounded-2xl sm:rounded-3xl border-0 bg-white shadow-lg overflow-hidden">
+          <CardHeader className="pb-3 sm:pb-4 border-b border-slate-100/80">
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-100 shadow-sm">
+                  <Tags className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-slate-800">
+                    ยอดขายรวมของกลุ่มชื่อการค้า
+                  </CardTitle>
+                  <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 font-medium">
+                    แสดง {visibleTradeNameGroups.size}/{tradeNameGroupData.length} กลุ่ม
+                  </p>
+                </div>
+              </div>
+              <PeriodSwitcher
+                value={tradeNameGroupPeriod}
+                onChange={setTradeNameGroupPeriod}
+                options={periodOptions}
+                variant="light"
+              />
+            </div>
+
+            {/* Filter */}
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[10px] sm:text-xs font-semibold text-slate-600">
+                  เลือกกลุ่มที่ต้องการแสดง:
+                </span>
+                <button
+                  onClick={toggleAllTradeNameGroups}
+                  className="text-[10px] sm:text-xs text-indigo-600 hover:text-indigo-700 font-bold transition-colors hover:underline"
+                >
+                  {visibleTradeNameGroups.size === tradeNameGroupData.length ? "ซ่อนทั้งหมด" : "เลือกทั้งหมด"}
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {tradeNameGroupData.map((group) => {
+                  const isVisible = visibleTradeNameGroups.has(group.group);
+                  return (
+                    <button
+                      key={group.code}
+                      onClick={() => toggleTradeNameGroup(group.group)}
+                      className={`
+                        inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold
+                        transition-all duration-200 border
+                        ${isVisible
+                          ? "bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-transparent shadow-md shadow-indigo-200"
+                          : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                        }
+                      `}
+                    >
+                      <span
+                        className={`w-3.5 h-3.5 flex items-center justify-center rounded-full border-2 transition-colors ${isVisible ? "bg-white border-white" : "border-slate-300"
+                          }`}
+                      >
+                        {isVisible && <CheckCircle2 className="w-2.5 h-2.5 text-indigo-600" />}
+                      </span>
+                      {group.group}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </CardHeader>
+          <TradeNameGroupChart filteredTradeNameGroupData={filteredTradeNameGroupData} />
         </Card>
       </div>
     </div>

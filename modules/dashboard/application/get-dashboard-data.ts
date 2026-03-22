@@ -207,22 +207,127 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
   const lastYearSameMonthStart = startOfMonth(subYears(now, 1));
   const lastYearSameMonthEnd = endOfMonth(subYears(now, 1));
 
-  const [productGroupDay, productGroupMonth, productGroupYear] =
-    await Promise.all([
-      getProductGroupData(
-        dayStart,
-        dayEnd,
-        lastYearSameDayStart,
-        lastYearSameDayEnd,
-      ),
-      getProductGroupData(
-        monthStart,
-        monthEnd,
-        lastYearSameMonthStart,
-        lastYearSameMonthEnd,
-      ),
-      getProductGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
-    ]);
+  // Trade Name Group fetching logic
+  const tradeNameGroups = await repo.findAllTradeNameGroups();
+  const tradeNameGroupOptions = tradeNameGroups.map((g) => ({
+    value: g.code,
+    label: g.description,
+  }));
+
+  const getTradeNameGroupData = async (
+    start: Date,
+    end: Date,
+    lastYearStart: Date,
+    lastYearEnd: Date,
+  ) =>
+    Promise.all(
+      tradeNameGroupOptions.map(async (groupOption) => {
+        const group = groupOption.value;
+        const target = 0; // ไม่มีเป้าหมายราย Trade Name Group
+
+        const productIds = await repo.findProductIdsByTradeNameGroup(group);
+
+        if (productIds.length === 0) {
+          return {
+            group: groupOption.label,
+            code: groupOption.value,
+            target,
+            salesNote: 0,
+            invoice: 0,
+            lastYearSalesNote: 0,
+            lastYearInvoice: 0,
+          };
+        }
+
+        const salesNoteAmt = await repo.aggregateSaleItemAmount(
+          start,
+          end,
+          productIds,
+          [
+            "PENDING",
+            "PENDING_APPROVAL",
+            "WAITING_FOR_CORRECTION",
+            "APPROVED",
+            "AWAITING_PAYMENT",
+            "AWAITING_DELIVERY",
+          ],
+        );
+
+        const invoiceAmt = await repo.aggregateSaleItemAmount(
+          start,
+          end,
+          productIds,
+          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+        );
+
+        const lastYearSalesNoteAmt = await repo.aggregateSaleItemAmount(
+          lastYearStart,
+          lastYearEnd,
+          productIds,
+          [
+            "PENDING",
+            "PENDING_APPROVAL",
+            "WAITING_FOR_CORRECTION",
+            "APPROVED",
+            "AWAITING_PAYMENT",
+            "AWAITING_DELIVERY",
+          ],
+        );
+
+        const lastYearInvoiceAmt = await repo.aggregateSaleItemAmount(
+          lastYearStart,
+          lastYearEnd,
+          productIds,
+          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+        );
+
+        return {
+          group: groupOption.label,
+          code: groupOption.value,
+          target,
+          salesNote: salesNoteAmt,
+          invoice: invoiceAmt,
+          lastYearSalesNote: lastYearSalesNoteAmt,
+          lastYearInvoice: lastYearInvoiceAmt,
+        };
+      }),
+    );
+
+  const [
+    productGroupDay, 
+    productGroupMonth, 
+    productGroupYear,
+    tradeNameGroupDay,
+    tradeNameGroupMonth,
+    tradeNameGroupYear,
+  ] = await Promise.all([
+    getProductGroupData(
+      dayStart,
+      dayEnd,
+      lastYearSameDayStart,
+      lastYearSameDayEnd,
+    ),
+    getProductGroupData(
+      monthStart,
+      monthEnd,
+      lastYearSameMonthStart,
+      lastYearSameMonthEnd,
+    ),
+    getProductGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
+    getTradeNameGroupData(
+      dayStart,
+      dayEnd,
+      lastYearSameDayStart,
+      lastYearSameDayEnd,
+    ),
+    getTradeNameGroupData(
+      monthStart,
+      monthEnd,
+      lastYearSameMonthStart,
+      lastYearSameMonthEnd,
+    ),
+    getTradeNameGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
+  ]);
 
   // === 3. Region Sales (This Month) ===
   const regions = getAllRegions();
@@ -459,6 +564,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         current: daySales.total,
       },
       productGroupData: productGroupDay.length > 0 ? productGroupDay : [],
+      tradeNameGroupData: tradeNameGroupDay.length > 0 ? tradeNameGroupDay: [],
       regionData: regionDay.length > 0 ? regionDay : [],
       jobStatus: jobStatusDay,
     },
@@ -474,6 +580,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         current: monthSales.total,
       },
       productGroupData: productGroupMonth.length > 0 ? productGroupMonth : [],
+      tradeNameGroupData: tradeNameGroupMonth.length > 0 ? tradeNameGroupMonth: [],
       regionData: regionMonth.length > 0 ? regionMonth : [],
       jobStatus: jobStatusMonth,
     },
@@ -489,6 +596,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         current: yearSales.total,
       },
       productGroupData: productGroupYear.length > 0 ? productGroupYear : [],
+      tradeNameGroupData: tradeNameGroupYear.length > 0 ? tradeNameGroupYear: [],
       regionData: regionYear.length > 0 ? regionYear : [],
       jobStatus: jobStatusYear,
     },

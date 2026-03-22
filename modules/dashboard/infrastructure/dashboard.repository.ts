@@ -60,6 +60,15 @@ export async function findAllProductGroups() {
   return abcTypes.map((c) => ({ code: c.id, description: c.name }));
 }
 
+export async function findAllTradeNameGroups() {
+  const groups = await prisma.tradeNameGroup.findMany({
+    where: { deletedAt: null },
+    select: { id: true, description: true },
+    orderBy: { description: "asc" },
+  });
+  return groups.map((g) => ({ code: g.id, description: g.description }));
+}
+
 export async function findProductGroupTargets(year: number, month: number) {
   return prisma.productGroupSalesTarget.findMany({
     where: {
@@ -72,7 +81,15 @@ export async function findProductGroupTargets(year: number, month: number) {
 
 export async function findProductIdsByGroup(groupCode: string) {
   const products = await prisma.product.findMany({
-    where: { productABCTypeId: groupCode },
+    where: { productABCTypeId: groupCode, deletedAt: null },
+    select: { id: true },
+  });
+  return products.map((p) => p.id);
+}
+
+export async function findProductIdsByTradeNameGroup(groupId: string) {
+  const products = await prisma.product.findMany({
+    where: { tradeNameGroupId: groupId, deletedAt: null },
     select: { id: true },
   });
   return products.map((p) => p.id);
