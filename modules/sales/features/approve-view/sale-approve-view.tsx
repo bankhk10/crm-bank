@@ -80,7 +80,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
         setActionLoading(true);
         const res = await approveSaleAction(id, approveNotes);
         if (res.success) {
-            router.push(`/sales/${id}`);
+            router.push(`/sales`);
         } else {
             setError(res.error ?? "Failed to approve");
             setActionLoading(false);
