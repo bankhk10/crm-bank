@@ -88,7 +88,7 @@ export type {
   Customer,
   Product,
   ProductCategory,
-  ProductGroupMaster,
+  ProductGroup,
 } from "@prisma/client";
 
 export default prisma;

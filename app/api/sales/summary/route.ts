@@ -89,7 +89,8 @@ export async function GET(request: NextRequest) {
       const groupData: Record<string, number> = {};
 
       saleItems.forEach((item) => {
-        const group = item.product?.productGroup || "UNKNOWN";
+        const productGroup = item.product?.productGroup;
+        const group = (productGroup as any)?.name || "UNKNOWN";
         if (!groupData[group]) {
           groupData[group] = 0;
         }

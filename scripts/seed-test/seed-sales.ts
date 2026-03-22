@@ -106,7 +106,7 @@ async function main() {
             name: product.name,
             commonName: product.commonName,
             unit: product.unit,
-            productGroup: product.productGroup,
+            productGroup: product.productGroupId,
             brand: product.brand,
             packageSize: product.packageSize,
             packageSizePerBox: product.packageSizePerBox,

@@ -21,6 +21,7 @@ const categoryToHex: Record<string, string> = {
   time: "#3b82f6",
   product: "#10b981",
   "customer-salesperson": "#f59e0b",
+  "advanced-sales": "#8b5cf6",
 };
 
 const reportCategories = [
@@ -80,6 +81,21 @@ const reportCategories = [
       "ความถี่ในการซื้อ และ มูลค่าลูกค้า",
     ],
   },
+  {
+    id: "advanced-sales",
+    title: "รายงานการขายเชิงลึก (New)",
+    description: "กรองอิสระ, ยอดขายรายวัน/เดือน/ปี, วิเคราะห์ % เติบโต และยอดขายรายบุคคล",
+    icon: TrendingUp,
+    href: "/reports/advanced-sales",
+    permissionKey: "none", // Mock report always visible
+    color: "from-violet-500 to-purple-500",
+    bgColor: "bg-violet-50 dark:bg-violet-950/30",
+    features: [
+      "สถิติรวมและ % การเติบโต ยอดขาย/ออเดอร์",
+      "กราฟเปรียบเทียบยอดขายตามช่วงเวลา",
+      "ยอดขายรายลูกค้าและพนักงานแบบเจาะลึก",
+    ],
+  },
 ];
 
 export default function ReportListView() {
@@ -94,6 +110,8 @@ export default function ReportListView() {
     }
 
     return reportCategories.filter((category) => {
+      // Allow mock reports without permission
+      if (category.permissionKey === "none") return true;
       // Check if user has permission for this report
       return permissionKeys.includes(category.permissionKey);
     });

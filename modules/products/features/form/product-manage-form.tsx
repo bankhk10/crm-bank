@@ -882,7 +882,8 @@ export function ProductManageForm({ productId }: { productId: string }) {
     const fetchProduct = async () => {
       try {
         const res = await getProductAction(productId);
-        if (!res.success || !res.product) throw new Error(res.error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
+        if (!res.success) throw new Error(res.error || "ไม่สามารถโหลดข้อมูลสินค้าได้");
+        if (!("product" in res) || !res.product) throw new Error("ไม่สามารถโหลดข้อมูลสินค้าได้");
         const productData = res.product;
         setProduct(productData);
 

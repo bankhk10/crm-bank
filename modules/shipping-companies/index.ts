@@ -20,7 +20,7 @@ export * from "./features/list-view/use-shipping-company-columns";
 export { default as ShippingCompaniesListView } from "./features/list-view/shipping-companies-list-view";
 
 // Features - Detail View
-export { default as ShippingCompanyDetailView } from "./features/detail-view/shipping-company-detail-view";
+export { ShippingCompanyDetailView } from "./features/detail-view/shipping-company-detail-view";
 export { default as ShippingCompanyDetailPageView } from "./features/detail-view/shipping-company-detail-page-view";
 
 // Features - Form
