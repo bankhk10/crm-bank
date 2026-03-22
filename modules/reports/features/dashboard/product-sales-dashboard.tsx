@@ -7,9 +7,12 @@ import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
 import { useId, useState, useTransition } from "react";
 import {
   format,
-  subMonths,
+  startOfToday,
+  endOfToday,
   startOfMonth,
   endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
   startOfYear,
   endOfYear,
 } from "date-fns";
@@ -57,8 +60,8 @@ import {
 
 const quickDateRanges = [
   {
-    label: "30 วันล่าสุด",
-    getValue: () => ({ from: subMonths(new Date(), 1), to: new Date() }),
+    label: "วันนี้",
+    getValue: () => ({ from: startOfToday(), to: endOfToday() }),
   },
   {
     label: "เดือนนี้",
@@ -68,8 +71,11 @@ const quickDateRanges = [
     }),
   },
   {
-    label: "3 เดือนล่าสุด",
-    getValue: () => ({ from: subMonths(new Date(), 3), to: new Date() }),
+    label: "ไตรมาสนี้",
+    getValue: () => ({
+      from: startOfQuarter(new Date()),
+      to: endOfQuarter(new Date()),
+    }),
   },
   {
     label: "ปีนี้",
