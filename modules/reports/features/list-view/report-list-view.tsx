@@ -81,21 +81,6 @@ const reportCategories = [
       "ความถี่ในการซื้อ และ มูลค่าลูกค้า",
     ],
   },
-  {
-    id: "advanced-sales",
-    title: "รายงานการขายเชิงลึก (New)",
-    description: "กรองอิสระ, ยอดขายรายวัน/เดือน/ปี, วิเคราะห์ % เติบโต และยอดขายรายบุคคล",
-    icon: TrendingUp,
-    href: "/reports/advanced-sales",
-    permissionKey: "none", // Mock report always visible
-    color: "from-violet-500 to-purple-500",
-    bgColor: "bg-violet-50 dark:bg-violet-950/30",
-    features: [
-      "สถิติรวมและ % การเติบโต ยอดขาย/ออเดอร์",
-      "กราฟเปรียบเทียบยอดขายตามช่วงเวลา",
-      "ยอดขายรายลูกค้าและพนักงานแบบเจาะลึก",
-    ],
-  },
 ];
 
 export default function ReportListView() {
