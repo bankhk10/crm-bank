@@ -511,7 +511,7 @@ export function ProductSalesDashboard() {
                   value="top-products"
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
-                  สินค้าขายดี
+                  รายการสินค้าทั้งหมด
                 </TabsTrigger>
                 <TabsTrigger
                   value="slow-products"
@@ -570,7 +570,7 @@ export function ProductSalesDashboard() {
                   <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                     <CardHeader>
                       <CardTitle className="text-lg">
-                        รายละเอียดสินค้าขายดี
+                        รายละเอียดสินค้าทั้งหมด
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -591,13 +591,15 @@ export function ProductSalesDashboard() {
                                   ปริมาณ ({volumeUnit})
                                 </TableHead>
                                 <TableHead className="text-right">
+                                  จำนวนออเดอร์
+                                </TableHead>
+                                <TableHead className="text-right">
                                   บรรจุขายได้รวมลูก
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {reportData.topProducts
-                                .slice(0, 20)
                                 .map((product, idx) => (
                                   <TableRow key={product.id}>
                                     <TableCell>
@@ -632,6 +634,9 @@ export function ProductSalesDashboard() {
                                       <span className="font-semibold text-blue-600">
                                         {formatVolume(product.totalVolumeLiters)} {volumeUnit}
                                       </span>
+                                    </TableCell>
+                                    <TableCell className="text-right text-slate-700 font-medium">
+                                      {formatNumber(product.orderCount)}
                                     </TableCell>
                                     <TableCell className="text-right">
                                       <div className="flex items-center justify-end gap-2">

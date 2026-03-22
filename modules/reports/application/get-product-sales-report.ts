@@ -268,7 +268,7 @@ export async function getProductSalesReport(
 
   const peakCandidates = sortedBySales.slice(0, 5);
 
-  const topProducts = sortedBySales.slice(0, 20).map(normalizeProduct);
+  const topProducts = sortedBySales.map(normalizeProduct);
 
   const slowProducts = [...sortedBySales]
     .sort((a, b) => a.totalSales - b.totalSales)
