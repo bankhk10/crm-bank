@@ -65,7 +65,7 @@ export function ProductForm({
     commonName: initialData?.commonName || "",
     unit: initialData?.unit || "",
     tradeNameGroupId: initialData?.tradeNameGroupId || "",
-    brand: initialData?.brand || "",
+    brand: initialData?.brand || "Crop Science",
     productGroupId: initialData?.productGroupId || "",
     packageSize: initialData?.packageSize || "",
     packageSizeUnit: initialData?.packageSizeUnit || "G",
