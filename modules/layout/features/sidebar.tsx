@@ -132,7 +132,7 @@ export default function Sidebar({
             icon: <DashboardIcon className="h-4 w-4" />,
         };
 
-        return [mainDashboardItem, ...navs];
+        return [mainDashboardItem, ...navs.filter(nav => nav.href !== dashboardHref)];
     }, [permissionKeys, roles]);
 
     const [openKey, setOpenKey] = useState<string | null>(() => {
