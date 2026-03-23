@@ -602,9 +602,34 @@ export default function CustomerFormDealer({
         />
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่วางบิล
-      </h3>
+      <div className="flex items-center justify-between mt-6 my-2 p-4 bg-gray-300 rounded-3xl">
+        <h3 className="text-xl font-semibold text-gray-800">
+          ที่อยู่วางบิล
+        </h3>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-sm bg-white hover:bg-gray-100 text-gray-700"
+          onClick={() => {
+            setValues((p: any) => ({
+              ...p,
+              billingAddressLine: values.addressLine,
+              billingProvince: values.province,
+              billingDistrict: values.district,
+              billingSubdistrict: values.subdistrict,
+              billingPostalCode: values.postalCode,
+            }));
+            clearFieldError("billingAddressLine");
+            clearFieldError("billingProvince");
+            clearFieldError("billingDistrict");
+            clearFieldError("billingSubdistrict");
+            clearFieldError("billingPostalCode");
+          }}
+        >
+          คัดลอกจากที่อยู่บริษัท
+        </Button>
+      </div>
 
       <FormInput
         label="ที่อยู่วางบิล (บ้านเลขที่ หมู่ ซอย ถนน)"
@@ -644,9 +669,34 @@ export default function CustomerFormDealer({
         />
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 bg-gray-300 my-2 p-4 rounded-3xl mt-6">
-        ที่อยู่จัดส่ง
-      </h3>
+      <div className="flex items-center justify-between mt-6 my-2 p-4 bg-gray-300 rounded-3xl">
+        <h3 className="text-xl font-semibold text-gray-800">
+          ที่อยู่จัดส่ง
+        </h3>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="text-sm bg-white hover:bg-gray-100 text-gray-700"
+          onClick={() => {
+            setValues((p: any) => ({
+              ...p,
+              shippingAddressLine: values.addressLine,
+              shippingProvince: values.province,
+              shippingDistrict: values.district,
+              shippingSubdistrict: values.subdistrict,
+              shippingPostalCode: values.postalCode,
+            }));
+            clearFieldError("shippingAddressLine");
+            clearFieldError("shippingProvince");
+            clearFieldError("shippingDistrict");
+            clearFieldError("shippingSubdistrict");
+            clearFieldError("shippingPostalCode");
+          }}
+        >
+          คัดลอกจากที่อยู่บริษัท
+        </Button>
+      </div>
 
       <FormInput
         label="ที่อยู่จัดส่ง (บ้านเลขที่ หมู่ ซอย ถนน)"
