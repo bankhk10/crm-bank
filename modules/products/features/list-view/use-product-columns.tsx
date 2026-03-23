@@ -73,8 +73,8 @@ export function useProductColumns(
                 cell: ({ row }) => <span className="text-sm">{row.original.unit ?? "-"}</span>,
             },
             {
-                accessorKey: "cartonPrice",
-                header: "ราคา",
+                accessorKey: "price",
+                header: "ราคาต่อหน่วย",
                 meta: {
                     headerAlign: "left",
                     minWidth: 100,
@@ -83,9 +83,9 @@ export function useProductColumns(
                     align: "left",
                 },
                 cell: ({ row }) => {
-                    const price = row.original.cartonPrice;
+                    const price = row.original.price;
                     return (
-                        <div className="text-sm font-medium text-blue-600">
+                        <div className="text-sm font-medium text-green-700">
                             {price == null ? (
                                 "-"
                             ) : (
