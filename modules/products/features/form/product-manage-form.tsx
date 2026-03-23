@@ -1021,7 +1021,7 @@ export function ProductManageForm({ productId }: { productId: string }) {
         className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50"
       >
         {/* Modern Red-Gray Gradient Header */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        <div className="mx-auto px-4 sm:px-6 py-6">
           <div className="relative bg-gradient-to-br from-gray-400 via-gray-400 to-gray-400 rounded-3xl p-[4px] shadow-2xl overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-white/10 animate-pulse" />
             <div className="relative bg-gradient-to-br from-red-700 via-red-600 to-red-800 backdrop-blur-xl rounded-[22px] p-6 sm:p-8">
@@ -1063,7 +1063,7 @@ export function ProductManageForm({ productId }: { productId: string }) {
           </div>
         </div>
         {/* Main Content Areas */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <div className="mx-auto px-4 sm:px-6 py-8 space-y-8">
           <PriceManagementSection
             formData={formData}
             setFormData={setFormData}
