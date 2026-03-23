@@ -1,8 +1,8 @@
-import {
+import type {
   AuditAction,
   LogSeverity,
   SecurityEventType,
-} from "@/lib/db";
+} from "@prisma/client";
 
 export interface AuditLogFilter {
   entityType?: string;

@@ -48,10 +48,12 @@ import {
   getSecurityLogsAction,
   getApplicationLogsAction,
   getLogStatisticsAction,
-  type AuditLogFilter,
-  type SecurityLogFilter,
-  type AppLogFilter,
-} from "@/modules/logs";
+} from "@/modules/logs/server/actions";
+import type {
+  AuditLogFilter,
+  SecurityLogFilter,
+  AppLogFilter,
+} from "@/modules/logs/types";
 
 // Types
 interface LogStats {
