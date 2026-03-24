@@ -239,22 +239,34 @@ export async function GET(
     _sum: { quantity: true, totalPrice: true },
     _count: true,
     orderBy: { _sum: { totalPrice: "desc" } },
-    take: 10,
   });
 
   // Get product details for product purchase history
   const productIds = productPurchaseHistory.map((p) => p.productId);
   const products = await db.product.findMany({
     where: { id: { in: productIds } },
-    select: { id: true, name: true, productCode: true },
+    select: { id: true, name: true, productCode: true, packageSize: true, packageSizeUnit: true },
   });
 
   const productMap = new Map(products.map((p) => [p.id, p]));
+
+  // Get volume data (totalVolumeLiters) from DailySalesSummary
+  const volumeData = await db.dailySalesSummary.groupBy({
+    by: ["productId"],
+    where: {
+      customerId: params.customerId,
+    },
+    _sum: { totalVolumeLiters: true, totalAmount: true, quantity: true, orderCount: true },
+  });
+  const volumeMap = new Map(
+    volumeData.map((v) => [v.productId, Number(v._sum.totalVolumeLiters || 0)]),
+  );
 
   const topProducts = productPurchaseHistory.map((p) => ({
     product: productMap.get(p.productId),
     totalQuantity: p._sum.quantity || 0,
     totalAmount: Number(p._sum.totalPrice || 0),
+    totalVolumeLiters: volumeMap.get(p.productId) || 0,
     orderCount: p._count,
   }));
 

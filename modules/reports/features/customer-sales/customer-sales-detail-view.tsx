@@ -38,6 +38,7 @@ import {
   MessageSquare,
   Hash,
   FileText,
+  Droplets,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -93,6 +94,7 @@ interface TopProduct {
   };
   totalQuantity: number;
   totalAmount: number;
+  totalVolumeLiters: number;
   orderCount: number;
 }
 
@@ -223,6 +225,12 @@ const formatTHB = (n: number) =>
   }).format(n);
 
 const formatNumber = (n: number) => new Intl.NumberFormat("th-TH").format(n);
+
+const formatVolume = (n: number) =>
+  new Intl.NumberFormat("th-TH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
 
 interface CustomerSalesDetailViewProps {
   customerId: string;
@@ -418,6 +426,13 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   ข้อมูลร้าน
                 </TabsTrigger>
                 <TabsTrigger
+                  value="products-sold"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
+                  <Package className="h-4 w-4 mr-2" />
+                  สินค้าที่เคยขาย
+                </TabsTrigger>
+                <TabsTrigger
                   value="purchase-history"
                   className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
@@ -587,6 +602,104 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                     </div>
                   </div>
                 )}
+              </TabsContent>
+
+              {/* Products Sold Tab */}
+              <TabsContent value="products-sold" className="m-0 p-4">
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                  <SectionHeader
+                    title="สินค้าที่เคยขายให้ร้านนี้"
+                    icon={<Package className="h-6 w-6" />}
+                    accentColor="#f59e0b"
+                  />
+                  <div className="p-0">
+                    {topProducts.length === 0 ? (
+                      <div className="text-center py-12 text-slate-500 bg-slate-50/30">
+                        <Package className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                        <p>ยังไม่มีข้อมูลสินค้าที่เคยขายให้ลูกค้านี้</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader className="bg-slate-50">
+                            <TableRow>
+                              <TableHead className="font-bold text-slate-700">สินค้า</TableHead>
+                              <TableHead className="text-right font-bold text-slate-700">จำนวน</TableHead>
+                              <TableHead className="text-right font-bold text-slate-700">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Droplets className="h-3.5 w-3.5 text-blue-500" />
+                                  ปริมาณ (L)
+                                </div>
+                              </TableHead>
+                              <TableHead className="text-right font-bold text-slate-700">ยอดขาย</TableHead>
+                              <TableHead className="text-right font-bold text-slate-700">จำนวนออเดอร์</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {topProducts.map((item) => (
+                              <TableRow key={item.product.id} className="hover:bg-slate-50/50">
+                                <TableCell>
+                                  <div>
+                                    <p className="font-bold text-slate-900">
+                                      {item.product.name}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                      {item.product.productCode}
+                                    </p>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right font-medium text-slate-700">
+                                  {formatNumber(item.totalQuantity)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <span className="inline-flex items-center gap-1 font-semibold text-blue-600">
+                                    {formatVolume(item.totalVolumeLiters)}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right font-extrabold text-emerald-600">
+                                  {formatTHB(item.totalAmount)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Badge variant="secondary" className="font-semibold">
+                                    {formatNumber(item.orderCount)} ออเดอร์
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        {/* Summary Row */}
+                        <div className="border-t border-slate-200 bg-slate-50/70 px-4 py-3">
+                          <div className="flex flex-wrap items-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500">สินค้าทั้งหมด:</span>
+                              <span className="font-bold text-slate-900">{topProducts.length} รายการ</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500">ยอดขายรวม:</span>
+                              <span className="font-extrabold text-emerald-600">
+                                {formatTHB(topProducts.reduce((acc, item) => acc + item.totalAmount, 0))}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Droplets className="h-3.5 w-3.5 text-blue-500" />
+                              <span className="text-slate-500">ปริมาณรวม:</span>
+                              <span className="font-bold text-blue-600">
+                                {formatVolume(topProducts.reduce((acc, item) => acc + item.totalVolumeLiters, 0))} L
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-500">ออเดอร์รวม:</span>
+                              <span className="font-bold text-slate-900">
+                                {formatNumber(topProducts.reduce((acc, item) => acc + item.orderCount, 0))}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </TabsContent>
 
               {/* Purchase History Tab */}
