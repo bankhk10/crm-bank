@@ -964,7 +964,7 @@ export function TimeSalesDashboard() {
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ยอดขาย</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">ออเดอร์</TableHead>
                               <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap">เฉลี่ย/ออเดอร์</TableHead>
-                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">% ของรวม</TableHead>
+                              <TableHead className="font-semibold text-slate-700 h-14 px-4 whitespace-nowrap w-40">ยอดขายเฉลี่ย</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
