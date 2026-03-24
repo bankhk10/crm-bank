@@ -410,17 +410,18 @@ export function TimeSalesDashboard() {
                 ring="shadow-lg shadow-zinc-950/20"
                 barColor="bg-zinc-950"
                 barWidth="70%"
+                topColor="black"
               />
               <KpiCard
                 label="จำนวนออเดอร์"
                 sublabel="ทั้งหมดในช่วงเวลา"
                 value={formatNumber(reportData.totalOrders)}
-                sub={<span className="text-xs text-slate-500">รายการ</span>}
                 icon={ShoppingCart}
                 gradient="bg-red-600"
                 ring="shadow-lg shadow-red-600/20"
                 barColor="bg-red-600"
                 barWidth="55%"
+                topColor="red"
               />
               <KpiCard
                 label="เฉลี่ยต่อออเดอร์"
@@ -431,17 +432,18 @@ export function TimeSalesDashboard() {
                 ring="shadow-lg shadow-zinc-800/20"
                 barColor="bg-zinc-800"
                 barWidth="60%"
+                topColor="black"
               />
               <KpiCard
                 label="การเติบโต"
                 sublabel="เทียบช่วงก่อนหน้า"
                 value={`${reportData.growthPercentage >= 0 ? "+" : ""}${reportData.growthPercentage.toFixed(1)}%`}
-                sub={<GrowthBadge pct={reportData.growthPercentage} />}
                 icon={reportData.growthPercentage >= 0 ? TrendingUp : TrendingDown}
                 gradient="bg-gradient-to-br from-red-600 to-zinc-950"
                 ring="shadow-lg shadow-red-600/20"
                 barColor="bg-red-600"
                 barWidth={`${Math.min(Math.abs(reportData.growthPercentage), 100)}%`}
+                topColor="red"
               />
             </div>
 
