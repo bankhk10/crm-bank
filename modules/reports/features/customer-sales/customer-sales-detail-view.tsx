@@ -35,8 +35,15 @@ import {
   Building2,
   ArrowLeft,
   Users,
+  MessageSquare,
+  Hash,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailItem } from "@/components/custom/detail-item";
 
 // Types
 interface CustomerKPI {
@@ -288,64 +295,46 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/reports/customer-sales">
-          <Button variant="ghost" size="icon" className="rounded-xl">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
-          <Users className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">รายละเอียดลูกค้า</h1>
-          <p className="text-muted-foreground text-sm">
-            รายงานตามลูกค้า
-          </p>
-        </div>
-      </div>
-
-      {/* Store Header */}
-      <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-6 rounded-2xl shadow-lg">
-        <div className="absolute inset-0 bg-black/10 rounded-2xl" />
-        <div className="relative">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-                <Store className="h-8 w-8 text-white" />
-              </div>
-              <div className="text-white">
-                <h2 className="text-2xl font-bold">{customer?.name}</h2>
-                <p className="text-white/80 text-sm">
-                  รหัส: {customer?.customerCode}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 mt-4">
+    <div className="min-h-screen from-slate-50 to-blue-50 bg-slate-50/50 pb-12">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+      {/* Hero Header Section */}
+      <DetailHero
+        backUrl="/reports/customer-sales"
+        backLabel="หน้ารายงานตามลูกค้า"
+        title={customer?.name || "รายละเอียดลูกค้า"}
+        icon={<Users className="h-8 w-8 text-white" />}
+        accentColor="#f59e0b" // Support amber theme for reports, or move to company red if strictly requested
+        backgroundColor="#111111"
+        badges={
+          <>
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-white bg-white/10 border border-white/20 px-3 py-1.5 rounded-full shadow-sm">
+                รหัสลูกค้า: {customer?.customerCode}
+            </span>
             <Badge
-              className={`${customerStatusLabels[customer?.status || "ACTIVE"]?.color} border-0`}
+              className={cn(
+                customerStatusLabels[customer?.status || "ACTIVE"]?.color,
+                "border-0 px-3 py-1.5 rounded-full"
+              )}
             >
               {customerStatusLabels[customer?.status || "ACTIVE"]?.label}
             </Badge>
-            <Badge className="bg-white/20 text-white border-0">
+            <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1.5 rounded-full">
               {customerTypeLabels[customer?.customerType || "DEALER"]}
             </Badge>
-            {customer?.responsibleEmployee && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm">
-                <User className="h-4 w-4" />
-                <span>
-                  Sales: {customer.responsibleEmployee.firstName}{" "}
-                  {customer.responsibleEmployee.lastName}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+        actions={
+          customer?.responsibleEmployee && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-white text-sm">
+              <User className="h-4 w-4 mr-2" />
+              <span>
+                Sales: {customer.responsibleEmployee.firstName}{" "}
+                {customer.responsibleEmployee.lastName}
+              </span>
+            </div>
+          )
+        }
+      />
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -437,8 +426,9 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
       </div>
 
       {/* Tabs Content */}
-      <Card className="border-0 shadow-sm">
+      <div className="bg-white/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden">
         <Tabs
+          defaultValue="store-info"
           value={activeTab}
           onValueChange={setActiveTab}
           className="h-full flex flex-col"
@@ -480,140 +470,120 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
             {/* Store Info Tab */}
             <TabsContent value="store-info" className="m-0 p-4 space-y-4">
               {/* Basic Info */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    ข้อมูลพื้นฐาน
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        รหัสลูกค้า
-                      </p>
-                      <p className="font-medium">{customer?.customerCode}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">ประเภท</p>
-                      <p className="font-medium">
-                        {
-                          customerTypeLabels[
-                          customer?.customerType || "DEALER"
-                          ]
-                        }
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">ภูมิภาค</p>
-                      <p className="font-medium">{customer?.region || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        เลขประจำตัวผู้เสียภาษี
-                      </p>
-                      <p className="font-medium">{customer?.taxId || "-"}</p>
-                    </div>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <SectionHeader
+                  title="ข้อมูลพื้นฐาน"
+                  icon={<Building2 className="h-6 w-6" />}
+                  accentColor="#f59e0b"
+                />
+                <div className="p-6 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                    <DetailItem
+                      icon={<Hash className="h-5 w-5" />}
+                      label="รหัสลูกค้า"
+                      value={customer?.customerCode}
+                    />
+                    <DetailItem
+                      icon={<Store className="h-5 w-5" />}
+                      label="ประเภท"
+                      value={customerTypeLabels[customer?.customerType || "DEALER"]}
+                    />
+                    <DetailItem
+                      icon={<MapPin className="h-5 w-5" />}
+                      label="ภูมิภาค"
+                      value={customer?.region}
+                    />
+                    <DetailItem
+                      icon={<FileText className="h-5 w-5" />}
+                      label="เลขประจำตัวผู้เสียภาษี"
+                      value={customer?.taxId}
+                    />
                   </div>
-
                   {customer?.parentDealer && (
-                    <>
-                      <Separator />
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          ดีลเลอร์ต้นสังกัด
-                        </p>
-                        <p className="font-medium">
-                          {customer.parentDealer.name} (
-                          {customer.parentDealer.customerCode})
-                        </p>
-                      </div>
-                    </>
+                    <div className="pt-2">
+                      <DetailItem
+                        icon={<Users className="h-5 w-5" />}
+                        label="ดีลเลอร์ต้นสังกัด"
+                        value={`${customer.parentDealer.name} (${customer.parentDealer.customerCode})`}
+                        fullWidth
+                      />
+                    </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Address */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    ที่อยู่
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      ที่อยู่หลัก
-                    </p>
-                    <p className="font-medium">
-                      {[
-                        customer?.addressLine,
-                        customer?.subdistrict,
-                        customer?.district,
-                        customer?.province,
-                        customer?.postalCode,
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <SectionHeader
+                  title="ที่อยู่"
+                  icon={<MapPin className="h-6 w-6" />}
+                  accentColor="#f59e0b"
+                />
+                <div className="p-6 space-y-2">
+                  <DetailItem
+                    icon={<MapPin className="h-5 w-5" />}
+                    label="ที่อยู่หลัก"
+                    value={[
+                      customer?.addressLine,
+                      customer?.subdistrict,
+                      customer?.district,
+                      customer?.province,
+                      customer?.postalCode,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    fullWidth
+                  />
+                  {customer?.billingAddressLine && (
+                    <DetailItem
+                      icon={<MapPin className="h-5 w-5 text-blue-400" />}
+                      label="ที่อยู่เรียกเก็บเงิน"
+                      value={[
+                        customer.billingAddressLine,
+                        customer.billingSubdistrict,
+                        customer.billingDistrict,
+                        customer.billingProvince,
+                        customer.billingPostalCode,
                       ]
                         .filter(Boolean)
-                        .join(" ") || "-"}
-                    </p>
-                  </div>
-                  {customer?.billingAddressLine && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        ที่อยู่เรียกเก็บเงิน
-                      </p>
-                      <p className="font-medium">
-                        {[
-                          customer.billingAddressLine,
-                          customer.billingSubdistrict,
-                          customer.billingDistrict,
-                          customer.billingProvince,
-                          customer.billingPostalCode,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      </p>
-                    </div>
+                        .join(" ")}
+                      fullWidth
+                    />
                   )}
                   {customer?.shippingAddressLine && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        ที่อยู่จัดส่ง
-                      </p>
-                      <p className="font-medium">
-                        {[
-                          customer.shippingAddressLine,
-                          customer.shippingSubdistrict,
-                          customer.shippingDistrict,
-                          customer.shippingProvince,
-                          customer.shippingPostalCode,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      </p>
-                    </div>
+                    <DetailItem
+                      icon={<MapPin className="h-5 w-5 text-emerald-400" />}
+                      label="ที่อยู่จัดส่ง"
+                      value={[
+                        customer.shippingAddressLine,
+                        customer.shippingSubdistrict,
+                        customer.shippingDistrict,
+                        customer.shippingProvince,
+                        customer.shippingPostalCode,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      fullWidth
+                    />
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Top Products */}
               {topProducts.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Package className="h-4 w-4" />
-                      สินค้าที่ซื้อบ่อย
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                  <SectionHeader
+                    title="สินค้าที่ซื้อบ่อย"
+                    icon={<Package className="h-6 w-6" />}
+                    accentColor="#f59e0b"
+                  />
+                  <div className="p-0">
                     <Table>
-                      <TableHeader>
+                      <TableHeader className="bg-slate-50">
                         <TableRow>
-                          <TableHead>สินค้า</TableHead>
-                          <TableHead className="text-right">จำนวน</TableHead>
-                          <TableHead className="text-right">มูลค่า</TableHead>
+                          <TableHead className="font-bold text-slate-700">สินค้า</TableHead>
+                          <TableHead className="text-right font-bold text-slate-700">จำนวน</TableHead>
+                          <TableHead className="text-right font-bold text-slate-700">มูลค่า</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -621,180 +591,209 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                           <TableRow key={item.product.id}>
                             <TableCell>
                               <div>
-                                <p className="font-medium">
+                                <p className="font-bold text-slate-900">
                                   {item.product.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-slate-500">
                                   {item.product.productCode}
                                 </p>
                               </div>
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right font-medium">
                               {formatNumber(item.totalQuantity)}
                             </TableCell>
-                            <TableCell className="text-right font-medium text-emerald-600">
+                            <TableCell className="text-right font-extrabold text-amber-600">
                               {formatTHB(item.totalAmount)}
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </TabsContent>
 
             {/* Purchase History Tab */}
             <TabsContent value="purchase-history" className="m-0 p-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      ประวัติการซื้อล่าสุด
-                    </CardTitle>
-                    <Link href={`/sales?customerId=${customerId}`}>
-                      <Button variant="ghost" size="sm">
-                        ดูทั้งหมด
-                        <ArrowUpRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <SectionHeader
+                  title="ประวัติการซื้อล่าสุด"
+                  icon={<ShoppingCart className="h-6 w-6" />}
+                  accentColor="#f59e0b"
+                />
+                <div className="p-0">
                   {recentSales.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ShoppingCart className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>ยังไม่มีประวัติการซื้อ</p>
+                    <div className="text-center py-12 text-slate-500 bg-slate-50/30">
+                      <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                      <p>ยังไม่มีประวัติการซื้อสำหรับลูกค้านี้</p>
                     </div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>เลขที่ใบสั่งซื้อ</TableHead>
-                          <TableHead>วันที่</TableHead>
-                          <TableHead>สถานะ</TableHead>
-                          <TableHead className="text-right">มูลค่า</TableHead>
-                          <TableHead></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {recentSales.map((sale) => (
-                          <TableRow key={sale.id}>
-                            <TableCell className="font-medium">
-                              {sale.saleNumber}
-                            </TableCell>
-                            <TableCell>
-                              {format(
-                                new Date(sale.saleDate),
-                                "d MMM yyyy",
-                                { locale: th }
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                className={`${saleStatusLabels[sale.status]?.color || "bg-gray-100"} border-0`}
-                              >
-                                {saleStatusLabels[sale.status]?.label ||
-                                  sale.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right font-medium text-emerald-600">
-                              {formatTHB(Number(sale.totalAmount))}
-                            </TableCell>
-                            <TableCell>
-                              <Link href={`/sales/${sale.id}`}>
-                                <Button variant="ghost" size="icon">
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-slate-50">
+                          <TableRow>
+                            <TableHead className="font-bold text-slate-700">เลขที่ใบสั่งซื้อ</TableHead>
+                            <TableHead className="font-bold text-slate-700">วันที่</TableHead>
+                            <TableHead className="font-bold text-slate-700">สถานะ</TableHead>
+                            <TableHead className="text-right font-bold text-slate-700">มูลค่า</TableHead>
+                            <TableHead></TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {recentSales.map((sale) => (
+                            <TableRow key={sale.id} className="hover:bg-slate-50/50">
+                              <TableCell className="font-bold text-slate-900">
+                                {sale.saleNumber}
+                              </TableCell>
+                              <TableCell className="text-slate-600 font-medium">
+                                {format(
+                                  new Date(sale.saleDate),
+                                  "d MMM yyyy",
+                                  { locale: th }
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  className={cn(
+                                    saleStatusLabels[sale.status]?.color || "bg-gray-100",
+                                    "border-0 px-3"
+                                  )}
+                                >
+                                  {saleStatusLabels[sale.status]?.label ||
+                                    sale.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-extrabold text-emerald-600">
+                                {formatTHB(Number(sale.totalAmount))}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Link href={`/sales/${sale.id}`}>
+                                  <Button variant="ghost" size="icon" className="hover:bg-slate-100 rounded-lg">
+                                    <ExternalLink className="h-4 w-4 text-slate-400" />
+                                  </Button>
+                                </Link>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Finance Tab */}
+            <TabsContent value="finance" className="m-0 p-4 space-y-4">
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <SectionHeader
+                  title="ข้อมูลการเงินที่เกี่ยวข้อง"
+                  icon={<CreditCard className="h-6 w-6" />}
+                  accentColor="#f59e0b"
+                />
+                <div className="p-6">
+                  {customer?.creditLimits && customer.creditLimits.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6">
+                      {customer.creditLimits.map((limit) => (
+                          <div key={limit.id} className="border border-slate-100 rounded-xl p-6 bg-slate-50/30">
+                            <div className="flex items-center justify-between mb-4">
+                                <Badge variant="secondary" className="px-3 py-1 font-bold text-slate-600">
+                                    {limit.status === "ACTIVE" ? "วงเงินปัจจุบัน" : "สถานะอื่นๆ"}
+                                </Badge>
+                                <div className="text-right">
+                                    <span className="text-xs text-slate-400 block mb-1">วันที่เริ่มใช้งาน</span>
+                                    <span className="text-sm font-bold text-slate-600">
+                                        {format(new Date(limit.effectiveDate), "d MMM yyyy", { locale: th })}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <DetailItem 
+                                    label="วงเงินหลัก"
+                                    value={formatTHB(limit.limitAmount)}
+                                />
+                                <DetailItem 
+                                    label="ใช้ไปแล้ว"
+                                    value={formatTHB(limit.usedAmount)}
+                                />
+                                <DetailItem 
+                                    label="วงเงินคงเหลือ"
+                                    value={<span className="text-emerald-600 font-extrabold">{formatTHB(limit.availableAmount)}</span>}
+                                />
+                            </div>
+                          </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-slate-500">
+                      <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-10" />
+                      <p>ไม่มีข้อมูลจำกัดวงเงิน</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </TabsContent>
 
             {/* Contact & Notes Tab */}
             <TabsContent value="contact-notes" className="m-0 p-4 space-y-4">
               {/* Primary Contact */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    ข้อมูลติดต่อหลัก
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                        <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          โทรศัพท์
-                        </p>
-                        <p className="font-medium">
-                          {customer?.phone || "-"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
-                        <Mail className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">อีเมล</p>
-                        <p className="font-medium">
-                          {customer?.email || "-"}
-                        </p>
-                      </div>
-                    </div>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <SectionHeader
+                  title="ข้อมูลการติดต่อ"
+                  icon={<Phone className="h-6 w-6" />}
+                  variant="dark"
+                />
+                <div className="p-6 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                    <DetailItem
+                      icon={<Phone className="h-5 w-5" />}
+                      label="เบอร์โทรศัพท์"
+                      value={customer?.phone}
+                    />
+                    <DetailItem
+                      icon={<Mail className="h-5 w-5" />}
+                      label="อีเมล"
+                      value={customer?.email}
+                    />
+                    {customer?.contactPerson && (
+                      <>
+                        <DetailItem
+                          icon={<User className="h-5 w-5" />}
+                          label="ผู้ติดต่อประสานงาน"
+                          value={customer.contactPerson}
+                        />
+                        <DetailItem
+                          icon={<Phone className="h-5 w-5 text-slate-400" />}
+                          label="เบอร์โทรศัพท์ผู้ติดต่อ"
+                          value={customer.contactPhone}
+                        />
+                      </>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Contact Person */}
-              {customer?.contactPerson && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      ผู้ติดต่อ
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          ชื่อผู้ติดต่อ
-                        </p>
-                        <p className="font-medium">
-                          {customer.contactPerson}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          โทรศัพท์
-                        </p>
-                        <p className="font-medium">
-                          {customer.contactPhone || "-"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Notes */}
+              {customer?.notes && (
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                  <SectionHeader
+                    title="หมายเหตุ"
+                    icon={<FileText className="h-6 w-6" />}
+                    accentColor="#f59e0b"
+                  />
+                  <div className="p-6">
+                    <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                      {customer.notes}
+                    </p>
+                  </div>
+                </div>
               )}
             </TabsContent>
           </div>
         </Tabs>
-      </Card>
+      </div>
     </div>
+  </div>
   );
 }
-
-// Re-add MessageSquare as it was used in tabs but I missed the import if it's not lucide
-import { MessageSquare } from "lucide-react";
