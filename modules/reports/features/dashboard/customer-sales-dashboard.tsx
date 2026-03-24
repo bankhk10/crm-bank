@@ -562,7 +562,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="text-right font-semibold text-slate-700">ออเดอร์</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">ความถี่/เดือน</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">มูลค่ารวมทั้งหมด</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ลีดเดอร์</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
