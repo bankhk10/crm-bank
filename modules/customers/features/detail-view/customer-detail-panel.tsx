@@ -579,7 +579,7 @@ export function CustomerDetailPanel({
                         {customer?.billingAddressLine && (
                           <div>
                             <p className="text-xs text-muted-foreground">
-                              ที่อยู่เรียกเก็บเงิน
+                              ที่อยู่วางบิล
                             </p>
                             <p className="font-medium">
                               {[

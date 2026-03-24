@@ -512,7 +512,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <div className="p-6 space-y-2">
                     <DetailItem
                       icon={<MapPin className="h-5 w-5" />}
-                      label="ที่อยู่หลัก"
+                      label="ที่อยู่บริษัท"
                       value={[
                         customer?.addressLine,
                         customer?.subdistrict,
@@ -527,7 +527,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                     {customer?.billingAddressLine && (
                       <DetailItem
                         icon={<MapPin className="h-5 w-5 text-blue-400" />}
-                        label="ที่อยู่เรียกเก็บเงิน"
+                        label="ที่อยู่วางบิล"
                         value={[
                           customer.billingAddressLine,
                           customer.billingSubdistrict,
