@@ -117,12 +117,12 @@ function MiniBarChart({
               )}
               <div
                 className={`w-2.5 rounded-t-sm transition-all duration-500 ${isFuture
-                    ? "bg-slate-100"
-                    : d.actual >= d.target && d.target > 0
-                      ? "bg-emerald-500"
-                      : d.target > 0
-                        ? "bg-rose-400"
-                        : "bg-blue-400"
+                  ? "bg-slate-100"
+                  : d.actual >= d.target && d.target > 0
+                    ? "bg-emerald-500"
+                    : d.target > 0
+                      ? "bg-rose-400"
+                      : "bg-blue-400"
                   }`}
                 style={{ height: `${Math.max(actualHeight, 1)}%`, minHeight: 2 }}
                 title={`จริง: ${formatShortTHB(d.actual)}`}
@@ -291,8 +291,8 @@ export default function SalespersonDetailView({
             )}
             <Badge
               className={`border-0 text-xs ${employee.status === "ACTIVE" || !employee.status
-                  ? "bg-green-500/80 text-white"
-                  : "bg-gray-500/80 text-white"
+                ? "bg-green-500/80 text-white"
+                : "bg-gray-500/80 text-white"
                 }`}
             >
               {employee.status === "ACTIVE" || !employee.status ? (
@@ -354,6 +354,15 @@ export default function SalespersonDetailView({
           valueColor="text-purple-600"
         />
         <KpiCard
+          label="คะแนนสะสม"
+          value={formatNumber(kpi.totalPoints)}
+          sub="คะแนน"
+          icon={<Award className="h-5 w-5" />}
+          iconBg="bg-yellow-100 dark:bg-yellow-900"
+          iconColor="text-yellow-600 dark:text-yellow-400"
+          valueColor="text-yellow-600"
+        />
+        <KpiCard
           label="ยอดขายเดือนนี้"
           value={formatTHB(kpi.monthTotalSales)}
           sub={`${kpi.monthOrderCount} ออเดอร์`}
@@ -386,15 +395,6 @@ export default function SalespersonDetailView({
           }
           valueColor={kpi.achievementPercent >= 100 ? "text-emerald-600" : "text-orange-600"}
           progress={kpi.currentMonthTarget > 0 ? Math.min(kpi.achievementPercent, 100) : undefined}
-        />
-        <KpiCard
-          label="คะแนนสะสม"
-          value={formatNumber(kpi.totalPoints)}
-          sub="คะแนน"
-          icon={<Award className="h-5 w-5" />}
-          iconBg="bg-yellow-100 dark:bg-yellow-900"
-          iconColor="text-yellow-600 dark:text-yellow-400"
-          valueColor="text-yellow-600"
         />
         <KpiCard
           label="ขายล่าสุด"
@@ -602,10 +602,10 @@ export default function SalespersonDetailView({
                                     />
                                     <span
                                       className={`text-xs font-bold ${m.achievementPercent >= 100
-                                          ? "text-emerald-600"
-                                          : m.achievementPercent >= 70
-                                            ? "text-amber-600"
-                                            : "text-rose-600"
+                                        ? "text-emerald-600"
+                                        : m.achievementPercent >= 70
+                                          ? "text-amber-600"
+                                          : "text-rose-600"
                                         }`}
                                     >
                                       {m.achievementPercent}%
@@ -1046,8 +1046,8 @@ export default function SalespersonDetailView({
                               )}
                               <span
                                 className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                    : "bg-slate-50 text-slate-700 border-slate-100"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                  : "bg-slate-50 text-slate-700 border-slate-100"
                                   }`}
                               >
                                 {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
