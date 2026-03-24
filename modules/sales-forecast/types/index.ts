@@ -16,8 +16,8 @@ export interface PersonalForecastEntry {
   }[];
 }
 
-export interface GroupForecastEntry {
-  productGroup: string;
+export interface TradeNameForecastEntry {
+  tradeNameGroup: string;
   month: number;
   totalAmount: number;
   totalQuantity: number;
@@ -27,7 +27,7 @@ export interface ProductForecastEntry {
   productId: string;
   productCode: string;
   productName: string;
-  productGroup: string | null;
+  tradeNameGroup: string | null;
   month: number;
   totalAmount: number;
   totalQuantity: number;
@@ -35,8 +35,8 @@ export interface ProductForecastEntry {
 
 export interface SalesForecastResponse {
   personal: PersonalForecastEntry[];
-  group: GroupForecastEntry[];
+  tradeNameGroup: TradeNameForecastEntry[];
   product: ProductForecastEntry[];
   actualSales: Array<{ month: number; totalAmount: number }>;
-  groupLabels: Record<string, string>;
+  tradeNameGroupLabels: Record<string, string>;
 }

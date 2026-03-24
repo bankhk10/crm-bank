@@ -7,7 +7,7 @@ import { SalesForecastResponse } from "@/modules/sales-forecast/types";
 
 export const useSalesForecast = (year: number) => {
   const [data, setData] = useState<SalesForecastResponse | null>(null);
-  const [groupLabels, setGroupLabels] = useState<Record<string, string>>({});
+  const [tradeNameGroupLabels, setTradeNameGroupLabels] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export const useSalesForecast = (year: number) => {
     try {
       const forecastData = await getSalesForecastAction(year);
       setData(forecastData);
-      setGroupLabels(forecastData.groupLabels);
+      setTradeNameGroupLabels(forecastData.tradeNameGroupLabels);
     } catch (err) {
       console.error("Error fetching sales forecast:", err);
       setError("ไม่สามารถโหลดข้อมูลคาดการณ์ยอดขายได้");
@@ -32,7 +32,7 @@ export const useSalesForecast = (year: number) => {
 
   return {
     data,
-    groupLabels,
+    tradeNameGroupLabels,
     loading,
     error,
     refresh: fetchData,

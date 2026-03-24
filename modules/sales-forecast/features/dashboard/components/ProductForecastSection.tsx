@@ -8,7 +8,7 @@ interface ProductForecastRow {
   productId: string;
   productCode: string;
   productName: string;
-  productGroup: string | null;
+  tradeNameGroup: string | null;
   totalAmount: number;
   totalQuantity: number;
 }
@@ -37,7 +37,7 @@ export const ProductForecastSection = ({
       (row) =>
         row.productName.toLowerCase().includes(search) ||
         row.productCode.toLowerCase().includes(search) ||
-        row.productGroup?.toLowerCase().includes(search),
+        row.tradeNameGroup?.toLowerCase().includes(search),
     );
   }, [data, query]);
 
@@ -105,9 +105,9 @@ export const ProductForecastSection = ({
                     <span className="rounded bg-teal-100 px-2 py-0.5 text-xs font-mono text-teal-700">
                       {row.productCode}
                     </span>
-                    {row.productGroup && (
+                    {row.tradeNameGroup && (
                       <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                        {row.productGroup}
+                        {row.tradeNameGroup}
                       </span>
                     )}
                   </div>

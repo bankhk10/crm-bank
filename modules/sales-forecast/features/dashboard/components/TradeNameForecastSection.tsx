@@ -4,26 +4,26 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Layers, Loader2, Search } from "lucide-react";
 
-interface GroupForecastRow {
-  productGroup: string;
+interface TradeNameForecastRow {
+  tradeNameGroup: string;
   label: string;
   totalAmount: number;
   totalQuantity: number;
 }
 
-interface GroupForecastSectionProps {
-  data: GroupForecastRow[];
+interface TradeNameForecastSectionProps {
+  data: TradeNameForecastRow[];
   formatCurrency: (value: number) => string;
   loading: boolean;
   error: string | null;
 }
 
-export const GroupForecastSection = ({
+export const TradeNameForecastSection = ({
   data,
   formatCurrency,
   loading,
   error,
-}: GroupForecastSectionProps) => {
+}: TradeNameForecastSectionProps) => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 6;
@@ -34,7 +34,7 @@ export const GroupForecastSection = ({
     return data.filter(
       (row) =>
         row.label.toLowerCase().includes(search) ||
-        row.productGroup.toLowerCase().includes(search),
+        row.tradeNameGroup.toLowerCase().includes(search),
     );
   }, [data, query]);
 
@@ -95,10 +95,10 @@ export const GroupForecastSection = ({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {paginated.map((row) => (
                 <div
-                  key={row.productGroup}
+                  key={row.tradeNameGroup}
                   className="rounded-xl border border-slate-100 bg-white/80 p-4 shadow-sm"
                 >
-                  <p className="text-sm text-slate-500">{row.productGroup}</p>
+                  <p className="text-sm text-slate-500">{row.tradeNameGroup}</p>
                   <p className="text-base font-semibold text-slate-800">
                     {row.label}
                   </p>

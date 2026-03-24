@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useSalesForecast } from "@/hooks/use-sales-forecast";
 import { PersonalForecastSection } from "./components/PersonalForecastSection";
-import { GroupForecastSection } from "./components/GroupForecastSection";
+import { TradeNameForecastSection } from "./components/TradeNameForecastSection";
 import { ProductForecastSection } from "./components/ProductForecastSection";
 
 const MONTHS = [
@@ -67,7 +67,7 @@ export default function SalesForecastDashboard() {
   const [personalMonth, setPersonalMonth] = useState<string>("all");
   const {
     data: forecastData,
-    groupLabels,
+    tradeNameGroupLabels,
     loading: forecastLoading,
     error: forecastError,
     refresh: refreshForecast,
@@ -178,26 +178,26 @@ export default function SalesForecastDashboard() {
     );
   }, [forecastData, personalMonth]);
 
-  const groupForecastRows = useMemo(() => {
-    if (!forecastData?.group) return [];
+  const tradeNameForecastRows = useMemo(() => {
+    if (!forecastData?.tradeNameGroup) return [];
 
     // Use object for faster lookups
     const map: Record<
       string,
       {
-        productGroup: string;
+        tradeNameGroup: string;
         label: string;
         totalAmount: number;
         totalQuantity: number;
       }
     > = {};
 
-    forecastData.group.forEach((entry) => {
-      const code = entry.productGroup;
-      const label = groupLabels[code] || code || "ไม่ระบุ";
+    forecastData.tradeNameGroup.forEach((entry) => {
+      const code = entry.tradeNameGroup;
+      const label = tradeNameGroupLabels[code] || code || "ไม่ระบุ";
       if (!map[code]) {
         map[code] = {
-          productGroup: code,
+          tradeNameGroup: code,
           label,
           totalAmount: 0,
           totalQuantity: 0,
@@ -208,7 +208,7 @@ export default function SalesForecastDashboard() {
     });
 
     return Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
-  }, [forecastData, groupLabels]);
+  }, [forecastData, tradeNameGroupLabels]);
 
   const productForecastRows = useMemo(() => {
     if (!forecastData?.product) return [];
@@ -220,7 +220,7 @@ export default function SalesForecastDashboard() {
         productId: string;
         productCode: string;
         productName: string;
-        productGroup: string | null;
+        tradeNameGroup: string | null;
         totalAmount: number;
         totalQuantity: number;
       }
@@ -232,7 +232,7 @@ export default function SalesForecastDashboard() {
           productId: entry.productId,
           productCode: entry.productCode,
           productName: entry.productName,
-          productGroup: entry.productGroup,
+          tradeNameGroup: entry.tradeNameGroup,
           totalAmount: 0,
           totalQuantity: 0,
         };
@@ -542,8 +542,8 @@ export default function SalesForecastDashboard() {
         </TabsContent>
 
         <TabsContent value="group" className="focus-[&:not(:focus-visible)]:outline-none mt-0">
-          <GroupForecastSection
-            data={groupForecastRows}
+          <TradeNameForecastSection
+            data={tradeNameForecastRows}
             formatCurrency={formatFullCurrency}
             loading={forecastLoading}
             error={forecastError}

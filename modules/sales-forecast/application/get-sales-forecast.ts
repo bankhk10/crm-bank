@@ -52,7 +52,7 @@ export async function getSalesForecastUseCase(
 
   // Process forecast data
   const personalMap = new Map<string, any>();
-  const groupMap = new Map<string, any>();
+  const tradeNameGroupMap = new Map<string, any>();
   const productMap = new Map<string, any>();
 
   targets.forEach((target) => {
@@ -91,18 +91,18 @@ export async function getSalesForecastUseCase(
           });
         }
 
-        const productGroup = (item.product as any).tradeNameGroup?.code || "unassigned";
-        const groupKey = `${productGroup}-${target.month}`;
-        if (!groupMap.has(groupKey)) {
-          groupMap.set(groupKey, {
-            productGroup: productGroup,
+        const tradeNameGroupCode = (item.product as any).tradeNameGroup?.code || "unassigned";
+        const groupKey = `${tradeNameGroupCode}-${target.month}`;
+        if (!tradeNameGroupMap.has(groupKey)) {
+          tradeNameGroupMap.set(groupKey, {
+            tradeNameGroup: tradeNameGroupCode,
             month: target.month,
             totalAmount: 0,
             totalQuantity: 0,
           });
         }
 
-        const groupEntry = groupMap.get(groupKey);
+        const groupEntry = tradeNameGroupMap.get(groupKey);
         if (groupEntry) {
           groupEntry.totalAmount += amount;
           groupEntry.totalQuantity += quantity;
@@ -114,7 +114,7 @@ export async function getSalesForecastUseCase(
             productId: item.productId,
             productCode: item.product.productCode,
             productName: item.product.name,
-            productGroup: (item.product as any).tradeNameGroup?.code || "unassigned",
+            tradeNameGroup: (item.product as any).tradeNameGroup?.code || "unassigned",
             month: target.month,
             totalAmount: 0,
             totalQuantity: 0,
@@ -133,24 +133,24 @@ export async function getSalesForecastUseCase(
   const personal = Array.from(personalMap.values()).sort((a, b) =>
     a.employeeName.localeCompare(b.employeeName),
   );
-  const group = Array.from(groupMap.values()).sort((a, b) =>
-    a.productGroup.localeCompare(b.productGroup),
+  const tradeNameGroup = Array.from(tradeNameGroupMap.values()).sort((a, b) =>
+    a.tradeNameGroup.localeCompare(b.tradeNameGroup),
   );
   const product = Array.from(productMap.values()).sort((a, b) =>
     a.productName.localeCompare(b.productName),
   );
 
   // Create group labels map
-  const groupLabels = groups.reduce<Record<string, string>>((acc, g) => {
+  const tradeNameGroupLabels = groups.reduce<Record<string, string>>((acc, g) => {
     acc[g.code] = g.description;
     return acc;
   }, {});
 
   return {
     personal,
-    group,
+    tradeNameGroup,
     product,
     actualSales,
-    groupLabels,
+    tradeNameGroupLabels,
   };
 }
