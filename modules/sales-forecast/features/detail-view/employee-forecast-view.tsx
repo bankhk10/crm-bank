@@ -148,7 +148,7 @@ export default function EmployeeForecastView({ employeeId }: EmployeeForecastVie
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 sm:pb-8">
+      <div className="mx-auto space-y-4 sm:space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 sm:pb-8">
         {/* Header */}
         <div className="relative">
           <div className="absolute inset-0 bg-linear-to-r from-blue-600/10 via-indigo-600/10 to-violet-600/10 blur-3xl" />
