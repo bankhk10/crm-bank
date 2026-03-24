@@ -59,9 +59,9 @@ export const GroupForecastSection = ({
               <Layers className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <CardTitle>ยอดคาดการณ์ตามกลุ่มสินค้า</CardTitle>
+              <CardTitle>ยอดคาดการณ์ตามกลุ่มชื่อการค้า</CardTitle>
               <p className="text-sm text-slate-500">
-                ภาพรวมยอดคาดการณ์ตามกลุ่มสินค้า
+                ภาพรวมยอดคาดการณ์ตามกลุ่มชื่อการค้า
               </p>
             </div>
           </div>
@@ -70,7 +70,7 @@ export const GroupForecastSection = ({
             <Input
               value={query}
               onChange={(event) => handleQueryChange(event.target.value)}
-              placeholder="ค้นหากลุ่มสินค้า..."
+              placeholder="ค้นหากลุ่มชื่อการค้า..."
               className="h-10 rounded-xl pl-9"
             />
           </div>
@@ -80,7 +80,7 @@ export const GroupForecastSection = ({
         {loading ? (
           <div className="flex items-center justify-center py-12 text-slate-500">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            กำลังโหลดข้อมูลคาดการณ์กลุ่มสินค้า...
+            กำลังโหลดข้อมูลคาดการณ์กลุ่มชื่อการค้า...
           </div>
         ) : error ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-600">
@@ -88,7 +88,7 @@ export const GroupForecastSection = ({
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-200 p-10 text-center text-slate-500">
-            ไม่พบข้อมูลคาดการณ์กลุ่มสินค้า
+            ไม่พบข้อมูลคาดการณ์กลุ่มชื่อการค้า
           </div>
         ) : (
           <>

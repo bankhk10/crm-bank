@@ -361,7 +361,7 @@ export default function SalesForecastDashboard() {
           <TabsList className="bg-white/80 backdrop-blur-sm shadow-sm border border-slate-200/60 p-1.5 rounded-xl h-auto">
             <TabsTrigger value="overview" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">ภาพรวม</TabsTrigger>
             <TabsTrigger value="personal" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">พนักงาน</TabsTrigger>
-            <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มสินค้า</TabsTrigger>
+            <TabsTrigger value="group" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">กลุ่มชื่อการค้า</TabsTrigger>
             <TabsTrigger value="product" className="rounded-lg px-4 py-2 font-medium text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-700">สินค้า</TabsTrigger>
           </TabsList>
         </div>
