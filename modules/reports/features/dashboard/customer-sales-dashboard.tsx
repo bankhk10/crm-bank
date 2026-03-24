@@ -440,7 +440,7 @@ export function CustomerSalesDashboard() {
                           ? topCustomers[0]?.name || "-"
                           : salespersonPerf[0]?.name || "-"}
                       </p>
-                      <p className="text-xs sm:text-sm text-red-600 mt-1 font-semibold">
+                      <p className="text-xs sm:text-sm text-green-700 mt-1 font-semibold">
                         {activeTab === "customers"
                           ? topCustomers[0]
                             ? formatTHB(topCustomers[0].totalSales)
@@ -507,9 +507,6 @@ export function CustomerSalesDashboard() {
                           ? formatNumber(topCustomers.length)
                           : formatNumber(salespersonPerf.length)}
                       </p>
-                      <p className="text-xs sm:text-sm text-zinc-500 mt-1">
-                        ที่มียอดขาย
-                      </p>
                     </div>
                     <div className="p-2 sm:p-3 rounded-xl bg-zinc-100">
                       <Users className="h-6 w-6 text-zinc-900" />
@@ -560,7 +557,6 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">จังหวัด</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">ยอดขายรวม</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">ออเดอร์</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">ความถี่/เดือน</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">มูลค่ารวมทั้งหมด</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
@@ -600,23 +596,19 @@ export function CustomerSalesDashboard() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-slate-600">{c.province}</TableCell>
-                                <TableCell className="text-right font-bold text-red-600">
+                                <TableCell className="text-right font-bold text-green-700">
                                   {formatTHB(c.totalSales)}
                                 </TableCell>
                                 <TableCell className="text-right text-slate-700 font-medium">
                                   {c.orderCount}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600">
-                                  {c.purchaseFrequency.toFixed(1)}
                                 </TableCell>
                                 <TableCell className="text-right font-semibold text-zinc-700">
                                   {formatTHB(c.lifetimeValue)}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Link href={`/reports/customer-sales/${c.id}`}>
-                                    <Button variant="ghost" size="sm" className="hover:bg-red-50 hover:text-red-700 rounded-lg">
+                                    <Button variant="ghost" size="sm" className="hover:bg-green-50 hover:text-green-700 rounded-lg">
                                       <Eye className="h-4 w-4 mr-1.5" />
-                                      ดู
                                     </Button>
                                   </Link>
                                 </TableCell>
@@ -664,7 +656,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="text-right font-semibold text-slate-700">ยอดขายรวม</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700">จำนวนลูกค้า</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ประวัติ</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -710,7 +702,7 @@ export function CustomerSalesDashboard() {
                                     {s.department}
                                   </Badge>
                                 </TableCell>
-                                <TableCell className="text-right font-bold text-red-600">
+                                <TableCell className="text-right font-bold text-green-700">
                                   {formatTHB(s.totalSales)}
                                 </TableCell>
                                 <TableCell className="text-right font-medium text-slate-700">
@@ -723,7 +715,6 @@ export function CustomerSalesDashboard() {
                                   <Link href={`/reports/salesperson/${s.id}`}>
                                     <Button variant="ghost" size="sm" className="hover:bg-red-50 hover:text-red-700 rounded-lg">
                                       <Eye className="h-4 w-4 mr-1.5" />
-                                      ดูผลงาน
                                     </Button>
                                   </Link>
                                 </TableCell>

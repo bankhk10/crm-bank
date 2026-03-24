@@ -116,15 +116,14 @@ function MiniBarChart({
                 />
               )}
               <div
-                className={`w-2.5 rounded-t-sm transition-all duration-500 ${
-                  isFuture
+                className={`w-2.5 rounded-t-sm transition-all duration-500 ${isFuture
                     ? "bg-slate-100"
                     : d.actual >= d.target && d.target > 0
                       ? "bg-emerald-500"
                       : d.target > 0
                         ? "bg-rose-400"
                         : "bg-blue-400"
-                }`}
+                  }`}
                 style={{ height: `${Math.max(actualHeight, 1)}%`, minHeight: 2 }}
                 title={`จริง: ${formatShortTHB(d.actual)}`}
               />
@@ -291,11 +290,10 @@ export default function SalespersonDetailView({
               </Badge>
             )}
             <Badge
-              className={`border-0 text-xs ${
-                employee.status === "ACTIVE" || !employee.status
+              className={`border-0 text-xs ${employee.status === "ACTIVE" || !employee.status
                   ? "bg-green-500/80 text-white"
                   : "bg-gray-500/80 text-white"
-              }`}
+                }`}
             >
               {employee.status === "ACTIVE" || !employee.status ? (
                 <>
@@ -465,42 +463,6 @@ export default function SalespersonDetailView({
           <div className="flex-1 overflow-y-auto">
             {/* ══════════ Tab: Overview ══════════ */}
             <TabsContent value="overview" className="m-0 p-4 sm:p-6 space-y-6">
-              {/* Sales Chart */}
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-rose-500" />
-                    ยอดขายรายเดือน ({data.currentYear})
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    เปรียบเทียบเป้าหมาย (สีเทา) กับยอดจริง (สี)
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <MiniBarChart
-                    data={data.monthlyPerformance.map((m) => ({
-                      label: m.monthShort,
-                      actual: m.actual,
-                      target: m.target,
-                    }))}
-                  />
-                  <div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-2 bg-slate-200 rounded-sm" /> เป้าหมาย
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-2 bg-emerald-500 rounded-sm" /> ถึงเป้า
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-2 bg-rose-400 rounded-sm" /> ไม่ถึงเป้า
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-2 bg-blue-400 rounded-sm" /> ไม่มีเป้า
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Status Breakdown */}
               <Card className="border border-slate-100">
                 <CardHeader className="pb-2">
@@ -639,13 +601,12 @@ export default function SalespersonDetailView({
                                       className="h-2 w-16"
                                     />
                                     <span
-                                      className={`text-xs font-bold ${
-                                        m.achievementPercent >= 100
+                                      className={`text-xs font-bold ${m.achievementPercent >= 100
                                           ? "text-emerald-600"
                                           : m.achievementPercent >= 70
                                             ? "text-amber-600"
                                             : "text-rose-600"
-                                      }`}
+                                        }`}
                                     >
                                       {m.achievementPercent}%
                                     </span>
@@ -1084,11 +1045,10 @@ export default function SalespersonDetailView({
                                 </span>
                               )}
                               <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${
-                                  customer.status === "ACTIVE"
+                                className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
                                     ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                     : "bg-slate-50 text-slate-700 border-slate-100"
-                                }`}
+                                  }`}
                               >
                                 {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
                               </span>
