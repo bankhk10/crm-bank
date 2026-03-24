@@ -447,63 +447,6 @@ export function TimeSalesDashboard() {
               />
             </div>
 
-            {/* ── Insights Bar ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Best Month */}
-              <Card className="rounded-xl border border-red-200/60 bg-gradient-to-br from-red-50 to-rose-50/60 shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-red-500/15 ring-1 ring-red-500/20">
-                    <Star className="h-5 w-5 text-red-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">เดือนขายดีที่สุด</p>
-                    <p className="text-base font-bold text-slate-900 truncate">
-                      {reportData.bestSellingMonth.month || "–"}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formatTHB(reportData.bestSellingMonth.sales)} · {reportData.bestSellingMonth.orders} ออเดอร์
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Best Day of Week */}
-              <Card className="rounded-xl border border-zinc-200/60 bg-gradient-to-br from-zinc-50 to-slate-50/60 shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-zinc-500/15 ring-1 ring-zinc-500/20">
-                    <Clock className="h-5 w-5 text-zinc-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">วันขายดีที่สุด</p>
-                    <p className="text-base font-bold text-slate-900 truncate">
-                      วัน{reportData.bestSellingDay.dayOfWeek || "-"}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formatTHB(reportData.bestSellingDay.sales)} · {reportData.bestSellingDay.orders} ออเดอร์
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Best Quarter */}
-              <Card className="rounded-xl border border-rose-200/60 bg-gradient-to-br from-rose-50 to-red-50/60 shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="shrink-0 grid place-items-center size-10 rounded-xl bg-rose-500/15 ring-1 ring-rose-500/20">
-                    <Award className="h-5 w-5 text-rose-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-rose-700 uppercase tracking-wide">ไตรมาสขายดีที่สุด</p>
-                    <p className="text-base font-bold text-slate-900 truncate">
-                      {bestQuarter?.quarter || "–"}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {bestQuarter ? formatTHB(bestQuarter.sales) : "–"} · {bestQuarter?.percentage.toFixed(1)}%
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* ── Tabs ── */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
