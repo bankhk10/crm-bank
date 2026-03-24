@@ -26,9 +26,9 @@ export function KpiCard({
             <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm text-slate-500 font-medium">{label}</p>
+                        <p className="text-xs sm:text-lg text-slate-800 font-semibold">{label}</p>
                         {sublabel && (
-                            <p className="text-[10px] text-slate-400 mt-0.5">{sublabel}</p>
+                            <p className="text-[12px] text-slate-500 mt-0.5">{sublabel}</p>
                         )}
                         <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">
                             {value}
