@@ -113,10 +113,18 @@ export async function getSaleDetailForApproval(
 
   // Include active temporary credit
   const tempAmount = Number(creditLimit?.temporaryCreditAmount || 0);
-  if (tempAmount > 0 && creditLimit?.temporaryCreditExpiryDate) {
-    const tempExpiry = new Date(creditLimit.temporaryCreditExpiryDate);
-    if (tempExpiry >= new Date()) {
-      availableCredit += tempAmount;
+  if (tempAmount > 0) {
+    const tempExpiryDate = creditLimit?.temporaryCreditExpiryDate;
+    if (!tempExpiryDate) {
+      availableCredit += tempAmount; // No expiry, assume valid
+    } else {
+      const tempExpiry = new Date(tempExpiryDate);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // Include the current day
+
+      if (tempExpiry >= now) {
+        availableCredit += tempAmount;
+      }
     }
   }
 

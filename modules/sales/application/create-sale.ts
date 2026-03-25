@@ -92,10 +92,18 @@ export async function createSaleUseCase(
     // Include active temporary credit
     let activeTempCredit = 0;
     const tempAmount = Number(creditLimit.temporaryCreditAmount || 0);
-    if (tempAmount > 0 && creditLimit.temporaryCreditExpiryDate) {
-      const tempExpiry = new Date(creditLimit.temporaryCreditExpiryDate);
-      if (tempExpiry >= new Date()) {
+    if (tempAmount > 0) {
+      const tempExpiryDate = creditLimit.temporaryCreditExpiryDate;
+      if (!tempExpiryDate) {
         activeTempCredit = tempAmount;
+      } else {
+        const tempExpiry = new Date(tempExpiryDate);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Include the current day
+
+        if (tempExpiry >= now) {
+          activeTempCredit = tempAmount;
+        }
       }
     }
 

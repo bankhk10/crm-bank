@@ -22,10 +22,14 @@ function getActiveTempCredit(creditLimit: NonNullable<SaleFormCustomer["creditLi
     if (tempAmount <= 0) return 0;
 
     const tempExpiry = creditLimit.temporaryCreditExpiryDate;
-    if (!tempExpiry) return 0;
+    if (!tempExpiry) return tempAmount; // If no expiry, assume it's valid
 
     const expiryDate = new Date(tempExpiry);
-    if (expiryDate < new Date()) return 0;
+    const now = new Date();
+    // Set now to start of day for comparison if we want to include the expiry day
+    now.setHours(0, 0, 0, 0);
+
+    if (expiryDate < now) return 0;
 
     return tempAmount;
 }
