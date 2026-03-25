@@ -180,7 +180,7 @@ export default function CreditLimitsListView() {
                 setPerPage(nextPerPage);
                 setPage(1);
               },
-              perPageOptions: [5, 10, 20],
+              perPageOptions: [10, 20, 30],
             }}
           />
         </div>
