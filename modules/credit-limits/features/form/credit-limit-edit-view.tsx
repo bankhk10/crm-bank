@@ -45,6 +45,8 @@ export default function CreditLimitEditView() {
                         effectiveDate: src.effectiveDate ? new Date(src.effectiveDate) : new Date(),
                         expiryDate: src.expiryDate ? new Date(src.expiryDate) : undefined,
                         notes: src.notes ?? "",
+                        temporaryCreditAmount: src.temporaryCreditAmount ? Number(src.temporaryCreditAmount) : 0,
+                        temporaryCreditExpiryDate: src.temporaryCreditExpiryDate ? new Date(src.temporaryCreditExpiryDate) : undefined,
                     });
                 }
             } catch (e: any) {

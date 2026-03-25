@@ -108,8 +108,18 @@ export async function getSaleDetailForApproval(
   const creditLimit = sale.customer.creditLimits?.[0];
   const creditLimitAmount = Number(creditLimit?.limitAmount ?? 0);
   const usedCredit = Number(creditLimit?.usedAmount ?? 0);
-  const availableCredit = Number(creditLimit?.availableAmount ?? 0);
+  let availableCredit = Number(creditLimit?.availableAmount ?? 0);
   const currentSaleAmount = Number(sale.totalAmount ?? 0);
+
+  // Include active temporary credit
+  const tempAmount = Number(creditLimit?.temporaryCreditAmount || 0);
+  if (tempAmount > 0 && creditLimit?.temporaryCreditExpiryDate) {
+    const tempExpiry = new Date(creditLimit.temporaryCreditExpiryDate);
+    if (tempExpiry >= new Date()) {
+      availableCredit += tempAmount;
+    }
+  }
+
   const willExceedLimit =
     sale.paymentTerm !== "PREPAID" &&
     creditLimitAmount > 0 &&

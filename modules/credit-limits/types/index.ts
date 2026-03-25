@@ -4,6 +4,8 @@ export interface CreditLimit {
   usedAmount?: number;
   availableAmount?: number;
   promoAmount?: number;
+  temporaryCreditAmount?: number;
+  temporaryCreditExpiryDate?: Date | string;
 }
 
 export interface TemporaryCreditLimit {
@@ -32,6 +34,8 @@ export interface CreditLimitPayload {
   effectiveDate: Date;
   expiryDate?: Date;
   notes?: string;
+  temporaryCreditAmount?: number;
+  temporaryCreditExpiryDate?: Date;
 }
 
 export interface SubmitResult {

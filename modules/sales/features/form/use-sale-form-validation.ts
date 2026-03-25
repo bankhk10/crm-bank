@@ -102,9 +102,21 @@ export function useSaleFormValidation() {
           ? promoAmount - state.promotionalCreditUsed
           : 0;
 
-        if (total > availableCredit + promotionalAvailable) {
+        // Include active temporary credit
+        let activeTempCredit = 0;
+        const tempAmount = Number(creditLimit?.temporaryCreditAmount || 0);
+        if (tempAmount > 0 && creditLimit?.temporaryCreditExpiryDate) {
+          const tempExpiry = new Date(creditLimit.temporaryCreditExpiryDate);
+          if (tempExpiry >= new Date()) {
+            activeTempCredit = tempAmount;
+          }
+        }
+
+        const totalAvailableCredit = availableCredit + activeTempCredit + promotionalAvailable;
+
+        if (total > totalAvailableCredit) {
           errors.push(
-            `ยอดขายเกินวงเงินเครดิต (วงเงินคงเหลือ: ${availableCredit.toLocaleString()})`,
+            `ยอดขายเกินวงเงินเครดิต (วงเงินคงเหลือ: ${totalAvailableCredit.toLocaleString()})`,
           );
         }
       }

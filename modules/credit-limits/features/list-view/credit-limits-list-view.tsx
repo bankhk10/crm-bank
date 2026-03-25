@@ -102,15 +102,9 @@ export default function CreditLimitsListView() {
                 usedAmount: cl.usedAmount,
                 availableAmount: cl.availableAmount,
                 promoAmount: cl.promoAmount,
+                temporaryCreditAmount: cl.temporaryCreditAmount,
+                temporaryCreditExpiryDate: cl.temporaryCreditExpiryDate,
               })),
-              temporaryCreditLimits: (c.temporaryCreditLimits || []).map(
-                (tcl: any) => ({
-                  id: tcl.id,
-                  requestedAmount: tcl.requestedAmount,
-                  status: tcl.status,
-                  expiryDate: tcl.expiryDate,
-                })
-              ),
             }))
           );
           setTotal(typeof res.total === "number" ? res.total : 0);

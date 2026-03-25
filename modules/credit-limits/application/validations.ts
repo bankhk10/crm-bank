@@ -7,6 +7,8 @@ export const creditLimitSchema = z.object({
   effectiveDate: z.string().or(z.date()),
   expiryDate: z.string().or(z.date()).optional(),
   notes: z.string().optional(),
+  temporaryCreditAmount: z.number().nonnegative().optional(),
+  temporaryCreditExpiryDate: z.string().or(z.date()).optional().nullable(),
 });
 
 export const creditLimitUpdateSchema = z.object({
@@ -17,4 +19,6 @@ export const creditLimitUpdateSchema = z.object({
   expiryDate: z.string().or(z.date()).optional(),
   status: z.enum(["ACTIVE", "SUSPENDED", "EXPIRED"]).optional(),
   notes: z.string().optional(),
+  temporaryCreditAmount: z.number().nonnegative().optional().nullable(),
+  temporaryCreditExpiryDate: z.string().or(z.date()).optional().nullable(),
 });

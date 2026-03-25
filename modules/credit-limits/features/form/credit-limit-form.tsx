@@ -33,6 +33,8 @@ export default function CreditLimitForm({
     effectiveDate: initial.effectiveDate ?? new Date(),
     expiryDate: initial.expiryDate,
     notes: initial.notes ?? "",
+    temporaryCreditAmount: initial.temporaryCreditAmount ?? 0,
+    temporaryCreditExpiryDate: initial.temporaryCreditExpiryDate,
   });
 
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,21 @@ export default function CreditLimitForm({
   );
   const [promoAmountText, setPromoAmountText] = useState<string>(
     String(initial.promoAmount ?? 0)
+  );
+  const [tempCreditAmountText, setTempCreditAmountText] = useState<string>(
+    String(initial.temporaryCreditAmount ?? 0)
+  );
+
+  // Format date to YYYY-MM-DD for input[type="date"]
+  const formatDateForInput = (date?: Date | string | null): string => {
+    if (!date) return "";
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().split("T")[0];
+  };
+
+  const [tempExpiryDateText, setTempExpiryDateText] = useState<string>(
+    formatDateForInput(initial.temporaryCreditExpiryDate)
   );
 
   const clearError = (f: string) =>
@@ -63,12 +80,18 @@ export default function CreditLimitForm({
     try {
       const parsedLimit = limitAmountText === "" ? 0 : Number(limitAmountText);
       const parsedPromo = promoAmountText === "" ? 0 : Number(promoAmountText);
+      const parsedTempCredit =
+        tempCreditAmountText === "" ? 0 : Number(tempCreditAmountText);
 
       const body: any = {
         customerId: payload.customerId,
         limitAmount: parsedLimit,
         promoAmount: parsedPromo,
         notes: payload.notes,
+        temporaryCreditAmount: parsedTempCredit,
+        temporaryCreditExpiryDate: tempExpiryDateText
+          ? new Date(tempExpiryDateText)
+          : null,
       };
 
       // Sync payload
@@ -76,12 +99,9 @@ export default function CreditLimitForm({
         ...p,
         limitAmount: parsedLimit,
         promoAmount: parsedPromo,
+        temporaryCreditAmount: parsedTempCredit,
       }));
 
-      // In real payload, dates are Date objects. 
-      // API expects ISO strings if JSONified? 
-      // The prop `onSubmit` takes `CreditLimitPayload` which has `Date`.
-      // The caller handles stringification.
       // Copy dates
       body.effectiveDate = payload.effectiveDate;
       body.expiryDate = payload.expiryDate;
@@ -208,6 +228,62 @@ export default function CreditLimitForm({
             }
             className="w-full border rounded-xl px-3 py-2 text-base mt-1"
           />
+        </div>
+      </div>
+
+      {/* Temporary Credit Section */}
+      <div className="border-l-4 border-blue-500 pl-4 py-2">
+        <h3 className="text-xl font-semibold text-blue-800 bg-blue-50 py-3 px-4 rounded-2xl mb-4">
+          วงเงินเครดิตชั่วคราว
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <Label className={labelText}>จำนวนวงเงินชั่วคราว (บาท)</Label>
+            <Input
+              type="number"
+              className={inputClass}
+              value={tempCreditAmountText}
+              onChange={(e) => {
+                const raw = e.target.value;
+                const cleaned = raw.replace(/^0+(?=\d)/, "");
+                setTempCreditAmountText(cleaned === "" ? "" : cleaned);
+                clearError("temporaryCreditAmount");
+              }}
+              onBlur={() => {
+                if (tempCreditAmountText === "") setTempCreditAmountText("0");
+                const num =
+                  tempCreditAmountText === ""
+                    ? 0
+                    : Number(tempCreditAmountText);
+                setPayload((p) => ({ ...p, temporaryCreditAmount: num }));
+              }}
+              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+              placeholder="0"
+            />
+            {fieldErrors.temporaryCreditAmount && (
+              <p className="text-red-600 text-sm">
+                {fieldErrors.temporaryCreditAmount}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label className={labelText}>วันหมดอายุวงเงินชั่วคราว</Label>
+            <Input
+              type="date"
+              className={inputClass}
+              value={tempExpiryDateText}
+              onChange={(e) => {
+                setTempExpiryDateText(e.target.value);
+                clearError("temporaryCreditExpiryDate");
+              }}
+            />
+            {fieldErrors.temporaryCreditExpiryDate && (
+              <p className="text-red-600 text-sm">
+                {fieldErrors.temporaryCreditExpiryDate}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

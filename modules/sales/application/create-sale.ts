@@ -89,12 +89,22 @@ export async function createSaleUseCase(
       Number(body.promotionalCreditUsed || 0)
       : 0;
 
-    if (total > availableCredit + promotionalCredit) {
+    // Include active temporary credit
+    let activeTempCredit = 0;
+    const tempAmount = Number(creditLimit.temporaryCreditAmount || 0);
+    if (tempAmount > 0 && creditLimit.temporaryCreditExpiryDate) {
+      const tempExpiry = new Date(creditLimit.temporaryCreditExpiryDate);
+      if (tempExpiry >= new Date()) {
+        activeTempCredit = tempAmount;
+      }
+    }
+
+    if (total > availableCredit + activeTempCredit + promotionalCredit) {
       return {
         success: false as const,
         error: "Sale amount exceeds available credit limit",
         creditInfo: {
-          available: availableCredit,
+          available: availableCredit + activeTempCredit,
           promotional: promotionalCredit,
           required: total,
         },

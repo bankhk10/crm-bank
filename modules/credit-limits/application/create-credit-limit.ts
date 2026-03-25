@@ -30,6 +30,14 @@ export async function createCreditLimitUseCase(
   const limitAmount = parsed.data.limitAmount;
   const promoAmount = parsed.data.promoAmount;
 
+  // Temporary credit fields (saved directly, no approval needed)
+  const temporaryCreditAmount = parsed.data.temporaryCreditAmount ?? 0;
+  const temporaryCreditExpiryDate = parsed.data.temporaryCreditExpiryDate
+    ? typeof parsed.data.temporaryCreditExpiryDate === "string"
+      ? new Date(parsed.data.temporaryCreditExpiryDate)
+      : parsed.data.temporaryCreditExpiryDate
+    : null;
+
   try {
     const creditLimit = await createRepoCreditLimit({
       customerId: parsed.data.customerId,
@@ -42,6 +50,8 @@ export async function createCreditLimitUseCase(
       notes: parsed.data.notes,
       status: "ACTIVE",
       createdById: userId,
+      temporaryCreditAmount,
+      temporaryCreditExpiryDate,
     });
 
     return { success: true, creditLimit };

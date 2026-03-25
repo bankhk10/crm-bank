@@ -48,6 +48,21 @@ export async function updateCreditLimitUseCase(id: string, payload: unknown) {
     updateData.availableAmount = newLimit - newUsed;
   }
 
+  // Handle temporary credit fields (saved directly, no approval needed)
+  if (parsed.data.temporaryCreditAmount !== undefined) {
+    updateData.temporaryCreditAmount = parsed.data.temporaryCreditAmount;
+  }
+  if (parsed.data.temporaryCreditExpiryDate !== undefined) {
+    if (parsed.data.temporaryCreditExpiryDate === null) {
+      updateData.temporaryCreditExpiryDate = null;
+    } else {
+      updateData.temporaryCreditExpiryDate =
+        typeof parsed.data.temporaryCreditExpiryDate === "string"
+          ? new Date(parsed.data.temporaryCreditExpiryDate)
+          : parsed.data.temporaryCreditExpiryDate;
+    }
+  }
+
   const creditLimit = await updateRepoCreditLimit(id, updateData);
 
   return { success: true, creditLimit, existing };

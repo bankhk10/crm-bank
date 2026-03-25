@@ -67,28 +67,29 @@ export function useCreditLimitColumns() {
                 header: "วงเงินเครดิตชั่วคราว",
                 cell: ({ row }) => {
                     const r = row.original;
-                    const tempLimits = r.temporaryCreditLimits || [];
+                    const cl = r.creditLimits && r.creditLimits[0];
 
-                    const approvedLimits = tempLimits
-                        .filter((temp) => temp.status === "APPROVED")
-                        .sort((a, b) => {
-                            const dateA = new Date(a.expiryDate).getTime();
-                            const dateB = new Date(b.expiryDate).getTime();
-                            return dateB - dateA;
-                        });
-
-                    if (approvedLimits.length === 0) {
+                    if (!cl) {
                         return new Intl.NumberFormat("th-TH", {
                             style: "currency",
                             currency: "THB",
                         }).format(0);
                     }
 
-                    const latestTemp = approvedLimits[0];
-                    const expiryDate = new Date(latestTemp.expiryDate);
-                    const now = new Date();
+                    const tempAmount = Number(cl.temporaryCreditAmount || 0);
+                    const tempExpiry = cl.temporaryCreditExpiryDate
+                        ? new Date(cl.temporaryCreditExpiryDate)
+                        : null;
 
-                    if (expiryDate < now) {
+                    if (tempAmount <= 0) {
+                        return new Intl.NumberFormat("th-TH", {
+                            style: "currency",
+                            currency: "THB",
+                        }).format(0);
+                    }
+
+                    const now = new Date();
+                    if (tempExpiry && tempExpiry < now) {
                         return (
                             <div className="text-sm">
                                 <span className="font-medium text-gray-400">
@@ -97,7 +98,6 @@ export function useCreditLimitColumns() {
                                         currency: "THB",
                                     }).format(0)}
                                 </span>
-                                {/* <span className="ml-2 text-xs text-red-600">(หมดอายุ)</span> */}
                             </div>
                         );
                     }
@@ -108,11 +108,13 @@ export function useCreditLimitColumns() {
                                 {new Intl.NumberFormat("th-TH", {
                                     style: "currency",
                                     currency: "THB",
-                                }).format(Number(latestTemp.requestedAmount))}
+                                }).format(tempAmount)}
                             </span>
-                            <div className="text-xs text-gray-500 mt-1">
-                                หมดอายุ: {expiryDate.toLocaleDateString("th-TH")}
-                            </div>
+                            {tempExpiry && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                    หมดอายุ: {tempExpiry.toLocaleDateString("th-TH")}
+                                </div>
+                            )}
                         </div>
                     );
                 },

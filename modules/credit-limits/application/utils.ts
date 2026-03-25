@@ -23,29 +23,21 @@ export function calculateCreditInfo(r: CustomerRecord) {
 
   const totalRemaining = baseAmount;
 
-  const tempLimits = r.temporaryCreditLimits || [];
-  const approvedLimits = tempLimits.filter(
-    (temp) => temp.status === "APPROVED",
-  );
+  // Read temporary credit directly from CreditLimit (no approval needed)
+  const tempAmount = Number(cl.temporaryCreditAmount || 0);
+  const tempExpiryDate = cl.temporaryCreditExpiryDate
+    ? new Date(cl.temporaryCreditExpiryDate)
+    : null;
 
   let tempLimitAmount = 0;
   let isTempExpired = false;
   let latestTempExpiry: Date | null = null;
 
-  if (approvedLimits.length > 0) {
-    // Sort desc
-    const latestTemp = approvedLimits.sort((a, b) => {
-      const dateA = new Date(a.expiryDate).getTime();
-      const dateB = new Date(b.expiryDate).getTime();
-      return dateB - dateA;
-    })[0];
-
-    const expiryDate = new Date(latestTemp.expiryDate);
-    latestTempExpiry = expiryDate;
+  if (tempAmount > 0 && tempExpiryDate) {
+    latestTempExpiry = tempExpiryDate;
     const now = new Date();
-
-    if (expiryDate >= now) {
-      tempLimitAmount = Number(latestTemp.requestedAmount);
+    if (tempExpiryDate >= now) {
+      tempLimitAmount = tempAmount;
     } else {
       isTempExpired = true;
     }

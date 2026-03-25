@@ -364,6 +364,8 @@ export interface SaleFormCustomer {
     usedAmount: number;
     availableAmount: number;
     status: string;
+    temporaryCreditAmount?: number;
+    temporaryCreditExpiryDate?: string | Date | null;
   }>;
   shippingCompanies?: Array<{
     shippingCompany: {
