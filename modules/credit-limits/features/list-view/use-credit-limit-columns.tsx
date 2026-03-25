@@ -37,10 +37,20 @@ export function useCreditLimitColumns() {
                             ? Number(cl.availableAmount)
                             : Number(cl.limitAmount) - (Number(cl.usedAmount) || 0);
 
+                    // Add temporary credit if it's not expired
+                    const tempAmount = Number(cl.temporaryCreditAmount || 0);
+                    const tempExpiry = cl.temporaryCreditExpiryDate
+                        ? new Date(cl.temporaryCreditExpiryDate)
+                        : null;
+                    const now = new Date();
+                    
+                    const validTempAmount = tempExpiry && tempExpiry < now ? 0 : tempAmount;
+                    const totalAmount = baseAmount + validTempAmount;
+
                     return new Intl.NumberFormat("th-TH", {
                         style: "currency",
                         currency: "THB",
-                    }).format(baseAmount);
+                    }).format(totalAmount);
                 },
                 meta: { minWidth: 170, width: 170, align: "center" },
             },

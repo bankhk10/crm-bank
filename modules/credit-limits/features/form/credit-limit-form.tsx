@@ -168,9 +168,18 @@ export default function CreditLimitForm({
           <Input
             type="text"
             className={`${inputClass} bg-gray-100 font-semibold text-green-700`}
-            value={new Intl.NumberFormat("th-TH", {
-              minimumFractionDigits: 2,
-            }).format(payload.availableAmount || 0)}
+            value={(() => {
+              const tempAmount = tempCreditAmountText === "" ? 0 : Number(tempCreditAmountText);
+              const tempExpiry = tempExpiryDateText ? new Date(tempExpiryDateText) : null;
+              const now = new Date();
+              const isValidTemp = !tempExpiry || tempExpiry >= now;
+              const effectiveTemp = isValidTemp ? tempAmount : 0;
+              const totalAvailable = (payload.availableAmount || 0) + effectiveTemp;
+
+              return new Intl.NumberFormat("th-TH", {
+                minimumFractionDigits: 2,
+              }).format(totalAvailable);
+            })()}
             readOnly
             disabled
           />
