@@ -58,9 +58,9 @@ export function useSaleFormValidation() {
         fieldErrors.pickupCompanyId = "กรุณาเลือกสถานที่รับสินค้า";
       }
       if (state.deliveryMethod === "COURIER" && !state.customShippingAddress) {
-        errors.push("กรุณาระบุที่อยู่สำหรับส่งให้บริษัทขนส่ง");
+        errors.push("กรุณาเลือกบริษัทขนส่ง");
         fieldErrors.customShippingAddress =
-          "กรุณาระบุที่อยู่สำหรับส่งให้บริษัทขนส่ง";
+          "";
       }
 
       // Validate items
@@ -81,8 +81,7 @@ export function useSaleFormValidation() {
         // Check price modification
         if (item.priceModified) {
           warnings.push(
-            `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${
-              item.originalPrice
+            `${product?.name || "สินค้า"}: ราคาถูกแก้ไขจาก ${item.originalPrice
             } เป็น ${item.unitPrice}`,
           );
         }
