@@ -366,9 +366,10 @@ export function SaleForm({
 
     const getDeliveryMethodLabel = (method: string): string => {
         const labels: Record<string, string> = {
-            SALES_DELIVERY: "จัดส่งโดยทีมขาย",
-            CUSTOMER_PICKUP: "ลูกค้ารับสินค้าเอง",
-            COURIER: "จัดส่งผ่านบริษัทขนส่ง",
+            SALES_DELIVERY: "พนักงานขายจัดส่งสินค้า",
+            FACTORY_DELIVERY: "ส่งโดยรถโรงงาน",
+            CUSTOMER_PICKUP: "ลูกค้ามารับสินค้าเอง",
+            COURIER: "ส่งโดยบริษัทขนส่ง",
         };
         return labels[method] || method;
     };
