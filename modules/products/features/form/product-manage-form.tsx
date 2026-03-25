@@ -180,7 +180,7 @@ const PriceManagementSection: React.FC<SectionProps> = ({
           {/* งบส่งเสริมการขาย */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
-              งบส่งเสริมการขาย (บาท)
+              งบส่งเสริมการขายต่อลัง (บาท)
             </Label>
             <div className="relative">
               <Input
