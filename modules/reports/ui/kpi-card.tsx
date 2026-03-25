@@ -19,8 +19,8 @@ export function KpiCard({
     icon: React.ElementType;
     gradient: string;
     ring: string;
-    barColor: string;
-    barWidth: string;
+    barColor?: string;
+    barWidth?: string;
     topColor?: "red" | "black";
 }) {
     const topBorderClass = topColor === "red"
@@ -34,20 +34,22 @@ export function KpiCard({
             <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-lg text-slate-800 font-semibold">{label}</p>
+                        <p className="text-xs sm:text-base text-slate-500 font-medium tabular-nums">{label}</p>
                         {sublabel && (
                             <p className="text-[12px] text-slate-500 mt-0.5">{sublabel}</p>
                         )}
-                        <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">
+                        <p className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none truncate">
                             {value}
                         </p>
                         {sub && <div className="mt-1.5">{sub}</div>}
-                        <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                            <div
-                                className={`h-full rounded-full ${barColor} transition-all duration-700`}
-                                style={{ width: barWidth }}
-                            />
-                        </div>
+                        {barColor && barWidth && (
+                            <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full ${barColor} transition-all duration-700`}
+                                    style={{ width: barWidth }}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className={`shrink-0 grid place-items-center size-11 sm:size-12 rounded-2xl ${gradient} ${ring}`}>
                         <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />

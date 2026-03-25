@@ -49,6 +49,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
+import { KpiCard } from "../../ui/kpi-card";
 
 import {
   getProductSalesReportAction,
@@ -405,7 +406,7 @@ export function ProductSalesDashboard() {
         {/* ── Report Content ── */}
         {isPending ? (
           <div className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <Skeleton key={i} className="h-28 sm:h-32 rounded-xl" />
               ))}
@@ -414,100 +415,81 @@ export function ProductSalesDashboard() {
           </div>
         ) : reportData ? (
           <div className="space-y-4 sm:space-y-6">
-            {/* Summary Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        สินค้าขายดีที่สุด
-                      </p>
-                      <p className="text-sm sm:text-base font-bold mt-1 truncate max-w-[180px]">
-                        {reportData.topProducts[0]?.name || "-"}
-                      </p>
-                      <p className="text-xs sm:text-sm text-red-600 mt-1">
-                        {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
-                      </p>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">
-                        บรรจุขายได้ {formatPackSize(
-                          reportData.topProducts[0]?.totalPackageSold || 0,
-                          reportData.topProducts[0]?.packageUnit,
-                        )}
-                        {reportData.topProducts[0]?.childCount
-                          ? " (รวมสินค้าลูก)"
-                          : ""}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-red-50">
-                      <Award className="h-6 w-6 text-red-600" />
-                    </div>
+            {/* Summary Cards: mobile=2 col, lg=4 cols */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <KpiCard
+                label="สินค้าขายดีที่สุด"
+                value={reportData.topProducts[0]?.name || "-"}
+                sub={
+                  <div className="mt-1 space-y-0.5">
+                    <p className="text-base font-bold text-red-700">
+                      {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-medium italic">
+                      ขายได้ {formatPackSize(
+                        reportData.topProducts[0]?.totalPackageSold || 0,
+                        reportData.topProducts[0]?.packageUnit,
+                      )} {reportData.topProducts[0]?.childCount ? "(รวมสินค้าลูก)" : ""}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                }
+                icon={Award}
+                gradient="bg-gradient-to-br from-red-600 to-red-700"
+                ring="shadow-lg shadow-red-600/20"
+                topColor="red"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        สินค้าขายช้าที่สุด
-                      </p>
-                      <p className="text-sm sm:text-base font-bold mt-1 truncate max-w-[180px]">
-                        {reportData.slowProducts[0]?.name || "-"}
-                      </p>
-                      <p className="text-xs sm:text-sm text-amber-600 mt-1">
-                        {formatTHB(reportData.slowProducts[0]?.totalSales || 0)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-amber-50">
-                      <TrendingDown className="h-6 w-6 text-amber-600" />
-                    </div>
+              <KpiCard
+                label="สินค้าขายช้าที่สุด"
+                value={reportData.slowProducts[0]?.name || "-"}
+                sub={
+                  <div className="mt-1 space-y-0.5">
+                    <p className="text-base font-bold text-slate-900">
+                      {formatTHB(reportData.slowProducts[0]?.totalSales || 0)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 font-medium italic">
+                      ขายได้ {formatPackSize(
+                        reportData.slowProducts[0]?.totalPackageSold || 0,
+                        reportData.slowProducts[0]?.packageUnit,
+                      )}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                }
+                icon={TrendingDown}
+                gradient="bg-gradient-to-br from-slate-900 to-slate-800"
+                ring="shadow-lg shadow-slate-900/20"
+                topColor="black"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        สินค้าใกล้หมด
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
-                        {reportData.lowStockProducts.length}
-                      </p>
-                      <p className="text-xs sm:text-sm text-red-600 mt-1">
-                        รายการ (คงเหลือ &lt; 50)
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-red-50">
-                      <AlertTriangle className="h-6 w-6 text-red-600" />
-                    </div>
+              <KpiCard
+                label="สินค้าใกล้หมด"
+                value={`${reportData.lowStockProducts.length} รายการ`}
+                sub={
+                  <div className="mt-1">
+                    <p className="text-xs font-semibold text-red-600">
+                      รายการ (คงเหลือ &lt; 50)
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                }
+                icon={AlertTriangle}
+                gradient="bg-gradient-to-br from-red-500 to-red-600"
+                ring="shadow-lg shadow-red-500/20"
+                topColor="red"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        สินค้าค้างสต๊อก
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
-                        {reportData.stagnantProducts.length}
-                      </p>
-                      <p className="text-xs sm:text-sm text-purple-600 mt-1">
-                        ไม่ขายใน 90 วัน
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-purple-50">
-                      <Archive className="h-6 w-6 text-purple-600" />
-                    </div>
+              <KpiCard
+                label="สินค้าค้างสต๊อก"
+                value={`${reportData.stagnantProducts.length} รายการ`}
+                sub={
+                  <div className="mt-1 font-semibold text-slate-500 text-xs">
+                    <p>ไม่ขายใน 90 วัน</p>
                   </div>
-                </CardContent>
-              </Card>
+                }
+                icon={Archive}
+                gradient="bg-gradient-to-br from-slate-800 to-slate-900"
+                ring="shadow-lg shadow-slate-800/20"
+                topColor="black"
+              />
             </div>
 
             {/* Tabs */}
