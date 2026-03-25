@@ -95,7 +95,7 @@ export const navigationItems: SidebarNavItem[] = [
     children: [
       { href: "/customers", label: "ข้อมูลลูกค้า" },
       { href: "/credit-limits", label: "วงเงินเครดิต", permissionKey: "menu.credit_limits" },
-      { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว", permissionKey: "menu.temporary_credit_limits" },
+      // { href: "/temporary-credit-limits", label: "วงเงินเครดิตชั่วคราว", permissionKey: "menu.temporary_credit_limits" },
     ],
   },
   {
