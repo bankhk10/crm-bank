@@ -24,7 +24,9 @@ import {
     CustomerCreditInfo,
     SectionHeader,
     FormActionButtons,
+    SaleConfirmDialog,
 } from "./forms";
+import type { SaleConfirmData } from "./forms";
 import { useSaleFormData } from "./use-sale-form-data";
 import {
     useSaleFormValidation,
@@ -157,6 +159,11 @@ export function SaleForm({
     // Product detail modal
     const [selectedProductDetail, setSelectedProductDetail] =
         useState<SaleFormProduct | null>(null);
+
+    // Confirm dialog
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmData, setConfirmData] = useState<SaleConfirmData | null>(null);
+    const [pendingSubmitArgs, setPendingSubmitArgs] = useState<Parameters<typeof onSubmit>[0] | null>(null);
 
     // Auto-fill employeeId for current user (if they have an employeeId)
     useEffect(() => {
@@ -346,7 +353,27 @@ export function SaleForm({
         setSelectedAddressId("");
     };
 
-    // Handle form submission
+    // Label helpers
+    const getPaymentTermLabel = (term: string): string => {
+        const labels: Record<string, string> = {
+            CREDIT_90: "ส่งสินค้าก่อน (เครดิต 90 วัน)",
+            CASH_7: "ชำระเงินสด (เครดิต 7 วัน)",
+            PREPAID: "ชำระเงินก่อนส่งสินค้า (โอนเงินก่อนส่งสินค้า)",
+            CREDIT_OVER_90: "ส่งสินค้าก่อน (เครดิตมากกว่า 90 วัน)",
+        };
+        return labels[term] || term;
+    };
+
+    const getDeliveryMethodLabel = (method: string): string => {
+        const labels: Record<string, string> = {
+            SALES_DELIVERY: "จัดส่งโดยทีมขาย",
+            CUSTOMER_PICKUP: "ลูกค้ารับสินค้าเอง",
+            COURIER: "จัดส่งผ่านบริษัทขนส่ง",
+        };
+        return labels[method] || method;
+    };
+
+    // Handle form submission — validate then open confirm dialog
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (loading) return;
@@ -395,62 +422,95 @@ export function SaleForm({
             return;
         }
 
-        // Submit
+        // Build submit args
+        const now = new Date();
+        const saleDateWithTime = (() => {
+            if (!saleDate) return saleDate;
+            const [year, month, day] = saleDate.split("-").map(Number);
+            const dateWithTime = new Date(
+                year,
+                month - 1,
+                day,
+                now.getHours(),
+                now.getMinutes(),
+                now.getSeconds(),
+            );
+            return dateWithTime.toISOString();
+        })();
+
+        const isCreditPayment = isCreditBasedPayment(paymentTerm);
+
+        const submitArgs: Parameters<typeof onSubmit>[0] = {
+            customerId,
+            employeeId,
+            paymentTerm,
+            creditDays: isCreditPayment ? creditDays : undefined,
+            creditDueDate: null,
+            usePromotionalCredit,
+            promotionalCreditUsed: usePromotionalCredit
+                ? promotionalCreditUsed
+                : undefined,
+            saleDate: saleDateWithTime,
+            requestedDeliveryDate: requestedDeliveryDate || undefined,
+            deliveryDate: deliveryDate || undefined,
+            billingAddress,
+            shippingAddress,
+            useCustomShipping: false,
+            deliveryMethod,
+            selectedAddressId: selectedAddressId || undefined,
+            pickupCompanyId:
+                deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
+            shippingCompanyId:
+                deliveryMethod === "COURIER" ? shippingCompanyId : undefined,
+            items,
+            shippingCost,
+            otherCosts,
+            otherCostsDescription,
+            notes,
+        };
+
+        // Build confirm data
+        const customer = customers.find((c) => c.id === customerId);
+        const employee = employees.find((e) => e.id === employeeId);
+
+        const data: SaleConfirmData = {
+            customerName: customer
+                ? `${customer.name} (${customer.customerCode})`
+                : customerId,
+            employeeName: employee?.name || employeeId,
+            paymentTermLabel: getPaymentTermLabel(paymentTerm),
+            saleDate,
+            requestedDeliveryDate: requestedDeliveryDate || undefined,
+            deliveryMethodLabel: getDeliveryMethodLabel(deliveryMethod),
+            shippingAddress,
+            items,
+            products,
+            subtotal,
+            shippingCost,
+            otherCosts,
+            otherCostsDescription: otherCostsDescription || undefined,
+            total,
+            notes: notes || undefined,
+        };
+
+        setPendingSubmitArgs(submitArgs);
+        setConfirmData(data);
+        setConfirmOpen(true);
+    };
+
+    // Called when user clicks "ยืนยันบันทึก" inside the dialog
+    const handleConfirm = async () => {
+        if (!pendingSubmitArgs) return;
         setLoading(true);
         try {
-            const now = new Date();
-            const saleDateWithTime = (() => {
-                if (!saleDate) return saleDate;
-                const [year, month, day] = saleDate.split("-").map(Number);
-                const dateWithTime = new Date(
-                    year,
-                    month - 1,
-                    day,
-                    now.getHours(),
-                    now.getMinutes(),
-                    now.getSeconds(),
-                );
-                return dateWithTime.toISOString();
-            })();
-
-            const isCreditPayment = isCreditBasedPayment(paymentTerm);
-
-            await onSubmit({
-                customerId,
-                employeeId,
-                paymentTerm,
-                creditDays: isCreditPayment ? creditDays : undefined,
-                creditDueDate: null,
-                usePromotionalCredit,
-                promotionalCreditUsed: usePromotionalCredit
-                    ? promotionalCreditUsed
-                    : undefined,
-                saleDate: saleDateWithTime,
-                requestedDeliveryDate: requestedDeliveryDate || undefined,
-                deliveryDate: deliveryDate || undefined,
-                billingAddress,
-                // สำหรับ COURIER: shippingAddress = ที่อยู่ปลายทางลูกค้า (ไม่ใช่ที่อยู่บริษัทขนส่ง)
-                // customShippingAddress = ที่อยู่บริษัทขนส่ง → ถูก populate ลง sender_* ผ่าน shippingCompanyId
-                shippingAddress,
-                useCustomShipping: false, // ให้ address-builder ใช้ selectedAddressId สำหรับ shipping_* ทุก method
-                deliveryMethod,
-                selectedAddressId: selectedAddressId || undefined,
-                pickupCompanyId:
-                    deliveryMethod === "CUSTOMER_PICKUP" ? pickupCompanyId : undefined,
-                shippingCompanyId:
-                    deliveryMethod === "COURIER" ? shippingCompanyId : undefined,
-                items,
-                shippingCost,
-                otherCosts,
-                otherCostsDescription,
-                notes,
-            });
+            await onSubmit(pendingSubmitArgs);
         } catch (error: unknown) {
             const errorMessage =
                 error instanceof Error
                     ? error.message
                     : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
             setErrors([errorMessage]);
+            setConfirmOpen(false);
             setLoading(false);
         }
     };
@@ -740,6 +800,15 @@ export function SaleForm({
             <ProductDetailModal
                 product={selectedProductDetail}
                 onClose={() => setSelectedProductDetail(null)}
+            />
+
+            {/* Confirm Dialog */}
+            <SaleConfirmDialog
+                open={confirmOpen}
+                data={confirmData}
+                loading={loading}
+                onConfirm={handleConfirm}
+                onClose={() => setConfirmOpen(false)}
             />
         </form>
     );
