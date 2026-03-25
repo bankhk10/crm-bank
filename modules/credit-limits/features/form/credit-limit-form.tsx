@@ -241,60 +241,59 @@ export default function CreditLimitForm({
       </div>
 
       {/* Temporary Credit Section */}
-      <div className="border-l-4 border-blue-500 pl-4 py-2">
-        <h3 className="text-xl font-semibold text-blue-800 bg-blue-50 py-3 px-4 rounded-2xl mb-4">
-          วงเงินเครดิตชั่วคราว
-        </h3>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <Label className={labelText}>จำนวนวงเงินชั่วคราว (บาท)</Label>
-            <Input
-              type="number"
-              className={inputClass}
-              value={tempCreditAmountText}
-              onChange={(e) => {
-                const raw = e.target.value;
-                const cleaned = raw.replace(/^0+(?=\d)/, "");
-                setTempCreditAmountText(cleaned === "" ? "" : cleaned);
-                clearError("temporaryCreditAmount");
-              }}
-              onBlur={() => {
-                if (tempCreditAmountText === "") setTempCreditAmountText("0");
-                const num =
-                  tempCreditAmountText === ""
-                    ? 0
-                    : Number(tempCreditAmountText);
-                setPayload((p) => ({ ...p, temporaryCreditAmount: num }));
-              }}
-              onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              placeholder="0"
-            />
-            {fieldErrors.temporaryCreditAmount && (
-              <p className="text-red-600 text-sm">
-                {fieldErrors.temporaryCreditAmount}
-              </p>
-            )}
-          </div>
+      <h3 className="text-xl font-semibold text-gray-800 bg-gray-200 py-3 px-4 rounded-2xl">
+        วงเงินเครดิตชั่วคราว
+      </h3>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <Label className={labelText}>จำนวนวงเงินชั่วคราว (บาท)</Label>
+          <Input
+            type="number"
+            className={inputClass}
+            value={tempCreditAmountText}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const cleaned = raw.replace(/^0+(?=\d)/, "");
+              setTempCreditAmountText(cleaned === "" ? "" : cleaned);
+              clearError("temporaryCreditAmount");
+            }}
+            onBlur={() => {
+              if (tempCreditAmountText === "") setTempCreditAmountText("0");
+              const num =
+                tempCreditAmountText === ""
+                  ? 0
+                  : Number(tempCreditAmountText);
+              setPayload((p) => ({ ...p, temporaryCreditAmount: num }));
+            }}
+            onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
+            placeholder="0"
+          />
+          {fieldErrors.temporaryCreditAmount && (
+            <p className="text-red-600 text-sm">
+              {fieldErrors.temporaryCreditAmount}
+            </p>
+          )}
+        </div>
 
-          <div>
-            <Label className={labelText}>วันหมดอายุวงเงินชั่วคราว</Label>
-            <Input
-              type="date"
-              className={inputClass}
-              value={tempExpiryDateText}
-              onChange={(e) => {
-                setTempExpiryDateText(e.target.value);
-                clearError("temporaryCreditExpiryDate");
-              }}
-            />
-            {fieldErrors.temporaryCreditExpiryDate && (
-              <p className="text-red-600 text-sm">
-                {fieldErrors.temporaryCreditExpiryDate}
-              </p>
-            )}
-          </div>
+        <div>
+          <Label className={labelText}>วันหมดอายุวงเงินชั่วคราว</Label>
+          <Input
+            type="date"
+            className={inputClass}
+            value={tempExpiryDateText}
+            onChange={(e) => {
+              setTempExpiryDateText(e.target.value);
+              clearError("temporaryCreditExpiryDate");
+            }}
+          />
+          {fieldErrors.temporaryCreditExpiryDate && (
+            <p className="text-red-600 text-sm">
+              {fieldErrors.temporaryCreditExpiryDate}
+            </p>
+          )}
         </div>
       </div>
+
 
       <div className="pt-6 border-t flex flex-col sm:flex-row gap-3 justify-center">
         <Button
