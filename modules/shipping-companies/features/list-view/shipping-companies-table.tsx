@@ -206,7 +206,7 @@ export function ShippingCompaniesTable({
                             onPageChange: (nextPage) => handleApplyFilters({ page: nextPage }),
                             onPerPageChange: (nextPerPage) =>
                                 handleApplyFilters({ perPage: nextPerPage, page: 1 }),
-                            perPageOptions: [6, 12, 24, 48],
+                            perPageOptions: [6, 12, 24],
                         }}
                         toolbar={
                             <div className="space-y-4 mb-6">
