@@ -45,24 +45,6 @@ export function useCreditLimitColumns() {
                 meta: { minWidth: 170, width: 170, align: "center" },
             },
             {
-                id: "promoAmount",
-                header: "วงเงินส่งเสริมการขาย",
-                cell: ({ row }) => {
-                    const r = row.original;
-                    const cl = r.creditLimits && r.creditLimits[0];
-                    if (!cl || cl.promoAmount === undefined || cl.promoAmount === null)
-                        return "-";
-                    const v = Number(cl.promoAmount);
-                    return Number.isFinite(v)
-                        ? new Intl.NumberFormat("th-TH", {
-                            style: "currency",
-                            currency: "THB",
-                        }).format(v)
-                        : "-";
-                },
-                meta: { minWidth: 180, width: 180, align: "center" },
-            },
-            {
                 id: "temporaryCreditLimits",
                 header: "วงเงินเครดิตชั่วคราว",
                 cell: ({ row }) => {
@@ -119,6 +101,24 @@ export function useCreditLimitColumns() {
                     );
                 },
                 meta: { minWidth: 170, width: 170, align: "center" },
+            },
+            {
+                id: "promoAmount",
+                header: "วงเงินส่งเสริมการขาย",
+                cell: ({ row }) => {
+                    const r = row.original;
+                    const cl = r.creditLimits && r.creditLimits[0];
+                    if (!cl || cl.promoAmount === undefined || cl.promoAmount === null)
+                        return "-";
+                    const v = Number(cl.promoAmount);
+                    return Number.isFinite(v)
+                        ? new Intl.NumberFormat("th-TH", {
+                            style: "currency",
+                            currency: "THB",
+                        }).format(v)
+                        : "-";
+                },
+                meta: { minWidth: 180, width: 180, align: "center" },
             },
             {
                 id: "actions",
