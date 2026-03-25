@@ -116,17 +116,22 @@ export function useCreditLimitColumns() {
                 id: "promoAmount",
                 header: "วงเงินส่งเสริมการขาย",
                 cell: ({ row }) => {
-                    const r = row.original;
+                    const r = row.original as any;
                     const cl = r.creditLimits && r.creditLimits[0];
-                    if (!cl || cl.promoAmount === undefined || cl.promoAmount === null)
-                        return "-";
-                    const v = Number(cl.promoAmount);
-                    return Number.isFinite(v)
-                        ? new Intl.NumberFormat("th-TH", {
-                            style: "currency",
-                            currency: "THB",
-                        }).format(v)
-                        : "-";
+                    
+                    // Extract promoAmount from new PromotionalBudget table if it exists
+                    // otherwise fall back to the old promoAmount in CreditLimit
+                    const activePromoBudget = r.promotionalBudgets?.[0];
+                    const promoValue = activePromoBudget 
+                        ? Number(activePromoBudget.salesPromotionLimit) 
+                        : (cl?.promoAmount ? Number(cl.promoAmount) : 0);
+
+                    if (promoValue === 0 && !cl) return "-";
+                    
+                    return new Intl.NumberFormat("th-TH", {
+                        style: "currency",
+                        currency: "THB",
+                    }).format(promoValue);
                 },
                 meta: { minWidth: 180, width: 180, align: "center" },
             },

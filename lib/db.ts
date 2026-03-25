@@ -62,6 +62,7 @@ export {
   ProductStatus,
   CompanyStatus,
   ShippingCompanyStatus,
+  PromotionalBudgetType,
 } from "@prisma/client";
 
 /**
@@ -89,6 +90,8 @@ export type {
   Product,
   ProductCategory,
   ProductGroup,
+  PromotionalBudget,
+  PromotionalBudgetDetail,
 } from "@prisma/client";
 
 export default prisma;

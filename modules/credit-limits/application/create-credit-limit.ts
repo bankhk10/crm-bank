@@ -1,5 +1,8 @@
 import { Prisma } from "@/lib/db";
-import { createCreditLimit as createRepoCreditLimit } from "../infrastructure/credit-limit.repository";
+import {
+  createCreditLimit as createRepoCreditLimit,
+  upsertPromotionalBudget as upsertRepoPromotionalBudget,
+} from "../infrastructure/credit-limit.repository";
 import { creditLimitSchema } from "./validations";
 
 export async function createCreditLimitUseCase(
@@ -53,6 +56,16 @@ export async function createCreditLimitUseCase(
       temporaryCreditAmount,
       temporaryCreditExpiryDate,
     });
+
+    // Also save to PromotionalBudget table
+    if (promoAmount !== undefined) {
+      const currentYear = new Date().getFullYear();
+      await upsertRepoPromotionalBudget(
+        parsed.data.customerId,
+        currentYear,
+        promoAmount ?? 0
+      );
+    }
 
     return { success: true, creditLimit };
   } catch (err: any) {

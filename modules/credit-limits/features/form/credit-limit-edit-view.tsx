@@ -36,10 +36,18 @@ export default function CreditLimitEditView() {
 
                 if (mounted) {
                     setCustomers(customersRes.customers ?? []);
+                    
+                    // Extract promoAmount from new PromotionalBudget table if it exists
+                    // otherwise fall back to the old promoAmount in CreditLimit
+                    const activePromoBudget = src.customer?.promotionalBudgets?.[0];
+                    const promoValue = activePromoBudget 
+                        ? Number(activePromoBudget.salesPromotionLimit) 
+                        : (src.promoAmount ? Number(src.promoAmount) : 0);
+
                     setPayload({
                         customerId: src.customerId ?? "",
                         limitAmount: Number(src.limitAmount) ?? 0,
-                        promoAmount: src.promoAmount ? Number(src.promoAmount) : 0,
+                        promoAmount: promoValue,
                         usedAmount: Number(src.usedAmount) ?? 0,
                         availableAmount: Number(src.availableAmount) ?? 0,
                         effectiveDate: src.effectiveDate ? new Date(src.effectiveDate) : new Date(),

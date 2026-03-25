@@ -109,6 +109,10 @@ export async function findCustomers(params: ListCustomersParams) {
         addresses: {
           orderBy: { createdAt: "desc" },
         },
+        promotionalBudgets: {
+          where: { year: new Date().getFullYear() },
+          take: 1,
+        },
       },
     }),
   ]);
@@ -143,6 +147,10 @@ export async function findCustomerById(id: string) {
       },
       addresses: true,
       contacts: true,
+      promotionalBudgets: {
+        where: { year: new Date().getFullYear() },
+        take: 1,
+      },
     },
   });
 }

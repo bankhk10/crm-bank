@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -75,6 +76,11 @@ enum TemporaryCreditStatus {
   APPROVED
   REJECTED
   EXPIRED
+}
+
+enum PromotionalBudgetType {
+  SALES_PROMOTION // ส่งเสริมการขาย
+  MARKETING // ส่งเสริมการตลาด
 }
 
 model User {
@@ -373,6 +379,7 @@ model Customer {
   shippingCompanies     CustomerShippingCompany[]
   addresses             CustomerAddress[]
   contacts              CustomerContact[]
+  promotionalBudgets    PromotionalBudget[]
 }
 
 model CustomerAddress {
@@ -451,6 +458,44 @@ model TemporaryCreditLimit {
   customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   requestedBy User?    @relation("TemporaryCreditRequester", fields: [requestedById], references: [id], onDelete: SetNull)
   approvedBy  User?    @relation("TemporaryCreditApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+}
+
+model PromotionalBudget {
+  id                  String            @id @default(cuid())
+  customerId          String
+  year                Int // ปีงบประมาณ
+  salesPromotionLimit Decimal           @default(0) @db.Decimal(15, 2) // วงเงินส่งเสริมการขายทั้งหมด
+  salesPromotionUsed  Decimal           @default(0) @db.Decimal(15, 2) // ยอดใช้ไปแล้ว (ส่งเสริมการขาย)
+  marketingLimit      Decimal           @default(0) @db.Decimal(15, 2) // วงเงินส่งเสริมการตลาดทั้งหมด
+  marketingUsed       Decimal           @default(0) @db.Decimal(15, 2) // ยอดใช้ไปแล้ว (ส่งเสริมการตลาด)
+  status              CreditLimitStatus @default(ACTIVE)
+  notes               String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  deletedAt           DateTime?
+
+  customer Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  details  PromotionalBudgetDetail[]
+
+  @@unique([customerId, year])
+  @@index([customerId])
+}
+
+model PromotionalBudgetDetail {
+  id              String                @id @default(cuid())
+  budgetId        String
+  type            PromotionalBudgetType // ประเภทงบประมาณ
+  amount          Decimal               @db.Decimal(15, 2) // ยอดเงินที่ใช้
+  transactionDate DateTime              @default(now())
+  description     String? // รายละเอียดการใช้งาน/หมายเหตุ
+  saleId          String? // อ้างอิงเอกสารการขาย (ถ้ามี)
+  createdById     String? // ผู้บันทึกรายการ
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  deletedAt       DateTime?
+
+  budget PromotionalBudget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  sale   Sale?             @relation("SaleBudgetDetails", fields: [saleId], references: [id], onDelete: SetNull)
 }
 
 // ==========================================
@@ -770,7 +815,8 @@ model Sale {
   selectedAddressId String? // รหัสที่อยู่จัดส่งที่เลือกจากประวัติที่อยู่ของลูกค้า
 
   // Detailed Addresses & Snapshots (ข้อมูลที่อยู่แบบละเอียดและ Snapshot)
-  saleAddress SaleAddress?
+  saleAddress   SaleAddress?
+  budgetDetails PromotionalBudgetDetail[] @relation("SaleBudgetDetails")
 
   // Amounts (จำนวนเงินและการคำนวณ)
   subtotalAmount        Decimal @db.Decimal(15, 2) // ยอดรวมสินค้า (ก่อนหักส่วนลด หรือบวกเพิ่ม)

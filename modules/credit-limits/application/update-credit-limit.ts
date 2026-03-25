@@ -1,6 +1,7 @@
 import {
   getExistingCreditLimitForUpdate,
   updateCreditLimit as updateRepoCreditLimit,
+  upsertPromotionalBudget as upsertRepoPromotionalBudget,
 } from "../infrastructure/credit-limit.repository";
 import { creditLimitUpdateSchema } from "./validations";
 // Since logging requires request context in API route, we return data for the caller to log if needed, or we omit the log for Server Actions
@@ -64,6 +65,17 @@ export async function updateCreditLimitUseCase(id: string, payload: unknown) {
   }
 
   const creditLimit = await updateRepoCreditLimit(id, updateData);
+
+  // When updating promoAmount from the limit management form,
+  // we now save it to the new PromotionalBudget table as well.
+  if (parsed.data.promoAmount !== undefined && existing.customerId) {
+    const currentYear = new Date().getFullYear();
+    await upsertRepoPromotionalBudget(
+      existing.customerId,
+      currentYear,
+      parsed.data.promoAmount
+    );
+  }
 
   return { success: true, creditLimit, existing };
 }

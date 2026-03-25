@@ -2,18 +2,36 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@/lib/db";
 
 export async function findCreditLimitById(id: string) {
+  const currentYear = new Date().getFullYear();
   return db.creditLimit.findFirst({
     where: { id, deletedAt: null },
     include: {
-      customer: true,
+      customer: {
+        include: {
+          promotionalBudgets: {
+            where: { year: currentYear },
+            take: 1,
+          },
+        },
+      },
     },
   });
 }
 
 export async function getExistingCreditLimitForUpdate(id: string) {
+  const currentYear = new Date().getFullYear();
   return db.creditLimit.findUnique({
     where: { id },
-    include: { customer: true },
+    include: {
+      customer: {
+        include: {
+          promotionalBudgets: {
+            where: { year: currentYear },
+            take: 1,
+          },
+        },
+      },
+    },
   });
 }
 
@@ -45,5 +63,28 @@ export async function deleteCreditLimit(id: string) {
   return db.creditLimit.update({
     where: { id },
     data: { deletedAt: new Date() },
+  });
+}
+
+export async function upsertPromotionalBudget(
+  customerId: string,
+  year: number,
+  salesPromotionLimit: number
+) {
+  return db.promotionalBudget.upsert({
+    where: {
+      customerId_year: {
+        customerId,
+        year,
+      },
+    },
+    update: {
+      salesPromotionLimit,
+    },
+    create: {
+      customerId,
+      year,
+      salesPromotionLimit,
+    },
   });
 }
