@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CustomerStatusBadge } from "../../ui/customer-status-badge";
 import { CustomerTypeBadge } from "../../ui/customer-type-badge";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 export function CustomersCards({
     data,
     loading,
@@ -16,7 +18,8 @@ export function CustomersCards({
     canEdit,
     onDeleteRequest,
     canEditItem,
-    canDeleteItem
+    canDeleteItem,
+    pagination
 }: {
     data: any[];
     loading?: boolean;
@@ -25,6 +28,13 @@ export function CustomersCards({
     onDeleteRequest?: (customer: any) => void;
     canEditItem?: (item: any) => boolean;
     canDeleteItem?: (item: any) => boolean;
+    pagination?: {
+        page: number;
+        perPage: number;
+        total: number;
+        onPageChange: (page: number) => void;
+        onPerPageChange: (perPage: number) => void;
+    };
 }) {
     if (loading) {
         return (
@@ -161,7 +171,45 @@ export function CustomersCards({
                 ))}
             </div>
 
-            {/* Cards Pagination could be added here if needed, but usually CustomTable handles it */}
+            {pagination && !loading && pagination.total > 0 && (
+                <div className="flex flex-col gap-4 rounded-md border bg-background/60 px-4 mt-6 py-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+                    <span>
+                        แสดง {(pagination.page - 1) * pagination.perPage + 1}-
+                        {Math.min(pagination.page * pagination.perPage, pagination.total)} จาก{" "}
+                        {pagination.total} รายการ
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => pagination.onPageChange(Math.max(1, pagination.page - 1))}
+                            disabled={pagination.page <= 1}
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm font-medium text-slate-700">
+                            หน้า {pagination.page} /{" "}
+                            {Math.max(1, Math.ceil(pagination.total / pagination.perPage))}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                                pagination.onPageChange(
+                                    Math.min(
+                                        Math.ceil(pagination.total / pagination.perPage),
+                                        pagination.page + 1
+                                    )
+                                )
+                            }
+                            disabled={pagination.page >= Math.ceil(pagination.total / pagination.perPage)}
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

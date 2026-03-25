@@ -108,12 +108,13 @@ export function CustomersTable({
 
   const allowedTypes = customerTypes.filter((type) => typePermissions[type]);
 
-  const paginationInfo = {
+  const pagination = {
     page,
     perPage,
     total,
-    onPageChange,
-    onPerPageChange,
+    onPageChange: onPageChange || (() => { }),
+    onPerPageChange: onPerPageChange || (() => { }),
+    perPageOptions: [10, 20, 30],
   };
 
   const toolbar = (
@@ -214,46 +215,16 @@ export function CustomersTable({
         breakpoint="lg"
         toolbar={toolbar}
         cards={
-          <div className="space-y-4">
-            <CustomersCards
-              data={data}
-              loading={loading}
-              canDelete={canDelete}
-              canEdit={canEdit}
-              onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
-              canEditItem={canEditItem}
-              canDeleteItem={canDeleteItem}
-            />
-            {!loading && paginationInfo.total > 0 && (
-              <div className="mt-4 flex justify-center">
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => paginationInfo.onPageChange(paginationInfo.page - 1)}
-                    disabled={paginationInfo.page <= 1}
-                  >
-                    ก่อนหน้า
-                  </Button>
-                  <span className="text-sm">
-                    หน้า {paginationInfo.page} /{" "}
-                    {Math.max(1, Math.ceil(paginationInfo.total / paginationInfo.perPage))}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => paginationInfo.onPageChange(paginationInfo.page + 1)}
-                    disabled={
-                      paginationInfo.page >=
-                      Math.ceil(paginationInfo.total / paginationInfo.perPage)
-                    }
-                  >
-                    ถัดไป
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          <CustomersCards
+            data={data}
+            loading={loading}
+            canDelete={canDelete}
+            canEdit={canEdit}
+            onDeleteRequest={(c) => setDeleteTarget(c as CustomerRecord)}
+            canEditItem={canEditItem}
+            canDeleteItem={canDeleteItem}
+            pagination={pagination}
+          />
         }
         table={
           <div className="relative rounded-lg border shadow-sm bg-white overflow-hidden">
@@ -261,7 +232,7 @@ export function CustomersTable({
               columns={columns}
               data={data}
               loading={loading}
-              pagination={paginationInfo}
+              pagination={pagination}
               toolbar={<></>}
               renderSubComponent={({ row }) => {
                 const customer = row.original;
