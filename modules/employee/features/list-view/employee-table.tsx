@@ -87,7 +87,7 @@ export function EmployeeTable({
         total,
         onPageChange: onPageChange ?? (() => { }),
         onPerPageChange: onPerPageChange ?? (() => { }),
-        perPageOptions: [10, 20, 30, 50],
+        perPageOptions: [10, 20, 30],
     };
 
     return (
