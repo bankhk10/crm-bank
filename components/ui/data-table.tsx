@@ -70,6 +70,7 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
     ...(renderSubComponent || getRowCanExpand ? { getExpandedRowModel: getExpandedRowModel() } : {}),
     ...(getRowCanExpand ? { getRowCanExpand } : {}),
   });
