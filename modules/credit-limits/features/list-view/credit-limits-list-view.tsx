@@ -81,7 +81,7 @@ export default function CreditLimitsListView() {
           perPage,
           typeFilter: "DEALER",
         };
-        
+
         if (appliedFilters.query.trim()) params.q = appliedFilters.query.trim();
         if (appliedFilters.status) params.statusFilter = appliedFilters.status;
         if (appliedFilters.dateRange?.from) params.from = appliedFilters.dateRange.from.toISOString();
@@ -186,7 +186,7 @@ export default function CreditLimitsListView() {
                 setPerPage(nextPerPage);
                 setPage(1);
               },
-              perPageOptions: [6, 12, 24, 48],
+              perPageOptions: [5, 10, 20],
             }}
           />
         </div>
