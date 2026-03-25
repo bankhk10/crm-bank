@@ -208,6 +208,15 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
         </div>
     );
 
+    const pagination = {
+        page,
+        perPage,
+        total,
+        onPageChange: onPageChange || (() => { }),
+        onPerPageChange: onPerPageChange || (() => { }),
+        perPageOptions: [10, 20, 30],
+    };
+
     return (
         <ResponsiveDataView
             breakpoint="md"
@@ -216,13 +225,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                 <FulfillmentCards
                     data={sales}
                     loading={loading}
-                    pagination={{
-                        page,
-                        perPage,
-                        total,
-                        onPageChange: onPageChange || (() => { }),
-                        onPerPageChange: onPerPageChange || (() => { }),
-                    }}
+                    pagination={pagination}
                 />
             }
             table={
@@ -230,13 +233,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                     data={sales}
                     columns={columns}
                     loading={loading}
-                    pagination={{
-                        page,
-                        perPage,
-                        total,
-                        onPageChange: onPageChange || (() => { }),
-                        onPerPageChange: onPerPageChange || (() => { }),
-                    }}
+                    pagination={pagination}
                     toolbar={<></>}
                 />
             }
