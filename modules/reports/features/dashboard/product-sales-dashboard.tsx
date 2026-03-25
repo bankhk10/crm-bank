@@ -532,26 +532,6 @@ export function ProductSalesDashboard() {
                   ผลงานกลุ่มชื่อการค้า
                 </TabsTrigger>
               </TabsList>
-
-              {/* Volume Unit Switcher */}
-              <div className="flex items-center gap-2 mt-4">
-                <span className="text-sm text-muted-foreground">หน่วยปริมาณ:</span>
-                <div className="flex rounded-lg border overflow-hidden">
-                  {volumeUnitOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setVolumeUnit(opt.value)}
-                      className={`px-3 py-1.5 text-xs font-medium transition-colors ${volumeUnit === opt.value
-                        ? "bg-red-600 text-white"
-                        : "bg-white hover:bg-slate-50 text-slate-600"
-                        }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <TabsContent value="top-products" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                   {/* Table */}
