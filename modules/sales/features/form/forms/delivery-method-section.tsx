@@ -200,9 +200,7 @@ export function DeliveryMethodSection({
                                     containerClassName="min-w-0"
                                 />
                             ) : (
-                                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-                                    <p className="text-sm text-gray-600">ไม่มีข้อมูลบริษัทขนส่ง</p>
-                                </div>
+                                <p className="mt-10 text-center text-sm text-red-600">ไม่มีข้อมูลบริษัทขนส่ง</p>
                             )}
 
                             {/* Show address display only when shipping company is selected */}
