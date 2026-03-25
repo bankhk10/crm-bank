@@ -54,11 +54,6 @@ export function CustomerCreditInfo({ customer }: CustomerCreditInfoProps) {
                 disabled
                 readOnly
             />
-            {activeTempCredit > 0 && (
-                <p className="text-xs text-blue-600 -mt-2 ml-1">
-                    (รวมวงเงินชั่วคราว {activeTempCredit.toLocaleString()} บาท)
-                </p>
-            )}
         </div>
     );
 }
