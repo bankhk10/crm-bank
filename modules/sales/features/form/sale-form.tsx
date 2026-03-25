@@ -128,6 +128,9 @@ export function SaleForm({
     const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethodType>(
         initialData?.deliveryMethod || "SALES_DELIVERY",
     );
+    const [prevDeliveryMethod, setPrevDeliveryMethod] = useState<DeliveryMethodType>(
+        initialData?.deliveryMethod || "SALES_DELIVERY",
+    );
 
     // Address selection state
     const [selectedAddressId, setSelectedAddressId] = useState<string>(
@@ -230,11 +233,25 @@ export function SaleForm({
     }, [billingStreet, billingThaiAddress]);
 
     // Handle delivery method changes
-    const [hasInitializedDeliveryMethod, setHasInitializedDeliveryMethod] =
-        useState(false);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
+
+        // Reset to main address if delivery method changed
+        if (deliveryMethod !== prevDeliveryMethod && selectedCustomer) {
+            if (deliveryMethod !== "CUSTOMER_PICKUP") {
+                setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+                setSelectedAddressId("primary");
+                
+                // Clear courier/pickup specific fields
+                setPickupCompanyId("");
+                if (deliveryMethod !== "COURIER") {
+                    setShippingCompanyId("");
+                    setCustomShippingAddress("");
+                }
+            }
+            setPrevDeliveryMethod(deliveryMethod);
+        }
 
         if (deliveryMethod === "CUSTOMER_PICKUP") {
             if (pickupCompanyId) {
@@ -254,19 +271,13 @@ export function SaleForm({
             }
         } else if (deliveryMethod === "COURIER") {
             timer = setTimeout(() => {
-                const wasInitiallyCourier = initialData?.deliveryMethod === "COURIER";
-                if (pickupCompanyId && !wasInitiallyCourier) {
+                // If switching to courier from a state that had pickupCompanyId
+                if (pickupCompanyId) {
                     setCustomShippingAddress("");
                     setPickupCompanyId("");
                     setShippingCompanyId("");
-                    // Restore customer's shipping address as the delivery destination
-                    if (selectedCustomer) {
-                        setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
-                    } else {
-                        setShippingAddress("");
-                    }
-                } else if (pickupCompanyId && wasInitiallyCourier) {
-                    setPickupCompanyId("");
+                    
+                    // We already handled main address reset above for all changes
                 }
             }, 0);
         } else if (
@@ -274,19 +285,8 @@ export function SaleForm({
             selectedCustomer
         ) {
             timer = setTimeout(() => {
-                const isInitialCustomer = initialData?.customerId === customerId;
-                const hadCustomShipping =
-                    isEdit &&
-                    isInitialCustomer &&
-                    initialData?.useCustomShipping === true;
-
-                if (hadCustomShipping) {
-                    if (!hasInitializedDeliveryMethod) {
-                        setHasInitializedDeliveryMethod(true);
-                    }
-                    setPickupCompanyId("");
-                } else if (!isEdit || !isInitialCustomer) {
-                    setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+                // If switching from a state that had pickupCompanyId
+                if (pickupCompanyId) {
                     setPickupCompanyId("");
                 }
             }, 0);
@@ -298,12 +298,9 @@ export function SaleForm({
     }, [
         pickupCompanyId,
         deliveryMethod,
+        prevDeliveryMethod,
         companies,
         selectedCustomer,
-        isEdit,
-        initialData,
-        customerId,
-        hasInitializedDeliveryMethod,
     ]);
 
     // Auto-select shipping company in edit mode if address matches
