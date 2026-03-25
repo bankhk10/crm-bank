@@ -257,14 +257,22 @@ export function SaleForm({
                 const wasInitiallyCourier = initialData?.deliveryMethod === "COURIER";
                 if (pickupCompanyId && !wasInitiallyCourier) {
                     setCustomShippingAddress("");
-                    setShippingAddress("");
                     setPickupCompanyId("");
                     setShippingCompanyId("");
+                    // Restore customer's shipping address as the delivery destination
+                    if (selectedCustomer) {
+                        setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
+                    } else {
+                        setShippingAddress("");
+                    }
                 } else if (pickupCompanyId && wasInitiallyCourier) {
                     setPickupCompanyId("");
                 }
             }, 0);
-        } else if (deliveryMethod === "SALES_DELIVERY" && selectedCustomer) {
+        } else if (
+            (deliveryMethod === "SALES_DELIVERY" || deliveryMethod === "FACTORY_DELIVERY") &&
+            selectedCustomer
+        ) {
             timer = setTimeout(() => {
                 const isInitialCustomer = initialData?.customerId === customerId;
                 const hadCustomShipping =
