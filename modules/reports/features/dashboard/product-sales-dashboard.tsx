@@ -61,10 +61,6 @@ import {
 
 const quickDateRanges = [
   {
-    label: "วันนี้",
-    getValue: () => ({ from: startOfToday(), to: endOfToday() }),
-  },
-  {
     label: "เดือนนี้",
     getValue: () => ({
       from: startOfMonth(new Date()),

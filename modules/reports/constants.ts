@@ -31,13 +31,6 @@ export const DAY_ORDER = [
 
 export const quickDateRanges = [
   {
-    label: "วันนี้",
-    getValue: () => ({
-      from: startOfDay(new Date()),
-      to: endOfDay(new Date()),
-    }),
-  },
-  {
     label: "เดือนนี้",
     getValue: () => ({
       from: startOfMonth(new Date()),
