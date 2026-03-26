@@ -249,10 +249,10 @@ export function LotSelector({
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-semibold text-slate-800">
-                                {lot.lotNumber}
+                              <span className="font-normal text-slate-800">
+                                เลขที่ LOT: {lot.lotNumber}
                               </span>
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-base">
                                 คงเหลือ: {lot.quantity}
                               </Badge>
                             </div>
