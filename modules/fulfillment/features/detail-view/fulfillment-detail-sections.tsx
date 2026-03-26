@@ -106,8 +106,8 @@ export function SaleSummaryCard({
         <div className="space-y-5">
             <DetailHero
                 backUrl={backUrl}
-                backLabel="หน้ารายการการส่งสินค้า"
-                title={sale.saleNumber}
+                backLabel="หน้ารายการการจัดการคำสั่งขาย"
+                title="จัดการคำสั่งขาย"
                 icon={<Truck className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
                 accentColor="#B91C1C"
                 badges={heroBadges}
