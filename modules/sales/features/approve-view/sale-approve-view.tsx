@@ -29,8 +29,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormTextarea } from "@/components/custom/FormTextarea";
 import {
@@ -783,110 +781,65 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                     </div>
                 </div>
 
-                {/* รายการของแถม (ดึงรูปแบบมาจาก product-manage-form) */}
+                {/* รายการของแถม */}
                 {sale.items.some(item => (item.product.freeItems?.length ?? 0) > 0) && (
-                    <div className="space-y-6">
-                        {sale.items.map((saleItem, itemIdx) => {
-                            if (!saleItem.product.freeItems || saleItem.product.freeItems.length === 0) return null;
-
-                            return (
-                                <AppCard key={itemIdx}>
-                                    <AppSectionHeader
-                                        title="รายการของแถม"
-                                        badge={saleItem.product.name}
-                                        icon={Gift}
-                                    />
-
-                                    <div className="space-y-4">
-                                        <div className="grid gap-4">
-                                            {/* Desktop Header */}
-                                            <div className="hidden lg:grid grid-cols-[1fr_1fr_1fr_1.5fr] gap-4 px-4 py-2 bg-muted/50 rounded-lg text-sm font-medium text-muted-foreground">
-                                                <div>ซื้อ (จำนวน)</div>
-                                                <div>แถม (จำนวน)</div>
-                                                <div>ราคาสุทธิ (บาท)</div>
-                                                <div>หมายเหตุ</div>
-                                            </div>
-
+                    <AppCard>
+                        <AppSectionHeader title="รายการของแถม" icon={Gift} />
+                        <div className="space-y-3">
+                            {sale.items.map((saleItem, itemIdx) => {
+                                if (!saleItem.product.freeItems || saleItem.product.freeItems.length === 0) return null;
+                                return (
+                                    <div key={itemIdx}>
+                                        {/* Product name label */}
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">
+                                            {saleItem.product.name}
+                                        </p>
+                                        <div className="space-y-2">
                                             {saleItem.product.freeItems.map((freeItem, index) => (
                                                 <div
                                                     key={index}
-                                                    className="group relative bg-background border rounded-xl p-4 lg:p-2 lg:border-0 lg:bg-transparent lg:grid lg:grid-cols-[1fr_1fr_1fr_1.5fr] gap-4 items-start shadow-sm lg:shadow-none transition-all hover:bg-muted/30"
+                                                    className="flex flex-wrap items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2.5"
                                                 >
-                                                    {/* Mobile Labels */}
-                                                    <div className="grid grid-cols-2 gap-4 lg:contents mb-4 lg:mb-0">
-                                                        <div className="space-y-1.5 lg:space-y-0">
-                                                            <Label className="lg:hidden text-xs text-muted-foreground">
-                                                                ซื้อ (จำนวน)
-                                                            </Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={freeItem.purchaseQty}
-                                                                readOnly
-                                                                className="h-10 bg-slate-50"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-1.5 lg:space-y-0">
-                                                            <Label className="lg:hidden text-xs text-muted-foreground">
-                                                                แถม (จำนวน)
-                                                            </Label>
-                                                            <Input
-                                                                type="number"
-                                                                value={freeItem.freeQty}
-                                                                readOnly
-                                                                className="h-10 bg-slate-50 font-bold text-green-700"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:contents gap-4 mb-4 lg:mb-0">
-                                                        <div className="space-y-1.5 lg:space-y-0">
-                                                            <Label className="lg:hidden text-xs text-muted-foreground">
-                                                                ราคาสุทธิ
-                                                            </Label>
-                                                            <Input
-                                                                type="number"
-                                                                placeholder="-"
-                                                                value={freeItem.netPrice || ""}
-                                                                readOnly
-                                                                className="h-10 bg-slate-50"
-                                                            />
-                                                        </div>
-                                                        {/* Mobile Notes */}
-                                                        <div className="md:hidden space-y-1.5 ">
-                                                            <Label className="lg:hidden text-xs text-muted-foreground">
-                                                                หมายเหตุ
-                                                            </Label>
-                                                            <Input
-                                                                type="text"
-                                                                placeholder="-"
-                                                                value={freeItem.notes || ""}
-                                                                readOnly
-                                                                className="h-10 bg-slate-50"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Desktop/Tablet Notes */}
-                                                    <div className="hidden md:block space-y-1.5 lg:space-y-0">
-                                                        <Label className="lg:hidden text-xs text-muted-foreground">
-                                                            หมายเหตุ
-                                                        </Label>
-                                                        <Input
-                                                            type="text"
-                                                            placeholder="-"
-                                                            value={freeItem.notes || ""}
-                                                            readOnly
-                                                            className="h-10 bg-slate-50"
-                                                        />
-                                                    </div>
+                                                    {/* ซื้อ */}
+                                                    <span className="text-xs text-gray-500">ซื้อ</span>
+                                                    <span className="text-sm font-bold text-gray-800 bg-white border border-gray-200 rounded-lg px-2.5 py-0.5">
+                                                        {freeItem.purchaseQty}
+                                                    </span>
+                                                    {/* Arrow */}
+                                                    <span className="text-gray-300 text-sm">→</span>
+                                                    {/* แถม */}
+                                                    <span className="text-xs text-gray-500">แถม</span>
+                                                    <span className="text-sm font-bold text-green-700 bg-green-100 border border-green-200 rounded-lg px-2.5 py-0.5">
+                                                        {freeItem.freeQty}
+                                                    </span>
+                                                    {/* ราคาสุทธิ */}
+                                                    {freeItem.netPrice != null && freeItem.netPrice !== 0 && (
+                                                        <>
+                                                            <span className="text-gray-200 mx-0.5">|</span>
+                                                            <span className="text-xs text-gray-500">ราคาสุทธิ</span>
+                                                            <span className="text-sm font-semibold text-gray-700">
+                                                                ฿{Number(freeItem.netPrice).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                    {/* หมายเหตุ */}
+                                                    {freeItem.notes && (
+                                                        <>
+                                                            <span className="text-gray-200 mx-0.5">|</span>
+                                                            <span className="flex items-center gap-1 text-xs text-gray-500 italic">
+                                                                <Info className="h-3 w-3 shrink-0" />
+                                                                {freeItem.notes}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                </AppCard>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    </AppCard>
                 )}
             </div>
 
