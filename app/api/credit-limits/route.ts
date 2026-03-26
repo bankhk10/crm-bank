@@ -155,7 +155,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ creditLimit }, { status: 201 });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2003") {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2003") {
         return NextResponse.json(
           { error: "Customer not found" },
           { status: 400 },
