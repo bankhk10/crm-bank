@@ -427,7 +427,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
         <div class="sign-row" style="position: relative; margin-top: 30px;">
           <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
-            ( ${safeValue(data.approvedByName)} )
+            ${data.approvedByName && data.approvedByName !== "-" ? `( ${data.approvedByName} )` : ""}
           </span>
         </div>
         <div class="sign-row" style="position: relative;">
