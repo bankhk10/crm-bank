@@ -3,9 +3,16 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingIncludes: {
-    "/api/**/*": ["node_modules/.prisma/client/**/*"],
+    "/**/*": [
+      "node_modules/.prisma/client/**/*",
+      "node_modules/@prisma/client-runtime-utils/**/*",
+    ],
   },
-  serverExternalPackages: ["@prisma/client"],
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/client-runtime-utils",
+    "@prisma/adapter-pg",
+  ],
 };
 
 export default nextConfig;
