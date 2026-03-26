@@ -100,6 +100,7 @@ const getDeliveryStatusLabel = (value: string) =>
 
 const getValidationError = (params: {
     status: string;
+    currentStatus?: string;
     paymentDate: string;
     deliveryDate: string;
     notes: string;
@@ -109,6 +110,7 @@ const getValidationError = (params: {
 }) => {
     const {
         status,
+        currentStatus,
         paymentDate,
         deliveryDate,
         notes,
@@ -137,7 +139,14 @@ const getValidationError = (params: {
         return "กรุณาระบุหมายเหตุเมื่อยกเลิกรายการขาย";
     }
 
-    if (stockWarnings.length > 0 && DELIVERY_STATUSES.includes(status)) {
+    const skipStockCheck =
+        !!currentStatus && DELIVERY_STATUSES.includes(currentStatus);
+
+    if (
+        stockWarnings.length > 0 &&
+        DELIVERY_STATUSES.includes(status) &&
+        !skipStockCheck
+    ) {
         const productNames = stockWarnings.map((w) => w.productName).join(", ");
         return `ไม่สามารถเปลี่ยนสถานะเป็นจัดส่งหรือเสร็จสิ้นได้ เนื่องจากสินค้าสต็อกไม่เพียงพอ: ${productNames}`;
     }
@@ -294,6 +303,7 @@ export default function FulfillmentDetailPage({
 
         const validationError = getValidationError({
             status,
+            currentStatus: saleData?.sale.status,
             paymentDate,
             deliveryDate,
             notes,
@@ -348,6 +358,10 @@ export default function FulfillmentDetailPage({
     if (!saleData) return null;
     const { sale } = saleData;
 
+    const skipStockCheck =
+        !!saleData?.sale.status &&
+        DELIVERY_STATUSES.includes(saleData.sale.status);
+
     return (
         <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             {error && (
@@ -364,7 +378,7 @@ export default function FulfillmentDetailPage({
                 <CreditInfoCard creditInfo={saleData.creditInfo} />
             )}
 
-            {stockWarnings.length > 0 && (
+            {stockWarnings.length > 0 && !skipStockCheck && (
                 <StockWarningAlert stockWarnings={stockWarnings} />
             )}
 
@@ -409,7 +423,8 @@ export default function FulfillmentDetailPage({
                                                 DELIVERY_STATUSES.includes(st);
                                             const isDisabled =
                                                 isDeliveryStatus &&
-                                                stockWarnings.length > 0;
+                                                stockWarnings.length > 0 &&
+                                                !skipStockCheck;
 
                                             return (
                                                 <SelectItem
