@@ -66,6 +66,9 @@ export async function getProductSalesReport(
     packageSize?: number | string | null;
     packageSizePerBox?: number | string | null;
     totalPackageSizePerBox?: number | string | null;
+    abcTypeId?: string | null;
+    abcTypeCode?: string | null;
+    abcTypeName?: string | null;
   };
 
   const parsePackageSize = (raw?: number | string | null) => {
@@ -152,6 +155,7 @@ export async function getProductSalesReport(
         name: true,
         brand: true,
         tradeNameGroup: { select: { description: true } },
+        productABCType: { select: { id: true, code: true, name: true } },
         parentId: true,
         packageSize: true,
         packageSizePerBox: true,
@@ -169,6 +173,9 @@ export async function getProductSalesReport(
           name: p.name,
           brand: p.brand || "-",
           productGroup: (p as any).tradeNameGroup?.description || "-",
+          abcTypeId: (p as any).productABCType?.id || null,
+          abcTypeCode: (p as any).productABCType?.code || null,
+          abcTypeName: (p as any).productABCType?.name || null,
           parentId: p.parentId,
           packageSize: p.packageSize as any,
           packageSizePerBox: p.packageSizePerBox as any,
@@ -411,6 +418,55 @@ export async function getProductSalesReport(
       : undefined,
   }));
 
+  // ABC Code sales (aggregate by productABCType)
+  type AbcAgg = {
+    id: string;
+    code: string;
+    name: string;
+    totalSales: number;
+    totalQuantity: number;
+    orderCount: number;
+    productIds: Set<string>;
+  };
+
+  const abcAggregates = new Map<string, AbcAgg>();
+
+  for (const ps of productSales) {
+    const product = productMap.get(ps.productId);
+    const abcId = product?.abcTypeId || "UNKNOWN";
+    const abcCode = product?.abcTypeCode || "-";
+    const abcName = product?.abcTypeName || "ไม่ระบุ";
+
+    const existing = abcAggregates.get(abcId) || {
+      id: abcId,
+      code: abcCode,
+      name: abcName,
+      totalSales: 0,
+      totalQuantity: 0,
+      orderCount: 0,
+      productIds: new Set<string>(),
+    };
+
+    existing.totalSales += Number(ps._sum.totalPrice || 0);
+    existing.totalQuantity += Number(ps._sum.quantity || 0);
+    existing.orderCount += ps._count;
+    existing.productIds.add(ps.productId);
+
+    abcAggregates.set(abcId, existing);
+  }
+
+  const abcSales = Array.from(abcAggregates.values())
+    .map((a) => ({
+      id: a.id,
+      code: a.code,
+      name: a.name,
+      totalSales: a.totalSales,
+      totalQuantity: a.totalQuantity,
+      orderCount: a.orderCount,
+      productCount: a.productIds.size,
+    }))
+    .sort((a, b) => b.totalSales - a.totalSales);
+
   return {
     topProducts,
     slowProducts,
@@ -419,6 +475,7 @@ export async function getProductSalesReport(
     stagnantProducts: stagnant.sort(
       (a, b) => b.daysSinceLastSale - a.daysSinceLastSale,
     ),
+    abcSales,
   };
 }
 

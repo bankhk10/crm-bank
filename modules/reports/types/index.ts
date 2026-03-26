@@ -106,6 +106,15 @@ export interface ProductSalesReportData {
     daysSinceLastSale: number;
     lastSoldDate?: string;
   }[];
+  abcSales: {
+    id: string;
+    code: string;
+    name: string;
+    totalSales: number;
+    totalQuantity: number;
+    orderCount: number;
+    productCount: number;
+  }[];
 }
 
 export interface ProductGroupSalesReportData {

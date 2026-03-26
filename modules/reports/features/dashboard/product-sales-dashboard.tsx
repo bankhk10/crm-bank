@@ -137,6 +137,9 @@ export function ProductSalesDashboard() {
   const sortedGroups =
     groupReportData?.groupPerformance.sort((a, b) => b.totalSales - a.totalSales) ||
     [];
+  const sortedAbcSales =
+    reportData?.abcSales?.slice().sort((a, b) => b.totalSales - a.totalSales) ||
+    [];
 
   const formatPackSize = (value: number, unit?: string) => {
     if (!value) return "-";
@@ -530,6 +533,12 @@ export function ProductSalesDashboard() {
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   ผลงานกลุ่มชื่อการค้า
+                </TabsTrigger>
+                <TabsTrigger
+                  value="abc-sales"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
+                >
+                  ยอดขายตามประเภท (ABC Code)
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="top-products" className="mt-6">
@@ -996,6 +1005,82 @@ export function ProductSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-right text-muted-foreground">
                                   {formatTHB(group.avgSalesPerProduct)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="abc-sales" className="mt-6">
+                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      ยอดขายตามประเภท (ABC Code)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!reportData || sortedAbcSales.length === 0 ? (
+                      <div className="py-10 text-center text-muted-foreground">
+                        ไม่พบข้อมูลยอดขายตามประเภท (ABC Code)
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table className="min-w-[680px]">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>ลำดับ</TableHead>
+                              <TableHead>ประเภท</TableHead>
+                              <TableHead className="text-right">
+                                ยอดขาย
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวน
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนออเดอร์
+                              </TableHead>
+                              <TableHead className="text-right">
+                                จำนวนสินค้า
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sortedAbcSales.map((row, idx) => (
+                              <TableRow key={row.id}>
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      idx < 3
+                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                        : ""
+                                    }
+                                  >
+                                    {idx + 1}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  <div>
+                                    <p className="text-sm font-semibold text-slate-900">
+                                      {row.code !== "-" ? `${row.code} - ${row.name}` : row.name}
+                                    </p>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right font-semibold text-red-600">
+                                  {formatTHB(row.totalSales)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(row.totalQuantity)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(row.orderCount)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(row.productCount)}
                                 </TableCell>
                               </TableRow>
                             ))}
