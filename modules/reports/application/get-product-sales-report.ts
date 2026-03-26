@@ -120,7 +120,24 @@ export async function getProductSalesReport(
     return current?.id || productId;
   };
 
-  // Get all products with their sales in the period
+  // 1. Get all active products first
+  const activeProducts = await repo.findManyProductsData({
+    where: { deletedAt: null, status: "ACTIVE" },
+    select: {
+      id: true,
+      productCode: true,
+      name: true,
+      brand: true,
+      tradeNameGroup: { select: { description: true } },
+      productABCType: { select: { id: true, code: true, name: true } },
+      parentId: true,
+      packageSize: true,
+      packageSizePerBox: true,
+      totalPackageSizePerBox: true,
+    },
+  });
+
+  // 2. Get all products with their sales in the period
   const productSales = await repo.groupSaleItemsData({
     by: ["productId"],
     where: {
@@ -141,11 +158,16 @@ export async function getProductSalesReport(
     },
   });
 
-  // Get product details including parent chain and pack sizes
-  const productIds = productSales.map((p) => p.productId);
-  const productMap = new Map<string, ProductMeta>();
+  // 3. Combine active and sold product IDs
+  const productIdsFromSales = productSales.map((p) => p.productId);
+  const activeProductIds = activeProducts.map((p) => p.id);
+  const allInitialIds = Array.from(
+    new Set([...productIdsFromSales, ...activeProductIds]),
+  );
 
-  let pendingIds = Array.from(new Set(productIds));
+  // 4. Get product details including parent chain
+  const productMap = new Map<string, ProductMeta>();
+  let pendingIds = allInitialIds;
   while (pendingIds.length > 0) {
     const products = await repo.findManyProductsData({
       where: { id: { in: pendingIds } },
@@ -164,7 +186,6 @@ export async function getProductSalesReport(
     });
 
     const nextParentIds: string[] = [];
-
     for (const p of products) {
       if (!productMap.has(p.id)) {
         productMap.set(p.id, {
@@ -209,48 +230,89 @@ export async function getProductSalesReport(
 
   const aggregatedByRoot = new Map<string, AggregatedProduct>();
 
+  // 5. Initialize with ALL active products grouped by root
+  for (const p of activeProducts) {
+    const rootId = getRootProductId(p.id, productMap);
+    if (!aggregatedByRoot.has(rootId)) {
+      const rootProd = productMap.get(rootId);
+      if (rootProd) {
+        aggregatedByRoot.set(rootId, {
+          id: rootId,
+          code: rootProd.code,
+          name: rootProd.name,
+          brand: rootProd.brand,
+          productGroup: rootProd.productGroup,
+          totalSales: 0,
+          totalQuantity: 0,
+          orderCount: 0,
+          totalPackageSold: 0,
+          totalVolumeLiters: 0,
+          packageUnit: parsePackageSize(rootProd.packageSize).unit || "",
+          childCount: 0,
+          relatedProductIds: new Set([rootId]),
+        });
+      }
+    }
+    const agg = aggregatedByRoot.get(rootId);
+    if (agg) {
+      agg.relatedProductIds.add(p.id);
+    }
+  }
+
+  // 6. Add sales data
   for (const ps of productSales) {
     const product = productMap.get(ps.productId);
     if (!product) continue;
 
     const rootId = getRootProductId(ps.productId, productMap);
-    const rootProduct = productMap.get(rootId) || product;
+
+    // Ensure entry exists for root
+    if (!aggregatedByRoot.has(rootId)) {
+      const rootProd = productMap.get(rootId);
+      if (rootProd) {
+        aggregatedByRoot.set(rootId, {
+          id: rootId,
+          code: rootProd.code,
+          name: rootProd.name,
+          brand: rootProd.brand,
+          productGroup: rootProd.productGroup,
+          totalSales: 0,
+          totalQuantity: 0,
+          orderCount: 0,
+          totalPackageSold: 0,
+          totalVolumeLiters: 0,
+          packageUnit: parsePackageSize(rootProd.packageSize).unit || "",
+          childCount: 0,
+          relatedProductIds: new Set([rootId]),
+        });
+      }
+    }
 
     const { totalPackageSold, unit } = calculatePackageSold(
       Number(ps._sum.quantity || 0),
       product,
     );
 
-    const aggregate = aggregatedByRoot.get(rootId) || {
-      id: rootProduct.id,
-      code: rootProduct.code,
-      name: rootProduct.name,
-      brand: rootProduct.brand,
-      productGroup: rootProduct.productGroup,
-      totalSales: 0,
-      totalQuantity: 0,
-      orderCount: 0,
-      totalPackageSold: 0,
-      totalVolumeLiters: 0,
-      packageUnit: unit || parsePackageSize(rootProduct.packageSize).unit,
-      childCount: 0,
-      relatedProductIds: new Set([rootProduct.id]),
-    };
+    const aggregate = aggregatedByRoot.get(rootId)!;
 
     aggregate.totalSales += Number(ps._sum.totalPrice || 0);
     aggregate.totalQuantity += Number(ps._sum.quantity || 0);
     aggregate.orderCount += ps._count;
     aggregate.totalPackageSold += totalPackageSold;
-    aggregate.totalVolumeLiters += convertToLiters(totalPackageSold, unit || aggregate.packageUnit);
+    aggregate.totalVolumeLiters += convertToLiters(
+      totalPackageSold,
+      unit || aggregate.packageUnit,
+    );
     if (!aggregate.packageUnit && unit) {
       aggregate.packageUnit = unit;
     }
-    if (product.id !== rootId) {
-      aggregate.childCount += 1;
-    }
     aggregate.relatedProductIds.add(product.id);
+  }
 
-    aggregatedByRoot.set(rootId, aggregate);
+  // 7. Calculate child count for each aggregate
+  for (const agg of aggregatedByRoot.values()) {
+    agg.childCount =
+      agg.relatedProductIds.size - (agg.relatedProductIds.has(agg.id) ? 1 : 0);
   }
 
   const aggregatedProducts = Array.from(aggregatedByRoot.values());

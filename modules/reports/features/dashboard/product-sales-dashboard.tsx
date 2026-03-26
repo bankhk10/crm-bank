@@ -138,7 +138,7 @@ export function ProductSalesDashboard() {
     [];
 
   const formatPackSize = (value: number, unit?: string) => {
-    if (!value) return "-";
+    if (value === null || value === undefined) return "-";
     const unitLabel = unit?.trim();
     return `${formatNumber(value)}${unitLabel ? ` ${unitLabel}` : " หน่วย"}`;
   };
