@@ -45,7 +45,6 @@ RUN pnpm build
 # Resolve pnpm symlinks for Prisma packages so Docker COPY gets real files
 RUN mkdir -p /app/prisma-resolved && \
     cp -rL /app/node_modules/.prisma /app/prisma-resolved/.prisma && \
-    cp -rL /app/node_modules/@prisma /app/prisma-resolved/@prisma && \
     cp -rL /app/node_modules/prisma /app/prisma-resolved/prisma
 
 # ===========================================
@@ -82,7 +81,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.
 
 # Copy resolved (de-symlinked) Prisma packages for CLI and runtime
 COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/prisma ./node_modules/prisma
 
 # Switch to non-root user
