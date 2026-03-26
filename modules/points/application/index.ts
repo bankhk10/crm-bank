@@ -42,11 +42,11 @@ export async function finalizePointsForSaleUseCase(saleId: string) {
         saleTotalPoints += totalPoints;
       } catch (error) {
         // Handle race conditions (P2002 Unique constraint)
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002"
-        ) {
-          continue;
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          const prismaErr = error as Prisma.PrismaClientKnownRequestError;
+          if (prismaErr.code === "P2002") {
+            continue;
+          }
         }
         throw error;
       }

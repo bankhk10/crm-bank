@@ -30,11 +30,11 @@ export async function manageProductUseCase(id: string, rawData: unknown) {
     const product = await manageProduct(id, parsed.data);
     return { success: true as const, product };
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2025"
-    ) {
-      return { success: false as const, error: "Product not found" };
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2025") {
+        return { success: false as const, error: "Product not found" };
+      }
     }
     throw err;
   }

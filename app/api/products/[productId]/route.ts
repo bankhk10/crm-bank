@@ -217,24 +217,27 @@ export async function PATCH(
       duration,
     });
 
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2025"
-    ) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
-    }
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2025") {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 },
+        );
+      }
 
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      const target =
-        (err.meta && (err.meta as Record<string, unknown>).target) || [];
-      const fields = Array.isArray(target) ? target.join(", ") : String(target);
-      return NextResponse.json(
-        { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
-        { status: 409 },
-      );
+      if (prismaErr.code === "P2002") {
+        const target =
+          (prismaErr.meta && (prismaErr.meta as Record<string, unknown>).target) ||
+          [];
+        const fields = Array.isArray(target)
+          ? target.join(", ")
+          : String(target);
+        return NextResponse.json(
+          { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
+          { status: 409 },
+        );
+      }
     }
 
     throw err;
@@ -290,11 +293,14 @@ export async function DELETE(request: Request, { params }: { params: any }) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2025"
-    ) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2025") {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 },
+        );
+      }
     }
 
     throw err;

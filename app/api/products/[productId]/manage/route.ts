@@ -307,11 +307,14 @@ export async function PATCH(
 
     return NextResponse.json({ product: result });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2025"
-    ) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2025") {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 },
+        );
+      }
     }
 
     throw err;

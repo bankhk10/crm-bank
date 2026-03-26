@@ -34,23 +34,24 @@ export async function updateProductUseCase(id: string, rawData: unknown) {
     const product = await updateProduct(id, payloadToUpdate);
     return { success: true as const, product };
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      const target =
-        (err.meta && (err.meta as Record<string, unknown>).target) || [];
-      const fields = Array.isArray(target) ? target.join(", ") : String(target);
-      return {
-        success: false as const,
-        error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})`,
-      };
-    }
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2025"
-    ) {
-      return { success: false as const, error: "Product not found" };
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2002") {
+        const target =
+          (prismaErr.meta &&
+            (prismaErr.meta as Record<string, unknown>).target) ||
+          [];
+        const fields = Array.isArray(target)
+          ? target.join(", ")
+          : String(target);
+        return {
+          success: false as const,
+          error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})`,
+        };
+      }
+      if (prismaErr.code === "P2025") {
+        return { success: false as const, error: "Product not found" };
+      }
     }
     throw err;
   }

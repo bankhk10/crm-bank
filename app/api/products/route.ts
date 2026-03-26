@@ -310,16 +310,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
-      const target = (err.meta && (err.meta as any).target) || [];
-      const fields = Array.isArray(target) ? target.join(", ") : String(target);
-      return NextResponse.json(
-        { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
-        { status: 409 },
-      );
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      const prismaErr = err as Prisma.PrismaClientKnownRequestError;
+      if (prismaErr.code === "P2002") {
+        const target = (prismaErr.meta && (prismaErr.meta as any).target) || [];
+        const fields = Array.isArray(target)
+          ? target.join(", ")
+          : String(target);
+        return NextResponse.json(
+          { error: `มีรหัสสินค้านี้อยู่ในระบบแล้ว: (${fields})` },
+          { status: 409 },
+        );
+      }
     }
 
     throw err;
