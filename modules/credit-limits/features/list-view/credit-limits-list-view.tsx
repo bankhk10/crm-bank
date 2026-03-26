@@ -152,7 +152,7 @@ export default function CreditLimitsListView() {
           <PageHeader
             icon={CreditCard}
             iconClassName="text-blue-600"
-            title="จัดการวงเงินเครดิต"
+            title="จัดการวงเงินลูกค้า"
           />
 
           <CreditLimitTable
