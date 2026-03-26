@@ -67,6 +67,12 @@ const DELIVERY_DATE_REQUIRED_STATUSES = [
 ];
 
 const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
+const BLOCKED_WHEN_IN_TRANSIT = [
+    "WAITING_FOR_CORRECTION",
+    "AWAITING_PAYMENT",
+    "PAID",
+    "AWAITING_DELIVERY",
+];
 
 const DELIVERY_STATUS_LABELS: Record<string, string> = {
     DELIVERED: "ระหว่างขนส่ง",
@@ -361,6 +367,7 @@ export default function FulfillmentDetailPage({
     const skipStockCheck =
         !!saleData?.sale.status &&
         DELIVERY_STATUSES.includes(saleData.sale.status);
+    const isInTransit = saleData?.sale.status === "DELIVERED" || sale.status === "DELIVERY_COMPLETED" || sale.status === "COMPLETED";
 
     return (
         <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -421,10 +428,16 @@ export default function FulfillmentDetailPage({
                                         {FULFILLMENT_STATUSES.map((st) => {
                                             const isDeliveryStatus =
                                                 DELIVERY_STATUSES.includes(st);
-                                            const isDisabled =
+                                            const isDisabledDueToStock =
                                                 isDeliveryStatus &&
                                                 stockWarnings.length > 0 &&
                                                 !skipStockCheck;
+                                            const isDisabledDueToTransit =
+                                                isInTransit &&
+                                                BLOCKED_WHEN_IN_TRANSIT.includes(st);
+                                            const isDisabled =
+                                                isDisabledDueToStock ||
+                                                isDisabledDueToTransit;
 
                                             return (
                                                 <SelectItem
@@ -436,7 +449,8 @@ export default function FulfillmentDetailPage({
                                                     {SaleStatusLabels[
                                                         st as keyof typeof SaleStatusLabels
                                                     ] || st}
-                                                    {isDisabled && " (สต็อกไม่พอ)"}
+                                                    {isDisabledDueToStock &&
+                                                        " (สต็อกไม่พอ)"}
                                                 </SelectItem>
                                             );
                                         })}
