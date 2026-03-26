@@ -340,7 +340,7 @@ export function CustomerSalesDashboard() {
               </div>
 
               {/* Search query box inside filter panel to streamline UI */}
-              <div className="space-y-1.5 w-full sm:w-auto flex-1 min-w-[200px]">
+              {/* <div className="space-y-1.5 w-full sm:w-auto flex-1 min-w-[200px]">
                 <label className="mx-1 mb-1 font-medium text-base text-gray-900">
                   ค้นหาเป้าหมาย
                 </label>
@@ -357,7 +357,7 @@ export function CustomerSalesDashboard() {
                     className="pl-10 h-10"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit */}
               <div className="flex items-end gap-2 w-full sm:w-auto">
