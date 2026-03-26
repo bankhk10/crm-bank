@@ -242,7 +242,7 @@ export function SaleForm({
             if (deliveryMethod !== "CUSTOMER_PICKUP") {
                 setShippingAddress(buildCustomerShippingAddress(selectedCustomer));
                 setSelectedAddressId("primary");
-                
+
                 // Clear courier/pickup specific fields
                 setPickupCompanyId("");
                 if (deliveryMethod !== "COURIER") {
@@ -276,7 +276,7 @@ export function SaleForm({
                     setCustomShippingAddress("");
                     setPickupCompanyId("");
                     setShippingCompanyId("");
-                    
+
                     // We already handled main address reset above for all changes
                 }
             }, 0);
@@ -588,7 +588,7 @@ export function SaleForm({
                         })
                         .map((customer) => ({
                             value: customer.id,
-                            label: `${customer.name} (${customer.customerCode})`,
+                            label: `${customer.name}`,
                         }))}
                     placeholder="เลือกลูกค้า"
                     searchPlaceholder="ค้นหาลูกค้า..."
