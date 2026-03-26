@@ -431,6 +431,59 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                     </div>
                 )}
 
+                {/* รายการของแถม */}
+                {sale.items.some((item) => (item.product.freeItems?.length ?? 0) > 0) && (
+                    <AppCard>
+                        <AppSectionHeader title="รายการของแถม" icon={Gift} />
+
+                        <div className="space-y-4">
+                            {sale.items.map((saleItem, itemIdx) => {
+                                if (!saleItem.product.freeItems?.length) return null;
+
+                                return (
+                                    <div key={itemIdx} className="space-y-2">
+                                        <p className="text-sm font-semibold text-gray-800">
+                                            {saleItem.product.name}
+                                        </p>
+
+                                        <div className="space-y-2">
+                                            {saleItem.product.freeItems.map((freeItem, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-700"
+                                                >
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span>ซื้อ {freeItem.purchaseQty}</span>
+                                                        <span className="text-gray-400">→</span>
+                                                        <span className="font-medium text-green-700">
+                                                            แถม {freeItem.freeQty}
+                                                        </span>
+
+                                                        {freeItem.netPrice != null && freeItem.netPrice !== 0 && (
+                                                            <span className="text-gray-500">
+                                                                | ราคาสุทธิ ฿
+                                                                {Number(freeItem.netPrice).toLocaleString("th-TH", {
+                                                                    minimumFractionDigits: 2,
+                                                                })}
+                                                            </span>
+                                                        )}
+
+                                                        {freeItem.notes && (
+                                                            <span className="text-gray-500">
+                                                                | {freeItem.notes}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </AppCard>
+                )}
+
                 {/* รายการสินค้า */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <SectionHeader
@@ -780,67 +833,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                         </div>
                     </div>
                 </div>
-
-                {/* รายการของแถม */}
-                {sale.items.some(item => (item.product.freeItems?.length ?? 0) > 0) && (
-                    <AppCard>
-                        <AppSectionHeader title="รายการของแถม" icon={Gift} />
-                        <div className="space-y-3">
-                            {sale.items.map((saleItem, itemIdx) => {
-                                if (!saleItem.product.freeItems || saleItem.product.freeItems.length === 0) return null;
-                                return (
-                                    <div key={itemIdx}>
-                                        {/* Product name label */}
-                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">
-                                            {saleItem.product.name}
-                                        </p>
-                                        <div className="space-y-2">
-                                            {saleItem.product.freeItems.map((freeItem, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex flex-wrap items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2.5"
-                                                >
-                                                    {/* ซื้อ */}
-                                                    <span className="text-xs text-gray-500">ซื้อ</span>
-                                                    <span className="text-sm font-bold text-gray-800 bg-white border border-gray-200 rounded-lg px-2.5 py-0.5">
-                                                        {freeItem.purchaseQty}
-                                                    </span>
-                                                    {/* Arrow */}
-                                                    <span className="text-gray-300 text-sm">→</span>
-                                                    {/* แถม */}
-                                                    <span className="text-xs text-gray-500">แถม</span>
-                                                    <span className="text-sm font-bold text-green-700 bg-green-100 border border-green-200 rounded-lg px-2.5 py-0.5">
-                                                        {freeItem.freeQty}
-                                                    </span>
-                                                    {/* ราคาสุทธิ */}
-                                                    {freeItem.netPrice != null && freeItem.netPrice !== 0 && (
-                                                        <>
-                                                            <span className="text-gray-200 mx-0.5">|</span>
-                                                            <span className="text-xs text-gray-500">ราคาสุทธิ</span>
-                                                            <span className="text-sm font-semibold text-gray-700">
-                                                                ฿{Number(freeItem.netPrice).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                    {/* หมายเหตุ */}
-                                                    {freeItem.notes && (
-                                                        <>
-                                                            <span className="text-gray-200 mx-0.5">|</span>
-                                                            <span className="flex items-center gap-1 text-xs text-gray-500 italic">
-                                                                <Info className="h-3 w-3 shrink-0" />
-                                                                {freeItem.notes}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </AppCard>
-                )}
             </div>
 
             {/* Sticky Bottom Action Bar */}
