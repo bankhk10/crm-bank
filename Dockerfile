@@ -46,6 +46,8 @@ RUN pnpm build
 # Stage 3: Runner (Production)
 # ===========================================
 FROM node:20-alpine AS runner
+# Add dependencies for Prisma and other native modules
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 # Set environment
@@ -75,6 +77,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.
 # คัดลอก Prisma CLI และ Engines (ใช้วิธีเจาะจงเพื่อให้รัน npx prisma ได้)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
 
 # คัดลอก engines และ client จาก .pnpm (สำหรับ pnpm)
