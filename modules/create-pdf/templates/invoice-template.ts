@@ -433,7 +433,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <div class="sign-row" style="position: relative;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
-            ${data.approvedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
+            ${data.approvedBySignatureDate && data.approvedBySignatureDate !== "-" ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
           </div>
         </div>
       </div>
