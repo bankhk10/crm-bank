@@ -810,7 +810,6 @@ export function ProductSalesDashboard() {
                               <TableHead className="text-right">
                                 พร้อมขาย
                               </TableHead>
-                              <TableHead>วันหมดอายุ</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -841,15 +840,6 @@ export function ProductSalesDashboard() {
                                   >
                                     {formatNumber(product.availableQuantity)}
                                   </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  {product.upcomingExpiry ? (
-                                    <span className="text-sm text-muted-foreground">
-                                      {product.upcomingExpiry}
-                                    </span>
-                                  ) : (
-                                    "-"
-                                  )}
                                 </TableCell>
                               </TableRow>
                             ))}
