@@ -24,9 +24,13 @@ import {
     Calendar,
     TrendingDown,
     FileText,
+    Gift,
+    Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormTextarea } from "@/components/custom/FormTextarea";
 import {
@@ -50,6 +54,48 @@ import { DetailHero } from "@/components/custom/detail-hero";
 interface SaleApproveViewProps {
     id: string;
 }
+
+// ----------------------------------------------------------------------
+// Local UI Components matching Product Management style
+// ----------------------------------------------------------------------
+
+const AppCard = ({
+    children,
+    className = "",
+}: {
+    children: React.ReactNode;
+    className?: string;
+}) => (
+    <div
+        className={`bg-white text-gray-800 rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 transition-all hover:shadow-lg hover:shadow-gray-500/5 hover:border-gray-100 ${className}`}
+    >
+        {children}
+    </div>
+);
+
+const AppSectionHeader = ({
+    title,
+    icon: Icon,
+    badge,
+}: {
+    title: string;
+    icon: React.ElementType;
+    badge?: string;
+}) => (
+    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl text-white shadow-lg shadow-red-500/20">
+                <Icon className="h-5 w-5" />
+            </div>
+            <div className="flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-800 tracking-tight">
+                    {title}
+                </h2>
+                {badge && <span className="text-xs text-muted-foreground">{badge}</span>}
+            </div>
+        </div>
+    </div>
+);
 
 export function SaleApproveView({ id }: SaleApproveViewProps) {
     const router = useRouter();
@@ -360,8 +406,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                         </div>
                     </div>
                 </div>
-
-
 
                 {/* Stock Warning */}
                 {stockWarnings.length > 0 && (
@@ -738,6 +782,112 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* รายการของแถม (ดึงรูปแบบมาจาก product-manage-form) */}
+                {sale.items.some(item => (item.product.freeItems?.length ?? 0) > 0) && (
+                    <div className="space-y-6">
+                        {sale.items.map((saleItem, itemIdx) => {
+                            if (!saleItem.product.freeItems || saleItem.product.freeItems.length === 0) return null;
+
+                            return (
+                                <AppCard key={itemIdx}>
+                                    <AppSectionHeader
+                                        title="รายการของแถม"
+                                        badge={saleItem.product.name}
+                                        icon={Gift}
+                                    />
+
+                                    <div className="space-y-4">
+                                        <div className="grid gap-4">
+                                            {/* Desktop Header */}
+                                            <div className="hidden lg:grid grid-cols-[1fr_1fr_1fr_1.5fr] gap-4 px-4 py-2 bg-muted/50 rounded-lg text-sm font-medium text-muted-foreground">
+                                                <div>ซื้อ (จำนวน)</div>
+                                                <div>แถม (จำนวน)</div>
+                                                <div>ราคาสุทธิ (บาท)</div>
+                                                <div>หมายเหตุ</div>
+                                            </div>
+
+                                            {saleItem.product.freeItems.map((freeItem, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="group relative bg-background border rounded-xl p-4 lg:p-2 lg:border-0 lg:bg-transparent lg:grid lg:grid-cols-[1fr_1fr_1fr_1.5fr] gap-4 items-start shadow-sm lg:shadow-none transition-all hover:bg-muted/30"
+                                                >
+                                                    {/* Mobile Labels */}
+                                                    <div className="grid grid-cols-2 gap-4 lg:contents mb-4 lg:mb-0">
+                                                        <div className="space-y-1.5 lg:space-y-0">
+                                                            <Label className="lg:hidden text-xs text-muted-foreground">
+                                                                ซื้อ (จำนวน)
+                                                            </Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={freeItem.purchaseQty}
+                                                                readOnly
+                                                                className="h-10 bg-slate-50"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5 lg:space-y-0">
+                                                            <Label className="lg:hidden text-xs text-muted-foreground">
+                                                                แถม (จำนวน)
+                                                            </Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={freeItem.freeQty}
+                                                                readOnly
+                                                                className="h-10 bg-slate-50 font-bold text-green-700"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:contents gap-4 mb-4 lg:mb-0">
+                                                        <div className="space-y-1.5 lg:space-y-0">
+                                                            <Label className="lg:hidden text-xs text-muted-foreground">
+                                                                ราคาสุทธิ
+                                                            </Label>
+                                                            <Input
+                                                                type="number"
+                                                                placeholder="-"
+                                                                value={freeItem.netPrice || ""}
+                                                                readOnly
+                                                                className="h-10 bg-slate-50"
+                                                            />
+                                                        </div>
+                                                        {/* Mobile Notes */}
+                                                        <div className="md:hidden space-y-1.5 ">
+                                                            <Label className="lg:hidden text-xs text-muted-foreground">
+                                                                หมายเหตุ
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                placeholder="-"
+                                                                value={freeItem.notes || ""}
+                                                                readOnly
+                                                                className="h-10 bg-slate-50"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Desktop/Tablet Notes */}
+                                                    <div className="hidden md:block space-y-1.5 lg:space-y-0">
+                                                        <Label className="lg:hidden text-xs text-muted-foreground">
+                                                            หมายเหตุ
+                                                        </Label>
+                                                        <Input
+                                                            type="text"
+                                                            placeholder="-"
+                                                            value={freeItem.notes || ""}
+                                                            readOnly
+                                                            className="h-10 bg-slate-50"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </AppCard>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Sticky Bottom Action Bar */}

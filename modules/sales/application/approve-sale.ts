@@ -57,11 +57,14 @@ export async function getSaleDetailForApproval(
       createdBy: true,
       approvedBy: true,
       saleAddress: true,
+      budgetDetails: true,
       items: {
         include: {
           product: {
             include: {
               stock: true,
+              freeItems: true,
+              promotionItems: true,
             },
           },
         },

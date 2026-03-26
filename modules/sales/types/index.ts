@@ -45,6 +45,13 @@ export interface SaleWithRelations extends Sale {
     email: string;
   } | null;
   items: SaleItemWithProduct[];
+  budgetDetails?: Array<{
+    id: string;
+    type: string;
+    amount: number;
+    transactionDate: string | Date;
+    description?: string | null;
+  }>;
   saleAddress?: {
     companyAddressId?: string | null;
     billingCustomerAddressId?: string | null;
@@ -64,6 +71,20 @@ export interface SaleItemWithProduct extends SaleItem {
     packageSize?: number | string | null;
     packageSizeUnit?: string | null;
     packageSizePerBox?: number | string | null;
+    freeItems?: Array<{
+      id: string;
+      purchaseQty: number;
+      freeQty: number;
+      netPrice?: number;
+      notes?: string;
+    }>;
+    promotionItems?: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      price?: number;
+      notes?: string;
+    }>;
   };
 }
 
