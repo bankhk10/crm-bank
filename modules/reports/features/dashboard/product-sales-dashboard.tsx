@@ -558,13 +558,13 @@ export function ProductSalesDashboard() {
                                   ยอดขาย
                                 </TableHead>
                                 <TableHead className="text-right">
-                                  จำนวน
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  ปริมาณ ({volumeUnit})
+                                  จำนวนที่ขาย
                                 </TableHead>
                                 <TableHead className="text-right">
                                   จำนวนออเดอร์
+                                </TableHead>
+                                <TableHead className="text-right">
+                                  ปริมาณ ({volumeUnit})
                                 </TableHead>
                                 <TableHead className="text-right">
                                   บรรจุขายได้รวมลูก
@@ -603,13 +603,13 @@ export function ProductSalesDashboard() {
                                     <TableCell className="text-right">
                                       {formatNumber(product.totalQuantity)}
                                     </TableCell>
+                                    <TableCell className="text-right text-slate-700 font-medium">
+                                      {formatNumber(product.orderCount)}
+                                    </TableCell>
                                     <TableCell className="text-right">
                                       <span className="font-semibold text-blue-600">
                                         {formatVolume(product.totalVolumeLiters)} {volumeUnit}
                                       </span>
-                                    </TableCell>
-                                    <TableCell className="text-right text-slate-700 font-medium">
-                                      {formatNumber(product.orderCount)}
                                     </TableCell>
                                     <TableCell className="text-right">
                                       <div className="flex items-center justify-end gap-2">
