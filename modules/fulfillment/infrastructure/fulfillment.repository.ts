@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, Prisma } from "@/lib/db";
 import * as StockRepository from "@/modules/products/infrastructure/stock.repository";
 import {
   confirmStockDeductionUseCase as confirmStockDeduction,
@@ -7,6 +7,7 @@ import {
   revertStockDeductionFromLotsUseCase as revertStockDeductionFromLots,
 } from "@/modules/products/application";
 import { finalizePointsForSaleUseCase as finalizePointsForSale } from "@/modules/points";
+import { finalizePromotionalBudgetForSaleUseCase as finalizePromotionalBudgetForSale } from "@/modules/credit-limits/application";
 import type { LotAllocation, LotInfo } from "@/modules/products/types/stock";
 import { SaleStatus } from "@/lib/db";
 
@@ -160,7 +161,7 @@ export const FulfillmentRepository = {
       };
     }
 
-    const updatedSale = await db.$transaction(async (tx) => {
+    const updatedSale = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Handle CANCELLED or OVERDUE status: Release stock and restore credit limit
       const shouldReleaseResources =
         (status === "CANCELLED" && sale.status !== "CANCELLED") ||
@@ -280,8 +281,9 @@ export const FulfillmentRepository = {
     if (shouldFinalizePoints) {
       try {
         await finalizePointsForSale(updatedSale.id);
+        await finalizePromotionalBudgetForSale(updatedSale.id);
       } catch (error) {
-        console.error("Error finalizing sale points:", error);
+        console.error("Error finalizing sale points or budget:", error);
       }
     }
 
@@ -314,7 +316,7 @@ export const FulfillmentRepository = {
     if (!sale) return null;
 
     const items = await Promise.all(
-      sale.items.map(async (item) => {
+      sale.items.map(async (item: any) => {
         const availableLots =
           await StockRepository.getAvailableLotsOrderByQuantity(item.productId);
 
@@ -328,7 +330,7 @@ export const FulfillmentRepository = {
         }));
 
         const existingAllocations =
-          item.lotAllocations?.map((la) => ({
+          item.lotAllocations?.map((la: any) => ({
             lotId: la.lotId,
             lotNumber: la.lot.lotNumber,
             quantity: la.quantity,
@@ -350,7 +352,7 @@ export const FulfillmentRepository = {
       saleId: sale.id,
       saleNumber: sale.saleNumber,
       hasExistingAllocations: sale.items.some(
-        (item) => item.lotAllocations && item.lotAllocations.length > 0,
+        (item: any) => item.lotAllocations && item.lotAllocations.length > 0,
       ),
       items,
     };

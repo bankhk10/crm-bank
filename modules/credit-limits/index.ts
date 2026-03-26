@@ -1,5 +1,5 @@
 // Application
-export * from "./application";
+export * from "./application/utils";
 
 // Features
 export * from "./features/list-view/credit-limit-table";
