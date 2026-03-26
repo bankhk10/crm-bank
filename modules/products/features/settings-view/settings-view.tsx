@@ -119,10 +119,10 @@ export default function ProductManagementSettingsView({
 
   const handleOpenEdit = (item: SettingItem) => {
     setEditingItem(item);
-    setFormData({ 
-        code: item.code, 
-        description: item.description || "",
-        name: item.name || ""
+    setFormData({
+      code: item.code,
+      description: item.description || "",
+      name: item.name || ""
     });
     setIsFormOpen(true);
   };
@@ -191,11 +191,11 @@ export default function ProductManagementSettingsView({
   };
 
   if (permLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-        </div>
-      );
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+      </div>
+    );
   }
 
   if (!canView) {
@@ -319,7 +319,7 @@ export default function ProductManagementSettingsView({
               <div className="text-sm text-slate-500 order-2 sm:order-1">
                 แสดง {items.length} จาก {total} รายการ
               </div>
-              
+
               <div className="flex items-center gap-2 order-1 sm:order-2">
                 <Button
                   variant="outline"
@@ -330,7 +330,7 @@ export default function ProductManagementSettingsView({
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   ย้อนกลับ
                 </Button>
-                
+
                 <div className="flex items-center gap-1 mx-2">
                   <span className="text-sm font-medium">หน้า {page}</span>
                   <span className="text-sm text-slate-400">จาก {Math.ceil(total / perPage)}</span>
@@ -379,33 +379,17 @@ export default function ProductManagementSettingsView({
                 id="name"
                 value={nameLabel === "ชื่อ" ? formData.name || formData.description : formData.description}
                 onChange={(e) => {
-                    const val = e.target.value;
-                    if (nameLabel === "ชื่อ") {
-                        setFormData(prev => ({ ...prev, name: val, description: prev.description || "" }));
-                    } else {
-                        setFormData(prev => ({ ...prev, description: val }));
-                    }
+                  const val = e.target.value;
+                  if (nameLabel === "ชื่อ") {
+                    setFormData(prev => ({ ...prev, name: val, description: prev.description || "" }));
+                  } else {
+                    setFormData(prev => ({ ...prev, description: val }));
+                  }
                 }}
                 placeholder={`${nameLabel}${entityLabel}`}
                 required
               />
             </div>
-            {(nameLabel === "ชื่อ") && (
-              <div className="space-y-2">
-                <Label htmlFor="description">รายละเอียด</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder={`รายละเอียด${entityLabel} (ไม่บังคับ)`}
-                />
-              </div>
-            )}
             <DialogFooter>
               <Button
                 type="button"

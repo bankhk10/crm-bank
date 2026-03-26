@@ -67,7 +67,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { code, description } = body;
+    const { code, name } = body;
+    const description = name;
+
 
     if (!code || !description) {
       return NextResponse.json(
