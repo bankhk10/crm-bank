@@ -42,6 +42,12 @@ ENV NODE_ENV=production
 
 RUN pnpm build
 
+# Resolve pnpm symlinks for Prisma packages so Docker COPY gets real files
+RUN mkdir -p /app/prisma-resolved && \
+    cp -rL /app/node_modules/.prisma /app/prisma-resolved/.prisma && \
+    cp -rL /app/node_modules/@prisma /app/prisma-resolved/@prisma && \
+    cp -rL /app/node_modules/prisma /app/prisma-resolved/prisma
+
 # ===========================================
 # Stage 3: Runner (Production)
 # ===========================================
@@ -66,22 +72,18 @@ COPY --from=builder /app/package.json ./package.json
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Copy standalone output (requires output: 'standalone' in next.config.ts)
+# Copy standalone output (includes traced node_modules with Prisma runtime deps)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma files for runtime
+# Copy Prisma schema and config for migrations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
-# คัดลอก Prisma CLI และ Engines (ใช้วิธีเจาะจงเพื่อให้รัน npx prisma ได้)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
-
-# คัดลอก engines และ client จาก .pnpm (สำหรับ pnpm)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.pnpm
+# Copy resolved (de-symlinked) Prisma packages for CLI and runtime
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-resolved/prisma ./node_modules/prisma
 
 # Switch to non-root user
 USER nextjs
