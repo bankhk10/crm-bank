@@ -556,7 +556,7 @@ export default function FulfillmentDetailPage({
                                 onAllocationsChange={handleLotAllocationsChange}
                                 disabled={
                                     submitting ||
-                                    status === "WAITING_FOR_CORRECTION" ||
+                                    status != "CANCELLED" ||
                                     (saleData &&
                                         LOT_LOCKED_STATUSES.includes(
                                             saleData.sale.status,
@@ -578,7 +578,7 @@ export default function FulfillmentDetailPage({
                         <Button
                             type="button"
                             onClick={() => router.back()}
-                            className="w-32 sm:w-32 h-10 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold shadow-sm transition-all"
+                            className="w-32 sm:w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
                             disabled={submitting}
                         >
                             <X className="h-4 w-4" />
@@ -587,7 +587,7 @@ export default function FulfillmentDetailPage({
                         <Button
                             type="submit"
                             disabled={submitting}
-                            className="w-32 sm:w-32 h-10 rounded-xl bg-[#B91C1C] hover:bg-[#991B1B] text-white font-semibold shadow-sm transition-all"
+                            className="w-32 sm:w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm transition-all"
                         >
                             {submitting ? (
                                 <>

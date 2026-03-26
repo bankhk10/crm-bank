@@ -152,26 +152,6 @@ export function LotSelector({
 
   return (
     <div className="space-y-6">
-      {/* <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
-          <Package className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800">
-            เลือก LOT สินค้า
-          </h3>
-        </div>
-      </div> */}
-
-      {hasExistingAllocations && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <Check className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            รายการขายนี้มีการเลือก LOT แล้ว - แสดงข้อมูลที่เลือกไว้
-          </AlertDescription>
-        </Alert>
-      )}
-
       {lotOptions.map((item) => {
         const totalAllocated = getTotalAllocated(item.saleItemId);
         const isComplete = totalAllocated === item.requiredQuantity;
