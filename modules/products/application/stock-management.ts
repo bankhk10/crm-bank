@@ -69,8 +69,9 @@ export async function allocateStockUseCase(
           item.productId,
           {
             physicalBalance: 0,
-            availableQuantity: 0,
+            availableQuantity: -requestedQty,
             reservedQuantity: requestedQty,
+            availableQuantityIncrement: -requestedQty,
             reservedQuantityIncrement: requestedQty,
           },
           client,
@@ -155,6 +156,7 @@ export async function releaseStockUseCase(
           await StockRepository.updateProductStock(
             item.productId,
             {
+              availableQuantityIncrement: releaseQty,
               reservedQuantityIncrement: -releaseQty,
             },
             client,
@@ -215,7 +217,6 @@ export async function confirmStockDeductionUseCase(
       await StockRepository.updateProductStock(
         item.productId,
         {
-          availableQuantityIncrement: -requestedQty,
           reservedQuantityIncrement: -requestedQty,
           physicalBalanceIncrement: -requestedQty,
         },
@@ -270,7 +271,6 @@ export async function revertStockDeductionUseCase(
       await StockRepository.updateProductStock(
         item.productId,
         {
-          availableQuantityIncrement: returnQty,
           reservedQuantityIncrement: returnQty,
           physicalBalanceIncrement: returnQty,
         },
@@ -362,7 +362,6 @@ export async function confirmStockDeductionWithLotsUseCase(
       await StockRepository.updateProductStock(
         item.productId,
         {
-          availableQuantityIncrement: -item.quantity,
           reservedQuantityIncrement: -item.quantity,
           physicalBalanceIncrement: -item.quantity,
         },
@@ -415,7 +414,6 @@ export async function revertStockDeductionFromLotsUseCase(
       await StockRepository.updateProductStock(
         item.productId,
         {
-          availableQuantityIncrement: item.quantity,
           reservedQuantityIncrement: item.quantity,
           physicalBalanceIncrement: item.quantity,
         },
