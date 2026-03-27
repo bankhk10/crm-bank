@@ -687,6 +687,7 @@ export default function SalespersonDetailView({
                           <TableRow className="bg-slate-50/50">
                             <TableHead className="w-[60px]">ลำดับ</TableHead>
                             <TableHead>ลูกค้า</TableHead>
+                            <TableHead className="text-center">ภูมิภาค</TableHead>
                             <TableHead className="text-center">จำนวนออเดอร์</TableHead>
                             <TableHead className="text-center">ยอดขาย</TableHead>
                             <TableHead className="text-center">ขายล่าสุด</TableHead>
@@ -729,6 +730,11 @@ export default function SalespersonDetailView({
                                     </p>
                                   </Link>
                                 </TableCell>
+                                <TableCell className="text-center">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
+                                    {c.region}
+                                  </span>
+                                </TableCell>
                                 <TableCell className="text-center font-medium">
                                   {formatNumber(c.orders)}
                                 </TableCell>
@@ -739,11 +745,15 @@ export default function SalespersonDetailView({
                                   {c.lastOrderDate}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {c.isResponsible ? (
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
-                                  ) : (
-                                    <span className="text-xs text-slate-300">—</span>
-                                  )}
+                                  <Badge
+                                    variant="outline"
+                                    className={`font-semibold border ${c.status === "ACTIVE"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                      : "bg-slate-50 text-slate-700 border-slate-100"
+                                      }`}
+                                  >
+                                    {c.status === "ACTIVE" ? "ปกติ" : c.status}
+                                  </Badge>
                                 </TableCell>
                               </TableRow>
                             ))

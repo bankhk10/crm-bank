@@ -209,6 +209,8 @@ export async function getSalespersonDetailReport(
             customerCode: true,
             customerType: true,
             province: true,
+            region: true,
+            status: true,
             responsibleEmployeeId: true,
           },
         })
@@ -239,6 +241,8 @@ export async function getSalespersonDetailReport(
       customerName: customer?.name || "Unknown",
       customerType: customer?.customerType || "-",
       province: customer?.province || "-",
+      region: customer?.region || "-",
+      status: customer?.status || "-",
       isResponsible: customer?.responsibleEmployeeId === employeeId,
       orders: cs._count,
       revenue: Number(cs._sum.totalAmount || 0),

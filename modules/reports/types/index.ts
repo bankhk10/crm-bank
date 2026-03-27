@@ -366,6 +366,8 @@ export interface SalespersonDetailReportData {
     customerName: string;
     customerType: string;
     province: string;
+    region: string;
+    status: string;
     isResponsible: boolean;
     orders: number;
     revenue: number;
