@@ -109,17 +109,6 @@ export async function getProductSalesReport(
     if (u === "G") return value / 1000; // G→KG equivalent, user converts on UI
     return 0;
   };
-
-  const getRootProductId = (productId: string, map: Map<string, ProductMeta>) => {
-    let current = map.get(productId);
-    let safety = 0;
-    while (current?.parentId && map.has(current.parentId) && safety < 10) {
-      current = map.get(current.parentId);
-      safety += 1;
-    }
-    return current?.id || productId;
-  };
-
   // 1. Get all active products first
   const activeProducts = await repo.findManyProductsData({
     where: { deletedAt: null, status: "ACTIVE" },
@@ -228,34 +217,25 @@ export async function getProductSalesReport(
     relatedProductIds: Set<string>;
   };
 
-  const aggregatedByRoot = new Map<string, AggregatedProduct>();
-
-  // 5. Initialize with ALL active products grouped by root
+  const productsMap = new Map<string, AggregatedProduct>();
   for (const p of activeProducts) {
-    const rootId = getRootProductId(p.id, productMap);
-    if (!aggregatedByRoot.has(rootId)) {
-      const rootProd = productMap.get(rootId);
-      if (rootProd) {
-        aggregatedByRoot.set(rootId, {
-          id: rootId,
-          code: rootProd.code,
-          name: rootProd.name,
-          brand: rootProd.brand,
-          productGroup: rootProd.productGroup,
-          totalSales: 0,
-          totalQuantity: 0,
-          orderCount: 0,
-          totalPackageSold: 0,
-          totalVolumeLiters: 0,
-          packageUnit: parsePackageSize(rootProd.packageSize).unit || "",
-          childCount: 0,
-          relatedProductIds: new Set([rootId]),
-        });
-      }
-    }
-    const agg = aggregatedByRoot.get(rootId);
-    if (agg) {
-      agg.relatedProductIds.add(p.id);
+    const prod = productMap.get(p.id);
+    if (prod && !productsMap.has(p.id)) {
+      productsMap.set(p.id, {
+        id: p.id,
+        code: prod.code,
+        name: prod.name,
+        brand: prod.brand,
+        productGroup: prod.productGroup,
+        totalSales: 0,
+        totalQuantity: 0,
+        orderCount: 0,
+        totalPackageSold: 0,
+        totalVolumeLiters: 0,
+        packageUnit: parsePackageSize(prod.packageSize).unit || "",
+        childCount: 0,
+        relatedProductIds: new Set([p.id]),
+      });
     }
   }
 
@@ -264,28 +244,23 @@ export async function getProductSalesReport(
     const product = productMap.get(ps.productId);
     if (!product) continue;
 
-    const rootId = getRootProductId(ps.productId, productMap);
-
-    // Ensure entry exists for root
-    if (!aggregatedByRoot.has(rootId)) {
-      const rootProd = productMap.get(rootId);
-      if (rootProd) {
-        aggregatedByRoot.set(rootId, {
-          id: rootId,
-          code: rootProd.code,
-          name: rootProd.name,
-          brand: rootProd.brand,
-          productGroup: rootProd.productGroup,
-          totalSales: 0,
-          totalQuantity: 0,
-          orderCount: 0,
-          totalPackageSold: 0,
-          totalVolumeLiters: 0,
-          packageUnit: parsePackageSize(rootProd.packageSize).unit || "",
-          childCount: 0,
-          relatedProductIds: new Set([rootId]),
-        });
-      }
+    // Ensure entry exists for product
+    if (!productsMap.has(ps.productId)) {
+      productsMap.set(ps.productId, {
+        id: ps.productId,
+        code: product.code,
+        name: product.name,
+        brand: product.brand,
+        productGroup: product.productGroup,
+        totalSales: 0,
+        totalQuantity: 0,
+        orderCount: 0,
+        totalPackageSold: 0,
+        totalVolumeLiters: 0,
+        packageUnit: parsePackageSize(product.packageSize).unit || "",
+        childCount: 0,
+        relatedProductIds: new Set([ps.productId]),
+      });
     }
 
     const { totalPackageSold, unit } = calculatePackageSold(
@@ -293,29 +268,22 @@ export async function getProductSalesReport(
       product,
     );
 
-    const aggregate = aggregatedByRoot.get(rootId)!;
+    const target = productsMap.get(ps.productId)!;
 
-    aggregate.totalSales += Number(ps._sum.totalPrice || 0);
-    aggregate.totalQuantity += Number(ps._sum.quantity || 0);
-    aggregate.orderCount += ps._count;
-    aggregate.totalPackageSold += totalPackageSold;
-    aggregate.totalVolumeLiters += convertToLiters(
+    target.totalSales += Number(ps._sum.totalPrice || 0);
+    target.totalQuantity += Number(ps._sum.quantity || 0);
+    target.orderCount += ps._count;
+    target.totalPackageSold += totalPackageSold;
+    target.totalVolumeLiters += convertToLiters(
       totalPackageSold,
-      unit || aggregate.packageUnit,
+      unit || target.packageUnit,
     );
-    if (!aggregate.packageUnit && unit) {
-      aggregate.packageUnit = unit;
+    if (!target.packageUnit && unit) {
+      target.packageUnit = unit;
     }
-    aggregate.relatedProductIds.add(product.id);
   }
 
-  // 7. Calculate child count for each aggregate
-  for (const agg of aggregatedByRoot.values()) {
-    agg.childCount =
-      agg.relatedProductIds.size - (agg.relatedProductIds.has(agg.id) ? 1 : 0);
-  }
-
-  const aggregatedProducts = Array.from(aggregatedByRoot.values());
+  const aggregatedProducts = Array.from(productsMap.values());
   const sortedBySales = aggregatedProducts.sort(
     (a, b) => b.totalSales - a.totalSales,
   );

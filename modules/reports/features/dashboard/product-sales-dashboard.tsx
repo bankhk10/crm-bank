@@ -428,7 +428,7 @@ export function ProductSalesDashboard() {
                       ขายได้ {formatPackSize(
                         reportData.topProducts[0]?.totalPackageSold || 0,
                         reportData.topProducts[0]?.packageUnit,
-                      )} {reportData.topProducts[0]?.childCount ? "(รวมสินค้าลูก)" : ""}
+                      )}
                     </p>
                   </div>
                 }
@@ -564,10 +564,7 @@ export function ProductSalesDashboard() {
                                   จำนวนออเดอร์
                                 </TableHead>
                                 <TableHead className="text-right">
-                                  ปริมาณ ({volumeUnit})
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  บรรจุขายได้รวมลูก
+                                  บรรจุขายได้
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
@@ -607,27 +604,12 @@ export function ProductSalesDashboard() {
                                       {formatNumber(product.orderCount)}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                      <span className="font-semibold text-blue-600">
-                                        {formatVolume(product.totalVolumeLiters)} {volumeUnit}
-                                      </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <div className="flex items-center justify-end gap-2">
-                                        {product.childCount > 0 && (
-                                          <Badge
-                                            variant="outline"
-                                            className="text-red-700 border-red-200 bg-red-50"
-                                          >
-                                            รวมลูก {product.childCount}
-                                          </Badge>
+                                      <span className="font-semibold text-red-700">
+                                        {formatPackSize(
+                                          product.totalPackageSold,
+                                          product.packageUnit,
                                         )}
-                                        <span className="font-semibold text-red-700">
-                                          {formatPackSize(
-                                            product.totalPackageSold,
-                                            product.packageUnit,
-                                          )}
-                                        </span>
-                                      </div>
+                                      </span>
                                     </TableCell>
                                   </TableRow>
                                 ))}
@@ -665,7 +647,7 @@ export function ProductSalesDashboard() {
                               ปริมาณ ({volumeUnit})
                             </TableHead>
                             <TableHead className="text-right">
-                              บรรจุขายได้รวมลูก
+                              บรรจุขายได้
                             </TableHead>
                             <TableHead className="text-right">
                               จำนวนออเดอร์
@@ -699,22 +681,12 @@ export function ProductSalesDashboard() {
                                 </span>
                               </TableCell>
                               <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  {product.childCount > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="border-amber-200 bg-amber-50 text-amber-700"
-                                    >
-                                      รวมลูก {product.childCount}
-                                    </Badge>
+                                <span className="font-medium text-amber-700">
+                                  {formatPackSize(
+                                    product.totalPackageSold,
+                                    product.packageUnit,
                                   )}
-                                  <span className="font-medium text-amber-700">
-                                    {formatPackSize(
-                                      product.totalPackageSold,
-                                      product.packageUnit,
-                                    )}
-                                  </span>
-                                </div>
+                                </span>
                               </TableCell>
                               <TableCell className="text-right">
                                 {product.orderCount}
