@@ -67,7 +67,8 @@ export async function GET(
               id: true,
               transactionDate: true,
               type: true,
-              amount: true,
+              receivedAmount: true,
+              usedAmount: true,
               description: true,
               sale: {
                 select: {

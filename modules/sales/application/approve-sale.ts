@@ -209,6 +209,38 @@ export async function approveSaleUseCase(
       }
     }
 
+    // Handle promotional credit usage
+    if (sale.promotionalCreditUsed && Number(sale.promotionalCreditUsed) > 0) {
+      const year = sale.saleDate.getFullYear();
+      const promoBudget = await tx.promotionalBudget.findFirst({
+        where: {
+          customerId: sale.customerId,
+          year,
+          deletedAt: null,
+        },
+      });
+
+      if (promoBudget) {
+        await tx.promotionalBudget.update({
+          where: { id: promoBudget.id },
+          data: {
+            salesPromotionUsed: { increment: sale.promotionalCreditUsed },
+          },
+        });
+
+        // Create budget detail for the usage
+        await tx.promotionalBudgetDetail.create({
+          data: {
+            budgetId: promoBudget.id,
+            type: "SALES_PROMOTION",
+            usedAmount: sale.promotionalCreditUsed,
+            description: `ใช้ในรายการขาย ${sale.saleNumber}`,
+            saleId: sale.id,
+          },
+        });
+      }
+    }
+
     // Fetch approver's employee signature
     const approverEmployee = await tx.employee.findUnique({
       where: { userId },

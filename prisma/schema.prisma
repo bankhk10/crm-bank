@@ -484,7 +484,8 @@ model PromotionalBudgetDetail {
   id              String                @id @default(cuid())
   budgetId        String
   type            PromotionalBudgetType // ประเภทงบประมาณ
-  amount          Decimal               @db.Decimal(15, 2) // ยอดเงินที่ใช้
+  receivedAmount   Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ได้รับ
+  usedAmount       Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ใช้
   transactionDate DateTime              @default(now())
   description     String? // รายละเอียดการใช้งาน/หมายเหตุ
   saleId          String? // อ้างอิงเอกสารการขาย (ถ้ามี)

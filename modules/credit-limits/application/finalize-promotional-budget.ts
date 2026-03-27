@@ -77,7 +77,7 @@ export async function finalizePromotionalBudgetForSaleUseCase(saleId: string) {
       data: {
         budgetId: activeBudgetId,
         type: "SALES_PROMOTION",
-        amount: totalEarned,
+        receivedAmount: totalEarned,
         description: ` Earned from Sale ${sale.saleNumber}`,
         saleId: sale.id,
       },

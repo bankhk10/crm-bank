@@ -63,20 +63,46 @@ export async function upsertPromotionalBudget(
   year: number,
   salesPromotionLimit: number
 ) {
-  return db.promotionalBudget.upsert({
-    where: {
-      customerId_year: {
+  const existing = await db.promotionalBudget.findFirst({
+    where: { customerId, year, deletedAt: null },
+  });
+
+  if (!existing) {
+    return db.promotionalBudget.create({
+      data: {
         customerId,
         year,
+        salesPromotionLimit,
+        details: {
+          create: {
+            type: "SALES_PROMOTION",
+            receivedAmount: salesPromotionLimit,
+            description: `ตั้งวงเงินงบส่งเสริมปี ${year}`,
+          },
+        },
       },
-    },
-    update: {
-      salesPromotionLimit,
-    },
-    create: {
-      customerId,
-      year,
-      salesPromotionLimit,
-    },
-  });
+    });
+  }
+
+  const delta = Number(salesPromotionLimit) - Number(existing.salesPromotionLimit);
+  if (delta !== 0) {
+    return db.promotionalBudget.update({
+      where: { id: existing.id },
+      data: {
+        salesPromotionLimit,
+        details: {
+          create: {
+            type: "SALES_PROMOTION",
+            receivedAmount: delta > 0 ? delta : null,
+            usedAmount: delta < 0 ? Math.abs(delta) : null,
+            description: delta > 0 
+              ? `เพิ่มวงเงินงบส่งเสริม ${delta.toLocaleString()} บาท` 
+              : `ลดวงเงินงบส่งเสริม ${Math.abs(delta).toLocaleString()} บาท`,
+          },
+        },
+      },
+    });
+  }
+
+  return existing;
 }

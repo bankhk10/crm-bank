@@ -122,12 +122,13 @@ interface CustomerImage {
 interface PromotionalBudgetDetail {
   id: string;
   type: string;
-  amount: number;
+  receivedAmount: number | null;
+  usedAmount: number | null;
   description: string | null;
   transactionDate: string;
   sale?: {
     saleNumber: string;
-  };
+  } | null;
 }
 
 interface PromotionalBudget {
@@ -972,9 +973,18 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                                           </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                          <span className="text-xs font-black text-red-600">
-                                            - {formatTHB(Number(detail.amount))}
-                                          </span>
+                                          <div className="flex flex-col items-end gap-1">
+                                            {detail.receivedAmount && Number(detail.receivedAmount) > 0 && (
+                                              <span className="text-xs font-black text-emerald-600">
+                                                + {formatTHB(Number(detail.receivedAmount))}
+                                              </span>
+                                            )}
+                                            {detail.usedAmount && Number(detail.usedAmount) > 0 && (
+                                              <span className="text-xs font-black text-red-600">
+                                                - {formatTHB(Number(detail.usedAmount))}
+                                              </span>
+                                            )}
+                                          </div>
                                         </TableCell>
                                       </TableRow>
                                     ))}
