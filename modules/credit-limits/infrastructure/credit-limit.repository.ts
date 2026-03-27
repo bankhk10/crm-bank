@@ -2,16 +2,12 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@/lib/db";
 
 export async function findCreditLimitById(id: string) {
-  const currentYear = new Date().getFullYear();
   return db.creditLimit.findFirst({
     where: { id, deletedAt: null },
     include: {
       customer: {
         include: {
-          promotionalBudgets: {
-            where: { year: currentYear },
-            take: 1,
-          },
+          promotionalBudgets: true,
         },
       },
     },
@@ -19,16 +15,12 @@ export async function findCreditLimitById(id: string) {
 }
 
 export async function getExistingCreditLimitForUpdate(id: string) {
-  const currentYear = new Date().getFullYear();
   return db.creditLimit.findUnique({
     where: { id },
     include: {
       customer: {
         include: {
-          promotionalBudgets: {
-            where: { year: currentYear },
-            take: 1,
-          },
+          promotionalBudgets: true,
         },
       },
     },

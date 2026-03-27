@@ -59,10 +59,10 @@ export async function createCreditLimitUseCase(
 
     // Also save to PromotionalBudget table
     if (promoAmount !== undefined) {
-      const currentYear = new Date().getFullYear();
+      const budgetYear = effectiveDate.getFullYear();
       await upsertRepoPromotionalBudget(
         parsed.data.customerId,
-        currentYear,
+        budgetYear,
         promoAmount ?? 0
       );
     }

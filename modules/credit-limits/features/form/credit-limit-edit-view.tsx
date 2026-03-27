@@ -107,7 +107,21 @@ export default function CreditLimitEditView() {
                             initial={payload}
                             customers={customers}
                             onSubmit={async (body) => {
-                                const result = await handleUpdate(body);
+                                // Extract the year from the effective date
+                                const effectiveDate = body.effectiveDate instanceof Date
+                                    ? body.effectiveDate
+                                    : (body.effectiveDate ? new Date(body.effectiveDate) : new Date());
+                                
+                                const budgetYear = effectiveDate.getFullYear();
+
+                                // Update via the server action
+                                // We include the promotion year in the payload so the use case knows
+                                // exactly which budget to point to.
+                                const result = await handleUpdate({
+                                    ...body,
+                                    budgetYear
+                                });
+                                
                                 if (result.success) {
                                     toast.success("อัปเดตข้อมูลวงเงินเรียบร้อยแล้ว");
                                     router.push("/credit-limits");

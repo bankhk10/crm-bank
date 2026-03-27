@@ -56,6 +56,28 @@ export async function GET(
           customerCode: true,
         },
       },
+      promotionalBudgets: {
+        where: { deletedAt: null },
+        orderBy: { year: "desc" },
+        include: {
+          details: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              transactionDate: true,
+              type: true,
+              amount: true,
+              description: true,
+              sale: {
+                select: {
+                  saleNumber: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 

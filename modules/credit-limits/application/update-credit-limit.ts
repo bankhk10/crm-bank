@@ -66,16 +66,27 @@ export async function updateCreditLimitUseCase(id: string, payload: unknown) {
 
   const creditLimit = await updateRepoCreditLimit(id, updateData);
 
-  // When updating promoAmount from the limit management form,
-  // we now save it to the new PromotionalBudget table as well.
+  // Sync promoAmount to PromotionalBudget table
   if (parsed.data.promoAmount !== undefined && existing.customerId) {
-    const currentYear = new Date().getFullYear();
+    const effectiveDate = parsed.data.effectiveDate
+      ? typeof parsed.data.effectiveDate === "string"
+        ? new Date(parsed.data.effectiveDate)
+        : parsed.data.effectiveDate
+      : existing.effectiveDate
+      ? new Date(existing.effectiveDate)
+      : new Date();
+
+    const budgetYear = effectiveDate.getFullYear();
+
     await upsertRepoPromotionalBudget(
       existing.customerId,
-      currentYear,
+      budgetYear,
       parsed.data.promoAmount
     );
   }
+
+  // When updating promoAmount from the limit management form,
+  // we now save it to the new PromotionalBudget table as well.
 
   return { success: true, creditLimit, existing };
 }
