@@ -112,7 +112,7 @@ export async function getProductSalesReport(
   };
   // 1. Get all active products first
   const activeProducts = await repo.findManyProductsData({
-    where: { deletedAt: null, status: "ACTIVE" },
+    where: { deletedAt: null },
     select: {
       id: true,
       productCode: true,
@@ -311,13 +311,12 @@ export async function getProductSalesReport(
     childCount: p.childCount,
   });
 
-  const peakCandidates = sortedBySales.slice(0, 5);
+  const peakCandidates = sortedBySales;
 
   const topProducts = sortedBySales.map(normalizeProduct);
 
   const slowProducts = [...sortedBySales]
     .sort((a, b) => a.totalSales - b.totalSales)
-    .slice(0, 20)
     .map(normalizeProduct);
 
   // Product peak periods (for top 5 products)
@@ -369,7 +368,7 @@ export async function getProductSalesReport(
   const lowStockProducts = await prisma.productStock.findMany({
     where: {
       availableQuantity: { lt: 50 },
-      product: { deletedAt: null, status: "ACTIVE" },
+      product: { deletedAt: null },
     },
     include: {
       product: {
@@ -387,7 +386,6 @@ export async function getProductSalesReport(
       },
     },
     orderBy: { availableQuantity: "asc" },
-    take: 20,
   });
 
   const lowStock = lowStockProducts.map((ps) => ({
@@ -422,7 +420,6 @@ export async function getProductSalesReport(
     where: {
       id: { notIn: Array.from(recentSoldIds) },
       deletedAt: null,
-      status: "ACTIVE",
       stock: { physicalBalance: { gt: 0 } },
     },
     include: {
@@ -440,7 +437,6 @@ export async function getProductSalesReport(
         select: { createdAt: true },
       },
     },
-    take: 20,
   });
 
   const stagnant = stagnantProducts.map((p) => ({
