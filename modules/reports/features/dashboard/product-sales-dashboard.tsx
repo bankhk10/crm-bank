@@ -650,6 +650,9 @@ export function ProductSalesDashboard() {
                               บรรจุขายได้
                             </TableHead>
                             <TableHead className="text-right">
+                              หน่วยบรรจุ
+                            </TableHead>
+                            <TableHead className="text-right">
                               จำนวนออเดอร์
                             </TableHead>
                           </TableRow>
@@ -687,6 +690,11 @@ export function ProductSalesDashboard() {
                                     product.packageUnit,
                                   )}
                                 </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Badge variant="outline" className="font-mono text-[10px]">
+                                  {product.packageSizeUnit || "-"}
+                                </Badge>
                               </TableCell>
                               <TableCell className="text-right">
                                 {product.orderCount}

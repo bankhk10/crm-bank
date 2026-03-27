@@ -65,6 +65,7 @@ export interface ProductSalesReportData {
     orderCount: number;
     totalPackageSold: number;
     packageUnit: string;
+    packageSizeUnit: string;
     totalVolumeLiters: number;
     childCount: number;
   }[];
@@ -79,6 +80,7 @@ export interface ProductSalesReportData {
     orderCount: number;
     totalPackageSold: number;
     packageUnit: string;
+    packageSizeUnit: string;
     totalVolumeLiters: number;
     childCount: number;
     lastSoldDate?: string;

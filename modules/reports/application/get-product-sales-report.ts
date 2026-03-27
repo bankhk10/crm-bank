@@ -64,6 +64,7 @@ export async function getProductSalesReport(
     productGroup: string;
     parentId?: string | null;
     packageSize?: number | string | null;
+    packageSizeUnit?: string | null;
     packageSizePerBox?: number | string | null;
     totalPackageSizePerBox?: number | string | null;
     abcTypeId?: string | null;
@@ -121,6 +122,7 @@ export async function getProductSalesReport(
       productABCType: { select: { id: true, code: true, name: true } },
       parentId: true,
       packageSize: true,
+      packageSizeUnit: true,
       packageSizePerBox: true,
       totalPackageSizePerBox: true,
     },
@@ -169,6 +171,7 @@ export async function getProductSalesReport(
         productABCType: { select: { id: true, code: true, name: true } },
         parentId: true,
         packageSize: true,
+        packageSizeUnit: true,
         packageSizePerBox: true,
         totalPackageSizePerBox: true,
       },
@@ -188,6 +191,7 @@ export async function getProductSalesReport(
           abcTypeName: (p as any).productABCType?.name || null,
           parentId: p.parentId,
           packageSize: p.packageSize as any,
+          packageSizeUnit: p.packageSizeUnit as any,
           packageSizePerBox: p.packageSizePerBox as any,
           totalPackageSizePerBox: p.totalPackageSizePerBox as any,
         });
@@ -213,6 +217,7 @@ export async function getProductSalesReport(
     totalPackageSold: number;
     totalVolumeLiters: number;
     packageUnit: string;
+    packageSizeUnit: string;
     childCount: number;
     relatedProductIds: Set<string>;
   };
@@ -232,7 +237,8 @@ export async function getProductSalesReport(
         orderCount: 0,
         totalPackageSold: 0,
         totalVolumeLiters: 0,
-        packageUnit: parsePackageSize(prod.packageSize).unit || "",
+        packageUnit: parsePackageSize(prod.packageSize).unit || prod.packageSizeUnit || "",
+        packageSizeUnit: prod.packageSizeUnit || "",
         childCount: 0,
         relatedProductIds: new Set([p.id]),
       });
@@ -257,7 +263,8 @@ export async function getProductSalesReport(
         orderCount: 0,
         totalPackageSold: 0,
         totalVolumeLiters: 0,
-        packageUnit: parsePackageSize(product.packageSize).unit || "",
+        packageUnit: parsePackageSize(product.packageSize).unit || product.packageSizeUnit || "",
+        packageSizeUnit: product.packageSizeUnit || "",
         childCount: 0,
         relatedProductIds: new Set([ps.productId]),
       });
@@ -300,6 +307,7 @@ export async function getProductSalesReport(
     totalPackageSold: p.totalPackageSold,
     totalVolumeLiters: p.totalVolumeLiters,
     packageUnit: p.packageUnit,
+    packageSizeUnit: p.packageSizeUnit,
     childCount: p.childCount,
   });
 
