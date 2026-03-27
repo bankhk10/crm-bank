@@ -20,14 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Popover,
@@ -43,7 +35,6 @@ import {
   BarChart3,
   AlertTriangle,
   Archive,
-  Clock,
   Loader2,
   Award,
   Calendar,
@@ -51,6 +42,11 @@ import {
 import Link from "next/link";
 import { AllProductsTable } from "./all-products-table";
 import { SlowProductsTable } from "./slow-products-table";
+import { PeakPeriodsGrid } from "./peak-periods-grid";
+import { LowStockTable } from "./low-stock-table";
+import { StagnantProductsTable } from "./stagnant-products-table";
+import { GroupPerformanceTable } from "./group-performance-table";
+import { AbcSalesTable } from "./abc-sales-table";
 import { KpiCard } from "../../ui/kpi-card";
 
 import {
@@ -560,353 +556,41 @@ export function ProductSalesDashboard() {
               </TabsContent>
 
               <TabsContent value="peak-periods" className="mt-6">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-blue-500" />
-                      ช่วงเวลาขายดีที่สุดของสินค้า
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                      {reportData?.productPeakPeriods?.map((item, idx) => (
-                        <Card
-                          key={item.productId}
-                          className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <Badge
-                                className={`mt-1 ${idx === 0
-                                  ? "bg-amber-500"
-                                  : idx === 1
-                                    ? "bg-slate-400"
-                                    : idx === 2
-                                      ? "bg-amber-700"
-                                      : "bg-slate-500"
-                                  }`}
-                              >
-                                {idx + 1}
-                              </Badge>
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">
-                                  {item.productName}
-                                </p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Badge
-                                    variant="outline"
-                                    className="bg-blue-50 text-blue-700 border-blue-200"
-                                  >
-                                    {item.peakMonth}
-                                  </Badge>
-                                  <span className="text-sm font-semibold text-red-600">
-                                    {formatTHB(item.peakSales)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <PeakPeriodsGrid
+                  peakPeriods={reportData?.productPeakPeriods || []}
+                  formatTHB={formatTHB}
+                />
               </TabsContent>
 
               <TabsContent value="low-stock" className="mt-6">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
-                      สินค้าใกล้หมด (คงเหลือ &lt; 50)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {!reportData?.lowStockProducts || reportData.lowStockProducts.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>ไม่มีสินค้าใกล้หมด</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[780px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>รหัส</TableHead>
-                              <TableHead>ชื่อสินค้า</TableHead>
-                              <TableHead className="text-right">
-                                คงเหลือจริง
-                              </TableHead>
-                              <TableHead className="text-right">จอง</TableHead>
-                              <TableHead className="text-right">
-                                พร้อมขาย
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportData?.lowStockProducts?.map((product) => (
-                              <TableRow key={product.id}>
-                                <TableCell className="font-mono text-sm">
-                                  {product.code}
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  {product.name}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(product.physicalBalance)}
-                                </TableCell>
-                                <TableCell className="text-right text-amber-600">
-                                  {formatNumber(product.reservedQuantity)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      product.availableQuantity <= 10
-                                        ? "bg-red-100 text-red-800 border-red-300"
-                                        : product.availableQuantity <= 30
-                                          ? "bg-amber-100 text-amber-800 border-amber-300"
-                                          : ""
-                                    }
-                                  >
-                                    {formatNumber(product.availableQuantity)}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <LowStockTable
+                  products={reportData?.lowStockProducts || []}
+                  formatNumber={formatNumber}
+                />
               </TabsContent>
 
               <TabsContent value="stagnant" className="mt-6">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Archive className="h-5 w-5 text-purple-500" />
-                      สินค้าค้างสต๊อก (ไม่มียอดขายใน 90 วัน)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {!reportData?.stagnantProducts || reportData.stagnantProducts.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>ไม่มีสินค้าค้างสต๊อก</p>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[720px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>รหัส</TableHead>
-                              <TableHead>ชื่อสินค้า</TableHead>
-                              <TableHead className="text-right">
-                                สต๊อกคงเหลือ
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนวัน
-                              </TableHead>
-                              <TableHead>ขายล่าสุด</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportData?.stagnantProducts?.map((product) => (
-                              <TableRow key={product.id}>
-                                <TableCell className="font-mono text-sm">
-                                  {product.code}
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  {product.name}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Badge
-                                    variant="outline"
-                                    className="bg-purple-50 text-purple-700 border-purple-200"
-                                  >
-                                    {formatNumber(product.stock)}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <span className="text-red-600 font-medium">
-                                    {product.daysSinceLastSale === 999
-                                      ? "ไม่เคยขาย"
-                                      : `${product.daysSinceLastSale} วัน`}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                  {product.lastSoldDate || "-"}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <StagnantProductsTable
+                  products={reportData?.stagnantProducts || []}
+                  formatNumber={formatNumber}
+                />
               </TabsContent>
+
               <TabsContent value="group-performance" className="mt-6">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      ผลงานแต่ละกลุ่มสินค้า
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {!groupReportData ? (
-                      <div className="py-10 text-center text-muted-foreground">
-                        ไม่พบข้อมูลผลงานแต่ละกลุ่มสินค้า
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[760px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ลำดับ</TableHead>
-                              <TableHead>กลุ่มสินค้า</TableHead>
-                              <TableHead className="text-right">ยอดขาย</TableHead>
-                              <TableHead className="text-right">
-                                จำนวนที่ขาย
-                              </TableHead>
-                              <TableHead className="text-right">
-                                ปริมาณ ({volumeUnit})
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนออเดอร์
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนสินค้า
-                              </TableHead>
-                              <TableHead className="text-right">
-                                เฉลี่ย/สินค้า
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {sortedGroups.map((group, idx) => (
-                              <TableRow key={group.group}>
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      idx < 3
-                                        ? "bg-purple-100 text-purple-800 border-purple-300"
-                                        : ""
-                                    }
-                                  >
-                                    {idx + 1}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  {group.group}
-                                </TableCell>
-                                <TableCell className="text-right font-semibold text-red-600">
-                                  {formatTHB(group.totalSales)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(group.totalQuantity)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <span className="font-medium text-blue-600">
-                                    {formatVolume(group.totalVolumeLiters)} {volumeUnit}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(group.orderCount)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {group.productCount}
-                                </TableCell>
-                                <TableCell className="text-right text-muted-foreground">
-                                  {formatTHB(group.avgSalesPerProduct)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <GroupPerformanceTable
+                  groups={sortedGroups}
+                  volumeUnit={volumeUnit}
+                  formatTHB={formatTHB}
+                  formatNumber={formatNumber}
+                  formatVolume={formatVolume}
+                />
               </TabsContent>
               <TabsContent value="abc-sales" className="mt-6">
-                <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      ยอดขายตามประเภท (ABC Code)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {!reportData || sortedAbcSales.length === 0 ? (
-                      <div className="py-10 text-center text-muted-foreground">
-                        ไม่พบข้อมูลยอดขายตามประเภท (ABC Code)
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table className="min-w-[680px]">
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ลำดับ</TableHead>
-                              <TableHead>ประเภท</TableHead>
-                              <TableHead className="text-right">
-                                ยอดขาย
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวน
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนออเดอร์
-                              </TableHead>
-                              <TableHead className="text-right">
-                                จำนวนสินค้า
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {sortedAbcSales.map((row, idx) => (
-                              <TableRow key={row.id}>
-                                <TableCell>
-                                  <Badge
-                                    variant="outline"
-                                    className={
-                                      idx < 3
-                                        ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                        : ""
-                                    }
-                                  >
-                                    {idx + 1}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  <div>
-                                    <p className="text-sm font-semibold text-slate-900">
-                                      {row.code !== "-" ? `${row.code} - ${row.name}` : row.name}
-                                    </p>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-right font-semibold text-red-600">
-                                  {formatTHB(row.totalSales)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(row.totalQuantity)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(row.orderCount)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(row.productCount)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <AbcSalesTable
+                  abcSales={sortedAbcSales}
+                  formatTHB={formatTHB}
+                  formatNumber={formatNumber}
+                />
               </TabsContent>
             </Tabs>
           </div>
