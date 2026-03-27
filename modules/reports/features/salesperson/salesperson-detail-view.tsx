@@ -495,11 +495,10 @@ export default function SalespersonDetailView({
                         <TableHeader>
                           <TableRow className="bg-slate-50/50">
                             <TableHead>เดือน</TableHead>
-                            <TableHead className="text-right">เป้า</TableHead>
-                            <TableHead className="text-right">ยอดจริง</TableHead>
+                            <TableHead className="text-center">เป้าหมาย</TableHead>
+                            <TableHead className="text-center">ยอดขายจริง</TableHead>
                             <TableHead className="text-center">สำเร็จ %</TableHead>
-                            <TableHead className="text-right">ออเดอร์</TableHead>
-                            <TableHead className="text-right">ลูกค้า</TableHead>
+                            <TableHead className="text-center">ออเดอร์</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -518,10 +517,10 @@ export default function SalespersonDetailView({
                                     </Badge>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-right text-muted-foreground">
+                                <TableCell className="text-center text-muted-foreground">
                                   {m.target > 0 ? formatTHB(m.target) : "-"}
                                 </TableCell>
-                                <TableCell className="text-right font-semibold text-emerald-600">
+                                <TableCell className="text-center font-semibold text-emerald-600">
                                   {m.actual > 0 ? formatTHB(m.actual) : "-"}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -546,11 +545,8 @@ export default function SalespersonDetailView({
                                     <span className="text-xs text-muted-foreground">-</span>
                                   )}
                                 </TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-center">
                                   {m.orders > 0 ? formatNumber(m.orders) : "-"}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {m.customers > 0 ? formatNumber(m.customers) : "-"}
                                 </TableCell>
                               </TableRow>
                             );
@@ -558,12 +554,12 @@ export default function SalespersonDetailView({
                           {/* Summary row */}
                           <TableRow className="bg-slate-50 font-bold border-t-2 border-slate-200">
                             <TableCell>รวมทั้งปี</TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-center">
                               {formatTHB(
                                 data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-emerald-600">
+                            <TableCell className="text-center text-emerald-600">
                               {formatTHB(kpi.yearTotalSales)}
                             </TableCell>
                             <TableCell className="text-center">
@@ -577,11 +573,8 @@ export default function SalespersonDetailView({
                                   : "-";
                               })()}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-center">
                               {formatNumber(kpi.yearOrderCount)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatNumber(kpi.yearCustomerCount)}
                             </TableCell>
                           </TableRow>
                         </TableBody>
