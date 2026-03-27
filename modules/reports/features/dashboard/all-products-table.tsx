@@ -38,7 +38,7 @@ export function AllProductsTable({
     <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
       <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         <CardHeader>
-          <CardTitle className="text-lg">รายละเอียดสินค้าทั้งหมด</CardTitle>
+          <CardTitle className="text-lg">ข้อมูลการขายสินค้าทั้งหมด (ตามช่วงเวลาที่เลือก)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="max-h-[450px] overflow-auto">
@@ -48,10 +48,10 @@ export function AllProductsTable({
                   <TableRow>
                     <TableHead>ลำดับ</TableHead>
                     <TableHead>สินค้า</TableHead>
-                    <TableHead className="text-right">ยอดขาย</TableHead>
-                    <TableHead className="text-right">จำนวนที่ขาย</TableHead>
-                    <TableHead className="text-right">จำนวนออเดอร์</TableHead>
-                    <TableHead className="text-right">บรรจุขายได้</TableHead>
+                    <TableHead className="text-center">ยอดขาย</TableHead>
+                    <TableHead className="text-center">จำนวนที่ขาย</TableHead>
+                    <TableHead className="text-center">จำนวนออเดอร์</TableHead>
+                    <TableHead className="text-center">ขนาดบรรจุรวมที่ขายได้</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -77,16 +77,16 @@ export function AllProductsTable({
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-center font-medium">
                         {formatTHB(product.totalSales)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         {formatNumber(product.totalQuantity)}
                       </TableCell>
-                      <TableCell className="text-right text-slate-700 font-medium">
+                      <TableCell className="text-center text-slate-700 font-medium">
                         {formatNumber(product.orderCount)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
                         <span className="font-semibold text-red-700">
                           {formatPackSize(
                             product.totalPackageSold,

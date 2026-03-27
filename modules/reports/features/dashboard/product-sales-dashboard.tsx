@@ -496,7 +496,7 @@ export function ProductSalesDashboard() {
                   value="top-products"
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
-                  รายการสินค้าทั้งหมด
+                  ข้อมูลการขายสินค้าทั้งหมด
                 </TabsTrigger>
                 <TabsTrigger
                   value="slow-products"

@@ -54,8 +54,6 @@ export function SlowProductsTable({
           <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>รหัส</TableHead>
                 <TableHead>ชื่อสินค้า</TableHead>
                 <TableHead>กลุ่มสินค้า</TableHead>
                 <TableHead className="text-right">ยอดขาย</TableHead>
@@ -69,9 +67,14 @@ export function SlowProductsTable({
             <TableBody>
               {products.map((product, idx) => (
                 <TableRow key={product.id}>
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell className="font-mono text-sm">{product.code}</TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {product.code}
+                      </p>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{product.productGroup || "-"}</Badge>
                   </TableCell>
