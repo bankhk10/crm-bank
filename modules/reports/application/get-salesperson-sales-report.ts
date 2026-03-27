@@ -51,7 +51,20 @@ export async function getSalespersonSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
-  // Get salesperson performance
+  // 1. Get all employees
+  const allEmployees = await repo.findManyEmployeesData({
+    where: {
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+      employeeCode: true,
+      department: { select: { name: true } },
+    },
+  });
+
+  // 2. Get salesperson performance from sales
   const employeeSales = await repo.groupSalesData({
     by: ["employeeId"],
     where: {
@@ -65,25 +78,19 @@ export async function getSalespersonSalesReport(
     orderBy: { _sum: { totalAmount: "desc" } },
   });
 
-  const employeeIds = employeeSales.map((e) => e.employeeId);
+  const employeeIdsFromSales = employeeSales.map((e) => e.employeeId);
+  const salespersonMap = new Map(allEmployees.map((e) => [e.id, e]));
+  const salesMap = new Map(employeeSales.map((es) => [es.employeeId, es]));
 
-  // Get employee details
-  const employees = await repo.findManyEmployeesData({
-    where: { id: { in: employeeIds } },
-    select: {
-      id: true,
-      name: true,
-      employeeCode: true,
-      department: { select: { name: true } },
-    },
-  });
-  const employeeMap = new Map(employees.map((e) => [e.id, e]));
+  // 3. Get customer count per employee
+  const allInitialEmployeeIds = Array.from(
+    new Set([...employeeIdsFromSales, ...allEmployees.map((e) => e.id)]),
+  );
 
-  // Get customer count per employee
   const customerCounts = await repo.groupSalesData({
     by: ["employeeId", "customerId"],
     where: {
-      employeeId: { in: employeeIds },
+      employeeId: { in: allInitialEmployeeIds },
       saleDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
@@ -99,23 +106,24 @@ export async function getSalespersonSalesReport(
     customerCountMap.get(cc.employeeId)!.add(cc.customerId);
   }
 
-  const salespersonPerformance = employeeSales.map((es) => {
-    const employee = employeeMap.get(es.employeeId);
-    const totalSales = Number(es._sum.totalAmount || 0);
-    const orderCount = es._count;
+  const salespersonPerformance = allInitialEmployeeIds.map((id) => {
+    const employee = salespersonMap.get(id);
+    const es = salesMap.get(id);
+    const totalSales = Number(es?._sum.totalAmount || 0);
+    const orderCount = es?._count || 0;
 
     return {
-      id: es.employeeId,
+      id,
       name: employee?.name || "Unknown",
       employeeCode: employee?.employeeCode || "-",
       department: employee?.department?.name || "-",
       totalSales,
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
-      customerCount: customerCountMap.get(es.employeeId)?.size || 0,
-      conversionRate: 100, // Placeholder, would need leads data
+      customerCount: customerCountMap.get(id)?.size || 0,
+      conversionRate: 100, // Placeholder
     };
-  });
+  }).sort((a, b) => b.totalSales - a.totalSales);
 
   const topSalesperson = salespersonPerformance[0] || {
     id: "",
@@ -125,8 +133,8 @@ export async function getSalespersonSalesReport(
 
   // Product groups sold per salesperson
   const salespersonProductGroups = await Promise.all(
-    employeeIds.slice(0, 10).map(async (employeeId) => {
-      const employee = employeeMap.get(employeeId);
+    employeeIdsFromSales.slice(0, 10).map(async (employeeId) => {
+      const employee = salespersonMap.get(employeeId);
 
       const groupData = await repo.groupSaleItemsData({
         by: ["productId"],
@@ -136,8 +144,7 @@ export async function getSalespersonSalesReport(
             saleDate: { gte: start, lte: end },
             deletedAt: null,
             status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-            ...scopeFilter, // Keep this for consistency, though Salesperson report by nature shows by employee
-            // But if manager views department, they see all employees in department.
+            ...scopeFilter, 
           },
         },
         _sum: {
@@ -182,8 +189,8 @@ export async function getSalespersonSalesReport(
 
   // Products sold per salesperson (top 5 each)
   const salespersonProducts = await Promise.all(
-    employeeIds.slice(0, 10).map(async (employeeId) => {
-      const employee = employeeMap.get(employeeId);
+    employeeIdsFromSales.slice(0, 10).map(async (employeeId) => {
+      const employee = salespersonMap.get(employeeId);
 
       const productData = await repo.groupSaleItemsData({
         by: ["productId"],
@@ -247,7 +254,7 @@ export async function getSalespersonSalesReport(
         month: format(monthDate, "MMM yyyy", { locale: th }),
         salespeople: monthData
           .map((md) => {
-            const employee = employeeMap.get(md.employeeId);
+            const employee = salespersonMap.get(md.employeeId);
             return {
               id: md.employeeId,
               name: employee?.name || "Unknown",

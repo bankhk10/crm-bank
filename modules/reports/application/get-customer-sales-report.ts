@@ -53,7 +53,22 @@ export async function getCustomerSalesReport(
   // Build scope filter
   const scopeFilter = await buildScopeFilter(session, viewScope);
 
-  // Top customers
+  // 1. Get all dealers
+  const allDealers = await repo.findManyCustomersData({
+    where: {
+      customerType: "DEALER",
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      customerCode: true,
+      name: true,
+      customerType: true,
+      province: true,
+    },
+  });
+
+  // 2. Get all customers with their sales in the period
   const customerSales = await repo.groupSalesData({
     by: ["customerId"],
     where: {
@@ -65,49 +80,39 @@ export async function getCustomerSalesReport(
     _sum: { totalAmount: true },
     _count: true,
     orderBy: { _sum: { totalAmount: "desc" } },
-    take: 50,
   });
 
-  const customerIds = customerSales.map((c) => c.customerId);
+  // 3. Combine Dealer list and Sales IDs
+  const customerIdsFromSales = customerSales.map((c) => c.customerId);
+  const allDealerIds = allDealers.map((d) => d.id);
+  const allInitialIds = Array.from(
+    new Set([...customerIdsFromSales, ...allDealerIds]),
+  );
 
-  // Get customer details and lifetime value
-  const customers = await repo.findManyCustomersData({
-    where: { id: { in: customerIds } },
-    select: {
-      id: true,
-      customerCode: true,
-      name: true,
-      customerType: true,
-      province: true,
-      sales: {
-        where: {
-          deletedAt: null,
-          status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-          ...scopeFilter,
-        },
-        orderBy: { saleDate: "desc" },
-        take: 1,
-        select: { saleDate: true },
-      },
-      _count: {
+  // 4. Get remaining customer details (for non-dealers who had sales)
+  const remainingIds = customerIdsFromSales.filter(id => !allDealerIds.includes(id));
+  const remainingCustomers = remainingIds.length > 0 
+    ? await repo.findManyCustomersData({
+        where: { id: { in: remainingIds } },
         select: {
-          sales: {
-            where: {
-              deletedAt: null,
-              status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
-              ...scopeFilter,
-            },
-          },
+          id: true,
+          customerCode: true,
+          name: true,
+          customerType: true,
+          province: true,
         },
-      },
-    },
-  });
+      })
+    : [];
 
-  // Get lifetime value for each customer
+  const customerMap = new Map();
+  allDealers.forEach(d => customerMap.set(d.id, d));
+  remainingCustomers.forEach(c => customerMap.set(c.id, c));
+
+  // 5. Get lifetime value for each customer in the combined list
   const lifetimeValues = await repo.groupSalesData({
     by: ["customerId"],
     where: {
-      customerId: { in: customerIds },
+      customerId: { in: allInitialIds },
       deletedAt: null,
       status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
       ...scopeFilter,
@@ -118,15 +123,32 @@ export async function getCustomerSalesReport(
     lifetimeValues.map((l) => [l.customerId, Number(l._sum.totalAmount || 0)]),
   );
 
-  const customerMap = new Map(customers.map((c) => [c.id, c]));
+  // 6. Get last purchase date for each customer
+  const lastPurchases = await prisma.sale.groupBy({
+    by: ["customerId"],
+    where: {
+      customerId: { in: allInitialIds },
+      deletedAt: null,
+      status: { notIn: ["CANCELLED", "REJECTED", "EXPIRED"] },
+      ...scopeFilter,
+    },
+    _max: { saleDate: true },
+  });
+  const lastPurchaseMap = new Map(
+    lastPurchases.map((lp) => [lp.customerId, lp._max.saleDate]),
+  );
 
-  const topCustomers = customerSales.map((cs) => {
-    const customer = customerMap.get(cs.customerId);
-    const totalSales = Number(cs._sum.totalAmount || 0);
-    const orderCount = cs._count;
+  // 7. Calculate final topCustomers list
+  const salesMap = new Map(customerSales.map(cs => [cs.customerId, cs]));
+  
+  const topCustomers = allInitialIds.map((id) => {
+    const customer = customerMap.get(id);
+    const cs = salesMap.get(id);
+    const totalSales = Number(cs?._sum.totalAmount || 0);
+    const orderCount = cs?._count || 0;
 
     return {
-      id: cs.customerId,
+      id,
       code: customer?.customerCode || "",
       name: customer?.name || "Unknown",
       type: customer?.customerType || "-",
@@ -135,12 +157,12 @@ export async function getCustomerSalesReport(
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
       purchaseFrequency: orderCount / monthCount,
-      lifetimeValue: lifetimeMap.get(cs.customerId) || totalSales,
-      lastPurchaseDate: customer?.sales[0]?.saleDate
-        ? format(customer.sales[0].saleDate, "dd/MM/yyyy")
+      lifetimeValue: lifetimeMap.get(id) || totalSales,
+      lastPurchaseDate: lastPurchaseMap.get(id)
+        ? format(lastPurchaseMap.get(id)!, "dd/MM/yyyy")
         : undefined,
     };
-  });
+  }).sort((a, b) => b.totalSales - a.totalSales);
 
   // Customer type breakdown
   const allCustomerSales = await repo.groupSalesData({

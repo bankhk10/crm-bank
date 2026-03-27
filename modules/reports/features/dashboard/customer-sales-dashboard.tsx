@@ -501,7 +501,7 @@ export function CustomerSalesDashboard() {
                     </Badge>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="overflow-x-auto max-h-[500px]">
+                    <div className="overflow-auto max-h-[600px]">
                       <Table className="min-w-[900px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
@@ -600,7 +600,7 @@ export function CustomerSalesDashboard() {
                     </Badge>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="overflow-x-auto max-h-[500px]">
+                    <div className="overflow-auto max-h-[600px]">
                       <Table className="min-w-[800px]">
                         <TableHeader className="sticky top-0 bg-white/95 backdrop-blur z-10">
                           <TableRow className="border-b border-slate-200">
