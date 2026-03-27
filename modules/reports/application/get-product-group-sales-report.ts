@@ -199,23 +199,12 @@ export async function getProductGroupSalesReport(
   // Group peak periods
   const groupPeakPeriods = await Promise.all(
     productGroupOptions.map(async (groupOption) => {
-      const monthlyData = await prisma.dailySalesSummary.groupBy({
-        by: ["month", "year"],
-        where: {
-          tradeNameGroupId: groupOption.value,
-          date: { gte: start, lte: end },
-          ...(viewScope === DataAccessLevel.VIEW_OWN
-            ? { employeeId: session.user.employeeId! }
-            : {}),
-          ...(viewScope === ("VIEW_TEAM" as DataAccessLevel)
-            ? { employeeId: { in: await getTeamEmployeeIds(session) } }
-            : {}),
-          ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
-            ? { employee: { departmentId: session.user.departmentId! } }
-            : {}),
-        },
-        _sum: { totalAmount: true },
-      });
+      const monthlyData = await repo.groupDailySalesSummaryByGroupMonthYear(
+        groupOption.value,
+        start,
+        end,
+        scopeFilter
+      );
 
       let peakMonth = { month: "ไม่มีข้อมูล", sales: 0 };
       for (const data of monthlyData) {

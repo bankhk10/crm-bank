@@ -208,41 +208,6 @@ async function main() {
         stockAtSale: 100,
       }
     });
-
-    // 3. Seed DailySalesSummary สำหรับรายงานการขาย
-    const normalizedDate = new Date(saleDate.getFullYear(), saleDate.getMonth(), saleDate.getDate());
-    
-    await prisma.dailySalesSummary.upsert({
-      where: {
-        date_customerId_employeeId_productId: {
-          date: normalizedDate,
-          customerId: customer.id,
-          employeeId: employee.id,
-          productId: product.id,
-        }
-      },
-      update: {
-        quantity: { increment: qty },
-        totalAmount: { increment: targetAmount },
-        orderCount: { increment: 1 },
-        totalVolumeLiters: { increment: qty * Number(product.packageSize || 1) }
-      },
-      create: {
-        date: normalizedDate,
-        year: saleDate.getFullYear(),
-        month: saleDate.getMonth() + 1,
-        customerId: customer.id,
-        employeeId: employee.id,
-        productId: product.id,
-        brand: product.brand,
-        tradeNameGroupId: product.tradeNameGroup?.id,
-        productGroupId: product.productGroup?.id,
-        quantity: qty,
-        totalAmount: targetAmount,
-        orderCount: 1,
-        totalVolumeLiters: qty * Number(product.packageSize || 1)
-      }
-    });
   }
 
   console.log("\n=================================================");

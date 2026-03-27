@@ -321,26 +321,13 @@ export async function getProductSalesReport(
 
   // Product peak periods (for top 5 products)
   const productPeakPeriods = await Promise.all(
-    peakCandidates.map(async (product) => {
-      const monthlyData = await prisma.dailySalesSummary.groupBy({
-        by: ["month", "year"],
-        where: {
-          productId: { in: Array.from(product.relatedProductIds) },
-          date: { gte: start, lte: end },
-          // TODO: DailySalesSummary might need scope filtering too if it has employeeId relation
-          // DailySalesSummary has employeeId.
-          ...(viewScope === DataAccessLevel.VIEW_OWN
-            ? { employeeId: session.user.employeeId! }
-            : {}),
-          ...(viewScope === ("VIEW_TEAM" as DataAccessLevel)
-            ? { employeeId: { in: teamEmployeeIds || [] } }
-            : {}),
-          ...(viewScope === DataAccessLevel.VIEW_DEPARTMENT
-            ? { employee: { departmentId: session.user.departmentId! } }
-            : {}),
-        },
-        _sum: { totalAmount: true },
-      });
+    peakCandidates.slice(0, 5).map(async (product) => { // Limit to top 5 for complexity/performance
+      const monthlyData = await repo.groupDailySalesSummaryByMonthAndYear(
+        product.id,
+        start,
+        end,
+        scopeFilter
+      );
 
       let peakMonth = { month: "ไม่มีข้อมูล", sales: 0 };
       for (const data of monthlyData) {

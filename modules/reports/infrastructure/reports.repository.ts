@@ -48,53 +48,95 @@ export async function findEmployeesWithScope(
   });
 }
 
-export async function findDailySalesSummaryYears() {
-  return prisma.dailySalesSummary.groupBy({
-    by: ["year"],
-    orderBy: { year: "desc" },
-  });
+export async function findSalesYears() {
+  const result = await prisma.$queryRaw`
+    SELECT DISTINCT CAST(EXTRACT(YEAR FROM "saleDate") AS INTEGER) as year
+    FROM "Sale"
+    WHERE "deletedAt" IS NULL
+    ORDER BY year DESC
+  `;
+  return result as { year: number }[];
 }
 
 export async function findMonthlyTrendSummary(
   year: number,
-  whereConstraint: Prisma.DailySalesSummaryWhereInput,
+  whereConstraint: Prisma.SaleWhereInput,
 ) {
-  return prisma.dailySalesSummary.groupBy({
-    by: ["month"],
-    where: {
-      year,
-      ...whereConstraint,
-    },
+  // Use raw query for accurate month grouping
+  let query = Prisma.sql`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM "saleDate") AS INTEGER) as month,
+      SUM("totalAmount") as "totalAmountSum",
+      COUNT("id") as "orderCountSum"
+    FROM "Sale"
+    WHERE EXTRACT(YEAR FROM "saleDate") = ${year}
+      AND "deletedAt" IS NULL
+      AND "status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+  `;
+
+  if (whereConstraint.customerId) {
+    query = Prisma.sql`${query} AND "customerId" = ${whereConstraint.customerId}`;
+  }
+  if (whereConstraint.employeeId) {
+    query = Prisma.sql`${query} AND "employeeId" = ${whereConstraint.employeeId}`;
+  }
+
+  query = Prisma.sql`${query} GROUP BY EXTRACT(MONTH FROM "saleDate") ORDER BY month ASC`;
+
+  const result = (await prisma.$queryRaw(query)) as any[];
+
+  return result.map((r) => ({
+    month: r.month,
     _sum: {
-      totalAmount: true,
-      quantity: true,
-      orderCount: true,
+      totalAmount: Number(r.totalAmountSum || 0),
+      orderCount: Number(r.orderCountSum || 0),
     },
-    orderBy: { month: "asc" },
-  });
+  }));
 }
 
 export async function findProductBreakdownSummary(
   year: number,
-  whereConstraint: Prisma.DailySalesSummaryWhereInput,
+  whereConstraint: Prisma.SaleWhereInput,
   take = 5,
 ) {
-  return prisma.dailySalesSummary.groupBy({
-    by: ["productId", "brand"],
-    where: {
-      year,
-      ...whereConstraint,
-    },
+  let query = Prisma.sql`
+    SELECT 
+      si."productId",
+      p."brand",
+      SUM(si."totalPrice") as "totalAmountSum",
+      SUM(si."quantity") as "quantitySum",
+      COUNT(DISTINCT s."id") as "orderCountSum"
+    FROM "SaleItem" si
+    JOIN "Sale" s ON si."saleId" = s."id"
+    JOIN "Product" p ON si."productId" = p."id"
+    WHERE EXTRACT(YEAR FROM s."saleDate") = ${year}
+      AND s."deletedAt" IS NULL
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+  `;
+
+  if (whereConstraint.customerId) {
+    query = Prisma.sql`${query} AND s."customerId" = ${whereConstraint.customerId}`;
+  }
+  if (whereConstraint.employeeId) {
+    query = Prisma.sql`${query} AND s."employeeId" = ${whereConstraint.employeeId}`;
+  }
+
+  query = Prisma.sql`${query} 
+    GROUP BY si."productId", p."brand" 
+    ORDER BY "totalAmountSum" DESC 
+    LIMIT ${take}`;
+
+  const result = (await prisma.$queryRaw(query)) as any[];
+
+  return result.map((r) => ({
+    productId: r.productId,
+    brand: r.brand,
     _sum: {
-      totalAmount: true,
-      quantity: true,
-      orderCount: true,
+      totalAmount: Number(r.totalAmountSum || 0),
+      quantity: Number(r.quantitySum || 0),
+      orderCount: Number(r.orderCountSum || 0),
     },
-    orderBy: {
-      _sum: { totalAmount: "desc" },
-    },
-    take,
-  });
+  }));
 }
 
 export async function findProductsByIds(productIds: string[]) {
@@ -238,15 +280,39 @@ export async function groupDailySalesSummaryByMonthAndYear(
   end: Date,
   options: any,
 ) {
-  return prisma.dailySalesSummary.groupBy({
-    by: ["month", "year"],
-    where: {
-      productId,
-      date: { gte: start, lte: end },
-      ...options,
+  // options could contain employeeId, customerId etc.
+  let query = Prisma.sql`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM s."saleDate") AS INTEGER) as month,
+      CAST(EXTRACT(YEAR FROM s."saleDate") AS INTEGER) as year,
+      SUM(si."totalPrice") as "totalAmountSum"
+    FROM "SaleItem" si
+    JOIN "Sale" s ON si."saleId" = s."id"
+    WHERE si."productId" = ${productId}
+      AND s."saleDate" >= ${start}
+      AND s."saleDate" <= ${end}
+      AND s."deletedAt" IS NULL
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+  `;
+
+  if (options.employeeId) {
+    query = Prisma.sql`${query} AND s."employeeId" = ${options.employeeId}`;
+  }
+  if (options.customerId) {
+    query = Prisma.sql`${query} AND s."customerId" = ${options.customerId}`;
+  }
+
+  query = Prisma.sql`${query} GROUP BY year, month ORDER BY year ASC, month ASC`;
+
+  const result = (await prisma.$queryRaw(query)) as any[];
+
+  return result.map((r) => ({
+    month: r.month,
+    year: r.year,
+    _sum: {
+      totalAmount: Number(r.totalAmountSum || 0),
     },
-    _sum: { totalAmount: true },
-  });
+  }));
 }
 
 export async function findLowStockProducts() {
@@ -391,15 +457,39 @@ export async function groupDailySalesSummaryByGroupMonthYear(
   end: Date,
   options: any,
 ) {
-  return (prisma.dailySalesSummary as any).groupBy({
-    by: ["month", "year"],
-    where: {
-      tradeNameGroupId,
-      date: { gte: start, lte: end },
-      ...options,
+  let query = Prisma.sql`
+    SELECT 
+      CAST(EXTRACT(MONTH FROM s."saleDate") AS INTEGER) as month,
+      CAST(EXTRACT(YEAR FROM s."saleDate") AS INTEGER) as year,
+      SUM(si."totalPrice") as "totalAmountSum"
+    FROM "SaleItem" si
+    JOIN "Sale" s ON si."saleId" = s."id"
+    JOIN "Product" p ON si."productId" = p."id"
+    WHERE p."tradeNameGroupId" = ${tradeNameGroupId}
+      AND s."saleDate" >= ${start}
+      AND s."saleDate" <= ${end}
+      AND s."deletedAt" IS NULL
+      AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+  `;
+
+  if (options.employeeId) {
+    query = Prisma.sql`${query} AND s."employeeId" = ${options.employeeId}`;
+  }
+  if (options.customerId) {
+    query = Prisma.sql`${query} AND s."customerId" = ${options.customerId}`;
+  }
+
+  query = Prisma.sql`${query} GROUP BY year, month ORDER BY year ASC, month ASC`;
+
+  const result = (await prisma.$queryRaw(query)) as any[];
+
+  return result.map((r) => ({
+    month: r.month,
+    year: r.year,
+    _sum: {
+      totalAmount: Number(r.totalAmountSum || 0),
     },
-    _sum: { totalAmount: true },
-  });
+  }));
 }
 
 // ==========================================

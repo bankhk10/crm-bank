@@ -47,13 +47,13 @@ export async function getFilterOptions() {
   const [customers, employees, yearsResult] = await Promise.all([
     repo.findCustomersWithScope(whereCustomer),
     repo.findEmployeesWithScope(whereEmployee),
-    repo.findDailySalesSummaryYears(),
+    repo.findSalesYears(),
   ]);
 
   // If no summary data, provide current year
   const years =
     yearsResult.length > 0
-      ? yearsResult.map((y) => y.year)
+      ? yearsResult.map((y: { year: number }) => y.year)
       : [new Date().getFullYear()];
 
   return { customers, employees, years };

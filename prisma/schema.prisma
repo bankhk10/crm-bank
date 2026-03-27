@@ -177,7 +177,6 @@ model Employee {
   manager              Employee?              @relation("EmployeeHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
   responsibleCustomers Customer[]             @relation("EmployeeResponsible")
   sales                Sale[]                 @relation("SaleEmployee")
-  dailySalesSummaries  DailySalesSummary[]
   salesTargets         SalesTarget[]
   pointSummary         EmployeePointSummary?
   pointHistories       EmployeePointHistory[]
@@ -375,7 +374,6 @@ model Customer {
   subDealers            Customer[]                @relation("ParentDealer")
   responsibleEmployee   Employee?                 @relation("EmployeeResponsible", fields: [responsibleEmployeeId], references: [id], onDelete: SetNull)
   sales                 Sale[]                    @relation("SaleCustomer")
-  dailySalesSummaries   DailySalesSummary[]
   salesTargets          SalesTargetStore[]
   shippingCompanies     CustomerShippingCompany[]
   addresses             CustomerAddress[]
@@ -658,7 +656,6 @@ model Product {
   stockLots            ProductStockLot[]
   saleItems            SaleItem[]             @relation("SaleItemProduct")
   stock                ProductStock?
-  dailySalesSummaries  DailySalesSummary[]
   salesTargets         ProductSalesTarget[]   @relation("ProductSalesTargets")
   detailedSalesTargets SalesTargetItem[]
   pointHistories       EmployeePointHistory[]
@@ -1038,40 +1035,6 @@ model SaleStatusHistory {
   changedBy User @relation("StatusHistoryUser", fields: [changedById], references: [id], onDelete: Restrict)
 }
 
-model DailySalesSummary {
-  id    String   @id @default(cuid())
-  date  DateTime @db.Date // เก็บวันที่อย่างเดียวเพื่อการ Group ที่แม่นยำ
-  year  Int // Indexed Column สำหรับกรองปีอย่างรวดเร็ว
-  month Int // Indexed Column
-
-  // Dimensions (มิติข้อมูล)
-  customerId   String
-  employeeId   String
-  productId    String
-  brand              String? // De-normalized: เก็บชื่อแบรนด์ไว้เลยเพื่อลดการ Join
-  tradeNameGroupId   String?
-  productGroupId     String?
-
-  // Metrics (ตัววัดผล)
-  quantity          Int     @default(0)
-  totalAmount       Decimal @default(0) @db.Decimal(15, 2)
-  orderCount        Int     @default(0) // จำนวนบิลที่เกิดขึ้นในวันนี้
-  totalVolumeLiters Decimal @default(0) @db.Decimal(15, 3) // ปริมาณรวมเป็นลิตร (แปลงจาก packageSize × quantity)
-
-  // Audit
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  customer Customer @relation(fields: [customerId], references: [id])
-  employee Employee @relation(fields: [employeeId], references: [id])
-  product  Product  @relation(fields: [productId], references: [id])
-
-  @@unique([date, customerId, employeeId, productId]) // ป้องกันข้อมูลซ้ำซ้อน
-  // Composite Indexes สำคัญมากสำหรับความเร็ว
-  @@index([year, customerId]) // สำหรับรายงานลูกค้าแยกรายปี
-  @@index([year, employeeId]) // สำหรับรายงานเซลล์แยกรายปี
-  @@index([date])
-}
 
 // ==========================================
 // SALES TARGETS
