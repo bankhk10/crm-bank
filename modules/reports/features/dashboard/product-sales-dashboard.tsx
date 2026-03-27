@@ -422,12 +422,6 @@ export function ProductSalesDashboard() {
                     <p className="text-base font-bold text-red-700">
                       {formatTHB(reportData.topProducts[0]?.totalSales || 0)}
                     </p>
-                    <p className="text-[11px] text-slate-500 font-medium italic">
-                      ขายได้ {formatPackSize(
-                        reportData.topProducts[0]?.totalPackageSold || 0,
-                        reportData.topProducts[0]?.packageUnit,
-                      )}
-                    </p>
                   </div>
                 }
                 icon={Award}
@@ -443,12 +437,6 @@ export function ProductSalesDashboard() {
                   <div className="mt-1 space-y-0.5">
                     <p className="text-base font-bold text-slate-900">
                       {formatTHB(reportData.slowProducts[0]?.totalSales || 0)}
-                    </p>
-                    <p className="text-[11px] text-slate-500 font-medium italic">
-                      ขายได้ {formatPackSize(
-                        reportData.slowProducts[0]?.totalPackageSold || 0,
-                        reportData.slowProducts[0]?.packageUnit,
-                      )}
                     </p>
                   </div>
                 }
