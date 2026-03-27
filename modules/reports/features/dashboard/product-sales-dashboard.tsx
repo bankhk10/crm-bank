@@ -49,6 +49,7 @@ import {
   Calendar,
 } from "lucide-react";
 import Link from "next/link";
+import { AllProductsTable } from "./all-products-table";
 import { KpiCard } from "../../ui/kpi-card";
 
 import {
@@ -538,88 +539,12 @@ export function ProductSalesDashboard() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="top-products" className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                  {/* Table */}
-                  <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        รายละเอียดสินค้าทั้งหมด
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="max-h-[450px] overflow-auto">
-                        <div className="overflow-x-auto">
-                          <Table className="min-w-[720px]">
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>ลำดับ</TableHead>
-                                <TableHead>สินค้า</TableHead>
-                                <TableHead className="text-right">
-                                  ยอดขาย
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  จำนวนที่ขาย
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  จำนวนออเดอร์
-                                </TableHead>
-                                <TableHead className="text-right">
-                                  บรรจุขายได้
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {reportData.topProducts
-                                .map((product, idx) => (
-                                  <TableRow key={product.id}>
-                                    <TableCell>
-                                      <Badge
-                                        variant="outline"
-                                        className={
-                                          idx < 3
-                                            ? "bg-amber-100 text-amber-800 border-amber-300"
-                                            : ""
-                                        }
-                                      >
-                                        {idx + 1}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div>
-                                        <p className="font-medium text-sm">
-                                          {product.name}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                          {product.code}
-                                        </p>
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right font-medium">
-                                      {formatTHB(product.totalSales)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {formatNumber(product.totalQuantity)}
-                                    </TableCell>
-                                    <TableCell className="text-right text-slate-700 font-medium">
-                                      {formatNumber(product.orderCount)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <span className="font-semibold text-red-700">
-                                        {formatPackSize(
-                                          product.totalPackageSold,
-                                          product.packageUnit,
-                                        )}
-                                      </span>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <AllProductsTable
+                  products={reportData?.topProducts || []}
+                  formatTHB={formatTHB}
+                  formatNumber={formatNumber}
+                  formatPackSize={formatPackSize}
+                />
               </TabsContent>
 
               <TabsContent value="slow-products" className="mt-6">
@@ -658,7 +583,7 @@ export function ProductSalesDashboard() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {reportData.slowProducts.map((product, idx) => (
+                          {reportData?.slowProducts?.map((product, idx) => (
                             <TableRow key={product.id}>
                               <TableCell>{idx + 1}</TableCell>
                               <TableCell className="font-mono text-sm">
@@ -718,7 +643,7 @@ export function ProductSalesDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                      {reportData.productPeakPeriods.map((item, idx) => (
+                      {reportData?.productPeakPeriods?.map((item, idx) => (
                         <Card
                           key={item.productId}
                           className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
@@ -771,7 +696,7 @@ export function ProductSalesDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {reportData.lowStockProducts.length === 0 ? (
+                    {!reportData?.lowStockProducts || reportData.lowStockProducts.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>ไม่มีสินค้าใกล้หมด</p>
@@ -793,7 +718,7 @@ export function ProductSalesDashboard() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {reportData.lowStockProducts.map((product) => (
+                            {reportData?.lowStockProducts?.map((product) => (
                               <TableRow key={product.id}>
                                 <TableCell className="font-mono text-sm">
                                   {product.code}
@@ -840,7 +765,7 @@ export function ProductSalesDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {reportData.stagnantProducts.length === 0 ? (
+                    {!reportData?.stagnantProducts || reportData.stagnantProducts.length === 0 ? (
                       <div className="text-center py-12 text-muted-foreground">
                         <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>ไม่มีสินค้าค้างสต๊อก</p>
@@ -862,7 +787,7 @@ export function ProductSalesDashboard() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {reportData.stagnantProducts.map((product) => (
+                            {reportData?.stagnantProducts?.map((product) => (
                               <TableRow key={product.id}>
                                 <TableCell className="font-mono text-sm">
                                   {product.code}
