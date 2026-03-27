@@ -428,13 +428,6 @@ export function CustomerSalesDashboard() {
               <KpiCard
                 label={activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"}
                 value={activeTab === "customers" ? topCustomers[0]?.name || "-" : salespersonPerf[0]?.name || "-"}
-                sub={
-                  <p className="text-base font-bold text-red-700 mt-1">
-                    {activeTab === "customers"
-                      ? topCustomers[0] ? formatTHB(topCustomers[0].totalSales) : "-"
-                      : salespersonPerf[0] ? formatTHB(salespersonPerf[0].totalSales) : "-"}
-                  </p>
-                }
                 icon={Award}
                 gradient="bg-gradient-to-br from-red-600 to-red-700"
                 ring="shadow-lg shadow-red-600/20"
@@ -442,7 +435,7 @@ export function CustomerSalesDashboard() {
               />
 
               <KpiCard
-                label={`ยอดขายรวมตาม${activeTab === "customers" ? "ลูกค้า" : "พนักงานขาย"}`}
+                label={`ยอดขายรวม`}
                 value={activeTab === "customers" ? formatTHB(totalCustomerSales) : formatTHB(totalSalespersonSales)}
                 icon={TrendingUp}
                 gradient="bg-gradient-to-br from-slate-900 to-slate-800"
@@ -453,7 +446,6 @@ export function CustomerSalesDashboard() {
               <KpiCard
                 label="ออเดอร์รวม"
                 value={formatNumber(totalOrders)}
-                sub={<p className="text-xs font-semibold text-red-600 mt-1">รายการออเดอร์ทั้งหมด</p>}
                 icon={ShoppingCart}
                 gradient="bg-gradient-to-br from-red-500 to-red-600"
                 ring="shadow-lg shadow-red-500/20"
