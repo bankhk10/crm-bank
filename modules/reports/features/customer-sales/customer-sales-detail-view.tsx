@@ -347,11 +347,11 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
-            <CardContent className="p-4">
+            <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">ยอดขายรวม</p>
-                  <p className="text-lg font-bold text-emerald-600">
+                  <p className="text-xs font-bold text-muted-foreground">ยอดขายรวม</p>
+                  <p className="text-xl font-bold text-emerald-600 mt-2">
                     {formatTHB(kpi?.totalSales || 0)}
                   </p>
                 </div>
@@ -359,9 +359,6 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {kpi?.orderCount || 0} ออเดอร์
-              </p>
             </CardContent>
           </Card>
 
@@ -380,9 +377,6 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                ซื้อเฉลี่ย {kpi?.purchaseFrequency?.toFixed(1) || 0} ครั้ง/เดือน
-              </p>
             </CardContent>
           </Card>
 
@@ -391,19 +385,16 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    มูลค่ารวมทั้งหมด
+                    ออเดอร์ทั้งหมด
                   </p>
                   <p className="text-lg font-bold text-purple-600">
-                    {formatTHB(kpi?.lifetimeValue || 0)}
+                    {kpi?.lifetimeOrderCount || 0}
                   </p>
                 </div>
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <DollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <ShoppingCart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {kpi?.lifetimeOrderCount || 0} ออเดอร์ทั้งหมด
-              </p>
             </CardContent>
           </Card>
         </div>
