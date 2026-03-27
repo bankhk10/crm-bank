@@ -469,14 +469,14 @@ export function CustomerSalesDashboard() {
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   <Users className="w-4 h-4 mr-1" />
-                  รายชื่อลูกค้า
+                  ข้อมูลการขายของลูกค้า
                 </TabsTrigger>
                 <TabsTrigger
                   value="salespersons"
                   className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 data-[state=active]:text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-zinc-900 data-[state=active]:shadow-md data-[state=active]:shadow-red-500/30 transition-all gap-1.5 flex items-center"
                 >
                   <UserCheck className="w-4 h-4 mr-1" />
-                  ผลงานพนักงานขาย
+                  ข้อมูลการขายของพนักงาน
                 </TabsTrigger>
               </TabsList>
 
@@ -486,7 +486,7 @@ export function CustomerSalesDashboard() {
                   <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-3">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <Users className="h-5 w-5 text-red-600" />
-                      รายชื่อลูกค้า
+                      ข้อมูลการขายของลูกค้า
                     </CardTitle>
                     <Badge variant="secondary" className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">
                       {filteredCustomers.length} ลูกค้า
@@ -581,7 +581,7 @@ export function CustomerSalesDashboard() {
                   <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
                     <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
                       <UserCheck className="h-5 w-5 text-red-600" />
-                      ผลงานพนักงานขายรายบุคคล
+                      ข้อมูลการขายของพนักงาน
                     </CardTitle>
                     <Badge variant="secondary" className="text-xs sm:text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">
                       {filteredSalespersons.length} คน
@@ -594,7 +594,7 @@ export function CustomerSalesDashboard() {
                           <TableRow className="border-b border-slate-200">
                             <TableHead className="w-[80px] font-semibold text-slate-700">ลำดับ</TableHead>
                             <TableHead className="font-semibold text-slate-700">พนักงานขาย</TableHead>
-                            <TableHead className="font-semibold text-slate-700">แผนก/ทีม</TableHead>
+                            <TableHead className="font-semibold text-slate-700">แผนก</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">จำนวนลูกค้า</TableHead>
