@@ -774,11 +774,6 @@ export default function SalespersonDetailView({
                         <ShoppingCart className="h-4 w-4 text-red-500" />
                         ประวัติการขายล่าสุด
                       </CardTitle>
-                      <Link href={`/sales?employeeId=${employeeId}`}>
-                        <Button variant="ghost" size="sm" className="text-xs">
-                          ดูทั้งหมด <ExternalLink className="ml-1 h-3 w-3" />
-                        </Button>
-                      </Link>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
