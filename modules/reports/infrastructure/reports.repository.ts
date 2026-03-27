@@ -296,7 +296,11 @@ export async function groupDailySalesSummaryByMonthAndYear(
   `;
 
   if (options.employeeId) {
-    query = Prisma.sql`${query} AND s."employeeId" = ${options.employeeId}`;
+    if (typeof options.employeeId === "object" && options.employeeId.in) {
+      query = Prisma.sql`${query} AND s."employeeId" = ANY(${options.employeeId.in}::text[])`;
+    } else {
+      query = Prisma.sql`${query} AND s."employeeId" = ${options.employeeId}`;
+    }
   }
   if (options.customerId) {
     query = Prisma.sql`${query} AND s."customerId" = ${options.customerId}`;
@@ -312,6 +316,70 @@ export async function groupDailySalesSummaryByMonthAndYear(
     _sum: {
       totalAmount: Number(r.totalAmountSum || 0),
     },
+  }));
+}
+
+export async function groupAllProductsPeakPeriods(
+  start: Date,
+  end: Date,
+  options: any,
+) {
+  // Use raw query with DISTINCT ON to get peak month for each product efficiently
+  let query = Prisma.sql`
+    WITH MonthlySales AS (
+      SELECT 
+        si."productId",
+        CAST(EXTRACT(MONTH FROM s."saleDate") AS INTEGER) as month,
+        CAST(EXTRACT(YEAR FROM s."saleDate") AS INTEGER) as year,
+        SUM(si."totalPrice") as "totalAmountSum"
+      FROM "SaleItem" si
+      JOIN "Sale" s ON si."saleId" = s."id"
+      WHERE s."saleDate" >= ${start}
+        AND s."saleDate" <= ${end}
+        AND s."deletedAt" IS NULL
+        AND s."status" NOT IN ('CANCELLED', 'REJECTED', 'EXPIRED')
+  `;
+
+  if (options.employeeId) {
+    if (typeof options.employeeId === "object" && options.employeeId.in) {
+      query = Prisma.sql`${query} AND s."employeeId" = ANY(${options.employeeId.in}::text[])`;
+    } else {
+      query = Prisma.sql`${query} AND s."employeeId" = ${options.employeeId}`;
+    }
+  }
+
+  if (options.customerId) {
+    query = Prisma.sql`${query} AND s."customerId" = ${options.customerId}`;
+  }
+
+  // Handle department scope which might be in options (from buildScopeFilter)
+  if (options.employee?.departmentId) {
+    query = Prisma.sql`${query} AND EXISTS (
+      SELECT 1 FROM "Employee" e 
+      WHERE e.id = s."employeeId" 
+      AND e."departmentId" = ${options.employee.departmentId}
+    )`;
+  }
+
+  query = Prisma.sql`${query} 
+      GROUP BY si."productId", year, month
+    )
+    SELECT DISTINCT ON ("productId")
+      "productId",
+      month,
+      year,
+      "totalAmountSum"
+    FROM MonthlySales
+    ORDER BY "productId", "totalAmountSum" DESC
+  `;
+
+  const result = (await prisma.$queryRaw(query)) as any[];
+
+  return result.map((r) => ({
+    productId: r.productId,
+    month: r.month,
+    year: r.year,
+    totalSales: Number(r.totalAmountSum || 0),
   }));
 }
 

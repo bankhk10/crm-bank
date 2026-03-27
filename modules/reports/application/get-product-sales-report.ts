@@ -319,37 +319,24 @@ export async function getProductSalesReport(
     .sort((a, b) => a.totalSales - b.totalSales)
     .map(normalizeProduct);
 
-  // Product peak periods (for top 5 products)
-  const productPeakPeriods = await Promise.all(
-    peakCandidates.slice(0, 5).map(async (product) => { // Limit to top 5 for complexity/performance
-      const monthlyData = await repo.groupDailySalesSummaryByMonthAndYear(
-        product.id,
-        start,
-        end,
-        scopeFilter
-      );
-
-      let peakMonth = { month: "ไม่มีข้อมูล", sales: 0 };
-      for (const data of monthlyData) {
-        const sales = Number(data._sum.totalAmount || 0);
-        if (sales > peakMonth.sales) {
-          peakMonth = {
-            month: format(new Date(data.year, data.month - 1), "MMM yyyy", {
-              locale: th,
-            }),
-            sales,
-          };
-        }
-      }
-
-      return {
-        productId: product.id,
-        productName: product.name,
-        peakMonth: peakMonth.month,
-        peakSales: peakMonth.sales,
-      };
-    }),
+  // Product peak periods (for all products)
+  const allPeakPeriods = await repo.groupAllProductsPeakPeriods(
+    start,
+    end,
+    scopeFilter
   );
+
+  const productPeakPeriods = allPeakPeriods.map((item) => {
+    const product = productMap.get(item.productId);
+    return {
+      productId: item.productId,
+      productName: product?.name || "ไม่ระบุชื่อสินค้า",
+      peakMonth: format(new Date(item.year, item.month - 1), "MMM yyyy", {
+        locale: th,
+      }),
+      peakSales: item.totalSales,
+    };
+  });
 
   // Low stock products (available < 50)
   const lowStockProducts = await prisma.productStock.findMany({
