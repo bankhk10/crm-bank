@@ -44,33 +44,38 @@ export function LowStockTable({ products, formatNumber }: LowStockTableProps) {
             <Table className="min-w-[780px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>รหัส</TableHead>
                   <TableHead>ชื่อสินค้า</TableHead>
-                  <TableHead className="text-right">คงเหลือจริง</TableHead>
-                  <TableHead className="text-right">จอง</TableHead>
-                  <TableHead className="text-right">พร้อมขาย</TableHead>
+                  <TableHead className="text-center">คงเหลือจริง</TableHead>
+                  <TableHead className="text-center">จอง</TableHead>
+                  <TableHead className="text-center">พร้อมขาย</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-mono text-sm">{product.code}</TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="font-medium">
+                      <div>
+                        <p className="font-medium text-sm">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.code}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
                       {formatNumber(product.physicalBalance)}
                     </TableCell>
-                    <TableCell className="text-right text-amber-600">
+                    <TableCell className="text-center text-amber-600">
                       {formatNumber(product.reservedQuantity)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <Badge
                         variant="outline"
                         className={
                           product.availableQuantity <= 10
                             ? "bg-red-100 text-red-800 border-red-300"
                             : product.availableQuantity <= 30
-                            ? "bg-amber-100 text-amber-800 border-amber-300"
-                            : ""
+                              ? "bg-amber-100 text-amber-800 border-amber-300"
+                              : ""
                         }
                       >
                         {formatNumber(product.availableQuantity)}
