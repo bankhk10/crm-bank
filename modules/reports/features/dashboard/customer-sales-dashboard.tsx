@@ -595,7 +595,6 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">แผนก</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">จำนวนลูกค้า</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -647,9 +646,6 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-center font-medium text-slate-700">
                                   {formatNumber(s.orderCount)}
-                                </TableCell>
-                                <TableCell className="text-center text-slate-600">
-                                  {formatNumber(s.customerCount)} ราย
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Link href={`/reports/salesperson/${s.id}`}>
