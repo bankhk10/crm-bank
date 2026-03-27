@@ -502,8 +502,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
                             <TableHead className="font-semibold text-slate-700">จังหวัด</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">ออเดอร์</TableHead>
-                            <TableHead className="text-center font-semibold text-slate-700">มูลค่ารวมทั้งหมด</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ออเดอร์รวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -547,9 +546,6 @@ export function CustomerSalesDashboard() {
                                 </TableCell>
                                 <TableCell className="text-center text-slate-700 font-medium">
                                   {c.orderCount}
-                                </TableCell>
-                                <TableCell className="text-center font-semibold text-zinc-700">
-                                  {formatTHB(c.lifetimeValue)}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Link href={`/reports/customer-sales/${c.id}`}>
