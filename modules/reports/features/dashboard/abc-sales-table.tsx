@@ -32,7 +32,7 @@ export function AbcSalesTable({
   return (
     <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
       <CardHeader>
-        <CardTitle className="text-lg">ยอดขายตามประเภท (ABC Code)</CardTitle>
+        <CardTitle className="text-lg">ยอดขายตามประเภท (ABC Code) (ตามช่วงเวลาที่เลือก)</CardTitle>
       </CardHeader>
       <CardContent>
         {!abcSales || abcSales.length === 0 ? (

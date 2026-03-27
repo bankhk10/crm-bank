@@ -51,12 +51,10 @@ export function GroupPerformanceTable({
                 <TableRow>
                   <TableHead>ลำดับ</TableHead>
                   <TableHead>กลุ่มสินค้า</TableHead>
-                  <TableHead className="text-right">ยอดขาย</TableHead>
-                  <TableHead className="text-right">จำนวนที่ขาย</TableHead>
-                  <TableHead className="text-right">ปริมาณ ({volumeUnit})</TableHead>
-                  <TableHead className="text-right">จำนวนออเดอร์</TableHead>
-                  <TableHead className="text-right">จำนวนสินค้า</TableHead>
-                  <TableHead className="text-right">เฉลี่ย/สินค้า</TableHead>
+                  <TableHead className="text-center">ยอดขาย</TableHead>
+                  <TableHead className="text-center">จำนวนที่ขาย</TableHead>
+                  <TableHead className="text-center">จำนวนออเดอร์</TableHead>
+                  <TableHead className="text-center">ขนาดบรรจุรวมที่ขายได้ ({volumeUnit})</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -75,23 +73,19 @@ export function GroupPerformanceTable({
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">{group.group}</TableCell>
-                    <TableCell className="text-right font-semibold text-red-600">
+                    <TableCell className="text-center font-semibold text-red-600">
                       {formatTHB(group.totalSales)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       {formatNumber(group.totalQuantity)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
+                      {formatNumber(group.orderCount)}
+                    </TableCell>
+                    <TableCell className="text-center">
                       <span className="font-medium text-blue-600">
                         {formatVolume(group.totalVolumeLiters)} {volumeUnit}
                       </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatNumber(group.orderCount)}
-                    </TableCell>
-                    <TableCell className="text-right">{group.productCount}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {formatTHB(group.avgSalesPerProduct)}
                     </TableCell>
                   </TableRow>
                 ))}
