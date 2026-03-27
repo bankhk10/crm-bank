@@ -338,7 +338,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
               <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-white text-sm">
                 <User className="h-4 w-4 mr-2" />
                 <span>
-                  Sales: {customer.responsibleEmployee.firstName}{" "}
+                  ผู้รับผิดชอบ: {customer.responsibleEmployee.firstName}{" "}
                   {customer.responsibleEmployee.lastName}
                 </span>
               </div>
