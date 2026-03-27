@@ -5,14 +5,6 @@ interface CustomerReportPageProps {
     customerId: string;
   }>;
 }
-
-export async function generateMetadata({ params }: CustomerReportPageProps) {
-  const { customerId } = await params;
-  return {
-    title: `รายละเอียดลูกค้า ${customerId} | CRM Bank`,
-  };
-}
-
 export default async function CustomerReportDetailPage({
   params,
 }: CustomerReportPageProps) {
