@@ -276,20 +276,19 @@ export default function SalespersonDetailView({
             topColor="red"
           />
           <KpiCard
+            label={`เป้าหมายทั้งปี`}
+            value={formatTHB(data.monthlyPerformance.reduce((s, m) => s + m.target, 0))}
+            icon={Target}
+            gradient="bg-gradient-to-br from-red-500 to-red-600"
+            ring="shadow-lg shadow-red-500/20"
+            topColor="black"
+          />
+          <KpiCard
             label="ออเดอร์ทั้งปี"
             value={formatNumber(kpi.yearOrderCount)}
             icon={ShoppingCart}
             gradient="bg-gradient-to-br from-slate-900 to-slate-800"
             ring="shadow-lg shadow-slate-900/20"
-            topColor="black"
-          />
-          <KpiCard
-            label="ลูกค้าที่ขายได้"
-            value={`${formatNumber(kpi.yearCustomerCount)} ราย`}
-            sublabel={`เดือนนี้ ${kpi.monthCustomerCount} ราย`}
-            icon={Users}
-            gradient="bg-gradient-to-br from-red-500 to-red-600"
-            ring="shadow-lg shadow-red-500/20"
             topColor="red"
           />
           <KpiCard
@@ -400,7 +399,7 @@ export default function SalespersonDetailView({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Layers className="h-4 w-4 text-red-600" />
-                      สถานะออเดอร์ ({data.currentYear})
+                      สถานะออเดอร์ (ตามช่วงเวลาที่เลือก)
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
