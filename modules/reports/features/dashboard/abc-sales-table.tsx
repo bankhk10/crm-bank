@@ -14,6 +14,7 @@ import {
 interface AbcSalesTableProps {
   abcSales: {
     id: string;
+    code: string;
     name: string;
     totalSales: number;
     totalQuantity: number;
@@ -46,10 +47,9 @@ export function AbcSalesTable({
                 <TableRow>
                   <TableHead>ลำดับ</TableHead>
                   <TableHead>ประเภท</TableHead>
-                  <TableHead className="text-right">ยอดขาย</TableHead>
-                  <TableHead className="text-right">จำนวน</TableHead>
-                  <TableHead className="text-right">จำนวนออเดอร์</TableHead>
-                  <TableHead className="text-right">จำนวนสินค้า</TableHead>
+                  <TableHead className="text-center">ยอดขาย</TableHead>
+                  <TableHead className="text-center">จำนวน</TableHead>
+                  <TableHead className="text-center">จำนวนออเดอร์</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -67,20 +67,19 @@ export function AbcSalesTable({
                         {idx + 1}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-bold text-emerald-700">
-                      {row.name}
+                    <TableCell>
+                      <div>
+                        <p className="font-bold text-sm text-emerald-700">{row.code} - {row.name}</p>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-right font-semibold">
+                    <TableCell className="text-center font-semibold text-emerald-600">
                       {formatTHB(row.totalSales)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       {formatNumber(row.totalQuantity)}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       {formatNumber(row.orderCount)}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {row.productCount}
                     </TableCell>
                   </TableRow>
                 ))}
