@@ -41,7 +41,7 @@ export async function finalizePromotionalBudgetForSaleUseCase(saleId: string) {
 
     // 4. Update the main PromotionalBudget for the customer (earning increases the limit)
     // and record the transaction in PromotionalBudgetDetail
-    
+
     let activeBudgetId: string;
     const budget = await tx.promotionalBudget.findUnique({
       where: {
@@ -78,7 +78,7 @@ export async function finalizePromotionalBudgetForSaleUseCase(saleId: string) {
         budgetId: activeBudgetId,
         type: "SALES_PROMOTION",
         receivedAmount: totalEarned,
-        description: ` Earned from Sale ${sale.saleNumber}`,
+        description: `ได้รับงบส่งเสริมการขายจากยอดขาย ${sale.saleNumber}`,
         saleId: sale.id,
       },
     });

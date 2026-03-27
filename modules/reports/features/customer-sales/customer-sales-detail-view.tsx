@@ -444,7 +444,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Gift className="h-4 w-4 mr-2" />
-                  งบส่งเสริม
+                  ประวัติงบส่งเสริมการขาย
                 </TabsTrigger>
                 <TabsTrigger
                   value="contact-notes"
@@ -834,171 +834,77 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-base flex items-center gap-2">
                               <Award className="h-4 w-4 text-red-500" />
-                              งบส่งเสริมการขายปี {budget.year}
+                              ประวัติการสะสมงบส่งเสริมการขาย
                             </CardTitle>
-                            <Badge
-                              className={
-                                budget.status === "ACTIVE"
-                                  ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                  : "bg-slate-100 text-slate-800 border-slate-200"
-                              }
-                            >
-                              {budget.status === "ACTIVE"
-                                ? "ใช้งานอยู่"
-                                : budget.status}
-                            </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="pt-6 space-y-6">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {/* Sales Promotion Budget */}
-                            <div className="space-y-3 p-4 rounded-xl bg-white border border-red-50 shadow-sm">
-                              <div>
-                                <p className="text-[11px] font-semibold text-red-600 uppercase tracking-wider mb-1">
-                                  งบส่งเสริมการขาย (Sales Promotion)
-                                </p>
-                                <div className="flex items-end justify-between">
-                                  <p className="text-2xl font-black text-slate-900 leading-none">
-                                    {formatTHB(Number(budget.salesPromotionLimit))}
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 font-medium">
-                                    วงเงินรวม
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px] font-bold">
-                                  <span className="text-slate-400 flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                    ใช้ไปแล้ว: {formatTHB(Number(budget.salesPromotionUsed))}
-                                  </span>
-                                  <span className="text-red-600 flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                    คงเหลือ: {formatTHB(Number(budget.salesPromotionLimit) - Number(budget.salesPromotionUsed))}
-                                  </span>
-                                </div>
-                                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                  <div
-                                    className="h-full bg-gradient-to-r from-red-500 to-rose-600 rounded-full transition-all duration-500"
-                                    style={{
-                                      width: `${Math.min((Number(budget.salesPromotionUsed) / Number(budget.salesPromotionLimit)) * 100, 100)}%`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Marketing Budget */}
-                            <div className="space-y-3 p-4 rounded-xl bg-white border border-blue-50 shadow-sm">
-                              <div>
-                                <p className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider mb-1">
-                                  งบส่งเสริมการตลาด (Marketing)
-                                </p>
-                                <div className="flex items-end justify-between">
-                                  <p className="text-2xl font-black text-slate-900 leading-none">
-                                    {formatTHB(Number(budget.marketingLimit))}
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 font-medium">
-                                    วงเงินรวม
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[11px] font-bold">
-                                  <span className="text-slate-400 flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                    ใช้ไปแล้ว: {formatTHB(Number(budget.marketingUsed))}
-                                  </span>
-                                  <span className="text-blue-600 flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                    คงเหลือ: {formatTHB(Number(budget.marketingLimit) - Number(budget.marketingUsed))}
-                                  </span>
-                                </div>
-                                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                  <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
-                                    style={{
-                                      width: `${Math.min((Number(budget.marketingUsed) / Number(budget.marketingLimit)) * 100, 100)}%`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="pt-2">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                              <Clock className="h-3.5 w-3.5 text-slate-400" />
-                              ประวัติการใช้งานงบประมาณ
-                            </h4>
-                            {budget.details && budget.details.length > 0 ? (
-                              <div className="rounded-xl border border-slate-100 overflow-hidden bg-white shadow-sm">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow className="bg-slate-50/50">
-                                      <TableHead className="text-[11px] font-bold text-slate-500 py-3">วันที่</TableHead>
-                                      <TableHead className="text-[11px] font-bold text-slate-500 py-3">รายละเอียดกิจกรรม / ประเภท</TableHead>
-                                      <TableHead className="text-[11px] font-bold text-slate-500 py-3 text-right">ยอดที่ใช้</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {budget.details.map((detail) => (
-                                      <TableRow key={detail.id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <TableCell className="text-xs text-slate-600 font-medium whitespace-nowrap">
-                                          {format(new Date(detail.transactionDate), "dd/MM/yyyy", { locale: th })}
-                                        </TableCell>
-                                        <TableCell>
-                                          <div className="flex flex-col gap-1.5 py-1">
-                                            <span className="text-xs font-bold text-slate-900 group-hover:text-red-700 transition-colors">
-                                              {detail.description || "-"}
-                                            </span>
-                                            <div className="flex flex-wrap gap-1.5">
-                                              <Badge
-                                                variant="outline"
-                                                className={`text-[9px] h-4 py-0 font-bold leading-none ${detail.type === "SALES_PROMOTION"
-                                                  ? "text-red-600 border-red-100 bg-red-50/50"
-                                                  : "text-blue-600 border-blue-100 bg-blue-50/50"
-                                                  }`}
-                                              >
-                                                {detail.type === "SALES_PROMOTION" ? "งบส่งเสริมการขาย" : "งบส่งเสริมการตลาด"}
+                        <div className="pt-2">
+                          {budget.details && budget.details.length > 0 ? (
+                            <div className="rounded-xl border border-slate-100 overflow-hidden bg-white shadow-sm">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow className="bg-slate-50/50">
+                                    <TableHead className="text-[11px] font-bold text-slate-500 py-3">วันที่</TableHead>
+                                    <TableHead className="text-[11px] font-bold text-slate-500 py-3">รายละเอียด</TableHead>
+                                    <TableHead className="text-[11px] font-bold text-slate-500 py-3 text-right">ยอดสะสม</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {budget.details.map((detail) => (
+                                    <TableRow key={detail.id} className="hover:bg-slate-50/50 transition-colors group">
+                                      <TableCell className="text-xs text-slate-600 font-medium whitespace-nowrap">
+                                        {format(new Date(detail.transactionDate), "dd/MM/yyyy", { locale: th })}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col gap-1.5 py-1">
+                                          <span className="text-xs font-bold text-slate-900 group-hover:text-red-700 transition-colors">
+                                            {detail.description || "-"}
+                                          </span>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            <Badge
+                                              variant="outline"
+                                              className={`text-[9px] h-4 py-0 font-bold leading-none ${detail.type === "SALES_PROMOTION"
+                                                ? "text-red-600 border-red-100 bg-red-50/50"
+                                                : "text-blue-600 border-blue-100 bg-blue-50/50"
+                                                }`}
+                                            >
+                                              {detail.type === "SALES_PROMOTION" ? "งบส่งเสริมการขาย" : "งบส่งเสริมการตลาด"}
+                                            </Badge>
+                                            {detail.sale && (
+                                              <Badge variant="outline" className="text-[9px] h-4 py-0 font-bold text-slate-500 border-slate-200 bg-slate-50">
+                                                {detail.sale.saleNumber}
                                               </Badge>
-                                              {detail.sale && (
-                                                <Badge variant="outline" className="text-[9px] h-4 py-0 font-bold text-slate-500 border-slate-200 bg-slate-50">
-                                                  {detail.sale.saleNumber}
-                                                </Badge>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <div className="flex flex-col items-end gap-1">
-                                            {detail.receivedAmount && Number(detail.receivedAmount) > 0 && (
-                                              <span className="text-xs font-black text-emerald-600">
-                                                + {formatTHB(Number(detail.receivedAmount))}
-                                              </span>
-                                            )}
-                                            {detail.usedAmount && Number(detail.usedAmount) > 0 && (
-                                              <span className="text-xs font-black text-red-600">
-                                                - {formatTHB(Number(detail.usedAmount))}
-                                              </span>
                                             )}
                                           </div>
-                                        </TableCell>
-                                      </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            ) : (
-                              <div className="text-center py-10 rounded-xl border-2 border-dashed border-slate-100 bg-slate-50/30">
-                                <Clock className="h-8 w-8 text-slate-200 mx-auto mb-2" />
-                                <p className="text-xs text-slate-400 font-medium italic">ยังไม่มีประวัติการใช้งานงบประมาณในปีนี้</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <div className="flex flex-col items-end gap-1">
+                                          {detail.receivedAmount && Number(detail.receivedAmount) > 0 && (
+                                            <span className="text-xs font-black text-emerald-600">
+                                              + {formatTHB(Number(detail.receivedAmount))}
+                                            </span>
+                                          )}
+                                          {detail.usedAmount && Number(detail.usedAmount) > 0 && (
+                                            <span className="text-xs font-black text-red-600">
+                                              - {formatTHB(Number(detail.usedAmount))}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          ) : (
+                            <div className="text-center py-10 rounded-xl border-2 border-dashed border-slate-100 bg-slate-50/30">
+                              <Clock className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+                              <p className="text-xs text-slate-400 font-medium italic">ยังไม่มีประวัติการใช้งานงบประมาณในปีนี้</p>
+                            </div>
+                          )}
+                        </div>
+
                       </Card>
                     </div>
                   ))
