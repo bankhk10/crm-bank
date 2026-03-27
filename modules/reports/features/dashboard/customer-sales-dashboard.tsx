@@ -500,7 +500,7 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">ลำดับ</TableHead>
                             <TableHead className="font-semibold text-slate-700">ลูกค้า</TableHead>
                             <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
-                            <TableHead className="font-semibold text-slate-700">จังหวัด</TableHead>
+                            <TableHead className="font-semibold text-slate-700">ภูมิภาค</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">ออเดอร์รวม</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
@@ -540,7 +540,7 @@ export function CustomerSalesDashboard() {
                                     {customerTypeLabels[c.type] || c.type}
                                   </Badge>
                                 </TableCell>
-                                <TableCell className="text-slate-600">{c.province}</TableCell>
+                                <TableCell className="text-slate-600">{c.region}</TableCell>
                                 <TableCell className="text-center font-bold text-green-700">
                                   {formatTHB(c.totalSales)}
                                 </TableCell>

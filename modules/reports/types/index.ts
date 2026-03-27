@@ -159,6 +159,7 @@ export interface CustomerSalesReportData {
     name: string;
     type: string;
     province: string;
+    region: string;
     totalSales: number;
     orderCount: number;
     avgOrderValue: number;

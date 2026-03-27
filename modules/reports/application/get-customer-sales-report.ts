@@ -153,6 +153,7 @@ export async function getCustomerSalesReport(
       name: customer?.name || "Unknown",
       type: customer?.customerType || "-",
       province: customer?.province || "-",
+      region: getRegionFromProvince(customer?.province || null),
       totalSales,
       orderCount,
       avgOrderValue: orderCount > 0 ? totalSales / orderCount : 0,
