@@ -37,11 +37,14 @@ export default function CreditLimitEditView() {
                 if (mounted) {
                     setCustomers(customersRes.customers ?? []);
                     
-                    // Extract promoAmount from new PromotionalBudget table if it exists
-                    // otherwise fall back to the old promoAmount in CreditLimit
-                    const activePromoBudget = src.customer?.promotionalBudgets?.[0];
-                    const promoValue = activePromoBudget 
-                        ? Number(activePromoBudget.salesPromotionLimit) 
+                    // Extract promoAmount from ProvincialBudget table for the year of this credit limit
+                    const creditYear = src.effectiveDate ? new Date(src.effectiveDate).getFullYear() : new Date().getFullYear();
+                    const matchedBudget = src.customer?.promotionalBudgets?.find(
+                        (b: any) => b.year === creditYear
+                    );
+
+                    const promoValue = matchedBudget 
+                        ? Number(matchedBudget.salesPromotionLimit) 
                         : (src.promoAmount ? Number(src.promoAmount) : 0);
 
                     setPayload({
