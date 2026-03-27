@@ -31,7 +31,7 @@ export function PeakPeriodsGrid({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Clock className="h-5 w-5 text-blue-500" />
-          ช่วงเวลาขายดีที่สุดของสินค้า
+          ช่วงเวลาขายดีที่สุดของสินค้า (ตามช่วงเวลาที่เลือก)
         </CardTitle>
       </CardHeader>
       <CardContent>
