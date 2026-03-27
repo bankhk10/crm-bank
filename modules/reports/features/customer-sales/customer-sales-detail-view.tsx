@@ -537,8 +537,8 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                         <TableHeader className="bg-slate-50">
                           <TableRow>
                             <TableHead className="font-bold text-slate-700">สินค้า</TableHead>
-                            <TableHead className="text-right font-bold text-slate-700">จำนวน</TableHead>
-                            <TableHead className="text-right font-bold text-slate-700">มูลค่า</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">จำนวน</TableHead>
+                            <TableHead className="text-center font-bold text-slate-700">มูลค่ารวม</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -554,10 +554,10 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                                   </p>
                                 </div>
                               </TableCell>
-                              <TableCell className="text-right font-medium">
+                              <TableCell className="text-center font-medium">
                                 {formatNumber(item.totalQuantity)}
                               </TableCell>
-                              <TableCell className="text-right font-extrabold text-amber-600">
+                              <TableCell className="text-center font-extrabold text-amber-600">
                                 {formatTHB(item.totalAmount)}
                               </TableCell>
                             </TableRow>
