@@ -250,25 +250,34 @@ export async function GET(
 
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  // Get volume data (totalVolumeLiters) from DailySalesSummary
-  const volumeData = await db.dailySalesSummary.groupBy({
-    by: ["productId"],
-    where: {
-      customerId: params.customerId,
-    },
-    _sum: { totalVolumeLiters: true, totalAmount: true, quantity: true, orderCount: true },
-  });
-  const volumeMap = new Map(
-    volumeData.map((v) => [v.productId, Number(v._sum.totalVolumeLiters || 0)]),
-  );
+  // Helper for unit conversion to liters
+  const convertToLiters = (value: number, unit?: string | null): number => {
+    if (!unit) return 0;
+    const u = unit.toUpperCase().trim();
+    if (u === "L" || u === "KG") return value;
+    if (u === "ML" || u === "CC" || u === "G") return value / 1000;
+    return 0;
+  };
 
-  const topProducts = productPurchaseHistory.map((p) => ({
-    product: productMap.get(p.productId),
-    totalQuantity: p._sum.quantity || 0,
-    totalAmount: Number(p._sum.totalPrice || 0),
-    totalVolumeLiters: volumeMap.get(p.productId) || 0,
-    orderCount: p._count,
-  }));
+  const topProducts = productPurchaseHistory.map((p) => {
+    const product = productMap.get(p.productId);
+    const totalQuantity = Number(p._sum.quantity || 0);
+    
+    // Calculate volume based on product package size and quantity
+    const packageSize = Number(product?.packageSize || 0);
+    const totalVolumeLiters = convertToLiters(
+      totalQuantity * packageSize,
+      product?.packageSizeUnit
+    );
+
+    return {
+      product,
+      totalQuantity,
+      totalAmount: Number(p._sum.totalPrice || 0),
+      totalVolumeLiters,
+      orderCount: p._count,
+    };
+  });
 
   return NextResponse.json({
     customer,
