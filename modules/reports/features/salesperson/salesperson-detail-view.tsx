@@ -381,6 +381,13 @@ export default function SalespersonDetailView({
                   <ShoppingCart className="h-4 w-4 mr-1.5" />
                   ประวัติการขาย
                 </TabsTrigger>
+                <TabsTrigger
+                  value="points"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <Star className="h-4 w-4 mr-1.5" />
+                  ประวัติคะแนนสะสม
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -831,10 +838,12 @@ export default function SalespersonDetailView({
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
 
-                {/* Point History */}
-                {data.pointHistory.length > 0 && (
-                  <Card className="border border-slate-100 mt-6">
+              {/* ══════════ Tab: Points History ══════════ */}
+              <TabsContent value="points" className="m-0 p-4 sm:p-6">
+                {data.pointHistory.length > 0 ? (
+                  <Card className="border border-slate-100">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2">
                         <Star className="h-4 w-4 text-yellow-500" />
@@ -855,7 +864,7 @@ export default function SalespersonDetailView({
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {data.pointHistory.slice(0, 20).map((ph) => (
+                            {data.pointHistory.slice(0, 50).map((ph) => (
                               <TableRow key={ph.id} className="hover:bg-slate-50/50">
                                 <TableCell className="font-medium text-sm">
                                   {ph.saleNumber}
@@ -883,6 +892,11 @@ export default function SalespersonDetailView({
                       </div>
                     </CardContent>
                   </Card>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Star className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                    <p>ไม่มีประวัติคะแนนสะสม</p>
+                  </div>
                 )}
               </TabsContent>
             </div>
