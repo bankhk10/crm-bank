@@ -340,26 +340,6 @@ export function CustomerSalesDashboard() {
                 </div>
               </div>
 
-              {/* Search query box inside filter panel to streamline UI */}
-              {/* <div className="space-y-1.5 w-full sm:w-auto flex-1 min-w-[200px]">
-                <label className="mx-1 mb-1 font-medium text-base text-gray-900">
-                  ค้นหาเป้าหมาย
-                </label>
-                <div className="relative h-10">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder={
-                      activeTab === "customers"
-                        ? "ค้นหาลูกค้า (ชื่อ, รหัส, จังหวัด)..."
-                        : "ค้นหาพนักงานขาย (ชื่อ, รหัส, แผนก)..."
-                    }
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 h-10"
-                  />
-                </div>
-              </div> */}
-
               {/* Submit */}
               <div className="flex items-end gap-2 w-full sm:w-auto">
                 <Button
@@ -463,6 +443,7 @@ export function CustomerSalesDashboard() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 space-y-5">
+
               <TabsList className="h-auto p-1.5 rounded-xl border border-slate-200/60 bg-white/80 backdrop-blur-md shadow-sm flex flex-wrap gap-1">
                 <TabsTrigger
                   value="customers"
@@ -478,6 +459,23 @@ export function CustomerSalesDashboard() {
                   <UserCheck className="w-4 h-4 mr-1" />
                   ข้อมูลการขายของพนักงาน
                 </TabsTrigger>
+
+                {/* Search query box inside filter panel to streamline UI */}
+                <div className="space-y-1.5 w-full sm:w-auto flex-1 min-w-[400px] mx-4">
+                  <div className="relative h-10">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={
+                        activeTab === "customers"
+                          ? "ค้นหาลูกค้า"
+                          : "ค้นหาพนักงานขาย"
+                      }
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 h-10"
+                    />
+                  </div>
+                </div>
               </TabsList>
 
               <TabsContent value="customers">
