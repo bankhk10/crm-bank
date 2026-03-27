@@ -294,7 +294,6 @@ export default function SalespersonDetailView({
           <KpiCard
             label="คะแนนสะสม"
             value={formatNumber(kpi.totalPoints)}
-            sublabel="คะแนน"
             icon={Award}
             gradient="bg-gradient-to-br from-slate-800 to-slate-900"
             ring="shadow-lg shadow-slate-800/20"
