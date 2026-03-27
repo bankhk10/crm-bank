@@ -313,7 +313,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
           backLabel="หน้ารายงานตามลูกค้า"
           title={customer?.name || "รายละเอียดลูกค้า"}
           icon={<Users className="h-8 w-8 text-white" />}
-          accentColor="#f59e0b" // Support amber theme for reports, or move to company red if strictly requested
+          accentColor="#B91C1C" // Changed to company red for consistency
           backgroundColor="#111111"
           badges={
             <>
@@ -352,24 +352,27 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
             label="ยอดขายรวม"
             value={formatTHB(kpi?.totalSales || 0)}
             icon={TrendingUp}
-            gradient="bg-gradient-to-br from-emerald-600 to-emerald-700"
-            ring="shadow-lg shadow-emerald-600/20"
+            gradient="bg-gradient-to-br from-red-600 to-red-700"
+            ring="shadow-lg shadow-red-600/20"
+            topColor="red"
           />
 
           <KpiCard
             label="ค่าเฉลี่ย/ออเดอร์"
             value={formatTHB(kpi?.averageOrderValue || 0)}
             icon={Award}
-            gradient="bg-gradient-to-br from-blue-600 to-blue-700"
-            ring="shadow-lg shadow-blue-600/20"
+            gradient="bg-gradient-to-br from-slate-900 to-slate-800"
+            ring="shadow-lg shadow-slate-900/20"
+            topColor="black"
           />
 
           <KpiCard
             label="ออเดอร์ทั้งหมด"
             value={formatNumber(kpi?.lifetimeOrderCount || 0)}
             icon={ShoppingCart}
-            gradient="bg-gradient-to-br from-purple-600 to-purple-700"
-            ring="shadow-lg shadow-purple-600/20"
+            gradient="bg-gradient-to-br from-red-500 to-red-600"
+            ring="shadow-lg shadow-red-500/20"
+            topColor="red"
           />
         </div>
 
@@ -385,35 +388,35 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
               <TabsList className="h-12 bg-transparent">
                 <TabsTrigger
                   value="store-info"
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Store className="h-4 w-4 mr-2" />
                   ข้อมูลร้าน
                 </TabsTrigger>
                 <TabsTrigger
                   value="products-sold"
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <Package className="h-4 w-4 mr-2" />
                   สินค้าที่เคยขาย
                 </TabsTrigger>
                 <TabsTrigger
                   value="purchase-history"
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   ประวัติการซื้อ
                 </TabsTrigger>
                 <TabsTrigger
                   value="finance"
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   การเงิน
                 </TabsTrigger>
                 <TabsTrigger
                   value="contact-notes"
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
                   การติดต่อ & หมายเหตุ
@@ -429,7 +432,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <SectionHeader
                     title="ข้อมูลพื้นฐาน"
                     icon={<Building2 className="h-6 w-6" />}
-                    accentColor="#f59e0b"
+                    accentColor="#B91C1C"
                   />
                   <div className="p-6 space-y-2">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
@@ -472,7 +475,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <SectionHeader
                     title="ที่อยู่"
                     icon={<MapPin className="h-6 w-6" />}
-                    accentColor="#f59e0b"
+                    accentColor="#B91C1C"
                   />
                   <div className="p-6 space-y-2">
                     <DetailItem
@@ -507,7 +510,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                     )}
                     {customer?.shippingAddressLine && (
                       <DetailItem
-                        icon={<MapPin className="h-5 w-5 text-emerald-400" />}
+                        icon={<MapPin className="h-5 w-5 text-red-600" />}
                         label="ที่อยู่จัดส่ง"
                         value={[
                           customer.shippingAddressLine,
@@ -530,7 +533,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                     <SectionHeader
                       title="สินค้าที่ซื้อบ่อย"
                       icon={<Package className="h-6 w-6" />}
-                      accentColor="#f59e0b"
+                      accentColor="#B91C1C"
                     />
                     <div className="p-0">
                       <Table>
@@ -575,7 +578,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <SectionHeader
                     title="สินค้าที่เคยขายให้ร้านนี้"
                     icon={<Package className="h-6 w-6" />}
-                    accentColor="#f59e0b"
+                    accentColor="#B91C1C"
                   />
                   <div className="p-0">
                     {topProducts.length === 0 ? (
@@ -673,7 +676,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <SectionHeader
                     title="ประวัติการซื้อล่าสุด"
                     icon={<ShoppingCart className="h-6 w-6" />}
-                    accentColor="#f59e0b"
+                    accentColor="#B91C1C"
                   />
                   <div className="p-0">
                     {recentSales.length === 0 ? (
@@ -743,7 +746,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                   <SectionHeader
                     title="ข้อมูลการเงินที่เกี่ยวข้อง"
                     icon={<CreditCard className="h-6 w-6" />}
-                    accentColor="#f59e0b"
+                    accentColor="#B91C1C"
                   />
                   <div className="p-6">
                     {customer?.creditLimits && customer.creditLimits.length > 0 ? (
@@ -833,7 +836,7 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
                     <SectionHeader
                       title="หมายเหตุ"
                       icon={<FileText className="h-6 w-6" />}
-                      accentColor="#f59e0b"
+                      accentColor="#B91C1C"
                     />
                     <div className="p-6">
                       <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">

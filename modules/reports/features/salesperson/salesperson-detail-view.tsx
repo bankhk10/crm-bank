@@ -44,6 +44,10 @@ import {
   MapPin,
   Clock,
 } from "lucide-react";
+import { DetailHero } from "@/components/custom/detail-hero";
+import { SectionHeader } from "@/components/custom/section-header";
+import { DetailItem } from "@/components/custom/detail-item";
+import { KpiCard } from "../../ui/kpi-card";
 import Link from "next/link";
 import type { SalespersonDetailReportData } from "@/modules/reports/types";
 
@@ -77,7 +81,7 @@ const statusColors: Record<string, string> = {
   COMPLETED: "bg-green-100 text-green-800",
   CANCELLED: "bg-red-100 text-red-800",
   EXPIRED: "bg-orange-100 text-orange-800",
-  OVERDUE: "bg-rose-100 text-rose-800",
+  OVERDUE: "bg-red-100 text-red-800",
   WAITING_FOR_CORRECTION: "bg-yellow-100 text-yellow-800",
 };
 
@@ -121,7 +125,7 @@ function MiniBarChart({
                   : d.actual >= d.target && d.target > 0
                     ? "bg-emerald-500"
                     : d.target > 0
-                      ? "bg-rose-400"
+                      ? "bg-red-400"
                       : "bg-blue-400"
                   }`}
                 style={{ height: `${Math.max(actualHeight, 1)}%`, minHeight: 2 }}
@@ -216,917 +220,802 @@ export default function SalespersonDetailView({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-      {/* ─── Header ─── */}
-      <div className="flex items-center gap-3">
-        <Link href="/reports/customer-sales">
-          <Button variant="ghost" size="icon" className="rounded-xl">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/25">
-          <UserCheck className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
-            ผลงานพนักงานขาย
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            รายละเอียดเชิงลึกรายบุคคล
-          </p>
-        </div>
-      </div>
-
-      {/* ─── Employee Hero ─── */}
-      <div className="relative bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 p-6 sm:p-8 rounded-2xl shadow-lg overflow-hidden">
-        <div className="absolute inset-0 bg-black/10 rounded-2xl" />
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/5 rounded-full" />
-        <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full" />
-        <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl">
-                <User className="h-8 w-8 text-white" />
-              </div>
-              <div className="text-white">
-                <h2 className="text-2xl sm:text-3xl font-bold">
-                  {employee.name}
-                </h2>
-                <p className="text-white/80 text-sm mt-0.5">
-                  รหัส: {employee.employeeCode || "-"}
-                </p>
-                {employee.manager && (
-                  <p className="text-white/60 text-xs mt-1">
-                    หัวหน้า: {employee.manager.name}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 mt-4">
+    <div className="min-h-screen">
+      {/* ─── Hero Header ────────────────────────────────────────────── */}
+      <DetailHero
+        backUrl="/reports/customer-sales"
+        backLabel="หน้ารายงานแยกตามพนักงาน"
+        title={employee.name}
+        icon={<UserCheck className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
+        accentColor="#B91C1C"
+        badges={
+          <>
+            {employee.employeeCode && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <Briefcase className="h-3.5 w-3.5 text-gray-200" />
+                รหัส: {employee.employeeCode}
+              </span>
+            )}
             {employee.positionTitle && (
-              <Badge className="bg-white/20 text-white border-0 text-xs">
-                <Briefcase className="h-3 w-3 mr-1" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <Briefcase className="h-3.5 w-3.5 text-gray-200" />
                 {employee.positionTitle}
-              </Badge>
+              </span>
             )}
             {employee.department?.name && (
-              <Badge className="bg-white/20 text-white border-0 text-xs">
-                <Layers className="h-3 w-3 mr-1" />
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <Layers className="h-3.5 w-3.5 text-gray-200" />
                 {employee.department.name}
-              </Badge>
+              </span>
             )}
-            {employee.company?.name && (
-              <Badge className="bg-white/20 text-white border-0 text-xs">
-                <Building2 className="h-3 w-3 mr-1" />
-                {employee.company.name}
-              </Badge>
+            {employee.status === "ACTIVE" || !employee.status ? (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/50 px-3 py-1 rounded-full uppercase tracking-wider">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                ใช้งาน
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-gray-200 bg-white/5 border border-white/50 px-3 py-1 rounded-full">
+                <XCircle className="h-3.5 w-3.5" />
+                {employee.status}
+              </span>
             )}
-            {employee.responsibilityArea && (
-              <Badge className="bg-white/20 text-white border-0 text-xs">
-                <MapPin className="h-3 w-3 mr-1" />
-                {employee.responsibilityArea}
-              </Badge>
-            )}
-            <Badge
-              className={`border-0 text-xs ${employee.status === "ACTIVE" || !employee.status
-                ? "bg-green-500/80 text-white"
-                : "bg-gray-500/80 text-white"
-                }`}
-            >
-              {employee.status === "ACTIVE" || !employee.status ? (
-                <>
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  ใช้งาน
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-3 w-3 mr-1" />
-                  {employee.status}
-                </>
-              )}
-            </Badge>
-          </div>
+          </>
+        }
+      />
 
-          {/* Contact info row */}
-          <div className="flex flex-wrap gap-4 mt-4 text-white/80 text-xs">
-            {employee.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="h-3 w-3" /> {employee.phone}
-              </span>
-            )}
-            {employee.email && (
-              <span className="flex items-center gap-1">
-                <Mail className="h-3 w-3" /> {employee.email}
-              </span>
-            )}
-          </div>
+      {/* ─── Main Content ─────────────────────────────────────────────── */}
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* ─── KPI Summary (8 cards) ─── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <KpiCard
+            label={`ยอดขายรวม`}
+            value={formatTHB(kpi.yearTotalSales)}
+            icon={TrendingUp}
+            gradient="bg-gradient-to-br from-red-600 to-red-700"
+            ring="shadow-lg shadow-red-600/20"
+            topColor="red"
+          />
+          <KpiCard
+            label="ออเดอร์ทั้งปี"
+            value={formatNumber(kpi.yearOrderCount)}
+            icon={ShoppingCart}
+            gradient="bg-gradient-to-br from-slate-900 to-slate-800"
+            ring="shadow-lg shadow-slate-900/20"
+            topColor="black"
+          />
+          <KpiCard
+            label="ลูกค้าที่ขายได้"
+            value={`${formatNumber(kpi.yearCustomerCount)} ราย`}
+            sublabel={`เดือนนี้ ${kpi.monthCustomerCount} ราย`}
+            icon={Users}
+            gradient="bg-gradient-to-br from-red-500 to-red-600"
+            ring="shadow-lg shadow-red-500/20"
+            topColor="red"
+          />
+          <KpiCard
+            label="คะแนนสะสม"
+            value={formatNumber(kpi.totalPoints)}
+            sublabel="คะแนน"
+            icon={Award}
+            gradient="bg-gradient-to-br from-slate-800 to-slate-900"
+            ring="shadow-lg shadow-slate-800/20"
+            topColor="black"
+          />
+          <KpiCard
+            label="ยอดขายเดือนนี้"
+            value={formatTHB(kpi.monthTotalSales)}
+            sublabel={`${kpi.monthOrderCount} ออเดอร์`}
+            icon={CalendarDays}
+            gradient="bg-gradient-to-br from-red-600 to-red-700"
+            ring="shadow-lg shadow-red-600/20"
+            topColor="red"
+          />
+          <KpiCard
+            label="เป้ายอดขาย (เดือนนี้)"
+            value={kpi.currentMonthTarget > 0 ? formatTHB(kpi.currentMonthTarget) : "ไม่มีเป้า"}
+            icon={Target}
+            gradient="bg-gradient-to-br from-slate-900 to-slate-800"
+            ring="shadow-lg shadow-slate-900/20"
+            topColor="black"
+          />
+          <KpiCard
+            label="ผลงาน vs เป้า"
+            value={kpi.currentMonthTarget > 0 ? `${kpi.achievementPercent}%` : "-"}
+            icon={BarChart3}
+            gradient={kpi.achievementPercent >= 100 ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-red-500 to-red-600"}
+            ring={kpi.achievementPercent >= 100 ? "shadow-lg shadow-emerald-600/20" : "shadow-lg shadow-red-500/20"}
+            topColor={kpi.achievementPercent >= 100 ? undefined : "red"}
+            barWidth={kpi.currentMonthTarget > 0 ? `${Math.min(kpi.achievementPercent, 100)}%` : undefined}
+            barColor={kpi.achievementPercent >= 100 ? "bg-emerald-500" : "bg-red-500"}
+          />
+          <KpiCard
+            label="ขายล่าสุด"
+            value={kpi.lastSaleDate || "-"}
+            icon={Clock}
+            gradient="bg-gradient-to-br from-slate-800 to-slate-700"
+            ring="shadow-lg shadow-slate-800/20"
+            topColor="black"
+          />
         </div>
-      </div>
 
-      {/* ─── KPI Summary (8 cards) ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <KpiCard
-          label={`ยอดขายรวม (${data.currentYear})`}
-          value={formatTHB(kpi.yearTotalSales)}
-          icon={<TrendingUp className="h-5 w-5" />}
-          iconBg="bg-emerald-100 dark:bg-emerald-900"
-          iconColor="text-emerald-600 dark:text-emerald-400"
-          valueColor="text-emerald-600"
-        />
-        <KpiCard
-          label="ออเดอร์ทั้งปี"
-          value={formatNumber(kpi.yearOrderCount)}
-          sub={`เฉลี่ย ${formatTHB(kpi.yearAvgOrderValue)}/ออเดอร์`}
-          icon={<ShoppingCart className="h-5 w-5" />}
-          iconBg="bg-blue-100 dark:bg-blue-900"
-          iconColor="text-blue-600 dark:text-blue-400"
-          valueColor="text-blue-600"
-        />
-        <KpiCard
-          label="ลูกค้าที่ขายได้"
-          value={`${formatNumber(kpi.yearCustomerCount)} ราย`}
-          sub={`เดือนนี้ ${kpi.monthCustomerCount} ราย`}
-          icon={<Users className="h-5 w-5" />}
-          iconBg="bg-purple-100 dark:bg-purple-900"
-          iconColor="text-purple-600 dark:text-purple-400"
-          valueColor="text-purple-600"
-        />
-        <KpiCard
-          label="คะแนนสะสม"
-          value={formatNumber(kpi.totalPoints)}
-          sub="คะแนน"
-          icon={<Award className="h-5 w-5" />}
-          iconBg="bg-yellow-100 dark:bg-yellow-900"
-          iconColor="text-yellow-600 dark:text-yellow-400"
-          valueColor="text-yellow-600"
-        />
-        <KpiCard
-          label="ยอดขายเดือนนี้"
-          value={formatTHB(kpi.monthTotalSales)}
-          sub={`${kpi.monthOrderCount} ออเดอร์`}
-          icon={<CalendarDays className="h-5 w-5" />}
-          iconBg="bg-amber-100 dark:bg-amber-900"
-          iconColor="text-amber-600 dark:text-amber-400"
-          valueColor="text-amber-600"
-        />
-        <KpiCard
-          label="เป้ายอดขาย (เดือนนี้)"
-          value={kpi.currentMonthTarget > 0 ? formatTHB(kpi.currentMonthTarget) : "ไม่มีเป้า"}
-          icon={<Target className="h-5 w-5" />}
-          iconBg="bg-rose-100 dark:bg-rose-900"
-          iconColor="text-rose-600 dark:text-rose-400"
-          valueColor="text-rose-600"
-        />
-        <KpiCard
-          label="ผลงาน vs เป้า"
-          value={kpi.currentMonthTarget > 0 ? `${kpi.achievementPercent}%` : "-"}
-          icon={<BarChart3 className="h-5 w-5" />}
-          iconBg={
-            kpi.achievementPercent >= 100
-              ? "bg-emerald-100 dark:bg-emerald-900"
-              : "bg-orange-100 dark:bg-orange-900"
-          }
-          iconColor={
-            kpi.achievementPercent >= 100
-              ? "text-emerald-600 dark:text-emerald-400"
-              : "text-orange-600 dark:text-orange-400"
-          }
-          valueColor={kpi.achievementPercent >= 100 ? "text-emerald-600" : "text-orange-600"}
-          progress={kpi.currentMonthTarget > 0 ? Math.min(kpi.achievementPercent, 100) : undefined}
-        />
-        <KpiCard
-          label="ขายล่าสุด"
-          value={kpi.lastSaleDate || "-"}
-          icon={<Clock className="h-5 w-5" />}
-          iconBg="bg-slate-100 dark:bg-slate-700"
-          iconColor="text-slate-600 dark:text-slate-300"
-          valueColor="text-slate-700"
-        />
-      </div>
+        {/* ─── Tabbed Content ─── */}
+        <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full flex flex-col"
+          >
+            <div className="border-b px-2 sm:px-4 overflow-x-auto">
+              <TabsList className="h-12 bg-transparent inline-flex w-auto min-w-full sm:min-w-0">
+                <TabsTrigger
+                  value="overview"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <BarChart3 className="h-4 w-4 mr-1.5" />
+                  ภาพรวม
+                </TabsTrigger>
+                <TabsTrigger
+                  value="monthly"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <CalendarDays className="h-4 w-4 mr-1.5" />
+                  รายเดือน
+                </TabsTrigger>
+                <TabsTrigger
+                  value="products"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <Package className="h-4 w-4 mr-1.5" />
+                  สินค้า
+                </TabsTrigger>
+                <TabsTrigger
+                  value="customers"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <Store className="h-4 w-4 mr-1.5" />
+                  ลูกค้า
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sales"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1.5" />
+                  ประวัติการขาย
+                </TabsTrigger>
+                <TabsTrigger
+                  value="responsible"
+                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
+                >
+                  <UserCheck className="h-4 w-4 mr-1.5" />
+                  ลูกค้าดูแล
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-      {/* ─── Tabbed Content ─── */}
-      <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="h-full flex flex-col"
-        >
-          <div className="border-b px-2 sm:px-4 overflow-x-auto">
-            <TabsList className="h-12 bg-transparent inline-flex w-auto min-w-full sm:min-w-0">
-              <TabsTrigger
-                value="overview"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <BarChart3 className="h-4 w-4 mr-1.5" />
-                ภาพรวม
-              </TabsTrigger>
-              <TabsTrigger
-                value="monthly"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <CalendarDays className="h-4 w-4 mr-1.5" />
-                รายเดือน
-              </TabsTrigger>
-              <TabsTrigger
-                value="products"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <Package className="h-4 w-4 mr-1.5" />
-                สินค้า
-              </TabsTrigger>
-              <TabsTrigger
-                value="customers"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <Store className="h-4 w-4 mr-1.5" />
-                ลูกค้า
-              </TabsTrigger>
-              <TabsTrigger
-                value="sales"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <ShoppingCart className="h-4 w-4 mr-1.5" />
-                ประวัติการขาย
-              </TabsTrigger>
-              <TabsTrigger
-                value="responsible"
-                className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-              >
-                <UserCheck className="h-4 w-4 mr-1.5" />
-                ลูกค้าดูแล
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {/* ══════════ Tab: Overview ══════════ */}
-            <TabsContent value="overview" className="m-0 p-4 sm:p-6 space-y-6">
-              {/* Status Breakdown */}
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-rose-500" />
-                    สถานะออเดอร์ ({data.currentYear})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {data.salesStatusData.length === 0 ? (
-                    <p className="text-center py-6 text-muted-foreground">
-                      ไม่มีข้อมูล
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {data.salesStatusData
-                        .sort((a, b) => b.count - a.count)
-                        .map((s) => (
-                          <div
-                            key={s.status}
-                            className="p-3 rounded-xl border border-slate-100 bg-slate-50/50"
-                          >
-                            <Badge
-                              className={`${statusColors[s.status] || "bg-gray-100"} border-0 text-[10px] mb-2`}
-                            >
-                              {s.statusLabel}
-                            </Badge>
-                            <p className="text-lg font-bold text-slate-800">
-                              {formatNumber(s.count)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatTHB(s.amount)}
-                            </p>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Contact + Work info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto">
+              {/* ══════════ Tab: Overview ══════════ */}
+              <TabsContent value="overview" className="m-0 p-4 sm:p-6 space-y-6">
+                {/* Status Breakdown */}
                 <Card className="border border-slate-100">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      ข้อมูลติดต่อ
+                      <Layers className="h-4 w-4 text-red-600" />
+                      สถานะออเดอร์ ({data.currentYear})
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <InfoRow icon={<Phone className="h-4 w-4 text-blue-600" />} label="โทรศัพท์" value={employee.phone || "-"} />
-                    <InfoRow icon={<Mail className="h-4 w-4 text-emerald-600" />} label="อีเมล" value={employee.email || "-"} />
-                    {(employee.addressLine || employee.province) && (
-                      <InfoRow
-                        icon={<MapPin className="h-4 w-4 text-rose-600" />}
-                        label="ที่อยู่"
-                        value={[
-                          employee.addressLine,
-                          employee.subdistrict && `ต.${employee.subdistrict}`,
-                          employee.district && `อ.${employee.district}`,
-                          employee.province && `จ.${employee.province}`,
-                          employee.postalCode,
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      />
+                  <CardContent>
+                    {data.salesStatusData.length === 0 ? (
+                      <p className="text-center py-6 text-muted-foreground">
+                        ไม่มีข้อมูล
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {data.salesStatusData
+                          .sort((a, b) => b.count - a.count)
+                          .map((s) => (
+                            <div
+                              key={s.status}
+                              className="p-3 rounded-xl border border-slate-100 bg-slate-50/50"
+                            >
+                              <Badge
+                                className={`${statusColors[s.status] || "bg-gray-100"} border-0 text-[10px] mb-2`}
+                              >
+                                {s.statusLabel}
+                              </Badge>
+                              <p className="text-lg font-bold text-slate-800">
+                                {formatNumber(s.count)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatTHB(s.amount)}
+                              </p>
+                            </div>
+                          ))}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Contact + Work info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card className="border border-slate-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        ข้อมูลติดต่อ
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <InfoRow icon={<Phone className="h-4 w-4 text-blue-600" />} label="โทรศัพท์" value={employee.phone || "-"} />
+                      <InfoRow icon={<Mail className="h-4 w-4 text-emerald-600" />} label="อีเมล" value={employee.email || "-"} />
+                      {(employee.addressLine || employee.province) && (
+                        <InfoRow
+                          icon={<MapPin className="h-4 w-4 text-red-600" />}
+                          label="ที่อยู่"
+                          value={[
+                            employee.addressLine,
+                            employee.subdistrict && `ต.${employee.subdistrict}`,
+                            employee.district && `อ.${employee.district}`,
+                            employee.province && `จ.${employee.province}`,
+                            employee.postalCode,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="border border-slate-100">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        ข้อมูลการทำงาน
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <InfoRow icon={<Building2 className="h-4 w-4 text-slate-600" />} label="บริษัท" value={employee.company?.name || "-"} />
+                      <InfoRow icon={<Layers className="h-4 w-4 text-slate-600" />} label="แผนก" value={employee.department?.name || "-"} />
+                      <InfoRow icon={<Briefcase className="h-4 w-4 text-slate-600" />} label="ตำแหน่ง" value={employee.positionTitle || employee.roleTitle || "-"} />
+                      <InfoRow icon={<MapPin className="h-4 w-4 text-slate-600" />} label="เขตรับผิดชอบ" value={employee.responsibilityArea || "-"} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* ══════════ Tab: Monthly ══════════ */}
+              <TabsContent value="monthly" className="m-0 p-4 sm:p-6">
                 <Card className="border border-slate-100">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      ข้อมูลการทำงาน
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <InfoRow icon={<Building2 className="h-4 w-4 text-slate-600" />} label="บริษัท" value={employee.company?.name || "-"} />
-                    <InfoRow icon={<Layers className="h-4 w-4 text-slate-600" />} label="แผนก" value={employee.department?.name || "-"} />
-                    <InfoRow icon={<Briefcase className="h-4 w-4 text-slate-600" />} label="ตำแหน่ง" value={employee.positionTitle || employee.roleTitle || "-"} />
-                    <InfoRow icon={<MapPin className="h-4 w-4 text-slate-600" />} label="เขตรับผิดชอบ" value={employee.responsibilityArea || "-"} />
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* ══════════ Tab: Monthly ══════════ */}
-            <TabsContent value="monthly" className="m-0 p-4 sm:p-6">
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-rose-500" />
-                    ผลงานรายเดือน ({data.currentYear})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table className="min-w-[700px]">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50/50">
-                          <TableHead>เดือน</TableHead>
-                          <TableHead className="text-right">เป้า</TableHead>
-                          <TableHead className="text-right">ยอดจริง</TableHead>
-                          <TableHead className="text-center">สำเร็จ %</TableHead>
-                          <TableHead className="text-right">ออเดอร์</TableHead>
-                          <TableHead className="text-right">ลูกค้า</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.monthlyPerformance.map((m) => {
-                          const isCurrent = m.monthIndex === new Date().getMonth() + 1;
-                          return (
-                            <TableRow
-                              key={m.monthIndex}
-                              className={isCurrent ? "bg-rose-50/50" : ""}
-                            >
-                              <TableCell className="font-medium">
-                                {m.month}
-                                {isCurrent && (
-                                  <Badge className="ml-2 bg-rose-100 text-rose-700 border-0 text-[10px]">
-                                    เดือนนี้
-                                  </Badge>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right text-muted-foreground">
-                                {m.target > 0 ? formatTHB(m.target) : "-"}
-                              </TableCell>
-                              <TableCell className="text-right font-semibold text-emerald-600">
-                                {m.actual > 0 ? formatTHB(m.actual) : "-"}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {m.target > 0 ? (
-                                  <div className="flex items-center justify-center gap-2">
-                                    <Progress
-                                      value={Math.min(m.achievementPercent, 100)}
-                                      className="h-2 w-16"
-                                    />
-                                    <span
-                                      className={`text-xs font-bold ${m.achievementPercent >= 100
-                                        ? "text-emerald-600"
-                                        : m.achievementPercent >= 70
-                                          ? "text-amber-600"
-                                          : "text-rose-600"
-                                        }`}
-                                    >
-                                      {m.achievementPercent}%
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {m.orders > 0 ? formatNumber(m.orders) : "-"}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {m.customers > 0 ? formatNumber(m.customers) : "-"}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                        {/* Summary row */}
-                        <TableRow className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                          <TableCell>รวมทั้งปี</TableCell>
-                          <TableCell className="text-right">
-                            {formatTHB(
-                              data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right text-emerald-600">
-                            {formatTHB(kpi.yearTotalSales)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {(() => {
-                              const totalTarget = data.monthlyPerformance.reduce(
-                                (s, m) => s + m.target,
-                                0,
-                              );
-                              return totalTarget > 0
-                                ? `${Math.round((kpi.yearTotalSales / totalTarget) * 100)}%`
-                                : "-";
-                            })()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(kpi.yearOrderCount)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(kpi.yearCustomerCount)}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ══════════ Tab: Products ══════════ */}
-            <TabsContent value="products" className="m-0 p-4 sm:p-6">
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Package className="h-4 w-4 text-rose-500" />
-                      สินค้าที่ขาย ({data.currentYear})
-                    </CardTitle>
-                    <Badge variant="secondary">
-                      {data.productBreakdown.length} รายการ
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table className="min-w-[800px]">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50/50">
-                          <TableHead className="w-[60px]">#</TableHead>
-                          <TableHead>สินค้า</TableHead>
-                          <TableHead>กลุ่ม</TableHead>
-                          <TableHead className="text-right">จำนวน</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-center">สัดส่วน</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.productBreakdown.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                              <Package className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                              ไม่พบข้อมูลสินค้า
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          data.productBreakdown.map((p, i) => (
-                            <TableRow key={p.productId} className="hover:bg-slate-50/50">
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    i < 3
-                                      ? "bg-rose-100 text-rose-800 border-rose-300"
-                                      : "bg-slate-100 text-slate-600"
-                                  }
-                                >
-                                  {i + 1}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <p className="font-semibold text-slate-900 leading-tight">
-                                  {p.productName}
-                                </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
-                                  {p.productCode}
-                                  {p.brand !== "-" && ` · ${p.brand}`}
-                                </p>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="font-normal text-xs">
-                                  {p.productGroup}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                {formatNumber(p.quantity)}
-                              </TableCell>
-                              <TableCell className="text-right font-bold text-emerald-600">
-                                {formatTHB(p.revenue)}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <Progress value={p.contribution} className="h-2 w-14" />
-                                  <span className="text-xs font-medium text-slate-600">
-                                    {p.contribution}%
-                                  </span>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ══════════ Tab: Customers ══════════ */}
-            <TabsContent value="customers" className="m-0 p-4 sm:p-6">
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Store className="h-4 w-4 text-rose-500" />
-                      ลูกค้าที่ขายได้ ({data.currentYear})
-                    </CardTitle>
-                    <Badge variant="secondary">
-                      {data.customerBreakdown.length} ราย
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table className="min-w-[800px]">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50/50">
-                          <TableHead className="w-[60px]">#</TableHead>
-                          <TableHead>ลูกค้า</TableHead>
-                          <TableHead>ประเภท</TableHead>
-                          <TableHead>จังหวัด</TableHead>
-                          <TableHead className="text-right">ออเดอร์</TableHead>
-                          <TableHead className="text-right">ยอดขาย</TableHead>
-                          <TableHead className="text-center">ขายล่าสุด</TableHead>
-                          <TableHead className="text-center">ดูแล</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.customerBreakdown.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                              <Store className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                              ไม่พบข้อมูลลูกค้า
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          data.customerBreakdown.map((c, i) => (
-                            <TableRow key={c.customerId} className="hover:bg-slate-50/50">
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    i < 3
-                                      ? "bg-amber-100 text-amber-800 border-amber-300"
-                                      : "bg-slate-100 text-slate-600"
-                                  }
-                                >
-                                  {i + 1}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Link
-                                  href={`/customers/${c.customerId}`}
-                                  className="hover:text-rose-600 transition-colors"
-                                >
-                                  <p className="font-semibold text-slate-900 leading-tight">
-                                    {c.customerName}
-                                  </p>
-                                  <p className="text-xs text-slate-500 mt-0.5">
-                                    {c.customerCode}
-                                  </p>
-                                </Link>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="font-normal text-xs">
-                                  {customerTypeLabels[c.customerType] || c.customerType}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-sm">{c.province}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                {formatNumber(c.orders)}
-                              </TableCell>
-                              <TableCell className="text-right font-bold text-emerald-600">
-                                {formatTHB(c.revenue)}
-                              </TableCell>
-                              <TableCell className="text-center text-xs text-muted-foreground">
-                                {c.lastOrderDate}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {c.isResponsible ? (
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
-                                ) : (
-                                  <span className="text-xs text-slate-300">—</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* ══════════ Tab: Sales History ══════════ */}
-            <TabsContent value="sales" className="m-0 p-4 sm:p-6">
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <ShoppingCart className="h-4 w-4 text-rose-500" />
-                      ประวัติการขายล่าสุด
-                    </CardTitle>
-                    <Link href={`/sales?employeeId=${employeeId}`}>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        ดูทั้งหมด <ExternalLink className="ml-1 h-3 w-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table className="min-w-[700px]">
-                      <TableHeader>
-                        <TableRow className="bg-slate-50/50">
-                          <TableHead>เลขที่</TableHead>
-                          <TableHead>ลูกค้า</TableHead>
-                          <TableHead>วันที่</TableHead>
-                          <TableHead>สถานะ</TableHead>
-                          <TableHead className="text-right">มูลค่า</TableHead>
-                          <TableHead className="w-[50px]" />
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.recentSales.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                              <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                              ยังไม่มีประวัติการขาย
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          data.recentSales.map((sale) => (
-                            <TableRow key={sale.id} className="hover:bg-slate-50/50">
-                              <TableCell className="font-medium text-sm">
-                                {sale.saleNumber}
-                              </TableCell>
-                              <TableCell>
-                                <p className="font-medium text-sm">{sale.customerName}</p>
-                                <p className="text-xs text-slate-500">{sale.customerCode}</p>
-                              </TableCell>
-                              <TableCell className="text-sm">{sale.saleDate}</TableCell>
-                              <TableCell>
-                                <Badge
-                                  className={`${statusColors[sale.status] || "bg-gray-100"} border-0 text-[10px]`}
-                                >
-                                  {sale.statusLabel}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right font-semibold text-emerald-600">
-                                {formatTHB(sale.totalAmount)}
-                              </TableCell>
-                              <TableCell>
-                                <Link href={`/sales/${sale.id}`}>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                  </Button>
-                                </Link>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Point History */}
-              {data.pointHistory.length > 0 && (
-                <Card className="border border-slate-100 mt-6">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      ประวัติคะแนนสะสม
+                      <CalendarDays className="h-4 w-4 text-red-600" />
+                      ผลงานรายเดือน ({data.currentYear})
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="overflow-x-auto">
-                      <Table className="min-w-[600px]">
+                      <Table className="min-w-[700px]">
                         <TableHeader>
                           <TableRow className="bg-slate-50/50">
-                            <TableHead>เลขที่ขาย</TableHead>
-                            <TableHead>สินค้า</TableHead>
-                            <TableHead className="text-right">จำนวน</TableHead>
-                            <TableHead className="text-right">คะแนน/หน่วย</TableHead>
-                            <TableHead className="text-right">คะแนนรวม</TableHead>
-                            <TableHead className="text-center">วันที่</TableHead>
+                            <TableHead>เดือน</TableHead>
+                            <TableHead className="text-right">เป้า</TableHead>
+                            <TableHead className="text-right">ยอดจริง</TableHead>
+                            <TableHead className="text-center">สำเร็จ %</TableHead>
+                            <TableHead className="text-right">ออเดอร์</TableHead>
+                            <TableHead className="text-right">ลูกค้า</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {data.pointHistory.slice(0, 20).map((ph) => (
-                            <TableRow key={ph.id} className="hover:bg-slate-50/50">
-                              <TableCell className="font-medium text-sm">
-                                {ph.saleNumber}
-                              </TableCell>
-                              <TableCell>
-                                <p className="text-sm">{ph.productName}</p>
-                                <p className="text-xs text-slate-500">{ph.productCode}</p>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {formatNumber(ph.quantity)}
-                              </TableCell>
-                              <TableCell className="text-right text-muted-foreground">
-                                {formatNumber(ph.pointPerUnit)}
-                              </TableCell>
-                              <TableCell className="text-right font-bold text-yellow-600">
-                                +{formatNumber(ph.totalPoints)}
-                              </TableCell>
-                              <TableCell className="text-center text-xs text-muted-foreground">
-                                {ph.saleDate}
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {data.monthlyPerformance.map((m) => {
+                            const isCurrent = m.monthIndex === new Date().getMonth() + 1;
+                            return (
+                              <TableRow
+                                key={m.monthIndex}
+                                className={isCurrent ? "bg-red-50/50" : ""}
+                              >
+                                <TableCell className="font-medium">
+                                  {m.month}
+                                  {isCurrent && (
+                                    <Badge className="ml-2 bg-red-100 text-red-700 border-0 text-[10px]">
+                                      เดือนนี้
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right text-muted-foreground">
+                                  {m.target > 0 ? formatTHB(m.target) : "-"}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold text-emerald-600">
+                                  {m.actual > 0 ? formatTHB(m.actual) : "-"}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {m.target > 0 ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                      <Progress
+                                        value={Math.min(m.achievementPercent, 100)}
+                                        className="h-2 w-16"
+                                      />
+                                      <span
+                                        className={`text-xs font-bold ${m.achievementPercent >= 100
+                                          ? "text-emerald-600"
+                                          : m.achievementPercent >= 70
+                                            ? "text-amber-600"
+                                            : "text-red-600"
+                                          }`}
+                                      >
+                                        {m.achievementPercent}%
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {m.orders > 0 ? formatNumber(m.orders) : "-"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {m.customers > 0 ? formatNumber(m.customers) : "-"}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                          {/* Summary row */}
+                          <TableRow className="bg-slate-50 font-bold border-t-2 border-slate-200">
+                            <TableCell>รวมทั้งปี</TableCell>
+                            <TableCell className="text-right">
+                              {formatTHB(
+                                data.monthlyPerformance.reduce((s, m) => s + m.target, 0),
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600">
+                              {formatTHB(kpi.yearTotalSales)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {(() => {
+                                const totalTarget = data.monthlyPerformance.reduce(
+                                  (s, m) => s + m.target,
+                                  0,
+                                );
+                                return totalTarget > 0
+                                  ? `${Math.round((kpi.yearTotalSales / totalTarget) * 100)}%`
+                                  : "-";
+                              })()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(kpi.yearOrderCount)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(kpi.yearCustomerCount)}
+                            </TableCell>
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </div>
                   </CardContent>
                 </Card>
-              )}
-            </TabsContent>
+              </TabsContent>
 
-            {/* ══════════ Tab: Responsible Customers ══════════ */}
-            <TabsContent value="responsible" className="m-0 p-4 sm:p-6">
-              <Card className="border border-slate-100">
-                <CardHeader className="pb-3">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <UserCheck className="h-4 w-4 text-rose-500" />
-                      ลูกค้าในความดูแล
+              {/* ══════════ Tab: Products ══════════ */}
+              <TabsContent value="products" className="m-0 p-4 sm:p-6">
+                <Card className="border border-slate-100">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Package className="h-4 w-4 text-red-600" />
+                        สินค้าที่ขาย ({data.currentYear})
+                      </CardTitle>
                       <Badge variant="secondary">
-                        {data.responsibleCustomers.length}
+                        {data.productBreakdown.length} รายการ
                       </Badge>
-                    </CardTitle>
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="ค้นหาชื่อร้าน, รหัส หรือจังหวัด..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {data.responsibleCustomers.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Store className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>ไม่มีลูกค้าในความดูแล</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[800px]">
+                        <TableHeader>
+                          <TableRow className="bg-slate-50/50">
+                            <TableHead className="w-[60px]">#</TableHead>
+                            <TableHead>สินค้า</TableHead>
+                            <TableHead>กลุ่ม</TableHead>
+                            <TableHead className="text-right">จำนวน</TableHead>
+                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-center">สัดส่วน</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.productBreakdown.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                <Package className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                ไม่พบข้อมูลสินค้า
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            data.productBreakdown.map((p, i) => (
+                              <TableRow key={p.productId} className="hover:bg-slate-50/50">
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      i < 3
+                                        ? "bg-red-100 text-red-800 border-red-300"
+                                        : "bg-slate-100 text-slate-600"
+                                    }
+                                  >
+                                    {i + 1}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <p className="font-semibold text-slate-900 leading-tight">
+                                    {p.productName}
+                                  </p>
+                                  <p className="text-xs text-slate-500 mt-0.5">
+                                    {p.productCode}
+                                    {p.brand !== "-" && ` · ${p.brand}`}
+                                  </p>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="font-normal text-xs">
+                                    {p.productGroup}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">
+                                  {formatNumber(p.quantity)}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-emerald-600">
+                                  {formatTHB(p.revenue)}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Progress value={p.contribution} className="h-2 w-14" />
+                                    <span className="text-xs font-medium text-slate-600">
+                                      {p.contribution}%
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
-                  ) : filteredCustomers.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredCustomers.map((customer) => (
-                        <Link
-                          key={customer.id}
-                          href={`/customers/${customer.id}`}
-                          className="group p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-rose-200 transition-all duration-200"
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* ══════════ Tab: Customers ══════════ */}
+              <TabsContent value="customers" className="m-0 p-4 sm:p-6">
+                <Card className="border border-slate-100">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Store className="h-4 w-4 text-red-600" />
+                        ลูกค้าที่ขายได้ ({data.currentYear})
+                      </CardTitle>
+                      <Badge variant="secondary">
+                        {data.customerBreakdown.length} ราย
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[800px]">
+                        <TableHeader>
+                          <TableRow className="bg-slate-50/50">
+                            <TableHead className="w-[60px]">#</TableHead>
+                            <TableHead>ลูกค้า</TableHead>
+                            <TableHead>ประเภท</TableHead>
+                            <TableHead>จังหวัด</TableHead>
+                            <TableHead className="text-right">ออเดอร์</TableHead>
+                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-center">ขายล่าสุด</TableHead>
+                            <TableHead className="text-center">ดูแล</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.customerBreakdown.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                                <Store className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                ไม่พบข้อมูลลูกค้า
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            data.customerBreakdown.map((c, i) => (
+                              <TableRow key={c.customerId} className="hover:bg-slate-50/50">
+                                <TableCell>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      i < 3
+                                        ? "bg-amber-100 text-amber-800 border-amber-300"
+                                        : "bg-slate-100 text-slate-600"
+                                    }
+                                  >
+                                    {i + 1}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Link
+                                    href={`/customers/${c.customerId}`}
+                                    className="hover:text-red-600 transition-colors"
+                                  >
+                                    <p className="font-semibold text-slate-900 leading-tight">
+                                      {c.customerName}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                      {c.customerCode}
+                                    </p>
+                                  </Link>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="font-normal text-xs">
+                                    {customerTypeLabels[c.customerType] || c.customerType}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm">{c.province}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                  {formatNumber(c.orders)}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-emerald-600">
+                                  {formatTHB(c.revenue)}
+                                </TableCell>
+                                <TableCell className="text-center text-xs text-muted-foreground">
+                                  {c.lastOrderDate}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {c.isResponsible ? (
+                                    <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
+                                  ) : (
+                                    <span className="text-xs text-slate-300">—</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* ══════════ Tab: Sales History ══════════ */}
+              <TabsContent value="sales" className="m-0 p-4 sm:p-6">
+                <Card className="border border-slate-100">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <ShoppingCart className="h-4 w-4 text-red-500" />
+                        ประวัติการขายล่าสุด
+                      </CardTitle>
+                      <Link href={`/sales?employeeId=${employeeId}`}>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          ดูทั้งหมด <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[700px]">
+                        <TableHeader>
+                          <TableRow className="bg-slate-50/50">
+                            <TableHead>เลขที่</TableHead>
+                            <TableHead>ลูกค้า</TableHead>
+                            <TableHead>วันที่</TableHead>
+                            <TableHead>สถานะ</TableHead>
+                            <TableHead className="text-right">มูลค่า</TableHead>
+                            <TableHead className="w-[50px]" />
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.recentSales.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                                ยังไม่มีประวัติการขาย
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            data.recentSales.map((sale) => (
+                              <TableRow key={sale.id} className="hover:bg-slate-50/50">
+                                <TableCell className="font-medium text-sm">
+                                  {sale.saleNumber}
+                                </TableCell>
+                                <TableCell>
+                                  <p className="font-medium text-sm">{sale.customerName}</p>
+                                  <p className="text-xs text-slate-500">{sale.customerCode}</p>
+                                </TableCell>
+                                <TableCell className="text-sm">{sale.saleDate}</TableCell>
+                                <TableCell>
+                                  <Badge
+                                    className={`${statusColors[sale.status] || "bg-gray-100"} border-0 text-[10px]`}
+                                  >
+                                    {sale.statusLabel}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-semibold text-emerald-600">
+                                  {formatTHB(sale.totalAmount)}
+                                </TableCell>
+                                <TableCell>
+                                  <Link href={`/sales/${sale.id}`}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </Link>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Point History */}
+                {data.pointHistory.length > 0 && (
+                  <Card className="border border-slate-100 mt-6">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        ประวัติคะแนนสะสม
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <Table className="min-w-[600px]">
+                          <TableHeader>
+                            <TableRow className="bg-slate-50/50">
+                              <TableHead>เลขที่ขาย</TableHead>
+                              <TableHead>สินค้า</TableHead>
+                              <TableHead className="text-right">จำนวน</TableHead>
+                              <TableHead className="text-right">คะแนน/หน่วย</TableHead>
+                              <TableHead className="text-right">คะแนนรวม</TableHead>
+                              <TableHead className="text-center">วันที่</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {data.pointHistory.slice(0, 20).map((ph) => (
+                              <TableRow key={ph.id} className="hover:bg-slate-50/50">
+                                <TableCell className="font-medium text-sm">
+                                  {ph.saleNumber}
+                                </TableCell>
+                                <TableCell>
+                                  <p className="text-sm">{ph.productName}</p>
+                                  <p className="text-xs text-slate-500">{ph.productCode}</p>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {formatNumber(ph.quantity)}
+                                </TableCell>
+                                <TableCell className="text-right text-muted-foreground">
+                                  {formatNumber(ph.pointPerUnit)}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-yellow-600">
+                                  +{formatNumber(ph.totalPoints)}
+                                </TableCell>
+                                <TableCell className="text-center text-xs text-muted-foreground">
+                                  {ph.saleDate}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* ══════════ Tab: Responsible Customers ══════════ */}
+              <TabsContent value="responsible" className="m-0 p-4 sm:p-6">
+                <Card className="border border-slate-100">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <UserCheck className="h-4 w-4 text-red-500" />
+                        ลูกค้าในความดูแล
+                        <Badge variant="secondary">
+                          {data.responsibleCustomers.length}
+                        </Badge>
+                      </CardTitle>
+                      <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="ค้นหาชื่อร้าน, รหัส หรือจังหวัด..."
+                          className="pl-10"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {data.responsibleCustomers.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Store className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>ไม่มีลูกค้าในความดูแล</p>
+                      </div>
+                    ) : filteredCustomers.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredCustomers.map((customer) => (
+                          <Link
+                            key={customer.id}
+                            href={`/customers/${customer.id}`}
+                            className="group p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-red-200 transition-all duration-200"
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-red-100 transition-colors text-red-600 shadow-sm">
+                                <Store className="h-5 w-5" />
+                              </div>
+                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-[10px] font-medium text-gray-400">
+                                  ดูรายละเอียด
+                                </span>
+                                <ExternalLink className="h-4 w-4 text-gray-400" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <div className="text-xs font-bold text-red-600 uppercase tracking-widest flex items-center gap-1.5">
+                                <div className="w-1 h-1 bg-red-600 rounded-full" />
+                                {customer.customerCode}
+                              </div>
+                              <h3 className="font-bold text-gray-900 group-hover:text-red-700 transition-colors line-clamp-1 text-lg">
+                                {customer.name}
+                              </h3>
+                              <div className="flex flex-wrap gap-2 mt-3">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                                  {customerTypeLabels[customer.customerType] || customer.customerType}
+                                </span>
+                                {customer.province && customer.province !== "-" && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                    <MapPin className="h-3 w-3 mr-1" />
+                                    {customer.province}
+                                  </span>
+                                )}
+                                {customer.region && customer.region !== "-" && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
+                                    {customer.region}
+                                  </span>
+                                )}
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                    : "bg-slate-50 text-slate-700 border-slate-100"
+                                    }`}
+                                >
+                                  {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                        <p>ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;</p>
+                        <Button
+                          variant="link"
+                          className="mt-2 text-red-600"
+                          onClick={() => setSearchTerm("")}
                         >
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-rose-100 transition-colors text-rose-600 shadow-sm">
-                              <Store className="h-5 w-5" />
-                            </div>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="text-[10px] font-medium text-gray-400">
-                                ดูรายละเอียด
-                              </span>
-                              <ExternalLink className="h-4 w-4 text-gray-400" />
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-xs font-bold text-rose-600 uppercase tracking-widest flex items-center gap-1.5">
-                              <div className="w-1 h-1 bg-rose-600 rounded-full" />
-                              {customer.customerCode}
-                            </div>
-                            <h3 className="font-bold text-gray-900 group-hover:text-rose-700 transition-colors line-clamp-1 text-lg">
-                              {customer.name}
-                            </h3>
-                            <div className="flex flex-wrap gap-2 mt-3">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                                {customerTypeLabels[customer.customerType] || customer.customerType}
-                              </span>
-                              {customer.province && customer.province !== "-" && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  {customer.province}
-                                </span>
-                              )}
-                              {customer.region && customer.region !== "-" && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
-                                  {customer.region}
-                                </span>
-                              )}
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                  : "bg-slate-50 text-slate-700 border-slate-100"
-                                  }`}
-                              >
-                                {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p>ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;</p>
-                      <Button
-                        variant="link"
-                        className="mt-2 text-rose-600"
-                        onClick={() => setSearchTerm("")}
-                      >
-                        ล้างการค้นหา
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </div>
-        </Tabs>
-      </Card>
+                          ล้างการค้นหา
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </Card>
+      </div>
     </div>
   );
 }
 
 // ─── Sub-components ─────────────────────────
 
-function KpiCard({
-  label,
-  value,
-  sub,
-  icon,
-  iconBg,
-  iconColor,
-  valueColor,
-  progress,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconColor: string;
-  valueColor: string;
-  progress?: number;
-}) {
-  return (
-    <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground truncate">{label}</p>
-            <p className={`text-lg font-bold mt-0.5 ${valueColor} truncate`}>
-              {value}
-            </p>
-            {sub && (
-              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                {sub}
-              </p>
-            )}
-            {progress !== undefined && (
-              <Progress value={progress} className="h-1.5 mt-2" />
-            )}
-          </div>
-          <div className={`p-2 rounded-lg shrink-0 ml-3 ${iconBg}`}>
-            <div className={iconColor}>{icon}</div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// ─── Sub-components ─────────────────────────
 
 function InfoRow({
   icon,
