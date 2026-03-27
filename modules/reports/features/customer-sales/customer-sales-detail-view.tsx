@@ -39,12 +39,14 @@ import {
   Hash,
   FileText,
   Droplets,
+  Award,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailItem } from "@/components/custom/detail-item";
+import { KpiCard } from "../../ui/kpi-card";
 
 // Types
 interface CustomerKPI {
@@ -345,58 +347,30 @@ export default function CustomerSalesDetailView({ customerId }: CustomerSalesDet
         />
 
         {/* KPI Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-muted-foreground">ยอดขายรวม</p>
-                  <p className="text-xl font-bold text-emerald-600 mt-2">
-                    {formatTHB(kpi?.totalSales || 0)}
-                  </p>
-                </div>
-                <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <KpiCard
+            label="ยอดขายรวม"
+            value={formatTHB(kpi?.totalSales || 0)}
+            icon={TrendingUp}
+            gradient="bg-gradient-to-br from-emerald-600 to-emerald-700"
+            ring="shadow-lg shadow-emerald-600/20"
+          />
 
-          <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    ค่าเฉลี่ย/ออเดอร์
-                  </p>
-                  <p className="text-lg font-bold text-blue-600">
-                    {formatTHB(kpi?.averageOrderValue || 0)}
-                  </p>
-                </div>
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard
+            label="ค่าเฉลี่ย/ออเดอร์"
+            value={formatTHB(kpi?.averageOrderValue || 0)}
+            icon={Award}
+            gradient="bg-gradient-to-br from-blue-600 to-blue-700"
+            ring="shadow-lg shadow-blue-600/20"
+          />
 
-          <Card className="border-0 shadow-sm bg-white dark:bg-slate-800">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    ออเดอร์ทั้งหมด
-                  </p>
-                  <p className="text-lg font-bold text-purple-600">
-                    {kpi?.lifetimeOrderCount || 0}
-                  </p>
-                </div>
-                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <ShoppingCart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <KpiCard
+            label="ออเดอร์ทั้งหมด"
+            value={formatNumber(kpi?.lifetimeOrderCount || 0)}
+            icon={ShoppingCart}
+            gradient="bg-gradient-to-br from-purple-600 to-purple-700"
+            ring="shadow-lg shadow-purple-600/20"
+          />
         </div>
 
         {/* Tabs Content */}
