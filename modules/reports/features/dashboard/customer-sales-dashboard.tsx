@@ -40,6 +40,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { KpiCard } from "../../ui/kpi-card";
 import {
   getCustomerSalesReportAction,
   getSalespersonSalesReportAction,
@@ -424,92 +425,49 @@ export function CustomerSalesDashboard() {
           <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards: mobile=1 col, sm=2 cols, lg=4 cols */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs sm:text-sm truncate">
-                        {activeTab === "customers" ? "ลูกค้า" : "พนักงานขาย"} ยอดสูงสุด
-                      </p>
-                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900 truncate max-w-[150px]">
-                        {activeTab === "customers"
-                          ? topCustomers[0]?.name || "-"
-                          : salespersonPerf[0]?.name || "-"}
-                      </p>
-                      <p className="text-xs sm:text-sm text-green-700 mt-1 font-semibold">
-                        {activeTab === "customers"
-                          ? topCustomers[0]
-                            ? formatTHB(topCustomers[0].totalSales)
-                            : "-"
-                          : salespersonPerf[0]
-                            ? formatTHB(salespersonPerf[0].totalSales)
-                            : "-"}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-red-50">
-                      <Award className="h-6 w-6 text-red-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiCard
+                label={activeTab === "customers" ? "ยอดซื้อสูงสุด" : "ยอดขายสูงสุด"}
+                value={activeTab === "customers" ? topCustomers[0]?.name || "-" : salespersonPerf[0]?.name || "-"}
+                sub={
+                  <p className="text-base font-bold text-red-700 mt-1">
+                    {activeTab === "customers"
+                      ? topCustomers[0] ? formatTHB(topCustomers[0].totalSales) : "-"
+                      : salespersonPerf[0] ? formatTHB(salespersonPerf[0].totalSales) : "-"}
+                  </p>
+                }
+                icon={Award}
+                gradient="bg-gradient-to-br from-red-600 to-red-700"
+                ring="shadow-lg shadow-red-600/20"
+                topColor="red"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        ยอดขายรวมตาม {activeTab === "customers" ? "ลูกค้า" : "พนักงานขาย"}
-                      </p>
-                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
-                        {activeTab === "customers"
-                          ? formatTHB(totalCustomerSales)
-                          : formatTHB(totalSalespersonSales)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-zinc-100">
-                      <TrendingUp className="h-6 w-6 text-zinc-900" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiCard
+                label={`ยอดขายรวมตาม${activeTab === "customers" ? "ลูกค้า" : "พนักงานขาย"}`}
+                value={activeTab === "customers" ? formatTHB(totalCustomerSales) : formatTHB(totalSalespersonSales)}
+                icon={TrendingUp}
+                gradient="bg-gradient-to-br from-slate-900 to-slate-800"
+                ring="shadow-lg shadow-slate-900/20"
+                topColor="black"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        ออเดอร์รวม
-                      </p>
-                      <p className="text-lg sm:text-xl font-bold mt-1 text-slate-900">
-                        {formatNumber(totalOrders)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-red-50">
-                      <ShoppingCart className="h-6 w-6 text-red-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiCard
+                label="ออเดอร์รวม"
+                value={formatNumber(totalOrders)}
+                sub={<p className="text-xs font-semibold text-red-600 mt-1">รายการออเดอร์ทั้งหมด</p>}
+                icon={ShoppingCart}
+                gradient="bg-gradient-to-br from-red-500 to-red-600"
+                ring="shadow-lg shadow-red-500/20"
+                topColor="red"
+              />
 
-              <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs sm:text-sm">
-                        {activeTab === "customers" ? "จำนวนลูกค้า" : "จำนวนพนักงานขาย"}
-                      </p>
-                      <p className="text-xl sm:text-2xl font-bold mt-1 text-slate-900">
-                        {activeTab === "customers"
-                          ? formatNumber(topCustomers.length)
-                          : formatNumber(salespersonPerf.length)}
-                      </p>
-                    </div>
-                    <div className="p-2 sm:p-3 rounded-xl bg-zinc-100">
-                      <Users className="h-6 w-6 text-zinc-900" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <KpiCard
+                label={activeTab === "customers" ? "จำนวนลูกค้าทั้งหมด" : "จำนวนพนักงานขายทั้งหมด"}
+                value={`${formatNumber(activeTab === "customers" ? topCustomers.length : salespersonPerf.length)} รายการ`}
+                icon={Users}
+                gradient="bg-gradient-to-br from-slate-800 to-slate-900"
+                ring="shadow-lg shadow-slate-800/20"
+                topColor="black"
+              />
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6 space-y-5">
@@ -551,9 +509,9 @@ export function CustomerSalesDashboard() {
                             <TableHead className="font-semibold text-slate-700">ลูกค้า</TableHead>
                             <TableHead className="font-semibold text-slate-700">ประเภท</TableHead>
                             <TableHead className="font-semibold text-slate-700">จังหวัด</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">ออเดอร์</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">มูลค่ารวมทั้งหมด</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ออเดอร์</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">มูลค่ารวมทั้งหมด</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -592,13 +550,13 @@ export function CustomerSalesDashboard() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-slate-600">{c.province}</TableCell>
-                                <TableCell className="text-right font-bold text-green-700">
+                                <TableCell className="text-center font-bold text-green-700">
                                   {formatTHB(c.totalSales)}
                                 </TableCell>
-                                <TableCell className="text-right text-slate-700 font-medium">
+                                <TableCell className="text-center text-slate-700 font-medium">
                                   {c.orderCount}
                                 </TableCell>
-                                <TableCell className="text-right font-semibold text-zinc-700">
+                                <TableCell className="text-center font-semibold text-zinc-700">
                                   {formatTHB(c.lifetimeValue)}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -649,9 +607,9 @@ export function CustomerSalesDashboard() {
                             <TableHead className="w-[80px] font-semibold text-slate-700">ลำดับ</TableHead>
                             <TableHead className="font-semibold text-slate-700">พนักงานขาย</TableHead>
                             <TableHead className="font-semibold text-slate-700">แผนก/ทีม</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">ยอดขายรวม</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700">จำนวนลูกค้า</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">ยอดขายรวม</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">จำนวนออเดอร์</TableHead>
+                            <TableHead className="text-center font-semibold text-slate-700">จำนวนลูกค้า</TableHead>
                             <TableHead className="text-center font-semibold text-slate-700">รายละเอียด</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -698,13 +656,13 @@ export function CustomerSalesDashboard() {
                                     {s.department}
                                   </Badge>
                                 </TableCell>
-                                <TableCell className="text-right font-bold text-green-700">
+                                <TableCell className="text-center font-bold text-green-700">
                                   {formatTHB(s.totalSales)}
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-slate-700">
+                                <TableCell className="text-center font-medium text-slate-700">
                                   {formatNumber(s.orderCount)}
                                 </TableCell>
-                                <TableCell className="text-right text-slate-600">
+                                <TableCell className="text-center text-slate-600">
                                   {formatNumber(s.customerCount)} ราย
                                 </TableCell>
                                 <TableCell className="text-center">
