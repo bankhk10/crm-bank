@@ -591,7 +591,7 @@ export default function SalespersonDetailView({
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base flex items-center gap-2">
                         <Package className="h-4 w-4 text-red-600" />
-                        สินค้าที่ขาย ({data.currentYear})
+                        สินค้าที่ขาย (ตามช่วงเวลาที่เลือก)
                       </CardTitle>
                       <Badge variant="secondary">
                         {data.productBreakdown.length} รายการ
@@ -603,11 +603,10 @@ export default function SalespersonDetailView({
                       <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow className="bg-slate-50/50">
-                            <TableHead className="w-[60px]">#</TableHead>
+                            <TableHead className="w-[60px]">ลำดับ</TableHead>
                             <TableHead>สินค้า</TableHead>
-                            <TableHead>กลุ่ม</TableHead>
-                            <TableHead className="text-right">จำนวน</TableHead>
-                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-center">จำนวนที่ขาย</TableHead>
+                            <TableHead className="text-center">ยอดขาย</TableHead>
                             <TableHead className="text-center">สัดส่วน</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -643,15 +642,10 @@ export default function SalespersonDetailView({
                                     {p.brand !== "-" && ` · ${p.brand}`}
                                   </p>
                                 </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline" className="font-normal text-xs">
-                                    {p.productGroup}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-right font-medium">
+                                <TableCell className="text-center font-medium">
                                   {formatNumber(p.quantity)}
                                 </TableCell>
-                                <TableCell className="text-right font-bold text-emerald-600">
+                                <TableCell className="text-center font-bold text-emerald-600">
                                   {formatTHB(p.revenue)}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -691,14 +685,12 @@ export default function SalespersonDetailView({
                       <Table className="min-w-[800px]">
                         <TableHeader>
                           <TableRow className="bg-slate-50/50">
-                            <TableHead className="w-[60px]">#</TableHead>
+                            <TableHead className="w-[60px]">ลำดับ</TableHead>
                             <TableHead>ลูกค้า</TableHead>
-                            <TableHead>ประเภท</TableHead>
-                            <TableHead>จังหวัด</TableHead>
-                            <TableHead className="text-right">ออเดอร์</TableHead>
-                            <TableHead className="text-right">ยอดขาย</TableHead>
+                            <TableHead className="text-center">จำนวนออเดอร์</TableHead>
+                            <TableHead className="text-center">ยอดขาย</TableHead>
                             <TableHead className="text-center">ขายล่าสุด</TableHead>
-                            <TableHead className="text-center">ดูแล</TableHead>
+                            <TableHead className="text-center">สถานะ</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -737,16 +729,10 @@ export default function SalespersonDetailView({
                                     </p>
                                   </Link>
                                 </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline" className="font-normal text-xs">
-                                    {customerTypeLabels[c.customerType] || c.customerType}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-sm">{c.province}</TableCell>
-                                <TableCell className="text-right font-medium">
+                                <TableCell className="text-center font-medium">
                                   {formatNumber(c.orders)}
                                 </TableCell>
-                                <TableCell className="text-right font-bold text-emerald-600">
+                                <TableCell className="text-center font-bold text-emerald-600">
                                   {formatTHB(c.revenue)}
                                 </TableCell>
                                 <TableCell className="text-center text-xs text-muted-foreground">
