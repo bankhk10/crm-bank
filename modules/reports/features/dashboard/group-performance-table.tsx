@@ -37,7 +37,7 @@ export function GroupPerformanceTable({
   return (
     <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
       <CardHeader>
-        <CardTitle className="text-lg">ผลงานแต่ละกลุ่มสินค้า</CardTitle>
+        <CardTitle className="text-lg">ข้อมูลการขายแยกตามกลุ่มสินค้า (ตามช่วงเวลาที่เลือก)</CardTitle>
       </CardHeader>
       <CardContent>
         {!groups || groups.length === 0 ? (
