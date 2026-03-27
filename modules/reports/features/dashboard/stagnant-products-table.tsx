@@ -47,19 +47,24 @@ export function StagnantProductsTable({
             <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>รหัส</TableHead>
                   <TableHead>ชื่อสินค้า</TableHead>
-                  <TableHead className="text-right">สต๊อกคงเหลือ</TableHead>
-                  <TableHead className="text-right">จำนวนวัน</TableHead>
+                  <TableHead className="text-center">สต๊อกคงเหลือ</TableHead>
+                  <TableHead className="text-center">จำนวนวัน</TableHead>
                   <TableHead>ขายล่าสุด</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-mono text-sm">{product.code}</TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="font-medium">
+                      <div>
+                        <p className="font-medium text-sm">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.code}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
                       <Badge
                         variant="outline"
                         className="bg-purple-50 text-purple-700 border-purple-200"
@@ -67,7 +72,7 @@ export function StagnantProductsTable({
                         {formatNumber(product.stock)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                       <span className="text-red-600 font-medium">
                         {product.daysSinceLastSale === 999
                           ? "ไม่เคยขาย"
