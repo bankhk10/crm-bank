@@ -6,13 +6,6 @@ interface SalespersonReportPageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: SalespersonReportPageProps) {
-  const { employeeId } = await params;
-  return {
-    title: `ผลงานพนักงานขาย ${employeeId} | CRM Bank`,
-  };
-}
-
 export default async function SalespersonReportDetailPage({
   params,
 }: SalespersonReportPageProps) {
