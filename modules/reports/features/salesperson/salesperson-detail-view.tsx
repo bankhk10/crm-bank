@@ -381,13 +381,6 @@ export default function SalespersonDetailView({
                   <ShoppingCart className="h-4 w-4 mr-1.5" />
                   ประวัติการขาย
                 </TabsTrigger>
-                <TabsTrigger
-                  value="responsible"
-                  className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700 data-[state=active]:shadow-sm rounded-lg text-xs sm:text-sm"
-                >
-                  <UserCheck className="h-4 w-4 mr-1.5" />
-                  ลูกค้าดูแล
-                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -891,107 +884,6 @@ export default function SalespersonDetailView({
                     </CardContent>
                   </Card>
                 )}
-              </TabsContent>
-
-              {/* ══════════ Tab: Responsible Customers ══════════ */}
-              <TabsContent value="responsible" className="m-0 p-4 sm:p-6">
-                <Card className="border border-slate-100">
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <UserCheck className="h-4 w-4 text-red-500" />
-                        ลูกค้าในความดูแล
-                        <Badge variant="secondary">
-                          {data.responsibleCustomers.length}
-                        </Badge>
-                      </CardTitle>
-                      <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="ค้นหาชื่อร้าน, รหัส หรือจังหวัด..."
-                          className="pl-10"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {data.responsibleCustomers.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Store className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>ไม่มีลูกค้าในความดูแล</p>
-                      </div>
-                    ) : filteredCustomers.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredCustomers.map((customer) => (
-                          <Link
-                            key={customer.id}
-                            href={`/customers/${customer.id}`}
-                            className="group p-4 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-white hover:shadow-md hover:border-red-200 transition-all duration-200"
-                          >
-                            <div className="flex justify-between items-start mb-3">
-                              <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-red-100 transition-colors text-red-600 shadow-sm">
-                                <Store className="h-5 w-5" />
-                              </div>
-                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-[10px] font-medium text-gray-400">
-                                  ดูรายละเอียด
-                                </span>
-                                <ExternalLink className="h-4 w-4 text-gray-400" />
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-xs font-bold text-red-600 uppercase tracking-widest flex items-center gap-1.5">
-                                <div className="w-1 h-1 bg-red-600 rounded-full" />
-                                {customer.customerCode}
-                              </div>
-                              <h3 className="font-bold text-gray-900 group-hover:text-red-700 transition-colors line-clamp-1 text-lg">
-                                {customer.name}
-                              </h3>
-                              <div className="flex flex-wrap gap-2 mt-3">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                                  {customerTypeLabels[customer.customerType] || customer.customerType}
-                                </span>
-                                {customer.province && customer.province !== "-" && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    {customer.province}
-                                  </span>
-                                )}
-                                {customer.region && customer.region !== "-" && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-100 uppercase">
-                                    {customer.region}
-                                  </span>
-                                )}
-                                <span
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold border ${customer.status === "ACTIVE"
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                    : "bg-slate-50 text-slate-700 border-slate-100"
-                                    }`}
-                                >
-                                  {customer.status === "ACTIVE" ? "ปกติ" : customer.status}
-                                </span>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>ไม่พบข้อมูลที่ตรงกับการค้นหา &quot;{searchTerm}&quot;</p>
-                        <Button
-                          variant="link"
-                          className="mt-2 text-red-600"
-                          onClick={() => setSearchTerm("")}
-                        >
-                          ล้างการค้นหา
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
               </TabsContent>
             </div>
           </Tabs>
