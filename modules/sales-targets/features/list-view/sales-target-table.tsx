@@ -198,10 +198,12 @@ export function SalesTargetTable({
                                 emptyText="ไม่พบร้านค้า"
                             />
                         </div>
-                        <ClearSearchButton
-                            onClick={onClear}
-                            containerClassName="sm:col-span-2 lg:w-auto"
-                        />
+                        {(month !== "all" || employeeId || shopId) && (
+                            <ClearSearchButton
+                                onClick={onClear}
+                                containerClassName="sm:col-span-2 lg:w-auto"
+                            />
+                        )}
                     </div>
                 }
             />
