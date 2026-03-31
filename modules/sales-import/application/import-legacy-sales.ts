@@ -46,7 +46,26 @@ export async function processLegacySalesFile(
     }
 
     // Prepare lookups
-    const products = await db.product.findMany({ select: { id: true, productCode: true, price: true } });
+    const products = await db.product.findMany({
+      select: {
+        id: true,
+        productCode: true,
+        name: true,
+        commonName: true,
+        unit: true,
+        brand: true,
+        packageSize: true,
+        packageSizeUnit: true,
+        packageSizePerBox: true,
+        totalPackageSizePerBox: true,
+        price: true,
+        cartonPrice: true,
+        promotionBudget: true,
+        pointPerUnit: true,
+        productGroup: { select: { name: true } },
+        tradeNameGroup: { select: { description: true } },
+      },
+    });
     const employees = await db.employee.findMany({ select: { id: true, name: true, employeeCode: true } });
     const customers = await db.customer.findMany({ select: { id: true, customerCode: true, name: true } });
 
@@ -126,6 +145,21 @@ export async function processLegacySalesFile(
         employeeId,
         saleDate,
         productId: product.id,
+        // Product Snapshot data
+        productCode: product.productCode,
+        name: product.name,
+        commonName: product.commonName,
+        unit: product.unit,
+        brand: product.brand,
+        packageSize: product.packageSize,
+        packageSizeUnit: product.packageSizeUnit,
+        packageSizePerBox: product.packageSizePerBox,
+        totalPackageSizePerBox: product.totalPackageSizePerBox,
+        cartonPrice: product.cartonPrice,
+        promotionBudget: product.promotionBudget,
+        pointPerUnit: product.pointPerUnit,
+        productGroup: product.productGroup?.name || product.tradeNameGroup?.description || null,
+        
         quantity,
         totalPrice: totalAmount, // for individual product
         unitPrice,
@@ -163,6 +197,20 @@ export async function processLegacySalesFile(
       order.subtotalAmount += item.totalPrice;
       order.items.push({
         productId: item.productId,
+        productCode: item.productCode,
+        name: item.name,
+        commonName: item.commonName,
+        unit: item.unit,
+        brand: item.brand,
+        packageSize: item.packageSize,
+        packageSizeUnit: item.packageSizeUnit,
+        packageSizePerBox: item.packageSizePerBox,
+        totalPackageSizePerBox: item.totalPackageSizePerBox,
+        cartonPrice: item.cartonPrice,
+        promotionBudget: item.promotionBudget,
+        pointPerUnit: item.pointPerUnit,
+        productGroup: item.productGroup,
+
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         originalPrice: item.originalPrice,
