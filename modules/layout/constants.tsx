@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Target,
   Truck,
+  BookOpen,
 } from "lucide-react";
 import type { SidebarNavItem } from "./types";
 
@@ -121,5 +122,11 @@ export const navigationItems: SidebarNavItem[] = [
     label: "สิทธิ์",
     permissionKey: "rbac.manage",
     icon: <ShieldCheck className="h-4 w-4" />,
+  },
+  {
+    href: "https://docs.google.com/document/d/1Jo8RL9S1fwIqEJQc0xASSLnZp8ElkQ8J7G1T9NvGqkc/edit?usp=sharing",
+    label: "คู่มือ",
+    icon: <BookOpen className="h-4 w-4" />,
+    target: "_blank",
   },
 ];

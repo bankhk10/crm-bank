@@ -12,6 +12,7 @@ export interface SidebarChildItem {
   href: string;
   label: string;
   permissionKey?: string;
+  target?: string;
   children?: SidebarChildItem[];
 }
 
@@ -21,8 +22,9 @@ export interface SidebarChildItem {
 export interface SidebarNavItem {
   href: string;
   label: string;
-  permissionKey: string;
+  permissionKey?: string;
   icon?: ReactNode;
+  target?: string;
   children?: SidebarChildItem[];
 }
 

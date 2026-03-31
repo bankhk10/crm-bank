@@ -95,6 +95,8 @@ const SidebarMenuItem = ({
     return (
         <Link
             href={item.href}
+            target={item.target}
+            rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
             className={`flex items-center justify-between rounded px-4 py-2 transition ${isSelfActive
                 ? "font-semibold text-white"
                 : "text-white/80 hover:text-white"
@@ -241,6 +243,8 @@ export default function Sidebar({
                         <Link
                             key={item.href}
                             href={item.href}
+                            target={item.target}
+                            rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                             className={
                                 "flex items-center gap-2 rounded-lg px-4 py-3 transition " +
                                 (activeParent
