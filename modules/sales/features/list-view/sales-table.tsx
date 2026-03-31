@@ -83,8 +83,8 @@ export function SalesTable(props: SalesTableProps) {
                 className="p-3 sm:p-4"
                 filters={
                     <div className="flex flex-col lg:flex-row gap-4 items-end w-full">
-                        <div className="space-y-2 w-full lg:flex-1">
-                            <label className="mx-1 mb-1 font-medium text-base text-gray-900">
+                        <div className="space-y-2 w-full lg:w-[400px]">
+                            <label className="mx-1 mb-1 font-medium text-base text-gray-900 block"> {/* เพิ่ม block เพื่อให้ label คุมบรรทัด */}
                                 ค้นหา
                             </label>
                             <div className="relative mt-1">
@@ -96,7 +96,7 @@ export function SalesTable(props: SalesTableProps) {
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") onSearchSubmit?.();
                                     }}
-                                    className="pl-9 h-11 w-full bg-white text-base"
+                                    className="pl-9 h-11 w-full bg-white text-base border-gray-300 focus:ring-2"
                                 />
                             </div>
                         </div>
