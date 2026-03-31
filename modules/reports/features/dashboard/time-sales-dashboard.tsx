@@ -191,6 +191,7 @@ export function TimeSalesDashboard() {
               <div className="w-full sm:w-44">
                 <DatePicker
                   label="วันที่เริ่ม"
+                  placeholder="วันที่เริ่ม"
                   value={dateRange.from}
                   onChange={(val) => {
                     if (val) {
@@ -210,6 +211,7 @@ export function TimeSalesDashboard() {
               <div className="w-full sm:w-44">
                 <DatePicker
                   label="วันที่สิ้นสุด"
+                  placeholder="วันที่สิ้นสุด"
                   value={dateRange.to}
                   onChange={(val) => {
                     if (val) {
