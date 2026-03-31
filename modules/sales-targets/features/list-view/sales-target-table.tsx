@@ -170,7 +170,7 @@ export function SalesTargetTable({
                                 emptyText="ไม่พบเดือน"
                             />
                         </div>
-                        <div className="w-full sm:col-span-2 lg:col-span-1 lg:flex-1">
+                        <div className="w-full sm:col-span-2 lg:w-[340px]">
                             <FormCombobox
                                 label="พนักงาน"
                                 value={employeeId}
@@ -184,7 +184,7 @@ export function SalesTargetTable({
                                 emptyText="ไม่พบพนักงาน"
                             />
                         </div>
-                        <div className="w-full sm:col-span-2 lg:col-span-1 lg:flex-1">
+                        <div className="w-full sm:col-span-2 lg:w-[380px]">
                             <FormCombobox
                                 label="ร้านค้า"
                                 value={shopId}
