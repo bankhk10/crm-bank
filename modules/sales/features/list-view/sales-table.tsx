@@ -128,7 +128,6 @@ export function SalesTable(props: SalesTableProps) {
                                     </Select>
                                 </div>
                             </div>
-
                             <div className="w-full sm:w-44">
                                 <DatePicker
                                     label="วันที่เริ่ม"
