@@ -168,13 +168,15 @@ export function SalesTable(props: SalesTableProps) {
                                     }}
                                 />
                             </div>
-                            <div className="flex items-end">
-                                <ClearSearchButton onClick={() => {
-                                    onSearchChange?.("");
-                                    onStatusFilterChange?.(undefined);
-                                    onDateRangeChange?.(undefined);
-                                }} />
-                            </div>
+                            {(searchValue || statusFilter || dateRange?.from || dateRange?.to) && (
+                                <div className="flex items-end">
+                                    <ClearSearchButton onClick={() => {
+                                        onSearchChange?.("");
+                                        onStatusFilterChange?.(undefined);
+                                        onDateRangeChange?.(undefined);
+                                    }} />
+                                </div>
+                            )}
                         </div>
                     </div>
                 }
