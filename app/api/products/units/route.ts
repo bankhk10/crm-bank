@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { code, name } = body;
-    const description = name;
+    const { code, name, description: bodyDescription } = body;
+    const description = name || bodyDescription;
 
     if (!code || !description) {
       return NextResponse.json(

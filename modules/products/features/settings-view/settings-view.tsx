@@ -381,7 +381,7 @@ export default function ProductManagementSettingsView({
                 onChange={(e) => {
                   const val = e.target.value;
                   if (nameLabel === "ชื่อ") {
-                    setFormData(prev => ({ ...prev, name: val, description: prev.description || "" }));
+                    setFormData(prev => ({ ...prev, name: val, description: val }));
                   } else {
                     setFormData(prev => ({ ...prev, description: val }));
                   }

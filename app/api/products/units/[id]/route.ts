@@ -32,7 +32,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { code, description } = body;
+    const { code, description: bodyDescription, name } = body;
+    const description = bodyDescription || name;
 
     if (!code || !description) {
       return NextResponse.json(
