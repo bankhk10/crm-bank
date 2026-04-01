@@ -80,8 +80,8 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
     try {
       const result = await signIn("credentials", {
         redirect: false,
-        email: "b@b.com",
-        password: "b@b.com",
+        email: "atthapol@gmail.com",
+        password: "atthapol@gmail.com",
         remember: "on",
         callbackUrl: callbackUrl ?? "/dashboard",
       });
