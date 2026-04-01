@@ -39,14 +39,14 @@ export function useSaleFormData(): SaleFormData {
     setError(null);
 
     Promise.all([
-      fetch("/api/customers?type=DEALER").then((r) => r.json()),
+      fetch("/api/customers?type=DEALER&perPage=1000").then((r) => r.json()),
       import("@/modules/employee/server/actions").then(
         async ({ getEmployeesAction }) => {
           const res = await getEmployeesAction();
           return { employees: res.employees || [] };
         },
       ),
-      fetch("/api/products?status=ACTIVE&perPage=100").then((r) => r.json()),
+      fetch("/api/products?status=ACTIVE&perPage=1000").then((r) => r.json()),
       getCompaniesAction().then((res) => {
         return { companies: res.companies || [] };
       }),

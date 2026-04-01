@@ -106,7 +106,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
   const perPage = Math.min(
-    100,
+    1000,
     Math.max(1, parseInt(url.searchParams.get("perPage") || "12", 10)),
   );
   const q = (url.searchParams.get("q") || "").trim();
