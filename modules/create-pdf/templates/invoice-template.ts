@@ -200,12 +200,12 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
   }
 
   const documentNumber =
-    data.status === "COMPLETED"
+    data.saleOrderRef != null
       ? safeValue(data.saleOrderRef || data.invoiceNumber)
       : safeValue(data.invoiceNumber);
 
   const title =
-    data.status === "COMPLETED"
+    data.saleOrderRef != null
       ? "เลขที่คำสั่งขาย"
       : "เลขที่ออเดอร์";
   const itemsHtml = data.items
@@ -306,13 +306,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">วันที่ออเดอร์:</span>
             <span>${safeValue(data.date)}</span>
           </div>
-          ${data.status === "COMPLETED" ? `
+          ${data.saleOrderRef != null ? `
           <div class="sales-cell">
             <span class="info-label">เลขที่ออเดอร์:</span>
             <span>${safeValue(data.invoiceNumber)}</span>
           </div>
           ` : ""}
-          <div class="sales-cell" ${data.status !== "COMPLETED" ? 'style="grid-column: span 2;"' : ""}>
+          <div class="sales-cell" ${data.saleOrderRef == null ? 'style="grid-column: span 2;"' : ""}>
             <span class="info-label">เงื่อนไขการชำระเงิน:</span>
             <span>${safeValue(data.paymentTerm)}</span>
           </div>
