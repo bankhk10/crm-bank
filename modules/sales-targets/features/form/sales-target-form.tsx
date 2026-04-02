@@ -137,7 +137,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
         try {
             // Fetch Employees
             import("@/modules/employee/server/actions").then(async ({ getEmployeesAction }) => {
-                const empRes = await getEmployeesAction();
+                const empRes = await getEmployeesAction({ perPage: 1000 });
                 if (empRes.success) {
                     setEmployees(empRes.employees || []);
                 }

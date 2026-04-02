@@ -99,7 +99,7 @@ export default function CustomerFormFarmer({
     async function fetchEmployees() {
       try {
         const { getEmployeesAction } = await import("@/modules/employee/server/actions");
-        const res = await getEmployeesAction();
+        const res = await getEmployeesAction({ perPage: 1000 });
         const emps = (res.employees || []).map((e: any) => ({
           value: e.id,
           label: e.name,

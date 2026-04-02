@@ -116,7 +116,7 @@ export default function CustomerFormSubdealer({
     async function fetchOptions() {
       try {
         const { getEmployeesAction } = await import("@/modules/employee/server/actions");
-        const eRes = await getEmployeesAction();
+        const eRes = await getEmployeesAction({ perPage: 1000 });
 
         const [cRes, pgRes, bRes] = await Promise.all([
           fetch(`/api/customers?page=1&perPage=1000&type=DEALER`)

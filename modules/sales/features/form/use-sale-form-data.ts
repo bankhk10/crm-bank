@@ -42,7 +42,7 @@ export function useSaleFormData(): SaleFormData {
       fetch("/api/customers?type=DEALER&perPage=1000").then((r) => r.json()),
       import("@/modules/employee/server/actions").then(
         async ({ getEmployeesAction }) => {
-          const res = await getEmployeesAction();
+          const res = await getEmployeesAction({ perPage: 1000 });
           return { employees: res.employees || [] };
         },
       ),
