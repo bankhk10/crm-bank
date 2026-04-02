@@ -142,7 +142,7 @@ export default function CustomerFormDealer({
     async function fetchDealers() {
       try {
         // Fetch dealer customers for parent dealer dropdown
-        const cRes = await fetch(`/api/customers?type=DEALER`)
+        const cRes = await fetch(`/api/customers?type=DEALER&perPage=1000`)
           .then((r) => r.json())
           .catch(() => ({ customers: [] }));
 
