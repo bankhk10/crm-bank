@@ -38,6 +38,7 @@ export async function updateFulfillmentAction(id: string, payload: unknown) {
 
     revalidatePath(`/sales/${id}`);
     revalidatePath("/fulfillment");
+    revalidatePath("/sales");
 
     return { success: true, saleId: sale.id };
   } catch (error) {

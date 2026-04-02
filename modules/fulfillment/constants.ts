@@ -41,7 +41,7 @@ export const STATUS_STYLE: Record<
     dot: "bg-emerald-500",
   },
   AWAITING_DELIVERY: {
-    label: "รอดำเนินการจัดส่ง",
+    label: "รอดำเนินการจัดส่งสินค้า",
     className:
       "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-100",
     dot: "bg-blue-500",
@@ -71,7 +71,7 @@ export const STATUS_STYLE: Record<
     dot: "bg-orange-500",
   },
   WAITING_FOR_CORRECTION: {
-    label: "รอแก้ไข",
+    label: "ส่งกลับให้แก้ไข",
     className:
       "bg-amber-100 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-100",
     dot: "bg-amber-500",

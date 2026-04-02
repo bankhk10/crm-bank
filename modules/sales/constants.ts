@@ -18,14 +18,14 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   PENDING_APPROVAL: "รออนุมัติ",
   APPROVED: "อนุมัติแล้ว",
   REJECTED: "ไม่อนุมัติ",
-  AWAITING_PAYMENT: "รอชำระเงิน",
-  PAID: "ชำระแล้ว",
-  AWAITING_DELIVERY: "รอจัดส่ง",
+  AWAITING_PAYMENT: "รอดำเนินการชำระเงิน",
+  PAID: "ชำระเงินแล้ว",
+  AWAITING_DELIVERY: "รอดำเนินการจัดส่งสินค้า",
   DELIVERED: "ระหว่างขนส่ง",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
-  WAITING_FOR_CORRECTION: "รอแก้ไข",
+  WAITING_FOR_CORRECTION: "ส่งกลับให้แก้ไข",
   CANCELLED: "ยกเลิก",
   COMPLETED: "เสร็จสิ้น",
 };
@@ -62,7 +62,7 @@ export const SALE_STATUS_STYLES: Record<
     dot: "bg-red-500",
   },
   AWAITING_PAYMENT: {
-    label: "รอชำระเงิน",
+    label: "รอดำเนินการชำระเงิน",
     className:
       "bg-orange-50 text-orange-700 ring-1 ring-orange-200 dark:bg-orange-900/30 dark:text-orange-100",
     dot: "bg-orange-500",
@@ -74,7 +74,7 @@ export const SALE_STATUS_STYLES: Record<
     dot: "bg-emerald-500",
   },
   AWAITING_DELIVERY: {
-    label: "รอจัดส่ง",
+    label: "รอดำเนินการจัดส่งสินค้า",
     className:
       "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-100",
     dot: "bg-blue-500",
@@ -110,7 +110,7 @@ export const SALE_STATUS_STYLES: Record<
     dot: "bg-green-600",
   },
   WAITING_FOR_CORRECTION: {
-    label: "รอแก้ไข",
+    label: "ส่งกลับให้แก้ไข",
     className:
       "bg-amber-100 text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-100",
     dot: "bg-amber-500",
