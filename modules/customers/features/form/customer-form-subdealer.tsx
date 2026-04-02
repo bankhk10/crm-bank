@@ -12,6 +12,7 @@ import {
   FormSelect,
   FormTextarea,
 } from "@/components/custom/form-components";
+import { FormCombobox } from "@/components/custom/FormCombobox";
 import { MultiSelect } from "@/components/custom/multi-select";
 import { LocateFixed, X, Save } from "lucide-react";
 
@@ -71,6 +72,7 @@ export default function CustomerFormSubdealer({
   });
 
   const [dealerOptions, setDealerOptions] = useState<SelectOption[]>([]);
+  const [receiveFromDealerLabel, setReceiveFromDealerLabel] = useState("");
   const [employeeOptions, setEmployeeOptions] = useState<SelectOption[]>([]);
   const [productGroupOptions, setProductGroupOptions] = useState<
     SelectOption[]
@@ -130,7 +132,7 @@ export default function CustomerFormSubdealer({
 
         const comps = (cRes.customers || []).map((c: any) => ({
           value: c.id,
-          label: c.name,
+          label: `${c.customerCode} - ${c.name}`,
         }));
         const emps = (eRes.employees || []).map((e: any) => ({
           value: e.id,
@@ -155,6 +157,16 @@ export default function CustomerFormSubdealer({
 
     fetchOptions();
   }, []);
+
+  // Set receiveFromDealerLabel when dealerOptions are loaded and receiveFromDealer has initial value
+  useEffect(() => {
+    if (values.receiveFromDealer && dealerOptions.length > 0) {
+      const found = dealerOptions.find((d) => d.value === values.receiveFromDealer);
+      if (found) {
+        setReceiveFromDealerLabel(found.label);
+      }
+    }
+  }, [values.receiveFromDealer, dealerOptions]);
 
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
@@ -672,16 +684,24 @@ export default function CustomerFormSubdealer({
       </h3>
 
       <div className="grid gap-x-4 gap-y-3 md:grid-cols-4 mt-6">
-        <FormSelect
+        <FormCombobox
           label="รับของจาก Dealer"
           value={values.receiveFromDealer ?? ""}
           onChange={(v) => {
             setValues((p: any) => ({ ...p, receiveFromDealer: v || "" }));
+            const found = dealerOptions.find((d) => d.value === v);
+            setReceiveFromDealerLabel(found ? found.label : "");
             clearFieldError("receiveFromDealer");
           }}
-          options={dealerOptions.filter((d) => d.value !== values.id)}
+          options={[
+            { value: "", label: "ไม่ระบุ" },
+            ...dealerOptions.filter((d) => d.value !== values.id)
+          ]}
           placeholder="เลือกร้านหลัก"
-          groupLabel="Dealer"
+          searchPlaceholder="ค้นหาร้านหลัก..."
+          emptyText="ไม่พบร้านหลัก"
+          error={fieldErrors.receiveFromDealer?.[0]}
+          containerClassName="md:col-span-1"
         />
 
         <FormInput
