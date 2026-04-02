@@ -132,7 +132,7 @@ export default function CustomerFormSubdealer({
 
         const comps = (cRes.customers || []).map((c: any) => ({
           value: c.id,
-          label: `${c.customerCode} - ${c.name}`,
+          label: c.name,
         }));
         const emps = (eRes.employees || []).map((e: any) => ({
           value: e.id,
