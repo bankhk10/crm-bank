@@ -117,7 +117,7 @@ export default function CustomerFormSubdealer({
         const eRes = await getEmployeesAction();
 
         const [cRes, pgRes, bRes] = await Promise.all([
-          fetch(`/api/customers?page=1&perPage=100&type=DEALER`)
+          fetch(`/api/customers?page=1&perPage=1000&type=DEALER`)
             .then((r) => r.json())
             .catch(() => ({ customers: [] })),
           fetch(`/api/products/product-groups`)
