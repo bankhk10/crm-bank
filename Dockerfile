@@ -51,13 +51,24 @@ RUN mkdir -p /app/prisma-resolved && \
 # Stage 3: Runner (Production)
 # ===========================================
 FROM node:20-alpine AS runner
-# Add dependencies for Prisma and other native modules
-RUN apk add --no-cache libc6-compat openssl
+# Add dependencies for Prisma, Puppeteer and other native modules
+RUN apk add --no-cache \
+    libc6-compat \
+    openssl \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
 WORKDIR /app
 
 # Set environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
