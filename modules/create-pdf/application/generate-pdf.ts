@@ -124,12 +124,21 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
       price: Number(item.unitPrice || 0),
       cartonPrice: Number(item.cartonPrice || 0),
       total: Number(item.totalPrice || 0),
+      promotionBudget: Number(item.promotionBudget || 0),
     })),
     subtotalAmount: Number(sale.subtotalAmount || 0),
     shippingDiscount: Number(sale.shippingCost || 0),
     billDiscount: Number(sale.otherCosts || 0),
     otherCostsDescription: sale.otherCostsDescription,
     totalAmount: Number(sale.totalAmount || 0),
+    promotionalBudgetTotal: (sale.items || []).reduce((sum: number, item: any) => {
+      return sum + (Number(item.quantity || 0) * Number(item.promotionBudget || 0));
+    }, 0),
+    budgetDetails: (sale.budgetDetails || []).map((budget: any) => ({
+      type: budget.type,
+      amount: Number(budget.usedAmount || budget.receivedAmount || 0),
+      description: budget.description,
+    })),
     title: "ใบบันทึกการขาย",
     status: sale.status,
     notes: sale.notes,

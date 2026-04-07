@@ -35,12 +35,19 @@ export interface InvoiceData {
     price: number;
     cartonPrice: number;
     total: number;
+    promotionBudget?: number;
   }[];
   contactName: string;
   subtotalAmount: number;
   shippingDiscount: number;
   billDiscount: number;
   totalAmount: number;
+  promotionalBudgetTotal: number;
+  budgetDetails?: {
+    type: string;
+    amount: number;
+    description?: string;
+  }[];
   title: string;
   notes?: string;
   signatureDate?: string; // Legacy field
@@ -213,7 +220,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       (item, index) => `
         <tr>
           <td class="text-center">${index + 1}</td>
-          <td class="text-left">${safeValue(item.description)}</td>
+          <td class="text-left">
+            <div>${safeValue(item.description)}</div>
+            ${item.promotionBudget && item.promotionBudget > 0 
+              ? `<div style="font-size: 10px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>` 
+              : ""
+            }
+          </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-left">${safeValue(item.unit)}</td>
           <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
@@ -350,6 +363,16 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <span>${formatNumber(data.subtotalAmount)} THB</span>
         </div>
 
+        ${data.promotionalBudgetTotal > 0
+      ? `
+          <div class="summary-row">
+            <span>งบส่งเสริมการขายรวม</span>
+            <span style="color: #059669;">${formatNumber(data.promotionalBudgetTotal)} THB</span>
+          </div>
+        `
+      : ""
+    }
+
         ${data.shippingDiscount > 0
       ? `
           <div class="summary-row">
@@ -382,6 +405,25 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
     <div class="notes-section">
       <span class="notes-label">หมายเหตุ:</span>
       <span>${data.notes}</span>
+    </div>
+    `
+      : ""
+    }
+
+    ${data.budgetDetails && data.budgetDetails.length > 0
+      ? `
+    <div class="notes-section">
+      <span class="notes-label">งบส่งเสริมการขาย:</span>
+      <div style="margin-left: 20px;">
+        ${data.budgetDetails.map(budget => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>${budget.type === 'SALES_PROMOTION' ? 'งบส่งเสริมการขาย (ระบุช่องเก็บ)' : 'งบส่งเสริมการตลาด (ระบุช่องเก็บ)'} 
+              ${budget.description ? ` - ${budget.description}` : ''}
+            </span>
+            <span style="font-weight: 600;">฿${formatNumber(budget.amount)}</span>
+          </div>
+        `).join('')}
+      </div>
     </div>
     `
       : ""

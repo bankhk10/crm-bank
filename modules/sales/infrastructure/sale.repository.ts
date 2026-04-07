@@ -177,6 +177,7 @@ export async function findSaleById(id: string) {
           },
         },
       },
+      budgetDetails: true,
       statusHistory: {
         include: { changedBy: true },
         orderBy: { changedAt: "desc" },
