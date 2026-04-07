@@ -98,7 +98,11 @@ export function usePermission(
             currentUser.employeeId === options.resourceEmployeeId
           );
         case "VIEW_OWN":
-          return currentUser.id === options.resourceOwnerId;
+          return (
+            currentUser.id === options.resourceOwnerId ||
+            (!!currentUser.employeeId &&
+              currentUser.employeeId === options.resourceEmployeeId)
+          );
         default:
           return false;
       }
@@ -123,7 +127,11 @@ export function usePermission(
             currentUser.employeeId === options.resourceEmployeeId
           );
         case "EDIT_OWN":
-          return currentUser.id === options.resourceOwnerId;
+          return (
+            currentUser.id === options.resourceOwnerId ||
+            (!!currentUser.employeeId &&
+              currentUser.employeeId === options.resourceEmployeeId)
+          );
         case "EDIT_NONE":
           return false;
         default:
@@ -150,7 +158,11 @@ export function usePermission(
             currentUser.employeeId === options.resourceEmployeeId
           );
         case "DELETE_OWN":
-          return currentUser.id === options.resourceOwnerId;
+          return (
+            currentUser.id === options.resourceOwnerId ||
+            (!!currentUser.employeeId &&
+              currentUser.employeeId === options.resourceEmployeeId)
+          );
         case "DELETE_NONE":
           return false;
         default:

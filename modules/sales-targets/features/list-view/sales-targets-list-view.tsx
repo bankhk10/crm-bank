@@ -46,9 +46,10 @@ export default function SalesTargetsListView() {
       if (!canEditBase) return false;
 
       // Check scope-based permission using the access level
-      // Note: We use employeeId as the resourceOwnerId for sales targets
       return canEditScope("sales_target", {
-        resourceOwnerId: item.employeeId,
+        resourceOwnerId: item.createdById,
+        resourceEmployeeId: item.employeeId,
+        resourceDepartmentId: item.employee?.departmentId,
       });
     },
     [canEditScope, canEditBase]
@@ -61,7 +62,9 @@ export default function SalesTargetsListView() {
 
       // Check scope-based permission using the access level
       return canDeleteScope("sales_target", {
-        resourceOwnerId: item.employeeId,
+        resourceOwnerId: item.createdById,
+        resourceEmployeeId: item.employeeId,
+        resourceDepartmentId: item.employee?.departmentId,
       });
     },
     [canDeleteScope, canDeleteBase]

@@ -43,10 +43,12 @@ export interface DetailedTarget {
   year: number;
   month: number;
   employeeId: string;
+  createdById?: string | null;
   employee?: {
     id: string;
     name: string;
     employeeCode: string;
+    departmentId?: string | null;
   };
   stores: SalesTargetStoreData[];
   createdAt?: string | Date;
