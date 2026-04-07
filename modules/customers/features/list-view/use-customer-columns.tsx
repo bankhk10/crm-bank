@@ -99,20 +99,6 @@ export function useCustomerColumns(
                 cell: ({ row }) => <TruncatedCell value={row.original.phone ?? "-"} />,
             },
             {
-                accessorKey: "customerType",
-                header: "ประเภท",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 150,
-                    width: 150,
-                    maxWidth: 150,
-                    align: "left",
-                },
-                cell: ({ row }) => (
-                    <CustomerTypeBadge type={row.original.customerType} />
-                ),
-            },
-            {
                 accessorKey: "promotionalBudgets",
                 header: "วงเงินส่งเสริมการขาย",
                 meta: {
@@ -120,7 +106,7 @@ export function useCustomerColumns(
                     minWidth: 160,
                     width: 160,
                     maxWidth: 160,
-                    align: "right",
+                    align: "center",
                 },
                 cell: ({ row }) => {
                     const budget = row.original.promotionalBudgets?.[0];
@@ -134,6 +120,21 @@ export function useCustomerColumns(
                     );
                 },
             },
+            {
+                accessorKey: "customerType",
+                header: "ประเภท",
+                meta: {
+                    headerAlign: "left",
+                    minWidth: 150,
+                    width: 150,
+                    maxWidth: 150,
+                    align: "left",
+                },
+                cell: ({ row }) => (
+                    <CustomerTypeBadge type={row.original.customerType} />
+                ),
+            },
+
             {
                 accessorKey: "status",
                 header: "สถานะ",
