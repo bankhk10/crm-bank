@@ -780,7 +780,7 @@ export function SaleForm({
                                     </span>
                                     <div className="flex items-center gap-2">
                                         <label className="text-xs text-gray-500 whitespace-nowrap">
-                                            งบ/ลัง (฿)
+                                            เก็บงบส่งเสริมการขาย
                                         </label>
                                         <input
                                             type="number"
