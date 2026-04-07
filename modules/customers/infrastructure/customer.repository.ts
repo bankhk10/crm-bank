@@ -103,6 +103,10 @@ export async function findCustomers(params: ListCustomersParams) {
             status: true,
             phone: true,
             email: true,
+            promotionalBudgets: {
+              where: { year: new Date().getFullYear() },
+              take: 1,
+            },
           },
           orderBy: { createdAt: "desc" },
         },

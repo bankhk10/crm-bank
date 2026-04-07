@@ -30,6 +30,13 @@ export interface CustomerRecord {
   parentDealerId?: string | null;
   createdById?: string;
   departmentId?: string;
+  promotionalBudgets?: {
+    salesPromotionLimit: number | string;
+    salesPromotionUsed: number | string;
+    marketingLimit: number | string;
+    marketingUsed: number | string;
+    year: number;
+  }[];
 }
 
 // ============ Customer Form Types ============

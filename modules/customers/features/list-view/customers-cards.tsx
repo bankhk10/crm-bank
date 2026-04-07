@@ -44,7 +44,7 @@ export function CustomersCards({
                         key={`loading-${idx}`}
                         className="h-full border border-slate-200/80 shadow-sm"
                     >
-                        <div className="h-1 w-full bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100" />
+                        <div className="h-1 w-full bg-linear-to-r from-slate-100 via-slate-200 to-slate-100" />
                         <div className="space-y-3 p-4">
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-12 w-12 rounded-full" />
@@ -89,7 +89,7 @@ export function CustomersCards({
                         key={customer.id}
                         className="group relative overflow-hidden border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                     >
-                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-gray-500 to-gray-400" />
+                        <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-red-500 via-gray-500 to-gray-400" />
                         <div className="p-4 space-y-3">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-center gap-3">
@@ -121,6 +121,15 @@ export function CustomersCards({
                                 )}
                             </div>
 
+                            {customer.promotionalBudgets?.[0] && (
+                                <div className="rounded-lg border border-red-100 bg-red-50/50 p-2 text-center shadow-sm">
+                                    <div className="text-[10px] font-bold text-red-500 uppercase tracking-tight">วงเงินส่งเสริมการขาย</div>
+                                    <div className="text-base font-extrabold text-red-600">
+                                        ฿{new Intl.NumberFormat("th-TH").format(Number(customer.promotionalBudgets[0].salesPromotionLimit))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-2 text-sm text-slate-700">
                                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
                                     <Mail className="h-4 w-4 text-slate-400" />
@@ -132,7 +141,7 @@ export function CustomersCards({
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 pt-1 border-t border-slate-100 mt-4 pt-4">
+                            <div className="flex flex-wrap gap-2 border-t border-slate-100 mt-4 pt-4">
                                 <Button
                                     asChild
                                     size="sm"

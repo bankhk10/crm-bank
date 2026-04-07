@@ -251,7 +251,7 @@ export function CustomersTable({
                     <div className="px-8 py-2 bg-gray-100/80 border-b flex items-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                       <div className="flex-1 px-2">ชื่อร้านค้า</div>
                       <div className="w-32 px-2 text-center">รหัสลูกค้า</div>
-                      <div className="w-40 px-2 text-center">เบอร์โทรศัพท์</div>
+                      <div className="w-40 px-2 text-center">วงเงินส่งเสริมการขาย</div>
                       <div className="w-32 px-2 text-center">ประเภท</div>
                       <div className="w-32 px-2 text-center">สถานะ</div>
                       <div className="w-24 px-2 text-right">จัดการ</div>
@@ -276,8 +276,12 @@ export function CustomersTable({
                             </span>
                           </div>
 
-                          <div className="w-40 px-2 text-center text-sm text-gray-600">
-                            {subDealer.phone || "-"}
+                          <div className="w-40 px-2 text-center text-sm font-medium text-slate-900">
+                            {subDealer.promotionalBudgets?.[0]?.salesPromotionLimit ? (
+                              `฿${new Intl.NumberFormat("th-TH").format(Number(subDealer.promotionalBudgets[0].salesPromotionLimit))}`
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
                           </div>
 
                           <div className="w-32 px-2 flex justify-center">

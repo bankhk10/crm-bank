@@ -125,6 +125,28 @@ export function useCustomerColumns(
                 ),
             },
             {
+                accessorKey: "promotionalBudgets",
+                header: "วงเงินส่งเสริมการขาย",
+                meta: {
+                    headerAlign: "right",
+                    minWidth: 160,
+                    width: 160,
+                    maxWidth: 160,
+                    align: "right",
+                },
+                cell: ({ row }) => {
+                    const budget = row.original.promotionalBudgets?.[0];
+                    if (!budget) return <span className="text-gray-400">-</span>;
+
+                    const limit = Number(budget.salesPromotionLimit);
+                    return (
+                        <div className="font-medium text-slate-900">
+                            {new Intl.NumberFormat("th-TH").format(limit)}
+                        </div>
+                    );
+                },
+            },
+            {
                 accessorKey: "status",
                 header: "สถานะ",
                 meta: {
