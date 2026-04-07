@@ -502,6 +502,7 @@ export function SaleForm({
             otherCosts,
             otherCostsDescription: otherCostsDescription || undefined,
             total,
+            promotionalBudgetTotal,
             notes: notes || undefined,
         };
 

@@ -46,6 +46,7 @@ export interface SaleConfirmData {
     otherCosts: number;
     otherCostsDescription?: string;
     total: number;
+    promotionalBudgetTotal?: number;
     // Notes
     notes?: string;
 }
@@ -258,6 +259,14 @@ export function SaleConfirmDialog({
                                 </div>
                             )}
                         </div>
+                        {data.promotionalBudgetTotal !== undefined && data.promotionalBudgetTotal > 0 && (
+                            <div className="border-t border-gray-100 px-4 py-2.5 bg-emerald-50/30 flex justify-between items-center text-emerald-700">
+                                <span className="text-sm font-semibold">งบส่งเสริมการขายรวม</span>
+                                <span className="text-base font-bold">
+                                    ฿{formatNumber(data.promotionalBudgetTotal)}
+                                </span>
+                            </div>
+                        )}
                         <div className="border-t border-gray-200 px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 flex justify-between items-center">
                             <span className="font-bold text-gray-700">ยอดเงินสุทธิ</span>
                             <span className="text-xl font-extrabold text-green-600">

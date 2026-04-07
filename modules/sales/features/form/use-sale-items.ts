@@ -47,6 +47,7 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
         unitPrice: 0,
         originalPrice: 0,
         priceModified: false,
+        promotionBudget: 0,
       },
     ]);
   }, []);
@@ -75,9 +76,8 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
             newItems[index].originalPrice = product.price;
             newItems[index].priceModified = false;
           }
-          // Auto-fill promotionBudget from product
-          newItems[index].promotionBudget =
-            product?.promotionBudget != null ? product.promotionBudget : null;
+          // Set promotionBudget to 0 regardless of product data
+          newItems[index].promotionBudget = 0;
         }
 
         // Check if price was modified
