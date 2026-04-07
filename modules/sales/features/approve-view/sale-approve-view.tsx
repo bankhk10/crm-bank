@@ -835,21 +835,11 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
                                 {/* Extra Notes or Info (Placeholder) */}
                                 <div className="flex-1 max-w-sm">
-                                    <div className="rounded-2xl bg-[#1c6bb9]/5 border border-[#1c6bb9]/10 p-5">
-                                        <div className="flex items-center gap-3 mb-2 text-[#1c6bb9]">
-                                            <Info className="h-5 w-5" />
-                                            <span className="font-bold text-sm uppercase tracking-wider">Summary Information</span>
-                                        </div>
-                                        <p className="text-xs text-gray-500 leading-relaxed italic">
-                                            ข้อมูลนี้ใช้สำหรับการพิจารณาอนุมัติรายการขาย กรุณาตรวจสอบวงเงินเครดิตและรายการของแถมให้ถี่ถ้วนก่อนดำเนินการ
-                                        </p>
-                                    </div>
                                 </div>
-
                                 {/* Calculation Details */}
                                 <div className="w-full md:w-[400px] space-y-4">
                                     <div className="flex justify-between items-center text-gray-600 group">
-                                        <span className="text-sm font-medium group-hover:text-gray-900 transition-colors">รวมเป็นเงิน (Subtotal)</span>
+                                        <span className="text-sm font-medium group-hover:text-gray-900 transition-colors">รวมเป็นเงิน</span>
                                         <span className="text-lg font-bold text-gray-900">
                                             ฿{Number(sale.subtotalAmount).toLocaleString("th-TH", {
                                                 minimumFractionDigits: 2,
@@ -898,8 +888,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                     <div className="pt-6 mt-2 border-t-2 border-dashed border-gray-200">
                                         <div className="flex justify-between items-center">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black mb-1">ยอดสุทธิที่ต้องชำระ</span>
-                                                <span className="text-2xl font-black text-gray-900 tracking-tight italic">TOTAL AMOUNT</span>
+                                                <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black mb-1">ยอดสุทธิ</span>
                                             </div>
                                             <div className="flex flex-col items-end">
                                                 <span className="text-4xl font-black text-[#B91C1C] drop-shadow-sm">
@@ -907,7 +896,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                         minimumFractionDigits: 2,
                                                     })}
                                                 </span>
-                                                <span className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-widest">(VAT Included)</span>
                                             </div>
                                         </div>
                                     </div>
