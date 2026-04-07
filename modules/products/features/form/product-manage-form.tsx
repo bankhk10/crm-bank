@@ -89,12 +89,12 @@ const PriceManagementSection: React.FC<SectionProps> = ({
 }) => {
   // Auto-calculate carton price when unit price or package size changes
   useEffect(() => {
-    if (formData.price && formData.packageSizePerBox) {
+    if (formData.price !== undefined && formData.packageSizePerBox) {
       const itemsPerBox = parseInt(formData.packageSizePerBox);
       if (!isNaN(itemsPerBox) && itemsPerBox > 0) {
         setFormData((prev) => ({
           ...prev,
-          cartonPrice: (prev.price || 0) * itemsPerBox,
+          cartonPrice: (prev.price ?? 0) * itemsPerBox,
         }));
       }
     }
@@ -114,11 +114,11 @@ const PriceManagementSection: React.FC<SectionProps> = ({
               <Input
                 type="number"
                 placeholder="0.00"
-                value={formData.price || ""}
+                value={formData.price ?? ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    price: e.target.value ? Number(e.target.value) : undefined,
+                    price: e.target.value !== "" ? Number(e.target.value) : 0,
                   }))
                 }
                 disabled={saving}
@@ -152,13 +152,13 @@ const PriceManagementSection: React.FC<SectionProps> = ({
               <Input
                 type="number"
                 placeholder="0.00"
-                value={formData.cartonPrice || ""}
+                value={formData.cartonPrice ?? ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    cartonPrice: e.target.value
+                    cartonPrice: e.target.value !== ""
                       ? Number(e.target.value)
-                      : undefined,
+                      : 0,
                   }))
                 }
                 disabled={saving}
@@ -186,13 +186,13 @@ const PriceManagementSection: React.FC<SectionProps> = ({
               <Input
                 type="number"
                 placeholder="0.00"
-                value={formData.promotionBudget || ""}
+                value={formData.promotionBudget ?? ""}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    promotionBudget: e.target.value
+                    promotionBudget: e.target.value !== ""
                       ? Number(e.target.value)
-                      : undefined,
+                      : 0,
                   }))
                 }
                 disabled={saving}
@@ -863,10 +863,10 @@ export function ProductManageForm({ productId }: { productId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ProductManagementFormData>({
-    price: undefined,
-    cartonPrice: undefined,
+    price: 0,
+    cartonPrice: 0,
     packageSizePerBox: undefined,
-    promotionBudget: undefined,
+    promotionBudget: 0,
     pointPerUnit: undefined,
     freeItems: [],
     promotionItems: [],
@@ -888,14 +888,14 @@ export function ProductManageForm({ productId }: { productId: string }) {
         setProduct(productData);
 
         setFormData({
-          price: productData.price ? Number(productData.price) : undefined,
+          price: productData.price !== null ? Number(productData.price) : 0,
           cartonPrice: productData.cartonPrice
             ? Number(productData.cartonPrice)
-            : undefined,
+            : 0,
           packageSizePerBox: productData.packageSizePerBox || undefined,
           promotionBudget: productData.promotionBudget
             ? Number(productData.promotionBudget)
-            : undefined,
+            : 0,
           pointPerUnit:
             productData.pointPerUnit !== null
               ? Number(productData.pointPerUnit)
