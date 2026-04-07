@@ -838,6 +838,17 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                 </div>
                                 {/* Calculation Details */}
                                 <div className="w-full md:w-[400px] space-y-4">
+                                    {promotionalBudgetTotal > 0 && (
+                                        <div className="flex justify-between items-center text-gray-600 group">
+                                            <span className="text-sm font-medium group-hover:text-gray-900 transition-colors">งบส่งเสริมการขายรวม</span>
+                                            <span className="text-lg font-bold text-gray-900">
+                                                ฿{Number(promotionalBudgetTotal).toLocaleString("th-TH", {
+                                                    minimumFractionDigits: 2,
+                                                })}
+                                            </span>
+                                        </div>
+                                    )}
+
                                     <div className="flex justify-between items-center text-gray-600 group">
                                         <span className="text-sm font-medium group-hover:text-gray-900 transition-colors">รวมเป็นเงิน</span>
                                         <span className="text-lg font-bold text-gray-900">
@@ -847,25 +858,10 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         </span>
                                     </div>
 
-                                    {promotionalBudgetTotal > 0 && (
-                                        <div className="flex justify-between items-center text-emerald-600 bg-emerald-50/50 px-4 py-3 rounded-xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
-                                            <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-emerald-100 rounded-lg">
-                                                    <Gift className="h-4 w-4" />
-                                                </div>
-                                                <span className="text-sm font-bold">งบส่งเสริมการขายรวม</span>
-                                            </div>
-                                            <span className="text-xl font-black">
-                                                ฿{promotionalBudgetTotal.toLocaleString("th-TH", {
-                                                    minimumFractionDigits: 2,
-                                                })}
-                                            </span>
-                                        </div>
-                                    )}
 
                                     {Number(sale.shippingCost) > 0 && (
                                         <div className="flex justify-between items-center text-rose-600">
-                                            <span className="text-sm font-medium text-gray-600">ค่าขนส่ง (Shipping)</span>
+                                            <span className="text-sm font-medium text-gray-600">ส่วนลดค่าขนส่ง</span>
                                             <span className="text-lg font-bold">
                                                 -฿{Number(sale.shippingCost).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -876,7 +872,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
                                     {Number(sale.otherCosts) > 0 && (
                                         <div className="flex justify-between items-center text-rose-600">
-                                            <span className="text-sm font-medium text-gray-600">ส่วนลดหน้าบิล (Discounts)</span>
+                                            <span className="text-sm font-medium text-gray-600">ส่วนลดหน้าบิล</span>
                                             <span className="text-lg font-bold">
                                                 -฿{Number(sale.otherCosts).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -888,10 +884,10 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                     <div className="pt-6 mt-2 border-t-2 border-dashed border-gray-200">
                                         <div className="flex justify-between items-center">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-black mb-1">ยอดสุทธิ</span>
+                                                <span className="text-xl uppercase tracking-[0.2em] text-gray-600 font-black mb-1">ยอดสุทธิ</span>
                                             </div>
                                             <div className="flex flex-col items-end">
-                                                <span className="text-4xl font-black text-[#B91C1C] drop-shadow-sm">
+                                                <span className="text-4xl font-black text-[#2cb95d] drop-shadow-sm">
                                                     ฿{Number(sale.totalAmount).toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
