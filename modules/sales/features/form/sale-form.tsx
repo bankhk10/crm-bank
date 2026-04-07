@@ -155,6 +155,12 @@ export function SaleForm({
     // Calculate total
     const total = subtotal - shippingCost - otherCosts;
 
+    // Calculate total promotional budget from editable item values
+    const promotionalBudgetTotal = items.reduce((sum, item) => {
+        const budgetPerCarton = item.promotionBudget ?? 0;
+        return sum + item.quantity * budgetPerCarton;
+    }, 0);
+
     // Selected customer
     const [selectedCustomer, setSelectedCustomer] =
         useState<SaleFormCustomer | null>(null);
@@ -752,6 +758,63 @@ export function SaleForm({
                 ))}
             </div>
 
+            {/* Promotional Budget Section */}
+            {items.some((item) => item.productId) && (
+                <>
+                    <SectionHeader title="งบส่งเสริมการขาย" color="gray" />
+                    <div className="space-y-3 mt-2">
+                        {items.map((item, originalIndex) => {
+                            if (!item.productId) return null;
+                            const product = products.find((p) => p.id === item.productId);
+                            if (!product) return null;
+                            const budgetPerCarton = item.promotionBudget ?? 0;
+                            const itemBudget = item.quantity * budgetPerCarton;
+                            return (
+                                <div
+                                    key={originalIndex}
+                                    className="flex flex-col sm:flex-row sm:items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3"
+                                >
+                                    <span className="flex-1 text-sm font-medium text-gray-700">
+                                        {product.name}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-gray-500 whitespace-nowrap">
+                                            งบ/ลัง (฿)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step={0.01}
+                                            value={item.promotionBudget ?? ""}
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    originalIndex,
+                                                    "promotionBudget",
+                                                    e.target.value !== ""
+                                                        ? Number(e.target.value)
+                                                        : null,
+                                                )
+                                            }
+                                            onWheel={(e) => e.currentTarget.blur()}
+                                            className="w-28 h-9 rounded-md border border-emerald-300 bg-white px-3 text-sm text-right focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div className="text-sm font-semibold text-emerald-700 text-right min-w-[110px]">
+                                        {item.quantity} ลัง = ฿{itemBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <div className="flex justify-between font-bold text-base text-emerald-800 bg-emerald-100 border border-emerald-200 rounded-lg px-4 py-3">
+                            <span>งบส่งเสริมการขายรวมทั้งหมด</span>
+                            <span>฿{promotionalBudgetTotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    </div>
+                </>
+            )}
+
+
             {/* Discounts Section */}
             <SectionHeader title="ส่วนลดและหมายเหตุ" color="gray" />
 
@@ -795,6 +858,7 @@ export function SaleForm({
                 shippingCost={shippingCost}
                 otherCosts={otherCosts}
                 total={total}
+                promotionalBudgetTotal={promotionalBudgetTotal}
             />
 
             {/* Action Buttons */}

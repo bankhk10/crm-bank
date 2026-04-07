@@ -75,6 +75,9 @@ export function useSaleItems(options: UseSaleItemsOptions): UseSaleItemsResult {
             newItems[index].originalPrice = product.price;
             newItems[index].priceModified = false;
           }
+          // Auto-fill promotionBudget from product
+          newItems[index].promotionBudget =
+            product?.promotionBudget != null ? product.promotionBudget : null;
         }
 
         // Check if price was modified

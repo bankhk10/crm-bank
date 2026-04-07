@@ -173,6 +173,7 @@ export interface SaleItemFormData {
   unitPrice: number;
   originalPrice: number;
   priceModified: boolean;
+  promotionBudget?: number | null;
 }
 
 export interface SalesListResponse {
@@ -445,6 +446,7 @@ export interface SaleFormProduct {
   price?: number;
   unit?: string;
   stockQuantity?: number;
+  promotionBudget?: number | null;
   promotionItems?: Array<{
     id: string;
     name: string;
@@ -604,6 +606,7 @@ export interface SaleSummaryProps {
   shippingCost: number;
   otherCosts: number;
   total: number;
+  promotionalBudgetTotal?: number;
 }
 
 export interface ProductDetailModalProps {

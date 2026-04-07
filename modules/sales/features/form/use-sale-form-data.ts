@@ -60,7 +60,13 @@ export function useSaleFormData(): SaleFormData {
             employeeCode: e.employeeCode || undefined,
           })),
         );
-        setProducts(productsData.products || []);
+        setProducts(
+          (productsData.products || []).map((p: any) => ({
+            ...p,
+            promotionBudget:
+              p.promotionBudget != null ? Number(p.promotionBudget) : null,
+          })),
+        );
         setCompanies(
           (companiesData.companies || []).map((c: any) => ({
             id: c.id,

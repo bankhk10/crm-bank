@@ -20,6 +20,7 @@ export function SaleSummary({
     shippingCost,
     otherCosts,
     total,
+    promotionalBudgetTotal,
 }: SaleSummaryProps) {
     return (
         <div className="space-y-2 mt-6">
@@ -46,6 +47,13 @@ export function SaleSummary({
                 <span>ยอดเงินสุทธิ:</span>
                 <span className="text-blue-600">฿{formatNumber(total)}</span>
             </div>
+
+            {promotionalBudgetTotal !== undefined && promotionalBudgetTotal > 0 && (
+                <div className="border-t pt-2 flex justify-between text-base font-semibold text-emerald-700">
+                    <span>งบส่งเสริมการขายรวม:</span>
+                    <span>฿{formatNumber(promotionalBudgetTotal)}</span>
+                </div>
+            )}
         </div>
     );
 }
