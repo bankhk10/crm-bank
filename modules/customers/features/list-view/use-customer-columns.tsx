@@ -87,18 +87,6 @@ export function useCustomerColumns(
                 cell: ({ row }) => <TruncatedCell value={row.original.name ?? "-"} />,
             },
             {
-                accessorKey: "email",
-                header: "อีเมล",
-                meta: {
-                    headerAlign: "left",
-                    minWidth: 160,
-                    width: 160,
-                    maxWidth: 160,
-                    align: "left",
-                },
-                cell: ({ row }) => <TruncatedCell value={row.original.email ?? "-"} />,
-            },
-            {
                 accessorKey: "phone",
                 header: "โทรศัพท์",
                 meta: {

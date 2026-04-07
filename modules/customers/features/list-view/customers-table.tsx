@@ -57,12 +57,12 @@ export function CustomersTable({
   currentUserId,
 }: CustomersTableProps) {
   const { hasPermission } = usePermission("menu.customers");
-  
+
   const canCreateDealer = hasPermission("customer.create.dealer");
   const canCreateSubdealer = hasPermission("customer.create.subdealer");
   const canCreateFarmer = hasPermission("customer.create.farmer");
   const canCreateBroker = hasPermission("customer.create.broker");
-  
+
   // Base permissions from props override internal ones if provided
 
   const [error, setError] = React.useState<string | null>(null);
@@ -120,7 +120,7 @@ export function CustomersTable({
   const toolbar = (
     <div className="space-y-4 mb-6">
       <TableToolbar
-        searchPlaceholder="รหัสลูกค้า, ชื่อ, อีเมล, โทรศัพท์"
+        searchPlaceholder="รหัสลูกค้า, ชื่อ"
         searchValue={filterDraft.query}
         onSearchChange={(val) => setFilterDraft(prev => ({ ...prev, query: val }))}
         onSearchSubmit={onSearchSubmit}
