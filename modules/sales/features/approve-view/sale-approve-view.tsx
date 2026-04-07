@@ -185,6 +185,9 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
     if (!data) return null;
 
     const { sale, priceWarnings, stockWarnings, creditInfo } = data;
+    const promotionalBudgetTotal = sale.items.reduce((sum, item) => {
+        return sum + (Number(item.quantity) * Number(item.promotionBudget ?? 0));
+    }, 0);
 
     if (sale.status !== "PENDING_APPROVAL") {
         return (
@@ -600,6 +603,18 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                     })}
                                                 </p>
                                             </div>
+                                            {Number(item.promotionBudget ?? 0) > 0 && (
+                                                <div className="col-span-2 bg-emerald-50/50 rounded-lg p-3 text-right border border-emerald-100 mt-1">
+                                                    <span className="text-emerald-500 text-xs block mb-1">
+                                                        งบส่งเสริม (฿{Number(item.promotionBudget).toLocaleString()}/ลัง)
+                                                    </span>
+                                                    <p className="font-bold text-emerald-600">
+                                                        ฿{(Number(item.quantity) * Number(item.promotionBudget)).toLocaleString("th-TH", {
+                                                            minimumFractionDigits: 2,
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );
@@ -664,6 +679,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                 <div className="col-span-1 text-center">บรรจุ</div>
                                 <div className="col-span-2 text-center">ราคา/หน่วย</div>
                                 <div className="col-span-1 text-center">ราคา/ลัง</div>
+                                <div className="col-span-1 text-center">งบ/ลัง</div>
                                 <div className="col-span-2 text-center">รวม</div>
                             </div>
                             {sale.items.map((item: SaleItemWithProduct, i: number) => {
@@ -757,6 +773,12 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                                 </p>
                                             </div>
 
+                                            {/* Promotion Budget Per Unit */}
+                                            <div className="col-span-1 text-center font-medium text-emerald-600">
+                                                <p className="text-sm md:text-base">
+                                                    {Number(item.promotionBudget ?? 0).toLocaleString()}
+                                                </p>
+                                            </div>
                                             {/* Total */}
                                             <div className="col-span-2 text-center">
                                                 <p
@@ -794,6 +816,17 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                                         })}
                                     </span>
                                 </div>
+
+                                {promotionalBudgetTotal > 0 && (
+                                    <div className="flex justify-between items-center py-1 text-emerald-600">
+                                        <span className="text-sm font-semibold">งบส่งเสริมการขายรวม</span>
+                                        <span className="text-base font-bold">
+                                            ฿{promotionalBudgetTotal.toLocaleString("th-TH", {
+                                                minimumFractionDigits: 2,
+                                            })}
+                                        </span>
+                                    </div>
+                                )}
 
                                 {Number(sale.shippingCost) > 0 && (
                                     <div className="flex justify-between items-center py-1">
