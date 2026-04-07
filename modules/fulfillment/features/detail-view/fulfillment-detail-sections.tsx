@@ -669,7 +669,6 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                 ? "bg-emerald-50 border-emerald-100 text-emerald-700 shadow-sm"
                                                 : "bg-gray-50 border-gray-100 text-gray-300"
                                                 }`}>
-                                                <span className="text-[10px] uppercase font-bold tracking-tighter mb-1">งบ/ลัง</span>
                                                 <span className="text-xs font-black">
                                                     ฿{Number(item.promotionBudget ?? 0).toLocaleString()}
                                                 </span>
@@ -708,17 +707,10 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                 })}
                                             </p>
                                             <p className="text-[10px] text-emerald-500 mt-1 font-medium italic">
-                                                * งบประมาณส่วนนี้รวมอยู่ในราคาสุทธิแล้ว
+                                                * งบส่งเสริมการขายทั้งหมดในใบคำสั่งขาย
                                             </p>
                                         </div>
                                     )}
-                                    <div className="flex items-start gap-3 p-4 bg-blue-50/30 rounded-2xl border border-blue-100/30">
-                                        <Info className="h-4 w-4 text-blue-500 mt-0.5" />
-                                        <p className="text-xs text-blue-600 leading-relaxed">
-                                            ราคาสินค้ารวมภาษีมูลค่าเพิ่มแล้ว (VAT Included) <br />
-                                            กรุณาตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการ
-                                        </p>
-                                    </div>
                                 </div>
 
                                 {/* Right Side: Monetization */}
@@ -757,11 +749,11 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                     <div className="mt-6 pt-6 border-t border-gray-200">
                                         <div className="flex justify-between items-end bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                                             <div className="flex flex-col">
-                                                <span className="text-xs uppercase tracking-[0.2em] text-gray-400 font-black mb-1">ยอดสุทธิทั้งสิ้น</span>
+                                                <span className="text-xl uppercase text-gray-600 font-black mb-1">ยอดสุทธิ</span>
                                                 <span className="text-[10px] text-gray-400">Total Net Amount</span>
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-4xl font-black text-[#28a717] tracking-tighter">
+                                                <span className="text-4xl font-black text-[#28a717]">
                                                     ฿{Number(sale.totalAmount).toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
                                                     })}
