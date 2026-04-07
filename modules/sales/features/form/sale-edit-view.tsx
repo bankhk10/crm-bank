@@ -97,6 +97,7 @@ export default function SaleEditView({ id }: SaleEditViewProps) {
             unitPrice: Number(item.unitPrice),
             originalPrice: Number(item.originalPrice),
             priceModified: item.priceModified,
+            promotionBudget: item.promotionBudget !== null ? Number(item.promotionBudget) : 0,
           })),
           shippingCost: Number(sale.shippingCost),
           otherCosts: Number(sale.otherCosts),

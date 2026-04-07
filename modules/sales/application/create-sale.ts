@@ -232,9 +232,7 @@ export async function createSaleUseCase(
             : null;
         })(),
         promotionBudget:
-          product?.promotionBudget != null
-            ? Number(product.promotionBudget)
-            : null,
+          item.promotionBudget != null ? Number(item.promotionBudget) : 0,
         pointPerUnit: product?.pointPerUnit,
         productChain: product?.productABCType?.name,
 

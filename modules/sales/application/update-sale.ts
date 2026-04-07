@@ -62,7 +62,7 @@ export async function updateSaleUseCase(
     body.deliveryDate &&
     (!existingSale.deliveryDate ||
       new Date(body.deliveryDate).getTime() !==
-        existingSale.deliveryDate.getTime())
+      existingSale.deliveryDate.getTime())
   ) {
     if (existingSale.deliveryUpdateCount >= 3) {
       return {
@@ -174,9 +174,7 @@ export async function updateSaleUseCase(
             : null;
         })(),
         promotionBudget:
-          product?.promotionBudget != null
-            ? Number(product.promotionBudget)
-            : null,
+          item.promotionBudget != null ? Number(item.promotionBudget) : 0,
         pointPerUnit: product?.pointPerUnit,
         productChain: product?.productABCType?.name,
 
