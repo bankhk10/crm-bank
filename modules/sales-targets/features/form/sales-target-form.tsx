@@ -24,6 +24,7 @@ import {
     updateSalesTargetAction,
     getAvailableYearsAction,
 } from "../../server/actions";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 // ─────────────────────────────────────────────
 // Local Types
@@ -58,6 +59,15 @@ interface SalesTargetFormProps {
 
 export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
     const router = useRouter();
+    const currentUser = useCurrentUser();
+    const isAdmin =
+        currentUser?.roles?.includes("admin") ||
+        currentUser?.roles?.includes("administrator") ||
+        false;
+    const isManager = currentUser?.roles?.includes("sales_manager") || false;
+    const isSaleAdmin = currentUser?.roles?.includes("sales_admin") || false;
+    const canSelectOtherEmployees = isAdmin || isManager || isSaleAdmin;
+
     const [saving, setSaving] = useState(false);
 
     // Form State
@@ -85,6 +95,15 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
 
     const isEdit = mode === "edit";
     const isCopy = mode === "copy";
+
+    useEffect(() => {
+        if (!isEdit && !employeeId && currentUser?.employeeId) {
+            const timer = setTimeout(() => {
+                setEmployeeId(currentUser.employeeId || "");
+            }, 0);
+            return () => clearTimeout(timer);
+        }
+    }, [currentUser, isEdit, employeeId]);
 
     // Total across all stores
     const grandTotal = useMemo(() => {
@@ -490,6 +509,7 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
                                         placeholder="เลือกพนักงาน"
                                         searchPlaceholder="ค้นหาพนักงาน..."
                                         emptyText="ไม่พบพนักงาน"
+                                        disabled={!canSelectOtherEmployees}
                                         error={errors.employeeId}
                                         triggerClassName="h-10 sm:h-12 text-base sm:text-base rounded-lg"
                                         required
