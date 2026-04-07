@@ -566,9 +566,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                             <div className="col-span-1 text-center">บรรจุ</div>
                             <div className="col-span-1 text-right">ราคา/หน่วย</div>
                             <div className="col-span-1 text-right">ราคา/ลัง</div>
-                            <div className="col-span-1 text-center flex items-center justify-center gap-1 text-emerald-600">
-                                <Gift className="h-3 w-3" /> งบ/ลัง
-                            </div>
+                            <div className="col-span-1 text-center">งบ/ลัง</div>
                             <div className="col-span-1 text-right">ราคารวม</div>
                         </div>
                         {sale.items.map((item: any, i: number) => {
@@ -605,7 +603,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                                     {item.product.name}
                                                 </span>
                                                 <span className="text-[10px] font-mono text-gray-400 mt-1 uppercase tracking-tighter">
-                                                    SKU: {item.product.productCode}
+                                                    {item.product.productCode}
                                                 </span>
                                                 {priceChanged && (
                                                     <div className="mt-2">
