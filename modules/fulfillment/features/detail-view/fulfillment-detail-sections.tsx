@@ -61,7 +61,7 @@ const AppSectionHeader = ({
 }) => (
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl text-white shadow-lg shadow-red-500/20">
+            <div className="p-2.5 bg-linear-to-br from-red-500 to-rose-600 rounded-xl text-white shadow-lg shadow-red-500/20">
                 <Icon className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
@@ -495,7 +495,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                     </div>
 
                     {/* Mobile Summary */}
-                    <div className="bg-gradient-to-br from-gray-50 to-white border-t border-gray-100 p-6 space-y-4 rounded-b-xl">
+                    <div className="bg-linear-to-br from-gray-50 to-white border-t border-gray-100 p-6 space-y-4 rounded-b-xl">
 
                         {promotionalBudgetTotal > 0 && (
                             <div className="flex justify-between items-center text-gray-700">
@@ -558,16 +558,18 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                     <div className="p-6">
                         {/* Modern Table Header */}
                         <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50/80 rounded-xl mb-4 text-[11px] uppercase tracking-widest font-bold text-gray-500 border border-gray-100 shadow-sm">
-                            <div className="col-span-4 flex items-center gap-2">
+                            <div className="col-span-5 flex items-center gap-2">
                                 <Package className="h-3 w-3" /> สินค้า
                             </div>
-                            <div className="col-span-1 text-left">จำนวน</div>
-                            <div className="col-span-1 text-left">หน่วย</div>
-                            <div className="col-span-1 text-left">บรรจุ</div>
-                            <div className="col-span-1 text-left">ราคา/หน่วย</div>
-                            <div className="col-span-1 text-left">ราคา/ลัง</div>
-                            <div className="col-span-1 text-left">งบ/ลัง</div>
-                            <div className="col-span-1 text-left">ราคารวม</div>
+                            <div className="col-span-1 text-center">จำนวน</div>
+                            <div className="col-span-1 text-center">หน่วย</div>
+                            <div className="col-span-1 text-center">บรรจุ</div>
+                            <div className="col-span-1 text-right">ราคา/หน่วย</div>
+                            <div className="col-span-1 text-right">ราคา/ลัง</div>
+                            <div className="col-span-1 text-center flex items-center justify-center gap-1 text-emerald-600">
+                                <Gift className="h-3 w-3" /> งบ/ลัง
+                            </div>
+                            <div className="col-span-1 text-right">ราคารวม</div>
                         </div>
                         {sale.items.map((item: any, i: number) => {
                             const originalUnitPrice = Number(
@@ -597,7 +599,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                 >
                                     <div className="grid grid-cols-12 gap-4 items-center p-4 md:p-5">
                                         {/* Product Info */}
-                                        <div className="col-span-4">
+                                        <div className="col-span-5">
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-gray-900 text-base group-hover:text-[#1c6bb9] transition-colors leading-tight">
                                                     {item.product.name}
@@ -616,29 +618,29 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                         </div>
 
                                         {/* Quantity */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-center">
                                             <span className="text-gray-900 font-bold text-lg bg-gray-50 w-10 h-10 inline-flex items-center justify-center rounded-xl border border-gray-100 group-hover:bg-white transition-colors">
                                                 {item.quantity}
                                             </span>
                                         </div>
 
                                         {/* Unit */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-center">
                                             <span className="text-gray-500 font-medium text-sm">
                                                 {item.product.unit || "-"}
                                             </span>
                                         </div>
 
                                         {/* Package Size */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-center">
                                             <span className="px-2 py-1 bg-gray-100/50 rounded-md text-xs font-bold text-gray-600 border border-gray-100">
                                                 {item.product.packageSizePerBox || "-"}
                                             </span>
                                         </div>
 
                                         {/* Unit Price */}
-                                        <div className="col-span-2 text-left">
-                                            <div className="flex flex-col items-start">
+                                        <div className="col-span-1 text-right">
+                                            <div className="flex flex-col items-end">
                                                 <span className={`font-bold text-base ${priceChanged ? "text-orange-700" : "text-gray-900"}`}>
                                                     ฿{currentUnitPrice.toLocaleString("th-TH", {
                                                         minimumFractionDigits: 2,
@@ -655,7 +657,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                         </div>
 
                                         {/* Carton Price */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-right">
                                             <span className="text-gray-500 font-semibold text-sm">
                                                 ฿{cartonPrice.toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -664,11 +666,12 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                         </div>
 
                                         {/* Promotion Budget Per Unit */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-center">
                                             <div className={`inline-flex flex-col items-center justify-center min-w-[60px] p-2 rounded-xl border transition-all ${Number(item.promotionBudget ?? 0) > 0
                                                 ? "bg-emerald-50 border-emerald-100 text-emerald-700 shadow-sm"
                                                 : "bg-gray-50 border-gray-100 text-gray-300"
                                                 }`}>
+                                                <span className="text-[10px] uppercase font-bold tracking-tighter mb-1">งบ/ลัง</span>
                                                 <span className="text-xs font-black">
                                                     ฿{Number(item.promotionBudget ?? 0).toLocaleString()}
                                                 </span>
@@ -676,7 +679,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                         </div>
 
                                         {/* Total */}
-                                        <div className="col-span-1 text-left">
+                                        <div className="col-span-1 text-right">
                                             <span className={`font-bold text-base ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
                                                 ฿{currentTotal.toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
@@ -689,7 +692,7 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                         })}
 
                         {/* Desktop Summary Section */}
-                        <div className="mt-8 bg-gradient-to-br from-gray-50 to-white border border-gray-100 rounded-3xl p-8 shadow-sm">
+                        <div className="mt-8 bg-linear-to-br from-gray-50 to-white border border-gray-100 rounded-3xl p-8 shadow-sm">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Left Side: Budget Info */}
                                 <div className="space-y-4">
@@ -711,7 +714,13 @@ export function ItemsCard({ sale }: { sale: Sale }) {
                                             </p>
                                         </div>
                                     )}
-
+                                    <div className="flex items-start gap-3 p-4 bg-blue-50/30 rounded-2xl border border-blue-100/30">
+                                        <Info className="h-4 w-4 text-blue-500 mt-0.5" />
+                                        <p className="text-xs text-blue-600 leading-relaxed">
+                                            ราคาสินค้ารวมภาษีมูลค่าเพิ่มแล้ว (VAT Included) <br />
+                                            กรุณาตรวจสอบรายละเอียดความถูกต้องก่อนดำเนินการ
+                                        </p>
+                                    </div>
                                 </div>
 
                                 {/* Right Side: Monetization */}
