@@ -139,6 +139,34 @@ export async function groupSaleStatusCounts(start: Date, end: Date) {
   });
 }
 
+export async function findSaleItemsWithDetails(
+  start: Date,
+  end: Date,
+  excludedStatuses: SaleStatus[] = [],
+) {
+  return prisma.saleItem.findMany({
+    where: {
+      sale: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { notIn: excludedStatuses }
+      },
+    },
+    select: {
+      totalPrice: true,
+      sale: {
+        select: { status: true },
+      },
+      product: {
+        select: {
+          productABCTypeId: true,
+          tradeNameGroupId: true,
+        },
+      },
+    },
+  });
+}
+
 export async function findMonthlySalesTarget(
   year: number,
   month?: number | null,

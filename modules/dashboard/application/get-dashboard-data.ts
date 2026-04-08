@@ -123,211 +123,135 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)]),
   );
 
-  const getProductGroupData = async (
-    start: Date,
-    end: Date,
-    lastYearStart: Date,
-    lastYearEnd: Date,
-  ) =>
-    Promise.all(
-      productGroupOptions.map(async (groupOption) => {
-        const group = groupOption.value;
-        const target = productGroupTargetMap.get(group) || 0;
-
-        const productIds = await repo.findProductIdsByGroup(group);
-
-        if (productIds.length === 0) {
-          return {
-            group: groupOption.label,
-            code: groupOption.value,
-            target,
-            salesNote: 0,
-            invoice: 0,
-            lastYearSalesNote: 0,
-            lastYearInvoice: 0,
-          };
-        }
-
-        const salesNoteAmt = await repo.aggregateSaleItemAmount(
-          start,
-          end,
-          productIds,
-          [
-            "PENDING",
-            "PENDING_APPROVAL",
-            "WAITING_FOR_CORRECTION",
-            "APPROVED",
-            "AWAITING_PAYMENT",
-            "AWAITING_DELIVERY",
-          ],
-        );
-
-        const invoiceAmt = await repo.aggregateSaleItemAmount(
-          start,
-          end,
-          productIds,
-          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-        );
-
-        const lastYearSalesNoteAmt = await repo.aggregateSaleItemAmount(
-          lastYearStart,
-          lastYearEnd,
-          productIds,
-          [
-            "PENDING",
-            "PENDING_APPROVAL",
-            "WAITING_FOR_CORRECTION",
-            "APPROVED",
-            "AWAITING_PAYMENT",
-            "AWAITING_DELIVERY",
-          ],
-        );
-
-        const lastYearInvoiceAmt = await repo.aggregateSaleItemAmount(
-          lastYearStart,
-          lastYearEnd,
-          productIds,
-          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-        );
-
-        return {
-          group: groupOption.label,
-          code: groupOption.value,
-          target,
-          salesNote: salesNoteAmt,
-          invoice: invoiceAmt,
-          lastYearSalesNote: lastYearSalesNoteAmt,
-          lastYearInvoice: lastYearInvoiceAmt,
-        };
-      }),
-    );
-
-  const lastYearSameDayStart = startOfDay(subYears(now, 1));
-  const lastYearSameDayEnd = endOfDay(subYears(now, 1));
-  const lastYearSameMonthStart = startOfMonth(subYears(now, 1));
-  const lastYearSameMonthEnd = endOfMonth(subYears(now, 1));
-
-  // Trade Name Group fetching logic
   const tradeNameGroups = await repo.findAllTradeNameGroups();
   const tradeNameGroupOptions = tradeNameGroups.map((g) => ({
     value: g.code,
     label: g.description,
   }));
 
-  const getTradeNameGroupData = async (
+  const getProductAndTradeNameGroupData = async (
     start: Date,
     end: Date,
     lastYearStart: Date,
     lastYearEnd: Date,
-  ) =>
-    Promise.all(
-      tradeNameGroupOptions.map(async (groupOption) => {
+  ) => {
+    const currentItems = await repo.findSaleItemsWithDetails(start, end, ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"]);
+    const lastYearItems = await repo.findSaleItemsWithDetails(lastYearStart, lastYearEnd, ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"]);
+
+    const invoiceStatuses = ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
+    const salesNoteStatuses = ["PENDING", "PENDING_APPROVAL", "WAITING_FOR_CORRECTION", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"];
+
+    const buildProductGroupData = () => {
+      return productGroupOptions.map(groupOption => {
         const group = groupOption.value;
-        const target = 0; // ไม่มีเป้าหมายราย Trade Name Group
+        const target = productGroupTargetMap.get(group) || 0;
 
-        const productIds = await repo.findProductIdsByTradeNameGroup(group);
+        let salesNote = 0;
+        let invoice = 0;
+        let lastYearSalesNote = 0;
+        let lastYearInvoice = 0;
 
-        if (productIds.length === 0) {
-          return {
-            group: groupOption.label,
-            code: groupOption.value,
-            target,
-            salesNote: 0,
-            invoice: 0,
-            lastYearSalesNote: 0,
-            lastYearInvoice: 0,
-          };
+        for (const item of currentItems) {
+          if (item.product.productABCTypeId === group) {
+            const amount = Number(item.totalPrice);
+            if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
+            else if (salesNoteStatuses.includes(item.sale.status)) salesNote += amount;
+          }
         }
-
-        const salesNoteAmt = await repo.aggregateSaleItemAmount(
-          start,
-          end,
-          productIds,
-          [
-            "PENDING",
-            "PENDING_APPROVAL",
-            "WAITING_FOR_CORRECTION",
-            "APPROVED",
-            "AWAITING_PAYMENT",
-            "AWAITING_DELIVERY",
-          ],
-        );
-
-        const invoiceAmt = await repo.aggregateSaleItemAmount(
-          start,
-          end,
-          productIds,
-          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-        );
-
-        const lastYearSalesNoteAmt = await repo.aggregateSaleItemAmount(
-          lastYearStart,
-          lastYearEnd,
-          productIds,
-          [
-            "PENDING",
-            "PENDING_APPROVAL",
-            "WAITING_FOR_CORRECTION",
-            "APPROVED",
-            "AWAITING_PAYMENT",
-            "AWAITING_DELIVERY",
-          ],
-        );
-
-        const lastYearInvoiceAmt = await repo.aggregateSaleItemAmount(
-          lastYearStart,
-          lastYearEnd,
-          productIds,
-          ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
-        );
+        for (const item of lastYearItems) {
+          if (item.product.productABCTypeId === group) {
+            const amount = Number(item.totalPrice);
+            if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
+            else if (salesNoteStatuses.includes(item.sale.status)) lastYearSalesNote += amount;
+          }
+        }
 
         return {
           group: groupOption.label,
           code: groupOption.value,
           target,
-          salesNote: salesNoteAmt,
-          invoice: invoiceAmt,
-          lastYearSalesNote: lastYearSalesNoteAmt,
-          lastYearInvoice: lastYearInvoiceAmt,
+          salesNote,
+          invoice,
+          lastYearSalesNote,
+          lastYearInvoice,
         };
-      }),
-    );
+      });
+    };
+
+    const buildTradeNameGroupData = () => {
+      return tradeNameGroupOptions.map(groupOption => {
+        const group = groupOption.value;
+        const target = 0;
+
+        let salesNote = 0;
+        let invoice = 0;
+        let lastYearSalesNote = 0;
+        let lastYearInvoice = 0;
+
+        for (const item of currentItems) {
+          if (item.product.tradeNameGroupId === group) {
+            const amount = Number(item.totalPrice);
+            if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
+            else if (salesNoteStatuses.includes(item.sale.status)) salesNote += amount;
+          }
+        }
+        for (const item of lastYearItems) {
+          if (item.product.tradeNameGroupId === group) {
+            const amount = Number(item.totalPrice);
+            if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
+            else if (salesNoteStatuses.includes(item.sale.status)) lastYearSalesNote += amount;
+          }
+        }
+
+        return {
+          group: groupOption.label,
+          code: groupOption.value,
+          target,
+          salesNote,
+          invoice,
+          lastYearSalesNote,
+          lastYearInvoice,
+        };
+      });
+    };
+
+    return {
+      productGroupData: buildProductGroupData(),
+      tradeNameGroupData: buildTradeNameGroupData()
+    };
+  };
+
+  const lastYearSameDayStart = startOfDay(subYears(now, 1));
+  const lastYearSameDayEnd = endOfDay(subYears(now, 1));
+  const lastYearSameMonthStart = startOfMonth(subYears(now, 1));
+  const lastYearSameMonthEnd = endOfMonth(subYears(now, 1));
 
   const [
-    productGroupDay, 
-    productGroupMonth, 
-    productGroupYear,
-    tradeNameGroupDay,
-    tradeNameGroupMonth,
-    tradeNameGroupYear,
+    dayData, 
+    monthData, 
+    yearData,
   ] = await Promise.all([
-    getProductGroupData(
+    getProductAndTradeNameGroupData(
       dayStart,
       dayEnd,
       lastYearSameDayStart,
       lastYearSameDayEnd,
     ),
-    getProductGroupData(
+    getProductAndTradeNameGroupData(
       monthStart,
       monthEnd,
       lastYearSameMonthStart,
       lastYearSameMonthEnd,
     ),
-    getProductGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
-    getTradeNameGroupData(
-      dayStart,
-      dayEnd,
-      lastYearSameDayStart,
-      lastYearSameDayEnd,
-    ),
-    getTradeNameGroupData(
-      monthStart,
-      monthEnd,
-      lastYearSameMonthStart,
-      lastYearSameMonthEnd,
-    ),
-    getTradeNameGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
+    getProductAndTradeNameGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
   ]);
+
+  const productGroupDay = dayData.productGroupData;
+  const productGroupMonth = monthData.productGroupData;
+  const productGroupYear = yearData.productGroupData;
+  const tradeNameGroupDay = dayData.tradeNameGroupData;
+  const tradeNameGroupMonth = monthData.tradeNameGroupData;
+  const tradeNameGroupYear = yearData.tradeNameGroupData;
 
   // === 3. Region Sales (This Month) ===
   const regions = getAllRegions();
