@@ -1,32 +1,25 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { CustomTable } from "@/components/custom/custom-table";
+import { TableToolbar } from "@/components/custom/table-toolbar";
+
+interface ProductRecord {
+  id: string;
+  code: string;
+  name: string;
+  totalSales: number;
+  totalQuantity: number;
+  orderCount: number;
+  totalPackageSold: number;
+  packageUnit: string;
+  packageSizeUnit: string;
+}
 
 interface AllProductsTableProps {
-  products: {
-    id: string;
-    code: string;
-    name: string;
-    totalSales: number;
-    totalQuantity: number;
-    orderCount: number;
-    totalPackageSold: number;
-    packageUnit: string;
-    packageSizeUnit: string;
-  }[];
+  products: ProductRecord[];
   formatTHB: (amount: number) => string;
   formatNumber: (num: number) => string;
   formatPackSize: (value: number, unit?: string) => string;
@@ -39,6 +32,8 @@ export function AllProductsTable({
   formatPackSize,
 }: AllProductsTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return products;
@@ -46,109 +41,158 @@ export function AllProductsTable({
     return products.filter(
       (p) =>
         p.name.toLowerCase().includes(lowerQuery) ||
-        p.code.toLowerCase().includes(lowerQuery),
+        p.code.toLowerCase().includes(lowerQuery)
     );
   }, [products, searchQuery]);
 
+  // Reset to page 1 when search changes
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * perPage;
+    return filteredProducts.slice(start, start + perPage);
+  }, [filteredProducts, page, perPage]);
+
+  const columns = useMemo<ColumnDef<ProductRecord>[]>(
+    () => [
+      {
+        id: "index",
+        header: "ลำดับ",
+        meta: {
+          width: 70,
+          align: "center",
+          headerAlign: "center",
+        },
+        cell: ({ row }) => (
+          <Badge
+            variant="outline"
+            className={
+              row.index + (page - 1) * perPage < 3 && !searchQuery
+                ? "bg-amber-100 text-amber-800 border-amber-300 font-bold"
+                : "font-medium text-slate-600"
+            }
+          >
+            {row.index + 1 + (page - 1) * perPage}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: "สินค้า",
+        meta: {
+          minWidth: 200,
+          align: "left",
+          headerAlign: "left",
+        },
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span className="font-semibold text-slate-900 leading-tight">
+              {row.original.name}
+            </span>
+            <span className="text-xs text-slate-500 font-mono mt-0.5">
+              {row.original.code}
+            </span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "totalSales",
+        header: "ยอดขาย",
+        meta: {
+          width: 150,
+          align: "left",
+          headerAlign: "left",
+        },
+        cell: ({ row }) => (
+          <span className="font-bold text-slate-900">
+            {formatTHB(row.original.totalSales)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "totalQuantity",
+        header: "จำนวนที่ขาย",
+        meta: {
+          width: 130,
+          align: "left",
+          headerAlign: "left",
+        },
+        cell: ({ row }) => (
+          <span className="font-medium text-slate-700">
+            {formatNumber(row.original.totalQuantity)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "orderCount",
+        header: "จำนวนออเดอร์",
+        meta: {
+          width: 150,
+          align: "left",
+          headerAlign: "left",
+        },
+        cell: ({ row }) => (
+          <span className="font-medium text-indigo-600">
+            {formatNumber(row.original.orderCount)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "totalPackageSold",
+        header: "ขนาดบรรจุรวมที่ขายได้",
+        meta: {
+          width: 180,
+          align: "center",
+          headerAlign: "center",
+        },
+        cell: ({ row }) => (
+          <span className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded">
+            {formatPackSize(
+              row.original.totalPackageSold,
+              row.original.packageUnit
+            )}
+          </span>
+        ),
+      },
+    ],
+    [searchQuery, formatTHB, formatNumber, formatPackSize, page, perPage]
+  );
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-      <Card className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <CardTitle className="text-lg">
-            ข้อมูลการขายสินค้าทั้งหมด (ตามช่วงเวลาที่เลือก)
-          </CardTitle>
-          <div className="flex items-center gap-2 w-full sm:max-w-md">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="ค้นหารหัสสินค้า, ชื่อสินค้า..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 border-slate-200 focus:bg-white transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="max-h-[450px] overflow-auto">
-            <div className="overflow-x-auto">
-              <Table className="min-w-[720px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ลำดับ</TableHead>
-                    <TableHead>สินค้า</TableHead>
-                    <TableHead className="text-center">ยอดขาย</TableHead>
-                    <TableHead className="text-center">จำนวนที่ขาย</TableHead>
-                    <TableHead className="text-center">จำนวนออเดอร์</TableHead>
-                    <TableHead className="text-center">ขนาดบรรจุรวมที่ขายได้</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.length > 0 ? (
-                    filteredProducts.map((product, idx) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              idx < 3 && !searchQuery
-                                ? "bg-amber-100 text-amber-800 border-amber-300"
-                                : ""
-                            }
-                          >
-                            {idx + 1}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-sm">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {product.code}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-medium">
-                          {formatTHB(product.totalSales)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {formatNumber(product.totalQuantity)}
-                        </TableCell>
-                        <TableCell className="text-center text-slate-700 font-medium">
-                          {formatNumber(product.orderCount)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-red-700">
-                            {formatPackSize(
-                              product.totalPackageSold,
-                              product.packageUnit,
-                            )}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <p>ไม่พบข้อมูลสินค้าที่ค้นหา</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between px-1">
+        <h2 className="text-xl font-bold text-slate-800">
+          ข้อมูลการขายสินค้าทั้งหมด (ตามช่วงเวลาที่เลือก)
+        </h2>
+      </div>
+
+      <TableToolbar
+        searchPlaceholder="ค้นหารหัสสินค้า, ชื่อสินค้า..."
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        className="bg-white/80 backdrop-blur-sm border-slate-200"
+      />
+
+      <div className="relative rounded-xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+        <CustomTable
+          columns={columns}
+          data={paginatedData}
+          loading={false}
+          className="border-none"
+          pagination={{
+            page,
+            perPage,
+            total: filteredProducts.length,
+            onPageChange: setPage,
+            onPerPageChange: setPerPage,
+            perPageOptions: [10, 20, 50],
+          }}
+        />
+      </div>
     </div>
   );
 }
+
+
