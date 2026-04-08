@@ -36,3 +36,6 @@ export { SalesTargetForm } from "./features/form/sales-target-form";
 export { default as SalesTargetCreateView } from "./features/form/sales-target-create-view";
 export { default as SalesTargetEditView } from "./features/form/sales-target-edit-view";
 export { default as SalesTargetCopyView } from "./features/form/sales-target-copy-view";
+
+// Features - Import
+export { default as SalesTargetImportView } from "./features/import/sales-target-import-view";

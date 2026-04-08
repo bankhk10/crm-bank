@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Upload } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -208,7 +208,13 @@ export function SalesTargetTable({
                 }
             />
             {canCreate && (
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                    <Link href="/sales-targets/import" className="w-full sm:w-auto">
+                        <Button variant="outline" className="w-full lg:w-auto border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+                            <Upload className="h-5 w-5" />
+                            นำเข้าข้อมูล
+                        </Button>
+                    </Link>
                     <Link href="/sales-targets/create" className="w-full sm:w-auto">
                         <Button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white">
                             <PlusCircle className="h-5 w-5" />
