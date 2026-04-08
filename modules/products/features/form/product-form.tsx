@@ -242,9 +242,9 @@ export function ProductForm({
 
     try {
       const payload = {
-        productCode: formData.productCode,
-        name: formData.name,
-        commonName: formData.commonName || undefined,
+        productCode: formData.productCode.trim().replace(/\s/g, ""),
+        name: formData.name.trim(),
+        commonName: formData.commonName?.trim() || undefined,
         unit: formData.unit || undefined,
         tradeNameGroupId: formData.tradeNameGroupId || undefined,
         brand: formData.brand || undefined,
@@ -442,7 +442,12 @@ export function ProductForm({
 
 
   const updateField = (field: keyof ProductFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let cleanValue = value;
+    if (field === "productCode" && typeof value === "string") {
+      cleanValue = value.replace(/\s/g, "");
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: cleanValue }));
 
     setErrors((prev) => {
       if (!prev[field]) return prev;
