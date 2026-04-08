@@ -306,12 +306,12 @@ export default function CustomerFormDealer({
     }
 
     const payload: CustomerPayload & any = {
-      customerCode: values.customerCode ?? "",
+      customerCode: values.customerCode?.trim().replace(/\s/g, "") ?? "",
       customerType: "DEALER",
-      name: values.companyName ?? "",
+      name: values.companyName?.trim() ?? "",
       prefix: values.prefix ?? "",
-      firstName: values.firstName ?? "",
-      lastName: values.lastName ?? "",
+      firstName: values.firstName?.trim() ?? "",
+      lastName: values.lastName?.trim() ?? "",
       birthDate: values.birthDate ?? undefined,
       email: values.email ?? "",
       phone: values.phone ?? "",
@@ -477,7 +477,8 @@ export default function CustomerFormDealer({
           label="รหัสลูกค้า"
           value={values.customerCode}
           onChange={(e) => {
-            setValues((p: any) => ({ ...p, customerCode: e.target.value }));
+            const cleanCode = e.target.value.replace(/\s/g, "");
+            setValues((p: any) => ({ ...p, customerCode: cleanCode }));
             clearFieldError("customerCode");
           }}
           onBlur={(e) => {
