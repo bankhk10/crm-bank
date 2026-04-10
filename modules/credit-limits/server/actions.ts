@@ -9,6 +9,11 @@ import {
   deleteCreditLimit as deleteRepoCreditLimit,
   findCreditLimitById,
 } from "../infrastructure/credit-limit.repository";
+import {
+  generateCreditLimitTemplate,
+  previewCreditLimitImport,
+  processCreditLimitImport,
+} from "../application/import-credit-limits";
 
 const resourcePath = "/api/credit-limits"; // using same permission key mechanism
 
@@ -91,3 +96,68 @@ export async function getCreditLimitAction(id: string) {
     return { success: false, error: err.message || "Failed to fetch credit limit" };
   }
 }
+
+export async function downloadCreditLimitTemplateAction() {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+  
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return { success: false, error: "Forbidden" };
+  }
+
+  try {
+    const buffer = generateCreditLimitTemplate();
+    const base64 = Buffer.from(buffer).toString("base64");
+    return { success: true, data: base64 };
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function previewCreditLimitsAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return { success: false, error: "Forbidden" };
+  }
+
+  try {
+    const file = formData.get("file") as File;
+    if (!file) return { success: false, message: "No file provided" };
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await previewCreditLimitImport(arrayBuffer);
+    return result;
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function importCreditLimitsAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized" };
+  }
+  if (!isAuthorized(resourcePath, session.user.permissionKeys ?? [])) {
+    return { success: false, error: "Forbidden" };
+  }
+  
+  try {
+    const file = formData.get("file") as File;
+    if (!file) return { success: false, message: "No file provided" };
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await processCreditLimitImport(arrayBuffer, session.user.id);
+    if (result.success) {
+      revalidatePath("/credit-limits");
+    }
+    return result;
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+

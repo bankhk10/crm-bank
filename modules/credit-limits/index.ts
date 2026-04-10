@@ -16,3 +16,5 @@ export * from "./types";
 
 // Server
 export * from "./server/actions";
+
+export { default as CreditLimitImportView } from "./features/import/credit-limit-import-view";

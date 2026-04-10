@@ -7,11 +7,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CreditLimitTable,
 } from "@/modules/credit-limits";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Upload } from "lucide-react";
 import { PageHeader } from "@/components/custom/page-header";
 import { getCustomersAction } from "@/modules/customers/server/actions";
 import { PAGINATION } from "@/lib/constants";
 import type { CustomerRecord } from "@/modules/credit-limits/types";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function CreditLimitsListView() {
   const { hasPermission, allowed, isLoading } = usePermission("menu.credit_limits");
@@ -153,6 +155,14 @@ export default function CreditLimitsListView() {
             icon={CreditCard}
             iconClassName="text-blue-600"
             title="จัดการวงเงินลูกค้า"
+            actions={
+              <Link href="/credit-limits/import">
+                <Button className="bg-green-700 hover:bg-green-800 text-white rounded-3xl h-10 px-6 font-semibold shadow-md shadow-green-700/20">
+                  <Upload className="w-4 h-4 mr-2" />
+                  นำเข้าข้อมูล
+                </Button>
+              </Link>
+            }
           />
 
           <CreditLimitTable
