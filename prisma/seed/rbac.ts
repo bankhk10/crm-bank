@@ -48,6 +48,12 @@ const permissionGroups: Record<string, PermissionGroup> = {
         menuPath: "/dashboard/manager",
       },
       {
+        key: "menu.dashboard.sales",
+        name: "แดชบอร์ดพนักงานฝ่ายขาย",
+        resource: "dashboard",
+        menuPath: "/dashboard/sales",
+      },
+      {
         key: "menu.show_product",
         name: "หน้าแรก",
         resource: "show_product",
@@ -1015,6 +1021,7 @@ export async function seedRBAC(prisma: PrismaClient) {
   // ──────────────────────────────────────────────────────────────
 
   const salesRepConfig = [
+    { key: "menu.dashboard.sales" },
     { key: "menu.products" },
     { key: "product.view", dataAccess: "VIEW_ALL" },
     { key: "menu.sales" },
@@ -1130,6 +1137,7 @@ export async function seedRBAC(prisma: PrismaClient) {
     { key: "menu.temporary_credit_limits" },
     { key: "temporary_creditlimit.create" },
     { key: "menu.dashboard.manager" },
+    { key: "menu.dashboard.sales" },
     { key: "temporary_creditlimit.edit" },
     { key: "temporary_creditlimit.view" },
     { key: "temporary_creditlimit.delete" },
@@ -1176,6 +1184,7 @@ export async function seedRBAC(prisma: PrismaClient) {
   const adminConfig = [
     { key: "menu.dashboard.admin" },
     { key: "menu.dashboard.manager" },
+    { key: "menu.dashboard.sales" },
     { key: "menu.show_product" },
     { key: "data.reports", dataAccess: DataAccessLevel.VIEW_ALL },
     { key: "menu.reports" },

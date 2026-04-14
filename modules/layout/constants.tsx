@@ -31,6 +31,12 @@ export const navigationItems: SidebarNavItem[] = [
     icon: <LayoutDashboard className="h-4 w-4" />,
   },
   {
+    href: "/dashboard/sales",
+    label: "แดชบอร์ดของฉัน",
+    permissionKey: "menu.dashboard.sales",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+  {
     href: "/show-product",
     label: "หน้าแรก",
     permissionKey: "menu.show_product",
