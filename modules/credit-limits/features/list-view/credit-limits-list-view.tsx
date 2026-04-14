@@ -155,14 +155,14 @@ export default function CreditLimitsListView() {
             icon={CreditCard}
             iconClassName="text-blue-600"
             title="จัดการวงเงินลูกค้า"
-            actions={
-              <Link href="/credit-limits/import">
-                <Button className="bg-green-700 hover:bg-green-800 text-white rounded-3xl h-10 px-6 font-semibold shadow-md shadow-green-700/20">
-                  <Upload className="w-4 h-4 mr-2" />
-                  นำเข้าข้อมูล
-                </Button>
-              </Link>
-            }
+          // actions={
+          //   <Link href="/credit-limits/import">
+          //     <Button className="bg-green-700 hover:bg-green-800 text-white rounded-3xl h-10 px-6 font-semibold shadow-md shadow-green-700/20">
+          //       <Upload className="w-4 h-4 mr-2" />
+          //       นำเข้าข้อมูล
+          //     </Button>
+          //   </Link>
+          // }
           />
 
           <CreditLimitTable
