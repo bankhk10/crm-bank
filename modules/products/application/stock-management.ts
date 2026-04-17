@@ -214,6 +214,12 @@ export async function confirmStockDeductionUseCase(
         deductedFromLots += deduction;
       }
 
+      if (deductedFromLots < requestedQty) {
+        throw new Error(
+          `Insufficient stock. Requested ${requestedQty}, but only ${deductedFromLots} available for product ${item.productId}`
+        );
+      }
+
       await StockRepository.updateProductStock(
         item.productId,
         {

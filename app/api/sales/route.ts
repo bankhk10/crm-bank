@@ -268,29 +268,41 @@ export async function POST(request: NextRequest) {
 
     // Check stock availability (warnings only, allow save)
     const stockWarnings = [];
+    
+    // Group requested units by product
+    const groupedRequests = new Map();
     for (const item of body.items) {
       const product = productMap.get(item.productId);
-
       if (product) {
-        const totalStock = product.stockLots.reduce(
-          (sum, lot) => sum + lot.quantity,
-          0,
-        );
-        // Note: Stock quantity is usually in base units (e.g. bottles)
-        // Item quantity is in Cartons.
-        // Item quantity is in Cartons.
         const packSize = parseFloat(product.packageSizePerBox?.toString() || "1");
         const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
         const requestedUnits = item.quantity * multiplier;
-
-        if (totalStock < requestedUnits) {
-          stockWarnings.push({
-            productId: product.id,
-            productName: product.name,
-            requested: item.quantity,
-            available: totalStock,
+        
+        if (!groupedRequests.has(item.productId)) {
+          groupedRequests.set(item.productId, {
+            product,
+            totalRequestedUnits: 0,
+            originalQuantity: 0 // Keep track of the carton count for the warning payload if needed
           });
         }
+        groupedRequests.get(item.productId).totalRequestedUnits += requestedUnits;
+        groupedRequests.get(item.productId).originalQuantity += item.quantity;
+      }
+    }
+
+    for (const { product, totalRequestedUnits, originalQuantity } of groupedRequests.values()) {
+      const totalStock = product.stockLots.reduce(
+        (sum: number, lot: { quantity: number }) => sum + lot.quantity,
+        0,
+      );
+
+      if (totalStock < totalRequestedUnits) {
+        stockWarnings.push({
+          productId: product.id,
+          productName: product.name,
+          requested: originalQuantity, // total quantity in cartons (if applicable)
+          available: totalStock,
+        });
       }
     }
 

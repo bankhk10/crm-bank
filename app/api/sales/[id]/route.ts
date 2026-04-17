@@ -85,84 +85,18 @@ export async function GET(
     const stockWarnings = [];
     const priceWarnings = [];
 
+    // Group items by product for accurate stock warning calculation
+    const groupedProducts = new Map();
     for (const item of sale.items) {
-      // Use ProductStock if available, otherwise sum from stockLots
-      const productStock = (
-        item.product as {
-          stock?: {
-            availableQuantity: number;
-            physicalBalance: number;
-          };
-        }
-      ).stock;
-
-      // Get the current available quantity from ProductStock
-      let availableStock: number;
-      let physicalStock: number = 0;
-
-      if (productStock) {
-        // availableQuantity from ProductStock (already reflects all deductions)
-        availableStock = productStock.availableQuantity;
-        physicalStock = productStock.physicalBalance || 0;
-      } else {
-        // Fallback: sum from stockLots
-        availableStock = item.product.stockLots.reduce(
-          (sum: number, lot: { quantity: number }) => sum + lot.quantity,
-          0,
-        );
-      }
-
-      // For checking if stock is sufficient for delivery:
-      // - If order is NOT yet approved: check if available >= requested
-      // - If order IS approved: The stock was already reserved at approval time.
-      //   For approved orders, we should check if physicalBalance >= quantity needed
-      //   because the reservedQuantity already includes this order's allocation.
-      //
-      //   The key insight:
-      //   - physicalBalance = total items in warehouse
-      //   - reservedQuantity = stock reserved for all approved orders (including this one)
-      //   - availableQuantity = physicalBalance - reservedQuantity (can be negative if over-allocated)
-      //
-      //   For THIS specific order that was already approved:
-      //   - Its quantity is included in reservedQuantity
-      //   - So if physicalBalance >= item.quantity, we can fulfill THIS order
-      //   - Even if availableQuantity is negative (due to other orders over-allocating)
-      //
-      //   Assumption: item.quantity is the requested quantity.
-      //   Wait, item.quantity is usually in Store Units (Cartons) in the Sale table?
-      //   Or Base Units?
-      //   The database schema says `quantity Int`.
-      //   The frontend logic implies `quantity` is Cartons.
-      //   But stock logic usually tracks Base Units.
-      //   In `GET`, we are just comparing numbers.
-      //   If `availableStock` is Base Units and `item.quantity` is Cartons, this comparison is WRONG without multiplier.
-      //   However, if this `GET` endpoint was displaying incorrect warnings, the user didn't mention it yet.
-      //   The user complained about "Net Amount" (Totals).
-      //   I will Focus on PUT first.
-
-      let insufficientStock = false;
-      let displayAvailable = availableStock;
-
-      if (isApprovedOrder) {
-        insufficientStock = physicalStock < item.quantity;
-        displayAvailable = physicalStock;
-      } else {
-        insufficientStock = availableStock < item.quantity;
-        displayAvailable = availableStock;
-      }
-
-      if (insufficientStock) {
-        stockWarnings.push({
-          productId: item.product.id,
-          productName: item.product.name,
-          productCode: item.product.productCode,
-          requested: item.quantity,
-          available: Math.max(0, displayAvailable), // Don't show negative
-          reserved: item.quantity,
-          physical: productStock?.physicalBalance || displayAvailable,
+      if (!groupedProducts.has(item.product.id)) {
+        groupedProducts.set(item.product.id, {
+          product: item.product,
+          totalRequested: 0,
         });
       }
+      groupedProducts.get(item.product.id).totalRequested += item.quantity;
 
+      // Price warnings remain per-item
       if (item.priceModified) {
         const originalPrice = Number(item.originalPrice);
         const modifiedPrice = Number(item.unitPrice);
@@ -176,6 +110,50 @@ export async function GET(
           modifiedPrice,
           difference,
           percentageDiff,
+        });
+      }
+    }
+
+    for (const { product, totalRequested } of groupedProducts.values()) {
+      // Use ProductStock if available, otherwise sum from stockLots
+      const productStock = product.stock;
+
+      // Get the current available quantity from ProductStock
+      let availableStock: number;
+      let physicalStock: number = 0;
+
+      if (productStock) {
+        // availableQuantity from ProductStock (already reflects all deductions)
+        availableStock = productStock.availableQuantity;
+        physicalStock = productStock.physicalBalance || 0;
+      } else {
+        // Fallback: sum from stockLots
+        availableStock = product.stockLots.reduce(
+          (sum: number, lot: { quantity: number }) => sum + lot.quantity,
+          0,
+        );
+      }
+
+      let insufficientStock = false;
+      let displayAvailable = availableStock;
+
+      if (isApprovedOrder) {
+        insufficientStock = physicalStock < totalRequested;
+        displayAvailable = physicalStock;
+      } else {
+        insufficientStock = availableStock < totalRequested;
+        displayAvailable = availableStock;
+      }
+
+      if (insufficientStock) {
+        stockWarnings.push({
+          productId: product.id,
+          productName: product.name,
+          productCode: product.productCode,
+          requested: totalRequested,
+          available: Math.max(0, displayAvailable), // Don't show negative
+          reserved: totalRequested,
+          physical: productStock?.physicalBalance || displayAvailable,
         });
       }
     }

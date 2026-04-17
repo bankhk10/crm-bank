@@ -217,6 +217,14 @@ export function LotSelector({
                       const currentAlloc =
                         allocations.get(item.saleItemId)?.get(lot.id) || 0;
 
+                      let otherAllocations = 0;
+                      allocations.forEach((itemAllocs, otherSaleItemId) => {
+                        if (otherSaleItemId !== item.saleItemId) {
+                          otherAllocations += itemAllocs.get(lot.id) || 0;
+                        }
+                      });
+                      const remainingLotQty = Math.max(0, lot.quantity - otherAllocations);
+
                       return (
                         <div
                           key={lot.id}
@@ -233,7 +241,7 @@ export function LotSelector({
                                 เลขที่ LOT: {lot.lotNumber}
                               </span>
                               <Badge variant="secondary" className="text-base">
-                                คงเหลือ: {lot.quantity}
+                                คงเหลือ: {remainingLotQty}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
@@ -259,14 +267,14 @@ export function LotSelector({
                             <Input
                               type="number"
                               min={0}
-                              max={lot.quantity}
+                              max={remainingLotQty + currentAlloc}
                               value={currentAlloc || ""}
                               onChange={(e) => {
                                 const val = parseInt(e.target.value) || 0;
                                 handleAllocationChange(
                                   item.saleItemId,
                                   lot.id,
-                                  Math.min(val, lot.quantity),
+                                  Math.min(val, remainingLotQty + currentAlloc),
                                 );
                               }}
                               className="w-20 h-9 text-center"
