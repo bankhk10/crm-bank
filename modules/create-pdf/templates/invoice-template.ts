@@ -289,13 +289,15 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             <span class="info-label">ชื่อบริษัท</span>
             <span>${safeValue(data.customerName)}</span>
           </div>
-          <div class="info-col no-border">
-            <span class="info-label">รหัสลูกค้า:</span>
-            <span>${safeValue(data.customerCode)}</span>
-          </div>
-          <div class="info-col no-border">
-            <span class="info-label">เบอร์โทรศัพท์:</span>
-            <span>${safeValue(data.customerPhone)}</span>
+          <div class="info-col no-border" style="flex: 2; display: flex; gap: 24px;">
+            <div>
+              <span class="info-label">รหัสลูกค้า:</span>
+              <span>${safeValue(data.customerCode)}</span>
+            </div>
+            <div>
+              <span class="info-label">เบอร์โทรศัพท์:</span>
+              <span>${safeValue(data.customerPhone)}</span>
+            </div>
           </div>
         </div>
 
