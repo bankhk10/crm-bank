@@ -899,29 +899,32 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                 </div>
             </div>
 
-            {/* Sticky Bottom Action Bar */}
-            <div className="sticky bottom-4 z-50 px-4 sm:px-6">
-                <div className="max-w-6xl mx-auto flex flex-row justify-center items-center gap-3 sm:gap-4">
+            {/* Action Buttons */}
+            <div className="sm:pt-2 mt-8 sm:mt-2 space-y-4 pb-8">
+                <div className="flex justify-center sm:items-center sm:justify-center gap-4 sm:gap-6">
                     <Button
-                        variant="destructive"
+                        size="lg"
+                        className="flex-1 sm:flex-none sm:w-32 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
                         onClick={() => setShowRejectDialog(true)}
-                        className="flex-1 sm:flex-none sm:w-auto relative bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-4 sm:px-8 h-12 rounded-xl font-semibold min-w-0 sm:min-w-[160px] shadow-lg hover:shadow-xl transition-all overflow-hidden group"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                        <XCircle className="h-5 w-5 mr-2 relative z-10" />
-                        <span className="relative z-10">ไม่อนุมัติ</span>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        ไม่อนุมัติ
                     </Button>
-
                     <Button
+                        size="lg"
+                        className="flex-1 sm:flex-none sm:w-32 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all rounded-xl"
                         onClick={() => setShowApproveDialog(true)}
-                        className="flex-1 sm:flex-none sm:w-auto relative bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-4 sm:px-8 h-12 rounded-xl font-semibold min-w-0 sm:min-w-[160px] shadow-lg hover:shadow-xl transition-all overflow-hidden group"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                        <CheckCircle className="h-5 w-5 mr-2 relative z-10" />
-                        <span className="relative z-10">อนุมัติ</span>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        อนุมัติ
                     </Button>
                 </div>
             </div>
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
 
             {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
