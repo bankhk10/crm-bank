@@ -900,7 +900,7 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="sm:pt-2 mt-8 sm:mt-2 space-y-4 pb-8">
+            <div className="sm:pt-2 mt-2 sm:mt-2 space-y-4 pb-24 sm:pb-32">
                 <div className="flex justify-center sm:items-center sm:justify-center gap-4 sm:gap-6">
                     <Button
                         size="lg"
@@ -920,11 +920,6 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
                     </Button>
                 </div>
             </div>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
 
             {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
