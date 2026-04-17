@@ -403,19 +403,6 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
                   ยอดขาย {periodLabels[overviewPeriod]}
                 </CardTitle>
               </div>
-              <div
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] sm:text-xs font-bold ${monthlySales.growthPercent >= 0
-                  ? "text-emerald-700 bg-emerald-50 border border-emerald-100"
-                  : "text-rose-700 bg-rose-50 border border-rose-100"
-                  }`}
-              >
-                {monthlySales.growthPercent >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
-                ) : (
-                  <ArrowDownRight className="w-3 h-3" />
-                )}
-                {monthlySales.growthPercent >= 0 ? "+" : ""}{monthlySales.growthPercent}%
-              </div>
             </div>
             <div className="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 truncate">
               {formatCurrency(monthlySales.total)}
