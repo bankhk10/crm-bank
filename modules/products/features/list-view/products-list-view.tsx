@@ -15,6 +15,7 @@ import { Package } from "lucide-react";
 import { PageHeader } from "@/components/custom/page-header";
 import { PAGINATION } from "@/lib/constants";
 import { toast } from "sonner";
+import { Upload } from "lucide-react";
 
 export default function ProductsListView() {
   const router = useRouter();
@@ -198,6 +199,18 @@ export default function ProductsListView() {
             icon={Package}
             iconClassName="text-blue-600"
             title="ข้อมูลสินค้า"
+            actions={
+              canManage && (
+                <Button
+                  variant="outline"
+                  className="bg-white border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                  onClick={() => router.push("/products/import-stock")}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  นำเข้าสต็อก (Excel)
+                </Button>
+              )
+            }
           />
 
           <ProductsTable

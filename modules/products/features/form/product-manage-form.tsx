@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getProductAction, manageProductAction } from "@/modules/products/server/actions";
+import { downloadStockLotTemplateAction, parseStockLotsAction } from "../../server/import-actions";
+import { toast } from "sonner";
 import { usePermission } from "@/hooks/use-permission";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,8 @@ import {
   Tag,
   X,
   Save,
+  Download,
+  Upload,
 } from "lucide-react";
 import DatePicker from "@/components/custom/DatePicker";
 import type { Product, ProductManagementFormData } from "@/modules/products/types";
@@ -599,6 +603,65 @@ const PromotionItemsSection: React.FC<SectionProps> = ({
 const StockLotsSection: React.FC<
   SectionProps & { onError: (msg: string) => void }
 > = ({ formData, setFormData, saving, onError }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await downloadStockLotTemplateAction();
+      if (res.success && res.data) {
+        const binary = atob(res.data);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "template_stock_lot.xlsx";
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("ดาวน์โหลด Template สำเร็จ");
+      } else {
+        toast.error(res.message || "ไม่สามารถดาวน์โหลดได้");
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาดในการดาวน์โหลด");
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImporting(true);
+      try {
+        const fileFormData = new FormData();
+        fileFormData.append("file", file);
+        const res = await parseStockLotsAction(fileFormData);
+        if (res.success && res.data) {
+          setFormData((prev) => ({
+            ...prev,
+            stockLots: [...prev.stockLots, ...res.data]
+          }));
+          toast.success(`นำเข้าสต็อกสำเร็จ ${res.data.length} รายการ`);
+          if (res.errors && res.errors.length > 0) {
+            toast.warning(`มีข้อผิดพลาดบางรายการ: ${res.errors.join(", ")}`);
+          }
+        } else {
+          toast.error(res.message || "นำเข้าไม่สำเร็จ");
+        }
+      } catch (err) {
+        toast.error("เกิดข้อผิดพลาดในการอ่านไฟล์");
+      } finally {
+        setImporting(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const addStockLot = () => {
     setFormData((prev) => ({
       ...prev,
@@ -651,18 +714,49 @@ const StockLotsSection: React.FC<
         title="จัดการสต็อกสินค้า"
         icon={Package}
         action={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addStockLot}
-            disabled={saving}
-            className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
-            <span className="sm:hidden">เพิ่ม</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadTemplate}
+              disabled={saving || importing}
+              className="h-9 border-slate-300 text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">โหลดแม่แบบ</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={saving || importing}
+              className="h-9 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-500 transition-all"
+            >
+              <input type="file" className="hidden" accept=".xlsx,.xls" ref={fileInputRef} onChange={handleFileChange} />
+              {importing ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4 mr-1" />
+              )}
+              <span className="hidden sm:inline">{importing ? "กำลังนำเข้า..." : "นำเข้า(Excel)"}</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addStockLot}
+              disabled={saving || importing}
+              className="h-9 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-500 transition-all"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">เพิ่มสต็อกสินค้า</span>
+              <span className="sm:hidden">เพิ่ม</span>
+            </Button>
+          </div>
         }
       />
 
