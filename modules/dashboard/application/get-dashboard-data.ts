@@ -43,19 +43,12 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
   const aggregateSales = async (start: Date, end: Date) => {
     const total = await repo.aggregateSalesAmount(start, end, undefined, [
       "CANCELLED",
-      "REJECTED",
-      "EXPIRED",
-      "OVERDUE",
     ]);
-    const salesNote = await repo.aggregateSalesAmount(start, end, [
-      "PENDING",
-      "PENDING_APPROVAL",
-      "WAITING_FOR_CORRECTION",
-      "APPROVED",
-      "AWAITING_PAYMENT",
-      "AWAITING_DELIVERY",
+    const salesNote = await repo.aggregateSalesAmount(start, end, undefined, [
+      "CANCELLED",
     ]);
     const invoice = await repo.aggregateSalesAmount(start, end, [
+      "AWAITING_PAYMENT",
       "PAID",
       "DELIVERED",
       "DELIVERY_COMPLETED",
@@ -94,13 +87,13 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     yearStart,
     yearEnd,
     undefined,
-    ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+    ["CANCELLED"],
   );
   const lastYtdTotal = await repo.aggregateSalesAmount(
     lastYearStart,
     lastYearEnd,
     undefined,
-    ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+    ["CANCELLED"],
   );
 
   const ytdGrowth =
@@ -135,11 +128,10 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     lastYearStart: Date,
     lastYearEnd: Date,
   ) => {
-    const currentItems = await repo.findSaleItemsWithDetails(start, end, ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"]);
-    const lastYearItems = await repo.findSaleItemsWithDetails(lastYearStart, lastYearEnd, ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"]);
+    const currentItems = await repo.findSaleItemsWithDetails(start, end, ["CANCELLED"]);
+    const lastYearItems = await repo.findSaleItemsWithDetails(lastYearStart, lastYearEnd, ["CANCELLED"]);
 
-    const invoiceStatuses = ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
-    const salesNoteStatuses = ["PENDING", "PENDING_APPROVAL", "WAITING_FOR_CORRECTION", "APPROVED", "AWAITING_PAYMENT", "AWAITING_DELIVERY"];
+    const invoiceStatuses = ["AWAITING_PAYMENT", "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
 
     const buildProductGroupData = () => {
       return productGroupOptions.map(groupOption => {
@@ -155,14 +147,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
           if (item.product.productABCTypeId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status)) salesNote += amount;
+            if (item.sale.status !== "CANCELLED") salesNote += amount;
           }
         }
         for (const item of lastYearItems) {
           if (item.product.productABCTypeId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status)) lastYearSalesNote += amount;
+            if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;
           }
         }
 
@@ -192,14 +184,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
           if (item.product.tradeNameGroupId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status)) salesNote += amount;
+            if (item.sale.status !== "CANCELLED") salesNote += amount;
           }
         }
         for (const item of lastYearItems) {
           if (item.product.tradeNameGroupId === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
-            else if (salesNoteStatuses.includes(item.sale.status)) lastYearSalesNote += amount;
+            if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;
           }
         }
 
@@ -289,9 +281,6 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
 
     const salesInRange = await repo.findSalesWithProvince(start, end, [
       "CANCELLED",
-      "REJECTED",
-      "EXPIRED",
-      "OVERDUE",
     ]);
 
     for (const sale of salesInRange) {
@@ -303,23 +292,18 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         const amount = Number(sale.totalAmount);
 
         const isInvoice = [
+          "AWAITING_PAYMENT",
           "PAID",
           "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ].includes(sale.status);
-        const isSalesNote = [
-          "PENDING",
-          "PENDING_APPROVAL",
-          "WAITING_FOR_CORRECTION",
-          "APPROVED",
-          "AWAITING_PAYMENT",
-          "AWAITING_DELIVERY",
-        ].includes(sale.status);
+        const isSalesNote = sale.status !== "CANCELLED";
 
         if (isInvoice) {
           entry.invoice += amount;
-        } else if (isSalesNote) {
+        }
+        if (isSalesNote) {
           entry.salesNote += amount;
         }
       }
@@ -328,7 +312,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     const lastYearSalesInRange = await repo.findSalesWithProvince(
       lastYearStart,
       lastYearEnd,
-      ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
+      ["CANCELLED"],
     );
 
     for (const sale of lastYearSalesInRange) {
@@ -340,23 +324,18 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         const amount = Number(sale.totalAmount);
 
         const isInvoice = [
+          "AWAITING_PAYMENT",
           "PAID",
           "DELIVERED",
           "DELIVERY_COMPLETED",
           "COMPLETED",
         ].includes(sale.status);
-        const isSalesNote = [
-          "PENDING",
-          "PENDING_APPROVAL",
-          "WAITING_FOR_CORRECTION",
-          "APPROVED",
-          "AWAITING_PAYMENT",
-          "AWAITING_DELIVERY",
-        ].includes(sale.status);
+        const isSalesNote = sale.status !== "CANCELLED";
 
         if (isInvoice) {
           entry.lastYearInvoice += amount;
-        } else if (isSalesNote) {
+        }
+        if (isSalesNote) {
           entry.lastYearSalesNote += amount;
         }
       }
