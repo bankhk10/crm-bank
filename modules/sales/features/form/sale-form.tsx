@@ -595,7 +595,7 @@ export function SaleForm({
                         })
                         .map((customer) => ({
                             value: customer.id,
-                            label: `${customer.name}`,
+                            label: `${customer.customerCode ? `${customer.customerCode} - ` : ""}${customer.name}`,
                         }))}
                     placeholder="เลือกลูกค้า"
                     searchPlaceholder="ค้นหาลูกค้า..."
