@@ -114,3 +114,18 @@ export async function getEmployeeAction(id: string) {
   }
 }
 
+export async function getAllEmployeesAction() {
+  const session = await auth();
+  if (!session?.user) return { success: false, employees: [] };
+
+  try {
+    const result = await listAllEmployeesUseCase();
+    return {
+      success: true,
+      employees: JSON.parse(JSON.stringify(result.employees)),
+    };
+  } catch (_err) {
+    return { success: false, employees: [] };
+  }
+}
+

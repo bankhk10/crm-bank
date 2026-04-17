@@ -11,7 +11,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { employeeUpdateSchema, type EmployeeUpdateFormValues } from "@/modules/employee/application/validations";
 import { PREFIX_OPTIONS, RESPONSIBILITY_AREA_OPTIONS, STATUS_OPTIONS } from "@/modules/employee/constants";
 import { getCompaniesAction } from "@/modules/companies/server/actions";
-import { getEmployeesAction } from "@/modules/employee/server/actions";
+import { getAllEmployeesAction } from "@/modules/employee/server/actions";
 import SignaturePad from "@/components/custom/SignaturePad";
 
 import { calculateAge } from "@/lib/date-utils";
@@ -92,7 +92,7 @@ export default function EmployeeForm({
                     getCompaniesAction().catch(() => ({ companies: [] })),
                     fetch(`/api/rbac/departments`).catch(() => null),
                     fetch(`/api/rbac/positions`).catch(() => null),
-                    getEmployeesAction().catch(() => ({ employees: [] })),
+                    getAllEmployeesAction().catch(() => ({ employees: [] })),
                 ]);
 
                 if (rRes?.ok && mounted) setRoles(await rRes.json());

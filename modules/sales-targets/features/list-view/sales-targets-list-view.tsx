@@ -178,8 +178,8 @@ export default function SalesTargetsListView() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const { getEmployeesAction } = await import("@/modules/employee/server/actions");
-        const empRes = await getEmployeesAction();
+        const { getAllEmployeesAction } = await import("@/modules/employee/server/actions");
+        const empRes = await getAllEmployeesAction();
         const custRes = await fetch("/api/customers?perPage=100");
 
         if (empRes.success) {
