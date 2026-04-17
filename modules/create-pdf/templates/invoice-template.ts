@@ -285,7 +285,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <div class="section-title">ข้อมูลลูกค้า</div>
       <div class="section-box">
         <div class="info-row">
-          <div class="info-col">
+          <div class="info-col" style="flex: 2;">
             <span class="info-label">ชื่อบริษัท</span>
             <span>${safeValue(data.customerName)}</span>
           </div>
