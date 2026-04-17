@@ -923,7 +923,10 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* APPROVE DIALOG */}
             <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
+                <DialogContent 
+                    className="w-[calc(100%-2rem)] sm:max-w-md"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle className="flex gap-2 items-center">
                             <CheckCircle className="text-green-600" /> ยืนยันอนุมัติ
@@ -963,7 +966,10 @@ export function SaleApproveView({ id }: SaleApproveViewProps) {
 
             {/* REJECT DIALOG */}
             <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md">
+                <DialogContent 
+                    className="w-[calc(100%-2rem)] sm:max-w-md"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                     <DialogHeader>
                         <DialogTitle className="flex gap-2 items-center text-red-600">
                             <XCircle /> ไม่อนุมัติรายการ
