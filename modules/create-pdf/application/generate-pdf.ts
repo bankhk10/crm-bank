@@ -90,6 +90,7 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
     saleOrderRef: sale.saleOrderRef,
     date: safeFormatDate(sale.saleDate, "d MMMM yyyy"),
     customerName: sa.company_name || sale.customer?.name || "-",
+    customerCode: sale.customer?.customerCode || "-",
     customerPhone: sa.company_phone || sale.customer?.phone || "-",
     customerAddress: customerAddress || "-",
     billingAddress: billingAddress || "-",

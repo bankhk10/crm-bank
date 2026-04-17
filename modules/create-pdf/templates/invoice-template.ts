@@ -7,6 +7,7 @@ export interface InvoiceData {
   status?: string;
   date: string;
   customerName: string;
+  customerCode?: string;
   customerPhone: string;
   customerAddress: string;
   billingAddress: string;
@@ -222,10 +223,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <td class="text-center">${index + 1}</td>
           <td class="text-left">
             <div>${safeValue(item.description)}</div>
-            ${item.promotionBudget && item.promotionBudget > 0 
-              ? `<div style="font-size: 10px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>` 
-              : ""
-            }
+            ${item.promotionBudget && item.promotionBudget > 0
+          ? `<div style="font-size: 10px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
+          : ""
+        }
           </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
           <td class="text-left">${safeValue(item.unit)}</td>
@@ -287,6 +288,10 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <div class="info-col">
             <span class="info-label">ชื่อบริษัท</span>
             <span>${safeValue(data.customerName)}</span>
+          </div>
+          <div class="info-col no-border">
+            <span class="info-label">รหัสลูกค้า:</span>
+            <span>${safeValue(data.customerCode)}</span>
           </div>
           <div class="info-col no-border">
             <span class="info-label">เบอร์โทรศัพท์:</span>
