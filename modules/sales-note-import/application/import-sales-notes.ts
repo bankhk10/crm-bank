@@ -27,6 +27,10 @@ export interface ImportPreviewRow {
   totalPrice: number;
   paymentTerm: string;
   notes: string;
+  abcCode: string;
+  paymentDate: string;
+  cartonPrice: number | null;
+  orderNumber: string;
   status: "valid" | "error";
   errorMessage?: string;
 }
@@ -48,6 +52,10 @@ const REQUIRED_COLUMNS = [
 const OPTIONAL_COLUMNS = [
   "เงื่อนไขการชำระเงิน",
   "หมายเหตุ",
+  "ประเภท (ABC Code)",
+  "วันที่ชำระเงิน",
+  "ราคาลัง",
+  "เลขที่ออเดอร์",
 ];
 
 const PAYMENT_TERM_MAP: Record<string, string> = {
@@ -134,11 +142,12 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
   // Example data rows
   const today = new Date();
   const dateStr = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`;
+  const paymentDateStr = dateStr;
   const exampleRows = [
-    [dateStr, "EMP001", "CUST001", "PRD001", 10, 1500, 15000, "เครดิต 90 วัน", ""],
-    [dateStr, "EMP001", "CUST001", "PRD002", 5, 2000, 10000, "เครดิต 90 วัน", ""],
-    [dateStr, "EMP001", "CUST002", "PRD001", 8, 1500, 12000, "เงินสด 7 วัน", "ส่งด่วน"],
-    [dateStr, "EMP002", "CUST003", "PRD003", 20, 800, 16000, "ชำระเงินก่อน", ""],
+    [dateStr, "EMP001", "CUST001", "PRD001", 10, 1500, 15000, "เครดิต 90 วัน", "", "A", paymentDateStr, 18000, "ORD-001"],
+    [dateStr, "EMP001", "CUST001", "PRD002", 5, 2000, 10000, "เครดิต 90 วัน", "", "B", "", 24000, "ORD-001"],
+    [dateStr, "EMP001", "CUST002", "PRD001", 8, 1500, 12000, "เงินสด 7 วัน", "ส่งด่วน", "A", paymentDateStr, 18000, "ORD-002"],
+    [dateStr, "EMP002", "CUST003", "PRD003", 20, 800, 16000, "ชำระเงินก่อน", "", "C", "", "", ""],
   ];
 
   const data = [headers, ...exampleRows];
@@ -155,6 +164,10 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
     { wch: 14 },  // ยอดรวม
     { wch: 24 },  // เงื่อนไขการชำระเงิน
     { wch: 30 },  // หมายเหตุ
+    { wch: 18 },  // ประเภท (ABC Code)
+    { wch: 16 },  // วันที่ชำระเงิน
+    { wch: 14 },  // ราคาลัง
+    { wch: 16 },  // เลขที่ออเดอร์
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "บันทึกการขาย");
@@ -173,13 +186,18 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
     ["ยอดรวม", "ยอดราคารวมของสินค้ารายการนี้ (บาท) = จำนวน × ราคาต่อหน่วย", "15000", "✓"],
     ["เงื่อนไขการชำระเงิน", "เครดิต 90 วัน / เงินสด 7 วัน / ชำระเงินก่อน / เครดิตมากกว่า 90 วัน", "เครดิต 90 วัน", ""],
     ["หมายเหตุ", "หมายเหตุเพิ่มเติม (ถ้ามี)", "ส่งด่วน", ""],
+    ["ประเภท (ABC Code)", "รหัสประเภทสินค้า (เช่น A, B, C) ตรงกับรหัสในระบบ", "A", ""],
+    ["วันที่ชำระเงิน", "วันที่ชำระเงินจริง (DD/MM/YYYY หรือ DD/MM/พ.ศ.)", `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`, ""],
+    ["ราคาลัง", "ราคาขายต่อลัง/กล่อง (บาท) — ถ้าไม่กรอกจะใช้ราคาลังจากข้อมูลสินค้า", "18000", ""],
+    ["เลขที่ออเดอร์", "เลขที่อ้างอิงออเดอร์ — แถวที่มีเลขเดียวกันจะรวมเป็นใบขายเดียวกัน", "ORD-001", ""],
     [""],
     ["หลักการจัดกลุ่ม:"],
     ["1. แต่ละแถวคือ 1 รายการสินค้า (SaleItem)"],
-    ["2. ระบบจะจัดกลุ่มสินค้าที่มี วันที่ + พนักงาน + ร้านค้า + เงื่อนไขชำระเงิน ตรงกัน เป็น 1 ใบบันทึกการขาย (Sale)"],
-    ["3. สินค้าหลายรายการในใบเดียวกัน ให้กรอกข้อมูลแยกแถว โดยใส่วันที่, รหัสพนักงาน, รหัสร้านค้า, เงื่อนไขเดียวกัน"],
-    ["4. เลขบันทึกการขายจะถูกสร้างอัตโนมัติ"],
-    ["5. บันทึกจะถูกตั้งสถานะเป็น 'เสร็จสิ้น' (COMPLETED) อัตโนมัติ"],
+    ["2. ถ้าระบุเลขที่ออเดอร์ แถวที่มีเลขที่ออเดอร์เดียวกันจะถูกรวมเป็น 1 ใบบันทึกการขาย (Sale)"],
+    ["3. ถ้าไม่ระบุเลขที่ออเดอร์ ระบบจะจัดกลุ่มจาก วันที่ + พนักงาน + ร้านค้า + เงื่อนไขชำระเงิน"],
+    ["4. สินค้าหลายรายการในใบเดียวกัน ให้กรอกข้อมูลแยกแถว"],
+    ["5. เลขบันทึกการขายจะถูกสร้างอัตโนมัติ"],
+    ["6. บันทึกจะถูกตั้งสถานะเป็น 'เสร็จสิ้น' (COMPLETED) อัตโนมัติ"],
     [""],
     ["รูปแบบวันที่ที่รองรับ:"],
     ["• DD/MM/YYYY  เช่น 10/04/2026"],
@@ -232,7 +250,7 @@ export async function previewSalesNoteImport(
     }
 
     // Build lookup maps
-    const [employees, customers, products] = await Promise.all([
+    const [employees, customers, products, abcTypes] = await Promise.all([
       db.employee.findMany({
         select: { id: true, name: true, employeeCode: true },
       }),
@@ -249,11 +267,15 @@ export async function previewSalesNoteImport(
           cartonPrice: true,
         },
       }),
+      db.productABCTypes.findMany({
+        select: { id: true, code: true, name: true },
+      }),
     ]);
 
     const employeeMap = new Map(employees.map((e) => [e.employeeCode, e]));
     const customerMap = new Map(customers.map((c) => [c.customerCode, c]));
     const productMap = new Map(products.map((p) => [p.productCode, p]));
+    const abcTypeMap = new Map(abcTypes.map((a) => [a.code.toUpperCase(), a]));
 
     let rowIdx = 1;
     for (const row of rows) {
@@ -269,6 +291,10 @@ export async function previewSalesNoteImport(
       const totalRaw = row["ยอดรวม"];
       const paymentTermRaw = row["เงื่อนไขการชำระเงิน"];
       const notes = row["หมายเหตุ"]?.toString() || "";
+      const abcCodeRaw = row["ประเภท (ABC Code)"]?.toString().trim() || "";
+      const paymentDateRaw = row["วันที่ชำระเงิน"];
+      const cartonPriceRaw = row["ราคาลัง"];
+      const orderNumberRaw = row["เลขที่ออเดอร์"]?.toString().trim() || "";
 
       // Validate required fields
       if (!saleDateRaw) rowErrors.push("ไม่มีวันที่ขาย");
@@ -306,6 +332,31 @@ export async function previewSalesNoteImport(
 
       const paymentTerm = parsePaymentTerm(paymentTermRaw);
 
+      // Validate ABC Code (optional)
+      let abcTypeName = "";
+      if (abcCodeRaw) {
+        const abcType = abcTypeMap.get(abcCodeRaw.toUpperCase());
+        if (!abcType) {
+          rowErrors.push(`ไม่พบประเภท (ABC Code): ${abcCodeRaw}`);
+        } else {
+          abcTypeName = abcType.name || abcType.code;
+        }
+      }
+
+      // Parse payment date (optional)
+      const paymentDate = paymentDateRaw ? parseDate(paymentDateRaw) : null;
+      if (paymentDateRaw && !paymentDate) {
+        rowErrors.push(`วันที่ชำระเงินไม่ถูกต้อง: ${paymentDateRaw}`);
+      }
+
+      // Parse carton price (optional)
+      const cartonPrice = cartonPriceRaw
+        ? parseFloat(cartonPriceRaw.toString().replace(/,/g, ""))
+        : null;
+      if (cartonPriceRaw && cartonPrice !== null && (isNaN(cartonPrice) || cartonPrice < 0)) {
+        rowErrors.push(`ราคาลังไม่ถูกต้อง: ${cartonPriceRaw}`);
+      }
+
       if (rowErrors.length > 0) {
         errors.push(`แถวที่ ${rowIdx}: ${rowErrors.join(", ")}`);
       }
@@ -322,6 +373,10 @@ export async function previewSalesNoteImport(
         totalPrice: total,
         paymentTerm: PAYMENT_TERM_LABELS[paymentTerm] || paymentTerm,
         notes,
+        abcCode: abcTypeName || abcCodeRaw || "-",
+        paymentDate: paymentDate ? paymentDate.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-",
+        cartonPrice: cartonPrice !== null && !isNaN(cartonPrice) ? cartonPrice : null,
+        orderNumber: orderNumberRaw || "-",
         status: rowErrors.length > 0 ? "error" : "valid",
         errorMessage: rowErrors.length > 0 ? rowErrors.join(", ") : undefined,
       });
@@ -373,7 +428,7 @@ export async function processSalesNoteImport(
     }
 
     // Build lookup maps
-    const [employees, customers, products] = await Promise.all([
+    const [employees, customers, products, abcTypes] = await Promise.all([
       db.employee.findMany({
         select: { id: true, name: true, employeeCode: true },
       }),
@@ -398,14 +453,18 @@ export async function processSalesNoteImport(
           pointPerUnit: true,
           productGroup: { select: { name: true } },
           tradeNameGroup: { select: { description: true } },
-          productABCType: { select: { name: true } },
+          productABCType: { select: { id: true, name: true } },
         },
+      }),
+      db.productABCTypes.findMany({
+        select: { id: true, code: true, name: true },
       }),
     ]);
 
     const employeeMap = new Map(employees.map((e) => [e.employeeCode, e]));
     const customerMap = new Map(customers.map((c) => [c.customerCode, c]));
     const productMap = new Map(products.map((p) => [p.productCode, p]));
+    const abcTypeMap = new Map(abcTypes.map((a) => [a.code.toUpperCase(), a]));
 
     // Collect valid items
     type ItemEntry = {
@@ -429,6 +488,7 @@ export async function processSalesNoteImport(
       unitPrice: number;
       originalPrice: number;
       totalPrice: number;
+      productABCTypeId: string | null;
     };
 
     type OrderGroup = {
@@ -437,6 +497,8 @@ export async function processSalesNoteImport(
       saleDate: Date;
       paymentTerm: string;
       notes: string;
+      paymentDate: Date | null;
+      orderNumber: string;
       items: ItemEntry[];
     };
 
@@ -457,6 +519,10 @@ export async function processSalesNoteImport(
       const totalRaw = row["ยอดรวม"];
       const paymentTermRaw = row["เงื่อนไขการชำระเงิน"];
       const notes = row["หมายเหตุ"]?.toString() || "";
+      const abcCodeRaw = row["ประเภท (ABC Code)"]?.toString().trim() || "";
+      const paymentDateRaw = row["วันที่ชำระเงิน"];
+      const cartonPriceRaw = row["ราคาลัง"];
+      const orderNumberRaw = row["เลขที่ออเดอร์"]?.toString().trim() || "";
 
       // Validate required fields
       if (!saleDateRaw || !employeeCode || !customerCode || !productCode) {
@@ -499,9 +565,42 @@ export async function processSalesNoteImport(
 
       const paymentTerm = parsePaymentTerm(paymentTermRaw);
 
-      // Group key: date_customerId_employeeId_paymentTerm
-      const dateKey = saleDate.toISOString().split("T")[0];
-      const groupKey = `${dateKey}_${customer.id}_${employee.id}_${paymentTerm}`;
+      // Parse optional fields
+      const paymentDate = paymentDateRaw ? parseDate(paymentDateRaw) : null;
+      if (paymentDateRaw && !paymentDate) {
+        errors.push(`แถวที่ ${rowIdx}: วันที่ชำระเงินไม่ถูกต้อง (${paymentDateRaw})`);
+        continue;
+      }
+
+      const cartonPriceOverride = cartonPriceRaw
+        ? parseFloat(cartonPriceRaw.toString().replace(/,/g, ""))
+        : null;
+
+      // Resolve ABC Code
+      let resolvedAbcTypeId: string | null = null;
+      let resolvedAbcTypeName: string | null = null;
+      if (abcCodeRaw) {
+        const abcType = abcTypeMap.get(abcCodeRaw.toUpperCase());
+        if (!abcType) {
+          errors.push(`แถวที่ ${rowIdx}: ไม่พบประเภท (ABC Code): ${abcCodeRaw}`);
+          continue;
+        }
+        resolvedAbcTypeId = abcType.id;
+        resolvedAbcTypeName = abcType.name;
+      } else {
+        // Fallback to product's ABC type
+        resolvedAbcTypeId = product.productABCType?.id || null;
+        resolvedAbcTypeName = product.productABCType?.name || null;
+      }
+
+      // Group key: if order number is provided, use it; otherwise use date+customer+employee+paymentTerm
+      let groupKey: string;
+      if (orderNumberRaw) {
+        groupKey = `order_${orderNumberRaw}`;
+      } else {
+        const dateKey = saleDate.toISOString().split("T")[0];
+        groupKey = `${dateKey}_${customer.id}_${employee.id}_${paymentTerm}`;
+      }
 
       if (!ordersMap.has(groupKey)) {
         ordersMap.set(groupKey, {
@@ -510,6 +609,8 @@ export async function processSalesNoteImport(
           saleDate,
           paymentTerm,
           notes,
+          paymentDate,
+          orderNumber: orderNumberRaw,
           items: [],
         });
       }
@@ -519,6 +620,15 @@ export async function processSalesNoteImport(
       if (notes && !order.notes.includes(notes)) {
         order.notes = order.notes ? `${order.notes}, ${notes}` : notes;
       }
+      // Use the first non-null payment date in the group
+      if (paymentDate && !order.paymentDate) {
+        order.paymentDate = paymentDate;
+      }
+
+      // Determine cartonPrice: use override if provided, else fall back to product default
+      const finalCartonPrice = cartonPriceOverride != null && !isNaN(cartonPriceOverride)
+        ? cartonPriceOverride
+        : (product.cartonPrice ? Number(product.cartonPrice) : null);
 
       order.items.push({
         productId: product.id,
@@ -532,11 +642,12 @@ export async function processSalesNoteImport(
         packageSizePerBox: product.packageSizePerBox,
         totalPackageSizePerBox: product.totalPackageSizePerBox,
         price: product.price ? Number(product.price) : null,
-        cartonPrice: product.cartonPrice ? Number(product.cartonPrice) : null,
+        cartonPrice: finalCartonPrice,
         promotionBudget: product.promotionBudget ? Number(product.promotionBudget) : null,
         pointPerUnit: product.pointPerUnit ?? 0,
         productGroup: product.productGroup?.name || product.tradeNameGroup?.description || null,
-        productChain: (product as any).productABCType?.name || null,
+        productChain: resolvedAbcTypeName,
+        productABCTypeId: resolvedAbcTypeId || null,
         quantity,
         unitPrice,
         originalPrice: product.price ? Number(product.price) : unitPrice,
@@ -596,6 +707,8 @@ export async function processSalesNoteImport(
             saleDate: order.saleDate,
             status: "COMPLETED",
             paymentTerm: order.paymentTerm as any,
+            paymentDate: order.paymentDate || null,
+            saleOrderRef: order.orderNumber || null,
             subtotalAmount: new Prisma.Decimal(subtotalAmount),
             shippingCost: new Prisma.Decimal(0),
             otherCosts: new Prisma.Decimal(0),
@@ -620,6 +733,7 @@ export async function processSalesNoteImport(
                 promotionBudget: item.promotionBudget != null ? new Prisma.Decimal(item.promotionBudget) : null,
                 pointPerUnit: item.pointPerUnit,
                 productChain: item.productChain,
+                productABCTypeId: item.productABCTypeId,
                 quantity: item.quantity,
                 unitPrice: new Prisma.Decimal(item.unitPrice),
                 originalPrice: new Prisma.Decimal(item.originalPrice),

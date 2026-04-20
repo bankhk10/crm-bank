@@ -391,7 +391,8 @@ export default function SalesNoteImportView() {
                 <div className="mt-3">
                   <p className="text-xs text-slate-500">
                     <span className="font-medium">คอลัมน์เสริม:</span>{" "}
-                    เงื่อนไขการชำระเงิน (ค่าเริ่มต้น: เครดิต 90 วัน), หมายเหตุ
+                    เงื่อนไขการชำระเงิน (ค่าเริ่มต้น: เครดิต 90 วัน), หมายเหตุ,
+                    ประเภท (ABC Code), วันที่ชำระเงิน, ราคาลัง, เลขที่ออเดอร์
                   </p>
                 </div>
               </CardContent>
@@ -409,7 +410,8 @@ export default function SalesNoteImportView() {
                       หลักการจัดกลุ่ม
                     </h4>
                     <p className="text-xs text-slate-500 mt-1">
-                      แถวที่มี <strong>วันที่ + พนักงาน + ร้านค้า + เงื่อนไขชำระเงิน</strong> ตรงกัน จะถูกรวมเป็น 1 ใบบันทึกการขาย
+                      ถ้าระบุ <strong>เลขที่ออเดอร์</strong> เดียวกัน จะรวมเป็น 1 ใบขาย
+                      ถ้าไม่ระบุ จะจัดกลุ่มจาก <strong>วันที่ + พนักงาน + ร้านค้า + เงื่อนไขชำระเงิน</strong>
                       พร้อมตั้งสถานะ &quot;เสร็จสิ้น&quot; อัตโนมัติ
                     </p>
                   </div>
@@ -526,6 +528,9 @@ export default function SalesNoteImportView() {
                           สถานะ
                         </th>
                         <th className="px-3 py-2.5 text-left font-medium text-slate-600">
+                          เลขออเดอร์
+                        </th>
+                        <th className="px-3 py-2.5 text-left font-medium text-slate-600">
                           วันที่ขาย
                         </th>
                         <th className="px-3 py-2.5 text-left font-medium text-slate-600">
@@ -537,6 +542,9 @@ export default function SalesNoteImportView() {
                         <th className="px-3 py-2.5 text-left font-medium text-slate-600">
                           สินค้า
                         </th>
+                        <th className="px-3 py-2.5 text-left font-medium text-slate-600">
+                          ABC Code
+                        </th>
                         <th className="px-3 py-2.5 text-right font-medium text-slate-600">
                           จำนวน
                         </th>
@@ -544,10 +552,16 @@ export default function SalesNoteImportView() {
                           ราคา/หน่วย
                         </th>
                         <th className="px-3 py-2.5 text-right font-medium text-slate-600">
+                          ราคาลัง
+                        </th>
+                        <th className="px-3 py-2.5 text-right font-medium text-slate-600">
                           ยอดรวม
                         </th>
                         <th className="px-3 py-2.5 text-left font-medium text-slate-600">
                           ชำระเงิน
+                        </th>
+                        <th className="px-3 py-2.5 text-left font-medium text-slate-600">
+                          วันที่ชำระ
                         </th>
                       </tr>
                     </thead>
@@ -581,6 +595,9 @@ export default function SalesNoteImportView() {
                               </Badge>
                             )}
                           </td>
+                          <td className="px-3 py-2 text-slate-700 text-xs whitespace-nowrap">
+                            {row.orderNumber}
+                          </td>
                           <td className="px-3 py-2 text-slate-700 whitespace-nowrap">
                             {row.saleDate}
                           </td>
@@ -600,6 +617,9 @@ export default function SalesNoteImportView() {
                               </p>
                             </div>
                           </td>
+                          <td className="px-3 py-2 text-slate-600 text-xs">
+                            {row.abcCode}
+                          </td>
                           <td className="px-3 py-2 text-right text-slate-700 tabular-nums">
                             {row.quantity.toLocaleString()}
                           </td>
@@ -608,6 +628,13 @@ export default function SalesNoteImportView() {
                               minimumFractionDigits: 2,
                             })}
                           </td>
+                          <td className="px-3 py-2 text-right text-slate-700 tabular-nums">
+                            {row.cartonPrice != null
+                              ? row.cartonPrice.toLocaleString("th-TH", {
+                                  minimumFractionDigits: 2,
+                                })
+                              : "-"}
+                          </td>
                           <td className="px-3 py-2 text-right font-medium text-slate-800 tabular-nums">
                             {row.totalPrice.toLocaleString("th-TH", {
                               minimumFractionDigits: 2,
@@ -615,6 +642,9 @@ export default function SalesNoteImportView() {
                           </td>
                           <td className="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">
                             {row.paymentTerm}
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">
+                            {row.paymentDate}
                           </td>
                         </tr>
                       ))}
