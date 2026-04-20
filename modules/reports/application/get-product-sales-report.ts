@@ -426,41 +426,66 @@ export async function getProductSalesReport(
       : undefined,
   }));
 
-  // ABC Code sales (aggregate by productABCType)
+  // ABC Code sales (aggregate by productABCType) like Dashboard
+  const abcTypes = await prisma.productABCTypes.findMany({
+    where: { deletedAt: null },
+    select: { id: true, code: true, name: true }
+  });
+  const abcTypeMap = new Map(abcTypes.map(a => [a.id, a]));
+
+  const abcSaleItems = await prisma.saleItem.findMany({
+    where: {
+      sale: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { not: "CANCELLED" },
+        ...scopeFilter,
+      },
+    },
+    select: {
+      productId: true,
+      productABCTypeId: true,
+      totalPrice: true,
+      quantity: true,
+      saleId: true,
+      product: { select: { productABCTypeId: true } },
+    },
+  });
+
   type AbcAgg = {
     id: string;
     code: string;
     name: string;
     totalSales: number;
     totalQuantity: number;
-    orderCount: number;
+    saleIds: Set<string>;
     productIds: Set<string>;
   };
 
   const abcAggregates = new Map<string, AbcAgg>();
 
-  for (const ps of productSales) {
-    const product = productMap.get(ps.productId);
-    const abcId = product?.abcTypeId || "UNKNOWN";
-    const abcCode = product?.abcTypeCode || "-";
-    const abcName = product?.abcTypeName || "ไม่ระบุ";
-
-    const existing = abcAggregates.get(abcId) || {
-      id: abcId,
-      code: abcCode,
-      name: abcName,
-      totalSales: 0,
-      totalQuantity: 0,
-      orderCount: 0,
-      productIds: new Set<string>(),
-    };
-
-    existing.totalSales += Number(ps._sum.totalPrice || 0);
-    existing.totalQuantity += Number(ps._sum.quantity || 0);
-    existing.orderCount += ps._count;
-    existing.productIds.add(ps.productId);
-
-    abcAggregates.set(abcId, existing);
+  for (const item of abcSaleItems) {
+    const abcId = item.productABCTypeId || item.product?.productABCTypeId || "UNKNOWN";
+    
+    let abcRecord = abcAggregates.get(abcId);
+    if (!abcRecord) {
+      const typeInfo = abcTypeMap.get(abcId);
+      abcRecord = {
+        id: abcId,
+        code: typeInfo?.code || "-",
+        name: typeInfo?.name || "ไม่ระบุ",
+        totalSales: 0,
+        totalQuantity: 0,
+        saleIds: new Set<string>(),
+        productIds: new Set<string>(),
+      };
+      abcAggregates.set(abcId, abcRecord);
+    }
+    
+    abcRecord.totalSales += Number(item.totalPrice || 0);
+    abcRecord.totalQuantity += Number(item.quantity || 0);
+    abcRecord.productIds.add(item.productId);
+    abcRecord.saleIds.add(item.saleId);
   }
 
   const abcSales = Array.from(abcAggregates.values())
@@ -470,7 +495,7 @@ export async function getProductSalesReport(
       name: a.name,
       totalSales: a.totalSales,
       totalQuantity: a.totalQuantity,
-      orderCount: a.orderCount,
+      orderCount: a.saleIds.size,
       productCount: a.productIds.size,
     }))
     .sort((a, b) => b.totalSales - a.totalSales);

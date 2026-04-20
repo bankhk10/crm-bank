@@ -77,7 +77,7 @@ export function GroupPerformanceTable({
       },
       {
         accessorKey: "group",
-        header: "กลุ่มสินค้า",
+        header: "กลุ่มชื่อการค้า",
         meta: {
           minWidth: 200,
           align: "left",
@@ -154,12 +154,12 @@ export function GroupPerformanceTable({
       <div className="flex items-center justify-between px-1">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <Layers className="h-6 w-6 text-indigo-500" />
-          ข้อมูลการขายแยกตามกลุ่มสินค้า (ตามช่วงเวลาที่เลือก)
+          ข้อมูลการขายแยกตามกลุ่มชื่อการค้า (ตามช่วงเวลาที่เลือก)
         </h2>
       </div>
 
       <TableToolbar
-        searchPlaceholder="ค้นหากลุ่มสินค้า..."
+        searchPlaceholder="ค้นหากลุ่มชื่อการค้า..."
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         className="bg-white/80 backdrop-blur-sm border-slate-200"
