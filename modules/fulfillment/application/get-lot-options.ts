@@ -32,14 +32,35 @@ export async function getLotOptionsUseCase(saleId: string) {
   const data = await FulfillmentRepository.getLotOptions(saleId);
   if (!data) return null;
 
+  // Track consumed lot quantities across sale items sharing the same product
+  // so that suggested allocations don't over-allocate a single lot.
+  const consumedByLot = new Map<string, number>();
+
   const items = data.items.map((item) => {
-    const suggestedAllocations =
-      item.existingAllocations.length > 0
-        ? item.existingAllocations
-        : calculateSuggestedAllocations(
-            item.availableLots,
-            item.requiredQuantity,
-          );
+    let suggestedAllocations: SuggestedAllocation[];
+
+    if (item.existingAllocations.length > 0) {
+      suggestedAllocations = item.existingAllocations;
+    } else {
+      // Build effective lots with remaining quantities after prior items' allocations
+      const effectiveLots = item.availableLots.map((lot) => ({
+        ...lot,
+        quantity: Math.max(0, lot.quantity - (consumedByLot.get(lot.id) || 0)),
+      }));
+
+      suggestedAllocations = calculateSuggestedAllocations(
+        effectiveLots,
+        item.requiredQuantity,
+      );
+
+      // Track what this item consumed
+      for (const alloc of suggestedAllocations) {
+        consumedByLot.set(
+          alloc.lotId,
+          (consumedByLot.get(alloc.lotId) || 0) + alloc.quantity,
+        );
+      }
+    }
 
     return {
       ...item,

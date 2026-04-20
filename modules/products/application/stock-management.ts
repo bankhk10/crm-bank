@@ -319,6 +319,28 @@ export async function confirmStockDeductionWithLotsUseCase(
       allocationsByItem.set(alloc.saleItemId, existing);
     }
 
+    // Pre-validate: aggregate total requested quantity per lot across ALL items
+    const totalByLot = new Map<string, number>();
+    for (const alloc of lotAllocations) {
+      totalByLot.set(
+        alloc.lotId,
+        (totalByLot.get(alloc.lotId) || 0) + alloc.quantity,
+      );
+    }
+
+    for (const [lotId, totalRequested] of totalByLot.entries()) {
+      const lot = await StockRepository.getLotById(lotId, client);
+      if (!lot) {
+        throw new Error(`LOT ${lotId} not found`);
+      }
+      if (lot.quantity < totalRequested) {
+        throw new Error(
+          `LOT ${lot.lotNumber} has insufficient quantity: ` +
+            `available ${lot.quantity}, total requested across items ${totalRequested}`,
+        );
+      }
+    }
+
     for (const item of sale.items) {
       const itemAllocations = allocationsByItem.get(item.id) || [];
 

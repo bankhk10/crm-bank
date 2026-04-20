@@ -93,48 +93,76 @@ export async function GET(
       return NextResponse.json({ error: "Sale not found" }, { status: 404 });
     }
 
-    // Get available LOTs for each sale item (sorted by quantity ascending)
-    const lotOptions: SaleItemLotOptionsExtended[] = await Promise.all(
-      sale.items.map(async (item) => {
-        // Use the new function that sorts by quantity ascending
-        const availableLots =
-          await StockRepository.getAvailableLotsOrderByQuantity(item.productId);
-
-        const lotInfos: LotInfo[] = availableLots.map((lot) => ({
+    // Get unique product IDs to fetch lots once per product
+    const uniqueProductIds = [...new Set(sale.items.map((item) => item.productId))];
+    const lotsByProduct = new Map<string, LotInfo[]>();
+    for (const productId of uniqueProductIds) {
+      const availableLots =
+        await StockRepository.getAvailableLotsOrderByQuantity(productId);
+      lotsByProduct.set(
+        productId,
+        availableLots.map((lot) => ({
           id: lot.id,
           lotNumber: lot.lotNumber,
           quantity: lot.quantity,
           expiryDate: lot.expiryDate,
           storageLocation: lot.storageLocation,
           productId: lot.productId,
+        })),
+      );
+    }
+
+    // Track consumed lot quantities across sale items sharing the same product
+    // so that suggested allocations don't over-allocate a single lot.
+    const consumedByLot = new Map<string, number>();
+
+    const lotOptions: SaleItemLotOptionsExtended[] = sale.items.map((item) => {
+      const lotInfos = lotsByProduct.get(item.productId) || [];
+
+      // Check if this sale already has LOT allocations
+      const existingAllocations: SuggestedAllocation[] =
+        item.lotAllocations?.map((la) => ({
+          lotId: la.lotId,
+          lotNumber: la.lot.lotNumber,
+          quantity: la.quantity,
+        })) || [];
+
+      let suggestedAllocations: SuggestedAllocation[];
+
+      if (existingAllocations.length > 0) {
+        suggestedAllocations = existingAllocations;
+      } else {
+        // Build effective lots with remaining quantities after prior items' allocations
+        const effectiveLots = lotInfos.map((lot) => ({
+          ...lot,
+          quantity: Math.max(0, lot.quantity - (consumedByLot.get(lot.id) || 0)),
         }));
 
-        // Check if this sale already has LOT allocations
-        const existingAllocations: SuggestedAllocation[] =
-          item.lotAllocations?.map((la) => ({
-            lotId: la.lotId,
-            lotNumber: la.lot.lotNumber,
-            quantity: la.quantity,
-          })) || [];
+        suggestedAllocations = calculateSuggestedAllocations(
+          effectiveLots,
+          item.quantity,
+        );
 
-        // Calculate suggested allocations if no existing allocations
-        const suggestedAllocations =
-          existingAllocations.length > 0
-            ? existingAllocations
-            : calculateSuggestedAllocations(lotInfos, item.quantity);
+        // Track what this item consumed
+        for (const alloc of suggestedAllocations) {
+          consumedByLot.set(
+            alloc.lotId,
+            (consumedByLot.get(alloc.lotId) || 0) + alloc.quantity,
+          );
+        }
+      }
 
-        return {
-          saleItemId: item.id,
-          productId: item.productId,
-          productCode: item.product.productCode,
-          productName: item.product.name,
-          requiredQuantity: item.quantity,
-          availableLots: lotInfos,
-          existingAllocations,
-          suggestedAllocations,
-        };
-      }),
-    );
+      return {
+        saleItemId: item.id,
+        productId: item.productId,
+        productCode: item.product.productCode,
+        productName: item.product.name,
+        requiredQuantity: item.quantity,
+        availableLots: lotInfos,
+        existingAllocations,
+        suggestedAllocations,
+      };
+    });
 
     return NextResponse.json({
       saleId: sale.id,
