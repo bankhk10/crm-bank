@@ -154,6 +154,8 @@ export async function findSaleItemsWithDetails(
     },
     select: {
       totalPrice: true,
+      productABCTypeId: true,
+      tradeNameGroupId: true,
       sale: {
         select: { status: true },
       },

@@ -216,6 +216,8 @@ export async function createSaleUseCase(
         commonName: product?.commonName,
         unit: product?.unit,
         productGroup: product?.productGroup?.name,
+        productABCTypeId: product?.productABCTypeId,
+        tradeNameGroupId: product?.tradeNameGroupId,
         brand: product?.brand,
         packageSize: product?.packageSize as any,
         packageSizeUnit: product?.packageSizeUnit,

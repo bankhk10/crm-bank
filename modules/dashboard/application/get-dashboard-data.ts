@@ -144,14 +144,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         let lastYearInvoice = 0;
 
         for (const item of currentItems) {
-          if (item.product.productABCTypeId === group) {
+          if ((item.productABCTypeId || item.product?.productABCTypeId) === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
             if (item.sale.status !== "CANCELLED") salesNote += amount;
           }
         }
         for (const item of lastYearItems) {
-          if (item.product.productABCTypeId === group) {
+          if ((item.productABCTypeId || item.product?.productABCTypeId) === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
             if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;
@@ -181,14 +181,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         let lastYearInvoice = 0;
 
         for (const item of currentItems) {
-          if (item.product.tradeNameGroupId === group) {
+          if ((item.tradeNameGroupId || item.product?.tradeNameGroupId) === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
             if (item.sale.status !== "CANCELLED") salesNote += amount;
           }
         }
         for (const item of lastYearItems) {
-          if (item.product.tradeNameGroupId === group) {
+          if ((item.tradeNameGroupId || item.product?.tradeNameGroupId) === group) {
             const amount = Number(item.totalPrice);
             if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
             if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;

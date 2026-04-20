@@ -886,6 +886,8 @@ model SaleItem {
   commonName             String?
   unit                   String?
   productGroup           String?
+  productABCTypeId       String? // Snapshot of productABCTypeId
+  tradeNameGroupId       String? // Snapshot of tradeNameGroupId
   brand                  String?
   packageSize            Decimal? @db.Decimal(15, 3)
   packageSizeUnit        String?
