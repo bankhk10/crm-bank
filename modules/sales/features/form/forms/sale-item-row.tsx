@@ -84,8 +84,18 @@ export function SaleItemRow({
                         <FormInput
                             label={`จำนวน (${product?.unit || '-'})`}
                             type="number"
+                            min={0}
+                            step={1}
                             value={String(item.quantity)}
-                            onChange={(e) => onUpdate(index, "quantity", Number(e.target.value))}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, "");
+                                onUpdate(index, "quantity", val === "" ? 0 : parseInt(val, 10));
+                            }}
+                            onKeyDown={(e) => {
+                                if (["e", "E", ".", "+", "-"].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
                         />
                         <FormInput

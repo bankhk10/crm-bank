@@ -5,22 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-interface FormInputProps {
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
-  value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  type?: "text" | "email" | "number" | "tel" | "password" | "url";
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
-  readOnly?: boolean;
   error?: string;
-  className?: string;
   inputClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
-  onWheel?: (e: React.WheelEvent<HTMLInputElement>) => void;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   rightIconInteractive?: boolean;
@@ -48,6 +38,7 @@ export function FormInput({
   leftIcon,
   rightIcon,
   rightIconInteractive = false,
+  ...props
 }: FormInputProps) {
   const hasIcon = leftIcon || rightIcon;
 
@@ -81,6 +72,7 @@ export function FormInput({
               className
             )}
             onWheel={onWheel}
+            {...props}
           />
           {rightIcon && (
             <div
@@ -105,6 +97,7 @@ export function FormInput({
           readOnly={readOnly}
           className={cn(defaultInputClass, inputClassName, className)}
           onWheel={onWheel}
+          {...props}
         />
       )}
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
