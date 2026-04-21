@@ -28,6 +28,8 @@ import {
     FileText,
     Gift,
     ExternalLink,
+    Truck,
+    MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -194,7 +196,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <DetailItem
                                 icon={<User className="h-4 w-4 text-gray-400" />}
                                 label="ลูกค้า"
-                                value={sale.customer.name}
+                                value={`${sale.customer.name} (${sale.customer.customerCode || "-"})`}
                             />
                             <DetailItem
                                 icon={<CreditCard className="h-4 w-4 text-gray-400" />}
@@ -214,7 +216,45 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                     locale: th,
                                 })}
                             />
+                            {sale.requestedDeliveryDate && (
+                                <DetailItem
+                                    icon={<Calendar className="h-4 w-4 text-gray-400" />}
+                                    label="วันที่ต้องการของ"
+                                    value={format(new Date(sale.requestedDeliveryDate), "dd MMM yyyy", {
+                                        locale: th,
+                                    })}
+                                />
+                            )}
                         </div>
+                    </div>
+                </div>
+
+                {/* ── Delivery Information ──────────────────────────────────── */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
+                    <SectionHeader
+                        icon={<Truck className="h-6 w-6" />}
+                        title="ข้อมูลการจัดส่ง"
+                    />
+                    <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
+                        {sale.deliveryMethod && (
+                            <DetailItem
+                                icon={<Truck className="h-4 w-4 text-gray-400" />}
+                                label="วิธีจัดส่ง"
+                                value={sale.deliveryMethod === "SALES_DELIVERY" ? "พนักงานจัดส่ง" : sale.deliveryMethod === "FACTORY_DELIVERY" ? "โรงงานจัดส่ง" : sale.deliveryMethod === "CUSTOMER_PICKUP" ? "รับสินค้าเอง" : sale.deliveryMethod === "COURIER" ? "ขนส่งเอกชน" : sale.deliveryMethod}
+                            />
+                        )}
+                        {(sale.customer?.addressLine || sale.customer?.province) && (
+                            <DetailItem
+                                icon={<MapPin className="h-4 w-4 text-gray-400" />}
+                                label="ที่อยู่จัดส่ง"
+                                value={[
+                                    sale.customer?.addressLine,
+                                    sale.customer?.district,
+                                    sale.customer?.province,
+                                    sale.customer?.postalCode,
+                                ].filter(Boolean).join(" ")}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -456,8 +496,13 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             )}
 
                             {Number(sale.otherCosts) > 0 && (
-                                <div className="flex justify-between items-center text-rose-600">
-                                    <span className="text-sm font-medium text-gray-600">{sale.otherCostsDescription || "ส่วนลดหน้าบิล"}</span>
+                                <div className="flex justify-between items-start text-rose-600">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-gray-600">ส่วนลดหน้าบิล</span>
+                                        {sale.otherCostsDescription && (
+                                            <span className="text-xs text-gray-400">{sale.otherCostsDescription}</span>
+                                        )}
+                                    </div>
                                     <span className="text-base font-semibold">
                                         -฿{Number(sale.otherCosts).toLocaleString("th-TH", {
                                             minimumFractionDigits: 2,
@@ -655,7 +700,12 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                     )}
                                     {Number(sale.otherCosts) > 0 && (
                                         <div className="flex justify-between text-sm font-medium text-rose-500">
-                                            <span>{sale.otherCostsDescription || "ส่วนลดหน้าบิล"}</span>
+                                            <div className="flex flex-col">
+                                                <span>ส่วนลดหน้าบิล</span>
+                                                {sale.otherCostsDescription && (
+                                                    <span className="text-xs text-gray-400 mt-0.5">{sale.otherCostsDescription}</span>
+                                                )}
+                                            </div>
                                             <span>
                                                 -฿{Number(sale.otherCosts).toLocaleString("th-TH", {
                                                     minimumFractionDigits: 2,
