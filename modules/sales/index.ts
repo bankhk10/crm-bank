@@ -28,6 +28,7 @@ export * from "./features/form/sale-form";
 
 // Features - Detail View
 export * from "./features/detail-view/sale-detail-view";
+export * from "./features/detail-view/sale-detail-mobile-view";
 
 // Features - Approve View
 export * from "./features/approve-view/sale-approve-view";

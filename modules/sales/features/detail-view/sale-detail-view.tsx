@@ -1,16 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     ArrowLeft,
     AlertTriangle,
     Loader2,
+    LayoutList,
+    FileText,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { usePermission } from "@/hooks/use-permission";
 import type { SaleDetailResponse } from "@/modules/sales/types";
 import {
     SaleStatusLabels,
@@ -21,6 +25,8 @@ import { getSaleAction } from "../../server/actions";
 
 export function SaleDetailView({ id }: { id: string }) {
     const router = useRouter();
+    const { hasPermission } = usePermission("menu.sales");
+    const canViewPdf = hasPermission("sale.view");
 
     const [data, setData] = useState<SaleDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
@@ -87,14 +93,31 @@ export function SaleDetailView({ id }: { id: string }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50">
             <div className="bg-white/80 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between shadow-sm rounded-xl">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    {/* ปุ่มกลับไปหน้ารายการขาย */}
                     <Button
                         variant="ghost"
                         className="text-slate-600 hover:text-slate-900"
-                        onClick={() => router.back()}
+                        asChild
                     >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        ย้อนกลับ
+                        <Link href="/sales">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            ข้อมูลการขาย
+                        </Link>
+                    </Button>
+
+                    {/* ปุ่มดูหน้ารายละเอียด (mobile view) */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        asChild
+                    >
+                        <Link href={`/sales/${sale.id}/detail`}>
+                            <LayoutList className="h-4 w-4 mr-1.5" />
+                            <span className="hidden sm:inline">ดูรายละเอียด</span>
+                            <span className="sm:hidden">รายละเอียด</span>
+                        </Link>
                     </Button>
                 </div>
 
@@ -121,20 +144,45 @@ export function SaleDetailView({ id }: { id: string }) {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-6">
-                <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative" style={{ height: "calc(100vh - 180px)" }}>
-                    {pdfLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[2px] z-10">
-                            <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-                            <p className="text-slate-600 font-medium animate-pulse">กำลังเตรียมไฟล์เอกสาร...</p>
+                {canViewPdf ? (
+                    <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative" style={{ height: "calc(100vh - 180px)" }}>
+                        {pdfLoading && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-[2px] z-10">
+                                <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
+                                <p className="text-slate-600 font-medium animate-pulse">กำลังเตรียมไฟล์เอกสาร...</p>
+                            </div>
+                        )}
+                        <iframe
+                            src={`/api/pdf?saleId=${sale.id}`}
+                            className="w-full h-full border-0"
+                            title="Sale Detail PDF"
+                            onLoad={() => setPdfLoading(false)}
+                        />
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                                <FileText className="h-8 w-8 text-slate-400" />
+                            </div>
+                            <h3 className="text-base font-semibold text-slate-700 mb-2">
+                                ไม่มีสิทธิ์ดูเอกสาร PDF
+                            </h3>
+                            <p className="text-sm text-slate-500 max-w-sm">
+                                คุณไม่มีสิทธิ์เปิดดูเอกสาร PDF กรุณาติดต่อผู้ดูแลระบบ หรือใช้ปุ่ม &ldquo;ดูรายละเอียด&rdquo; ด้านบนแทน
+                            </p>
+                            <Button
+                                className="mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+                                asChild
+                            >
+                                <Link href={`/sales/${sale.id}/detail`}>
+                                    <LayoutList className="h-4 w-4 mr-2" />
+                                    ดูรายละเอียด
+                                </Link>
+                            </Button>
                         </div>
-                    )}
-                    <iframe
-                        src={`/api/pdf?saleId=${sale.id}`}
-                        className="w-full h-full border-0"
-                        title="Sale Detail PDF"
-                        onLoad={() => setPdfLoading(false)}
-                    />
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );
