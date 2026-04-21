@@ -208,6 +208,10 @@ body {
   grid-template-columns: 230px 1fr;
 }
 
+.sales-row.row-payment-info {
+  grid-template-columns: 280px 1fr;
+}
+
 /*
   สามารถปรับความกว้างช่องได้โดย override ตัวแปร CSS ด้านล่าง
   ตัวอย่าง:

@@ -174,7 +174,7 @@ function renderDeliveryRows(data: InvoiceData): string {
 
   if (hasPaymentDate) {
     html += `
-      <div class="sales-row">
+      <div class="sales-row row-payment-info">
         <div class="sales-cell">
           <span class="info-label">วันที่ชำระเงิน:</span>
           <span>${safeValue(data.paymentDate)}</span>
