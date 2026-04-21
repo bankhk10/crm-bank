@@ -31,7 +31,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
       const email = String(formData.get("email") ?? "")
         .trim()
         .toLowerCase();
-      const password = String(formData.get("password") ?? "");
+      const password = String(formData.get("password") ?? "").trim();
 
       if (!email || !password) {
         setError("กรุณากรอกอีเมลและรหัสผ่าน");
