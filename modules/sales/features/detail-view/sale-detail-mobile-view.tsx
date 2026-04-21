@@ -203,7 +203,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
 
             {/* ── Main Content ─────────────────────────────────────────────── */}
             <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-                
+
                 {/* ── Warnings ── */}
                 {sale.status === "REJECTED" && (sale as any).rejectionReason && (
                     <Alert variant="destructive" className="mb-4">
@@ -239,13 +239,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 label="พนักงานขาย"
                                 value={sale.employee?.name || "-"}
                             />
-                            <DetailItem
-                                icon={<Calendar className="h-4 w-4 text-gray-400" />}
-                                label="วันที่ออเดอร์"
-                                value={format(new Date(sale.saleDate), "dd MMM yyyy", {
-                                    locale: th,
-                                })}
-                            />
                             {sale.requestedDeliveryDate && (
                                 <DetailItem
                                     icon={<Calendar className="h-4 w-4 text-gray-400" />}
@@ -270,16 +263,15 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <DetailItem
                                 icon={<Truck className="h-4 w-4 text-gray-400" />}
                                 label="วิธีจัดส่ง"
-                                value={sale.deliveryMethod === "SALES_DELIVERY" ? "พนักงานจัดส่ง" : sale.deliveryMethod === "FACTORY_DELIVERY" ? "โรงงานจัดส่ง" : sale.deliveryMethod === "CUSTOMER_PICKUP" ? "รับสินค้าเอง" : sale.deliveryMethod === "COURIER" ? "ขนส่งเอกชน" : sale.deliveryMethod}
+                                value={sale.deliveryMethod === "SALES_DELIVERY" ? "พนักงานขายจัดส่งสินค้า" : sale.deliveryMethod === "FACTORY_DELIVERY" ? "ส่งโดยรถโรงงาน" : sale.deliveryMethod === "CUSTOMER_PICKUP" ? "ลูกค้ามารับสินค้าเอง" : sale.deliveryMethod === "COURIER" ? "ส่งโดยบริษัทขนส่ง" : sale.deliveryMethod}
                             />
                         )}
 
                         {(sale.deliveryMethod === "FACTORY_DELIVERY" || sale.deliveryMethod === "SALES_DELIVERY") && (
                             <>
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
-                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่ง" value={formatThaiDate(sale.deliveryDate)} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
                                 <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="ครบกำหนดชำระ" value={formatThaiDate(sale.creditDueDate)} />
-                                <DetailItem icon={<User className="h-4 w-4 text-gray-400" />} label="ผู้ขาย" value={sale.employee?.name || "-"} />
                             </>
                         )}
 
