@@ -305,38 +305,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                     </div>
                 </div>
 
-                {/* ── Notes ─────────────────────────────────────────────── */}
-                {sale.notes && (
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <SectionHeader
-                            icon={<FileText className="h-6 w-6" />}
-                            title="หมายเหตุ"
-                            variant="dark"
-                        />
-                        <div className="p-6">
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {sale.notes}
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {sale.otherCostsDescription && (
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                        <SectionHeader
-                            icon={<FileText className="h-6 w-6" />}
-                            title="ส่วนลดหน้าบิล"
-                            variant="dark"
-                        />
-                        <div className="p-6">
-                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {sale.otherCostsDescription}
-                            </p>
-                        </div>
-                    </div>
-
-                )}
-
                 {/* รายการสินค้า */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <SectionHeader
@@ -509,9 +477,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 <div className="flex justify-between items-start text-rose-600">
                                     <div className="flex flex-col">
                                         <span className="text-sm font-medium text-gray-600">ส่วนลดหน้าบิล</span>
-                                        {sale.otherCostsDescription && (
-                                            <span className="text-xs text-gray-400">{sale.otherCostsDescription}</span>
-                                        )}
                                     </div>
                                     <span className="text-base font-semibold">
                                         -฿{Number(sale.otherCosts).toLocaleString("th-TH", {
@@ -712,9 +677,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                         <div className="flex justify-between text-sm font-medium text-rose-500">
                                             <div className="flex flex-col">
                                                 <span>ส่วนลดหน้าบิล</span>
-                                                {sale.otherCostsDescription && (
-                                                    <span className="text-xs text-gray-400 mt-0.5">{sale.otherCostsDescription}</span>
-                                                )}
                                             </div>
                                             <span>
                                                 -฿{Number(sale.otherCosts).toLocaleString("th-TH", {
@@ -748,6 +710,38 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* ── Notes ─────────────────────────────────────────────── */}
+                {sale.notes && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-6 w-6" />}
+                            title="หมายเหตุ"
+                            variant="dark"
+                        />
+                        <div className="p-6">
+                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                {sale.notes}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {sale.otherCostsDescription && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-6 w-6" />}
+                            title="ส่วนลดหน้าบิล"
+                            variant="dark"
+                        />
+                        <div className="p-6">
+                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                {sale.otherCostsDescription}
+                            </p>
+                        </div>
+                    </div>
+
+                )}
 
                 {/* ── Action Buttons ─────────────────────────────────────────────── */}
                 <div className="mt-8 flex flex-col sm:flex-row gap-3">
