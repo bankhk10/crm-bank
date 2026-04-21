@@ -42,19 +42,19 @@ export async function updateSaleUseCase(
   }
 
   // 2. Permission check for rejected/waiting sales
-  if (
-    existingSale.status === "REJECTED" ||
-    existingSale.status === "WAITING_FOR_CORRECTION"
-  ) {
-    const isCreator = userId === existingSale.createdById;
-    if (!isCreator) {
-      return {
-        success: false as const,
-        error:
-          "Only the creator or admin can edit rejected or waiting for correction sales",
-      };
-    }
-  }
+  // if (
+  //   existingSale.status === "REJECTED" ||
+  //   existingSale.status === "WAITING_FOR_CORRECTION"
+  // ) {
+  //   const isCreator = userId === existingSale.createdById;
+  //   if (!isCreator) {
+  //     return {
+  //       success: false as const,
+  //       error:
+  //         "Only the creator or admin can edit rejected or waiting for correction sales",
+  //     };
+  //   }
+  // }
 
   // 3. Check delivery date updates
   let newDeliveryUpdateCount = existingSale.deliveryUpdateCount;

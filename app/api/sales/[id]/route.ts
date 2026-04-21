@@ -162,30 +162,30 @@ export async function GET(
     const creditLimit = (sale.customer as any).creditLimits[0];
     const creditInfo = creditLimit
       ? {
-          creditLimit: Number(creditLimit.limitAmount),
-          usedCredit: Number(creditLimit.usedAmount),
-          availableCredit: Number(creditLimit.availableAmount),
-          promotionalCredit: creditLimit.promoAmount
-            ? Number(creditLimit.promoAmount)
-            : undefined,
-          promotionalCreditUsed: sale.promotionalCreditUsed
-            ? Number(sale.promotionalCreditUsed)
-            : undefined,
-          promotionalCreditAvailable: creditLimit.promoAmount
-            ? Number(creditLimit.promoAmount) -
-              Number(sale.promotionalCreditUsed || 0)
-            : undefined,
-          currentSaleAmount: Number(sale.totalAmount),
-          willExceedLimit:
-            Number(sale.totalAmount) > Number(creditLimit.availableAmount),
-        }
+        creditLimit: Number(creditLimit.limitAmount),
+        usedCredit: Number(creditLimit.usedAmount),
+        availableCredit: Number(creditLimit.availableAmount),
+        promotionalCredit: creditLimit.promoAmount
+          ? Number(creditLimit.promoAmount)
+          : undefined,
+        promotionalCreditUsed: sale.promotionalCreditUsed
+          ? Number(sale.promotionalCreditUsed)
+          : undefined,
+        promotionalCreditAvailable: creditLimit.promoAmount
+          ? Number(creditLimit.promoAmount) -
+          Number(sale.promotionalCreditUsed || 0)
+          : undefined,
+        currentSaleAmount: Number(sale.totalAmount),
+        willExceedLimit:
+          Number(sale.totalAmount) > Number(creditLimit.availableAmount),
+      }
       : {
-          creditLimit: 0,
-          usedCredit: 0,
-          availableCredit: 0,
-          currentSaleAmount: Number(sale.totalAmount),
-          willExceedLimit: false,
-        };
+        creditLimit: 0,
+        usedCredit: 0,
+        availableCredit: 0,
+        currentSaleAmount: Number(sale.totalAmount),
+        willExceedLimit: false,
+      };
 
     return NextResponse.json({
       sale,
@@ -253,23 +253,21 @@ export async function PUT(
 
     // Check if user has permission to edit this sale
     // For REJECTED or WAITING_FOR_CORRECTION sales, only creator or admin can edit
-    if (
-      existingSale.status === "REJECTED" ||
-      existingSale.status === "WAITING_FOR_CORRECTION"
-    ) {
-      const isCreator = session.user.id === existingSale.createdById;
-      // TODO: Check if user is admin - you may need to implement this check based on your permission system
-      // For now, we'll allow creator to edit
-      if (!isCreator) {
-        return NextResponse.json(
-          {
-            error:
-              "Only the creator or admin can edit rejected or waiting for correction sales",
-          },
-          { status: 403 },
-        );
-      }
-    }
+    // if (
+    //   existingSale.status === "REJECTED" ||
+    //   existingSale.status === "WAITING_FOR_CORRECTION"
+    // ) {
+    //   const isCreator = session.user.id === existingSale.createdById;
+    //   if (!isCreator) {
+    //     return NextResponse.json(
+    //       {
+    //         error:
+    //           "Only the creator or admin can edit rejected or waiting for correction sales",
+    //       },
+    //       { status: 403 },
+    //     );
+    //   }
+    // }
 
     // Check delivery date updates
     let newDeliveryUpdateCount = existingSale.deliveryUpdateCount;
@@ -278,7 +276,7 @@ export async function PUT(
       body.deliveryDate &&
       (!existingSale.deliveryDate ||
         new Date(body.deliveryDate).getTime() !==
-          existingSale.deliveryDate.getTime())
+        existingSale.deliveryDate.getTime())
     ) {
       if (existingSale.deliveryUpdateCount >= 3) {
         return NextResponse.json(
@@ -407,12 +405,12 @@ export async function PUT(
           },
           statusHistory: needsReapproval
             ? {
-                create: {
-                  status: "PENDING_APPROVAL",
-                  notes: "Sale updated - requires re-approval",
-                  changedById: session.user.id,
-                },
-              }
+              create: {
+                status: "PENDING_APPROVAL",
+                notes: "Sale updated - requires re-approval",
+                changedById: session.user.id,
+              },
+            }
             : undefined,
         },
         include: {
