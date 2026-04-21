@@ -731,7 +731,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                         <SectionHeader
                             icon={<FileText className="h-6 w-6" />}
-                            title="ส่วนลดหน้าบิล"
+                            title="รายละเอียดส่วนลดหน้าบิล"
                             variant="dark"
                         />
                         <div className="p-6">
@@ -744,7 +744,17 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                 )}
 
                 {/* ── Action Buttons ─────────────────────────────────────────────── */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                        variant="outline"
+                        className="w-full sm:w-auto h-11 border-gray-200 text-gray-700 font-medium px-6 hover:bg-gray-50"
+                        asChild
+                    >
+                        <Link href="/sales">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            กลับหน้าข้อมูลการขาย
+                        </Link>
+                    </Button>
                     {canViewPdf && (
                         <Button
                             asChild
@@ -757,18 +767,10 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             </Link>
                         </Button>
                     )}
-
-                    <Button
-                        variant="outline"
-                        className="w-full sm:w-auto h-11 border-gray-200 text-gray-700 font-medium px-6 hover:bg-gray-50"
-                        asChild
-                    >
-                        <Link href="/sales">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            กลับหน้าข้อมูลการขาย
-                        </Link>
-                    </Button>
                 </div>
+                <br></br>
+                <br></br>
+                <br></br>
             </div>
         </div>
     );
