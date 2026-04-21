@@ -224,7 +224,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
           <td class="text-left">
             <div>${safeValue(item.description)}</div>
             ${item.promotionBudget && item.promotionBudget > 0
-          ? `<div style="font-size: 10px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
+          ? `<div style="font-size: 8px; color: #059669;">งบส่งเสริมการขาย: ฿${formatNumber(item.promotionBudget)} / ลัง (รวม ฿${formatNumber(item.promotionBudget * item.quantity)})</div>`
           : ""
         }
           </td>
