@@ -14,6 +14,14 @@ import { useFulfillmentColumns } from "./use-fulfillment-columns";
 import type { FulfillmentTableProps } from "../../types/types";
 import { ClearSearchButton } from "@/components/custom/ClearSearchButton";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { STATUS_STYLE } from "../../constants";
 
 export function FulfillmentTable(props: FulfillmentTableProps) {
     const columns = useFulfillmentColumns();
@@ -32,7 +40,19 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
         dateRange,
         onDateRangeChange,
         onClear,
+        statusFilter,
+        onStatusFilterChange,
     } = props;
+
+    const FULFILLMENT_STATUS_OPTIONS = [
+        { value: "ALL", label: "ทั้งหมด" },
+        { value: "APPROVED", label: STATUS_STYLE.APPROVED.label },
+        { value: "AWAITING_PAYMENT", label: STATUS_STYLE.AWAITING_PAYMENT.label },
+        { value: "PAID", label: STATUS_STYLE.PAID.label },
+        { value: "AWAITING_DELIVERY", label: STATUS_STYLE.AWAITING_DELIVERY.label },
+        { value: "DELIVERED", label: STATUS_STYLE.DELIVERED.label },
+        { value: "DELIVERY_COMPLETED", label: STATUS_STYLE.DELIVERY_COMPLETED.label },
+    ];
 
     const toolbar = (
         <div className="space-y-4 mb-6">
@@ -58,6 +78,26 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                                     className="pl-9 h-11 w-full bg-white text-base border-gray-300 focus:ring-2"
                                 />
                             </div>
+                        </div>
+                        <div className="space-y-2 w-full lg:w-[200px]">
+                            <label className="mx-1 mb-1 font-medium text-base text-gray-900 block">
+                                สถานะ
+                            </label>
+                            <Select
+                                value={statusFilter ?? "ALL"}
+                                onValueChange={(val) => onStatusFilterChange?.(val)}
+                            >
+                                <SelectTrigger className="h-11 w-full bg-white text-base border-gray-300">
+                                    <SelectValue placeholder="เลือกสถานะ" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {FULFILLMENT_STATUS_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto items-end">
                             <div className="w-full sm:w-44">
@@ -98,7 +138,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
                                     }}
                                 />
                             </div>
-                            {(searchValue || dateRange?.from || dateRange?.to) && (
+                            {(searchValue || dateRange?.from || dateRange?.to || (statusFilter && statusFilter !== "APPROVED")) && (
                                 <div className="flex items-end">
                                     <ClearSearchButton onClick={onClear || (() => { })} />
                                 </div>

@@ -38,6 +38,7 @@ export default function FulfillmentPage() {
     query: "",
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>("APPROVED");
 
   useEffect(() => {
     const isExtendingEmpty =
@@ -73,6 +74,7 @@ export default function FulfillmentPage() {
     setFilterDraft({ query: "" });
     setAppliedFilters({ query: "" });
     setDateRange(undefined);
+    setStatusFilter("APPROVED");
     setPage(1);
   };
 
@@ -85,10 +87,13 @@ export default function FulfillmentPage() {
       setError(null);
 
       try {
+        const statusesToQuery =
+          statusFilter === "ALL" ? FULFILLMENT_STATUSES : [statusFilter];
+
         const result = await getFulfillmentsAction({
           page,
           perPage,
-          status: FULFILLMENT_STATUSES,
+          status: statusesToQuery,
           search: appliedFilters.query || undefined,
           dateFrom: dateRange?.from?.toISOString(),
           dateTo: dateRange?.to?.toISOString(),
@@ -115,7 +120,7 @@ export default function FulfillmentPage() {
       mounted = false;
       controller.abort();
     };
-  }, [page, perPage, appliedFilters, dateRange]);
+  }, [page, perPage, appliedFilters, dateRange, statusFilter]);
 
   if (isLoading) {
     return (
@@ -170,6 +175,11 @@ export default function FulfillmentPage() {
             onPerPageChange={setPerPage}
             onClear={handleClear}
             currentUserId={user?.id}
+            statusFilter={statusFilter}
+            onStatusFilterChange={(val) => {
+              setStatusFilter(val);
+              setPage(1);
+            }}
           />
         </div>
       </div>
