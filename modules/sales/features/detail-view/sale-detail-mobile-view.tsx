@@ -39,6 +39,7 @@ import { DetailItem } from "@/components/custom/detail-item";
 import { SectionHeader } from "@/components/custom/section-header";
 import { DetailHero } from "@/components/custom/detail-hero";
 import { getSaleAction } from "../../server/actions";
+import { formatAddress } from "@/lib/address-utils";
 
 interface SaleDetailMobileViewProps {
     id: string;
@@ -144,6 +145,35 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
         return sum + (Number(item.quantity) * Number(item.promotionBudget ?? 0));
     }, 0);
 
+    const sa = (sale as any).saleAddress || {};
+
+    const shippingAddress = formatAddress({
+        addressLine: sa.shipping_address_line,
+        subdistrict: sa.shipping_subdistrict,
+        district: sa.shipping_district,
+        province: sa.shipping_province,
+        postalCode: sa.shipping_postal_code,
+    });
+
+    const receivingAddress = formatAddress({
+        addressLine: sa.receiving_address_line,
+        subdistrict: sa.receiving_subdistrict,
+        district: sa.receiving_district,
+        province: sa.receiving_province,
+        postalCode: sa.receiving_postal_code,
+    });
+
+    const senderAddress = formatAddress({
+        addressLine: sa.sender_line,
+        subdistrict: sa.sender_subdistrict,
+        district: sa.sender_district,
+        province: sa.sender_province,
+        postalCode: sa.sender_postal_code,
+    });
+
+    const shippingCompanyName = sa.sender_name || "-";
+    const formatThaiDate = (d: any) => d ? format(new Date(d), "dd MMM yyyy", { locale: th }) : "-";
+
     return (
         <div className="min-h-screen">
             {/* ── Hero Header ──────────────────────────────────────────────── */}
@@ -235,7 +265,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         icon={<Truck className="h-6 w-6" />}
                         title="ข้อมูลการจัดส่ง"
                     />
-                    <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
+                    <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                         {sale.deliveryMethod && (
                             <DetailItem
                                 icon={<Truck className="h-4 w-4 text-gray-400" />}
@@ -243,7 +273,32 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 value={sale.deliveryMethod === "SALES_DELIVERY" ? "พนักงานจัดส่ง" : sale.deliveryMethod === "FACTORY_DELIVERY" ? "โรงงานจัดส่ง" : sale.deliveryMethod === "CUSTOMER_PICKUP" ? "รับสินค้าเอง" : sale.deliveryMethod === "COURIER" ? "ขนส่งเอกชน" : sale.deliveryMethod}
                             />
                         )}
-                        {(sale.customer?.addressLine || sale.customer?.province) && (
+
+                        {(sale.deliveryMethod === "FACTORY_DELIVERY" || sale.deliveryMethod === "SALES_DELIVERY") && (
+                            <>
+                                <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่ง" value={formatThaiDate(sale.deliveryDate)} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="ครบกำหนดชำระ" value={formatThaiDate(sale.creditDueDate)} />
+                                <DetailItem icon={<User className="h-4 w-4 text-gray-400" />} label="ผู้ขาย" value={sale.employee?.name || "-"} />
+                            </>
+                        )}
+
+                        {sale.deliveryMethod === "CUSTOMER_PICKUP" && (
+                            <>
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่มารับสินค้า" value={formatThaiDate(sale.requestedDeliveryDate)} />
+                                <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="สถานที่รับสินค้า" value={receivingAddress || "-"} />
+                            </>
+                        )}
+
+                        {sale.deliveryMethod === "COURIER" && (
+                            <>
+                                <DetailItem icon={<Truck className="h-4 w-4 text-gray-400" />} label="ชื่อบริษัทขนส่ง" value={shippingCompanyName} />
+                                <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่บริษัทขนส่ง" value={senderAddress || "-"} />
+                                <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
+                            </>
+                        )}
+
+                        {!sale.deliveryMethod && (sale.customer?.addressLine || sale.customer?.province) && (
                             <DetailItem
                                 icon={<MapPin className="h-4 w-4 text-gray-400" />}
                                 label="ที่อยู่จัดส่ง"
@@ -252,7 +307,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                     sale.customer?.district,
                                     sale.customer?.province,
                                     sale.customer?.postalCode,
-                                ].filter(Boolean).join(" ")}
+                                ].filter(Boolean).join(" ") || "-"}
                             />
                         )}
                     </div>
