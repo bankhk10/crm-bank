@@ -321,57 +321,20 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                     </div>
                 )}
 
-                {/* รายการของแถม */}
-                {sale.items.some((item) => (item.product?.freeItems?.length ?? 0) > 0) && (
-                    <AppCard>
-                        <AppSectionHeader title="รายการของแถม" icon={Gift} />
-
-                        <div className="space-y-4">
-                            {sale.items.map((saleItem, itemIdx) => {
-                                if (!saleItem.product?.freeItems?.length) return null;
-
-                                return (
-                                    <div key={itemIdx} className="space-y-2">
-                                        <p className="text-sm font-semibold text-gray-800">
-                                            {saleItem.product.name}
-                                        </p>
-
-                                        <div className="space-y-2">
-                                            {saleItem.product.freeItems.map((freeItem, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="rounded-lg border bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                                                >
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <span>ซื้อ {freeItem.purchaseQty}</span>
-                                                        <span className="text-gray-400">→</span>
-                                                        <span className="font-medium text-green-700">
-                                                            แถม {freeItem.freeQty}
-                                                        </span>
-
-                                                        {freeItem.netPrice != null && freeItem.netPrice !== 0 && (
-                                                            <span className="text-gray-500">
-                                                                | ราคาสุทธิ ฿
-                                                                {Number(freeItem.netPrice).toLocaleString("th-TH", {
-                                                                    minimumFractionDigits: 2,
-                                                                })}
-                                                            </span>
-                                                        )}
-
-                                                        {freeItem.notes && (
-                                                            <span className="text-gray-500">
-                                                                | {freeItem.notes}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                {sale.otherCostsDescription && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<FileText className="h-6 w-6" />}
+                            title="ส่วนลดหน้าบิล"
+                            variant="dark"
+                        />
+                        <div className="p-6">
+                            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                {sale.otherCostsDescription}
+                            </p>
                         </div>
-                    </AppCard>
+                    </div>
+
                 )}
 
                 {/* รายการสินค้า */}
