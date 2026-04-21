@@ -76,7 +76,7 @@ body {
 
 .doc-meta .doc-title-th {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #12386b;
   line-height: 1.1;
@@ -84,7 +84,7 @@ body {
 
 .doc-meta .doc-title-en {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
   font-weight: 400;
   letter-spacing: 0.4px;
@@ -133,10 +133,10 @@ body {
   display: inline-block;
   background: #12386b;
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   min-width: 100px;
-  padding: 3px 40px 3px 18px; /* Reduced vertical padding from 5px to 3px */
+  padding: 2px 40px 2px 18px; /* Reduced vertical padding from 5px to 3px */
   border-top-right-radius: 20px; /* ทำมุมขวาบนให้โค้งมนมากหน่อย */
   clip-path: polygon(0% 0%, 90% 0%, 100% 100%, 0% 100%);
 }
