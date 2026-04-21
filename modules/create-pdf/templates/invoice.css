@@ -258,10 +258,11 @@ table.product-table {
 .product-table thead th {
   background: #12386b;
   color: #fff;
-  padding: 12px 10px;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 800;
   text-align: center;
+  line-height: 1.2;
 }
 
 .product-table thead th.text-left {
@@ -277,12 +278,13 @@ table.product-table {
 }
 
 .product-table tbody td {
-  padding: 8px 10px; /* Reduced from 12px */
+  padding: 4px 10px;
   font-size: 12px;
   border-bottom: 1px solid #e5e7eb;
   color: #374151;
   vertical-align: top;
   word-wrap: break-word;
+  line-height: 1.2;
 }
 
 .product-table tbody tr.empty-row td {
@@ -326,7 +328,7 @@ table.product-table {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 8px 18px; /* Reduced from 12px */
+  padding: 4px 18px;
   font-size: 13px;
   color: #1f2937;
   background: #fff;
