@@ -346,13 +346,13 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
       <table class="product-table">
         <thead>
           <tr>
-            <th style="width: 5%;">ลำดับ</th>
-            <th class="text-left" style="width: 45%;">รายละเอียดสินค้า</th>
-            <th style="width: 5%;">จำนวน</th>
-            <th style="width: 9%;">หน่วย</th>
+            <th style="width: 4%;">ลำดับ</th>
+            <th class="text-left" style="width: 38%;">รายละเอียดสินค้า</th>
+            <th style="width: 7%;">จำนวน</th>
+            <th style="width: 8%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
-            <th style="width: 13%;">ราคา/หน่วย</th>
-            <th style="width: 12%;">ราคา/ลัง</th>
+            <th style="width: 12%;">ราคา/หน่วย</th>
+            <th style="width: 11%;">ราคา/ลัง</th>
             <th style="width: 15%;">ราคารวม</th>
           </tr>
         </thead>
