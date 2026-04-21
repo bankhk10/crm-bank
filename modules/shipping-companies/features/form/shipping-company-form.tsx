@@ -64,10 +64,6 @@ export default function ShippingCompanyForm({
         // Client-side validation
         const newErrors: Record<string, string[]> = {};
         if (!payload.name) newErrors.name = ["จำเป็นต้องกรอกข้อมูล"];
-        if (!payload.province) newErrors.province = ["จำเป็นต้องเลือกข้อมูล"];
-        if (!payload.district) newErrors.district = ["จำเป็นต้องเลือกข้อมูล"];
-        if (!payload.subdistrict) newErrors.subdistrict = ["จำเป็นต้องเลือกข้อมูล"];
-        if (!payload.postalCode) newErrors.postalCode = ["จำเป็นต้องมีข้อมูล"];
 
         if (Object.keys(newErrors).length > 0) {
             setFieldErrors(newErrors);
@@ -171,7 +167,6 @@ export default function ShippingCompanyForm({
                         clearFieldError("subdistrict");
                         clearFieldError("postalCode");
                     }}
-                    required
                     errors={{
                         province: fieldErrors.province?.[0],
                         district: fieldErrors.district?.[0],
