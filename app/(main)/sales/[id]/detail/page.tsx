@@ -1,5 +1,5 @@
 import { use } from "react";
-import { SaleDetailMobileView } from "@/modules/sales/features/detail-view/sale-detail-mobile-view";
+import { SaleDetailView } from "@/modules/sales/features/detail-view/sale-detail-view";
 
 export const metadata = {
     title: "รายละเอียดการขาย",
@@ -13,5 +13,5 @@ export default function SaleDetailMobilePage({
 }) {
     const { id } = use(params);
 
-    return <SaleDetailMobileView id={id} />;
+    return <SaleDetailView id={id} />;
 }

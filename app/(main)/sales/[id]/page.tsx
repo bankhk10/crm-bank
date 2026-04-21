@@ -1,5 +1,5 @@
 import { use } from "react";
-import { SaleDetailView } from "@/modules/sales/features/detail-view/sale-detail-view";
+import { SaleDetailMobileView } from "@/modules/sales/features/detail-view/sale-detail-mobile-view";
 
 export default function SaleDetailPage({
   params,
@@ -8,5 +8,5 @@ export default function SaleDetailPage({
 }) {
   const { id } = use(params);
 
-  return <SaleDetailView id={id} />;
+  return <SaleDetailMobileView id={id} />;
 }

@@ -474,15 +474,11 @@ export function SaleDetailMobileView({ id }: { id: string }) {
                             asChild
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 font-medium"
                         >
-                            <a
-                                href={`/api/pdf?saleId=${sale.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
+                            <Link href={`/sales/${sale.id}/detail`}>
                                 <FileText className="h-4 w-4 mr-2" />
                                 ดูเอกสาร PDF
                                 <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
-                            </a>
+                            </Link>
                         </Button>
                     )}
 

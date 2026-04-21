@@ -113,7 +113,7 @@ export function SaleDetailView({ id }: { id: string }) {
                         className="text-blue-600 border-blue-200 hover:bg-blue-50"
                         asChild
                     >
-                        <Link href={`/sales/${sale.id}/detail`}>
+                        <Link href={`/sales/${sale.id}`}>
                             <LayoutList className="h-4 w-4 mr-1.5" />
                             <span className="hidden sm:inline">ดูรายละเอียด</span>
                             <span className="sm:hidden">รายละเอียด</span>
@@ -175,7 +175,7 @@ export function SaleDetailView({ id }: { id: string }) {
                                 className="mt-6 bg-blue-600 hover:bg-blue-700 text-white"
                                 asChild
                             >
-                                <Link href={`/sales/${sale.id}/detail`}>
+                                <Link href={`/sales/${sale.id}`}>
                                     <LayoutList className="h-4 w-4 mr-2" />
                                     ดูรายละเอียด
                                 </Link>
