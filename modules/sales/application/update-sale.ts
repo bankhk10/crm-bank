@@ -132,9 +132,9 @@ export async function updateSaleUseCase(
     billingCustomerAddressId: body.billingCustomerAddressId,
     shippingCustomerAddressId:
       body.shippingCustomerAddressId || body.selectedAddressId,
-    pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId,
+    pickupCompanyAddressId: body.pickupCompanyAddressId || body.pickupCompanyId || null,
     shippingCompanyAddressId:
-      body.shippingCompanyAddressId || body.shippingCompanyId,
+      body.shippingCompanyAddressId || body.shippingCompanyId || null,
 
     // Snapshots: Exploded Address Fields
     ...explodedAddresses,

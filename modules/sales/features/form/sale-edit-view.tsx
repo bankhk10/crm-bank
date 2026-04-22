@@ -54,8 +54,12 @@ export default function SaleEditView({ id }: SaleEditViewProps) {
             ? new Date(sale.requestedDeliveryDate).toISOString().split("T")[0]
             : "",
           deliveryMethod: sale.deliveryMethod,
-          pickupCompanyId: sale.pickupCompanyId || sale.saleAddress?.pickupCompanyAddressId || "",
-          shippingCompanyId: sale.shippingCompanyId || "",
+          pickupCompanyId: sale.deliveryMethod === "CUSTOMER_PICKUP"
+            ? (sale.pickupCompanyId || sale.saleAddress?.pickupCompanyAddressId || "")
+            : "",
+          shippingCompanyId: sale.deliveryMethod === "COURIER"
+            ? (sale.shippingCompanyId || sale.saleAddress?.shippingCompanyAddressId || "")
+            : "",
           billingAddress: sale.billingAddress || "",
           shippingAddress: (() => {
             if (!sale.saleAddress) return "";
