@@ -232,7 +232,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         }
           </td>
           <td class="text-center">${formatNumber(item.quantity)}</td>
-          <td class="text-left">${safeValue(item.unit)}</td>
+          <td class="text-center">${safeValue(item.unit)}</td>
           <td class="text-center">${formatNumber(item.packageSizePerBox)}</td>
           <td class="text-center">${formatNumber(item.price)}</td>
           <td class="text-center">${formatNumber(item.cartonPrice)}</td>
