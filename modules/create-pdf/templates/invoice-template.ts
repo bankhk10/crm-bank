@@ -350,8 +350,8 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         <thead>
           <tr>
             <th style="width: 4%;">ลำดับ</th>
-            <th class="text-left" style="width: 38%;">รายละเอียดสินค้า</th>
-            <th style="width: 7%;">จำนวน</th>
+            <th class="text-left" style="width: 35%;">รายละเอียดสินค้า</th>
+            <th style="width: 10%;">จำนวน</th>
             <th style="width: 8%;">หน่วย</th>
             <th style="width: 5%;">บรรจุ</th>
             <th style="width: 12%;">ราคา/หน่วย</th>
