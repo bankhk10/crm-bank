@@ -292,7 +292,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <>
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
                                 <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
-                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="ครบกำหนดชำระ" value={formatThaiDate(sale.creditDueDate)} />
                             </>
                         )}
 
@@ -300,6 +299,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             <>
                                 <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่มารับสินค้า" value={formatThaiDate(sale.requestedDeliveryDate)} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="สถานที่รับสินค้า" value={receivingAddress || "-"} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
                             </>
                         )}
 
