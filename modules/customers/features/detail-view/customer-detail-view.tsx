@@ -647,6 +647,31 @@ export default function CustomerDetailView() {
                     : null
                 }
               />
+              {customer.contacts && customer.contacts.length > 0 && (
+                customer.contacts.map((contact, idx) => (
+                  <React.Fragment key={idx}>
+                    <DetailItem
+                      icon={<User className="h-4 w-4 text-gray-400" />}
+                      label={`ผู้ติดต่อเพิ่มเติม (${idx + 1})`}
+                      value={[contact.firstName, contact.lastName]
+                        .filter(Boolean)
+                        .join(" ")}
+                    />
+                    <DetailItem
+                      icon={<Phone className="h-4 w-4 text-gray-400" />}
+                      label="เบอร์โทรศัพท์"
+                      value={contact.phone}
+                    />
+                    {contact.email && (
+                      <DetailItem
+                        icon={<Mail className="h-4 w-4 text-gray-400" />}
+                        label="อีเมล"
+                        value={contact.email}
+                      />
+                    )}
+                  </React.Fragment>
+                ))
+              )}
             </div>
           </div>
 
@@ -745,7 +770,7 @@ export default function CustomerDetailView() {
               />
               <DetailItem
                 icon={<Truck className="h-4 w-4 text-gray-400" />}
-                label="ที่อยู่จัดส่ง"
+                label="ที่อยู่จัดส่ง (หลัก)"
                 value={formatAddress({
                   addressLine: customer.shippingAddressLine,
                   subdistrict: customer.shippingSubdistrict,
@@ -754,6 +779,22 @@ export default function CustomerDetailView() {
                   postalCode: customer.shippingPostalCode,
                 }) || "ไม่มีข้อมูล"}
               />
+              {customer.addresses && customer.addresses.length > 0 && (
+                customer.addresses.map((addr, idx) => (
+                  <DetailItem
+                    key={idx}
+                    icon={<Truck className="h-4 w-4 text-gray-400" />}
+                    label={`ที่อยู่จัดส่งเพิ่มเติม (${idx + 1})`}
+                    value={formatAddress({
+                      addressLine: addr.addressLine,
+                      subdistrict: addr.subdistrict,
+                      district: addr.district,
+                      province: addr.province,
+                      postalCode: addr.postalCode,
+                    })}
+                  />
+                ))
+              )}
             </div>
           </div>
 
