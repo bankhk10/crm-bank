@@ -308,6 +308,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 <DetailItem icon={<Truck className="h-4 w-4 text-gray-400" />} label="ชื่อบริษัทขนส่ง" value={shippingCompanyName} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่บริษัทขนส่ง" value={senderAddress || "-"} />
                                 <DetailItem icon={<MapPin className="h-4 w-4 text-gray-400" />} label="ที่อยู่จัดส่งสินค้า" value={shippingAddress || "-"} />
+                                <DetailItem icon={<Calendar className="h-4 w-4 text-gray-400" />} label="วันที่จัดส่งสินค้า" value={formatThaiDate(sale.deliveryDate)} />
                             </>
                         )}
 
