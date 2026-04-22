@@ -222,22 +222,41 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                             icon={<FileText className="h-6 w-6" />}
                             title="ข้อมูลรายการขาย"
                         />
-                        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
+                        <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
                             <DetailItem
                                 icon={<User className="h-4 w-4 text-gray-400" />}
                                 label="ลูกค้า"
                                 value={`${sale.customer.name} (${sale.customer.customerCode || "-"})`}
                             />
                             <DetailItem
-                                icon={<CreditCard className="h-4 w-4 text-gray-400" />}
-                                label="เงื่อนไขชำระเงิน"
-                                value={PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm}
-                            />
-
-                            <DetailItem
                                 icon={<User className="h-4 w-4 text-gray-400" />}
                                 label="พนักงานขาย"
                                 value={sale.employee?.name || "-"}
+                            />
+                            {/* วันที่ออเดอร์ */}
+                            <DetailItem
+                                icon={<Calendar className="h-4 w-4 text-gray-400" />}
+                                label="วันที่ออเดอร์"
+                                value={format(new Date(sale.saleDate), "dd MMM yyyy", {
+                                    locale: th,
+                                })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* ── Sale payment ──────────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
+                        <SectionHeader
+                            icon={<FileText className="h-6 w-6" />}
+                            title="เงื่อนไขการชำระเงิน"
+                        />
+                        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
+                            <DetailItem
+                                icon={<CreditCard className="h-4 w-4 text-gray-400" />}
+                                label="เงื่อนไขชำระเงิน"
+                                value={PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm}
                             />
                             {sale.requestedDeliveryDate && (
                                 <DetailItem
@@ -248,9 +267,11 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                     })}
                                 />
                             )}
+
                         </div>
                     </div>
                 </div>
+
 
                 {/* ── Delivery Information ──────────────────────────────────── */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm lg:col-span-3">
