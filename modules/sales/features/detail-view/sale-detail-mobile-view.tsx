@@ -258,7 +258,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 label="เงื่อนไขชำระเงิน"
                                 value={PaymentTermLabels[sale.paymentTerm] || sale.paymentTerm}
                             />
-                            {sale.requestedDeliveryDate && (
+                            {sale.requestedDeliveryDate && sale.deliveryMethod !== "CUSTOMER_PICKUP" && (
                                 <DetailItem
                                     icon={<Calendar className="h-4 w-4 text-gray-400" />}
                                     label="วันที่ต้องการของ"
