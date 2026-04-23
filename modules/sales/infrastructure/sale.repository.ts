@@ -295,6 +295,8 @@ export async function createSale(data: {
     promotionBudget?: number | null;
     pointPerUnit?: number | null;
     productChain?: string | null;
+    productABCTypeId?: string | null;
+    tradeNameGroupId?: string | null;
 
     quantity: number;
     unitPrice: number;
@@ -406,6 +408,8 @@ export async function createSale(data: {
               : null,
           pointPerUnit: item.pointPerUnit,
           productChain: item.productChain,
+          productABCTypeId: item.productABCTypeId,
+          tradeNameGroupId: item.tradeNameGroupId,
 
           quantity: item.quantity,
           unitPrice: new Prisma.Decimal(item.unitPrice),
@@ -529,6 +533,8 @@ export async function updateSale(
       promotionBudget?: number | null;
       pointPerUnit?: number | null;
       productChain?: string | null;
+      productABCTypeId?: string | null;
+      tradeNameGroupId?: string | null;
 
       quantity: number;
       unitPrice: number;
@@ -668,6 +674,8 @@ export async function updateSale(
                 : null,
             pointPerUnit: item.pointPerUnit,
             productChain: item.productChain,
+            productABCTypeId: item.productABCTypeId,
+            tradeNameGroupId: item.tradeNameGroupId,
 
             quantity: item.quantity,
             unitPrice: new Prisma.Decimal(item.unitPrice),
