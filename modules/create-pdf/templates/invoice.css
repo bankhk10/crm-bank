@@ -378,10 +378,10 @@ table.product-table {
 
 .signature-title {
   text-align: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
   color: #1f3558;
-  margin-bottom: 12px; /* Reduced from 22px */
+  margin-bottom: 12px;
 }
 
 .sign-row {
