@@ -251,6 +251,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         <SectionHeader
                             icon={<FileText className="h-6 w-6" />}
                             title="เงื่อนไขการชำระเงิน"
+                            variant="dark"
                         />
                         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1 divide-y sm:divide-y-0 divide-gray-50">
                             <DetailItem
@@ -761,7 +762,6 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         <SectionHeader
                             icon={<FileText className="h-6 w-6" />}
                             title="รายละเอียดส่วนลดหน้าบิล"
-                            variant="dark"
                         />
                         <div className="p-6">
                             <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
