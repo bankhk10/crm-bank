@@ -115,6 +115,7 @@ body {
 }
 
 .top-divider {
+  margin-top: -8px;
   border-bottom: 2px solid #12386b;
   width: 760px;
   margin-left: 15px;
