@@ -405,7 +405,7 @@ export default function FulfillmentDetailPage({
                                 </label>
                                 <input
                                     type="text"
-                                    className="flex h-12 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex h-11 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
                                     placeholder="กรอกเลขที่คำสั่งขาย"
                                     value={saleOrderRef}
                                     onChange={(e) => setSaleOrderRef(e.target.value)}
@@ -422,7 +422,7 @@ export default function FulfillmentDetailPage({
                                     สถานะ
                                 </label>
                                 <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger className="w-full h-12 border border-gray-200 hover:border-[#B91C1C]/40 focus:border-[#B91C1C] transition-colors rounded-xl shadow-sm">
+                                    <SelectTrigger className="w-full h-12 border border-gray-200 hover:border-[#B91C1C]/40 focus:border-[#B91C1C] transition-colors rounded-lg shadow-sm">
                                         <SelectValue placeholder="เลือกสถานะ" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
