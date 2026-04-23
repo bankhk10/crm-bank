@@ -32,15 +32,9 @@ export function useNotifications() {
     };
     window.addEventListener("notifications-changed", handleSync);
 
-    // Poll every 30 seconds
-    const interval = setInterval(() => {
-      if (isMounted) fetchNotifications();
-    }, 30000);
-
     return () => {
       isMounted = false;
       window.removeEventListener("notifications-changed", handleSync);
-      clearInterval(interval);
     };
   }, [fetchNotifications]);
 
