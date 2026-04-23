@@ -436,9 +436,14 @@ export default function FulfillmentDetailPage({
                                             const isDisabledDueToTransit =
                                                 isInTransit &&
                                                 BLOCKED_WHEN_IN_TRANSIT.includes(st);
+                                            const isDisabledDueToDeliveryDate =
+                                                !!deliveryDate &&
+                                                (st === "WAITING_FOR_CORRECTION" ||
+                                                    st === "APPROVED");
                                             const isDisabled =
                                                 isDisabledDueToStock ||
-                                                isDisabledDueToTransit;
+                                                isDisabledDueToTransit ||
+                                                isDisabledDueToDeliveryDate;
 
                                             return (
                                                 <SelectItem
@@ -559,7 +564,12 @@ export default function FulfillmentDetailPage({
                                 <div className="relative">
                                     <DatePicker
                                         value={paymentDate}
-                                        onChange={(val) => setPaymentDate(val || "")}
+                                        onChange={(val) => {
+                                            setPaymentDate(val || "");
+                                            if (val) {
+                                                setStatus("COMPLETED");
+                                            }
+                                        }}
                                         label=""
                                         placeholder="เลือกวันที่ชำระเงิน"
                                         disabled={status === "WAITING_FOR_CORRECTION"}
