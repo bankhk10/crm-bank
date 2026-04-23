@@ -267,7 +267,16 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                     })}
                                 />
                             )}
-
+                            <DetailItem
+                                icon={<Calendar className="h-4 w-4 text-gray-400" />}
+                                label="วันครบกำหนดชำระ"
+                                value={formatThaiDate(sale.creditDueDate)}
+                            />
+                            <DetailItem
+                                icon={<CreditCard className="h-4 w-4 text-gray-400" />}
+                                label="วันที่ชำระเงิน"
+                                value={formatThaiDate(sale.paymentDate)}
+                            />
                         </div>
                     </div>
                 </div>
