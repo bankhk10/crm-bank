@@ -458,7 +458,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             ( ${safeValue(data.contactName)} )
             </span>
           </div>
-        <div class="sign-row" style="position: relative;">
+        <div class="sign-row" style="position: relative; margin-top: -5px;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
             ${data.preparedBySignatureDate ? `<span style="position: absolute; bottom: 2px; left: 45%; transform: translateX(-50%); white-space: nowrap;">${data.preparedBySignatureDate}</span>` : ""}
@@ -477,7 +477,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
             ${data.approvedByName && data.approvedByName !== "-" ? `( ${data.approvedByName} )` : ""}
           </span>
         </div>
-        <div class="sign-row" style="position: relative;">
+        <div class="sign-row" style="position: relative; margin-top: -5px;">
           <span>วันที่</span>
           <div class="dot-line" style="position: relative;">
             ${data.approvedBySignatureDate && data.approvedBySignatureDate !== "-" ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
