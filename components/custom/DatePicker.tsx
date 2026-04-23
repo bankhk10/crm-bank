@@ -39,6 +39,8 @@ interface DatePickerProps {
   disabled?: boolean;
   className?: string;
   required?: boolean;
+  id?: string;
+  error?: string;
 }
 function DatePicker({
   startYear = getYear(new Date()) - 100,
@@ -50,6 +52,8 @@ function DatePicker({
   disabled = false,
   className,
   required = false,
+  id,
+  error,
 }: DatePickerProps) {
   const toDate = (v?: string | Date) => {
     if (!v) return undefined;
@@ -148,10 +152,15 @@ function DatePicker({
         <PopoverTrigger asChild>
           <div className="relative w-full">
             <Input
+              id={id}
               readOnly
               value={date ? thaiDisplay : ""}
               placeholder={placeholder}
-              className={cn("pr-10 h-11 text-base !bg-white", className)}
+              className={cn(
+                "pr-10 h-11 text-base !bg-white",
+                error && "border-red-500 focus-visible:ring-red-500 bg-red-50/10",
+                className
+              )}
               disabled={disabled}
               title={label ? `${label}: ${thaiDisplay}` : thaiDisplay}
               aria-labelledby={

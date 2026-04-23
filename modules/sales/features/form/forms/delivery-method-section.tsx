@@ -107,14 +107,20 @@ export function DeliveryMethodSection({
                         </h4>
                         <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
                             <DatePicker
+                                id="requestedDeliveryDate"
                                 label="วันที่มารับสินค้า"
                                 value={requestedDeliveryDate}
-                                onChange={(val) => onRequestedDeliveryDateChange?.(val || "")}
+                                onChange={(val) => {
+                                    onRequestedDeliveryDateChange?.(val || "");
+                                    onFieldErrorClear?.("requestedDeliveryDate");
+                                }}
                                 placeholder="เลือกวันที่มารับสินค้า"
                                 required
+                                error={fieldErrors.requestedDeliveryDate}
                             />
 
                             <FormCombobox
+                                id="pickupCompanyId"
                                 label="สถานที่รับสินค้า (บริษัท/สาขา)"
                                 value={pickupCompanyId}
                                 onChange={(val) => {
@@ -152,10 +158,16 @@ export function DeliveryMethodSection({
                         <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
                             <div className="space-y-1">
                                 <DatePicker
+                                    id="requestedDeliveryDate"
                                     label="วันที่ต้องการให้ส่งของ"
                                     value={requestedDeliveryDate}
-                                    onChange={(val) => onRequestedDeliveryDateChange?.(val || "")}
+                                    onChange={(val) => {
+                                        onRequestedDeliveryDateChange?.(val || "");
+                                        onFieldErrorClear?.("requestedDeliveryDate");
+                                    }}
                                     placeholder="เลือกวันที่ต้องการส่งของ"
+                                    required
+                                    error={fieldErrors.requestedDeliveryDate}
                                 />
                                 <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
                                     ⏰ หมายเหตุ สร้างรายการหลัง 12:00 น. → จัดส่งวันถัดไป
@@ -165,9 +177,11 @@ export function DeliveryMethodSection({
                             {/* Always show shipping company selector */}
                             {customer?.shippingCompanies && customer.shippingCompanies.length > 0 ? (
                                 <FormCombobox
+                                    id="shippingCompanyId"
                                     label="เลือกบริษัทขนส่ง"
                                     value={shippingCompanyId}
                                     onChange={(val) => {
+                                        onFieldErrorClear?.("shippingCompanyId");
                                         onShippingCompanyChange?.(val);
                                         const selected = customer.shippingCompanies?.find(
                                             (sc) => sc.shippingCompany.id === val
@@ -197,6 +211,8 @@ export function DeliveryMethodSection({
                                     placeholder="เลือกบริษัทขนส่ง"
                                     searchPlaceholder="ค้นหาบริษัทขนส่ง..."
                                     emptyText="ไม่พบข้อมูลบริษัทขนส่ง"
+                                    required
+                                    error={fieldErrors.shippingCompanyId}
                                     containerClassName="min-w-0"
                                 />
                             ) : (
@@ -222,10 +238,12 @@ export function DeliveryMethodSection({
                             {customer && (
                                 <div className="space-y-4 md:col-span-2">
                                     <AddressSelector
+                                        id="shippingAddress"
                                         customer={customer}
                                         selectedAddressId={selectedAddressId}
                                         onAddressSelect={onAddressSelect || (() => { })}
                                         onUseCustomAddress={onUseCustomAddress || (() => { })}
+                                        error={fieldErrors.shippingAddress}
                                     />
                                 </div>
                             )}
@@ -238,10 +256,12 @@ export function DeliveryMethodSection({
                         {/* Address Selector Section for SALES_DELIVERY and FACTORY_DELIVERY */}
                         <div className="space-y-4">
                             <AddressSelector
+                                id="shippingAddress"
                                 customer={customer}
                                 selectedAddressId={selectedAddressId}
                                 onAddressSelect={onAddressSelect || (() => { })}
                                 onUseCustomAddress={onUseCustomAddress || (() => { })}
+                                error={fieldErrors.shippingAddress}
                             />
                         </div>
                     </>

@@ -354,9 +354,8 @@ export function SaleForm({
     const handleAddressSelect = (addressId: string, fullAddress: string) => {
         setSelectedAddressId(addressId);
         setShippingAddress(fullAddress);
-        // Don't automatically set custom shipping address when selecting from list
-        // setCustomShippingAddress(fullAddress);
-        // setUseCustomShippingAddress(true);
+        setFieldErrors((prev) => ({ ...prev, shippingAddress: "" }));
+        setErrors([]);
     };
 
     // Handle custom address input
@@ -431,6 +430,30 @@ export function SaleForm({
         setFieldErrors(validation.fieldErrors);
 
         if (validation.errors.length > 0) {
+            setTimeout(() => {
+                const fieldsToScroll = [
+                    "customerId",
+                    "employeeId",
+                    "saleDate",
+                    "requestedDeliveryDate",
+                    "pickupCompanyId",
+                    "shippingCompanyId",
+                    "customShippingAddress",
+                    "shippingAddress"
+                ];
+
+                for (const field of fieldsToScroll) {
+                    if (validation.fieldErrors[field]) {
+                        const elId = field === "customerId" ? "customer-combobox" : field;
+                        const el = document.getElementById(elId);
+                        if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "center" });
+                            el.focus();
+                            break;
+                        }
+                    }
+                }
+            }, 100);
             return;
         }
 
@@ -552,20 +575,6 @@ export function SaleForm({
                     </AlertDescription>
                 </Alert>
             )}
-            {/* Errors */}
-            {errors.length > 0 && (
-                <Alert className="border-2 border-red-400 bg-red-50">
-                    <AlertDescription>
-                        <ul className="list-disc pl-4 space-y-1">
-                            {errors.map((error, i) => (
-                                <li key={i} className="text-sm sm:text-base text-red-800">
-                                    {error}
-                                </li>
-                            ))}
-                        </ul>
-                    </AlertDescription>
-                </Alert>
-            )}
 
             {/* Customer & Employee Section */}
             <SectionHeader
@@ -576,12 +585,14 @@ export function SaleForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
                 <FormCombobox
+                    id="customer-combobox"
                     label="ลูกค้า"
                     value={customerId}
                     onChange={(val) => {
                         setCustomerId(val);
                         updateCustomerDetails(val);
                         setFieldErrors((prev) => ({ ...prev, customerId: "" }));
+                        setErrors([]);
                     }}
                     options={customers
                         .filter((customer) => {
@@ -605,11 +616,13 @@ export function SaleForm({
                 />
 
                 <FormCombobox
+                    id="employeeId"
                     label="พนักงานขาย"
                     value={employeeId}
                     onChange={(val) => {
                         setEmployeeId(val);
                         setFieldErrors((prev) => ({ ...prev, employeeId: "" }));
+                        setErrors([]);
                     }}
                     options={employees.map((employee) => ({
                         value: employee.id,
@@ -668,15 +681,18 @@ export function SaleForm({
 
                 <div>
                     <DatePicker
+                        id="saleDate"
                         label="วันที่ออเดอร์"
                         value={saleDate}
                         onChange={(val) => {
                             setSaleDate(val || "");
                             setFieldErrors((prev) => ({ ...prev, saleDate: "" }));
+                            setErrors([]);
                         }}
                         placeholder=""
                         disabled={!isAdmin && !isSaleAdmin}
                         required
+                        error={fieldErrors.saleDate}
                     />
                     {fieldErrors.saleDate && (
                         <p className="text-xs text-red-600 mt-1">{fieldErrors.saleDate}</p>
@@ -699,6 +715,7 @@ export function SaleForm({
                 onPickupCompanyChange={(val) => {
                     setPickupCompanyId(val);
                     setFieldErrors((prev) => ({ ...prev, pickupCompanyId: "" }));
+                    setErrors([]);
                 }}
                 shippingCompanyId={shippingCompanyId}
                 onShippingCompanyChange={setShippingCompanyId}
@@ -708,9 +725,10 @@ export function SaleForm({
                 customShippingAddress={customShippingAddress}
                 onCustomShippingAddressChange={setCustomShippingAddress}
                 fieldErrors={fieldErrors}
-                onFieldErrorClear={(field) =>
-                    setFieldErrors((prev) => ({ ...prev, [field]: "" }))
-                }
+                onFieldErrorClear={(field) => {
+                    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
+                    setErrors([]);
+                }}
             />
 
             {/* Products Section */}
@@ -749,12 +767,13 @@ export function SaleForm({
                         onRemove={removeItem}
                         onShowDetails={setSelectedProductDetail}
                         fieldError={fieldErrors[`item_${index}_productId`]}
-                        onClearError={() =>
+                        onClearError={() => {
                             setFieldErrors((prev) => ({
                                 ...prev,
                                 [`item_${index}_productId`]: "",
-                            }))
-                        }
+                            }));
+                            setErrors([]);
+                        }}
                     />
                 ))}
             </div>
@@ -861,6 +880,21 @@ export function SaleForm({
                 total={total}
                 promotionalBudgetTotal={promotionalBudgetTotal}
             />
+
+            {/* Errors */}
+            {errors.length > 0 && (
+                <Alert className="border-2 border-red-400 bg-red-50">
+                    <AlertDescription>
+                        <ul className="list-disc pl-4 space-y-1">
+                            {errors.map((error, i) => (
+                                <li key={i} className="text-sm sm:text-base text-red-800">
+                                    {error}
+                                </li>
+                            ))}
+                        </ul>
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {/* Action Buttons */}
             <FormActionButtons loading={loading} onCancel={handleCancel} />

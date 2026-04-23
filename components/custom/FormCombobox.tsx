@@ -25,6 +25,7 @@ interface ComboboxOption {
 }
 
 interface FormComboboxProps {
+  id?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -45,6 +46,7 @@ const defaultLabelClass = "text-base font-medium mx-2";
 const defaultTriggerClass = "mt-1 h-11 text-base w-full justify-between";
 
 export function FormCombobox({
+  id,
   label,
   value,
   onChange,
@@ -73,6 +75,7 @@ export function FormCombobox({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            id={id}
             variant="outline"
             role="combobox"
             aria-expanded={open}

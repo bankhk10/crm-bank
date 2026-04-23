@@ -25,6 +25,8 @@ interface AddressSelectorProps {
   onAddressSelect: (addressId: string, fullAddress: string) => void;
   onUseCustomAddress: () => void;
   disabled?: boolean;
+  id?: string;
+  error?: string;
 }
 
 export function AddressSelector({
@@ -33,6 +35,8 @@ export function AddressSelector({
   onAddressSelect,
   onUseCustomAddress,
   disabled = false,
+  id,
+  error,
 }: AddressSelectorProps) {
 
   // Get primary shipping address (single address from customer model)
@@ -129,7 +133,7 @@ export function AddressSelector({
   }
 
   return (
-    <div className="space-y-3">
+    <div id={id} className="space-y-3">
       <Label className="text-base mx-3">
         เลือกที่อยู่จัดส่งสินค้า <span className="text-red-500">*</span>
       </Label>
@@ -188,6 +192,7 @@ export function AddressSelector({
           );
         })}
       </div>
+      {error && <p className="text-sm text-red-600 mt-2 px-3">{error}</p>}
     </div>
   );
 }

@@ -50,17 +50,36 @@ export function useSaleFormValidation() {
       }
 
       // Delivery method specific validation
-      if (
-        state.deliveryMethod === "CUSTOMER_PICKUP" &&
-        !state.pickupCompanyId
-      ) {
-        errors.push("กรุณาเลือกสถานที่รับสินค้า");
-        fieldErrors.pickupCompanyId = "กรุณาเลือกสถานที่รับสินค้า";
+      if (state.deliveryMethod === "CUSTOMER_PICKUP") {
+        if (!state.pickupCompanyId) {
+          errors.push("กรุณาเลือกสถานที่รับสินค้า");
+          fieldErrors.pickupCompanyId = "กรุณาเลือกสถานที่รับสินค้า";
+        }
+        if (!state.requestedDeliveryDate) {
+          errors.push("กรุณาระบุวันที่มารับสินค้า");
+          fieldErrors.requestedDeliveryDate = "กรุณาระบุวันที่มารับสินค้า";
+        }
       }
-      if (state.deliveryMethod === "COURIER" && !state.customShippingAddress) {
-        errors.push("กรุณาเลือกบริษัทขนส่ง");
-        fieldErrors.customShippingAddress =
-          "";
+      if (state.deliveryMethod === "COURIER") {
+        if (!state.shippingCompanyId) {
+          errors.push("กรุณาเลือกบริษัทขนส่ง");
+          fieldErrors.shippingCompanyId = "กรุณาเลือกบริษัทขนส่ง";
+        }
+        if (!state.requestedDeliveryDate) {
+          errors.push("กรุณาระบุวันที่ต้องการให้ส่งของ");
+          fieldErrors.requestedDeliveryDate = "กรุณาระบุวันที่ต้องการให้ส่งของ";
+        }
+      }
+
+      if (
+        state.deliveryMethod === "SALES_DELIVERY" ||
+        state.deliveryMethod === "FACTORY_DELIVERY" ||
+        state.deliveryMethod === "COURIER"
+      ) {
+        if (!state.shippingAddress || state.shippingAddress.trim() === "-" || state.shippingAddress.trim() === "") {
+          errors.push("กรุณาเลือกที่อยู่จัดส่งสินค้า");
+          fieldErrors.shippingAddress = "กรุณาเลือกที่อยู่จัดส่งสินค้า";
+        }
       }
 
       // Validate items
