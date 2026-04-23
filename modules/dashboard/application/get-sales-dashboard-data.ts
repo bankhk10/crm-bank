@@ -72,7 +72,7 @@ export async function getSalesDashboardDataUseCase(
       employeeId,
       start,
       end,
-      ["PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
+      ["PAID", "PARTIALLY_DELIVERED", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"],
     );
 
     return { total, salesNote, invoice };
@@ -155,6 +155,7 @@ export async function getSalesDashboardDataUseCase(
 
     const invoiceStatuses = [
       "PAID",
+      "PARTIALLY_DELIVERED",
       "DELIVERED",
       "DELIVERY_COMPLETED",
       "COMPLETED",
@@ -286,6 +287,7 @@ export async function getSalesDashboardDataUseCase(
 
     const successStatuses = [
       "COMPLETED",
+      "PARTIALLY_DELIVERED",
       "DELIVERED",
       "DELIVERY_COMPLETED",
       "PAID",

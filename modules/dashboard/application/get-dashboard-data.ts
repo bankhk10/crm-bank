@@ -47,13 +47,8 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     const salesNote = await repo.aggregateSalesAmount(start, end, undefined, [
       "CANCELLED",
     ]);
-    const invoice = await repo.aggregateSalesAmount(start, end, [
-      "AWAITING_PAYMENT",
-      "PAID",
-      "DELIVERED",
-      "DELIVERY_COMPLETED",
-      "COMPLETED",
-    ]);
+    // Invoice = ยอดรวมจาก Shipment ที่ส่งเสร็จแล้ว (status=DELIVERED) ในช่วงเวลานั้น
+    const invoice = await repo.aggregateDeliveredShipmentAmount(start, end);
 
     return { total, salesNote, invoice };
   };
@@ -130,8 +125,9 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
   ) => {
     const currentItems = await repo.findSaleItemsWithDetails(start, end, ["CANCELLED"]);
     const lastYearItems = await repo.findSaleItemsWithDetails(lastYearStart, lastYearEnd, ["CANCELLED"]);
-
-    const invoiceStatuses = ["AWAITING_PAYMENT", "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
+    // Invoice items = ShipmentItem ที่ส่งเสร็จแล้ว (Shipment.status=DELIVERED)
+    const currentDeliveredItems = await repo.findDeliveredShipmentItemsWithDetails(start, end);
+    const lastYearDeliveredItems = await repo.findDeliveredShipmentItemsWithDetails(lastYearStart, lastYearEnd);
 
     const buildProductGroupData = () => {
       return productGroupOptions.map(groupOption => {
@@ -145,16 +141,22 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
 
         for (const item of currentItems) {
           if ((item.productABCTypeId || item.product?.productABCTypeId) === group) {
-            const amount = Number(item.totalPrice);
-            if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            if (item.sale.status !== "CANCELLED") salesNote += amount;
+            if (item.sale.status !== "CANCELLED") salesNote += Number(item.totalPrice);
+          }
+        }
+        for (const item of currentDeliveredItems) {
+          if ((item.saleItem.productABCTypeId || item.saleItem.product?.productABCTypeId) === group) {
+            invoice += Number(item.totalPrice);
           }
         }
         for (const item of lastYearItems) {
           if ((item.productABCTypeId || item.product?.productABCTypeId) === group) {
-            const amount = Number(item.totalPrice);
-            if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
-            if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;
+            if (item.sale.status !== "CANCELLED") lastYearSalesNote += Number(item.totalPrice);
+          }
+        }
+        for (const item of lastYearDeliveredItems) {
+          if ((item.saleItem.productABCTypeId || item.saleItem.product?.productABCTypeId) === group) {
+            lastYearInvoice += Number(item.totalPrice);
           }
         }
 
@@ -173,7 +175,6 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     const buildTradeNameGroupData = () => {
       return tradeNameGroupOptions.map(groupOption => {
         const group = groupOption.value;
-        const target = 0;
 
         let salesNote = 0;
         let invoice = 0;
@@ -182,23 +183,29 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
 
         for (const item of currentItems) {
           if ((item.tradeNameGroupId || item.product?.tradeNameGroupId) === group) {
-            const amount = Number(item.totalPrice);
-            if (invoiceStatuses.includes(item.sale.status)) invoice += amount;
-            if (item.sale.status !== "CANCELLED") salesNote += amount;
+            if (item.sale.status !== "CANCELLED") salesNote += Number(item.totalPrice);
+          }
+        }
+        for (const item of currentDeliveredItems) {
+          if ((item.saleItem.tradeNameGroupId || item.saleItem.product?.tradeNameGroupId) === group) {
+            invoice += Number(item.totalPrice);
           }
         }
         for (const item of lastYearItems) {
           if ((item.tradeNameGroupId || item.product?.tradeNameGroupId) === group) {
-            const amount = Number(item.totalPrice);
-            if (invoiceStatuses.includes(item.sale.status)) lastYearInvoice += amount;
-            if (item.sale.status !== "CANCELLED") lastYearSalesNote += amount;
+            if (item.sale.status !== "CANCELLED") lastYearSalesNote += Number(item.totalPrice);
+          }
+        }
+        for (const item of lastYearDeliveredItems) {
+          if ((item.saleItem.tradeNameGroupId || item.saleItem.product?.tradeNameGroupId) === group) {
+            lastYearInvoice += Number(item.totalPrice);
           }
         }
 
         return {
           group: groupOption.label,
           code: groupOption.value,
-          target,
+          target: 0,
           salesNote,
           invoice,
           lastYearSalesNote,
@@ -279,65 +286,39 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
       });
     });
 
-    const salesInRange = await repo.findSalesWithProvince(start, end, [
-      "CANCELLED",
-    ]);
-
+    // salesNote — ยอดรวมจาก Sale ที่ไม่ถูก CANCELLED
+    const salesInRange = await repo.findSalesWithProvince(start, end, ["CANCELLED"]);
     for (const sale of salesInRange) {
-      const province = sale.customer.province;
-      const region = getRegionByProvince(province);
-
+      const region = getRegionByProvince(sale.customer.province);
       if (region && regionSalesMap.has(region)) {
-        const entry = regionSalesMap.get(region)!;
-        const amount = Number(sale.totalAmount);
-
-        const isInvoice = [
-          "AWAITING_PAYMENT",
-          "PAID",
-          "DELIVERED",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ].includes(sale.status);
-        const isSalesNote = sale.status !== "CANCELLED";
-
-        if (isInvoice) {
-          entry.invoice += amount;
-        }
-        if (isSalesNote) {
-          entry.salesNote += amount;
-        }
+        regionSalesMap.get(region)!.salesNote += Number(sale.totalAmount);
       }
     }
 
-    const lastYearSalesInRange = await repo.findSalesWithProvince(
-      lastYearStart,
-      lastYearEnd,
-      ["CANCELLED"],
-    );
-
-    for (const sale of lastYearSalesInRange) {
-      const province = sale.customer.province;
-      const region = getRegionByProvince(province);
-
+    // invoice — ยอดรวมจาก Shipment ที่ส่งเสร็จแล้ว (status=DELIVERED)
+    const deliveredShipments = await repo.findDeliveredShipmentsWithProvince(start, end);
+    for (const shipment of deliveredShipments) {
+      const region = getRegionByProvince(shipment.sale.customer.province);
       if (region && regionSalesMap.has(region)) {
-        const entry = regionSalesMap.get(region)!;
-        const amount = Number(sale.totalAmount);
+        regionSalesMap.get(region)!.invoice += Number(shipment.totalAmount);
+      }
+    }
 
-        const isInvoice = [
-          "AWAITING_PAYMENT",
-          "PAID",
-          "DELIVERED",
-          "DELIVERY_COMPLETED",
-          "COMPLETED",
-        ].includes(sale.status);
-        const isSalesNote = sale.status !== "CANCELLED";
+    // lastYear salesNote
+    const lastYearSalesInRange = await repo.findSalesWithProvince(lastYearStart, lastYearEnd, ["CANCELLED"]);
+    for (const sale of lastYearSalesInRange) {
+      const region = getRegionByProvince(sale.customer.province);
+      if (region && regionSalesMap.has(region)) {
+        regionSalesMap.get(region)!.lastYearSalesNote += Number(sale.totalAmount);
+      }
+    }
 
-        if (isInvoice) {
-          entry.lastYearInvoice += amount;
-        }
-        if (isSalesNote) {
-          entry.lastYearSalesNote += amount;
-        }
+    // lastYear invoice
+    const lastYearDeliveredShipments = await repo.findDeliveredShipmentsWithProvince(lastYearStart, lastYearEnd);
+    for (const shipment of lastYearDeliveredShipments) {
+      const region = getRegionByProvince(shipment.sale.customer.province);
+      if (region && regionSalesMap.has(region)) {
+        regionSalesMap.get(region)!.lastYearInvoice += Number(shipment.totalAmount);
       }
     }
 
@@ -361,6 +342,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     });
   };
 
+
   const [regionDay, regionMonth, regionYear] = await Promise.all([
     getRegionData(dayStart, dayEnd, lastYearSameDayStart, lastYearSameDayEnd),
     getRegionData(
@@ -378,6 +360,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
 
     const successStatuses = [
       "COMPLETED",
+      "PARTIALLY_DELIVERED",
       "DELIVERED",
       "DELIVERY_COMPLETED",
       "PAID",

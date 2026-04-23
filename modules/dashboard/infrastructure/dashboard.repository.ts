@@ -200,3 +200,177 @@ export async function sumSalesTargetItems(year: number, month?: number) {
   });
   return Number(result._sum.targetAmount || 0);
 }
+
+/**
+ * รวมมูลค่า Invoice โดย:
+ * 1. Shipment ที่ส่งเสร็จแล้ว (status=DELIVERED) → ใช้ Shipment.totalAmount
+ * 2. Sale ที่ไม่มี Shipment (flow เก่า) + status เป็น invoice status → ใช้ Sale.totalAmount
+ */
+export async function aggregateDeliveredShipmentAmount(
+  start: Date,
+  end: Date,
+) {
+  const INVOICE_SALE_STATUSES = [
+    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+  ] as const;
+
+  // 1. Shipment-based: sum Shipment.totalAmount ที่ส่งเสร็จแล้ว
+  const shipmentResult = await prisma.shipment.aggregate({
+    where: {
+      status: "DELIVERED",
+      actualDate: { gte: start, lte: end },
+      sale: { deletedAt: null },
+    },
+    _sum: { totalAmount: true },
+  });
+  const shipmentTotal = Number(shipmentResult._sum.totalAmount || 0);
+
+  // 2. Legacy: Sale ที่ไม่มี Shipment เลย + status invoice
+  const legacyResult = await prisma.sale.aggregate({
+    where: {
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+      status: { in: INVOICE_SALE_STATUSES as unknown as any[] },
+      shipments: { none: {} },
+    },
+    _sum: { totalAmount: true },
+  });
+  const legacyTotal = Number(legacyResult._sum.totalAmount || 0);
+
+  return shipmentTotal + legacyTotal;
+}
+
+/**
+ * ดึง ShipmentItem ที่ส่งเสร็จแล้ว พร้อม product group info
+ * + SaleItem จาก Sale ที่ไม่มี Shipment (flow เก่า) ที่มี invoice status
+ * ใช้สำหรับแยกยอด Invoice ตาม Product Group / TradeNameGroup
+ */
+export async function findDeliveredShipmentItemsWithDetails(
+  start: Date,
+  end: Date,
+) {
+  const INVOICE_SALE_STATUSES = [
+    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+  ];
+
+  // 1. ShipmentItems จาก Shipment ที่ DELIVERED
+  const shipmentItems = await prisma.shipmentItem.findMany({
+    where: {
+      shipment: {
+        status: "DELIVERED",
+        actualDate: { gte: start, lte: end },
+        sale: { deletedAt: null },
+      },
+    },
+    select: {
+      totalPrice: true,
+      saleItem: {
+        select: {
+          productABCTypeId: true,
+          tradeNameGroupId: true,
+          product: {
+            select: {
+              productABCTypeId: true,
+              tradeNameGroupId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // 2. SaleItems จาก Sale ที่ไม่มี Shipment (flow เก่า)
+  const legacySaleItems = await prisma.saleItem.findMany({
+    where: {
+      sale: {
+        saleDate: { gte: start, lte: end },
+        deletedAt: null,
+        status: { in: INVOICE_SALE_STATUSES as any[] },
+        shipments: { none: {} },
+      },
+    },
+    select: {
+      totalPrice: true,
+      productABCTypeId: true,
+      tradeNameGroupId: true,
+      product: {
+        select: {
+          productABCTypeId: true,
+          tradeNameGroupId: true,
+        },
+      },
+    },
+  });
+
+  // Normalize ให้มี shape เดียวกัน
+  const normalized = [
+    ...shipmentItems,
+    ...legacySaleItems.map((si) => ({
+      totalPrice: si.totalPrice,
+      saleItem: {
+        productABCTypeId: si.productABCTypeId,
+        tradeNameGroupId: si.tradeNameGroupId,
+        product: si.product,
+      },
+    })),
+  ];
+
+  return normalized;
+}
+
+/**
+ * ดึง Shipment ที่ส่งเสร็จแล้ว + Sale ที่ไม่มี Shipment (flow เก่า) พร้อมจังหวัดของลูกค้า
+ * ใช้สำหรับแยกยอด Invoice ตาม Region
+ */
+export async function findDeliveredShipmentsWithProvince(
+  start: Date,
+  end: Date,
+) {
+  const INVOICE_SALE_STATUSES = [
+    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+  ];
+
+  // 1. Shipment-based
+  const shipments = await prisma.shipment.findMany({
+    where: {
+      status: "DELIVERED",
+      actualDate: { gte: start, lte: end },
+      sale: { deletedAt: null },
+    },
+    select: {
+      totalAmount: true,
+      sale: {
+        select: {
+          customer: {
+            select: { province: true },
+          },
+        },
+      },
+    },
+  });
+
+  // 2. Legacy: Sale ที่ไม่มี Shipment (flow เก่า)
+  const legacySales = await prisma.sale.findMany({
+    where: {
+      saleDate: { gte: start, lte: end },
+      deletedAt: null,
+      status: { in: INVOICE_SALE_STATUSES as any[] },
+      shipments: { none: {} },
+    },
+    select: {
+      totalAmount: true,
+      customer: {
+        select: { province: true },
+      },
+    },
+  });
+
+  // Normalize ให้มี shape เดียวกัน
+  return [
+    ...shipments,
+    ...legacySales.map((sale) => ({
+      totalAmount: sale.totalAmount,
+      sale: { customer: { province: sale.customer.province } },
+    })),
+  ];
+}
