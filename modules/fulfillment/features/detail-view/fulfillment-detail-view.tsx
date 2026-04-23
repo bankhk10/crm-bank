@@ -76,6 +76,7 @@ const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
 const BLOCKED_WHEN_IN_TRANSIT = [
     "APPROVED",
     "WAITING_FOR_CORRECTION",
+    "AWAITING_PAYMENT",
     "PAID",
     "AWAITING_DELIVERY",
 ];
@@ -465,31 +466,31 @@ export default function FulfillmentDetailPage({
             {/* ปุ่มเริ่ม Split Shipment — แสดงเมื่อยังไม่เคยสร้าง shipment */}
             {!saleData.sale.hasPartialDelivery &&
                 ["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY"].includes(sale.status) && (
-                <div className="flex justify-end">
-                    <CreateShipmentDialog
-                        saleId={id}
-                        remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
-                            saleItemId: item.id,
-                            productCode: item.productCode || item.product?.productCode || "",
-                            productName: item.name || item.product?.name || "",
-                            unit: item.unit || item.product?.unit || "",
-                            totalQuantity: item.quantity,
-                            allocatedQuantity: 0,
-                            remainingQuantity: item.quantity,
-                        }))}
-                        shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
-                        onCreated={async () => {
-                            await loadShipments();
-                            const res = await fetch(`/api/sales/${id}`);
-                            if (res.ok) {
-                                const data = await res.json();
-                                setSaleData(data);
-                                setStatus(data.sale.status);
-                            }
-                        }}
-                    />
-                </div>
-            )}
+                    <div className="flex justify-end">
+                        <CreateShipmentDialog
+                            saleId={id}
+                            remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
+                                saleItemId: item.id,
+                                productCode: item.productCode || item.product?.productCode || "",
+                                productName: item.name || item.product?.name || "",
+                                unit: item.unit || item.product?.unit || "",
+                                totalQuantity: item.quantity,
+                                allocatedQuantity: 0,
+                                remainingQuantity: item.quantity,
+                            }))}
+                            shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
+                            onCreated={async () => {
+                                await loadShipments();
+                                const res = await fetch(`/api/sales/${id}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    setSaleData(data);
+                                    setStatus(data.sale.status);
+                                }
+                            }}
+                        />
+                    </div>
+                )}
 
 
             <form onSubmit={handleSubmit} className="space-y-6">
