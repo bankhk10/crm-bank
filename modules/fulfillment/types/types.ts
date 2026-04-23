@@ -86,6 +86,8 @@ export interface ShipmentItemRecord {
   shipmentId: string;
   saleItemId: string;
   quantity: number;
+  unitPrice: number;
+  totalPrice: number;
   saleItem: {
     id: string;
     productId: string;
@@ -93,6 +95,8 @@ export interface ShipmentItemRecord {
     name: string;
     unit: string;
     quantity: number;
+    unitPrice?: number;
+    totalPrice?: number;
   };
 }
 
@@ -105,6 +109,7 @@ export interface ShipmentRecord {
   actualDate: string | Date | null;
   shippingCompanyId: string | null;
   notes: string | null;
+  totalAmount: number;
   createdById: string;
   createdAt: string | Date;
   updatedAt: string | Date;

@@ -116,7 +116,14 @@ export function CreateShipmentDialog({
   const handleOpenChange = (val: boolean) => {
     if (!isPending) {
       setOpen(val);
-      if (!val) reset({ quantities: defaultQuantities });
+      if (!val) {
+        reset({
+          scheduledDate: "",
+          shippingCompanyId: "",
+          notes: "",
+          quantities: defaultQuantities,
+        });
+      }
     }
   };
 
@@ -176,6 +183,7 @@ export function CreateShipmentDialog({
                       render={({ field }) => (
                         <Input
                           {...field}
+                          value={field.value ?? 0}
                           type="number"
                           min={0}
                           max={item.remainingQuantity}

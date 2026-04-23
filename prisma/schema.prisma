@@ -1065,6 +1065,7 @@ model Shipment {
   actualDate        DateTime?      // วันส่งจริง
   shippingCompanyId String?        // FK to ShippingCompany
   notes             String?        // หมายเหตุ
+  totalAmount       Decimal        @default(0) @db.Decimal(15, 2) // มูลค่าสินค้าในรอบนี้
   createdById       String
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -1084,6 +1085,8 @@ model ShipmentItem {
   shipmentId  String
   saleItemId  String
   quantity    Int      // จำนวนสินค้าที่ส่งในรอบนี้
+  unitPrice   Decimal  @default(0) @db.Decimal(15, 2) // ราคาต่อหน่วย ณ เวลาส่ง
+  totalPrice  Decimal  @default(0) @db.Decimal(15, 2) // quantity × unitPrice
 
   shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   saleItem SaleItem @relation("ShipmentItemSaleItem", fields: [saleItemId], references: [id], onDelete: Restrict)

@@ -127,6 +127,7 @@ function ShipmentCard({
   };
 
   const totalItems = shipment.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalAmount = Number(shipment.totalAmount ?? 0);
 
   return (
     <Card className="border border-border/60 shadow-sm transition-shadow hover:shadow-md">
@@ -145,7 +146,14 @@ function ShipmentCard({
               </p>
             </div>
           </div>
-          <ShipmentStatusBadge status={shipment.status} />
+          <div className="flex flex-col items-end gap-1">
+            <ShipmentStatusBadge status={shipment.status} />
+            {totalAmount > 0 && (
+              <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                ฿{totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -187,7 +195,7 @@ function ShipmentCard({
             ) : (
               <>
                 <ChevronDown className="mr-1 h-3 w-3" />
-                ดูรายการ
+                ดูรายการและราคา
               </>
             )}
           </Button>
@@ -202,6 +210,8 @@ function ShipmentCard({
                   <TableHead className="h-7 text-xs">สินค้า</TableHead>
                   <TableHead className="h-7 text-right text-xs">จำนวน</TableHead>
                   <TableHead className="h-7 text-xs">หน่วย</TableHead>
+                  <TableHead className="h-7 text-right text-xs">ราคา/หน่วย</TableHead>
+                  <TableHead className="h-7 text-right text-xs">รวม</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -218,10 +228,25 @@ function ShipmentCard({
                     <TableCell className="py-1.5 text-muted-foreground">
                       {item.saleItem.unit}
                     </TableCell>
+                    <TableCell className="py-1.5 text-right text-muted-foreground">
+                      ฿{Number(item.unitPrice ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right font-semibold text-foreground">
+                      ฿{Number(item.totalPrice ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {/* Total row */}
+            <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                {shipment.items.length} รายการ · {totalItems} ชิ้น
+              </span>
+              <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
+                มูลค่ารวม: ฿{totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
         )}
 

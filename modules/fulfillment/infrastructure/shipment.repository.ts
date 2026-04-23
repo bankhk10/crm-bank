@@ -35,6 +35,27 @@ export const ShipmentRepository = {
     });
     const shipmentNumber = (lastShipment?.shipmentNumber ?? 0) + 1;
 
+    // ดึง unitPrice จาก SaleItem เพื่อคำนวณราคา
+    const saleItemIds = data.items.map((i) => i.saleItemId);
+    const saleItems = await client.saleItem.findMany({
+      where: { id: { in: saleItemIds } },
+      select: { id: true, unitPrice: true },
+    });
+    const priceMap = new Map(saleItems.map((si) => [si.id, si.unitPrice]));
+
+    // คำนวณราคาแต่ละรายการ
+    const itemsWithPrice = data.items.map((item) => {
+      const unitPrice = priceMap.get(item.saleItemId) ?? 0;
+      const totalPrice =
+        typeof unitPrice === "object"
+          ? Number(unitPrice) * item.quantity
+          : Number(unitPrice) * item.quantity;
+      return { ...item, unitPrice: Number(unitPrice), totalPrice };
+    });
+
+    // รวมมูลค่าทั้งหมดของรอบส่งนี้
+    const totalAmount = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+
     return client.shipment.create({
       data: {
         saleId,
@@ -43,11 +64,14 @@ export const ShipmentRepository = {
         scheduledDate: data.scheduledDate ?? null,
         shippingCompanyId: data.shippingCompanyId ?? null,
         notes: data.notes ?? null,
+        totalAmount,
         createdById: data.createdById,
         items: {
-          create: data.items.map((item) => ({
+          create: itemsWithPrice.map((item) => ({
             saleItemId: item.saleItemId,
             quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
           })),
         },
       },
@@ -58,6 +82,7 @@ export const ShipmentRepository = {
       },
     });
   },
+
 
   /**
    * ดึง Shipments ทั้งหมดของ Sale พร้อมรายการสินค้า
@@ -77,6 +102,8 @@ export const ShipmentRepository = {
                 name: true,
                 unit: true,
                 quantity: true,
+                unitPrice: true,
+                totalPrice: true,
               },
             },
           },
@@ -86,6 +113,7 @@ export const ShipmentRepository = {
       },
     });
   },
+
 
   /**
    * ดึง Shipment เดี่ยวพร้อมทุก relation

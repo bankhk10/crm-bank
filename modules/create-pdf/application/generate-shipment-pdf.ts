@@ -108,10 +108,14 @@ export async function createShipmentDeliveryNotePdf(
       productName: si.saleItem.name || "-",
       quantity: si.quantity,
       unit: si.saleItem.unit || "-",
+      unitPrice: Number(si.unitPrice ?? 0),
+      totalPrice: Number(si.totalPrice ?? 0),
     })),
+    totalAmount: Number(shipment.totalAmount ?? 0),
     notes: shipment.notes,
     printedDate: safeFormatDate(new Date()),
   };
+
 
   const html = renderShipmentDeliveryTemplate(deliveryData);
   return generatePdfFromHtml(html);

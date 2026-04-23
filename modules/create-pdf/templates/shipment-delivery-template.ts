@@ -23,7 +23,10 @@ export interface ShipmentDeliveryData {
     productName: string;
     quantity: number;
     unit: string;
+    unitPrice: number;
+    totalPrice: number;
   }[];
+  totalAmount: number;
   // Meta
   notes?: string | null;
   createdByName?: string;
@@ -35,6 +38,11 @@ function safeValue(value?: string | number | null) {
   const text = String(value).trim();
   return text ? text : "-";
 }
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+}
+
 
 export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): string {
   const logoPath = path.join(process.cwd(), "public", "images", "logo_pdf.png");
@@ -55,6 +63,8 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
         </td>
         <td style="text-align: center; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${item.quantity}</td>
         <td style="text-align: center; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${safeValue(item.unit)}</td>
+        <td style="text-align: right; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">${formatCurrency(item.unitPrice)}</td>
+        <td style="text-align: right; padding: 6px 8px; border-bottom: 1px solid #e5e7eb; font-weight: 700; color: #4c1d95;">${formatCurrency(item.totalPrice)}</td>
       </tr>
     `,
     )
@@ -179,16 +189,25 @@ export function renderShipmentDeliveryTemplate(data: ShipmentDeliveryData): stri
         <thead>
           <tr>
             <th style="width: 5%; text-align: center;">ลำดับ</th>
-            <th style="width: 60%; text-align: left; padding-left: 8px;">สินค้า</th>
-            <th style="width: 20%; text-align: center;">จำนวน</th>
-            <th style="width: 15%; text-align: center;">หน่วย</th>
+            <th style="width: 40%; text-align: left; padding-left: 8px;">สินค้า</th>
+            <th style="width: 12%; text-align: center;">จำนวน</th>
+            <th style="width: 10%; text-align: center;">หน่วย</th>
+            <th style="width: 16%; text-align: right; padding-right: 8px;">ราคา/หน่วย</th>
+            <th style="width: 17%; text-align: right; padding-right: 8px;">รวม (บาท)</th>
           </tr>
         </thead>
         <tbody>
           ${itemsHtml}
         </tbody>
+        <tfoot>
+          <tr style="background: #f5f3ff; border-top: 2px solid #7c3aed;">
+            <td colspan="5" style="padding: 8px; text-align: right; font-weight: 700; font-size: 12px; color: #4c1d95;">มูลค่ารวมในการจัดส่งครั้งนี้</td>
+            <td style="padding: 8px; text-align: right; font-weight: 800; font-size: 13px; color: #4c1d95; padding-right: 8px;">฿${formatCurrency(data.totalAmount)}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
+
 
     ${data.notes ? `
     <div class="notes-box">
