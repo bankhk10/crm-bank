@@ -152,7 +152,7 @@ export function SaleSummaryCard({
             <DetailHero
                 backUrl={backUrl}
                 backLabel="หน้ารายการการจัดการคำสั่งขาย"
-                title="จัดการคำสั่งขาย"
+                title="จัดการข้อมูลคำสั่งขาย"
                 icon={<Truck className="h-8 w-8 sm:h-10 sm:w-10 text-white" />}
                 accentColor="#B91C1C"
                 badges={heroBadges}
