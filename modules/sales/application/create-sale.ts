@@ -51,13 +51,13 @@ export async function createSaleUseCase(
 ) {
   // 1. Basic validation
   if (!body.customerId || !body.employeeId || !body.items?.length) {
-    return { success: false as const, error: "Missing required fields" };
+    return { success: false as const, error: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน" };
   }
 
   // 2. Fetch customer with credit
   const customer = await findCustomerWithCredit(body.customerId);
   if (!customer) {
-    return { success: false as const, error: "Customer not found" };
+    return { success: false as const, error: "ไม่พบข้อมูลลูกค้า" };
   }
 
   // 3. Fetch products
@@ -76,12 +76,12 @@ export async function createSaleUseCase(
   // 5. Credit limit check
   if (body.paymentTerm !== "PREPAID") {
     const creditLimit = customer.creditLimits[0];
-    if (!creditLimit) {
-      return {
-        success: false as const,
-        error: "Customer does not have an active credit limit",
-      };
-    }
+      if (!creditLimit) {
+        return {
+          success: false as const,
+          error: "ลูกค้าไม่มีวงเงินเครดิตที่ใช้งานอยู่",
+        };
+      }
 
     const availableCredit = Number(creditLimit.availableAmount);
     const promotionalCredit = body.usePromotionalCredit
@@ -110,7 +110,7 @@ export async function createSaleUseCase(
     if (total > availableCredit + activeTempCredit + promotionalCredit) {
       return {
         success: false as const,
-        error: "Sale amount exceeds available credit limit",
+        error: "ยอดขายเกินวงเงินเครดิตที่ใช้งานได้",
         creditInfo: {
           available: availableCredit + activeTempCredit,
           promotional: promotionalCredit,

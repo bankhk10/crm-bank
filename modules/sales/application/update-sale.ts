@@ -38,7 +38,7 @@ export async function updateSaleUseCase(
   });
 
   if (!existingSale) {
-    return { success: false as const, error: "Sale not found" };
+    return { success: false as const, error: "ไม่พบข้อมูลออเดอร์" };
   }
 
   // 2. Permission check for rejected/waiting sales
@@ -67,7 +67,7 @@ export async function updateSaleUseCase(
     if (existingSale.deliveryUpdateCount >= 3) {
       return {
         success: false as const,
-        error: "Maximum number of delivery date updates exceeded (3 times).",
+        error: "อัปเดตวันที่จัดส่งได้สูงสุด 3 ครั้งเท่านั้น",
       };
     }
     newDeliveryUpdateCount++;
