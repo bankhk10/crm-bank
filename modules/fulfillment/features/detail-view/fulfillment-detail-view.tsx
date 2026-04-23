@@ -482,7 +482,10 @@ export default function FulfillmentDetailPage({
                                 <div className="relative">
                                     <DatePicker
                                         value={deliveryDate}
-                                        onChange={(val) => setDeliveryDate(val || "")}
+                                        onChange={(val) => {
+                                            if (!val && deliveryDate) return;
+                                            setDeliveryDate(val || "");
+                                        }}
                                         label=""
                                         placeholder="เลือกวันที่จัดส่ง"
                                         disabled={status === "WAITING_FOR_CORRECTION"}
