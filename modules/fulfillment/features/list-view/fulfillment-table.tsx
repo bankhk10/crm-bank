@@ -50,6 +50,7 @@ export function FulfillmentTable(props: FulfillmentTableProps) {
         { value: "AWAITING_PAYMENT", label: STATUS_STYLE.AWAITING_PAYMENT.label },
         { value: "PAID", label: STATUS_STYLE.PAID.label },
         { value: "AWAITING_DELIVERY", label: STATUS_STYLE.AWAITING_DELIVERY.label },
+        { value: "PARTIALLY_DELIVERED", label: STATUS_STYLE.PARTIALLY_DELIVERED.label },
         { value: "DELIVERED", label: STATUS_STYLE.DELIVERED.label },
         { value: "DELIVERY_COMPLETED", label: STATUS_STYLE.DELIVERY_COMPLETED.label },
     ];
