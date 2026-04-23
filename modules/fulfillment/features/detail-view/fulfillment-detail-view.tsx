@@ -43,6 +43,7 @@ import {
 } from "./fulfillment-detail-sections";
 
 const FULFILLMENT_STATUSES = [
+    "APPROVED",
     "WAITING_FOR_CORRECTION",
     "AWAITING_PAYMENT",
     "PAID",
@@ -67,6 +68,7 @@ const DELIVERY_DATE_REQUIRED_STATUSES = [
 
 const LOT_LOCKED_STATUSES = ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"];
 const BLOCKED_WHEN_IN_TRANSIT = [
+    "APPROVED",
     "WAITING_FOR_CORRECTION",
     "AWAITING_PAYMENT",
     "PAID",
