@@ -1052,7 +1052,7 @@ model SaleStatusHistory {
 enum ShipmentStatus {
   PENDING      // สร้างแล้ว รอดำเนินการ
   IN_TRANSIT   // ระหว่างขนส่ง
-  DELIVERED    // ส่งถึงแล้ว
+  DELIVERED    // ส่งเสร็จแล้ว
   CANCELLED    // ยกเลิก
 }
 

@@ -115,7 +115,7 @@ export const SHIPMENT_STATUS_STYLE: Record<
     dot: "bg-indigo-500",
   },
   DELIVERED: {
-    label: "ส่งถึงแล้ว",
+    label: "ส่งเสร็จแล้ว",
     className:
       "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100",
     dot: "bg-emerald-500",

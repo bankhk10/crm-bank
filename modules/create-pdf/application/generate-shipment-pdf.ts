@@ -23,7 +23,7 @@ function safeFormatDate(d: Date | string | null | undefined, fmt = "d MMMM yyyy"
 const SHIPMENT_STATUS_LABEL: Record<string, string> = {
   PENDING: "รอดำเนินการ",
   IN_TRANSIT: "ระหว่างขนส่ง",
-  DELIVERED: "ส่งถึงแล้ว",
+  DELIVERED: "ส่งเสร็จแล้ว",
   CANCELLED: "ยกเลิก",
 };
 

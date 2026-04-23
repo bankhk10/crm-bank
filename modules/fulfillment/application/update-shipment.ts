@@ -8,7 +8,7 @@ import { confirmStockDeductionForShipmentUseCase } from "@/modules/products/appl
  *
  * Status transitions:
  *   PENDING → IN_TRANSIT  (กำลังส่ง → อัพเดท Sale.status = PARTIALLY_DELIVERED)
- *   IN_TRANSIT → DELIVERED (ส่งถึงแล้ว → หักสต็อก → ตรวจสอบว่าครบหรือยัง)
+ *   IN_TRANSIT → DELIVERED (ส่งเสร็จแล้ว → หักสต็อก → ตรวจสอบว่าครบหรือยัง)
  *   * → CANCELLED         (ยกเลิก → ถ้า DELIVERED อยู่ ให้คืนสต็อก)
  */
 export async function updateShipmentUseCase(

@@ -93,7 +93,7 @@ function ShipmentCard({
           newStatus === "IN_TRANSIT"
             ? "อัพเดทสถานะเป็น ระหว่างขนส่ง แล้ว"
             : newStatus === "DELIVERED"
-              ? "ยืนยันการส่งถึงแล้ว สต็อกถูกหักแล้ว"
+              ? "ยืนยันการส่งเสร็จแล้ว สต็อกถูกหักแล้ว"
               : "อัพเดทสถานะแล้ว",
         );
         onUpdated();
@@ -254,7 +254,7 @@ function ShipmentCard({
               onClick={() => handleStatusChange("DELIVERED")}
             >
               <CheckCircle2 className="h-3 w-3" />
-              ยืนยันส่งถึงแล้ว
+              ยืนยันส่งเสร็จแล้ว
             </Button>
           )}
           {(shipment.status === "PENDING" || shipment.status === "IN_TRANSIT") && (
