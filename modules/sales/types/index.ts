@@ -508,6 +508,7 @@ export interface SaleFormState {
   customerId: string;
   employeeId: string;
   pickupCompanyId: string;
+  shippingCompanyId: string;
   paymentTerm: PaymentTermType;
   creditDays: number;
   creditDueDate: string | null;
