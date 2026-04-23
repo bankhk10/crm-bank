@@ -367,21 +367,16 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
 
     <!-- สรุปยอด -->
     <div class="summary-wrap">
+      <div class="promotional-budget-summary">
+        ${data.promotionalBudgetTotal > 0 ? `งบส่งเสริมการขายรวม: ${formatNumber(data.promotionalBudgetTotal)} THB` : ""}
+      </div>
       <div class="summary-box">
         <div class="summary-row">
           <span>รวมเป็นเงิน</span>
           <span>${formatNumber(data.subtotalAmount)} THB</span>
         </div>
 
-        ${data.promotionalBudgetTotal > 0
-      ? `
-          <div class="summary-row">
-            <span>งบส่งเสริมการขายรวม</span>
-            <span style="color: #059669;">${formatNumber(data.promotionalBudgetTotal)} THB</span>
-          </div>
-        `
-      : ""
-    }
+
 
         ${data.shippingDiscount > 0
       ? `

@@ -313,8 +313,17 @@ table.product-table {
   margin-top: 8px; /* Reduced from 12px */
   margin-right: 10px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
   break-inside: avoid;
+}
+
+.promotional-budget-summary {
+  margin-left: 15px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #059669;
 }
 
 .summary-box {
