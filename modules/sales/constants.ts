@@ -23,6 +23,7 @@ export const SALE_STATUS_LABELS: Record<SaleStatus, string> = {
   AWAITING_DELIVERY: "รอดำเนินการจัดส่งสินค้า",
   DELIVERED: "ระหว่างขนส่ง",
   DELIVERY_COMPLETED: "ส่งเสร็จแล้ว",
+  PARTIALLY_DELIVERED: "ส่งบางส่วนแล้ว",
   EXPIRED: "หมดอายุ",
   OVERDUE: "เลยกำหนด",
   WAITING_FOR_CORRECTION: "ส่งกลับให้แก้ไข",
@@ -90,6 +91,12 @@ export const SALE_STATUS_STYLES: Record<
     className:
       "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-100",
     dot: "bg-cyan-500",
+  },
+  PARTIALLY_DELIVERED: {
+    label: "ส่งบางส่วนแล้ว",
+    className:
+      "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-100",
+    dot: "bg-purple-500",
   },
   EXPIRED: {
     label: "หมดอายุ",

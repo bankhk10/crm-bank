@@ -65,9 +65,20 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "status",
                 header: "สถานะ",
-                cell: (info) => (
-                    <StatusBadge status={info.getValue() as string} />
-                ),
+                cell: (info) => {
+                    const sale = info.row.original as any;
+                    return (
+                        <div className="flex flex-col items-start gap-1">
+                            <StatusBadge status={info.getValue() as string} />
+                            {sale.hasPartialDelivery && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-300">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+                                    แบ่งส่ง
+                                </span>
+                            )}
+                        </div>
+                    );
+                },
             },
             {
                 id: "actions",

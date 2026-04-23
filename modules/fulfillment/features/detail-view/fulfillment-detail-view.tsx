@@ -32,7 +32,7 @@ import { SaleStatusLabels } from "@/modules/sales/types";
 import type { SaleDetailResponse, StockWarning } from "@/modules/sales/types";
 
 import { LotSelector } from "../../features/form/lot-selector";
-import { updateFulfillmentAction } from "../../server/actions";
+import { updateFulfillmentAction, getShipmentsAction } from "../../server/actions";
 import {
     CreditInfoCard,
     ItemsCard,
@@ -41,6 +41,10 @@ import {
     SaleSummaryCard,
     StockWarningAlert,
 } from "./fulfillment-detail-sections";
+import { ShipmentListSection } from "./shipment-list-section";
+import { CreateShipmentDialog } from "./create-shipment-dialog";
+import type { ShipmentRecord, RemainingByItem } from "../../types/types";
+
 
 const FULFILLMENT_STATUSES = [
     "APPROVED",
@@ -50,9 +54,11 @@ const FULFILLMENT_STATUSES = [
     "AWAITING_DELIVERY",
     "DELIVERED",
     "DELIVERY_COMPLETED",
+    "PARTIALLY_DELIVERED",
     "COMPLETED",
     "CANCELLED",
 ];
+
 
 const DELIVERY_STATUSES = [
     "DELIVERED",
@@ -201,6 +207,20 @@ export default function FulfillmentDetailPage({
     const [lotAllocations, setLotAllocations] = useState<LotAllocation[]>([]);
     const [lotAllocationsValid, setLotAllocationsValid] = useState(false);
 
+    // Split Shipment state
+    const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
+    const [remainingByItem, setRemainingByItem] = useState<RemainingByItem[]>([]);
+
+    const loadShipments = useCallback(async () => {
+        if (!id) return;
+        const result = await getShipmentsAction(id);
+        if (result.success && result.data) {
+            setShipments(result.data.shipments || []);
+            setRemainingByItem(result.data.remainingByItem || []);
+        }
+    }, [id]);
+
+
     const handleLotAllocationsChange = useCallback(
         (allocations: LotAllocation[], isValid: boolean) => {
             setLotAllocations(allocations);
@@ -248,6 +268,14 @@ export default function FulfillmentDetailPage({
             isActive = false;
         };
     }, [id]);
+
+    // Load shipments when saleData loads
+    useEffect(() => {
+        if (saleData) {
+            loadShipments();
+        }
+    }, [saleData, loadShipments]);
+
 
     useEffect(() => {
         let isActive = true;
@@ -391,6 +419,79 @@ export default function FulfillmentDetailPage({
             )}
 
             <ItemsCard sale={sale} />
+
+            {/* Split Shipment Section — แสดงเมื่อมี shipment อยู่แล้ว */}
+            {saleData.sale.hasPartialDelivery && (
+                <div className="bg-white rounded-xl border border-purple-200 overflow-hidden shadow-sm">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-purple-100 bg-purple-50/50">
+                        <div className="flex items-center gap-2">
+                            <Truck className="h-5 w-5 text-purple-600" />
+                            <h2 className="text-base font-semibold text-purple-800">ประวัติการจัดส่ง (Split Shipment)</h2>
+                        </div>
+                        <CreateShipmentDialog
+                            saleId={id}
+                            remainingByItem={remainingByItem}
+                            shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
+                            onCreated={async () => {
+                                await loadShipments();
+                                const res = await fetch(`/api/sales/${id}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    setSaleData(data);
+                                    setStatus(data.sale.status);
+                                }
+                            }}
+                            disabled={["COMPLETED", "CANCELLED", "DELIVERY_COMPLETED"].includes(sale.status)}
+                        />
+                    </div>
+                    <div className="p-6">
+                        <ShipmentListSection
+                            saleId={id}
+                            shipments={shipments}
+                            remainingByItem={remainingByItem}
+                            onShipmentUpdated={async () => {
+                                await loadShipments();
+                                const res = await fetch(`/api/sales/${id}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    setSaleData(data);
+                                    setStatus(data.sale.status);
+                                }
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ปุ่มเริ่ม Split Shipment — แสดงเมื่อยังไม่เคยสร้าง shipment */}
+            {!saleData.sale.hasPartialDelivery &&
+                ["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY"].includes(sale.status) && (
+                <div className="flex justify-end">
+                    <CreateShipmentDialog
+                        saleId={id}
+                        remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
+                            saleItemId: item.id,
+                            productCode: item.productCode || item.product?.productCode || "",
+                            productName: item.name || item.product?.name || "",
+                            unit: item.unit || item.product?.unit || "",
+                            totalQuantity: item.quantity,
+                            allocatedQuantity: 0,
+                            remainingQuantity: item.quantity,
+                        }))}
+                        shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
+                        onCreated={async () => {
+                            await loadShipments();
+                            const res = await fetch(`/api/sales/${id}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                setSaleData(data);
+                                setStatus(data.sale.status);
+                            }
+                        }}
+                    />
+                </div>
+            )}
+
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">

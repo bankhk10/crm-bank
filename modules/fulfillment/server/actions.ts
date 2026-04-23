@@ -2,8 +2,17 @@
 
 import { auth } from "@/modules/auth/infrastructure/next-auth";
 import { revalidatePath } from "next/cache";
-import { updateFulfillmentUseCase, getLotOptionsUseCase } from "../application";
+import {
+  updateFulfillmentUseCase,
+  getLotOptionsUseCase,
+  createShipmentUseCase,
+  updateShipmentUseCase,
+  getShipmentsUseCase,
+  getShipmentByIdUseCase,
+} from "../application";
 import { findSales } from "@/modules/sales/infrastructure/sale.repository";
+import { createShipmentDeliveryNotePdf } from "@/modules/create-pdf/application/generate-shipment-pdf";
+
 
 // Helper to convert Prisma.Decimal objects to numbers, as they are not supported by Server Actions
 function serializeData(obj: any): any {
@@ -102,3 +111,79 @@ export async function getFulfillmentsAction(params: {
     throw new Error("Failed to fetch fulfillments");
   }
 }
+
+// ──────────────────────────────────────────────────
+// Split Shipment Actions
+// ──────────────────────────────────────────────────
+
+export async function getShipmentsAction(saleId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const data = await getShipmentsUseCase(saleId);
+    return { success: true, data: serializeData(data) };
+  } catch (error) {
+    console.error("getShipmentsAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to get shipments",
+    };
+  }
+}
+
+export async function createShipmentAction(saleId: string, payload: unknown) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const shipment = await createShipmentUseCase(saleId, session.user.id, payload);
+    revalidatePath(`/fulfillment/${saleId}`);
+    revalidatePath("/fulfillment");
+    return { success: true, data: serializeData(shipment) };
+  } catch (error) {
+    console.error("createShipmentAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create shipment",
+    };
+  }
+}
+
+export async function updateShipmentAction(shipmentId: string, payload: unknown) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const shipment = await updateShipmentUseCase(shipmentId, session.user.id, payload);
+    if (shipment?.sale?.id) {
+      revalidatePath(`/fulfillment/${shipment.sale.id}`);
+      revalidatePath("/fulfillment");
+    }
+    return { success: true, data: serializeData(shipment) };
+  } catch (error) {
+    console.error("updateShipmentAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update shipment",
+    };
+  }
+}
+
+export async function generateShipmentPdfAction(shipmentId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const pdfBuffer = await createShipmentDeliveryNotePdf(shipmentId);
+    // Return base64 เพราะ Buffer ไม่สามารถส่งผ่าน Server Action ได้โดยตรง
+    return { success: true, pdfBase64: pdfBuffer.toString("base64") };
+  } catch (error) {
+    console.error("generateShipmentPdfAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to generate PDF",
+    };
+  }
+}
+

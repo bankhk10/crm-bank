@@ -58,6 +58,12 @@ export const STATUS_STYLE: Record<
       "bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-100",
     dot: "bg-cyan-500",
   },
+  PARTIALLY_DELIVERED: {
+    label: "ส่งบางส่วนแล้ว",
+    className:
+      "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-900/30 dark:text-purple-100",
+    dot: "bg-purple-500",
+  },
   EXPIRED: {
     label: "หมดอายุ",
     className:
@@ -87,6 +93,38 @@ export const STATUS_STYLE: Record<
     className:
       "bg-green-100 text-green-800 ring-1 ring-green-300 dark:bg-green-900/40 dark:text-green-100",
     dot: "bg-green-600",
+  },
+};
+
+export type ShipmentStatus = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+
+export const SHIPMENT_STATUS_STYLE: Record<
+  ShipmentStatus,
+  { label: string; className: string; dot: string }
+> = {
+  PENDING: {
+    label: "รอดำเนินการ",
+    className:
+      "bg-slate-50 text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900/30 dark:text-slate-100",
+    dot: "bg-slate-400",
+  },
+  IN_TRANSIT: {
+    label: "ระหว่างขนส่ง",
+    className:
+      "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-100",
+    dot: "bg-indigo-500",
+  },
+  DELIVERED: {
+    label: "ส่งถึงแล้ว",
+    className:
+      "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100",
+    dot: "bg-emerald-500",
+  },
+  CANCELLED: {
+    label: "ยกเลิก",
+    className:
+      "bg-red-100 text-red-700 ring-1 ring-red-300 dark:bg-red-900/40 dark:text-red-200",
+    dot: "bg-red-600",
   },
 };
 

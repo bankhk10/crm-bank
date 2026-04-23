@@ -106,7 +106,7 @@ model User {
   createdSales                   Sale[]                   @relation("SaleCreator")
   approvedSales                  Sale[]                   @relation("SaleApprover")
   saleStatusChanges              SaleStatusHistory[]      @relation("StatusHistoryUser")
-
+  createdShipments               Shipment[]               @relation("ShipmentCreator") // Split Shipment\r\n
   // Logging relations
   auditLogs              AuditLog[]            @relation("AuditLogUser")
   securityLogs           SecurityLog[]         @relation("SecurityLogUser")
@@ -520,6 +520,7 @@ model ShippingCompany {
 
   customers CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
   sales     Sale[]                    @relation("SaleShippingCompany") // การขายที่ใช้บริษัทขนส่งนี้
+  shipments Shipment[]               @relation("ShipmentShippingCompany") // Shipments ที่ใช้บริษัทขนส่งนี้
 }
 
 // Junction table สำหรับความสัมพันธ์ Many-to-Many ระหว่าง Customer และ ShippingCompany
@@ -767,6 +768,7 @@ enum SaleStatus {
   AWAITING_DELIVERY // รอดำเนินการจัดส่งสินค้า
   DELIVERED // ระหว่างขนส่ง
   DELIVERY_COMPLETED // ส่งเสร็จแล้ว
+  PARTIALLY_DELIVERED // ส่งบางส่วนแล้ว (มี Split Shipment)
   EXPIRED // หมดอายุ (ไม่ระบุวันส่ง + เลย 3 วัน)
   OVERDUE // เลยกำหนด (อัปเดตวันส่งเกิน 3 ครั้ง)
   WAITING_FOR_CORRECTION // รอแก้ไข
@@ -867,9 +869,13 @@ model Sale {
   pickupCompany   Company?         @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
   shippingCompany ShippingCompany? @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
 
-  items          SaleItem[]
-  statusHistory  SaleStatusHistory[]
-  pointHistories EmployeePointHistory[]
+  items              SaleItem[]
+  statusHistory      SaleStatusHistory[]
+  pointHistories     EmployeePointHistory[]
+  shipments          Shipment[] // การจัดส่งทั้งหมด (Split Shipment)
+
+  // Partial Delivery
+  hasPartialDelivery Boolean @default(false) // true = มีการจัดส่งแบบแบ่งครั้ง
 
   @@index([customerId, saleDate])
   @@index([employeeId, saleDate])
@@ -912,6 +918,7 @@ model SaleItem {
   product        Product               @relation("SaleItemProduct", fields: [productId], references: [id], onDelete: Restrict)
   lotAllocations SaleItemLot[] // LOT ที่ใช้สำหรับสินค้านี้
   pointHistory   EmployeePointHistory?
+  shipmentItems  ShipmentItem[]        @relation("ShipmentItemSaleItem") // รายการใน Split Shipment
 }
 
 model EmployeePointHistory {
@@ -1036,6 +1043,54 @@ model SaleStatusHistory {
 
   sale      Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
   changedBy User @relation("StatusHistoryUser", fields: [changedById], references: [id], onDelete: Restrict)
+}
+
+// ==========================================
+// PARTIAL DELIVERY / SPLIT SHIPMENT
+// ==========================================
+
+enum ShipmentStatus {
+  PENDING      // สร้างแล้ว รอดำเนินการ
+  IN_TRANSIT   // ระหว่างขนส่ง
+  DELIVERED    // ส่งถึงแล้ว
+  CANCELLED    // ยกเลิก
+}
+
+model Shipment {
+  id                String         @id @default(cuid())
+  saleId            String
+  shipmentNumber    Int            // ลำดับที่ต่อ Sale (1, 2, 3...)
+  status            ShipmentStatus @default(PENDING)
+  scheduledDate     DateTime?      // วันกำหนดส่ง
+  actualDate        DateTime?      // วันส่งจริง
+  shippingCompanyId String?        // FK to ShippingCompany
+  notes             String?        // หมายเหตุ
+  createdById       String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  sale            Sale             @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  shippingCompany ShippingCompany? @relation("ShipmentShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
+  items           ShipmentItem[]
+  createdBy       User             @relation("ShipmentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([saleId, shipmentNumber])
+  @@index([saleId])
+  @@index([shippingCompanyId])
+}
+
+model ShipmentItem {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  saleItemId  String
+  quantity    Int      // จำนวนสินค้าที่ส่งในรอบนี้
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  saleItem SaleItem @relation("ShipmentItemSaleItem", fields: [saleItemId], references: [id], onDelete: Restrict)
+
+  @@unique([shipmentId, saleItemId])
+  @@index([shipmentId])
+  @@index([saleItemId])
 }
 
 

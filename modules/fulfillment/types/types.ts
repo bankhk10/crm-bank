@@ -74,3 +74,72 @@ export interface LotSelectorProps {
   onAllocationsChange: (allocations: LotAllocation[], isValid: boolean) => void;
   disabled?: boolean;
 }
+
+// ──────────────────────────────────────────
+// Split Shipment Types
+// ──────────────────────────────────────────
+
+export type ShipmentStatusType = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+
+export interface ShipmentItemRecord {
+  id: string;
+  shipmentId: string;
+  saleItemId: string;
+  quantity: number;
+  saleItem: {
+    id: string;
+    productId: string;
+    productCode: string;
+    name: string;
+    unit: string;
+    quantity: number;
+  };
+}
+
+export interface ShipmentRecord {
+  id: string;
+  saleId: string;
+  shipmentNumber: number;
+  status: ShipmentStatusType;
+  scheduledDate: string | Date | null;
+  actualDate: string | Date | null;
+  shippingCompanyId: string | null;
+  notes: string | null;
+  createdById: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  items: ShipmentItemRecord[];
+  shippingCompany?: { id: string; name: string; phone?: string | null } | null;
+  createdBy?: { id: string; name: string } | null;
+}
+
+export interface ShipmentItemInput {
+  saleItemId: string;
+  quantity: number;
+}
+
+export interface CreateShipmentInput {
+  items: ShipmentItemInput[];
+  scheduledDate?: string | null;
+  shippingCompanyId?: string | null;
+  notes?: string | null;
+}
+
+export interface UpdateShipmentInput {
+  status?: ShipmentStatusType;
+  scheduledDate?: string | null;
+  actualDate?: string | null;
+  shippingCompanyId?: string | null;
+  notes?: string | null;
+}
+
+export interface RemainingByItem {
+  saleItemId: string;
+  productCode: string;
+  productName: string;
+  unit: string;
+  totalQuantity: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+}
+

@@ -460,3 +460,70 @@ export async function revertStockDeductionFromLotsUseCase(
     });
   }
 }
+
+/**
+ * Use case: Confirms stock deduction for a specific Shipment (Partial Delivery).
+ * Deducts only the quantities in ShipmentItem, not the full Sale quantity.
+ * Uses FIFO lot selection — does NOT track specific lot per shipment (Q3=B).
+ */
+export async function confirmStockDeductionForShipmentUseCase(
+  shipmentId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const db = tx || prisma;
+
+  const shipment = await db.shipment.findUnique({
+    where: { id: shipmentId },
+    include: {
+      items: {
+        include: {
+          saleItem: true,
+        },
+      },
+    },
+  });
+
+  if (!shipment) throw new Error("Shipment not found");
+
+  const confirm = async (client: Prisma.TransactionClient) => {
+    for (const shipmentItem of shipment.items) {
+      const requestedQty = shipmentItem.quantity;
+      const productId = shipmentItem.saleItem.productId;
+
+      const lots = await StockRepository.getAvailableLots(productId, client);
+
+      let deductedFromLots = 0;
+      for (const lot of lots) {
+        if (deductedFromLots >= requestedQty) break;
+        const deduction = Math.min(lot.quantity, requestedQty - deductedFromLots);
+        await StockRepository.updateLotQuantity(lot.id, -deduction, client);
+        deductedFromLots += deduction;
+      }
+
+      if (deductedFromLots < requestedQty) {
+        throw new Error(
+          `Insufficient stock for partial shipment. Requested ${requestedQty}, ` +
+            `but only ${deductedFromLots} available for product ${productId}`,
+        );
+      }
+
+      await StockRepository.updateProductStock(
+        productId,
+        {
+          reservedQuantityIncrement: -requestedQty,
+          physicalBalanceIncrement: -requestedQty,
+        },
+        client,
+      );
+    }
+  };
+
+  if (tx) {
+    await confirm(tx);
+  } else {
+    await prisma.$transaction(async (client) => {
+      await confirm(client);
+    });
+  }
+}
+
