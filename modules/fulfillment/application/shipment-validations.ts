@@ -34,6 +34,7 @@ export const updateShipmentSchema = z.object({
   salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
+  items: z.array(createShipmentItemSchema).optional(),
 });
 
 export type CreateShipmentInput = z.infer<typeof createShipmentSchema>;

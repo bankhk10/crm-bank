@@ -65,6 +65,7 @@ export async function updateShipmentUseCase(
       salesOrderNumber: validatedData.salesOrderNumber,
     }),
     ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
+    ...(validatedData.items !== undefined && { items: validatedData.items }),
   };
 
   // ถ้าเปลี่ยนเป็น DELIVERED และไม่มี actualDate → ใช้เวลาปัจจุบัน

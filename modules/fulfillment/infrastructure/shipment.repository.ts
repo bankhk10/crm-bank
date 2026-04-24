@@ -20,6 +20,7 @@ export interface UpdateShipmentData {
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
+  items?: Array<{ saleItemId: string; quantity: number }>;
 }
 
 export const ShipmentRepository = {
@@ -173,6 +174,44 @@ export const ShipmentRepository = {
     tx?: Prisma.TransactionClient,
   ) {
     const client = tx || db;
+
+    // Handle items update if provided
+    let totalAmountUpdate = {};
+    if (data.items) {
+      // ดึง unitPrice จาก SaleItem เพื่อคำนวณราคาใหม่
+      const saleItemIds = data.items.map((i) => i.saleItemId);
+      const saleItems = await client.saleItem.findMany({
+        where: { id: { in: saleItemIds } },
+        select: { id: true, unitPrice: true },
+      });
+      const priceMap = new Map(saleItems.map((si) => [si.id, si.unitPrice]));
+
+      const itemsWithPrice = data.items.map((item) => {
+        const unitPrice = priceMap.get(item.saleItemId) ?? 0;
+        const totalPrice = Number(unitPrice) * item.quantity;
+        return { ...item, unitPrice: Number(unitPrice), totalPrice };
+      });
+
+      const totalAmount = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
+      totalAmountUpdate = { totalAmount };
+
+      // ลบรายการเก่าออกก่อน
+      await client.shipmentItem.deleteMany({
+        where: { shipmentId },
+      });
+
+      // สร้างรายการใหม่
+      await client.shipmentItem.createMany({
+        data: itemsWithPrice.map((item) => ({
+          shipmentId,
+          saleItemId: item.saleItemId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.totalPrice,
+        })),
+      });
+    }
+
     return client.shipment.update({
       where: { id: shipmentId },
       data: {
@@ -184,9 +223,11 @@ export const ShipmentRepository = {
         ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
         ...(data.notes !== undefined && { notes: data.notes }),
+        ...totalAmountUpdate,
       },
       include: {
         items: { include: { saleItem: true } },
+        sale: true,
       },
     });
   },

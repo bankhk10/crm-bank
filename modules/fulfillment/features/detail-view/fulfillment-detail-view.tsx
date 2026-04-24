@@ -450,6 +450,8 @@ export default function FulfillmentDetailPage({
                             saleId={id}
                             shipments={shipments}
                             remainingByItem={remainingByItem}
+                            shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
+                            creditDays={sale.creditDays || 0}
                             onShipmentUpdated={async () => {
                                 await loadShipments();
                                 const res = await fetch(`/api/sales/${id}`);

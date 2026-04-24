@@ -40,10 +40,14 @@ import {
   generateShipmentPdfAction,
 } from "../../server/actions";
 
+import { CreateShipmentDialog } from "./create-shipment-dialog";
+
 interface ShipmentListSectionProps {
   saleId: string;
   shipments: ShipmentRecord[];
   remainingByItem: RemainingByItem[];
+  shippingCompanies: Array<{ id: string; name: string }>;
+  creditDays: number;
   onShipmentUpdated: () => void;
 }
 
@@ -73,9 +77,15 @@ function ShipmentStatusBadge({ status }: { status: string }) {
 
 function ShipmentCard({
   shipment,
+  remainingByItem,
+  shippingCompanies,
+  creditDays,
   onUpdated,
 }: {
   shipment: ShipmentRecord;
+  remainingByItem: RemainingByItem[];
+  shippingCompanies: Array<{ id: string; name: string }>;
+  creditDays: number;
   onUpdated: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -275,16 +285,26 @@ function ShipmentCard({
         {/* Action buttons */}
         <div className="flex flex-wrap gap-2 pt-1">
           {shipment.status === "PENDING" && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs"
-              disabled={isPending}
-              onClick={() => handleStatusChange("IN_TRANSIT")}
-            >
-              <Truck className="h-3 w-3" />
-              ยืนยันจัดส่ง
-            </Button>
+            <>
+              <CreateShipmentDialog
+                saleId={shipment.saleId}
+                shipment={shipment}
+                remainingByItem={remainingByItem}
+                shippingCompanies={shippingCompanies}
+                creditDays={creditDays}
+                onCreated={onUpdated}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs"
+                disabled={isPending}
+                onClick={() => handleStatusChange("IN_TRANSIT")}
+              >
+                <Truck className="h-3 w-3" />
+                ยืนยันจัดส่ง
+              </Button>
+            </>
           )}
           {shipment.status === "IN_TRANSIT" && (
             <Button
@@ -329,6 +349,8 @@ export function ShipmentListSection({
   saleId,
   shipments,
   remainingByItem,
+  shippingCompanies,
+  creditDays,
   onShipmentUpdated,
 }: ShipmentListSectionProps) {
   const hasRemaining = remainingByItem.some((i) => i.remainingQuantity > 0);
@@ -370,6 +392,9 @@ export function ShipmentListSection({
             <ShipmentCard
               key={shipment.id}
               shipment={shipment}
+              remainingByItem={remainingByItem}
+              shippingCompanies={shippingCompanies}
+              creditDays={creditDays}
               onUpdated={onShipmentUpdated}
             />
           ))}
