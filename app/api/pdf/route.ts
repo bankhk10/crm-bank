@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { createPdfFromSaleData } from "@/modules/create-pdf/application/generate-pdf";
+import { createPdfFromSaleData, createSpecialPdfFromSaleData } from "@/modules/create-pdf/application/generate-pdf";
 import { getSaleAction } from "@/modules/sales/server/actions";
 
 export async function GET(request: NextRequest) {
@@ -19,8 +19,15 @@ export async function GET(request: NextRequest) {
           { status: 404 },
         );
       }
-      pdfBuffer = await createPdfFromSaleData(saleResult.sale);
-      filename = `${saleResult.sale.saleNumber}.pdf`;
+
+      const type = searchParams.get("type");
+      if (type === "special") {
+        pdfBuffer = await createSpecialPdfFromSaleData(saleResult.sale);
+        filename = `special-${saleResult.sale.saleNumber}.pdf`;
+      } else {
+        pdfBuffer = await createPdfFromSaleData(saleResult.sale);
+        filename = `${saleResult.sale.saleNumber}.pdf`;
+      }
     } else {
       // ใช้ข้อมูลตัวอย่าง
       return NextResponse.json(

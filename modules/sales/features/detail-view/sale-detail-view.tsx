@@ -23,7 +23,7 @@ import {
 } from "@/modules/sales/types";
 import { getSaleAction } from "../../server/actions";
 
-export function SaleDetailView({ id }: { id: string }) {
+export function SaleDetailView({ id, type }: { id: string, type?: string }) {
     const router = useRouter();
     const { hasPermission } = usePermission("menu.sales");
     const canViewPdf = hasPermission("sale.view");
@@ -153,7 +153,7 @@ export function SaleDetailView({ id }: { id: string }) {
                             </div>
                         )}
                         <iframe
-                            src={`/api/pdf?saleId=${sale.id}`}
+                            src={`/api/pdf?saleId=${sale.id}${type === "special" ? "&type=special" : ""}`}
                             className="w-full h-full border-0"
                             title="Sale Detail PDF"
                             onLoad={() => setPdfLoading(false)}

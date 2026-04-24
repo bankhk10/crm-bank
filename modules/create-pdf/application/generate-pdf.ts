@@ -3,6 +3,9 @@ import {
   renderInvoiceTemplate,
   InvoiceData,
 } from "../templates/invoice-template";
+import {
+  renderSpecialInvoiceTemplate,
+} from "../templates/special-invoice-template";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -153,6 +156,133 @@ export async function createPdfFromSaleData(sale: any): Promise<Buffer> {
   };
 
   const html = renderInvoiceTemplate(invoiceData);
+  return generatePdfFromHtml(html);
+}
+
+/**
+ * สร้าง PDF พิเศษจากข้อมูลการขายจริง
+ */
+export async function createSpecialPdfFromSaleData(sale: any): Promise<Buffer> {
+  const sa = sale.saleAddress || {};
+
+  const customerAddress = sa.address_line
+    ? formatAddress({
+      addressLine: sa.address_line,
+      subdistrict: sa.address_subdistrict,
+      district: sa.address_district,
+      province: sa.address_province,
+      postalCode: sa.address_code,
+    })
+    : formatAddress({
+      addressLine: sale.customer?.addressLine,
+      subdistrict: sale.customer?.subdistrict,
+      district: sale.customer?.district,
+      province: sale.customer?.province,
+      postalCode: sale.customer?.postalCode,
+    });
+
+  const billingAddress = sa.billing_address_line
+    ? formatAddress({
+      addressLine: sa.billing_address_line,
+      subdistrict: sa.billing_subdistrict,
+      district: sa.billing_district,
+      province: sa.billing_province,
+      postalCode: sa.billing_postal_code,
+    })
+    : customerAddress;
+
+  const shippingAddress = formatAddress({
+    addressLine: sa.shipping_address_line,
+    subdistrict: sa.shipping_subdistrict,
+    district: sa.shipping_district,
+    province: sa.shipping_province,
+    postalCode: sa.shipping_postal_code,
+  });
+
+  const receivingAddress = formatAddress({
+    addressLine: sa.receiving_address_line,
+    subdistrict: sa.receiving_subdistrict,
+    district: sa.receiving_district,
+    province: sa.receiving_province,
+    postalCode: sa.receiving_postal_code,
+  });
+
+  const senderAddress = formatAddress({
+    addressLine: sa.sender_line,
+    subdistrict: sa.sender_subdistrict,
+    district: sa.sender_district,
+    province: sa.sender_province,
+    postalCode: sa.sender_postal_code,
+  });
+
+  const invoiceData: any = {
+    invoiceNumber: sale.saleNumber || "-",
+    saleOrderRef: sale.saleOrderRef,
+    date: safeFormatDate(sale.saleDate, "d MMMM yyyy"),
+    customerName: sa.company_name || sale.customer?.name || "-",
+    customerCode: sale.customer?.customerCode || "-",
+    customerPhone: sa.company_phone || sale.customer?.phone || "-",
+    customerAddress: customerAddress || "-",
+    billingAddress: billingAddress || "-",
+
+    deliveryMethod:
+      DELIVERY_METHOD_MAP[sale.deliveryMethod] || sale.deliveryMethod || "-",
+    deliveryMethodRaw: sale.deliveryMethod || "-",
+    shippingAddress: shippingAddress || "-",
+    receivingAddress: receivingAddress || "-",
+    shippingCompanyName: sa.sender_name || "-",
+    senderAddress: senderAddress || "-",
+    requestedDeliveryDate: safeFormatDate(sale.requestedDeliveryDate, "d MMMM yyyy"),
+    shippingCustomerAddressId: sa.shippingCustomerAddressId || "-",
+
+    paymentTerm:
+      PaymentTermLabels[sale.paymentTerm as keyof typeof PaymentTermLabels] ||
+      sale.paymentTerm ||
+      "-",
+    deliveryDate: safeFormatDate(sale.deliveryDate, "d MMMM yyyy"),
+    creditDueDate: safeFormatDate(sale.creditDueDate, "d MMMM yyyy"),
+    paymentDate: safeFormatDate(sale.paymentDate, "d MMMM yyyy"),
+
+    contactName: sale.employee?.name || "-",
+    items: (sale.items || []).map((item: any) => ({
+      code: item.productCode || item.product?.productCode || "-",
+      packageSizePerBox: Number(
+        item.packageSizePerBox || item.product?.packageSizePerBox || 1,
+      ),
+      description: item.name || item.product?.name || "-",
+      quantity: item.quantity || 0,
+      unit: item.unit || item.product?.unit || "-",
+      price: Number(item.unitPrice || 0),
+      cartonPrice: Number(item.cartonPrice || 0),
+      total: Number(item.totalPrice || 0),
+      promotionBudget: Number(item.promotionBudget || 0),
+    })),
+    subtotalAmount: Number(sale.subtotalAmount || 0),
+    shippingDiscount: Number(sale.shippingCost || 0),
+    billDiscount: Number(sale.otherCosts || 0),
+    otherCostsDescription: sale.otherCostsDescription,
+    totalAmount: Number(sale.totalAmount || 0),
+    promotionalBudgetTotal: (sale.items || []).reduce((sum: number, item: any) => {
+      return sum + (Number(item.quantity || 0) * Number(item.promotionBudget || 0));
+    }, 0),
+    budgetDetails: (sale.budgetDetails || []).map((budget: any) => ({
+      type: budget.type,
+      amount: Number(budget.usedAmount || budget.receivedAmount || 0),
+      description: budget.description,
+    })),
+    title: "ใบบันทึกการขาย",
+    status: sale.status,
+    notes: sale.notes,
+    preparedBySignatureDate: safeFormatDate(sale.preparedBySignatureDate, "d MMMM yyyy"),
+    preparedBySignatureImage: sale.preparedBySignatureImage,
+    checkedBySignatureDate: safeFormatDate(sale.checkedBySignatureDate, "d MMMM yyyy"),
+    checkedBySignatureImage: sale.checkedBySignatureImage,
+    approvedBySignatureDate: safeFormatDate(sale.approvedBySignatureDate, "d MMMM yyyy"),
+    approvedBySignatureImage: sale.approvedBySignatureImage,
+    approvedByName: sale.approvedBy?.name || "-",
+  };
+
+  const html = renderSpecialInvoiceTemplate(invoiceData);
   return generatePdfFromHtml(html);
 }
 
