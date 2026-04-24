@@ -27,23 +27,31 @@ export async function findProducts(params: ListProductsParams) {
 
   const where: Prisma.ProductWhereInput = { deletedAt: null };
 
-  if (q) {
-    where.OR = [
-      { name: { contains: q, mode: "insensitive" } },
-      { productCode: { contains: q, mode: "insensitive" } },
-      { commonName: { contains: q, mode: "insensitive" } },
-      {
-        children: {
-          some: {
-            OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { productCode: { contains: q, mode: "insensitive" } },
-              { commonName: { contains: q, mode: "insensitive" } },
-            ],
-          },
-        },
-      },
-    ];
+  if (q && q.trim()) {
+    const normalizedQ = q.trim().replace(/\s+/g, "");
+    const likePattern = `%${normalizedQ}%`;
+
+    // ใช้ Raw Query เพื่อรองรับการค้นหาแบบไม่สนช่องว่าง (Space-insensitive search)
+    // โดยการ REPLACE ช่องว่างออกทั้งใน Column และในคำค้นหา
+    const matchingIds = await db.$queryRaw<{ id: string }[]>`
+      SELECT DISTINCT p.id 
+      FROM "Product" p
+      LEFT JOIN "Product" c ON c."parentId" = p.id
+      WHERE (
+        (REPLACE(p.name, ' ', '') ILIKE ${likePattern}
+         OR REPLACE(p."productCode", ' ', '') ILIKE ${likePattern}
+         OR REPLACE(p."commonName", ' ', '') ILIKE ${likePattern})
+        OR (c.id IS NOT NULL AND c."deletedAt" IS NULL AND (
+             REPLACE(c.name, ' ', '') ILIKE ${likePattern}
+             OR REPLACE(c."productCode", ' ', '') ILIKE ${likePattern}
+             OR REPLACE(c."commonName", ' ', '') ILIKE ${likePattern}
+           ))
+      )
+      AND p."deletedAt" IS NULL
+    `;
+
+    const ids = matchingIds.map((m) => m.id);
+    where.id = { in: ids };
   }
 
   if (status && (status === "ACTIVE" || status === "INACTIVE")) {
