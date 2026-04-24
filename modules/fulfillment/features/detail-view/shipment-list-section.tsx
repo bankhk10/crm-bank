@@ -284,27 +284,27 @@ function ShipmentCard({
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-2 pt-1">
+          {(shipment.status === "PENDING" || shipment.status === "DELIVERED") && (
+            <CreateShipmentDialog
+              saleId={shipment.saleId}
+              shipment={shipment}
+              remainingByItem={remainingByItem}
+              shippingCompanies={shippingCompanies}
+              creditDays={creditDays}
+              onCreated={onUpdated}
+            />
+          )}
           {shipment.status === "PENDING" && (
-            <>
-              <CreateShipmentDialog
-                saleId={shipment.saleId}
-                shipment={shipment}
-                remainingByItem={remainingByItem}
-                shippingCompanies={shippingCompanies}
-                creditDays={creditDays}
-                onCreated={onUpdated}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs"
-                disabled={isPending}
-                onClick={() => handleStatusChange("IN_TRANSIT")}
-              >
-                <Truck className="h-3 w-3" />
-                ยืนยันจัดส่ง
-              </Button>
-            </>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs"
+              disabled={isPending}
+              onClick={() => handleStatusChange("IN_TRANSIT")}
+            >
+              <Truck className="h-3 w-3" />
+              ยืนยันจัดส่ง
+            </Button>
           )}
           {shipment.status === "IN_TRANSIT" && (
             <Button

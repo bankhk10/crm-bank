@@ -135,27 +135,32 @@ export function CreateShipmentDialog({
     }
   };
 
+  const isDelivered = shipment?.status === "DELIVERED";
+
   const onSubmit = (data: FormValues) => {
     // Build items array — only include items with quantity > 0
-    const items = available
-      .map((item) => ({
-        saleItemId: item.saleItemId,
-        quantity: Number(data.quantities[item.saleItemId] ?? 0),
-      }))
-      .filter((item) => item.quantity > 0);
+    // Skip items if already delivered to avoid unnecessary updates
+    const items = isDelivered
+      ? undefined
+      : available
+        .map((item) => ({
+          saleItemId: item.saleItemId,
+          quantity: Number(data.quantities[item.saleItemId] ?? 0),
+        }))
+        .filter((item) => item.quantity > 0);
 
-    if (items.length === 0) {
+    if (!isDelivered && (!items || items.length === 0)) {
       toast.error("กรุณาระบุจำนวนสินค้าที่ต้องการส่งอย่างน้อย 1 รายการ");
       return;
     }
 
     const payload = {
       items,
-      scheduledDate: data.scheduledDate || null,
+      scheduledDate: isDelivered ? undefined : (data.scheduledDate || null),
       paymentDate: data.paymentDate || null,
       dueDate: data.dueDate || null,
       salesOrderNumber: data.salesOrderNumber || null,
-      shippingCompanyId: data.shippingCompanyId || null,
+      shippingCompanyId: isDelivered ? undefined : (data.shippingCompanyId || null),
       notes: data.notes || null,
     };
 
@@ -272,6 +277,7 @@ export function CreateShipmentDialog({
                           type="number"
                           min={0}
                           max={item.maxQuantity}
+                          disabled={isDelivered}
                           className="h-8 w-20 text-right text-sm"
                           id={`qty-${item.saleItemId}`}
                         />
@@ -298,6 +304,39 @@ export function CreateShipmentDialog({
                 className="h-9"
                 {...register("scheduledDate")}
                 onChange={onScheduledDateChange}
+                disabled={isDelivered}
+              />
+            </div>
+
+            {/* Due Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="dueDate" className="text-sm">
+                วันครบกำหนดชำระ
+              </Label>
+              <Input
+                id="dueDate"
+                type="date"
+                className="h-9"
+                {...register("dueDate")}
+                disabled={isDelivered}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                คำนวณจาก วันจัดส่ง + {creditDays} วัน
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Sales Order Number */}
+            <div className="space-y-1.5">
+              <Label htmlFor="salesOrderNumber" className="text-sm">
+                เลขที่คำสั่งขาย
+              </Label>
+              <Input
+                id="salesOrderNumber"
+                placeholder="เช่น SO-2024-001"
+                className="h-9"
+                {...register("salesOrderNumber")}
               />
             </div>
 
@@ -315,37 +354,6 @@ export function CreateShipmentDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Due Date */}
-            <div className="space-y-1.5">
-              <Label htmlFor="dueDate" className="text-sm">
-                วันครบกำหนดชำระ
-              </Label>
-              <Input
-                id="dueDate"
-                type="date"
-                className="h-9"
-                {...register("dueDate")}
-              />
-              <p className="text-[10px] text-muted-foreground">
-                คำนวณจาก วันจัดส่ง + {creditDays} วัน
-              </p>
-            </div>
-
-            {/* Sales Order Number */}
-            <div className="space-y-1.5">
-              <Label htmlFor="salesOrderNumber" className="text-sm">
-                เลขที่คำสั่งขาย
-              </Label>
-              <Input
-                id="salesOrderNumber"
-                placeholder="เช่น SO-2024-001"
-                className="h-9"
-                {...register("salesOrderNumber")}
-              />
-            </div>
-          </div>
-
           {/* Shipping company */}
           {shippingCompanies.length > 0 && (
             <div className="space-y-1.5">
@@ -357,7 +365,7 @@ export function CreateShipmentDialog({
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value || ""}>
-                    <SelectTrigger id="shippingCompany" className="h-9">
+                    <SelectTrigger id="shippingCompany" className="h-9" disabled={isDelivered}>
                       <SelectValue placeholder="เลือกบริษัทขนส่ง (ไม่บังคับ)" />
                     </SelectTrigger>
                     <SelectContent>
