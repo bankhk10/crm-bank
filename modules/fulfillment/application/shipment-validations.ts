@@ -14,6 +14,7 @@ export const createShipmentSchema = z.object({
     .array(createShipmentItemSchema)
     .min(1, "กรุณาระบุรายการสินค้าอย่างน้อย 1 รายการ"),
   scheduledDate: z.string().nullable().optional(),
+  salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -26,6 +27,7 @@ export const updateShipmentSchema = z.object({
   status: z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "CANCELLED"]).optional(),
   scheduledDate: z.string().nullable().optional(),
   actualDate: z.string().nullable().optional(),
+  salesOrderNumber: z.string().nullable().optional(),
   shippingCompanyId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 });

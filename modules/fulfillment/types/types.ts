@@ -107,6 +107,7 @@ export interface ShipmentRecord {
   status: ShipmentStatusType;
   scheduledDate: string | Date | null;
   actualDate: string | Date | null;
+  salesOrderNumber: string | null;
   shippingCompanyId: string | null;
   notes: string | null;
   totalAmount: number;
@@ -126,6 +127,7 @@ export interface ShipmentItemInput {
 export interface CreateShipmentInput {
   items: ShipmentItemInput[];
   scheduledDate?: string | null;
+  salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
 }
@@ -134,6 +136,7 @@ export interface UpdateShipmentInput {
   status?: ShipmentStatusType;
   scheduledDate?: string | null;
   actualDate?: string | null;
+  salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
 }

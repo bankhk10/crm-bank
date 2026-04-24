@@ -2,6 +2,7 @@ import { db, Prisma } from "@/lib/db";
 
 export interface CreateShipmentData {
   scheduledDate?: Date | null;
+  salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
   createdById: string;
@@ -12,6 +13,7 @@ export interface UpdateShipmentData {
   status?: "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
   scheduledDate?: Date | null;
   actualDate?: Date | null;
+  salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
 }
@@ -62,6 +64,7 @@ export const ShipmentRepository = {
         shipmentNumber,
         status: "PENDING",
         scheduledDate: data.scheduledDate ?? null,
+        salesOrderNumber: data.salesOrderNumber ?? null,
         shippingCompanyId: data.shippingCompanyId ?? null,
         notes: data.notes ?? null,
         totalAmount,
@@ -170,6 +173,7 @@ export const ShipmentRepository = {
         ...(data.status !== undefined && { status: data.status }),
         ...(data.scheduledDate !== undefined && { scheduledDate: data.scheduledDate }),
         ...(data.actualDate !== undefined && { actualDate: data.actualDate }),
+        ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
         ...(data.notes !== undefined && { notes: data.notes }),
       },

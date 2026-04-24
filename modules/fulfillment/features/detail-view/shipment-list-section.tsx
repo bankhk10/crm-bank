@@ -143,6 +143,7 @@ function ShipmentCard({
               </CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {shipment.shippingCompany?.name || "ไม่ระบุบริษัทขนส่ง"}
+                {shipment.salesOrderNumber && ` · เลขที่คำสั่งขาย: ${shipment.salesOrderNumber}`}
               </p>
             </div>
           </div>

@@ -428,7 +428,7 @@ export default function FulfillmentDetailPage({
                             <Truck className="h-5 w-5 text-purple-600" />
                             <h2 className="text-base font-semibold text-purple-800">ประวัติการจัดส่ง (Split Shipment)</h2>
                         </div>
-                        {/* <CreateShipmentDialog
+                        <CreateShipmentDialog
                             saleId={id}
                             remainingByItem={remainingByItem}
                             shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
@@ -442,7 +442,7 @@ export default function FulfillmentDetailPage({
                                 }
                             }}
                             disabled={["COMPLETED", "CANCELLED", "DELIVERY_COMPLETED"].includes(sale.status)}
-                        /> */}
+                        />
                     </div>
                     <div className="p-6">
                         <ShipmentListSection
@@ -467,7 +467,7 @@ export default function FulfillmentDetailPage({
             {!saleData.sale.hasPartialDelivery &&
                 ["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY"].includes(sale.status) && (
                     <div className="flex justify-end">
-                        {/* <CreateShipmentDialog
+                        <CreateShipmentDialog
                             saleId={id}
                             remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
                                 saleItemId: item.id,
@@ -488,7 +488,7 @@ export default function FulfillmentDetailPage({
                                     setStatus(data.sale.status);
                                 }
                             }}
-                        /> */}
+                        />
                     </div>
                 )}
 

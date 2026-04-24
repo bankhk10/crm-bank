@@ -55,6 +55,9 @@ export async function updateShipmentUseCase(
     ...(validatedData.shippingCompanyId !== undefined && {
       shippingCompanyId: validatedData.shippingCompanyId,
     }),
+    ...(validatedData.salesOrderNumber !== undefined && {
+      salesOrderNumber: validatedData.salesOrderNumber,
+    }),
     ...(validatedData.notes !== undefined && { notes: validatedData.notes }),
   };
 

@@ -33,6 +33,7 @@ import { createShipmentAction } from "../../server/actions";
 
 const formSchema = z.object({
   scheduledDate: z.string().optional(),
+  salesOrderNumber: z.string().optional(),
   shippingCompanyId: z.string().optional(),
   notes: z.string().optional(),
   quantities: z.record(z.string(), z.coerce.number().int().min(0)),
@@ -73,6 +74,7 @@ export function CreateShipmentDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       scheduledDate: "",
+      salesOrderNumber: "",
       shippingCompanyId: "",
       notes: "",
       quantities: defaultQuantities,
@@ -96,6 +98,7 @@ export function CreateShipmentDialog({
     const payload = {
       items,
       scheduledDate: data.scheduledDate || null,
+      salesOrderNumber: data.salesOrderNumber || null,
       shippingCompanyId: data.shippingCompanyId || null,
       notes: data.notes || null,
     };
@@ -119,6 +122,7 @@ export function CreateShipmentDialog({
       if (!val) {
         reset({
           scheduledDate: "",
+          salesOrderNumber: "",
           shippingCompanyId: "",
           notes: "",
           quantities: defaultQuantities,
@@ -164,9 +168,9 @@ export function CreateShipmentDialog({
                   className="flex items-center justify-between gap-3 p-3"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{item.productCode}</p>
+                    <p className="truncate text-sm font-medium">{item.productName}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {item.productName}
+                      {item.productCode}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       เหลือได้อีก:{" "}
@@ -211,6 +215,19 @@ export function CreateShipmentDialog({
               type="date"
               className="h-9"
               {...register("scheduledDate")}
+            />
+          </div>
+
+          {/* Sales Order Number */}
+          <div className="space-y-1.5">
+            <Label htmlFor="salesOrderNumber" className="text-sm">
+              เลขที่คำสั่งขาย
+            </Label>
+            <Input
+              id="salesOrderNumber"
+              placeholder="เช่น SO-2024-001"
+              className="h-9"
+              {...register("salesOrderNumber")}
             />
           </div>
 
