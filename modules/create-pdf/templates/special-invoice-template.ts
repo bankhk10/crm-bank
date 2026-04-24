@@ -51,8 +51,8 @@ export interface SpecialInvoiceData {
   }[];
   title: string;
   notes?: string;
-  signatureDate?: string; 
-  signatureImage?: string; 
+  signatureDate?: string;
+  signatureImage?: string;
   preparedBySignatureDate?: string;
   preparedBySignatureImage?: string;
   checkedBySignatureDate?: string;
@@ -502,13 +502,13 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
         </div>
       </div>
       <div class="signature-card">
-        <div class="signature-title">ผู้ตรวจสอบ</div>
+        <div class="signature-title">ผู้จัดการฝ่ายขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <div class="dot-line" style="position: relative;"></div>
         </div>
         <div class="sign-row" style="position: relative; margin-top: 25px;">
           <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
-            ( ............................................ )
+            ( คุณนวีณ  มงคลธรรมากุล )
           </span>
         </div>
         <div class="sign-row" style="position: relative; margin-top: -5px;">
