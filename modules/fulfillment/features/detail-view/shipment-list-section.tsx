@@ -283,7 +283,7 @@ function ShipmentCard({
               onClick={() => handleStatusChange("IN_TRANSIT")}
             >
               <Truck className="h-3 w-3" />
-              กำลังส่ง
+              ยืนยันจัดส่ง
             </Button>
           )}
           {shipment.status === "IN_TRANSIT" && (
