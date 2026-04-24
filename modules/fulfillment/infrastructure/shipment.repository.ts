@@ -2,6 +2,8 @@ import { db, Prisma } from "@/lib/db";
 
 export interface CreateShipmentData {
   scheduledDate?: Date | null;
+  paymentDate?: Date | null;
+  dueDate?: Date | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
@@ -13,6 +15,8 @@ export interface UpdateShipmentData {
   status?: "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
   scheduledDate?: Date | null;
   actualDate?: Date | null;
+  paymentDate?: Date | null;
+  dueDate?: Date | null;
   salesOrderNumber?: string | null;
   shippingCompanyId?: string | null;
   notes?: string | null;
@@ -64,6 +68,8 @@ export const ShipmentRepository = {
         shipmentNumber,
         status: "PENDING",
         scheduledDate: data.scheduledDate ?? null,
+        paymentDate: data.paymentDate ?? null,
+        dueDate: data.dueDate ?? null,
         salesOrderNumber: data.salesOrderNumber ?? null,
         shippingCompanyId: data.shippingCompanyId ?? null,
         notes: data.notes ?? null,
@@ -173,6 +179,8 @@ export const ShipmentRepository = {
         ...(data.status !== undefined && { status: data.status }),
         ...(data.scheduledDate !== undefined && { scheduledDate: data.scheduledDate }),
         ...(data.actualDate !== undefined && { actualDate: data.actualDate }),
+        ...(data.paymentDate !== undefined && { paymentDate: data.paymentDate }),
+        ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
         ...(data.salesOrderNumber !== undefined && { salesOrderNumber: data.salesOrderNumber }),
         ...(data.shippingCompanyId !== undefined && { shippingCompanyId: data.shippingCompanyId }),
         ...(data.notes !== undefined && { notes: data.notes }),

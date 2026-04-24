@@ -160,10 +160,10 @@ function ShipmentCard({
 
       <CardContent className="space-y-3 pt-0">
         {/* Date info */}
-        <div className="grid grid-cols-2 gap-2 rounded-md bg-muted/30 p-3 text-xs">
+        <div className="grid grid-cols-2 gap-y-2 gap-x-4 rounded-md bg-muted/30 p-3 text-xs">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>กำหนดส่ง:</span>
+            <span>วันที่จัดส่งของ:</span>
             <span className="font-medium text-foreground">
               {safeFormatDate(shipment.scheduledDate)}
             </span>
@@ -173,6 +173,20 @@ function ShipmentCard({
             <span>ส่งจริง:</span>
             <span className="font-medium text-foreground">
               {safeFormatDate(shipment.actualDate)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span>วันที่ชำระเงิน:</span>
+            <span className="font-medium text-foreground">
+              {safeFormatDate(shipment.paymentDate)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span>ครบกำหนดชำระ:</span>
+            <span className="font-medium text-foreground">
+              {safeFormatDate(shipment.dueDate)}
             </span>
           </div>
         </div>

@@ -1063,6 +1063,8 @@ model Shipment {
   status            ShipmentStatus @default(PENDING)
   scheduledDate     DateTime?      // วันกำหนดส่ง
   actualDate        DateTime?      // วันส่งจริง
+  paymentDate       DateTime?      // วันที่ชำระเงิน
+  dueDate           DateTime?      // วันครบกำหนดชำระ
   salesOrderNumber  String?        // เลขที่คำสั่งขาย
   shippingCompanyId String?        // FK to ShippingCompany
   notes             String?        // หมายเหตุ

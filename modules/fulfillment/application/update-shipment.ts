@@ -55,6 +55,12 @@ export async function updateShipmentUseCase(
     ...(validatedData.shippingCompanyId !== undefined && {
       shippingCompanyId: validatedData.shippingCompanyId,
     }),
+    ...(validatedData.paymentDate !== undefined && {
+      paymentDate: validatedData.paymentDate ? new Date(validatedData.paymentDate) : null,
+    }),
+    ...(validatedData.dueDate !== undefined && {
+      dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+    }),
     ...(validatedData.salesOrderNumber !== undefined && {
       salesOrderNumber: validatedData.salesOrderNumber,
     }),

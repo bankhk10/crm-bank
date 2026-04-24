@@ -70,6 +70,12 @@ export async function createShipmentUseCase(
         scheduledDate: validatedData.scheduledDate
           ? new Date(validatedData.scheduledDate)
           : null,
+        paymentDate: validatedData.paymentDate
+          ? new Date(validatedData.paymentDate)
+          : null,
+        dueDate: validatedData.dueDate
+          ? new Date(validatedData.dueDate)
+          : null,
         salesOrderNumber: validatedData.salesOrderNumber ?? null,
         shippingCompanyId: validatedData.shippingCompanyId ?? null,
         notes: validatedData.notes ?? null,

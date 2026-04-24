@@ -33,6 +33,8 @@ import { createShipmentAction } from "../../server/actions";
 
 const formSchema = z.object({
   scheduledDate: z.string().optional(),
+  paymentDate: z.string().optional(),
+  dueDate: z.string().optional(),
   salesOrderNumber: z.string().optional(),
   shippingCompanyId: z.string().optional(),
   notes: z.string().optional(),
@@ -52,6 +54,7 @@ interface CreateShipmentDialogProps {
   shippingCompanies: ShippingCompany[];
   onCreated: () => void;
   disabled?: boolean;
+  creditDays?: number;
 }
 
 export function CreateShipmentDialog({
@@ -60,6 +63,7 @@ export function CreateShipmentDialog({
   shippingCompanies,
   onCreated,
   disabled = false,
+  creditDays = 0,
 }: CreateShipmentDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -70,16 +74,52 @@ export function CreateShipmentDialog({
     available.map((item) => [item.saleItemId, item.remainingQuantity]),
   );
 
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, control, reset, setValue, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       scheduledDate: "",
+      paymentDate: "",
+      dueDate: "",
       salesOrderNumber: "",
       shippingCompanyId: "",
       notes: "",
       quantities: defaultQuantities,
     },
   });
+
+  const scheduledDate = watch("scheduledDate");
+
+  // Auto-calculate dueDate when scheduledDate changes
+  useState(() => {
+    if (scheduledDate && creditDays > 0) {
+      const date = new Date(scheduledDate);
+      date.setDate(date.getDate() + creditDays);
+      setValue("dueDate", date.toISOString().split("T")[0]);
+    }
+  });
+
+  // Effect to update dueDate when scheduledDate changes
+  const watchedScheduledDate = watch("scheduledDate");
+  const watchedPaymentDate = watch("paymentDate");
+
+  useState(() => {
+    if (watchedScheduledDate && creditDays >= 0) {
+      const date = new Date(watchedScheduledDate);
+      date.setDate(date.getDate() + creditDays);
+      setValue("dueDate", date.toISOString().split("T")[0]);
+    }
+  });
+
+  // Better way to handle effect in react-hook-form
+  const onScheduledDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue("scheduledDate", val);
+    if (val && creditDays >= 0) {
+      const date = new Date(val);
+      date.setDate(date.getDate() + creditDays);
+      setValue("dueDate", date.toISOString().split("T")[0]);
+    }
+  };
 
   const onSubmit = (data: FormValues) => {
     // Build items array — only include items with quantity > 0
@@ -98,6 +138,8 @@ export function CreateShipmentDialog({
     const payload = {
       items,
       scheduledDate: data.scheduledDate || null,
+      paymentDate: data.paymentDate || null,
+      dueDate: data.dueDate || null,
       salesOrderNumber: data.salesOrderNumber || null,
       shippingCompanyId: data.shippingCompanyId || null,
       notes: data.notes || null,
@@ -122,6 +164,8 @@ export function CreateShipmentDialog({
       if (!val) {
         reset({
           scheduledDate: "",
+          paymentDate: "",
+          dueDate: "",
           salesOrderNumber: "",
           shippingCompanyId: "",
           notes: "",
@@ -205,30 +249,64 @@ export function CreateShipmentDialog({
             </div>
           </div>
 
-          {/* Scheduled date */}
-          <div className="space-y-1.5">
-            <Label htmlFor="scheduledDate" className="text-sm">
-              วันกำหนดส่ง
-            </Label>
-            <Input
-              id="scheduledDate"
-              type="date"
-              className="h-9"
-              {...register("scheduledDate")}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {/* Shipping date (Scheduled date) */}
+            <div className="space-y-1.5">
+              <Label htmlFor="scheduledDate" className="text-sm">
+                วันที่จัดส่งของ
+              </Label>
+              <Input
+                id="scheduledDate"
+                type="date"
+                className="h-9"
+                {...register("scheduledDate")}
+                onChange={onScheduledDateChange}
+              />
+            </div>
+
+            {/* Payment Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="paymentDate" className="text-sm">
+                วันที่ชำระเงิน
+              </Label>
+              <Input
+                id="paymentDate"
+                type="date"
+                className="h-9"
+                {...register("paymentDate")}
+              />
+            </div>
           </div>
 
-          {/* Sales Order Number */}
-          <div className="space-y-1.5">
-            <Label htmlFor="salesOrderNumber" className="text-sm">
-              เลขที่คำสั่งขาย
-            </Label>
-            <Input
-              id="salesOrderNumber"
-              placeholder="เช่น SO-2024-001"
-              className="h-9"
-              {...register("salesOrderNumber")}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {/* Due Date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="dueDate" className="text-sm">
+                วันครบกำหนดชำระ
+              </Label>
+              <Input
+                id="dueDate"
+                type="date"
+                className="h-9"
+                {...register("dueDate")}
+              />
+              <p className="text-[10px] text-muted-foreground">
+                คำนวณจาก วันจัดส่ง + {creditDays} วัน
+              </p>
+            </div>
+
+            {/* Sales Order Number */}
+            <div className="space-y-1.5">
+              <Label htmlFor="salesOrderNumber" className="text-sm">
+                เลขที่คำสั่งขาย
+              </Label>
+              <Input
+                id="salesOrderNumber"
+                placeholder="เช่น SO-2024-001"
+                className="h-9"
+                {...register("salesOrderNumber")}
+              />
+            </div>
           </div>
 
           {/* Shipping company */}

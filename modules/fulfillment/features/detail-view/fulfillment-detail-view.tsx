@@ -442,6 +442,7 @@ export default function FulfillmentDetailPage({
                                 }
                             }}
                             disabled={["COMPLETED", "CANCELLED", "DELIVERY_COMPLETED"].includes(sale.status)}
+                            creditDays={sale.creditDays || 0}
                         />
                     </div>
                     <div className="p-6">
@@ -488,6 +489,7 @@ export default function FulfillmentDetailPage({
                                     setStatus(data.sale.status);
                                 }
                             }}
+                            creditDays={sale.creditDays || 0}
                         />
                     </div>
                 )}
