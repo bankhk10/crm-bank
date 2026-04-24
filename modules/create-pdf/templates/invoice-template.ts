@@ -466,7 +466,7 @@ export function renderInvoiceTemplate(data: InvoiceData): string {
         </div>
       </div>
       <div class="signature-card">
-        <div class="signature-title">ผู้อนุมัติ</div>
+        <div class="signature-title">ผจก.แผนกบริหารงานขาย</div>
         <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
           <div class="dot-line" style="position: relative;">
             ${approvedSign ? `<img src="${approvedSign}" style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); max-height: 60px; max-width: 150px;" />` : ""}
