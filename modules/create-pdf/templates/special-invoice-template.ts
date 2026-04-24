@@ -267,6 +267,13 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
       white-space: nowrap;
       pointer-events: none;
     }
+    .signature-section {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 15px !important;
+    }
+    .signature-card {
+      padding: 0 10px !important;
+    }
   </style>
 </head>
 <body>
@@ -492,6 +499,21 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
           <div class="dot-line" style="position: relative;">
             ${data.approvedBySignatureDate && data.approvedBySignatureDate !== "-" ? `<span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">${data.approvedBySignatureDate}</span>` : ""}
           </div>
+        </div>
+      </div>
+      <div class="signature-card">
+        <div class="signature-title">ผู้ตรวจสอบ</div>
+        <div class="sign-row" style="position: relative; height: 40px; margin-top: 10px;">
+          <div class="dot-line" style="position: relative;"></div>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: 25px;">
+          <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); white-space: nowrap;">
+            ( ............................................ )
+          </span>
+        </div>
+        <div class="sign-row" style="position: relative; margin-top: -5px;">
+          <span>วันที่</span>
+          <div class="dot-line" style="position: relative;"></div>
         </div>
       </div>
     </div>
