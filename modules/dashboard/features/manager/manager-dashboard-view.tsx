@@ -405,26 +405,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
   const ytdPercent = ytd.target > 0 ? Math.min(Math.round((ytd.total / ytd.target) * 100), 100) : 0;
 
   useEffect(() => {
-    let isActive = true;
-    const refreshDashboard = async () => {
-      try {
-        const response = await fetch("/api/dashboard/admin", { cache: "no-store" });
-        if (!response.ok) return;
-        const nextData: DashboardData = await response.json();
-        if (!isActive) return;
-        setDashboardData(nextData);
-        setLastUpdatedAt(new Date());
-      } catch (error) {
-        console.error("Failed to refresh dashboard data", error);
-      }
-    };
-
     setLastUpdatedAt(new Date());
-    const intervalId = window.setInterval(refreshDashboard, 30000);
-    return () => {
-      isActive = false;
-      window.clearInterval(intervalId);
-    };
   }, []);
 
   return (
@@ -451,7 +432,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
           </div>
           <div className="mt-4 flex items-center gap-3 justify-center w-full max-w-sm">
             <div className="h-[3px] flex-1 bg-gradient-to-r from-transparent via-blue-300 to-blue-500 rounded-full" />
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 animate-pulse" />
+            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
             <div className="h-[3px] flex-1 bg-gradient-to-l from-transparent via-blue-300 to-blue-500 rounded-full" />
           </div>
         </div>
@@ -459,7 +440,7 @@ export default function AdminDashboardView({ initialData }: AdminDashboardViewPr
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 justify-end px-4 sm:px-4">
           <div className="inline-flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-slate-600 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm border border-slate-200/60">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse" />
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-400 rounded-full" />
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden xs:inline">อัปเดตล่าสุด </span>
             <span className="font-medium">
