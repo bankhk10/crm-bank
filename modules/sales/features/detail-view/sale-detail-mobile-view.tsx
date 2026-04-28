@@ -344,7 +344,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
 
                     {/* Mobile Card View */}
                     <div className="block md:hidden">
-                        <div className="p-4 space-y-3">
+                        <div className="p-4 space-y-4">
                             {sale.items.map((item: any, i: number) => {
                                 const currentUnitPrice = Number(item.unitPrice ?? 0);
                                 const quantity = Number(item.quantity ?? 0);
@@ -362,105 +362,78 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 return (
                                     <div
                                         key={item.id ?? i}
-                                        className={`rounded-2xl border-2 p-4 transition-all shadow-sm ${priceChanged
-                                            ? "bg-orange-50/70 border-orange-300"
-                                            : "bg-white border-gray-100"
+                                        className={`rounded-2xl border transition-all shadow-sm overflow-hidden ${priceChanged
+                                            ? "bg-orange-50/30 border-orange-200"
+                                            : "bg-white border-gray-100 shadow-gray-200/40"
                                             }`}
                                     >
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div className="flex-1">
-                                                <p className="font-bold text-gray-900 text-base">
-                                                    {item.product?.name}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {item.product?.productCode}
-                                                </p>
-                                                {priceChanged && (
-                                                    <Badge className="mt-2 bg-orange-100 text-orange-700 border-orange-200 text-xs">
-                                                        รายการพิเศษ
-                                                    </Badge>
-                                                )}
+                                        <div className={`px-4 py-3 border-b ${priceChanged ? "border-orange-100 bg-orange-100/20" : "border-gray-50 bg-gray-50/30"}`}>
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-gray-900 text-base leading-tight">
+                                                        {item.product?.name}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">
+                                                            {item.product?.productCode}
+                                                        </span>
+                                                        {priceChanged && (
+                                                            <Badge className="bg-orange-500 text-white border-none text-[9px] h-4 px-1.5">
+                                                                รายการพิเศษ
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                            {/* Row 1: Unit, Package Size & Quantity */}
-                                            <div className="col-span-2 grid grid-cols-3 gap-3">
-                                                <div className="bg-gray-50 rounded-lg p-2">
-                                                    <span className="text-gray-500 text-xs block mb-1">
-                                                        จำนวน
-                                                    </span>
-                                                    <p className="font-bold text-gray-900">
+                                        <div className="p-4 space-y-4">
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div className="flex flex-col">
+                                                    <span className="text-gray-400 text-[10px] uppercase font-bold tracking-tight mb-1">จำนวน</span>
+                                                    <p className="font-black text-gray-900 text-lg">
                                                         {item.quantity}
+                                                        <span className="ml-1 text-xs font-medium text-gray-400">{item.product?.unit || "-"}</span>
                                                     </p>
                                                 </div>
-                                                <div className="bg-gray-50 rounded-lg p-2">
-                                                    <span className="text-gray-500 text-xs block mb-1">
-                                                        หน่วยนับ
-                                                    </span>
-                                                    <p className="font-bold text-gray-900">
-                                                        {item.product?.unit || "-"}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-gray-50 rounded-lg p-2">
-                                                    <span className="text-gray-500 text-xs block mb-1">
-                                                        บรรจุ
-                                                    </span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-gray-400 text-[10px] uppercase font-bold tracking-tight mb-1">บรรจุ</span>
                                                     <p className="font-bold text-gray-900">
                                                         {item.product?.packageSizePerBox || "-"}
                                                     </p>
                                                 </div>
-                                            </div>
-
-                                            {/* Row 2: Unit Price & Carton Price */}
-                                            <div className="bg-gray-50 rounded-lg p-2">
-                                                <span className="text-gray-500 text-xs block mb-1">
-                                                    ราคา/หน่วย
-                                                </span>
-                                                <p
-                                                    className={`font-bold ${priceChanged ? "text-orange-700" : "text-gray-900"
-                                                        }`}
-                                                >
-                                                    {currentUnitPrice.toLocaleString("th-TH", {
-                                                        minimumFractionDigits: 2,
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-2">
-                                                <span className="text-gray-500 text-xs block mb-1">
-                                                    ราคา/ลัง
-                                                </span>
-                                                <p className="font-bold text-gray-900">
-                                                    {cartonPrice.toLocaleString("th-TH", {
-                                                        minimumFractionDigits: 2,
-                                                    })}
-                                                </p>
-                                            </div>
-
-                                            {/* Row 3: Total */}
-                                            <div className="col-span-2 bg-blue-50/50 rounded-lg p-3 text-right">
-                                                <span className="text-gray-500 text-xs block mb-1">
-                                                    ราคารวม
-                                                </span>
-                                                <p
-                                                    className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"
-                                                        }`}
-                                                >
-                                                    {currentTotal.toLocaleString("th-TH", {
-                                                        minimumFractionDigits: 2,
-                                                    })}
-                                                </p>
-                                            </div>
-                                            {Number(item.promotionBudget ?? 0) > 0 && (
-                                                <div className="col-span-2 bg-emerald-50/50 rounded-lg p-3 text-right border border-emerald-100 mt-1">
-                                                    <span className="text-emerald-500 text-xs block mb-1">
-                                                        งบส่งเสริม (฿{Number(item.promotionBudget).toLocaleString()}/ลัง)
-                                                    </span>
-                                                    <p className="font-bold text-emerald-600">
-                                                        ฿{(Number(item.quantity) * Number(item.promotionBudget)).toLocaleString("th-TH", {
-                                                            minimumFractionDigits: 2,
-                                                        })}
+                                                <div className="flex flex-col text-right">
+                                                    <span className="text-gray-400 text-[10px] uppercase font-bold tracking-tight mb-1">ราคา/หน่วย</span>
+                                                    <p className={`font-bold ${priceChanged ? "text-orange-600" : "text-gray-900"}`}>
+                                                        ฿{currentUnitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                                                     </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-3 border-t border-dashed border-gray-100">
+                                                <div className="flex flex-col">
+                                                    <span className="text-gray-400 text-[10px] uppercase font-bold tracking-tight">ราคาต่อลัง</span>
+                                                    <p className="font-semibold text-gray-600">
+                                                        ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col text-right">
+                                                    <span className="text-blue-500 text-[10px] uppercase font-bold tracking-tight">ราคารวมสุทธิ</span>
+                                                    <p className={`font-black text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                                                        ฿{currentTotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {Number(item.promotionBudget ?? 0) > 0 && (
+                                                <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100 flex justify-between items-center">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-emerald-600 text-[9px] uppercase font-bold">งบส่งเสริม (฿{Number(item.promotionBudget).toLocaleString()}/ลัง)</span>
+                                                        <p className="font-bold text-emerald-700">
+                                                            ฿{(Number(item.quantity) * Number(item.promotionBudget)).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                    </div>
+                                                    <Gift className="h-4 w-4 text-emerald-400" />
                                                 </div>
                                             )}
                                         </div>
@@ -468,6 +441,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 );
                             })}
                         </div>
+
 
                         {/* Mobile Summary */}
                         <div className="bg-gradient-to-br from-gray-50 to-white border-t border-gray-100 p-6 space-y-4 rounded-b-xl">
@@ -542,23 +516,23 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                         </div>
                     </div>
 
-                    <div className="hidden md:block">
-                        <div className="p-6">
+                    {/* Desktop/Tablet View with Horizontal Scroll */}
+                    <div className="hidden md:block overflow-x-auto">
+                        <div className="p-6 min-w-[1100px]">
                             {/* Modern Table Header */}
-                            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50/80 rounded-xl mb-4 text-[11px] uppercase tracking-widest font-bold text-gray-500 border border-gray-100 shadow-sm">
-                                <div className="col-span-4 flex items-center gap-2">
-                                    <Package className="h-3 w-3" /> สินค้า
+                            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 rounded-2xl mb-4 text-[10px] uppercase tracking-[0.15em] font-black text-gray-400 border border-gray-100 shadow-sm">
+                                <div className="col-span-3 flex items-center gap-2">
+                                    <Package className="h-3.5 w-3.5" /> สินค้า
                                 </div>
                                 <div className="col-span-1 text-center">จำนวน</div>
                                 <div className="col-span-1 text-center">หน่วย</div>
                                 <div className="col-span-1 text-center">บรรจุ</div>
-                                <div className="col-span-2 text-right">ราคา/หน่วย</div>
+                                <div className="col-span-1 text-right">ราคา/หน่วย</div>
                                 <div className="col-span-1 text-right">ราคา/ลัง</div>
-                                <div className="col-span-1 text-center flex items-center justify-center gap-1 text-emerald-600">
-                                    <Gift className="h-3 w-3" /> งบ/ลัง
-                                </div>
-                                <div className="col-span-1 text-right">ราคารวม</div>
+                                <div className="col-span-1 text-right">งบ/ลัง</div>
+                                <div className="col-span-2 text-right">ราคารวม</div>
                             </div>
+
                             {sale.items.map((item: any, i: number) => {
                                 const originalUnitPrice = Number(
                                     item.originalPrice ?? item.unitPrice ?? 0
@@ -580,72 +554,67 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 return (
                                     <div
                                         key={item.id ?? i}
-                                        className={`group relative rounded-2xl border transition-all duration-300 mb-3 hover:translate-x-1 ${priceChanged
-                                            ? "bg-orange-50/40 border-orange-200 hover:border-orange-300 hover:shadow-orange-100 shadow-sm"
-                                            : "bg-white border-gray-100 hover:border-blue-500/10 hover:shadow-xl hover:shadow-gray-200/50"
+                                        className={`group relative rounded-2xl border transition-all duration-300 mb-3 hover:translate-y-[-2px] ${priceChanged
+                                            ? "bg-orange-50/20 border-orange-100 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-200/20"
+                                            : "bg-white border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-gray-200/40"
                                             }`}
                                     >
-                                        <div className="grid grid-cols-12 gap-4 items-center p-4 md:p-5">
+                                        <div className="grid grid-cols-12 gap-4 items-center p-5">
                                             {/* Product Info */}
-                                            <div className="col-span-4">
+                                            <div className="col-span-3">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-gray-900 text-base group-hover:text-blue-600 transition-colors leading-tight">
+                                                    <span className="font-bold text-gray-900 text-[15px] group-hover:text-blue-600 transition-colors leading-tight">
                                                         {item.product?.name}
                                                     </span>
-                                                    <span className="text-[10px] font-mono text-gray-400 mt-1 uppercase tracking-tighter">
-                                                        SKU: {item.product?.productCode}
+                                                    <span className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest bg-gray-50 self-start px-1.5 py-0.5 rounded border border-gray-100">
+                                                        {item.product?.productCode}
                                                     </span>
                                                 </div>
                                             </div>
 
                                             {/* Quantity */}
                                             <div className="col-span-1 text-center">
-                                                <span className="text-gray-900 font-bold text-lg bg-gray-50 w-10 h-10 inline-flex items-center justify-center rounded-xl border border-gray-100 group-hover:bg-white transition-colors">
+                                                <span className="text-gray-900 font-black text-lg bg-gray-50/50 w-11 h-11 inline-flex items-center justify-center rounded-xl border border-gray-100 group-hover:bg-white transition-colors">
                                                     {item.quantity}
                                                 </span>
                                             </div>
 
                                             {/* Unit */}
                                             <div className="col-span-1 text-center">
-                                                <span className="text-gray-500 font-medium text-sm">
+                                                <span className="text-gray-500 font-bold text-xs uppercase tracking-wide">
                                                     {item.product?.unit || "-"}
                                                 </span>
                                             </div>
 
                                             {/* Package Size */}
                                             <div className="col-span-1 text-center">
-                                                <span className="px-2 py-1 bg-gray-100/50 rounded-md text-xs font-bold text-gray-600 border border-gray-100">
-                                                    {item.product?.packageSizePerBox || "-"}
-                                                </span>
-                                            </div>
-
-                                            {/* Unit Price */}
-                                            <div className="col-span-2 text-right">
-                                                <div className="flex flex-col items-end">
-                                                    <span className={`font-bold text-base ${priceChanged ? "text-orange-700" : "text-gray-900"}`}>
-                                                        ฿{currentUnitPrice.toLocaleString("th-TH", {
-                                                            minimumFractionDigits: 2,
-                                                        })}
+                                                <div className="inline-flex flex-col items-center">
+                                                    <span className="px-2 py-0.5 bg-gray-100/50 rounded-lg text-xs font-black text-gray-700 border border-gray-100">
+                                                        {item.product?.packageSizePerBox || "-"}
                                                     </span>
                                                 </div>
                                             </div>
 
+                                            {/* Unit Price */}
+                                            <div className="col-span-1 text-right">
+                                                <span className={`font-bold text-sm ${priceChanged ? "text-orange-600" : "text-gray-900"}`}>
+                                                    ฿{currentUnitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+
                                             {/* Carton Price */}
                                             <div className="col-span-1 text-right">
-                                                <span className="text-gray-500 font-semibold text-sm">
-                                                    ฿{cartonPrice.toLocaleString("th-TH", {
-                                                        minimumFractionDigits: 2,
-                                                    })}
-                                                </span>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-gray-700 font-black text-sm">
+                                                        ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {/* Promotion Budget Per Unit */}
                                             <div className="col-span-1 text-center">
-                                                <div className={`inline-flex flex-col items-center justify-center min-w-[60px] p-2 rounded-xl border transition-all ${Number(item.promotionBudget ?? 0) > 0
-                                                    ? "bg-emerald-50 border-emerald-100 text-emerald-700 shadow-sm"
-                                                    : "bg-gray-50 border-gray-100 text-gray-300"
-                                                    }`}>
-                                                    <span className="font-bold text-sm leading-none">
+                                                <div className="flex flex-col items-end">
+                                                    <span className="font-black text-sm leading-none">
                                                         {Number(item.promotionBudget ?? 0) > 0
                                                             ? `฿${Number(item.promotionBudget).toLocaleString()}`
                                                             : "-"}
@@ -654,12 +623,10 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                             </div>
 
                                             {/* Total */}
-                                            <div className="col-span-1 text-right">
+                                            <div className="col-span-2 text-right">
                                                 <div className="flex flex-col items-end">
-                                                    <span className={`font-bold text-lg ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
-                                                        ฿{currentTotal.toLocaleString("th-TH", {
-                                                            minimumFractionDigits: 2,
-                                                        })}
+                                                    <span className={`font-black text-xl ${priceChanged ? "text-orange-700" : "text-blue-600"}`}>
+                                                        ฿{currentTotal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                             </div>
