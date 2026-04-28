@@ -715,6 +715,8 @@ export async function processSalesNoteImport(
             totalAmount: new Prisma.Decimal(totalAmount),
             notes: order.notes || null,
             createdById: userId,
+            createdAt: order.saleDate,
+            updatedAt: order.saleDate,
             items: {
               create: order.items.map((item) => ({
                 productId: item.productId,
