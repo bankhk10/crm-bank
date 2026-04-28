@@ -90,7 +90,7 @@ const AppSectionHeader = ({
 export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
     const router = useRouter();
     const { hasPermission } = usePermission("menu.sales");
-    const canViewPdf = hasPermission("sale.view");
+    const canViewPdf = hasPermission("menu.fulfillment");
 
     const [data, setData] = useState<{ sale: SaleWithRelations } | null>(null);
     const [loading, setLoading] = useState(true);
