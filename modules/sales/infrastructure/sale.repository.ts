@@ -189,9 +189,10 @@ export async function findSaleById(id: string) {
 /**
  * Find the last sale number for generating sequential numbers.
  */
-export async function findLastSaleNumber() {
+export async function findLastSaleNumber(prefix?: string) {
   const last = await db.sale.findFirst({
-    orderBy: { createdAt: "desc" },
+    where: prefix ? { saleNumber: { startsWith: prefix } } : undefined,
+    orderBy: { saleNumber: "desc" },
     select: { saleNumber: true },
   });
   return last?.saleNumber ?? null;

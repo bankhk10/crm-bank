@@ -21,10 +21,9 @@ import { db } from "@/lib/db";
 // Helpers
 // ─────────────────────────────────────────────
 
-function generateSaleNumber(lastNumber?: string | null): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
+function generateSaleNumber(date: Date, lastNumber?: string | null): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const prefix = `${year}${month}`;
 
   if (!lastNumber || !lastNumber.startsWith(prefix)) {
@@ -150,8 +149,10 @@ export async function createSaleUseCase(
   }
 
   // 7. Generate sale number
-  const lastNumber = await findLastSaleNumber();
-  const saleNumber = generateSaleNumber(lastNumber);
+  const saleDateForNumber = new Date(body.saleDate);
+  const saleNumberPrefix = `${saleDateForNumber.getFullYear()}${String(saleDateForNumber.getMonth() + 1).padStart(2, "0")}`;
+  const lastNumber = await findLastSaleNumber(saleNumberPrefix);
+  const saleNumber = generateSaleNumber(saleDateForNumber, lastNumber);
 
   // 8. Build exploded addresses
   const explodedAddresses = await buildExplodedSaleAddresses(body, customer);

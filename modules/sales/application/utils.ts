@@ -4,10 +4,9 @@ import { ORDER_CONFIG } from "@/modules/sales/constants";
  * Generate sale number sequentially
  * Format: SO[YYYY][MM][XXXX]
  */
-export function generateSaleNumber(lastNumber?: string | null): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
+export function generateSaleNumber(date: Date, lastNumber?: string | null): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const prefix = `SO${year}${month}`;
 
   if (!lastNumber || !lastNumber.startsWith(prefix)) {

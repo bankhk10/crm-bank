@@ -665,35 +665,35 @@ export async function processSalesNoteImport(
       };
     }
 
-    // Generate sale numbers: find the highest saleNumber for the current month prefix
-    const today = new Date();
-    const saleNumberPrefix = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}`;
+    // Generate sale numbers logic based on saleDate
+    const prefixToLastNumber = new Map<string, string>();
 
-    const lastSale = await db.sale.findFirst({
-      where: { saleNumber: { startsWith: saleNumberPrefix } },
-      orderBy: { saleNumber: "desc" },
-      select: { saleNumber: true },
-    });
+    const getNextSaleNumber = async (date: Date) => {
+      const prefix = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}`;
 
-    let lastSaleNumber = lastSale?.saleNumber ?? null;
-
-    function generateNextSaleNumber(): string {
-      if (!lastSaleNumber || !lastSaleNumber.startsWith(saleNumberPrefix)) {
-        lastSaleNumber = `${saleNumberPrefix}0001`;
-        return lastSaleNumber;
+      let lastNum = prefixToLastNumber.get(prefix);
+      if (lastNum === undefined) {
+        const lastSale = await db.sale.findFirst({
+          where: { saleNumber: { startsWith: prefix } },
+          orderBy: { saleNumber: "desc" },
+          select: { saleNumber: true },
+        });
+        lastNum = lastSale?.saleNumber || `${prefix}0000`;
+        prefixToLastNumber.set(prefix, lastNum);
       }
 
-      const lastSeq = parseInt(lastSaleNumber.slice(-4));
+      const lastSeq = parseInt(lastNum.slice(-4));
       const newSeq = String(lastSeq + 1).padStart(4, "0");
-      lastSaleNumber = `${saleNumberPrefix}${newSeq}`;
-      return lastSaleNumber;
-    }
+      const nextNum = `${prefix}${newSeq}`;
+      prefixToLastNumber.set(prefix, nextNum);
+      return nextNum;
+    };
 
     // Create all orders in a transaction
     const transactions = [];
 
     for (const order of ordersMap.values()) {
-      const saleNumber = generateNextSaleNumber();
+      const saleNumber = await getNextSaleNumber(order.saleDate);
 
       const subtotalAmount = order.items.reduce((sum, item) => sum + item.totalPrice, 0);
       const totalAmount = subtotalAmount; // ไม่มี shipping/other costs จาก import
