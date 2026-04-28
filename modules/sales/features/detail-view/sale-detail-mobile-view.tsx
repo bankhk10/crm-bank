@@ -549,7 +549,7 @@ export function SaleDetailMobileView({ id }: SaleDetailMobileViewProps) {
                                 );
                                 const multiplier =
                                     isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                                const cartonPrice = currentUnitPrice * multiplier;
+                                const cartonPrice = item.cartonPrice;
 
                                 return (
                                     <div
