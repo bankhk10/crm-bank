@@ -102,13 +102,15 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     label: g.description,
   }));
 
-  const productGroupTargets = await repo.findProductGroupTargets(
-    currentYear,
-    currentMonth,
-  );
+  const productGroupTargetsMonth = await repo.findProductGroupTargets(currentYear, currentMonth);
+  const productGroupTargetMapMonth = new Map(productGroupTargetsMonth.map((t) => [t.productGroup, Number(t.targetAmount)]));
 
-  const productGroupTargetMap = new Map(
-    productGroupTargets.map((t) => [t.productGroup, Number(t.targetAmount)]),
+  const productGroupTargetsYear = await repo.findProductGroupTargets(currentYear);
+  const productGroupTargetMapYear = new Map(productGroupTargetsYear.map((t) => [t.productGroup, Number(t.targetAmount)]));
+
+  const daysInMonth = getDaysInMonth(now);
+  const productGroupTargetMapDay = new Map(
+    Array.from(productGroupTargetMapMonth.entries()).map(([k, v]) => [k, v / daysInMonth])
   );
 
   const tradeNameGroups = await repo.findAllTradeNameGroups();
@@ -122,6 +124,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     end: Date,
     lastYearStart: Date,
     lastYearEnd: Date,
+    targetMap: Map<string, number>,
   ) => {
     const currentItems = await repo.findSaleItemsWithDetails(start, end, ["CANCELLED"]);
     const lastYearItems = await repo.findSaleItemsWithDetails(lastYearStart, lastYearEnd, ["CANCELLED"]);
@@ -132,7 +135,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     const buildProductGroupData = () => {
       return productGroupOptions.map(groupOption => {
         const group = groupOption.value;
-        const target = productGroupTargetMap.get(group) || 0;
+        const target = targetMap.get(group) || 0;
 
         let salesNote = 0;
         let invoice = 0;
@@ -235,14 +238,16 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
       dayEnd,
       lastYearSameDayStart,
       lastYearSameDayEnd,
+      productGroupTargetMapDay
     ),
     getProductAndTradeNameGroupData(
       monthStart,
       monthEnd,
       lastYearSameMonthStart,
       lastYearSameMonthEnd,
+      productGroupTargetMapMonth
     ),
-    getProductAndTradeNameGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd),
+    getProductAndTradeNameGroupData(yearStart, yearEnd, lastYearStart, lastYearEnd, productGroupTargetMapYear),
   ]);
 
   const productGroupDay = dayData.productGroupData;
@@ -255,10 +260,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
   // === 3. Region Sales (This Month) ===
   const regions = getAllRegions();
 
-  const regionTargets = await repo.findRegionTargets(currentYear, currentMonth);
+  const regionTargetsMonth = await repo.findRegionTargets(currentYear, currentMonth);
+  const regionTargetMapMonth = new Map(regionTargetsMonth.map((t) => [t.region, Number(t.targetAmount)]));
 
-  const regionTargetMap = new Map(
-    regionTargets.map((t) => [t.region, Number(t.targetAmount)]),
+  const regionTargetsYear = await repo.findRegionTargets(currentYear);
+  const regionTargetMapYear = new Map(regionTargetsYear.map((t) => [t.region, Number(t.targetAmount)]));
+
+  const regionTargetMapDay = new Map(
+    Array.from(regionTargetMapMonth.entries()).map(([k, v]) => [k, v / daysInMonth])
   );
 
   const getRegionData = async (
@@ -266,6 +275,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     end: Date,
     lastYearStart: Date,
     lastYearEnd: Date,
+    targetMap: Map<string, number>,
   ) => {
     const regionSalesMap = new Map<
       string,
@@ -323,7 +333,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
     }
 
     return regions.map((region) => {
-      const target = regionTargetMap.get(region) || 0;
+      const target = targetMap.get(region) || 0;
       const sales = regionSalesMap.get(region) || {
         salesNote: 0,
         invoice: 0,
@@ -344,14 +354,15 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
 
 
   const [regionDay, regionMonth, regionYear] = await Promise.all([
-    getRegionData(dayStart, dayEnd, lastYearSameDayStart, lastYearSameDayEnd),
+    getRegionData(dayStart, dayEnd, lastYearSameDayStart, lastYearSameDayEnd, regionTargetMapDay),
     getRegionData(
       monthStart,
       monthEnd,
       lastYearSameMonthStart,
       lastYearSameMonthEnd,
+      regionTargetMapMonth
     ),
-    getRegionData(yearStart, yearEnd, lastYearStart, lastYearEnd),
+    getRegionData(yearStart, yearEnd, lastYearStart, lastYearEnd, regionTargetMapYear),
   ]);
 
   // === 4. Job Status (Sales in this period) ===
@@ -434,7 +445,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
         ? Number(yearlyTargetRecord.targetAmount)
         : 0;
 
-  const daysInMonth = getDaysInMonth(now);
+
   const dailyTarget = monthlyTarget > 0 ? monthlyTarget / daysInMonth : 0;
 
   const periodData: Record<DashboardPeriod, PeriodData> = {

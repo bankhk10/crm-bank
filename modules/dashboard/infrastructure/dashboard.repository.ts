@@ -1,4 +1,5 @@
 import { db as prisma, SaleStatus } from "@/lib/db";
+import { getRegionByProvince } from "@/lib/province-region-mapping";
 
 export async function aggregateSalesAmount(
   start: Date,
@@ -69,14 +70,38 @@ export async function findAllTradeNameGroups() {
   return groups.map((g) => ({ code: g.id, description: g.description }));
 }
 
-export async function findProductGroupTargets(year: number, month: number) {
-  return prisma.productGroupSalesTarget.findMany({
-    where: {
-      year,
-      month,
-      deletedAt: null,
+export async function findProductGroupTargets(year: number, month?: number | null) {
+  const whereClause: any = {
+    salesTargetStore: {
+      salesTarget: {
+        year,
+      },
+    },
+  };
+  if (month) {
+    whereClause.salesTargetStore.salesTarget.month = month;
+  }
+
+  const items = await prisma.salesTargetItem.findMany({
+    where: whereClause,
+    include: {
+      product: true,
     },
   });
+
+  const groupMap = new Map<string, number>();
+  for (const item of items) {
+    const groupId = item.product.productABCTypeId;
+    if (groupId) {
+      const current = groupMap.get(groupId) || 0;
+      groupMap.set(groupId, current + Number(item.targetAmount));
+    }
+  }
+
+  return Array.from(groupMap.entries()).map(([productGroup, targetAmount]) => ({
+    productGroup,
+    targetAmount,
+  }));
 }
 
 export async function findProductIdsByGroup(groupCode: string) {
@@ -95,14 +120,45 @@ export async function findProductIdsByTradeNameGroup(groupId: string) {
   return products.map((p) => p.id);
 }
 
-export async function findRegionTargets(year: number, month: number) {
-  return prisma.regionSalesTarget.findMany({
-    where: {
-      year,
-      month,
-      deletedAt: null,
+export async function findRegionTargets(year: number, month?: number | null) {
+  const whereClause: any = {
+    salesTargetStore: {
+      salesTarget: {
+        year,
+      },
+    },
+  };
+  if (month) {
+    whereClause.salesTargetStore.salesTarget.month = month;
+  }
+
+  const items = await prisma.salesTargetItem.findMany({
+    where: whereClause,
+    include: {
+      salesTargetStore: {
+        include: {
+          customer: true,
+        },
+      },
     },
   });
+
+  const regionMap = new Map<string, number>();
+  for (const item of items) {
+    const province = item.salesTargetStore.customer.province;
+    if (province) {
+      const region = getRegionByProvince(province);
+      if (region) {
+        const current = regionMap.get(region) || 0;
+        regionMap.set(region, current + Number(item.targetAmount));
+      }
+    }
+  }
+
+  return Array.from(regionMap.entries()).map(([region, targetAmount]) => ({
+    region,
+    targetAmount,
+  }));
 }
 
 export async function findSalesWithProvince(
