@@ -199,7 +199,7 @@ export function CreateShipmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+      {/* <DialogTrigger asChild>
         {isEdit ? (
           <Button
             size="sm"
@@ -222,7 +222,7 @@ export function CreateShipmentDialog({
             เพิ่มการจัดส่งใหม่
           </Button>
         )}
-      </DialogTrigger>
+      </DialogTrigger> */}
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
