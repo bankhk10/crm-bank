@@ -41,6 +41,11 @@ export async function updateSaleUseCase(
     return { success: false as const, error: "ไม่พบข้อมูลออเดอร์" };
   }
 
+  // 1.1 Basic validation
+  if (!body.customerId || !body.employeeId || !body.items?.length || !body.requestedDeliveryDate) {
+    return { success: false as const, error: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน" };
+  }
+
   // 2. Permission check for rejected/waiting sales
   // if (
   //   existingSale.status === "REJECTED" ||

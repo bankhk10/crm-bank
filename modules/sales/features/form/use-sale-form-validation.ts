@@ -55,20 +55,21 @@ export function useSaleFormValidation() {
           errors.push("กรุณาเลือกสถานที่รับสินค้า");
           fieldErrors.pickupCompanyId = "กรุณาเลือกสถานที่รับสินค้า";
         }
-        if (!state.requestedDeliveryDate) {
-          errors.push("กรุณาระบุวันที่มารับสินค้า");
-          fieldErrors.requestedDeliveryDate = "กรุณาระบุวันที่มารับสินค้า";
-        }
       }
       if (state.deliveryMethod === "COURIER") {
         if (!state.shippingCompanyId) {
           errors.push("กรุณาเลือกบริษัทขนส่ง");
           fieldErrors.shippingCompanyId = "กรุณาเลือกบริษัทขนส่ง";
         }
-        if (!state.requestedDeliveryDate) {
-          errors.push("กรุณาระบุวันที่ต้องการให้ส่งของ");
-          fieldErrors.requestedDeliveryDate = "กรุณาระบุวันที่ต้องการให้ส่งของ";
-        }
+      }
+
+      // requestedDeliveryDate is mandatory for all delivery methods
+      if (!state.requestedDeliveryDate) {
+        const dateErrorMsg = state.deliveryMethod === "CUSTOMER_PICKUP" 
+          ? "กรุณาระบุวันที่มารับสินค้า" 
+          : "กรุณาระบุวันที่ต้องการของ";
+        errors.push(dateErrorMsg);
+        fieldErrors.requestedDeliveryDate = dateErrorMsg;
       }
 
       if (

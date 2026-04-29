@@ -674,8 +674,14 @@ export function SaleForm({
                         <DatePicker
                             label="วันที่ต้องการของ"
                             value={requestedDeliveryDate}
-                            onChange={(val) => setRequestedDeliveryDate(val || "")}
+                            onChange={(val) => {
+                                setRequestedDeliveryDate(val || "");
+                                setFieldErrors((prev) => ({ ...prev, requestedDeliveryDate: "" }));
+                                setErrors([]);
+                            }}
                             placeholder=""
+                            required
+                            error={fieldErrors.requestedDeliveryDate}
                         />
                     )}
 

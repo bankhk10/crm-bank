@@ -49,7 +49,7 @@ export async function createSaleUseCase(
   createdById: string,
 ) {
   // 1. Basic validation
-  if (!body.customerId || !body.employeeId || !body.items?.length) {
+  if (!body.customerId || !body.employeeId || !body.items?.length || !body.requestedDeliveryDate) {
     return { success: false as const, error: "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน" };
   }
 
