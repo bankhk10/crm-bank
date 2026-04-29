@@ -30,6 +30,30 @@ export async function aggregateSalesAmountByEmployee(
   return Number(result._sum.totalAmount || 0);
 }
 
+export async function aggregateTotalSalesAmountByRequestedDateByEmployee(
+  employeeId: string,
+  start: Date,
+  end: Date,
+  excludedStatuses?: SaleStatus[],
+) {
+  const whereClause: any = {
+    employeeId,
+    requestedDeliveryDate: { gte: start, lte: end },
+    deletedAt: null,
+  };
+
+  if (excludedStatuses && excludedStatuses.length > 0) {
+    whereClause.status = { notIn: excludedStatuses };
+  }
+
+  const result = await prisma.sale.aggregate({
+    where: whereClause,
+    _sum: { totalAmount: true },
+  });
+
+  return Number(result._sum.totalAmount || 0);
+}
+
 /**
  * Find sale items with product details for a specific employee.
  */

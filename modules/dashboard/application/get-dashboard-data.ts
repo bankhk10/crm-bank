@@ -41,7 +41,7 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
   const lastYearEnd = endOfYear(subYears(now, 1));
 
   const aggregateSales = async (start: Date, end: Date) => {
-    const total = await repo.aggregateSalesAmount(start, end, undefined, [
+    const total = await repo.aggregateTotalSalesAmountByRequestedDate(start, end, [
       "CANCELLED",
     ]);
     const salesNote = await repo.aggregateSalesAmount(start, end, undefined, [
@@ -78,16 +78,14 @@ export async function getDashboardDataUseCase(): Promise<DashboardData> {
       : 0;
 
   // === 1. YTD ===
-  const ytdTotal = await repo.aggregateSalesAmount(
+  const ytdTotal = await repo.aggregateTotalSalesAmountByRequestedDate(
     yearStart,
     yearEnd,
-    undefined,
     ["CANCELLED"],
   );
-  const lastYtdTotal = await repo.aggregateSalesAmount(
+  const lastYtdTotal = await repo.aggregateTotalSalesAmountByRequestedDate(
     lastYearStart,
     lastYearEnd,
-    undefined,
     ["CANCELLED"],
   );
 

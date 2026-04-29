@@ -48,11 +48,10 @@ export async function getSalesDashboardDataUseCase(
 
   // Aggregate sales for the employee
   const aggregateSales = async (start: Date, end: Date) => {
-    const total = await salesRepo.aggregateSalesAmountByEmployee(
+    const total = await salesRepo.aggregateTotalSalesAmountByRequestedDateByEmployee(
       employeeId,
       start,
       end,
-      undefined,
       ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
     );
     const salesNote = await salesRepo.aggregateSalesAmountByEmployee(
@@ -103,18 +102,16 @@ export async function getSalesDashboardDataUseCase(
       : 0;
 
   // === YTD ===
-  const ytdTotal = await salesRepo.aggregateSalesAmountByEmployee(
+  const ytdTotal = await salesRepo.aggregateTotalSalesAmountByRequestedDateByEmployee(
     employeeId,
     yearStart,
     yearEnd,
-    undefined,
     ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
   );
-  const lastYtdTotal = await salesRepo.aggregateSalesAmountByEmployee(
+  const lastYtdTotal = await salesRepo.aggregateTotalSalesAmountByRequestedDateByEmployee(
     employeeId,
     lastYearStart,
     lastYearEnd,
-    undefined,
     ["CANCELLED", "REJECTED", "EXPIRED", "OVERDUE"],
   );
 

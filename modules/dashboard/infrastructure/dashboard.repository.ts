@@ -26,6 +26,29 @@ export async function aggregateSalesAmount(
   return Number(result._sum.totalAmount || 0);
 }
 
+export async function aggregateTotalSalesAmountByRequestedDate(
+  start: Date,
+  end: Date,
+  excludedStatuses?: SaleStatus[],
+) {
+  const whereClause: any = {
+    requestedDeliveryDate: { gte: start, lte: end },
+    deletedAt: null,
+  };
+
+  if (excludedStatuses && excludedStatuses.length > 0) {
+    whereClause.status = { notIn: excludedStatuses };
+  }
+
+  const result = await prisma.sale.aggregate({
+    where: whereClause,
+    _sum: { totalAmount: true },
+  });
+
+  return Number(result._sum.totalAmount || 0);
+}
+
+
 export async function aggregateSaleItemAmount(
   start: Date,
   end: Date,
