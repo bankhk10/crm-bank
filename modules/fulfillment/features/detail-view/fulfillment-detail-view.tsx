@@ -593,7 +593,7 @@ export default function FulfillmentDetailPage({
                                         }}
                                         label=""
                                         placeholder="เลือกวันที่จัดส่ง"
-                                        disabled={status === "WAITING_FOR_CORRECTION"}
+                                        disabled={status !== "DELIVERED"}
                                     />
                                 </div>
                                 {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
