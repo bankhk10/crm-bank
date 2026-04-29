@@ -759,7 +759,11 @@ export function SaleForm({
             <SectionHeader id="items" title="รายการสินค้า" color="gray">
                 <Button
                     type="button"
-                    onClick={addItem}
+                    onClick={() => {
+                        addItem();
+                        setFieldErrors((prev) => ({ ...prev, items: "" }));
+                        setErrors([]);
+                    }}
                     className="
           bg-emerald-600 hover:bg-emerald-700
           text-white font-semibold
