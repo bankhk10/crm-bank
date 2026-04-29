@@ -32,6 +32,7 @@ interface FormSelectProps {
   triggerClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
+  id?: string;
 }
 
 const defaultLabelClass = "text-base font-medium mx-2";
@@ -51,6 +52,7 @@ export function FormSelect({
   triggerClassName,
   labelClassName,
   containerClassName,
+  id,
 }: FormSelectProps) {
   return (
     <div className={cn(containerClassName)}>
@@ -65,6 +67,7 @@ export function FormSelect({
         required={required}
       >
         <SelectTrigger
+          id={id}
           className={cn(defaultTriggerClass, triggerClassName, className)}
         >
           <SelectValue placeholder={placeholder} />

@@ -19,7 +19,8 @@ export function SaleItemRow({
     onShowDetails,
     fieldError,
     onClearError,
-}: SaleItemRowProps & { onClearError?: () => void }) {
+    id,
+}: SaleItemRowProps & { onClearError?: () => void; id?: string }) {
     const product = products.find((p) => p.id === item.productId);
     const handleProductChange = (value: string) => {
         onUpdate(index, "productId", value);
@@ -46,6 +47,7 @@ export function SaleItemRow({
                 <div className="md:col-span-3 flex flex-col sm:flex-row sm:items-end gap-2 min-w-0">
                     <div className="w-full sm:flex-1 min-w-0">
                         <FormCombobox
+                            id={id}
                             label="สินค้า"
                             value={item.productId}
                             onChange={handleProductChange}

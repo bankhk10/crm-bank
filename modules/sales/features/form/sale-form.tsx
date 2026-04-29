@@ -434,12 +434,14 @@ export function SaleForm({
                 const fieldsToScroll = [
                     "customerId",
                     "employeeId",
+                    "paymentTerm",
                     "saleDate",
                     "requestedDeliveryDate",
                     "pickupCompanyId",
                     "shippingCompanyId",
                     "customShippingAddress",
-                    "shippingAddress"
+                    "shippingAddress",
+                    "items"
                 ];
 
                 for (const field of fieldsToScroll) {
@@ -450,6 +452,20 @@ export function SaleForm({
                             el.scrollIntoView({ behavior: "smooth", block: "center" });
                             el.focus();
                             break;
+                        }
+                    }
+                }
+
+                // Check for item specific errors if no top-level errors matched
+                const hasItemError = Object.keys(validation.fieldErrors).some(key => key.startsWith("item_"));
+                if (hasItemError) {
+                    const firstItemErrorKey = Object.keys(validation.fieldErrors)
+                        .find(key => key.startsWith("item_"));
+                    if (firstItemErrorKey) {
+                        const el = document.getElementById(firstItemErrorKey);
+                        if (el) {
+                            el.scrollIntoView({ behavior: "smooth", block: "center" });
+                            el.focus();
                         }
                     }
                 }
@@ -645,6 +661,7 @@ export function SaleForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                 <FormSelect
+                    id="paymentTerm"
                     label="เงื่อนไขการชำระเงิน"
                     value={paymentTerm}
                     onChange={(val) => handlePaymentTermChange(val as PaymentTermType)}
@@ -672,6 +689,7 @@ export function SaleForm({
                 {deliveryMethod !== "CUSTOMER_PICKUP" &&
                     deliveryMethod !== "COURIER" && (
                         <DatePicker
+                            id="requestedDeliveryDate"
                             label="วันที่ต้องการของ"
                             value={requestedDeliveryDate}
                             onChange={(val) => {
@@ -738,7 +756,7 @@ export function SaleForm({
             />
 
             {/* Products Section */}
-            <SectionHeader title="รายการสินค้า" color="gray">
+            <SectionHeader id="items" title="รายการสินค้า" color="gray">
                 <Button
                     type="button"
                     onClick={addItem}
@@ -766,6 +784,7 @@ export function SaleForm({
                 {items.map((item, index) => (
                     <SaleItemRow
                         key={index}
+                        id={`item_${index}_productId`}
                         item={item}
                         index={index}
                         products={products}
