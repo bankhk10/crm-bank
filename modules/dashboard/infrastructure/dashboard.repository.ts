@@ -58,7 +58,7 @@ export async function aggregateSaleItemAmount(
   const whereClause: any = {
     productId: { in: productIds },
     sale: {
-      saleDate: { gte: start, lte: end },
+      requestedDeliveryDate: { gte: start, lte: end },
       deletedAt: null,
     },
   };
@@ -191,7 +191,7 @@ export async function findSalesWithProvince(
 ) {
   return prisma.sale.findMany({
     where: {
-      saleDate: { gte: start, lte: end },
+      requestedDeliveryDate: { gte: start, lte: end },
       deletedAt: null,
       status: { notIn: excludedStatuses },
     },
@@ -211,7 +211,7 @@ export async function groupSaleStatusCounts(start: Date, end: Date) {
   return prisma.sale.groupBy({
     by: ["status"],
     where: {
-      saleDate: { gte: start, lte: end },
+      requestedDeliveryDate: { gte: start, lte: end },
       deletedAt: null,
     },
     _count: true,
@@ -226,7 +226,7 @@ export async function findSaleItemsWithDetails(
   return prisma.saleItem.findMany({
     where: {
       sale: {
-        saleDate: { gte: start, lte: end },
+        requestedDeliveryDate: { gte: start, lte: end },
         deletedAt: null,
         status: { notIn: excludedStatuses }
       },
@@ -297,7 +297,11 @@ export async function aggregateDeliveredShipmentAmount(
   const shipmentResult = await prisma.shipment.aggregate({
     where: {
       status: "DELIVERED",
-      actualDate: { gte: start, lte: end },
+      OR: [
+        { actualDate: { gte: start, lte: end } },
+        { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
+        { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+      ],
       sale: { deletedAt: null },
     },
     _sum: { totalAmount: true },
@@ -307,7 +311,11 @@ export async function aggregateDeliveredShipmentAmount(
   // 2. Legacy: Sale ที่ไม่มี Shipment เลย + status invoice
   const legacyResult = await prisma.sale.aggregate({
     where: {
-      saleDate: { gte: start, lte: end },
+      OR: [
+        { deliveryDate: { gte: start, lte: end } },
+        { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } },
+        { deliveryDate: null, requestedDeliveryDate: null, saleDate: { gte: start, lte: end } }
+      ],
       deletedAt: null,
       status: { in: INVOICE_SALE_STATUSES as unknown as any[] },
       shipments: { none: {} },
@@ -337,7 +345,11 @@ export async function findDeliveredShipmentItemsWithDetails(
     where: {
       shipment: {
         status: "DELIVERED",
-        actualDate: { gte: start, lte: end },
+        OR: [
+          { actualDate: { gte: start, lte: end } },
+          { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
+          { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+        ],
         sale: { deletedAt: null },
       },
     },
@@ -362,7 +374,11 @@ export async function findDeliveredShipmentItemsWithDetails(
   const legacySaleItems = await prisma.saleItem.findMany({
     where: {
       sale: {
-        saleDate: { gte: start, lte: end },
+        OR: [
+          { deliveryDate: { gte: start, lte: end } },
+          { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } },
+          { deliveryDate: null, requestedDeliveryDate: null, saleDate: { gte: start, lte: end } }
+        ],
         deletedAt: null,
         status: { in: INVOICE_SALE_STATUSES as any[] },
         shipments: { none: {} },
@@ -413,7 +429,11 @@ export async function findDeliveredShipmentsWithProvince(
   const shipments = await prisma.shipment.findMany({
     where: {
       status: "DELIVERED",
-      actualDate: { gte: start, lte: end },
+      OR: [
+        { actualDate: { gte: start, lte: end } },
+        { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
+        { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+      ],
       sale: { deletedAt: null },
     },
     select: {
@@ -431,7 +451,11 @@ export async function findDeliveredShipmentsWithProvince(
   // 2. Legacy: Sale ที่ไม่มี Shipment (flow เก่า)
   const legacySales = await prisma.sale.findMany({
     where: {
-      saleDate: { gte: start, lte: end },
+      OR: [
+        { deliveryDate: { gte: start, lte: end } },
+        { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } },
+        { deliveryDate: null, requestedDeliveryDate: null, saleDate: { gte: start, lte: end } }
+      ],
       deletedAt: null,
       status: { in: INVOICE_SALE_STATUSES as any[] },
       shipments: { none: {} },
