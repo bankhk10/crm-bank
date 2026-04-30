@@ -58,6 +58,7 @@ export async function findCompletedSalesSummary(startDate: Date, endDate: Date) 
       status: {
         in: validStatuses,
       },
+      deletedAt: null,
     },
     select: {
       saleDate: true,
