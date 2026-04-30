@@ -42,8 +42,10 @@ export async function getSalesForecastUseCase(
     monthlyData[i] = 0;
   }
   sales.forEach((sale) => {
-    const saleMonth = new Date(sale.saleDate).getMonth() + 1;
-    monthlyData[saleMonth] += Number(sale.totalAmount) || 0;
+    if (sale.requestedDeliveryDate) {
+      const saleMonth = new Date(sale.requestedDeliveryDate).getMonth() + 1;
+      monthlyData[saleMonth] += Number(sale.totalAmount) || 0;
+    }
   });
   const actualSales = Object.entries(monthlyData).map(([m, totalAmount]) => ({
     month: parseInt(m),

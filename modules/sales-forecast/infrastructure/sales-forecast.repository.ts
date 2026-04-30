@@ -1,4 +1,4 @@
-import { db as prisma } from "@/lib/db";
+import { db as prisma, SaleStatus } from "@/lib/db";
 
 export async function findSalesTargetsWithDetails(year: number, month: number | null) {
   return prisma.salesTarget.findMany({
@@ -47,25 +47,26 @@ export async function findSalesTargetsWithDetails(year: number, month: number | 
 }
 
 export async function findCompletedSalesSummary(startDate: Date, endDate: Date) {
-  const validStatuses: any[] = ["COMPLETED"];
+  const excludedStatuses: SaleStatus[] = ["CANCELLED"];
 
   return prisma.sale.findMany({
     where: {
-      saleDate: {
+      requestedDeliveryDate: {
         gte: startDate,
         lte: endDate,
       },
       status: {
-        in: validStatuses,
+        notIn: excludedStatuses,
       },
       deletedAt: null,
     },
     select: {
-      saleDate: true,
+      requestedDeliveryDate: true,
       totalAmount: true,
     },
   });
 }
+
 
 export async function findTradeNameGroups() {
   return prisma.tradeNameGroup.findMany({
