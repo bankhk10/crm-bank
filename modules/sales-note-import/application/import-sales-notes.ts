@@ -29,6 +29,8 @@ export interface ImportPreviewRow {
   notes: string;
   abcCode: string;
   paymentDate: string;
+  requestedDeliveryDate: string;
+  deliveryDate: string;
   cartonPrice: number | null;
   orderNumber: string;
   status: "valid" | "error";
@@ -54,6 +56,8 @@ const OPTIONAL_COLUMNS = [
   "หมายเหตุ",
   "ประเภท (ABC Code)",
   "วันที่ชำระเงิน",
+  "วันที่ต้องการของ",
+  "วันที่ส่งของ",
   "ราคาลัง",
   "เลขที่ออเดอร์",
 ];
@@ -144,10 +148,10 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
   const dateStr = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`;
   const paymentDateStr = dateStr;
   const exampleRows = [
-    [dateStr, "EMP001", "CUST001", "PRD001", 10, 1500, 15000, "เครดิต 90 วัน", "", "A", paymentDateStr, 18000, "ORD-001"],
-    [dateStr, "EMP001", "CUST001", "PRD002", 5, 2000, 10000, "เครดิต 90 วัน", "", "B", "", 24000, "ORD-001"],
-    [dateStr, "EMP001", "CUST002", "PRD001", 8, 1500, 12000, "เงินสด 7 วัน", "ส่งด่วน", "A", paymentDateStr, 18000, "ORD-002"],
-    [dateStr, "EMP002", "CUST003", "PRD003", 20, 800, 16000, "ชำระเงินก่อน", "", "C", "", "", ""],
+    [dateStr, "EMP001", "CUST001", "PRD001", 10, 1500, 15000, "เครดิต 90 วัน", "", "A", paymentDateStr, dateStr, dateStr, 18000, "ORD-001"],
+    [dateStr, "EMP001", "CUST001", "PRD002", 5, 2000, 10000, "เครดิต 90 วัน", "", "B", "", "", "", 24000, "ORD-001"],
+    [dateStr, "EMP001", "CUST002", "PRD001", 8, 1500, 12000, "เงินสด 7 วัน", "ส่งด่วน", "A", paymentDateStr, dateStr, "", 18000, "ORD-002"],
+    [dateStr, "EMP002", "CUST003", "PRD003", 20, 800, 16000, "ชำระเงินก่อน", "", "C", "", "", "", "", ""],
   ];
 
   const data = [headers, ...exampleRows];
@@ -166,6 +170,8 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
     { wch: 30 },  // หมายเหตุ
     { wch: 18 },  // ประเภท (ABC Code)
     { wch: 16 },  // วันที่ชำระเงิน
+    { wch: 16 },  // วันที่ต้องการของ
+    { wch: 16 },  // วันที่ส่งของ
     { wch: 14 },  // ราคาลัง
     { wch: 16 },  // เลขที่ออเดอร์
   ];
@@ -188,6 +194,8 @@ export function generateSalesNoteTemplate(): ArrayBuffer {
     ["หมายเหตุ", "หมายเหตุเพิ่มเติม (ถ้ามี)", "ส่งด่วน", ""],
     ["ประเภท (ABC Code)", "รหัสประเภทสินค้า (เช่น A, B, C) ตรงกับรหัสในระบบ", "A", ""],
     ["วันที่ชำระเงิน", "วันที่ชำระเงินจริง (DD/MM/YYYY หรือ DD/MM/พ.ศ.)", `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`, ""],
+    ["วันที่ต้องการของ", "วันที่ลูกค้าต้องการรับสินค้า (DD/MM/YYYY หรือ DD/MM/พ.ศ.)", `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`, ""],
+    ["วันที่ส่งของ", "วันที่จัดส่งสินค้าจริง (DD/MM/YYYY หรือ DD/MM/พ.ศ.)", `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear() + 543}`, ""],
     ["ราคาลัง", "ราคาขายต่อลัง/กล่อง (บาท) — ถ้าไม่กรอกจะใช้ราคาลังจากข้อมูลสินค้า", "18000", ""],
     ["เลขที่ออเดอร์", "เลขที่อ้างอิงออเดอร์ — แถวที่มีเลขเดียวกันจะรวมเป็นใบขายเดียวกัน", "ORD-001", ""],
     [""],
@@ -293,6 +301,8 @@ export async function previewSalesNoteImport(
       const notes = row["หมายเหตุ"]?.toString() || "";
       const abcCodeRaw = row["ประเภท (ABC Code)"]?.toString().trim() || "";
       const paymentDateRaw = row["วันที่ชำระเงิน"];
+      const requestedDeliveryDateRaw = row["วันที่ต้องการของ"];
+      const deliveryDateRaw = row["วันที่ส่งของ"];
       const cartonPriceRaw = row["ราคาลัง"];
       const orderNumberRaw = row["เลขที่ออเดอร์"]?.toString().trim() || "";
 
@@ -349,6 +359,16 @@ export async function previewSalesNoteImport(
         rowErrors.push(`วันที่ชำระเงินไม่ถูกต้อง: ${paymentDateRaw}`);
       }
 
+      const requestedDeliveryDate = requestedDeliveryDateRaw ? parseDate(requestedDeliveryDateRaw) : null;
+      if (requestedDeliveryDateRaw && !requestedDeliveryDate) {
+        rowErrors.push(`วันที่ต้องการของไม่ถูกต้อง: ${requestedDeliveryDateRaw}`);
+      }
+
+      const deliveryDate = deliveryDateRaw ? parseDate(deliveryDateRaw) : null;
+      if (deliveryDateRaw && !deliveryDate) {
+        rowErrors.push(`วันที่ส่งของไม่ถูกต้อง: ${deliveryDateRaw}`);
+      }
+
       // Parse carton price (optional)
       const cartonPrice = cartonPriceRaw
         ? parseFloat(cartonPriceRaw.toString().replace(/,/g, ""))
@@ -375,6 +395,8 @@ export async function previewSalesNoteImport(
         notes,
         abcCode: abcTypeName || abcCodeRaw || "-",
         paymentDate: paymentDate ? paymentDate.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-",
+        requestedDeliveryDate: requestedDeliveryDate ? requestedDeliveryDate.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-",
+        deliveryDate: deliveryDate ? deliveryDate.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" }) : "-",
         cartonPrice: cartonPrice !== null && !isNaN(cartonPrice) ? cartonPrice : null,
         orderNumber: orderNumberRaw || "-",
         status: rowErrors.length > 0 ? "error" : "valid",
@@ -498,6 +520,8 @@ export async function processSalesNoteImport(
       paymentTerm: string;
       notes: string;
       paymentDate: Date | null;
+      requestedDeliveryDate: Date | null;
+      deliveryDate: Date | null;
       orderNumber: string;
       items: ItemEntry[];
     };
@@ -521,6 +545,8 @@ export async function processSalesNoteImport(
       const notes = row["หมายเหตุ"]?.toString() || "";
       const abcCodeRaw = row["ประเภท (ABC Code)"]?.toString().trim() || "";
       const paymentDateRaw = row["วันที่ชำระเงิน"];
+      const requestedDeliveryDateRaw = row["วันที่ต้องการของ"];
+      const deliveryDateRaw = row["วันที่ส่งของ"];
       const cartonPriceRaw = row["ราคาลัง"];
       const orderNumberRaw = row["เลขที่ออเดอร์"]?.toString().trim() || "";
 
@@ -572,6 +598,18 @@ export async function processSalesNoteImport(
         continue;
       }
 
+      const requestedDeliveryDate = requestedDeliveryDateRaw ? parseDate(requestedDeliveryDateRaw) : null;
+      if (requestedDeliveryDateRaw && !requestedDeliveryDate) {
+        errors.push(`แถวที่ ${rowIdx}: วันที่ต้องการของไม่ถูกต้อง (${requestedDeliveryDateRaw})`);
+        continue;
+      }
+
+      const deliveryDate = deliveryDateRaw ? parseDate(deliveryDateRaw) : null;
+      if (deliveryDateRaw && !deliveryDate) {
+        errors.push(`แถวที่ ${rowIdx}: วันที่ส่งของไม่ถูกต้อง (${deliveryDateRaw})`);
+        continue;
+      }
+
       const cartonPriceOverride = cartonPriceRaw
         ? parseFloat(cartonPriceRaw.toString().replace(/,/g, ""))
         : null;
@@ -610,6 +648,8 @@ export async function processSalesNoteImport(
           paymentTerm,
           notes,
           paymentDate,
+          requestedDeliveryDate,
+          deliveryDate,
           orderNumber: orderNumberRaw,
           items: [],
         });
@@ -623,6 +663,12 @@ export async function processSalesNoteImport(
       // Use the first non-null payment date in the group
       if (paymentDate && !order.paymentDate) {
         order.paymentDate = paymentDate;
+      }
+      if (requestedDeliveryDate && !order.requestedDeliveryDate) {
+        order.requestedDeliveryDate = requestedDeliveryDate;
+      }
+      if (deliveryDate && !order.deliveryDate) {
+        order.deliveryDate = deliveryDate;
       }
 
       // Determine cartonPrice: use override if provided, else fall back to product default
@@ -708,6 +754,8 @@ export async function processSalesNoteImport(
             status: "COMPLETED",
             paymentTerm: order.paymentTerm as any,
             paymentDate: order.paymentDate || null,
+            requestedDeliveryDate: order.requestedDeliveryDate || null,
+            deliveryDate: order.deliveryDate || null,
             saleOrderRef: order.orderNumber || null,
             subtotalAmount: new Prisma.Decimal(subtotalAmount),
             shippingCost: new Prisma.Decimal(0),

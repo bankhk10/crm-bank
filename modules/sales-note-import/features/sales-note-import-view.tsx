@@ -229,13 +229,12 @@ export default function SalesNoteImportView() {
                 )}
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                      isActive
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${isActive
                         ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30"
                         : isPast
                           ? "bg-blue-100 text-blue-700"
                           : "bg-slate-100 text-slate-400"
-                    }`}
+                      }`}
                   >
                     {isPast ? (
                       <CheckCircle2 className="h-4 w-4" />
@@ -244,13 +243,12 @@ export default function SalesNoteImportView() {
                     )}
                   </div>
                   <span
-                    className={`hidden sm:inline text-sm font-medium ${
-                      isActive
+                    className={`hidden sm:inline text-sm font-medium ${isActive
                         ? "text-blue-700"
                         : isPast
                           ? "text-slate-600"
                           : "text-slate-400"
-                    }`}
+                      }`}
                   >
                     {label}
                   </span>
@@ -299,11 +297,10 @@ export default function SalesNoteImportView() {
             <Card>
               <CardContent className="p-6">
                 <div
-                  className={`border-2 border-dashed rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center transition-all cursor-pointer ${
-                    file
+                  className={`border-2 border-dashed rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center transition-all cursor-pointer ${file
                       ? "border-blue-300 bg-blue-50/30"
                       : "border-slate-200 bg-slate-50/50 hover:border-blue-300 hover:bg-blue-50/20"
-                  }`}
+                    }`}
                   onDrop={handleDrop}
                   onDragOver={(e) => e.preventDefault()}
                   onClick={() => fileInputRef.current?.click()}
@@ -392,7 +389,7 @@ export default function SalesNoteImportView() {
                   <p className="text-xs text-slate-500">
                     <span className="font-medium">คอลัมน์เสริม:</span>{" "}
                     เงื่อนไขการชำระเงิน (ค่าเริ่มต้น: เครดิต 90 วัน), หมายเหตุ,
-                    ประเภท (ABC Code), วันที่ชำระเงิน, ราคาลัง, เลขที่ออเดอร์
+                    ประเภท (ABC Code), วันที่ชำระเงิน, วันที่ต้องการของ, วันที่ส่งของ, ราคาลัง, เลขที่ออเดอร์
                   </p>
                 </div>
               </CardContent>
@@ -563,17 +560,22 @@ export default function SalesNoteImportView() {
                         <th className="px-3 py-2.5 text-left font-medium text-slate-600">
                           วันที่ชำระ
                         </th>
+                        <th className="px-3 py-2.5 text-left font-medium text-slate-600">
+                          ต้องการของ
+                        </th>
+                        <th className="px-3 py-2.5 text-left font-medium text-slate-600">
+                          ส่งของ
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {previewData.slice(0, 50).map((row, idx) => (
                         <tr
                           key={idx}
-                          className={`border-b border-slate-50 ${
-                            row.status === "error"
+                          className={`border-b border-slate-50 ${row.status === "error"
                               ? "bg-red-50/50"
                               : "hover:bg-slate-50/50"
-                          }`}
+                            }`}
                         >
                           <td className="px-3 py-2 text-slate-500 text-xs">
                             {row.row}
@@ -631,8 +633,8 @@ export default function SalesNoteImportView() {
                           <td className="px-3 py-2 text-right text-slate-700 tabular-nums">
                             {row.cartonPrice != null
                               ? row.cartonPrice.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 2,
-                                })
+                                minimumFractionDigits: 2,
+                              })
                               : "-"}
                           </td>
                           <td className="px-3 py-2 text-right font-medium text-slate-800 tabular-nums">
@@ -645,6 +647,12 @@ export default function SalesNoteImportView() {
                           </td>
                           <td className="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">
                             {row.paymentDate}
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">
+                            {row.requestedDeliveryDate}
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 text-xs whitespace-nowrap">
+                            {row.deliveryDate}
                           </td>
                         </tr>
                       ))}
@@ -705,11 +713,10 @@ export default function SalesNoteImportView() {
           <div className="max-w-3xl mx-auto space-y-6">
             {/* Result Banner */}
             <Card
-              className={`${
-                result.success
+              className={`${result.success
                   ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50"
                   : "border-red-200 bg-gradient-to-br from-red-50 to-rose-50"
-              }`}
+                }`}
             >
               <CardContent className="p-6 flex items-start gap-4">
                 {result.success ? (
