@@ -135,7 +135,10 @@ export async function findSales(params: ListSalesParams) {
       skip,
       take: perPage,
       include: listIncludes,
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { saleDate: "desc" },
+        { createdAt: "desc" }
+      ],
     }),
     db.sale.count({ where }),
   ]);
@@ -687,12 +690,12 @@ export async function updateSale(
         },
         statusHistory: data.needsReapproval
           ? {
-              create: {
-                status: "PENDING_APPROVAL",
-                notes: "Sale updated - requires re-approval",
-                changedById: data.userId,
-              },
-            }
+            create: {
+              status: "PENDING_APPROVAL",
+              notes: "Sale updated - requires re-approval",
+              changedById: data.userId,
+            },
+          }
           : undefined,
         saleAddress: {
           upsert: {
