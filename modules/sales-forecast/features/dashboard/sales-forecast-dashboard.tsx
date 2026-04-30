@@ -247,9 +247,7 @@ export default function SalesForecastDashboard() {
   }, [forecastData]);
 
   // Calculate summary stats
-  const totalActual = performanceData
-    .filter((d) => d.monthNumber <= currentMonth)
-    .reduce((sum, d) => sum + d.actual, 0);
+  const totalActual = performanceData.reduce((sum, d) => sum + d.actual, 0);
   const totalTarget = performanceData.reduce((sum, d) => sum + d.target, 0);
   const actualVsTarget =
     totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "0";

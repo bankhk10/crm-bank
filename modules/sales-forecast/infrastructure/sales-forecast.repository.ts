@@ -67,6 +67,35 @@ export async function findCompletedSalesSummary(startDate: Date, endDate: Date) 
   });
 }
 
+/**
+ * คำนวณยอดขายจริงรวมสะสม (YTD) ของปีที่ระบุ
+ * โดยใช้เกณฑ์เดียวกับ Dashboard (อิงตาม requestedDeliveryDate และไม่รวม CANCELLED)
+ */
+export async function findActualSalesYTD(year: number) {
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31, 23, 59, 59);
+  const excludedStatuses: SaleStatus[] = ["CANCELLED"];
+
+  const result = await prisma.sale.aggregate({
+    where: {
+      requestedDeliveryDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: {
+        notIn: excludedStatuses,
+      },
+      deletedAt: null,
+    },
+    _sum: {
+      totalAmount: true,
+    },
+  });
+
+  return Number(result._sum.totalAmount || 0);
+}
+
+
 
 export async function findTradeNameGroups() {
   return prisma.tradeNameGroup.findMany({
