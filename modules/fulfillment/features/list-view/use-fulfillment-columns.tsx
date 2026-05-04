@@ -67,6 +67,18 @@ export function useFulfillmentColumns() {
                 ),
             },
             {
+                accessorKey: "requestedDeliveryDate",
+                header: "วันที่ต้องการของ",
+                meta: { width: 140 },
+                cell: (info) => {
+                    const val = info.getValue() as string;
+                    if (!val) return "-";
+                    return format(new Date(val), "d MMM yyyy", {
+                        locale: th,
+                    });
+                },
+            },
+            {
                 accessorKey: "status",
                 header: "สถานะ",
                 cell: (info) => {
