@@ -98,6 +98,52 @@ export async function createShipmentUseCase(
       },
     });
 
+    // 7. ตรวจสอบ paymentDate ครบทุก Shipment → เปลี่ยน Sale.status เป็น COMPLETED
+    if (validatedData.paymentDate) {
+      const checkableStatuses = [
+        "PARTIALLY_DELIVERED",
+        "DELIVERY_COMPLETED",
+        "AWAITING_DELIVERY",
+        "PAID",
+        "AWAITING_PAYMENT",
+      ];
+
+      const currentSale = await tx.sale.findUnique({
+        where: { id: saleId },
+        select: { status: true },
+      });
+
+      if (currentSale && checkableStatuses.includes(currentSale.status)) {
+        const allActiveShipments = await tx.shipment.findMany({
+          where: { saleId, status: { not: "CANCELLED" } },
+          select: { id: true, paymentDate: true },
+        });
+
+        const hasShipments = allActiveShipments.length > 0;
+        const allHavePaymentDate = allActiveShipments.every(
+          (s) => s.paymentDate !== null,
+        );
+
+        if (hasShipments && allHavePaymentDate) {
+          const latestPaymentDate = allActiveShipments.reduce(
+            (latest, s) =>
+              s.paymentDate && (!latest || s.paymentDate > latest)
+                ? s.paymentDate
+                : latest,
+            null as Date | null,
+          );
+
+          await tx.sale.update({
+            where: { id: saleId },
+            data: {
+              status: "COMPLETED",
+              ...(latestPaymentDate && { paymentDate: latestPaymentDate }),
+            },
+          });
+        }
+      }
+    }
+
     return newShipment;
   });
 

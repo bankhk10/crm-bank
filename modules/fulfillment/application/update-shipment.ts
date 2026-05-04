@@ -154,6 +154,60 @@ export async function updateShipmentUseCase(
         data: { status: newSaleStatus as any },
       });
     }
+
+    // 6. ตรวจสอบ paymentDate ครบทุก Shipment → เปลี่ยน Sale.status เป็น COMPLETED
+    // ทำงานเมื่อมีการอัพเดท paymentDate (ไม่ว่าจะเป็นการ set ใหม่หรือมีอยู่แล้ว)
+    if (validatedData.paymentDate !== undefined) {
+      const currentSaleForPayment = await tx.sale.findUnique({
+        where: { id: sale.id },
+        select: { status: true },
+      });
+
+      // เฉพาะ Sale ที่อยู่ในสถานะที่ควรตรวจสอบ (ไม่ใช่ CANCELLED)
+      const checkableStatuses = [
+        "PARTIALLY_DELIVERED",
+        "DELIVERY_COMPLETED",
+        "AWAITING_DELIVERY",
+        "PAID",
+        "AWAITING_PAYMENT",
+      ];
+
+      if (
+        currentSaleForPayment &&
+        checkableStatuses.includes(currentSaleForPayment.status)
+      ) {
+        // ดึง Shipment ทั้งหมดของ Sale ที่ไม่ถูก CANCELLED
+        const allActiveShipments = await tx.shipment.findMany({
+          where: { saleId: sale.id, status: { not: "CANCELLED" } },
+          select: { id: true, paymentDate: true },
+        });
+
+        // ตรวจสอบว่ามี Shipment อย่างน้อย 1 รายการ และทุกรายการมี paymentDate
+        const hasShipments = allActiveShipments.length > 0;
+        const allHavePaymentDate = allActiveShipments.every(
+          (s) => s.paymentDate !== null,
+        );
+
+        if (hasShipments && allHavePaymentDate) {
+          // หา paymentDate ล่าสุดสำหรับบันทึกลง Sale
+          const latestPaymentDate = allActiveShipments.reduce(
+            (latest, s) =>
+              s.paymentDate && (!latest || s.paymentDate > latest)
+                ? s.paymentDate
+                : latest,
+            null as Date | null,
+          );
+
+          await tx.sale.update({
+            where: { id: sale.id },
+            data: {
+              status: "COMPLETED",
+              ...(latestPaymentDate && { paymentDate: latestPaymentDate }),
+            },
+          });
+        }
+      }
+    }
   });
 
   return ShipmentRepository.getShipmentById(shipmentId);
