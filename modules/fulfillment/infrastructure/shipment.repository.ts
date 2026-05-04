@@ -310,4 +310,20 @@ export const ShipmentRepository = {
       (item) => (shippedMap.get(item.id) ?? 0) >= item.quantity,
     );
   },
+
+  /**
+   * ลบ Shipment
+   */
+  async deleteShipment(shipmentId: string, tx?: Prisma.TransactionClient) {
+    const client = tx || db;
+
+    // Delete shipment items first (if no cascade delete configured)
+    await client.shipmentItem.deleteMany({
+      where: { shipmentId },
+    });
+
+    return client.shipment.delete({
+      where: { id: shipmentId },
+    });
+  },
 };

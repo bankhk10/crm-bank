@@ -5,7 +5,8 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { PlusCircle, Loader2, Edit2 } from "lucide-react";
+import { PlusCircle, Loader2, Edit2, Trash2 } from "lucide-react";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,8 @@ import {
 } from "@/components/ui/select";
 
 import type { RemainingByItem, ShipmentRecord } from "../../types/types";
-import { createShipmentAction, updateShipmentAction } from "../../server/actions";
+import { createShipmentAction, updateShipmentAction, deleteShipmentAction } from "../../server/actions";
+
 
 const formSchema = z.object({
   scheduledDate: z.string().optional(),
@@ -180,6 +182,21 @@ export function CreateShipmentDialog({
     });
   };
 
+  const handleDelete = () => {
+    if (!shipment || !confirm("คุณต้องการลบการจัดส่งนี้ใช่หรือไม่?")) return;
+    startTransition(async () => {
+      const result = await deleteShipmentAction(shipment.id);
+      if (result.success) {
+        toast.success("ลบการจัดส่งแล้ว");
+        setOpen(false);
+        onCreated();
+      } else {
+        toast.error(result.error || "ไม่สามารถลบการจัดส่งได้");
+      }
+    });
+  };
+
+
   const handleOpenChange = (val: boolean) => {
     if (!isPending) {
       setOpen(val);
@@ -199,7 +216,7 @@ export function CreateShipmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {/* <DialogTrigger asChild>
+      <DialogTrigger asChild>
         {isEdit ? (
           <Button
             size="sm"
@@ -222,7 +239,7 @@ export function CreateShipmentDialog({
             เพิ่มการจัดส่งใหม่
           </Button>
         )}
-      </DialogTrigger> */}
+      </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
@@ -354,33 +371,6 @@ export function CreateShipmentDialog({
             </div>
           </div>
 
-          {/* Shipping company */}
-          {shippingCompanies.length > 0 && (
-            <div className="space-y-1.5">
-              <Label htmlFor="shippingCompany" className="text-sm">
-                บริษัทขนส่ง
-              </Label>
-              <Controller
-                name="shippingCompanyId"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
-                    <SelectTrigger id="shippingCompany" className="h-9" disabled={isDelivered}>
-                      <SelectValue placeholder="เลือกบริษัทขนส่ง (ไม่บังคับ)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {shippingCompanies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
-          )}
-
           {/* Notes */}
           <div className="space-y-1.5">
             <Label htmlFor="notes" className="text-sm">
@@ -395,32 +385,50 @@ export function CreateShipmentDialog({
             />
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isPending}
-              onClick={() => handleOpenChange(false)}
-            >
-              ยกเลิก
-            </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isPending}
-              className={`gap-1.5 ${isEdit ? "bg-amber-600 hover:bg-amber-700" : "bg-purple-600 hover:bg-purple-700"}`}
-            >
-              {isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isEdit ? (
-                <Edit2 className="h-4 w-4" />
-              ) : (
-                <PlusCircle className="h-4 w-4" />
+          <DialogFooter className="gap-2 sm:justify-between w-full">
+            <div className="flex-1">
+              {isEdit && shipment.status === "PENDING" && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={handleDelete}
+                  className="gap-1.5"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  ลบการจัดส่ง
+                </Button>
               )}
-              {isEdit ? "บันทึกการแก้ไข" : "สร้างการจัดส่ง"}
-            </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isPending}
+                onClick={() => handleOpenChange(false)}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending}
+                className={`gap-1.5 ${isEdit ? "bg-amber-600 hover:bg-amber-700" : "bg-purple-600 hover:bg-purple-700"}`}
+              >
+                {isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isEdit ? (
+                  <Edit2 className="h-4 w-4" />
+                ) : (
+                  <PlusCircle className="h-4 w-4" />
+                )}
+                {isEdit ? "บันทึกการแก้ไข" : "สร้างการจัดส่ง"}
+              </Button>
+            </div>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>

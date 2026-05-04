@@ -9,6 +9,8 @@ import {
   updateShipmentUseCase,
   getShipmentsUseCase,
   getShipmentByIdUseCase,
+  deleteShipmentUseCase,
+
 } from "../application";
 import { findSales } from "@/modules/sales/infrastructure/sale.repository";
 import { createShipmentDeliveryNotePdf } from "@/modules/create-pdf/application/generate-shipment-pdf";
@@ -187,3 +189,26 @@ export async function generateShipmentPdfAction(shipmentId: string) {
   }
 }
 
+export async function deleteShipmentAction(shipmentId: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  try {
+    const shipment = await getShipmentByIdUseCase(shipmentId);
+    if (!shipment) throw new Error("ไม่พบการจัดส่ง");
+    
+    await deleteShipmentUseCase(shipmentId, session.user.id);
+    
+    if (shipment.saleId) {
+      revalidatePath(`/fulfillment/${shipment.saleId}`);
+      revalidatePath("/fulfillment");
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("deleteShipmentAction error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete shipment",
+    };
+  }
+}
