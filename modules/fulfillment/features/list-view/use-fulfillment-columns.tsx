@@ -16,6 +16,7 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "saleNumber",
                 header: "เลขที่ออเดอร์",
+                meta: { width: 140 },
                 cell: (info) => (
                     <span className="font-medium text-slate-700">
                         {info.getValue() as string}
@@ -25,6 +26,7 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "saleOrderRef",
                 header: "เลขที่คำสั่งขาย",
+                meta: { width: 140 },
                 cell: (info) => (
                     <span className="font-medium text-slate-700">
                         {info.getValue() as string}
@@ -34,6 +36,7 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "saleDate",
                 header: "วันที่ออเดอร์",
+                meta: { width: 140 },
                 cell: (info) =>
                     format(new Date(info.getValue() as string), "d MMM yyyy", {
                         locale: th,
@@ -56,6 +59,7 @@ export function useFulfillmentColumns() {
             {
                 accessorKey: "totalAmount",
                 header: () => <div className="text-right">ยอดรวม</div>,
+                meta: { width: 140 },
                 cell: (info) => (
                     <div className="font-medium">
                         ฿{Number(info.getValue()).toLocaleString()}
