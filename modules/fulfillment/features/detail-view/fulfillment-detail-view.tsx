@@ -17,6 +17,8 @@ import {
     Truck,
     X,
     ExternalLink,
+    SplitSquareVertical,
+    ArrowRightLeft,
 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -210,6 +212,9 @@ export default function FulfillmentDetailPage({
     const [lotAllocations, setLotAllocations] = useState<LotAllocation[]>([]);
     const [lotAllocationsValid, setLotAllocationsValid] = useState(false);
 
+    // Shipment mode: "normal" | "split"
+    const [shipmentMode, setShipmentMode] = useState<"normal" | "split">("normal");
+
     // Split Shipment state
     const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
     const [remainingByItem, setRemainingByItem] = useState<RemainingByItem[]>([]);
@@ -257,6 +262,10 @@ export default function FulfillmentDetailPage({
                     data.sale.saleAddress?.shippingCompanyAddressId || "",
                 );
                 setSaleOrderRef(data.sale.saleOrderRef || "");
+                // Auto-set mode based on hasPartialDelivery flag
+                if (data.sale.hasPartialDelivery) {
+                    setShipmentMode("split");
+                }
             } catch (err) {
                 if (!isActive) return;
                 setError(err instanceof Error ? err.message : "Failed to fetch sale");
@@ -414,6 +423,7 @@ export default function FulfillmentDetailPage({
         !!saleData?.sale.status &&
         DELIVERY_STATUSES.includes(saleData.sale.status);
     const isInTransit = saleData?.sale.status === "DELIVERED" || sale.status === "DELIVERY_COMPLETED" || sale.status === "COMPLETED";
+    const isSplitMode = shipmentMode === "split";
 
     return (
         <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -431,14 +441,74 @@ export default function FulfillmentDetailPage({
                 <CreditInfoCard creditInfo={saleData.creditInfo} />
             )}
 
-            {stockWarnings.length > 0 && !skipStockCheck && (
+            {stockWarnings.length > 0 && !skipStockCheck && !isSplitMode && (
                 <StockWarningAlert stockWarnings={stockWarnings} />
             )}
 
             <ItemsCard sale={sale} />
 
-            {/* Split Shipment Section — แสดงเมื่อมี shipment อยู่แล้ว */}
-            {saleData.sale.hasPartialDelivery && (
+            {/* ===== ตัวเลือกรูปแบบการจัดส่ง ===== */}
+            {["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED"].includes(sale.status) && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center gap-2 mb-1">
+                            <ArrowRightLeft className="h-5 w-5 text-gray-600" />
+                            <h2 className="text-base font-semibold text-gray-800">รูปแบบการจัดส่ง</h2>
+                        </div>
+                        <p className="text-xs text-gray-500">เลือกวิธีการจัดส่งสินค้าในคำสั่งขายนี้</p>
+                    </div>
+                    <div className="p-4 flex gap-3">
+                        {/* Normal mode */}
+                        <button
+                            type="button"
+                            onClick={() => setShipmentMode("normal")}
+                            disabled={sale.hasPartialDelivery}
+                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
+                                !isSplitMode
+                                    ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
+                                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            <Truck className={`h-6 w-6 ${!isSplitMode ? "text-blue-600" : "text-gray-400"}`} />
+                            <div className="text-center">
+                                <p className="text-sm font-semibold">จัดส่งปกติ</p>
+                                <p className="text-xs mt-0.5 opacity-75">จัดส่งครั้งเดียวทั้งหมด</p>
+                            </div>
+                            {!isSplitMode && (
+                                <span className="mt-1 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">เลือกอยู่</span>
+                            )}
+                        </button>
+
+                        {/* Split Shipment mode */}
+                        <button
+                            type="button"
+                            onClick={() => setShipmentMode("split")}
+                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
+                                isSplitMode
+                                    ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm"
+                                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                            }`}
+                        >
+                            <SplitSquareVertical className={`h-6 w-6 ${isSplitMode ? "text-purple-600" : "text-gray-400"}`} />
+                            <div className="text-center">
+                                <p className="text-sm font-semibold">Split Shipment</p>
+                                <p className="text-xs mt-0.5 opacity-75">จัดส่งแบบแบ่งงวด</p>
+                            </div>
+                            {isSplitMode && (
+                                <span className="mt-1 inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">เลือกอยู่</span>
+                            )}
+                        </button>
+                    </div>
+                    {sale.hasPartialDelivery && !isSplitMode && (
+                        <p className="px-6 pb-4 text-xs text-amber-600">
+                            * มีการสร้าง Shipment แล้ว ไม่สามารถเปลี่ยนกลับเป็นจัดส่งปกติได้
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Split Shipment Section */}
+            {isSplitMode && (
                 <div className="bg-white rounded-xl border border-purple-200 overflow-hidden shadow-sm">
                     <div className="flex items-center justify-between px-6 py-4 border-b border-purple-100 bg-purple-50/50">
                         <div className="flex items-center gap-2">
@@ -447,7 +517,15 @@ export default function FulfillmentDetailPage({
                         </div>
                         <CreateShipmentDialog
                             saleId={id}
-                            remainingByItem={remainingByItem}
+                            remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
+                                saleItemId: item.id,
+                                productCode: item.productCode || item.product?.productCode || "",
+                                productName: item.name || item.product?.name || "",
+                                unit: item.unit || item.product?.unit || "",
+                                totalQuantity: item.quantity,
+                                allocatedQuantity: 0,
+                                remainingQuantity: item.quantity,
+                            }))}
                             shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
                             onCreated={async () => {
                                 await loadShipments();
@@ -483,38 +561,10 @@ export default function FulfillmentDetailPage({
                 </div>
             )}
 
-            {/* ปุ่มเริ่ม Split Shipment — แสดงเมื่อยังไม่เคยสร้าง shipment */}
-            {!saleData.sale.hasPartialDelivery &&
-                ["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY"].includes(sale.status) && (
-                    <div className="flex justify-end">
-                        <CreateShipmentDialog
-                            saleId={id}
-                            remainingByItem={remainingByItem.length > 0 ? remainingByItem : sale.items.map((item: any) => ({
-                                saleItemId: item.id,
-                                productCode: item.productCode || item.product?.productCode || "",
-                                productName: item.name || item.product?.name || "",
-                                unit: item.unit || item.product?.unit || "",
-                                totalQuantity: item.quantity,
-                                allocatedQuantity: 0,
-                                remainingQuantity: item.quantity,
-                            }))}
-                            shippingCompanies={shippingCompanies.map(sc => ({ id: sc.id, name: sc.name }))}
-                            onCreated={async () => {
-                                await loadShipments();
-                                const res = await fetch(`/api/sales/${id}`);
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    setSaleData(data);
-                                    setStatus(data.sale.status);
-                                }
-                            }}
-                            creditDays={sale.creditDays || 0}
-                        />
-                    </div>
-                )}
 
-
+            {/* Normal mode form — ซ่อนเมื่อเลือก Split Shipment */}
             <form onSubmit={handleSubmit} className="space-y-6">
+                {!isSplitMode && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <SectionHeader icon={<FileText className="h-6 w-6" />} title="ข้อมูลการขาย" />
                     <div className="p-6 space-y-6">
@@ -670,7 +720,9 @@ export default function FulfillmentDetailPage({
                         </div>
                     </div>
                 </div>
+                )} {/* end !isSplitMode — ข้อมูลการขาย */}
 
+                {!isSplitMode && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <SectionHeader
                         icon={<CreditCard className="h-6 w-6" />}
@@ -712,7 +764,9 @@ export default function FulfillmentDetailPage({
                         </div>
                     </div>
                 </div>
+                )} {/* end !isSplitMode — ข้อมูลการชำระเงิน */}
 
+                {!isSplitMode && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <SectionHeader icon={<Package className="h-6 w-6" />} title="ข้อมูลสต็อกสินค้า" />
                     <div className="p-6 space-y-3">
@@ -739,7 +793,9 @@ export default function FulfillmentDetailPage({
                         </div>
                     </div>
                 </div>
+                )} {/* end !isSplitMode — ข้อมูลสต็อกสินค้า */}
 
+                {!isSplitMode && (
                 <div className="pt-2 space-y-4">
                     <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
                         <Button
@@ -791,6 +847,44 @@ export default function FulfillmentDetailPage({
                     </div>
                     <div className="w-full h-12 sm:hidden"></div>
                 </div>
+                )} {/* end !isSplitMode — action buttons */}
+
+                {/* Split mode: แสดงเฉพาะปุ่ม PDF และ Back */}
+                {isSplitMode && (
+                <div className="pt-2 space-y-4">
+                    <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
+                        <Button
+                            asChild
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
+                        >
+                            <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                <FileText className="h-4 w-4 mr-2" />
+                                ดูเอกสาร PDF
+                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                            </Link>
+                        </Button>
+                        <Button
+                            asChild
+                            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
+                        >
+                            <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                <FileText className="h-4 w-4 mr-2" />
+                                ดูเอกสารพิเศษ PDF
+                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                            </Link>
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => router.back()}
+                            className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
+                        >
+                            <X className="h-4 w-4" />
+                            กลับ
+                        </Button>
+                    </div>
+                    <div className="w-full h-12 sm:hidden"></div>
+                </div>
+                )} {/* end isSplitMode — split action buttons */}
             </form>
         </div>
     );
