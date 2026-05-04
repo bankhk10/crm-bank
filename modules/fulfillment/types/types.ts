@@ -97,6 +97,8 @@ export interface ShipmentItemRecord {
     quantity: number;
     unitPrice?: number;
     totalPrice?: number;
+    packageSizePerBox?: number | string | null;
+    promotionBudget?: number | null;
   };
 }
 

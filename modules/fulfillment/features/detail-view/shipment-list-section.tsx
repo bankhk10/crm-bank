@@ -234,32 +234,63 @@ function ShipmentCard({
                   <TableHead className="h-7 text-xs">สินค้า</TableHead>
                   <TableHead className="h-7 text-right text-xs">จำนวน</TableHead>
                   <TableHead className="h-7 text-xs">หน่วย</TableHead>
+                  <TableHead className="h-7 text-center text-xs">บรรจุ</TableHead>
                   <TableHead className="h-7 text-right text-xs">ราคา/หน่วย</TableHead>
-                  <TableHead className="h-7 text-right text-xs">รวม</TableHead>
+                  <TableHead className="h-7 text-right text-xs">ราคา/ลัง</TableHead>
+                  <TableHead className="h-7 text-right text-xs">งบ/ลัง</TableHead>
+                  <TableHead className="h-7 text-right text-xs">ราคารวม</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {shipment.items.map((item) => (
-                  <TableRow key={item.id} className="text-xs">
-                    <TableCell className="py-1.5">
-                      <span className="font-medium">{item.saleItem.productCode}</span>
-                      <br />
-                      <span className="text-muted-foreground">{item.saleItem.name}</span>
-                    </TableCell>
-                    <TableCell className="py-1.5 text-right font-semibold">
-                      {item.quantity}
-                    </TableCell>
-                    <TableCell className="py-1.5 text-muted-foreground">
-                      {item.saleItem.unit}
-                    </TableCell>
-                    <TableCell className="py-1.5 text-right text-muted-foreground">
-                      ฿{Number(item.unitPrice ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell className="py-1.5 text-right font-semibold text-foreground">
-                      ฿{Number(item.totalPrice ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {shipment.items.map((item) => {
+                  const qty = item.quantity;
+                  const unitPrice = Number(item.unitPrice ?? 0);
+                  const packSize = parseFloat(
+                    item.saleItem.packageSizePerBox?.toString() || "1"
+                  );
+                  const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                  const cartonPrice = unitPrice * multiplier;
+                  const promotionBudget = Number(item.saleItem.promotionBudget ?? 0);
+                  // ราคารวม = จำนวน × ราคา/ลัง
+                  const totalByCarton = qty * cartonPrice;
+
+                  return (
+                    <TableRow key={item.id} className="text-xs">
+                      <TableCell className="py-1.5">
+                        <span className="font-medium">{item.saleItem.productCode}</span>
+                        <br />
+                        <span className="text-muted-foreground">{item.saleItem.name}</span>
+                      </TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold">
+                        {qty}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-muted-foreground">
+                        {item.saleItem.unit}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-center text-muted-foreground">
+                        {item.saleItem.packageSizePerBox ?? "-"}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-right text-muted-foreground">
+                        ฿{unitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-foreground">
+                        ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-right">
+                        {promotionBudget > 0 ? (
+                          <span className="text-emerald-600 font-semibold">
+                            ฿{promotionBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-1.5 text-right font-semibold text-purple-700 dark:text-purple-300">
+                        ฿{totalByCarton.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             {/* Total row */}
@@ -268,7 +299,15 @@ function ShipmentCard({
                 {shipment.items.length} รายการ · {totalItems} ชิ้น
               </span>
               <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
-                มูลค่ารวม: ฿{totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                มูลค่ารวม: ฿{(() => {
+                  const total = shipment.items.reduce((sum, item) => {
+                    const unitPrice = Number(item.unitPrice ?? 0);
+                    const packSize = parseFloat(item.saleItem.packageSizePerBox?.toString() || "1");
+                    const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                    return sum + item.quantity * unitPrice * multiplier;
+                  }, 0);
+                  return total.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+                })()}
               </span>
             </div>
           </div>
