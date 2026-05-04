@@ -70,7 +70,11 @@ export function FulfillmentCards({
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-slate-500">
                                     <Calendar className="h-3.5 w-3.5" />
-                                    {format(new Date(sale.saleDate), "d MMM yy", { locale: th })}
+                                    {(() => {
+                                        const date = new Date(sale.saleDate);
+                                        const year = date.getFullYear() + 543;
+                                        return format(date, `d MMM ${year.toString().slice(-2)}`, { locale: th });
+                                    })()}
                                 </div>
                             </div>
                             <div className="text-right">

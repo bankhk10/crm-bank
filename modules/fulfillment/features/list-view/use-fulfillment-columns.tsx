@@ -37,10 +37,15 @@ export function useFulfillmentColumns() {
                 accessorKey: "saleDate",
                 header: "วันที่ออเดอร์",
                 meta: { width: 140 },
-                cell: (info) =>
-                    format(new Date(info.getValue() as string), "d MMM yyyy", {
+                cell: (info) => {
+                    const val = info.getValue() as string;
+                    if (!val) return "-";
+                    const date = new Date(val);
+                    const year = date.getFullYear() + 543;
+                    return format(date, `d MMM ${year}`, {
                         locale: th,
-                    }),
+                    });
+                },
             },
             {
                 accessorKey: "customer.name",
@@ -73,7 +78,9 @@ export function useFulfillmentColumns() {
                 cell: (info) => {
                     const val = info.getValue() as string;
                     if (!val) return "-";
-                    return format(new Date(val), "d MMM yyyy", {
+                    const date = new Date(val);
+                    const year = date.getFullYear() + 543;
+                    return format(date, `d MMM ${year}`, {
                         locale: th,
                     });
                 },
