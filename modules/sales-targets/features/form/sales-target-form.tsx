@@ -163,14 +163,14 @@ export function SalesTargetForm({ mode, initialData }: SalesTargetFormProps) {
             });
 
             // Fetch Customers
-            const custRes = await fetch("/api/customers?perPage=200");
+            const custRes = await fetch("/api/customers?perPage=1000");
             if (custRes.ok) {
                 const data = await custRes.json();
                 setCustomers(data.customers || data);
             }
 
             // Fetch Products
-            const prodRes = await fetch("/api/products?perPage=200&status=ACTIVE");
+            const prodRes = await fetch("/api/products?perPage=1000&status=ACTIVE");
             if (prodRes.ok) {
                 const data = await prodRes.json();
                 setProducts(data.products || data);
@@ -767,7 +767,7 @@ function StoreCard({
                     onChange={(val) => onAddItem(storeIndex, val)}
                     options={availableProducts.map((p) => ({
                         value: p.id,
-                        label: `${p.name} (${p.productCode || "-"})`,
+                        label: `${p.productCode || "-"} - ${p.name} `,
                     }))}
                     placeholder="+ ค้นหาและเลือกสินค้า..."
                     searchPlaceholder="ค้นหาสินค้า..."
