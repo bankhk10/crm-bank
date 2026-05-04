@@ -278,7 +278,6 @@ export function renderSpecialInvoiceTemplate(data: SpecialInvoiceData): string {
 </head>
 <body>
   <div class="page">
-    <div class="special-watermark">เอกสารพิเศษ</div>
     <div class="header">
       <div class="company-block">
         ${base64Logo ? `<img src="${base64Logo}" alt="logo" class="company-logo" />` : ""}
