@@ -2,6 +2,7 @@
 
 import React, { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { addDays } from "date-fns";
 import {
     AlertTriangle,
@@ -14,6 +15,7 @@ import {
     Save,
     Truck,
     X,
+    ExternalLink,
 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -722,11 +724,31 @@ export default function FulfillmentDetailPage({
                 </div>
 
                 <div className="pt-2 space-y-4">
-                    <div className="flex justify-center sm:flex-col-reverse sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-6">
+                    <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
+                        <Button
+                            asChild
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
+                        >
+                            <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                <FileText className="h-4 w-4 mr-2" />
+                                ดูเอกสาร PDF
+                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                            </Link>
+                        </Button>
+                        <Button
+                            asChild
+                            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
+                        >
+                            <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                <FileText className="h-4 w-4 mr-2" />
+                                ดูเอกสารพิเศษ PDF
+                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                            </Link>
+                        </Button>
                         <Button
                             type="button"
                             onClick={() => router.back()}
-                            className="w-32 sm:w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
+                            className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
                             disabled={submitting}
                         >
                             <X className="h-4 w-4" />
@@ -735,7 +757,7 @@ export default function FulfillmentDetailPage({
                         <Button
                             type="submit"
                             disabled={submitting}
-                            className="w-32 sm:w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm transition-all"
+                            className="w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm transition-all"
                         >
                             {submitting ? (
                                 <>
