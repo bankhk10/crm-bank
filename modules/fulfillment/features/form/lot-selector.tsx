@@ -240,9 +240,9 @@ export function LotSelector({
                               <span className="font-normal text-slate-800">
                                 เลขที่ LOT: {lot.lotNumber}
                               </span>
-                              <Badge variant="secondary" className="text-base">
+                              {/* <Badge variant="secondary" className="text-base">
                                 คงเหลือ: {remainingLotQty}
-                              </Badge>
+                              </Badge> */}
                             </div>
                             <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
                               {lot.expiryDate && (
