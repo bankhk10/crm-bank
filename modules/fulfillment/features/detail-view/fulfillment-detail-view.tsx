@@ -610,7 +610,9 @@ export default function FulfillmentDetailPage({
                                         }}
                                         label=""
                                         placeholder="เลือกวันที่จัดส่ง"
-                                        disabled={status !== "DELIVERED"}
+                                        disabled={
+                                            !["AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status)
+                                        }
                                     />
                                 </div>
                                 {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
