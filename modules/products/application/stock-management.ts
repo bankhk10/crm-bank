@@ -114,7 +114,7 @@ export async function releaseStockUseCase(
     throw new Error("Sale not found");
   }
 
-  const hadDeliveryDate = !!sale.deliveryDate;
+  const hadDeliveryDate = !!sale.deliveryDate && ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(sale.status);
 
   const release = async (client: Prisma.TransactionClient) => {
     for (const item of sale.items) {

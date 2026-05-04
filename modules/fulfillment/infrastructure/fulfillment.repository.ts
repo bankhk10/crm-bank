@@ -193,36 +193,34 @@ export const FulfillmentRepository = {
         }
       }
 
-      // Handle stock status transition based on delivery date change
-      if (deliveryDate !== undefined && status !== "CANCELLED") {
-        const newDate = deliveryDate ? new Date(deliveryDate) : null;
+      if (!shouldReleaseResources) {
+        // Handle stock status transition based on delivery date and status change
+        const targetStatus = status || sale.status;
+        const isDeliveryStatus = (st: string) => ["DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(st);
+        
+        const newDate = deliveryDate !== undefined ? (deliveryDate ? new Date(deliveryDate) : null) : sale.deliveryDate;
         const oldDate = sale.deliveryDate;
 
-        if (!oldDate && newDate) {
+        const oldWasDeducted = !!oldDate && isDeliveryStatus(sale.status) && sale.status !== "CANCELLED";
+        const newShouldBeDeducted = !!newDate && isDeliveryStatus(targetStatus) && targetStatus !== "CANCELLED";
+
+        if (!oldWasDeducted && newShouldBeDeducted) {
           if (lotAllocations && lotAllocations.length > 0) {
             await confirmStockDeductionWithLots(id, lotAllocations, tx);
           } else {
             await confirmStockDeduction(id, tx);
           }
-        } else if (oldDate && !newDate) {
+        } else if (oldWasDeducted && !newShouldBeDeducted) {
           await revertStockDeductionFromLots(id, tx);
         } else if (
-          oldDate &&
-          newDate &&
-          lotAllocations &&
+          oldWasDeducted && 
+          newShouldBeDeducted && 
+          lotAllocations && 
           lotAllocations.length > 0
         ) {
           await revertStockDeductionFromLots(id, tx);
           await confirmStockDeductionWithLots(id, lotAllocations, tx);
         }
-      } else if (
-        lotAllocations &&
-        lotAllocations.length > 0 &&
-        sale.deliveryDate &&
-        status !== "CANCELLED"
-      ) {
-        await revertStockDeductionFromLots(id, tx);
-        await confirmStockDeductionWithLots(id, lotAllocations, tx);
       }
 
       // Handle Credit Limit restoration on Payment (for non-PREPAID)
