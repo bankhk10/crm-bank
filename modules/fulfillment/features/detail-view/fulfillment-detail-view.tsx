@@ -3,6 +3,7 @@
 import React, { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { addDays } from "date-fns";
 import {
     AlertTriangle,
@@ -375,9 +376,23 @@ export default function FulfillmentDetailPage({
                 throw new Error(result.error || "Failed to update fulfillment");
             }
 
-            setTimeout(() => {
-                router.push("/fulfillment");
-            }, 500);
+            toast.success("บันทึกข้อมูลสำเร็จ");
+            setSubmitting(false);
+
+            // Refresh data from server to show latest status
+            const res = await fetch(`/api/sales/${id}`);
+            if (res.ok) {
+                const data = (await res.json()) as SaleDetailResponse;
+                setSaleData(data);
+                setStockWarnings(data.stockWarnings || []);
+                setStatus(data.sale.status);
+                setDeliveryDate(toInputDate(data.sale.deliveryDate));
+                setDueDate(toInputDate(data.sale.creditDueDate));
+                setPaymentDate(toInputDate(data.sale.paymentDate));
+                setNotes(data.sale.notes || "");
+                setShippingCompanyId(data.sale.saleAddress?.shippingCompanyAddressId || "");
+                setSaleOrderRef(data.sale.saleOrderRef || "");
+            }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
             setSubmitting(false);
