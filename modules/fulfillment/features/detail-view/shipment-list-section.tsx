@@ -152,7 +152,6 @@ function ShipmentCard({
                 การจัดส่งครั้งที่ {shipment.shipmentNumber}
               </CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {shipment.shippingCompany?.name || "ไม่ระบุบริษัทขนส่ง"}
                 {shipment.salesOrderNumber && ` · เลขที่คำสั่งขาย: ${shipment.salesOrderNumber}`}
               </p>
             </div>
@@ -315,18 +314,6 @@ function ShipmentCard({
             >
               <CheckCircle2 className="h-3 w-3" />
               ยืนยันส่งเสร็จแล้ว
-            </Button>
-          )}
-          {(shipment.status === "PENDING" || shipment.status === "IN_TRANSIT") && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 border-red-200 text-red-600 hover:bg-red-50 text-xs"
-              disabled={isPending}
-              onClick={() => handleStatusChange("CANCELLED")}
-            >
-              <XCircle className="h-3 w-3" />
-              ยกเลิก
             </Button>
           )}
           <Button
