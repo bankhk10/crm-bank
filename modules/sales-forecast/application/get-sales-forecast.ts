@@ -1,7 +1,7 @@
 import { SalesForecastResponse } from "../types";
 import {
   findSalesTargetsWithDetails,
-  findCompletedSalesSummary,
+  findActualSalesWithShipments,
   findTradeNameGroups,
 } from "../infrastructure/sales-forecast.repository";
 
@@ -26,27 +26,42 @@ export async function getSalesForecastUseCase(
 
   const startDate = new Date(year, 0, 1);
   const endDate = new Date(year, 11, 31, 23, 59, 59);
-  const salesPromise = findCompletedSalesSummary(startDate, endDate);
+  const salesPromise = findActualSalesWithShipments(startDate, endDate);
 
   const groupsPromise = findTradeNameGroups();
 
-  const [targets, sales, groups] = (await Promise.all([
+  const [targets, salesData, groups] = (await Promise.all([
     targetsPromise,
     salesPromise,
     groupsPromise,
-  ])) as [any[], any[], any[]];
+  ])) as [any[], any, any[]];
 
   // Process sales summary
+  // สำหรับ Split Shipment: นับแต่ละ Shipment ตาม scheduledDate (วันที่จัดส่งของ)
+  // สำหรับ Legacy (ไม่มี Shipment): นับตาม deliveryDate → requestedDeliveryDate → saleDate
   const monthlyData: Record<number, number> = {};
   for (let i = 1; i <= 12; i++) {
     monthlyData[i] = 0;
   }
-  sales.forEach((sale) => {
-    if (sale.requestedDeliveryDate) {
-      const saleMonth = new Date(sale.requestedDeliveryDate).getMonth() + 1;
+
+  // 1. Shipment-based: ใช้ scheduledDate เป็นหลัก
+  salesData.shipments.forEach((shipment: any) => {
+    const dateToUse = shipment.scheduledDate || shipment.actualDate || shipment.sale?.requestedDeliveryDate;
+    if (dateToUse) {
+      const saleMonth = new Date(dateToUse).getMonth() + 1;
+      monthlyData[saleMonth] += Number(shipment.totalAmount) || 0;
+    }
+  });
+
+  // 2. Legacy: Sale ที่ไม่มี Shipment
+  salesData.legacySales.forEach((sale: any) => {
+    const dateToUse = sale.deliveryDate || sale.requestedDeliveryDate || sale.saleDate;
+    if (dateToUse) {
+      const saleMonth = new Date(dateToUse).getMonth() + 1;
       monthlyData[saleMonth] += Number(sale.totalAmount) || 0;
     }
   });
+
   const actualSales = Object.entries(monthlyData).map(([m, totalAmount]) => ({
     month: parseInt(m),
     totalAmount,

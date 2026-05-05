@@ -97,6 +97,65 @@ export async function findActualSalesYTD(year: number) {
 
 
 
+/**
+ * ดึงยอดขายจริง โดยแยก:
+ * 1. Shipment-based: แต่ละ Shipment นับตาม scheduledDate (วันที่จัดส่งของ)
+ * 2. Legacy: Sale ที่ไม่มี Shipment → นับตาม requestedDeliveryDate
+ * ใช้เกณฑ์เดียวกับ Dashboard Invoice
+ */
+export async function findActualSalesWithShipments(startDate: Date, endDate: Date) {
+  // 1. Shipment-based: แต่ละ Shipment นับตาม scheduledDate ของตัวเอง
+  const shipments = await prisma.shipment.findMany({
+    where: {
+      status: {
+        in: ["DELIVERED", "IN_TRANSIT"],
+      },
+      OR: [
+        { scheduledDate: { gte: startDate, lte: endDate } },
+        { scheduledDate: null, actualDate: { gte: startDate, lte: endDate } },
+        { scheduledDate: null, actualDate: null, sale: { requestedDeliveryDate: { gte: startDate, lte: endDate } } }
+      ],
+      sale: { deletedAt: null },
+    },
+    select: {
+      scheduledDate: true,
+      actualDate: true,
+      totalAmount: true,
+      sale: {
+        select: {
+          requestedDeliveryDate: true,
+        },
+      },
+    },
+  });
+
+  // 2. Legacy: Sale ที่ไม่มี Shipment เลย
+  const INVOICE_SALE_STATUSES: SaleStatus[] = [
+    "PAID", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED",
+  ];
+
+  const legacySales = await prisma.sale.findMany({
+    where: {
+      OR: [
+        { deliveryDate: { gte: startDate, lte: endDate } },
+        { deliveryDate: null, requestedDeliveryDate: { gte: startDate, lte: endDate } },
+        { deliveryDate: null, requestedDeliveryDate: null, saleDate: { gte: startDate, lte: endDate } },
+      ],
+      deletedAt: null,
+      status: { in: INVOICE_SALE_STATUSES },
+      shipments: { none: {} },
+    },
+    select: {
+      deliveryDate: true,
+      requestedDeliveryDate: true,
+      saleDate: true,
+      totalAmount: true,
+    },
+  });
+
+  return { shipments, legacySales };
+}
+
 export async function findTradeNameGroups() {
   return prisma.tradeNameGroup.findMany({
     where: { deletedAt: null },
