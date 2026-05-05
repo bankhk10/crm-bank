@@ -299,7 +299,7 @@ export async function aggregateDeliveredShipmentAmount(
   const shipmentResult = await prisma.shipment.aggregate({
     where: {
       status: {
-        in: ["DELIVERED", "IN_TRANSIT"],
+        in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"],
       },
       OR: [
         { scheduledDate: { gte: start, lte: end } },
@@ -350,7 +350,7 @@ export async function findDeliveredShipmentItemsWithDetails(
     where: {
       shipment: {
         status: {
-          in: ["DELIVERED", "IN_TRANSIT"],
+          in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"],
         },
         OR: [
           { scheduledDate: { gte: start, lte: end } },
@@ -437,7 +437,7 @@ export async function findDeliveredShipmentsWithProvince(
   const shipments = await prisma.shipment.findMany({
     where: {
       status: {
-        in: ["DELIVERED", "IN_TRANSIT"],
+        in: ["DELIVERED", "IN_TRANSIT", "COMPLETED"],
       },
       OR: [
         { scheduledDate: { gte: start, lte: end } },
