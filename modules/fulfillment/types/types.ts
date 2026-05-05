@@ -79,7 +79,7 @@ export interface LotSelectorProps {
 // Split Shipment Types
 // ──────────────────────────────────────────
 
-export type ShipmentStatusType = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+export type ShipmentStatusType = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "CANCELLED";
 
 export interface ShipmentItemRecord {
   id: string;

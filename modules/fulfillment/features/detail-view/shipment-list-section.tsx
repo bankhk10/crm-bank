@@ -322,7 +322,7 @@ function ShipmentCard({
 
         {/* Action buttons */}
         <div className="flex flex-wrap gap-2 pt-1">
-          {(shipment.status === "PENDING" || shipment.status === "DELIVERED") && (
+          {(shipment.status === "PENDING" || shipment.status === "DELIVERED" || shipment.status === "COMPLETED") && (
             <CreateShipmentDialog
               saleId={shipment.saleId}
               shipment={shipment}

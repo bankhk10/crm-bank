@@ -12,7 +12,7 @@ export interface CreateShipmentData {
 }
 
 export interface UpdateShipmentData {
-  status?: "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+  status?: "PENDING" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "CANCELLED";
   scheduledDate?: Date | null;
   actualDate?: Date | null;
   paymentDate?: Date | null;
@@ -250,7 +250,7 @@ export const ShipmentRepository = {
       where: {
         shipment: {
           saleId,
-          status: "DELIVERED",
+          status: { in: ["DELIVERED", "COMPLETED"] },
         },
       },
       select: {

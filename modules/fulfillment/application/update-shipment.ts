@@ -24,14 +24,20 @@ export async function updateShipmentUseCase(
 
   const { sale } = shipment;
   const prevStatus = shipment.status;
-  const newStatus = validatedData.status;
+  let newStatus = validatedData.status;
+
+  // ถ้าใส่วันที่ชำระเงินมา ให้สถานะ Shipment นั้นเป็นสถานะ เสร็จสิ้น (COMPLETED)
+  if (validatedData.paymentDate) {
+    newStatus = "COMPLETED";
+  }
 
   // Validate transitions
-  if (newStatus) {
+  if (newStatus && newStatus !== prevStatus) {
     const validTransitions: Record<string, string[]> = {
-      PENDING: ["IN_TRANSIT", "CANCELLED"],
-      IN_TRANSIT: ["DELIVERED", "CANCELLED"],
-      DELIVERED: ["CANCELLED"],
+      PENDING: ["IN_TRANSIT", "COMPLETED", "CANCELLED"],
+      IN_TRANSIT: ["DELIVERED", "COMPLETED", "CANCELLED"],
+      DELIVERED: ["COMPLETED", "CANCELLED"],
+      COMPLETED: ["CANCELLED"],
       CANCELLED: [],
     };
     if (!validTransitions[prevStatus]?.includes(newStatus)) {
@@ -43,7 +49,7 @@ export async function updateShipmentUseCase(
 
   // Build update payload
   const updatePayload: Parameters<typeof ShipmentRepository.updateShipment>[1] = {
-    ...(validatedData.status && { status: validatedData.status }),
+    ...(newStatus && { status: newStatus }),
     ...(validatedData.scheduledDate !== undefined && {
       scheduledDate: validatedData.scheduledDate
         ? new Date(validatedData.scheduledDate)
@@ -100,10 +106,10 @@ export async function updateShipmentUseCase(
     // 3. เมื่อ DELIVERED: บันทึก actualDate เท่านั้น (ไม่ต้องหักสต็อกซ้ำ ทำไปแล้วที่ IN_TRANSIT)
     // Sale.status ไม่ต้องเปลี่ยนแปลงเพิ่มเติม
 
-    // 4. เมื่อ CANCELLED จาก IN_TRANSIT หรือ DELIVERED: คืนสต็อก (reverse)
+    // 4. เมื่อ CANCELLED จาก IN_TRANSIT, DELIVERED หรือ COMPLETED: คืนสต็อก (reverse)
     if (
       newStatus === "CANCELLED" &&
-      (prevStatus === "IN_TRANSIT" || prevStatus === "DELIVERED")
+      (prevStatus === "IN_TRANSIT" || prevStatus === "DELIVERED" || prevStatus === "COMPLETED")
     ) {
       // คืน reservedQuantity และ physicalBalance ต่อสินค้าแต่ละรายการในรอบนี้
       for (const item of shipment.items) {
@@ -124,7 +130,7 @@ export async function updateShipmentUseCase(
         tx,
       );
       const hasAnyActive = await tx.shipment.count({
-        where: { saleId: sale.id, status: { in: ["IN_TRANSIT", "DELIVERED"] } },
+        where: { saleId: sale.id, status: { in: ["IN_TRANSIT", "DELIVERED", "COMPLETED"] } },
       });
 
       let newSaleStatus: string;
@@ -163,16 +169,16 @@ export async function updateShipmentUseCase(
         // ดึง Shipment ทั้งหมดของ Sale ที่ไม่ถูก CANCELLED
         const allActiveShipments = await tx.shipment.findMany({
           where: { saleId: sale.id, status: { not: "CANCELLED" } },
-          select: { id: true, paymentDate: true },
+          select: { id: true, status: true, paymentDate: true },
         });
 
-        // ตรวจสอบว่ามี Shipment อย่างน้อย 1 รายการ และทุกรายการมี paymentDate
+        // ตรวจสอบว่ามี Shipment อย่างน้อย 1 รายการ และทุกรายการมีสถานะเป็น COMPLETED
         const hasShipments = allActiveShipments.length > 0;
-        const allHavePaymentDate = allActiveShipments.every(
-          (s) => s.paymentDate !== null,
+        const allCompleted = allActiveShipments.every(
+          (s) => s.status === "COMPLETED" || s.paymentDate !== null, // Fallback check paymentDate
         );
 
-        if (hasShipments && allHavePaymentDate) {
+        if (hasShipments && allCompleted) {
           // หา paymentDate ล่าสุดสำหรับบันทึกลง Sale
           const latestPaymentDate = allActiveShipments.reduce(
             (latest, s) =>

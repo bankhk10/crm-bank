@@ -96,7 +96,7 @@ export const STATUS_STYLE: Record<
   },
 };
 
-export type ShipmentStatus = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+export type ShipmentStatus = "PENDING" | "IN_TRANSIT" | "DELIVERED" | "COMPLETED" | "CANCELLED";
 
 export const SHIPMENT_STATUS_STYLE: Record<
   ShipmentStatus,
@@ -119,6 +119,12 @@ export const SHIPMENT_STATUS_STYLE: Record<
     className:
       "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100",
     dot: "bg-emerald-500",
+  },
+  COMPLETED: {
+    label: "เสร็จสิ้น",
+    className:
+      "bg-green-100 text-green-800 ring-1 ring-green-300 dark:bg-green-900/40 dark:text-green-100",
+    dot: "bg-green-600",
   },
   CANCELLED: {
     label: "ยกเลิก",

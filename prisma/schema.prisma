@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -108,11 +108,11 @@ model User {
   saleStatusChanges              SaleStatusHistory[]      @relation("StatusHistoryUser")
   createdShipments               Shipment[]               @relation("ShipmentCreator") // Split Shipment\r\n
   // Logging relations
-  auditLogs              AuditLog[]            @relation("AuditLogUser")
-  securityLogs           SecurityLog[]         @relation("SecurityLogUser")
-  targetedSecurityLogs   SecurityLog[]         @relation("SecurityLogTargetUser") // Existing
-  notifications          Notification[]        @relation("UserNotifications")
-  salesTargetHistories   SalesTargetHistory[]  @relation("SalesTargetHistoryUser")
+  auditLogs                      AuditLog[]               @relation("AuditLogUser")
+  securityLogs                   SecurityLog[]            @relation("SecurityLogUser")
+  targetedSecurityLogs           SecurityLog[]            @relation("SecurityLogTargetUser") // Existing
+  notifications                  Notification[]           @relation("UserNotifications")
+  salesTargetHistories           SalesTargetHistory[]     @relation("SalesTargetHistoryUser")
 }
 
 model Company {
@@ -484,8 +484,8 @@ model PromotionalBudgetDetail {
   id              String                @id @default(cuid())
   budgetId        String
   type            PromotionalBudgetType // ประเภทงบประมาณ
-  receivedAmount   Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ได้รับ
-  usedAmount       Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ใช้
+  receivedAmount  Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ได้รับ
+  usedAmount      Decimal?              @db.Decimal(15, 2) // ยอดเงินที่ใช้
   transactionDate DateTime              @default(now())
   description     String? // รายละเอียดการใช้งาน/หมายเหตุ
   saleId          String? // อ้างอิงเอกสารการขาย (ถ้ามี)
@@ -520,7 +520,7 @@ model ShippingCompany {
 
   customers CustomerShippingCompany[] // ลูกค้าที่ใช้บริการขนส่ง
   sales     Sale[]                    @relation("SaleShippingCompany") // การขายที่ใช้บริษัทขนส่งนี้
-  shipments Shipment[]               @relation("ShipmentShippingCompany") // Shipments ที่ใช้บริษัทขนส่งนี้
+  shipments Shipment[]                @relation("ShipmentShippingCompany") // Shipments ที่ใช้บริษัทขนส่งนี้
 }
 
 // Junction table สำหรับความสัมพันธ์ Many-to-Many ระหว่าง Customer และ ShippingCompany
@@ -568,7 +568,7 @@ model TradeNameGroup {
 // ประเภท (ABC Code) (Product ABC Types)
 model ProductABCTypes {
   id          String    @id @default(cuid())
-  code        String   // รหัสประเภทสินค้า
+  code        String // รหัสประเภทสินค้า
   name        String // ชื่อประเภทสินค้า
   description String? // รายละเอียดประเภทสินค้า
   createdAt   DateTime  @default(now())
@@ -646,11 +646,11 @@ model Product {
   categoryId       String? // FK to ProductCategory (หมวดสินค้า)
   productABCTypeId String? // FK to ProductABCTypes (ประเภท (ABC Code))
   productGroupId   String? // FK to ProductGroup (กลุ่มสินค้า)
-  
-  category         ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  productABCType   ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
-  tradeNameGroup   TradeNameGroup?  @relation(fields: [tradeNameGroupId], references: [id], onDelete: SetNull)
-  productGroup     ProductGroup?    @relation(fields: [productGroupId], references: [id], onDelete: SetNull)
+
+  category       ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  productABCType ProductABCTypes? @relation(fields: [productABCTypeId], references: [id], onDelete: SetNull)
+  tradeNameGroup TradeNameGroup?  @relation(fields: [tradeNameGroupId], references: [id], onDelete: SetNull)
+  productGroup   ProductGroup?    @relation(fields: [productGroupId], references: [id], onDelete: SetNull)
 
   images               ProductImage[]
   promotionItems       ProductPromotionItem[]
@@ -846,14 +846,14 @@ model Sale {
   rejectedAt      DateTime? // วันและเวลาที่ถูกไม่อนุมัติ
 
   // Signature (ข้อมูลการเซ็นชื่อ)
-  preparedBySignatureDate DateTime? // วันที่เซ็นชื่อ (ผู้จัดทำ)
-  preparedBySignatureImage String?   // รูปภาพลายเซ็น (ผู้จัดทำ)
-  
-  checkedBySignatureDate DateTime?  // วันที่เซ็นชื่อ (ผู้ตรวจสอบ)
-  checkedBySignatureImage String?    // รูปภาพลายเซ็น (ผู้ตรวจสอบ)
-  
-  approvedBySignatureDate DateTime? // วันที่เซ็นชื่อ (ผู้อนุมัติ)
-  approvedBySignatureImage String?   // รูปภาพลายเซ็น (ผู้อนุมัติ)
+  preparedBySignatureDate  DateTime? // วันที่เซ็นชื่อ (ผู้จัดทำ)
+  preparedBySignatureImage String? // รูปภาพลายเซ็น (ผู้จัดทำ)
+
+  checkedBySignatureDate  DateTime? // วันที่เซ็นชื่อ (ผู้ตรวจสอบ)
+  checkedBySignatureImage String? // รูปภาพลายเซ็น (ผู้ตรวจสอบ)
+
+  approvedBySignatureDate  DateTime? // วันที่เซ็นชื่อ (ผู้อนุมัติ)
+  approvedBySignatureImage String? // รูปภาพลายเซ็น (ผู้อนุมัติ)
 
   // Audit fields (ข้อมูลบันทึกระบบ)
   createdById String // รหัสผู้สร้างบันทึกการขาย
@@ -869,10 +869,10 @@ model Sale {
   pickupCompany   Company?         @relation("SalePickupCompany", fields: [pickupCompanyId], references: [id], onDelete: SetNull)
   shippingCompany ShippingCompany? @relation("SaleShippingCompany", fields: [shippingCompanyId], references: [id], onDelete: SetNull)
 
-  items              SaleItem[]
-  statusHistory      SaleStatusHistory[]
-  pointHistories     EmployeePointHistory[]
-  shipments          Shipment[] // การจัดส่งทั้งหมด (Split Shipment)
+  items          SaleItem[]
+  statusHistory  SaleStatusHistory[]
+  pointHistories EmployeePointHistory[]
+  shipments      Shipment[] // การจัดส่งทั้งหมด (Split Shipment)
 
   // Partial Delivery
   hasPartialDelivery Boolean @default(false) // true = มีการจัดส่งแบบแบ่งครั้ง
@@ -1050,24 +1050,25 @@ model SaleStatusHistory {
 // ==========================================
 
 enum ShipmentStatus {
-  PENDING      // สร้างแล้ว รอดำเนินการ
-  IN_TRANSIT   // ระหว่างขนส่ง
-  DELIVERED    // ส่งเสร็จแล้ว
-  CANCELLED    // ยกเลิก
+  PENDING    // สร้างแล้ว รอดำเนินการ
+  IN_TRANSIT // ระหว่างขนส่ง
+  DELIVERED  // ส่งเสร็จแล้ว
+  COMPLETED  // เสร็จสิ้น
+  CANCELLED  // ยกเลิก
 }
 
 model Shipment {
   id                String         @id @default(cuid())
   saleId            String
-  shipmentNumber    Int            // ลำดับที่ต่อ Sale (1, 2, 3...)
+  shipmentNumber    Int // ลำดับที่ต่อ Sale (1, 2, 3...)
   status            ShipmentStatus @default(PENDING)
-  scheduledDate     DateTime?      // วันกำหนดส่ง
-  actualDate        DateTime?      // วันส่งจริง
-  paymentDate       DateTime?      // วันที่ชำระเงิน
-  dueDate           DateTime?      // วันครบกำหนดชำระ
-  salesOrderNumber  String?        // เลขที่คำสั่งขาย
-  shippingCompanyId String?        // FK to ShippingCompany
-  notes             String?        // หมายเหตุ
+  scheduledDate     DateTime? // วันกำหนดส่ง
+  actualDate        DateTime? // วันส่งจริง
+  paymentDate       DateTime? // วันที่ชำระเงิน
+  dueDate           DateTime? // วันครบกำหนดชำระ
+  salesOrderNumber  String? // เลขที่คำสั่งขาย
+  shippingCompanyId String? // FK to ShippingCompany
+  notes             String? // หมายเหตุ
   totalAmount       Decimal        @default(0) @db.Decimal(15, 2) // มูลค่าสินค้าในรอบนี้
   createdById       String
   createdAt         DateTime       @default(now())
@@ -1084,12 +1085,12 @@ model Shipment {
 }
 
 model ShipmentItem {
-  id          String   @id @default(cuid())
-  shipmentId  String
-  saleItemId  String
-  quantity    Int      // จำนวนสินค้าที่ส่งในรอบนี้
-  unitPrice   Decimal  @default(0) @db.Decimal(15, 2) // ราคาต่อหน่วย ณ เวลาส่ง
-  totalPrice  Decimal  @default(0) @db.Decimal(15, 2) // quantity × unitPrice
+  id         String  @id @default(cuid())
+  shipmentId String
+  saleItemId String
+  quantity   Int // จำนวนสินค้าที่ส่งในรอบนี้
+  unitPrice  Decimal @default(0) @db.Decimal(15, 2) // ราคาต่อหน่วย ณ เวลาส่ง
+  totalPrice Decimal @default(0) @db.Decimal(15, 2) // quantity × unitPrice
 
   shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   saleItem SaleItem @relation("ShipmentItemSaleItem", fields: [saleItemId], references: [id], onDelete: Restrict)
@@ -1098,7 +1099,6 @@ model ShipmentItem {
   @@index([shipmentId])
   @@index([saleItemId])
 }
-
 
 // ==========================================
 // SALES TARGETS
@@ -1392,7 +1392,7 @@ model SalesTarget {
   month      Int
   employeeId String // พนักงาน
 
-  employee Employee              @relation(fields: [employeeId], references: [id])
+  employee Employee             @relation(fields: [employeeId], references: [id])
   stores   SalesTargetStore[]
   history  SalesTargetHistory[] // ประวัติการเปลี่ยนแปลง
 
@@ -1441,9 +1441,9 @@ model SalesTargetItem {
 // ==========================================
 
 enum SalesTargetChangeType {
-  CREATED  // สร้างใหม่
-  UPDATED  // แก้ไข
-  DELETED  // ลบ
+  CREATED // สร้างใหม่
+  UPDATED // แก้ไข
+  DELETED // ลบ
 }
 
 // ประวัติการเปลี่ยนแปลงเป้าหมายการขาย

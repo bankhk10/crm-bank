@@ -26,7 +26,7 @@ export const createShipmentSchema = z.object({
 // ──────────────────────────────────────────
 
 export const updateShipmentSchema = z.object({
-  status: z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "CANCELLED"]).optional(),
+  status: z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "COMPLETED", "CANCELLED"]).optional(),
   scheduledDate: z.string().nullable().optional(),
   actualDate: z.string().nullable().optional(),
   paymentDate: z.string().nullable().optional(),
