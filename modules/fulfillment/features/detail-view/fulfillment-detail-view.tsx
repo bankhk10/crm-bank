@@ -462,7 +462,7 @@ export default function FulfillmentDetailPage({
                         <button
                             type="button"
                             onClick={() => setShipmentMode("normal")}
-                            disabled={sale.hasPartialDelivery}
+                            disabled={sale.hasPartialDelivery || (!!deliveryDate && status === "DELIVERED")}
                             className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
                                 !isSplitMode
                                     ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
@@ -483,11 +483,12 @@ export default function FulfillmentDetailPage({
                         <button
                             type="button"
                             onClick={() => setShipmentMode("split")}
+                            disabled={!!deliveryDate && status === "DELIVERED"}
                             className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
                                 isSplitMode
                                     ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm"
                                     : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                            }`}
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             <SplitSquareVertical className={`h-6 w-6 ${isSplitMode ? "text-purple-600" : "text-gray-400"}`} />
                             <div className="text-center">
