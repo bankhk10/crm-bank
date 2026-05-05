@@ -163,13 +163,10 @@ export async function updateShipmentUseCase(
         select: { status: true },
       });
 
-      // เฉพาะ Sale ที่อยู่ในสถานะที่ควรตรวจสอบ (ไม่ใช่ CANCELLED)
+      // เปลี่ยนเป็น COMPLETED ได้เฉพาะเมื่อส่งครบทุกชิ้นแล้วเท่านั้น (DELIVERY_COMPLETED)
+      // ถ้าสถานะเป็น PARTIALLY_DELIVERED หรืออื่น ๆ แปลว่ายังมีของค้างส่ง ห้าม promote เป็น COMPLETED
       const checkableStatuses = [
-        "PARTIALLY_DELIVERED",
         "DELIVERY_COMPLETED",
-        "AWAITING_DELIVERY",
-        "PAID",
-        "AWAITING_PAYMENT",
       ];
 
       if (
