@@ -101,9 +101,9 @@ function ShipmentCard({
       if (result.success) {
         toast.success(
           newStatus === "IN_TRANSIT"
-            ? "อัพเดทสถานะเป็น ระหว่างขนส่ง แล้ว"
+            ? "ยืนยันจัดส่งแล้ว ตัดสต็อกและนับ Invoice เรียบร้อย"
             : newStatus === "DELIVERED"
-              ? "ยืนยันการส่งเสร็จแล้ว สต็อกถูกหักแล้ว"
+              ? "ยืนยันส่งเสร็จแล้ว บันทึก actualDate เรียบร้อย"
               : "อัพเดทสถานะแล้ว",
         );
         onUpdated();
@@ -341,7 +341,7 @@ function ShipmentCard({
               onClick={() => handleStatusChange("IN_TRANSIT")}
             >
               <Truck className="h-3 w-3" />
-              ยืนยันจัดส่ง
+              ยืนยันจัดส่ง (ตัดสต็อก)
             </Button>
           )}
           {shipment.status === "IN_TRANSIT" && (

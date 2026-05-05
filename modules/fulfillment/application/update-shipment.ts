@@ -7,9 +7,9 @@ import { confirmStockDeductionForShipmentUseCase } from "@/modules/products/appl
  * Use Case: Update a Shipment's status and metadata.
  *
  * Status transitions:
- *   PENDING → IN_TRANSIT  (กำลังส่ง → อัพเดท Sale.status = PARTIALLY_DELIVERED)
- *   IN_TRANSIT → DELIVERED (ส่งเสร็จแล้ว → หักสต็อก → ตรวจสอบว่าครบหรือยัง)
- *   * → CANCELLED         (ยกเลิก → ถ้า DELIVERED อยู่ ให้คืนสต็อก)
+ *   PENDING → IN_TRANSIT  (ยืนยันจัดส่ง → หักสต็อก → นับ Invoice → ตรวจสอบว่าส่งครบหรือยัง)
+ *   IN_TRANSIT → DELIVERED (ยืนยันส่งเสร็จ → บันทึก actualDate เท่านั้น ไม่ต้องหักสต็อกซ้ำ)
+ *   * → CANCELLED         (ยกเลิก → ถ้า IN_TRANSIT หรือ DELIVERED อยู่ ให้คืนสต็อก)
  */
 export async function updateShipmentUseCase(
   shipmentId: string,
@@ -77,48 +77,35 @@ export async function updateShipmentUseCase(
     // 1. อัพเดท Shipment record
     await ShipmentRepository.updateShipment(shipmentId, updatePayload, tx);
 
-    // 2. เมื่อ DELIVERED: หักสต็อกตามจำนวนที่ส่งจริง
-    if (newStatus === "DELIVERED") {
+    // 2. เมื่อ IN_TRANSIT: หักสต็อก + นับ Invoice + ตรวจสอบส่งครบหรือยัง
+    if (newStatus === "IN_TRANSIT") {
+      // หักสต็อกตามจำนวนที่จัดส่งในรอบนี้ (FIFO)
       await confirmStockDeductionForShipmentUseCase(shipmentId, tx);
 
-      // 3. ตรวจสอบว่าทุก SaleItem ส่งครบแล้วหรือยัง
+      // ตรวจสอบว่าทุก SaleItem ถูก ship ครบแล้วหรือยัง
       const isFullyDelivered = await ShipmentRepository.isFullyDelivered(sale.id, tx);
 
       await tx.sale.update({
         where: { id: sale.id },
         data: {
           status: isFullyDelivered ? "DELIVERY_COMPLETED" : "PARTIALLY_DELIVERED",
-          // ตั้ง deliveryDate ของ Sale เป็น actualDate ของ shipment ล่าสุด (เพื่อ compatibility)
+          // ตั้ง deliveryDate ของ Sale เมื่อส่งครบ
           ...(isFullyDelivered && {
-            deliveryDate: updatePayload.actualDate ?? new Date(),
+            deliveryDate: updatePayload.scheduledDate ?? new Date(),
           }),
         },
       });
     }
 
-    // 4. เมื่อ IN_TRANSIT: อัพเดท Sale.status = PARTIALLY_DELIVERED (ถ้ายังไม่ใช่)
-    if (newStatus === "IN_TRANSIT") {
-      const currentSale = await tx.sale.findUnique({
-        where: { id: sale.id },
-        select: { status: true },
-      });
-      const alreadyDelivering = [
-        "PARTIALLY_DELIVERED",
-        "DELIVERY_COMPLETED",
-        "COMPLETED",
-      ].includes(currentSale?.status ?? "");
+    // 3. เมื่อ DELIVERED: บันทึก actualDate เท่านั้น (ไม่ต้องหักสต็อกซ้ำ ทำไปแล้วที่ IN_TRANSIT)
+    // Sale.status ไม่ต้องเปลี่ยนแปลงเพิ่มเติม
 
-      if (!alreadyDelivering) {
-        await tx.sale.update({
-          where: { id: sale.id },
-          data: { status: "PARTIALLY_DELIVERED" },
-        });
-      }
-    }
-
-    // 5. เมื่อ CANCELLED ที่เคย DELIVERED: คืนสต็อก (reverse)
-    if (newStatus === "CANCELLED" && prevStatus === "DELIVERED") {
-      // คืน reservedQuantity และ physicalBalance ต่อสินค้าแต่ละรายการ
+    // 4. เมื่อ CANCELLED จาก IN_TRANSIT หรือ DELIVERED: คืนสต็อก (reverse)
+    if (
+      newStatus === "CANCELLED" &&
+      (prevStatus === "IN_TRANSIT" || prevStatus === "DELIVERED")
+    ) {
+      // คืน reservedQuantity และ physicalBalance ต่อสินค้าแต่ละรายการในรอบนี้
       for (const item of shipment.items) {
         const productId = item.saleItem.productId;
         await tx.productStock.update({
@@ -136,14 +123,14 @@ export async function updateShipmentUseCase(
         sale.id,
         tx,
       );
-      const hasAnyDelivered = await tx.shipment.count({
-        where: { saleId: sale.id, status: "DELIVERED" },
+      const hasAnyActive = await tx.shipment.count({
+        where: { saleId: sale.id, status: { in: ["IN_TRANSIT", "DELIVERED"] } },
       });
 
       let newSaleStatus: string;
       if (isStillFullyDelivered) {
         newSaleStatus = "DELIVERY_COMPLETED";
-      } else if (hasAnyDelivered > 0) {
+      } else if (hasAnyActive > 0) {
         newSaleStatus = "PARTIALLY_DELIVERED";
       } else {
         newSaleStatus = "AWAITING_DELIVERY";
@@ -155,7 +142,7 @@ export async function updateShipmentUseCase(
       });
     }
 
-    // 6. ตรวจสอบ paymentDate ครบทุก Shipment → เปลี่ยน Sale.status เป็น COMPLETED
+    // 5. ตรวจสอบ paymentDate ครบทุก Shipment → เปลี่ยน Sale.status เป็น COMPLETED
     // ทำงานเมื่อมีการอัพเดท paymentDate (ไม่ว่าจะเป็นการ set ใหม่หรือมีอยู่แล้ว)
     if (validatedData.paymentDate !== undefined) {
       const currentSaleForPayment = await tx.sale.findUnique({
