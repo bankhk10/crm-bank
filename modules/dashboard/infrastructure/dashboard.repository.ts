@@ -296,7 +296,9 @@ export async function aggregateDeliveredShipmentAmount(
   // 1. Shipment-based: sum Shipment.totalAmount ที่ส่งเสร็จแล้ว
   const shipmentResult = await prisma.shipment.aggregate({
     where: {
-      status: "DELIVERED",
+      status: {
+        in: ["DELIVERED", "IN_TRANSIT"],
+      },
       OR: [
         { actualDate: { gte: start, lte: end } },
         { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
