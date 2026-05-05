@@ -294,15 +294,17 @@ export async function aggregateDeliveredShipmentAmount(
   ] as const;
 
   // 1. Shipment-based: sum Shipment.totalAmount ที่ส่งเสร็จแล้ว
+  // สำหรับ Split Shipment แต่ละ Shipment จะนับยอด Invoice ตามวันที่จัดส่งของ (scheduledDate) ของ Shipment นั้นๆ
+  // ลำดับ fallback: scheduledDate → actualDate → sale.requestedDeliveryDate
   const shipmentResult = await prisma.shipment.aggregate({
     where: {
       status: {
         in: ["DELIVERED", "IN_TRANSIT"],
       },
       OR: [
-        { actualDate: { gte: start, lte: end } },
-        { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
-        { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+        { scheduledDate: { gte: start, lte: end } },
+        { scheduledDate: null, actualDate: { gte: start, lte: end } },
+        { scheduledDate: null, actualDate: null, sale: { requestedDeliveryDate: { gte: start, lte: end } } }
       ],
       sale: { deletedAt: null },
     },
@@ -343,14 +345,17 @@ export async function findDeliveredShipmentItemsWithDetails(
   ];
 
   // 1. ShipmentItems จาก Shipment ที่ DELIVERED
+  // สำหรับ Split Shipment แต่ละ Shipment จะนับตาม scheduledDate (วันที่จัดส่งของ) ของ Shipment นั้นๆ
   const shipmentItems = await prisma.shipmentItem.findMany({
     where: {
       shipment: {
-        status: "DELIVERED",
+        status: {
+          in: ["DELIVERED", "IN_TRANSIT"],
+        },
         OR: [
-          { actualDate: { gte: start, lte: end } },
-          { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
-          { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+          { scheduledDate: { gte: start, lte: end } },
+          { scheduledDate: null, actualDate: { gte: start, lte: end } },
+          { scheduledDate: null, actualDate: null, sale: { requestedDeliveryDate: { gte: start, lte: end } } }
         ],
         sale: { deletedAt: null },
       },
@@ -428,13 +433,16 @@ export async function findDeliveredShipmentsWithProvince(
   ];
 
   // 1. Shipment-based
+  // สำหรับ Split Shipment แต่ละ Shipment จะนับตาม scheduledDate (วันที่จัดส่งของ) ของ Shipment นั้นๆ
   const shipments = await prisma.shipment.findMany({
     where: {
-      status: "DELIVERED",
+      status: {
+        in: ["DELIVERED", "IN_TRANSIT"],
+      },
       OR: [
-        { actualDate: { gte: start, lte: end } },
-        { actualDate: null, sale: { deliveryDate: { gte: start, lte: end } } },
-        { actualDate: null, sale: { deliveryDate: null, requestedDeliveryDate: { gte: start, lte: end } } }
+        { scheduledDate: { gte: start, lte: end } },
+        { scheduledDate: null, actualDate: { gte: start, lte: end } },
+        { scheduledDate: null, actualDate: null, sale: { requestedDeliveryDate: { gte: start, lte: end } } }
       ],
       sale: { deletedAt: null },
     },
