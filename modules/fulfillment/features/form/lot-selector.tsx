@@ -152,6 +152,10 @@ export function LotSelector({
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-2 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
+        <AlertCircle className="h-4 w-4" />
+        <span>ระบบได้ทำการเลือก LOT สินค้าให้อัตโนมัติตามลำดับวันที่สร้าง LOT จากเก่าไปใหม่ (FIFO)</span>
+      </div>
       {lotOptions.map((item) => {
         const totalAllocated = getTotalAllocated(item.saleItemId);
         const isComplete = totalAllocated === item.requiredQuantity;
@@ -269,16 +273,9 @@ export function LotSelector({
                               min={0}
                               max={remainingLotQty + currentAlloc}
                               value={currentAlloc || ""}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value) || 0;
-                                handleAllocationChange(
-                                  item.saleItemId,
-                                  lot.id,
-                                  Math.min(val, remainingLotQty + currentAlloc),
-                                );
-                              }}
-                              className="w-20 h-9 text-center"
-                              disabled={disabled}
+                              readOnly
+                              className="w-20 h-9 text-center bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200"
+                              disabled={true}
                             />
                           </div>
                         </div>

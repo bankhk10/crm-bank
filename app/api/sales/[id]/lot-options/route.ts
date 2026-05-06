@@ -23,7 +23,7 @@ interface SaleItemLotOptionsExtended {
 
 /**
  * Calculate suggested allocations based on required quantity
- * Uses LOTs with least stock first (ascending order)
+ * Uses LOTs with oldest creation date first (ascending order)
  */
 function calculateSuggestedAllocations(
   availableLots: LotInfo[],
@@ -32,7 +32,7 @@ function calculateSuggestedAllocations(
   const allocations: SuggestedAllocation[] = [];
   let remaining = requiredQuantity;
 
-  // LOTs are already sorted by quantity ascending from the repository
+  // LOTs are already sorted by creation date ascending from the repository
   for (const lot of availableLots) {
     if (remaining <= 0) break;
 
@@ -53,7 +53,7 @@ function calculateSuggestedAllocations(
 /**
  * GET /api/sales/[id]/lot-options
  * Get available LOT options for each sale item
- * Returns LOTs sorted by quantity (least first) with auto-suggested allocations
+ * Returns LOTs sorted by date (oldest first) with auto-suggested allocations
  */
 export async function GET(
   request: NextRequest,
@@ -98,7 +98,7 @@ export async function GET(
     const lotsByProduct = new Map<string, LotInfo[]>();
     for (const productId of uniqueProductIds) {
       const availableLots =
-        await StockRepository.getAvailableLotsOrderByQuantity(productId);
+        await StockRepository.getAvailableLotsOrderByDate(productId);
       lotsByProduct.set(
         productId,
         availableLots.map((lot) => ({

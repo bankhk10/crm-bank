@@ -316,7 +316,7 @@ export const FulfillmentRepository = {
     const items = await Promise.all(
       sale.items.map(async (item: any) => {
         const availableLots =
-          await StockRepository.getAvailableLotsOrderByQuantity(item.productId);
+          await StockRepository.getAvailableLotsOrderByDate(item.productId);
 
         const lotInfos: LotInfo[] = availableLots.map((lot) => ({
           id: lot.id,

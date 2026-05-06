@@ -8,7 +8,7 @@ import type { Prisma } from "@/lib/db";
 import type { StockLot, ProductStockSummary } from "../types/stock";
 
 /**
- * Get stock lots for a product ordered by lot number (FIFO)
+ * Get stock lots for a product ordered by lot creation date (FIFO)
  */
 export async function getAvailableLots(
   productId: string,
@@ -22,7 +22,7 @@ export async function getAvailableLots(
       isUsed: false,
       quantity: { gt: 0 },
     },
-    orderBy: { lotNumber: "asc" },
+    orderBy: { createdAt: "asc" },
   }) as unknown as Promise<StockLot[]>;
 }
 
@@ -41,7 +41,26 @@ export async function getAvailableLotsOrderByQuantity(
       isUsed: false,
       quantity: { gt: 0 },
     },
-    orderBy: { lotNumber: "asc" },
+    orderBy: { quantity: "asc" },
+  }) as unknown as Promise<StockLot[]>;
+}
+
+/**
+ * Get stock lots for a product ordered by creation date ascending (FIFO)
+ */
+export async function getAvailableLotsOrderByDate(
+  productId: string,
+  tx?: Prisma.TransactionClient,
+): Promise<StockLot[]> {
+  const db = tx || prisma;
+
+  return db.productStockLot.findMany({
+    where: {
+      productId,
+      isUsed: false,
+      quantity: { gt: 0 },
+    },
+    orderBy: { createdAt: "asc" },
   }) as unknown as Promise<StockLot[]>;
 }
 
@@ -170,7 +189,7 @@ export async function getFirstAvailableLot(
       productId,
       isUsed: false,
     },
-    orderBy: { lotNumber: "asc" },
+    orderBy: { createdAt: "asc" },
   });
 }
 
