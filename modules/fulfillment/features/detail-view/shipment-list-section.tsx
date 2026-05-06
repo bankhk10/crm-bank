@@ -191,13 +191,13 @@ function ShipmentCard({
             <TableHeader>
               <TableRow className="bg-muted/40">
                 <TableHead className="h-7 text-xs">สินค้า</TableHead>
-                <TableHead className="h-7 text-right text-xs">จำนวน</TableHead>
-                <TableHead className="h-7 text-xs">หน่วย</TableHead>
+                <TableHead className="h-7 text-center text-xs">จำนวน</TableHead>
+                <TableHead className="h-7 text-center text-xs">หน่วย</TableHead>
                 <TableHead className="h-7 text-center text-xs">บรรจุ</TableHead>
-                <TableHead className="h-7 text-right text-xs">ราคา/หน่วย</TableHead>
-                <TableHead className="h-7 text-right text-xs">ราคา/ลัง</TableHead>
-                <TableHead className="h-7 text-right text-xs">งบ/ลัง</TableHead>
-                <TableHead className="h-7 text-right text-xs">ราคารวม</TableHead>
+                <TableHead className="h-7 text-center text-xs">ราคา/หน่วย</TableHead>
+                <TableHead className="h-7 text-center text-xs">ราคา/ลัง</TableHead>
+                <TableHead className="h-7 text-center text-xs">งบ/ลัง</TableHead>
+                <TableHead className="h-7 text-center text-xs">ราคารวม</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -220,22 +220,20 @@ function ShipmentCard({
                       <br />
                       <span className="text-muted-foreground">{item.saleItem.productCode}</span>
                     </TableCell>
-                    <TableCell className="py-1.5 text-right font-semibold">
-                      {qty}
-                    </TableCell>
-                    <TableCell className="py-1.5 text-muted-foreground">
+                    <TableCell className="py-1.5 text-center">{qty}</TableCell>
+                    <TableCell className="py-1.5 text-center text-muted-foreground">
                       {item.saleItem.unit}
                     </TableCell>
                     <TableCell className="py-1.5 text-center text-muted-foreground">
                       {item.saleItem.packageSizePerBox ?? "-"}
                     </TableCell>
-                    <TableCell className="py-1.5 text-right text-muted-foreground">
+                    <TableCell className="py-1.5 text-center text-muted-foreground">
                       ฿{unitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                     </TableCell>
-                    <TableCell className="py-1.5 text-right font-semibold text-foreground">
+                    <TableCell className="py-1.5 text-center font-semibold text-foreground">
                       ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                     </TableCell>
-                    <TableCell className="py-1.5 text-right">
+                    <TableCell className="py-1.5 text-center">
                       {promotionBudget > 0 ? (
                         <span className="text-emerald-600 font-semibold">
                           ฿{promotionBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
@@ -244,7 +242,7 @@ function ShipmentCard({
                         <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
-                    <TableCell className="py-1.5 text-right font-semibold text-purple-700 dark:text-purple-300">
+                    <TableCell className="py-1.5 text-center font-semibold text-purple-700 dark:text-purple-300">
                       ฿{totalByCarton.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
                     </TableCell>
                   </TableRow>
