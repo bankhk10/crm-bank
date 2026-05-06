@@ -152,10 +152,6 @@ export function LotSelector({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-2 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">
-        <AlertCircle className="h-4 w-4" />
-        <span>ระบบได้ทำการเลือก LOT สินค้าให้อัตโนมัติตามลำดับวันที่สร้าง LOT จากเก่าไปใหม่ (FIFO)</span>
-      </div>
       {lotOptions.map((item) => {
         const totalAllocated = getTotalAllocated(item.saleItemId);
         const isComplete = totalAllocated === item.requiredQuantity;
