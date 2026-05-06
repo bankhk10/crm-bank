@@ -448,7 +448,7 @@ export default function FulfillmentDetailPage({
             <ItemsCard sale={sale} />
 
             {/* ===== ตัวเลือกรูปแบบการจัดส่ง ===== */}
-            {["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED"].includes(sale.status) && (
+            {/* {["APPROVED", "AWAITING_PAYMENT", "PAID", "AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "PARTIALLY_DELIVERED"].includes(sale.status) && (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-2 mb-1">
@@ -458,16 +458,14 @@ export default function FulfillmentDetailPage({
                         <p className="text-xs text-gray-500">เลือกวิธีการจัดส่งสินค้าในคำสั่งขายนี้</p>
                     </div>
                     <div className="p-4 flex gap-3">
-                        {/* Normal mode */}
                         <button
                             type="button"
                             onClick={() => setShipmentMode("normal")}
                             disabled={sale.hasPartialDelivery || (!!deliveryDate && status === "DELIVERED")}
-                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
-                                !isSplitMode
-                                    ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${!isSplitMode
+                                ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
+                                : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             <Truck className={`h-6 w-6 ${!isSplitMode ? "text-blue-600" : "text-gray-400"}`} />
                             <div className="text-center">
@@ -478,17 +476,14 @@ export default function FulfillmentDetailPage({
                                 <span className="mt-1 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">เลือกอยู่</span>
                             )}
                         </button>
-
-                        {/* Split Shipment mode */}
                         <button
                             type="button"
                             onClick={() => setShipmentMode("split")}
                             disabled={!!deliveryDate && status === "DELIVERED"}
-                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
-                                isSplitMode
-                                    ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm"
-                                    : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`flex-1 flex flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${isSplitMode
+                                ? "border-purple-500 bg-purple-50 text-purple-700 shadow-sm"
+                                : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                                } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             <SplitSquareVertical className={`h-6 w-6 ${isSplitMode ? "text-purple-600" : "text-gray-400"}`} />
                             <div className="text-center">
@@ -506,7 +501,7 @@ export default function FulfillmentDetailPage({
                         </p>
                     )}
                 </div>
-            )}
+            )} */}
 
             {/* Split Shipment Section */}
             {isSplitMode && (
@@ -566,325 +561,325 @@ export default function FulfillmentDetailPage({
             {/* Normal mode form — ซ่อนเมื่อเลือก Split Shipment */}
             <form onSubmit={handleSubmit} className="space-y-6">
                 {!isSplitMode && (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <SectionHeader icon={<FileText className="h-6 w-6" />} title="ข้อมูลการขาย" />
-                    <div className="p-6 space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-[#B91C1C]" />
-                                    เลขที่คำสั่งขาย
-                                </label>
-                                <input
-                                    type="text"
-                                    className="flex h-11 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="กรอกเลขที่คำสั่งขาย"
-                                    value={saleOrderRef}
-                                    onChange={(e) => setSaleOrderRef(e.target.value)}
-                                />
-                                <p className="text-xs text-gray-500 flex items-center gap-1.5">
-                                    <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
-                                    เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
-                                </p>
-                            </div>
-                            {/* 1. Payment Status */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <ClipboardCheck className="h-4 w-4 text-[#B91C1C]" />
-                                    สถานะ
-                                </label>
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger className="w-full h-12 border border-gray-200 hover:border-[#B91C1C]/40 focus:border-[#B91C1C] transition-colors rounded-lg shadow-sm">
-                                        <SelectValue placeholder="เลือกสถานะ" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        {FULFILLMENT_STATUSES.map((st) => {
-                                            const isDeliveryStatus =
-                                                DELIVERY_STATUSES.includes(st);
-                                            const isDisabledDueToStock =
-                                                isDeliveryStatus &&
-                                                stockWarnings.length > 0 &&
-                                                !skipStockCheck;
-                                            const isDisabledDueToTransit =
-                                                isInTransit &&
-                                                BLOCKED_WHEN_IN_TRANSIT.includes(st);
-                                            const isDisabledDueToDeliveryDate =
-                                                !!deliveryDate &&
-                                                (st === "WAITING_FOR_CORRECTION" ||
-                                                    st === "APPROVED");
-                                            const isDisabled =
-                                                isDisabledDueToStock ||
-                                                isDisabledDueToTransit ||
-                                                isDisabledDueToDeliveryDate;
-
-                                            return (
-                                                <SelectItem
-                                                    key={st}
-                                                    value={st}
-                                                    className={`rounded-lg ${isDisabled ? "opacity-50" : ""}`}
-                                                    disabled={isDisabled}
-                                                >
-                                                    {SaleStatusLabels[
-                                                        st as keyof typeof SaleStatusLabels
-                                                    ] || st}
-                                                    {isDisabledDueToStock &&
-                                                        " (สต็อกไม่พอ)"}
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-gray-500 flex items-center gap-1.5">
-                                    <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
-                                    เลือกสถานะปัจจุบันของรายการขาย
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* 2. Delivery Date */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <Truck className="h-4 w-4 text-[#B91C1C]" />
-                                    วันที่จัดส่งของ
-                                    {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) && (
-                                        <span className="text-rose-600 ml-1">*</span>
-                                    )}
-                                </label>
-                                <div className="relative">
-                                    <DatePicker
-                                        value={deliveryDate}
-                                        onChange={(val) => {
-                                            if (!val && deliveryDate) return;
-                                            setDeliveryDate(val || "");
-                                        }}
-                                        label=""
-                                        placeholder="เลือกวันที่จัดส่ง"
-                                        disabled={
-                                            !["AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status)
-                                        }
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader icon={<FileText className="h-6 w-6" />} title="ข้อมูลการขาย" />
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* 5. เลขที่คำสั่งขาย (Ref จากระบบอื่น) */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-[#B91C1C]" />
+                                        เลขที่คำสั่งขาย
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="flex h-11 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        placeholder="กรอกเลขที่คำสั่งขาย"
+                                        value={saleOrderRef}
+                                        onChange={(e) => setSaleOrderRef(e.target.value)}
                                     />
+                                    <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                        <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
+                                        เลขที่อ้างอิงคำสั่งขายจากระบบภายนอก
+                                    </p>
                                 </div>
-                                {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
-                                    !deliveryDate && (
-                                        <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
-                                            ระบุวันที่จัดส่งเมื่อสถานะเป็น &ldquo;
-                                            {getDeliveryStatusLabel(status)}&rdquo;
-                                        </p>
-                                    )}
+                                {/* 1. Payment Status */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <ClipboardCheck className="h-4 w-4 text-[#B91C1C]" />
+                                        สถานะ
+                                    </label>
+                                    <Select value={status} onValueChange={setStatus}>
+                                        <SelectTrigger className="w-full h-12 border border-gray-200 hover:border-[#B91C1C]/40 focus:border-[#B91C1C] transition-colors rounded-lg shadow-sm">
+                                            <SelectValue placeholder="เลือกสถานะ" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                            {FULFILLMENT_STATUSES.map((st) => {
+                                                const isDeliveryStatus =
+                                                    DELIVERY_STATUSES.includes(st);
+                                                const isDisabledDueToStock =
+                                                    isDeliveryStatus &&
+                                                    stockWarnings.length > 0 &&
+                                                    !skipStockCheck;
+                                                const isDisabledDueToTransit =
+                                                    isInTransit &&
+                                                    BLOCKED_WHEN_IN_TRANSIT.includes(st);
+                                                const isDisabledDueToDeliveryDate =
+                                                    !!deliveryDate &&
+                                                    (st === "WAITING_FOR_CORRECTION" ||
+                                                        st === "APPROVED");
+                                                const isDisabled =
+                                                    isDisabledDueToStock ||
+                                                    isDisabledDueToTransit ||
+                                                    isDisabledDueToDeliveryDate;
+
+                                                return (
+                                                    <SelectItem
+                                                        key={st}
+                                                        value={st}
+                                                        className={`rounded-lg ${isDisabled ? "opacity-50" : ""}`}
+                                                        disabled={isDisabled}
+                                                    >
+                                                        {SaleStatusLabels[
+                                                            st as keyof typeof SaleStatusLabels
+                                                        ] || st}
+                                                        {isDisabledDueToStock &&
+                                                            " (สต็อกไม่พอ)"}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                        <span className="h-1 w-1 rounded-full bg-gray-400 inline-block"></span>
+                                        เลือกสถานะปัจจุบันของรายการขาย
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* 3. Due Date */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-[#B91C1C]" />
-                                    วันครบกำหนดชำระ
-                                </label>
-                                <div className="relative">
-                                    <DatePicker
-                                        value={dueDate}
-                                        onChange={(val) => setDueDate(val || "")}
-                                        label=""
-                                        placeholder="เลือกวันครบกำหนด"
-                                        disabled={status === "WAITING_FOR_CORRECTION"}
-                                    />
-                                </div>
-                                <p className="text-xs text-gray-500 flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-lg">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-gray-400 inline-block"></span>
-                                    คำนวณจาก วันส่ง + {sale.creditDays || 0} วัน
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* 6. Notes */}
-                        <div className="space-y-3 group/field">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 px-2">
-                                หมายเหตุ
-                                {status === "CANCELLED" && (
-                                    <span className="text-rose-600 ml-1">*</span>
-                                )}
-                            </label>
-                            <textarea
-                                className="flex min-h-[100px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                                placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                            />
-                            {status === "CANCELLED" && !notes.trim() && (
-                                <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg mt-2">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
-                                    จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                )} {/* end !isSplitMode — ข้อมูลการขาย */}
-
-                {!isSplitMode && (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <SectionHeader
-                        icon={<CreditCard className="h-6 w-6" />}
-                        title="ข้อมูลการชำระเงิน"
-                        variant="dark"
-                    />
-                    <div className="p-6">
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* 4. Payment Date */}
-                            <div className="space-y-3 group/field">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <CreditCard className="h-4 w-4 text-[#B91C1C]" />
-                                    วันที่ชำระเงิน
-                                    {status === "COMPLETED" && (
-                                        <span className="text-rose-600 ml-1">*</span>
-                                    )}
-                                </label>
-                                <div className="relative">
-                                    <DatePicker
-                                        value={paymentDate}
-                                        onChange={(val) => {
-                                            setPaymentDate(val || "");
-                                            if (val) {
-                                                setStatus("COMPLETED");
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* 2. Delivery Date */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <Truck className="h-4 w-4 text-[#B91C1C]" />
+                                        วันที่จัดส่งของ
+                                        {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) && (
+                                            <span className="text-rose-600 ml-1">*</span>
+                                        )}
+                                    </label>
+                                    <div className="relative">
+                                        <DatePicker
+                                            value={deliveryDate}
+                                            onChange={(val) => {
+                                                if (!val && deliveryDate) return;
+                                                setDeliveryDate(val || "");
+                                            }}
+                                            label=""
+                                            placeholder="เลือกวันที่จัดส่ง"
+                                            disabled={
+                                                !["AWAITING_DELIVERY", "DELIVERED", "DELIVERY_COMPLETED", "COMPLETED"].includes(status)
                                             }
-                                        }}
-                                        label=""
-                                        placeholder="เลือกวันที่ชำระเงิน"
-                                        disabled={status === "WAITING_FOR_CORRECTION"}
-                                    />
+                                        />
+                                    </div>
+                                    {DELIVERY_DATE_REQUIRED_STATUSES.includes(status) &&
+                                        !deliveryDate && (
+                                            <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                                ระบุวันที่จัดส่งเมื่อสถานะเป็น &ldquo;
+                                                {getDeliveryStatusLabel(status)}&rdquo;
+                                            </p>
+                                        )}
                                 </div>
-                                {status === "COMPLETED" && !paymentDate && (
-                                    <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
+
+                                {/* 3. Due Date */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-[#B91C1C]" />
+                                        วันครบกำหนดชำระ
+                                    </label>
+                                    <div className="relative">
+                                        <DatePicker
+                                            value={dueDate}
+                                            onChange={(val) => setDueDate(val || "")}
+                                            label=""
+                                            placeholder="เลือกวันครบกำหนด"
+                                            disabled={status === "WAITING_FOR_CORRECTION"}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-lg">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-gray-400 inline-block"></span>
+                                        คำนวณจาก วันส่ง + {sale.creditDays || 0} วัน
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* 6. Notes */}
+                            <div className="space-y-3 group/field">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 px-2">
+                                    หมายเหตุ
+                                    {status === "CANCELLED" && (
+                                        <span className="text-rose-600 ml-1">*</span>
+                                    )}
+                                </label>
+                                <textarea
+                                    className="flex min-h-[100px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm transition-all hover:border-[#B91C1C]/40 focus:border-[#B91C1C] focus:ring-4 focus:ring-[#B91C1C]/15 placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                                    placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                />
+                                {status === "CANCELLED" && !notes.trim() && (
+                                    <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg mt-2">
                                         <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
-                                        จำเป็นต้องระบุเมื่อสถานะเป็น &ldquo;เสร็จสิ้น&rdquo;
+                                        จำเป็นต้องระบุหมายเหตุเมื่อยกเลิกรายการขาย
                                     </p>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
+                )} {/* end !isSplitMode — ข้อมูลการขาย */}
+
+                {!isSplitMode && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader
+                            icon={<CreditCard className="h-6 w-6" />}
+                            title="ข้อมูลการชำระเงิน"
+                            variant="dark"
+                        />
+                        <div className="p-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {/* 4. Payment Date */}
+                                <div className="space-y-3 group/field">
+                                    <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <CreditCard className="h-4 w-4 text-[#B91C1C]" />
+                                        วันที่ชำระเงิน
+                                        {status === "COMPLETED" && (
+                                            <span className="text-rose-600 ml-1">*</span>
+                                        )}
+                                    </label>
+                                    <div className="relative">
+                                        <DatePicker
+                                            value={paymentDate}
+                                            onChange={(val) => {
+                                                setPaymentDate(val || "");
+                                                if (val) {
+                                                    setStatus("COMPLETED");
+                                                }
+                                            }}
+                                            label=""
+                                            placeholder="เลือกวันที่ชำระเงิน"
+                                            disabled={status === "WAITING_FOR_CORRECTION"}
+                                        />
+                                    </div>
+                                    {status === "COMPLETED" && !paymentDate && (
+                                        <p className="text-xs text-rose-600 font-medium flex items-center gap-1.5 bg-rose-50 px-3 py-2 rounded-lg">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                            จำเป็นต้องระบุเมื่อสถานะเป็น &ldquo;เสร็จสิ้น&rdquo;
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )} {/* end !isSplitMode — ข้อมูลการชำระเงิน */}
 
                 {!isSplitMode && (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <SectionHeader icon={<Package className="h-6 w-6" />} title="ข้อมูลสต็อกสินค้า" />
-                    <div className="p-6 space-y-3">
-                        {/* 8. LOT Selection - Always show for selecting stock lots */}
-                        <div className="space-y-3 group/field">
-                            <LotSelector
-                                saleId={id}
-                                onAllocationsChange={handleLotAllocationsChange}
-                                disabled={
-                                    submitting ||
-                                    status != "CANCELLED" ||
-                                    (saleData &&
-                                        LOT_LOCKED_STATUSES.includes(
-                                            saleData.sale.status,
-                                        ))
-                                }
-                            />
-                            {lotAllocations.length > 0 && !lotAllocationsValid && (
-                                <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
-                                    กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
-                                </p>
-                            )}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                        <SectionHeader icon={<Package className="h-6 w-6" />} title="ข้อมูลสต็อกสินค้า" />
+                        <div className="p-6 space-y-3">
+                            {/* 8. LOT Selection - Always show for selecting stock lots */}
+                            <div className="space-y-3 group/field">
+                                <LotSelector
+                                    saleId={id}
+                                    onAllocationsChange={handleLotAllocationsChange}
+                                    disabled={
+                                        submitting ||
+                                        status != "CANCELLED" ||
+                                        (saleData &&
+                                            LOT_LOCKED_STATUSES.includes(
+                                                saleData.sale.status,
+                                            ))
+                                    }
+                                />
+                                {lotAllocations.length > 0 && !lotAllocationsValid && (
+                                    <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 px-3 py-2 rounded-lg">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block"></span>
+                                        กรุณาระบุ LOT สินค้าให้ครบตามจำนวนที่ต้องการส่ง
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
                 )} {/* end !isSplitMode — ข้อมูลสต็อกสินค้า */}
 
                 {!isSplitMode && (
-                <div className="pt-2 space-y-4">
-                    <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
-                        <Button
-                            asChild
-                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
-                        >
-                            <Link href={`/sales/${sale.id}/detail`} target="_blank">
-                                <FileText className="h-4 w-4 mr-2" />
-                                ดูเอกสาร PDF
-                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
-                        >
-                            <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
-                                <FileText className="h-4 w-4 mr-2" />
-                                ดูเอกสารพิเศษ PDF
-                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
-                            </Link>
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={() => router.back()}
-                            className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
-                            disabled={submitting}
-                        >
-                            <X className="h-4 w-4" />
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={submitting}
-                            className="w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm transition-all"
-                        >
-                            {submitting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    กำลังบันทึก...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="h-4 w-4" />
-                                    บันทึก
-                                </>
-                            )}
-                        </Button>
+                    <div className="pt-2 space-y-4">
+                        <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
+                            <Button
+                                asChild
+                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
+                            >
+                                <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    ดูเอกสาร PDF
+                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                                </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
+                            >
+                                <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    ดูเอกสารพิเศษ PDF
+                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                                </Link>
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() => router.back()}
+                                className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
+                                disabled={submitting}
+                            >
+                                <X className="h-4 w-4" />
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-32 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-sm transition-all"
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        กำลังบันทึก...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="h-4 w-4" />
+                                        บันทึก
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                        <div className="w-full h-12 sm:hidden"></div>
                     </div>
-                    <div className="w-full h-12 sm:hidden"></div>
-                </div>
                 )} {/* end !isSplitMode — action buttons */}
 
                 {/* Split mode: แสดงเฉพาะปุ่ม PDF และ Back */}
                 {isSplitMode && (
-                <div className="pt-2 space-y-4">
-                    <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
-                        <Button
-                            asChild
-                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
-                        >
-                            <Link href={`/sales/${sale.id}/detail`} target="_blank">
-                                <FileText className="h-4 w-4 mr-2" />
-                                ดูเอกสาร PDF
-                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
-                        >
-                            <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
-                                <FileText className="h-4 w-4 mr-2" />
-                                ดูเอกสารพิเศษ PDF
-                                <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
-                            </Link>
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={() => router.back()}
-                            className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
-                        >
-                            <X className="h-4 w-4" />
-                            กลับ
-                        </Button>
+                    <div className="pt-2 space-y-4">
+                        <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
+                            <Button
+                                asChild
+                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white h-10 font-medium px-6 shadow-md shadow-blue-500/20 rounded-xl"
+                            >
+                                <Link href={`/sales/${sale.id}/detail`} target="_blank">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    ดูเอกสาร PDF
+                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                                </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white h-10 font-medium px-6 shadow-md shadow-amber-500/20 rounded-xl"
+                            >
+                                <Link href={`/sales/${sale.id}/special-detail`} target="_blank">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    ดูเอกสารพิเศษ PDF
+                                    <ExternalLink className="h-3.5 w-3.5 ml-2 opacity-70" />
+                                </Link>
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={() => router.back()}
+                                className="w-32 h-10 rounded-xl bg-gray-500 hover:bg-gray-600 text-white font-semibold shadow-sm transition-all"
+                            >
+                                <X className="h-4 w-4" />
+                                กลับ
+                            </Button>
+                        </div>
+                        <div className="w-full h-12 sm:hidden"></div>
                     </div>
-                    <div className="w-full h-12 sm:hidden"></div>
-                </div>
                 )} {/* end isSplitMode — split action buttons */}
             </form>
         </div>
