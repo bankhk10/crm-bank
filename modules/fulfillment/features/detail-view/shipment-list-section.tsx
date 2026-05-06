@@ -293,7 +293,7 @@ function ShipmentCard({
               size="sm"
               variant="outline"
               className="h-7 gap-1.5 border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs"
-              disabled={isPending}
+              disabled={isPending || !shipment.scheduledDate}
               onClick={() => handleStatusChange("IN_TRANSIT")}
             >
               <Truck className="h-3 w-3" />
