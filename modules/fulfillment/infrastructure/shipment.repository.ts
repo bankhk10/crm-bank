@@ -42,22 +42,23 @@ export const ShipmentRepository = {
     });
     const shipmentNumber = (lastShipment?.shipmentNumber ?? 0) + 1;
 
-    // ดึง unitPrice จาก SaleItem เพื่อคำนวณราคา
+    // ดึง unitPrice และ packageSizePerBox จาก SaleItem เพื่อคำนวณราคา
     const saleItemIds = data.items.map((i) => i.saleItemId);
     const saleItems = await client.saleItem.findMany({
       where: { id: { in: saleItemIds } },
-      select: { id: true, unitPrice: true },
+      select: { id: true, unitPrice: true, packageSizePerBox: true },
     });
-    const priceMap = new Map(saleItems.map((si) => [si.id, si.unitPrice]));
+    const itemMap = new Map(saleItems.map((si) => [si.id, si]));
 
-    // คำนวณราคาแต่ละรายการ
+    // คำนวณราคาแต่ละรายการ (ราคา/ลัง = unitPrice * packageSizePerBox)
     const itemsWithPrice = data.items.map((item) => {
-      const unitPrice = priceMap.get(item.saleItemId) ?? 0;
-      const totalPrice =
-        typeof unitPrice === "object"
-          ? Number(unitPrice) * item.quantity
-          : Number(unitPrice) * item.quantity;
-      return { ...item, unitPrice: Number(unitPrice), totalPrice };
+      const si = itemMap.get(item.saleItemId);
+      const unitPrice = Number(si?.unitPrice ?? 0);
+      const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
+      const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+
+      const totalPrice = unitPrice * multiplier * item.quantity;
+      return { ...item, unitPrice, totalPrice };
     });
 
     // รวมมูลค่าทั้งหมดของรอบส่งนี้
@@ -182,18 +183,22 @@ export const ShipmentRepository = {
     // Handle items update if provided
     let totalAmountUpdate = {};
     if (data.items) {
-      // ดึง unitPrice จาก SaleItem เพื่อคำนวณราคาใหม่
+      // ดึง unitPrice และ packageSizePerBox จาก SaleItem เพื่อคำนวณราคาใหม่
       const saleItemIds = data.items.map((i) => i.saleItemId);
       const saleItems = await client.saleItem.findMany({
         where: { id: { in: saleItemIds } },
-        select: { id: true, unitPrice: true },
+        select: { id: true, unitPrice: true, packageSizePerBox: true },
       });
-      const priceMap = new Map(saleItems.map((si) => [si.id, si.unitPrice]));
+      const itemMap = new Map(saleItems.map((si) => [si.id, si]));
 
       const itemsWithPrice = data.items.map((item) => {
-        const unitPrice = priceMap.get(item.saleItemId) ?? 0;
-        const totalPrice = Number(unitPrice) * item.quantity;
-        return { ...item, unitPrice: Number(unitPrice), totalPrice };
+        const si = itemMap.get(item.saleItemId);
+        const unitPrice = Number(si?.unitPrice ?? 0);
+        const packSize = parseFloat(si?.packageSizePerBox?.toString() || "1");
+        const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+
+        const totalPrice = unitPrice * multiplier * item.quantity;
+        return { ...item, unitPrice, totalPrice };
       });
 
       const totalAmount = itemsWithPrice.reduce((sum, i) => sum + i.totalPrice, 0);
