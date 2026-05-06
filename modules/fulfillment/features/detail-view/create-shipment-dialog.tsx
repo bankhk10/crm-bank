@@ -137,7 +137,8 @@ export function CreateShipmentDialog({
     }
   };
 
-  const isDelivered = shipment?.status === "DELIVERED";
+  const isDelivered = shipment?.status === "DELIVERED" || shipment?.status === "COMPLETED";
+  const isCompleted = shipment?.status === "COMPLETED";
 
   const onSubmit = (data: FormValues) => {
     // Build items array — only include items with quantity > 0
@@ -222,7 +223,7 @@ export function CreateShipmentDialog({
             size="sm"
             variant="outline"
             className="h-7 gap-1.5 border-amber-200 text-amber-700 hover:bg-amber-50 text-xs"
-            disabled={disabled}
+            disabled={disabled || isCompleted}
           >
             <Edit2 className="h-3 w-3" />
             แก้ไข
@@ -354,6 +355,7 @@ export function CreateShipmentDialog({
                 placeholder="เช่น SO-2024-001"
                 className="h-9"
                 {...register("salesOrderNumber")}
+                disabled={isCompleted}
               />
             </div>
 
@@ -367,6 +369,7 @@ export function CreateShipmentDialog({
                 type="date"
                 className="h-9"
                 {...register("paymentDate")}
+                disabled={isCompleted}
               />
             </div>
           </div>
@@ -382,6 +385,7 @@ export function CreateShipmentDialog({
               rows={2}
               className="resize-none text-sm"
               {...register("notes")}
+              disabled={isCompleted}
             />
           </div>
 
@@ -414,7 +418,7 @@ export function CreateShipmentDialog({
               <Button
                 type="submit"
                 size="sm"
-                disabled={isPending}
+                disabled={isPending || isCompleted}
                 className={`gap-1.5 ${isEdit ? "bg-amber-600 hover:bg-amber-700" : "bg-purple-600 hover:bg-purple-700"}`}
               >
                 {isPending ? (
