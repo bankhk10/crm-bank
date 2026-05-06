@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { toast } from "sonner";
@@ -10,8 +10,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  ChevronDown,
-  ChevronUp,
   FileDown,
   ArrowRight,
 } from "lucide-react";
@@ -88,7 +86,6 @@ function ShipmentCard({
   creditDays: number;
   onUpdated: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleStatusChange = (newStatus: string) => {
@@ -200,118 +197,91 @@ function ShipmentCard({
           </div>
         </div>
 
-        {/* Items summary */}
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {shipment.items.length} รายการ · {totalItems} ชิ้น
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-xs"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? (
-              <>
-                <ChevronUp className="mr-1 h-3 w-3" />
-                ซ่อน
-              </>
-            ) : (
-              <>
-                <ChevronDown className="mr-1 h-3 w-3" />
-                ดูรายการและราคา
-              </>
-            )}
-          </Button>
-        </div>
+        {/* Items table */}
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40">
+                <TableHead className="h-7 text-xs">สินค้า</TableHead>
+                <TableHead className="h-7 text-right text-xs">จำนวน</TableHead>
+                <TableHead className="h-7 text-xs">หน่วย</TableHead>
+                <TableHead className="h-7 text-center text-xs">บรรจุ</TableHead>
+                <TableHead className="h-7 text-right text-xs">ราคา/หน่วย</TableHead>
+                <TableHead className="h-7 text-right text-xs">ราคา/ลัง</TableHead>
+                <TableHead className="h-7 text-right text-xs">งบ/ลัง</TableHead>
+                <TableHead className="h-7 text-right text-xs">ราคารวม</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {shipment.items.map((item) => {
+                const qty = item.quantity;
+                const unitPrice = Number(item.unitPrice ?? 0);
+                const packSize = parseFloat(
+                  item.saleItem.packageSizePerBox?.toString() || "1"
+                );
+                const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
+                const cartonPrice = unitPrice * multiplier;
+                const promotionBudget = Number(item.saleItem.promotionBudget ?? 0);
+                // ราคารวม = จำนวน × ราคา/ลัง
+                const totalByCarton = qty * cartonPrice;
 
-        {/* Items table (collapsible) */}
-        {expanded && (
-          <div className="overflow-hidden rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40">
-                  <TableHead className="h-7 text-xs">สินค้า</TableHead>
-                  <TableHead className="h-7 text-right text-xs">จำนวน</TableHead>
-                  <TableHead className="h-7 text-xs">หน่วย</TableHead>
-                  <TableHead className="h-7 text-center text-xs">บรรจุ</TableHead>
-                  <TableHead className="h-7 text-right text-xs">ราคา/หน่วย</TableHead>
-                  <TableHead className="h-7 text-right text-xs">ราคา/ลัง</TableHead>
-                  <TableHead className="h-7 text-right text-xs">งบ/ลัง</TableHead>
-                  <TableHead className="h-7 text-right text-xs">ราคารวม</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {shipment.items.map((item) => {
-                  const qty = item.quantity;
+                return (
+                  <TableRow key={item.id} className="text-xs">
+                    <TableCell className="py-1.5">
+                      <span className="font-medium">{item.saleItem.productCode}</span>
+                      <br />
+                      <span className="text-muted-foreground">{item.saleItem.name}</span>
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right font-semibold">
+                      {qty}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-muted-foreground">
+                      {item.saleItem.unit}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-center text-muted-foreground">
+                      {item.saleItem.packageSizePerBox ?? "-"}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right text-muted-foreground">
+                      ฿{unitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right font-semibold text-foreground">
+                      ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right">
+                      {promotionBudget > 0 ? (
+                        <span className="text-emerald-600 font-semibold">
+                          ฿{promotionBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-1.5 text-right font-semibold text-purple-700 dark:text-purple-300">
+                      ฿{totalByCarton.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          {/* Total row */}
+          <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-2">
+            <span className="text-xs text-muted-foreground">
+              {shipment.items.length} รายการ · {totalItems} ชิ้น
+            </span>
+            <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
+              มูลค่ารวม: ฿{(() => {
+                const total = shipment.items.reduce((sum, item) => {
                   const unitPrice = Number(item.unitPrice ?? 0);
-                  const packSize = parseFloat(
-                    item.saleItem.packageSizePerBox?.toString() || "1"
-                  );
+                  const packSize = parseFloat(item.saleItem.packageSizePerBox?.toString() || "1");
                   const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                  const cartonPrice = unitPrice * multiplier;
-                  const promotionBudget = Number(item.saleItem.promotionBudget ?? 0);
-                  // ราคารวม = จำนวน × ราคา/ลัง
-                  const totalByCarton = qty * cartonPrice;
-
-                  return (
-                    <TableRow key={item.id} className="text-xs">
-                      <TableCell className="py-1.5">
-                        <span className="font-medium">{item.saleItem.productCode}</span>
-                        <br />
-                        <span className="text-muted-foreground">{item.saleItem.name}</span>
-                      </TableCell>
-                      <TableCell className="py-1.5 text-right font-semibold">
-                        {qty}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-muted-foreground">
-                        {item.saleItem.unit}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-center text-muted-foreground">
-                        {item.saleItem.packageSizePerBox ?? "-"}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-right text-muted-foreground">
-                        ฿{unitPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-right font-semibold text-foreground">
-                        ฿{cartonPrice.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-right">
-                        {promotionBudget > 0 ? (
-                          <span className="text-emerald-600 font-semibold">
-                            ฿{promotionBudget.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-1.5 text-right font-semibold text-purple-700 dark:text-purple-300">
-                        ฿{totalByCarton.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-            {/* Total row */}
-            <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-2">
-              <span className="text-xs text-muted-foreground">
-                {shipment.items.length} รายการ · {totalItems} ชิ้น
-              </span>
-              <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
-                มูลค่ารวม: ฿{(() => {
-                  const total = shipment.items.reduce((sum, item) => {
-                    const unitPrice = Number(item.unitPrice ?? 0);
-                    const packSize = parseFloat(item.saleItem.packageSizePerBox?.toString() || "1");
-                    const multiplier = isNaN(packSize) || packSize <= 0 ? 1 : packSize;
-                    return sum + item.quantity * unitPrice * multiplier;
-                  }, 0);
-                  return total.toLocaleString("th-TH", { minimumFractionDigits: 2 });
-                })()}
-              </span>
-            </div>
+                  return sum + item.quantity * unitPrice * multiplier;
+                }, 0);
+                return total.toLocaleString("th-TH", { minimumFractionDigits: 2 });
+              })()}
+            </span>
           </div>
-        )}
+        </div>
 
         {/* Notes */}
         {shipment.notes && (
