@@ -142,31 +142,26 @@ function ShipmentCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-              #{shipment.shipmentNumber}
+              {shipment.shipmentNumber}
             </div>
             <div>
               <CardTitle className="text-sm font-semibold">
                 การจัดส่งครั้งที่ {shipment.shipmentNumber}
               </CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {shipment.salesOrderNumber && ` · เลขที่คำสั่งขาย: ${shipment.salesOrderNumber}`}
+                {shipment.salesOrderNumber && `เลขที่คำสั่งขาย: ${shipment.salesOrderNumber}`}
               </p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
             <ShipmentStatusBadge status={shipment.status} />
-            {totalAmount > 0 && (
-              <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
-                ฿{totalAmount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-              </span>
-            )}
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3 pt-0">
         {/* Date info */}
-        <div className="grid grid-cols-2 gap-y-2 gap-x-4 rounded-md bg-muted/30 p-3 text-xs">
+        <div className="grid grid-cols-3 gap-y-2 gap-x-4 rounded-md bg-muted/30 p-3 text-xs">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span>วันที่จัดส่งของ:</span>
@@ -175,10 +170,10 @@ function ShipmentCard({
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <CheckCircle2 className="h-3 w-3" />
-            <span>ส่งจริง:</span>
+            <Clock className="h-3 w-3" />
+            <span>ครบกำหนดชำระ:</span>
             <span className="font-medium text-foreground">
-              {safeFormatDate(shipment.actualDate)}
+              {safeFormatDate(shipment.dueDate)}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -186,13 +181,6 @@ function ShipmentCard({
             <span>วันที่ชำระเงิน:</span>
             <span className="font-medium text-foreground">
               {safeFormatDate(shipment.paymentDate)}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>ครบกำหนดชำระ:</span>
-            <span className="font-medium text-foreground">
-              {safeFormatDate(shipment.dueDate)}
             </span>
           </div>
         </div>
@@ -228,9 +216,9 @@ function ShipmentCard({
                 return (
                   <TableRow key={item.id} className="text-xs">
                     <TableCell className="py-1.5">
-                      <span className="font-medium">{item.saleItem.productCode}</span>
+                      <span className="font-medium">{item.saleItem.name}</span>
                       <br />
-                      <span className="text-muted-foreground">{item.saleItem.name}</span>
+                      <span className="text-muted-foreground">{item.saleItem.productCode}</span>
                     </TableCell>
                     <TableCell className="py-1.5 text-right font-semibold">
                       {qty}
